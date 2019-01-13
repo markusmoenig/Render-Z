@@ -1,0 +1,599 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
+		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
+		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
+		2BBF110121EAD2B0001C94E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF110021EAD2B0001C94E9 /* Assets.xcassets */; };
+		2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF110221EAD2B0001C94E9 /* Main.storyboard */; };
+		2BBF111021EAD2B0001C94E9 /* Shape_ZTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF110F21EAD2B0001C94E9 /* Shape_ZTests.swift */; };
+		2BBF111B21EAD2B0001C94E9 /* Shape_ZUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF111A21EAD2B0001C94E9 /* Shape_ZUITests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		2BBF110C21EAD2B0001C94E9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2BBF10EE21EAD2AF001C94E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2BBF10F521EAD2AF001C94E9;
+			remoteInfo = "Shape-Z";
+		};
+		2BBF111721EAD2B0001C94E9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 2BBF10EE21EAD2AF001C94E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2BBF10F521EAD2AF001C94E9;
+			remoteInfo = "Shape-Z";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		2BBF10FE21EAD2AF001C94E9 /* Shape_Z.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Shape_Z.xcdatamodel; sourceTree = "<group>"; };
+		2BBF110021EAD2B0001C94E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2BBF110321EAD2B0001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		2BBF110521EAD2B0001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2BBF110621EAD2B0001C94E9 /* Shape_Z.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Shape_Z.entitlements; sourceTree = "<group>"; };
+		2BBF110B21EAD2B0001C94E9 /* Shape-ZTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Shape-ZTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BBF110F21EAD2B0001C94E9 /* Shape_ZTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shape_ZTests.swift; sourceTree = "<group>"; };
+		2BBF111121EAD2B0001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2BBF111621EAD2B0001C94E9 /* Shape-ZUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Shape-ZUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BBF111A21EAD2B0001C94E9 /* Shape_ZUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shape_ZUITests.swift; sourceTree = "<group>"; };
+		2BBF111C21EAD2B0001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2BBF10F321EAD2AF001C94E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2BBF110821EAD2B0001C94E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2BBF111321EAD2B0001C94E9 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		2BBF10ED21EAD2AF001C94E9 = {
+			isa = PBXGroup;
+			children = (
+				2BBF10F821EAD2AF001C94E9 /* Shape-Z */,
+				2BBF110E21EAD2B0001C94E9 /* Shape-ZTests */,
+				2BBF111921EAD2B0001C94E9 /* Shape-ZUITests */,
+				2BBF10F721EAD2AF001C94E9 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		2BBF10F721EAD2AF001C94E9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */,
+				2BBF110B21EAD2B0001C94E9 /* Shape-ZTests.xctest */,
+				2BBF111621EAD2B0001C94E9 /* Shape-ZUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		2BBF10F821EAD2AF001C94E9 /* Shape-Z */ = {
+			isa = PBXGroup;
+			children = (
+				2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */,
+				2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */,
+				2BBF110021EAD2B0001C94E9 /* Assets.xcassets */,
+				2BBF110221EAD2B0001C94E9 /* Main.storyboard */,
+				2BBF110521EAD2B0001C94E9 /* Info.plist */,
+				2BBF110621EAD2B0001C94E9 /* Shape_Z.entitlements */,
+				2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */,
+			);
+			path = "Shape-Z";
+			sourceTree = "<group>";
+		};
+		2BBF110E21EAD2B0001C94E9 /* Shape-ZTests */ = {
+			isa = PBXGroup;
+			children = (
+				2BBF110F21EAD2B0001C94E9 /* Shape_ZTests.swift */,
+				2BBF111121EAD2B0001C94E9 /* Info.plist */,
+			);
+			path = "Shape-ZTests";
+			sourceTree = "<group>";
+		};
+		2BBF111921EAD2B0001C94E9 /* Shape-ZUITests */ = {
+			isa = PBXGroup;
+			children = (
+				2BBF111A21EAD2B0001C94E9 /* Shape_ZUITests.swift */,
+				2BBF111C21EAD2B0001C94E9 /* Info.plist */,
+			);
+			path = "Shape-ZUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2BBF10F521EAD2AF001C94E9 /* Shape-Z */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2BBF111F21EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "Shape-Z" */;
+			buildPhases = (
+				2BBF10F221EAD2AF001C94E9 /* Sources */,
+				2BBF10F321EAD2AF001C94E9 /* Frameworks */,
+				2BBF10F421EAD2AF001C94E9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Shape-Z";
+			productName = "Shape-Z";
+			productReference = 2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */;
+			productType = "com.apple.product-type.application";
+		};
+		2BBF110A21EAD2B0001C94E9 /* Shape-ZTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2BBF112221EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "Shape-ZTests" */;
+			buildPhases = (
+				2BBF110721EAD2B0001C94E9 /* Sources */,
+				2BBF110821EAD2B0001C94E9 /* Frameworks */,
+				2BBF110921EAD2B0001C94E9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2BBF110D21EAD2B0001C94E9 /* PBXTargetDependency */,
+			);
+			name = "Shape-ZTests";
+			productName = "Shape-ZTests";
+			productReference = 2BBF110B21EAD2B0001C94E9 /* Shape-ZTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		2BBF111521EAD2B0001C94E9 /* Shape-ZUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2BBF112521EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "Shape-ZUITests" */;
+			buildPhases = (
+				2BBF111221EAD2B0001C94E9 /* Sources */,
+				2BBF111321EAD2B0001C94E9 /* Frameworks */,
+				2BBF111421EAD2B0001C94E9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2BBF111821EAD2B0001C94E9 /* PBXTargetDependency */,
+			);
+			name = "Shape-ZUITests";
+			productName = "Shape-ZUITests";
+			productReference = 2BBF111621EAD2B0001C94E9 /* Shape-ZUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2BBF10EE21EAD2AF001C94E9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftUpdateCheck = 1010;
+				LastUpgradeCheck = 1010;
+				ORGANIZATIONNAME = "Markus Moenig";
+				TargetAttributes = {
+					2BBF10F521EAD2AF001C94E9 = {
+						CreatedOnToolsVersion = 10.1;
+					};
+					2BBF110A21EAD2B0001C94E9 = {
+						CreatedOnToolsVersion = 10.1;
+						TestTargetID = 2BBF10F521EAD2AF001C94E9;
+					};
+					2BBF111521EAD2B0001C94E9 = {
+						CreatedOnToolsVersion = 10.1;
+						TestTargetID = 2BBF10F521EAD2AF001C94E9;
+					};
+				};
+			};
+			buildConfigurationList = 2BBF10F121EAD2AF001C94E9 /* Build configuration list for PBXProject "Shape-Z" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 2BBF10ED21EAD2AF001C94E9;
+			productRefGroup = 2BBF10F721EAD2AF001C94E9 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				2BBF10F521EAD2AF001C94E9 /* Shape-Z */,
+				2BBF110A21EAD2B0001C94E9 /* Shape-ZTests */,
+				2BBF111521EAD2B0001C94E9 /* Shape-ZUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		2BBF10F421EAD2AF001C94E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2BBF110121EAD2B0001C94E9 /* Assets.xcassets in Resources */,
+				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2BBF110921EAD2B0001C94E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2BBF111421EAD2B0001C94E9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2BBF10F221EAD2AF001C94E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */,
+				2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */,
+				2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2BBF110721EAD2B0001C94E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2BBF111021EAD2B0001C94E9 /* Shape_ZTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2BBF111221EAD2B0001C94E9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2BBF111B21EAD2B0001C94E9 /* Shape_ZUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2BBF110D21EAD2B0001C94E9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2BBF10F521EAD2AF001C94E9 /* Shape-Z */;
+			targetProxy = 2BBF110C21EAD2B0001C94E9 /* PBXContainerItemProxy */;
+		};
+		2BBF111821EAD2B0001C94E9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2BBF10F521EAD2AF001C94E9 /* Shape-Z */;
+			targetProxy = 2BBF111721EAD2B0001C94E9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		2BBF110221EAD2B0001C94E9 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2BBF110321EAD2B0001C94E9 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		2BBF111D21EAD2B0001C94E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		2BBF111E21EAD2B0001C94E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		2BBF112021EAD2B0001C94E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Shape-Z/Shape_Z.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = G6R6L3VH62;
+				INFOPLIST_FILE = "Shape-Z/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+			};
+			name = Debug;
+		};
+		2BBF112121EAD2B0001C94E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Shape-Z/Shape_Z.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = G6R6L3VH62;
+				INFOPLIST_FILE = "Shape-Z/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+			};
+			name = Release;
+		};
+		2BBF112321EAD2B0001C94E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = G6R6L3VH62;
+				INFOPLIST_FILE = "Shape-ZTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-ZTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Shape-Z.app/Contents/MacOS/Shape-Z";
+			};
+			name = Debug;
+		};
+		2BBF112421EAD2B0001C94E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = G6R6L3VH62;
+				INFOPLIST_FILE = "Shape-ZTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-ZTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Shape-Z.app/Contents/MacOS/Shape-Z";
+			};
+			name = Release;
+		};
+		2BBF112621EAD2B0001C94E9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = G6R6L3VH62;
+				INFOPLIST_FILE = "Shape-ZUITests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-ZUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TEST_TARGET_NAME = "Shape-Z";
+			};
+			name = Debug;
+		};
+		2BBF112721EAD2B0001C94E9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = G6R6L3VH62;
+				INFOPLIST_FILE = "Shape-ZUITests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-ZUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TEST_TARGET_NAME = "Shape-Z";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2BBF10F121EAD2AF001C94E9 /* Build configuration list for PBXProject "Shape-Z" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2BBF111D21EAD2B0001C94E9 /* Debug */,
+				2BBF111E21EAD2B0001C94E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2BBF111F21EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "Shape-Z" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2BBF112021EAD2B0001C94E9 /* Debug */,
+				2BBF112121EAD2B0001C94E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2BBF112221EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "Shape-ZTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2BBF112321EAD2B0001C94E9 /* Debug */,
+				2BBF112421EAD2B0001C94E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2BBF112521EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "Shape-ZUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2BBF112621EAD2B0001C94E9 /* Debug */,
+				2BBF112721EAD2B0001C94E9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				2BBF10FE21EAD2AF001C94E9 /* Shape_Z.xcdatamodel */,
+			);
+			currentVersion = 2BBF10FE21EAD2AF001C94E9 /* Shape_Z.xcdatamodel */;
+			path = Shape_Z.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
+	};
+	rootObject = 2BBF10EE21EAD2AF001C94E9 /* Project object */;
+}
