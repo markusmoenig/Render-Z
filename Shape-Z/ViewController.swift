@@ -10,10 +10,14 @@ import Cocoa
 
 class ViewController: NSViewController {
 
+    var app : App!
+    var mmView : MMView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        
+        mmView = view as? MMView
+        app = App( mmView )
     }
 
     override var representedObject: Any? {

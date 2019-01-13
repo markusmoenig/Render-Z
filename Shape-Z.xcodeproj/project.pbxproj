@@ -12,26 +12,57 @@
 		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
 		2BBF110121EAD2B0001C94E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF110021EAD2B0001C94E9 /* Assets.xcassets */; };
 		2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF110221EAD2B0001C94E9 /* Main.storyboard */; };
-		2BBF111021EAD2B0001C94E9 /* Shape_ZTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF110F21EAD2B0001C94E9 /* Shape_ZTests.swift */; };
-		2BBF111B21EAD2B0001C94E9 /* Shape_ZUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF111A21EAD2B0001C94E9 /* Shape_ZUITests.swift */; };
+		2BBF112F21EAD38E001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */; };
+		2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF113021EAD38E001C94E9 /* ViewController.swift */; };
+		2BBF113421EAD38E001C94E9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF113221EAD38E001C94E9 /* Main.storyboard */; };
+		2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF113521EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld */; };
+		2BBF113921EAD38E001C94E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF113821EAD38E001C94E9 /* Assets.xcassets */; };
+		2BBF113C21EAD38E001C94E9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF113A21EAD38E001C94E9 /* LaunchScreen.storyboard */; };
+		2BBF11A021EAD46B001C94E9 /* TopRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119721EAD46B001C94E9 /* TopRegion.swift */; };
+		2BBF11A121EAD46B001C94E9 /* TopRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119721EAD46B001C94E9 /* TopRegion.swift */; };
+		2BBF11A221EAD46B001C94E9 /* LeftRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119821EAD46B001C94E9 /* LeftRegion.swift */; };
+		2BBF11A321EAD46B001C94E9 /* LeftRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119821EAD46B001C94E9 /* LeftRegion.swift */; };
+		2BBF11A421EAD46B001C94E9 /* AppShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119921EAD46B001C94E9 /* AppShaders.metal */; };
+		2BBF11A521EAD46B001C94E9 /* AppShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119921EAD46B001C94E9 /* AppShaders.metal */; };
+		2BBF11A621EAD46B001C94E9 /* BottomRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119B21EAD46B001C94E9 /* BottomRegion.swift */; };
+		2BBF11A721EAD46B001C94E9 /* BottomRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119B21EAD46B001C94E9 /* BottomRegion.swift */; };
+		2BBF11A821EAD46B001C94E9 /* RightRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119C21EAD46B001C94E9 /* RightRegion.swift */; };
+		2BBF11A921EAD46B001C94E9 /* RightRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119C21EAD46B001C94E9 /* RightRegion.swift */; };
+		2BBF11AA21EAD46B001C94E9 /* EditorRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119D21EAD46B001C94E9 /* EditorRegion.swift */; };
+		2BBF11AB21EAD46B001C94E9 /* EditorRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119D21EAD46B001C94E9 /* EditorRegion.swift */; };
+		2BBF11AC21EAD46B001C94E9 /* Mad4Metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119E21EAD46B001C94E9 /* Mad4Metal.metal */; };
+		2BBF11AD21EAD46B001C94E9 /* Mad4Metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119E21EAD46B001C94E9 /* Mad4Metal.metal */; };
+		2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119F21EAD46B001C94E9 /* App.swift */; };
+		2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119F21EAD46B001C94E9 /* App.swift */; };
+		2BBF11C121EADB46001C94E9 /* MMRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B121EADB46001C94E9 /* MMRenderer.swift */; };
+		2BBF11C221EADB46001C94E9 /* MMRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B121EADB46001C94E9 /* MMRenderer.swift */; };
+		2BBF11C321EADB46001C94E9 /* MMWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B221EADB46001C94E9 /* MMWidget.swift */; };
+		2BBF11C421EADB46001C94E9 /* MMWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B221EADB46001C94E9 /* MMWidget.swift */; };
+		2BBF11C521EADB46001C94E9 /* MMRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B321EADB46001C94E9 /* MMRegion.swift */; };
+		2BBF11C621EADB46001C94E9 /* MMRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B321EADB46001C94E9 /* MMRegion.swift */; };
+		2BBF11C721EADB46001C94E9 /* MMDrawable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B421EADB46001C94E9 /* MMDrawable.swift */; };
+		2BBF11C821EADB46001C94E9 /* MMDrawable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B421EADB46001C94E9 /* MMDrawable.swift */; };
+		2BBF11C921EADB46001C94E9 /* MMUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B521EADB46001C94E9 /* MMUtils.swift */; };
+		2BBF11CA21EADB46001C94E9 /* MMUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B521EADB46001C94E9 /* MMUtils.swift */; };
+		2BBF11CB21EADB46001C94E9 /* MMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; };
+		2BBF11CC21EADB46001C94E9 /* MMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; };
+		2BBF11CD21EADB46001C94E9 /* MMBaseView_mac.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B721EADB46001C94E9 /* MMBaseView_mac.swift */; };
+		2BBF11CF21EADB46001C94E9 /* MMFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B821EADB46001C94E9 /* MMFont.swift */; };
+		2BBF11D021EADB46001C94E9 /* MMFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B821EADB46001C94E9 /* MMFont.swift */; };
+		2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B921EADB46001C94E9 /* MMLabel.swift */; };
+		2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B921EADB46001C94E9 /* MMLabel.swift */; };
+		2BBF11D321EADB46001C94E9 /* MMCompute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BA21EADB46001C94E9 /* MMCompute.swift */; };
+		2BBF11D421EADB46001C94E9 /* MMCompute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BA21EADB46001C94E9 /* MMCompute.swift */; };
+		2BBF11D521EADB46001C94E9 /* MMScrollArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */; };
+		2BBF11D621EADB46001C94E9 /* MMScrollArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */; };
+		2BBF11D721EADB46001C94E9 /* MMSkin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BC21EADB46001C94E9 /* MMSkin.swift */; };
+		2BBF11D821EADB46001C94E9 /* MMSkin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BC21EADB46001C94E9 /* MMSkin.swift */; };
+		2BBF11D921EADB46001C94E9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF11BE21EADB46001C94E9 /* OpenSans.tiff */; };
+		2BBF11DA21EADB46001C94E9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF11BE21EADB46001C94E9 /* OpenSans.tiff */; };
+		2BBF11DB21EADB46001C94E9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF11BF21EADB46001C94E9 /* OpenSans.json */; };
+		2BBF11DC21EADB46001C94E9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF11BF21EADB46001C94E9 /* OpenSans.json */; };
+		2BBF11DE21EADB46001C94E9 /* MMBaseView__ios.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		2BBF110C21EAD2B0001C94E9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 2BBF10EE21EAD2AF001C94E9 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 2BBF10F521EAD2AF001C94E9;
-			remoteInfo = "Shape-Z";
-		};
-		2BBF111721EAD2B0001C94E9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 2BBF10EE21EAD2AF001C94E9 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 2BBF10F521EAD2AF001C94E9;
-			remoteInfo = "Shape-Z";
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,12 +73,38 @@
 		2BBF110321EAD2B0001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		2BBF110521EAD2B0001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2BBF110621EAD2B0001C94E9 /* Shape_Z.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Shape_Z.entitlements; sourceTree = "<group>"; };
-		2BBF110B21EAD2B0001C94E9 /* Shape-ZTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Shape-ZTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2BBF110F21EAD2B0001C94E9 /* Shape_ZTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shape_ZTests.swift; sourceTree = "<group>"; };
-		2BBF111121EAD2B0001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		2BBF111621EAD2B0001C94E9 /* Shape-ZUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Shape-ZUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		2BBF111A21EAD2B0001C94E9 /* Shape_ZUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shape_ZUITests.swift; sourceTree = "<group>"; };
-		2BBF111C21EAD2B0001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2BBF112C21EAD38D001C94E9 /* Shape-Z iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		2BBF113021EAD38E001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		2BBF113321EAD38E001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		2BBF113621EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Shape_Z_iOS.xcdatamodel; sourceTree = "<group>"; };
+		2BBF113821EAD38E001C94E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2BBF113B21EAD38E001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		2BBF113D21EAD38E001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2BBF119721EAD46B001C94E9 /* TopRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TopRegion.swift; sourceTree = "<group>"; };
+		2BBF119821EAD46B001C94E9 /* LeftRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LeftRegion.swift; sourceTree = "<group>"; };
+		2BBF119921EAD46B001C94E9 /* AppShaders.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = AppShaders.metal; sourceTree = "<group>"; };
+		2BBF119A21EAD46B001C94E9 /* Mad4Metal_types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Mad4Metal_types.h; sourceTree = "<group>"; };
+		2BBF119B21EAD46B001C94E9 /* BottomRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BottomRegion.swift; sourceTree = "<group>"; };
+		2BBF119C21EAD46B001C94E9 /* RightRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RightRegion.swift; sourceTree = "<group>"; };
+		2BBF119D21EAD46B001C94E9 /* EditorRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditorRegion.swift; sourceTree = "<group>"; };
+		2BBF119E21EAD46B001C94E9 /* Mad4Metal.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = Mad4Metal.metal; sourceTree = "<group>"; };
+		2BBF119F21EAD46B001C94E9 /* App.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		2BBF11B121EADB46001C94E9 /* MMRenderer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMRenderer.swift; sourceTree = "<group>"; };
+		2BBF11B221EADB46001C94E9 /* MMWidget.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMWidget.swift; sourceTree = "<group>"; };
+		2BBF11B321EADB46001C94E9 /* MMRegion.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMRegion.swift; sourceTree = "<group>"; };
+		2BBF11B421EADB46001C94E9 /* MMDrawable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMDrawable.swift; sourceTree = "<group>"; };
+		2BBF11B521EADB46001C94E9 /* MMUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMUtils.swift; sourceTree = "<group>"; };
+		2BBF11B621EADB46001C94E9 /* MMView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMView.swift; sourceTree = "<group>"; };
+		2BBF11B721EADB46001C94E9 /* MMBaseView_mac.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMBaseView_mac.swift; sourceTree = "<group>"; };
+		2BBF11B821EADB46001C94E9 /* MMFont.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMFont.swift; sourceTree = "<group>"; };
+		2BBF11B921EADB46001C94E9 /* MMLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMLabel.swift; sourceTree = "<group>"; };
+		2BBF11BA21EADB46001C94E9 /* MMCompute.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMCompute.swift; sourceTree = "<group>"; };
+		2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMScrollArea.swift; sourceTree = "<group>"; };
+		2BBF11BC21EADB46001C94E9 /* MMSkin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMSkin.swift; sourceTree = "<group>"; };
+		2BBF11BE21EADB46001C94E9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
+		2BBF11BF21EADB46001C94E9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
+		2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMBaseView__ios.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,14 +115,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		2BBF110821EAD2B0001C94E9 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2BBF111321EAD2B0001C94E9 /* Frameworks */ = {
+		2BBF112921EAD38D001C94E9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -78,9 +128,10 @@
 		2BBF10ED21EAD2AF001C94E9 = {
 			isa = PBXGroup;
 			children = (
+				2BBF119621EAD46B001C94E9 /* Application */,
 				2BBF10F821EAD2AF001C94E9 /* Shape-Z */,
-				2BBF110E21EAD2B0001C94E9 /* Shape-ZTests */,
-				2BBF111921EAD2B0001C94E9 /* Shape-ZUITests */,
+				2BBF112D21EAD38E001C94E9 /* Shape-Z iOS */,
+				2BBF11B021EADB46001C94E9 /* Mad4Metal */,
 				2BBF10F721EAD2AF001C94E9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -89,8 +140,7 @@
 			isa = PBXGroup;
 			children = (
 				2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */,
-				2BBF110B21EAD2B0001C94E9 /* Shape-ZTests.xctest */,
-				2BBF111621EAD2B0001C94E9 /* Shape-ZUITests.xctest */,
+				2BBF112C21EAD38D001C94E9 /* Shape-Z iOS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -109,22 +159,64 @@
 			path = "Shape-Z";
 			sourceTree = "<group>";
 		};
-		2BBF110E21EAD2B0001C94E9 /* Shape-ZTests */ = {
+		2BBF112D21EAD38E001C94E9 /* Shape-Z iOS */ = {
 			isa = PBXGroup;
 			children = (
-				2BBF110F21EAD2B0001C94E9 /* Shape_ZTests.swift */,
-				2BBF111121EAD2B0001C94E9 /* Info.plist */,
+				2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */,
+				2BBF113021EAD38E001C94E9 /* ViewController.swift */,
+				2BBF113221EAD38E001C94E9 /* Main.storyboard */,
+				2BBF113821EAD38E001C94E9 /* Assets.xcassets */,
+				2BBF113A21EAD38E001C94E9 /* LaunchScreen.storyboard */,
+				2BBF113D21EAD38E001C94E9 /* Info.plist */,
+				2BBF113521EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld */,
 			);
-			path = "Shape-ZTests";
+			path = "Shape-Z iOS";
 			sourceTree = "<group>";
 		};
-		2BBF111921EAD2B0001C94E9 /* Shape-ZUITests */ = {
+		2BBF119621EAD46B001C94E9 /* Application */ = {
 			isa = PBXGroup;
 			children = (
-				2BBF111A21EAD2B0001C94E9 /* Shape_ZUITests.swift */,
-				2BBF111C21EAD2B0001C94E9 /* Info.plist */,
+				2BBF119F21EAD46B001C94E9 /* App.swift */,
+				2BBF119821EAD46B001C94E9 /* LeftRegion.swift */,
+				2BBF119721EAD46B001C94E9 /* TopRegion.swift */,
+				2BBF119C21EAD46B001C94E9 /* RightRegion.swift */,
+				2BBF119B21EAD46B001C94E9 /* BottomRegion.swift */,
+				2BBF119D21EAD46B001C94E9 /* EditorRegion.swift */,
+				2BBF119921EAD46B001C94E9 /* AppShaders.metal */,
+				2BBF119E21EAD46B001C94E9 /* Mad4Metal.metal */,
+				2BBF119A21EAD46B001C94E9 /* Mad4Metal_types.h */,
 			);
-			path = "Shape-ZUITests";
+			path = Application;
+			sourceTree = "<group>";
+		};
+		2BBF11B021EADB46001C94E9 /* Mad4Metal */ = {
+			isa = PBXGroup;
+			children = (
+				2BBF11BD21EADB46001C94E9 /* Fonts */,
+				2BBF11B721EADB46001C94E9 /* MMBaseView_mac.swift */,
+				2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */,
+				2BBF11B121EADB46001C94E9 /* MMRenderer.swift */,
+				2BBF11B221EADB46001C94E9 /* MMWidget.swift */,
+				2BBF11B321EADB46001C94E9 /* MMRegion.swift */,
+				2BBF11B421EADB46001C94E9 /* MMDrawable.swift */,
+				2BBF11B521EADB46001C94E9 /* MMUtils.swift */,
+				2BBF11B621EADB46001C94E9 /* MMView.swift */,
+				2BBF11B821EADB46001C94E9 /* MMFont.swift */,
+				2BBF11B921EADB46001C94E9 /* MMLabel.swift */,
+				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
+				2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */,
+				2BBF11BC21EADB46001C94E9 /* MMSkin.swift */,
+			);
+			path = Mad4Metal;
+			sourceTree = "<group>";
+		};
+		2BBF11BD21EADB46001C94E9 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				2BBF11BE21EADB46001C94E9 /* OpenSans.tiff */,
+				2BBF11BF21EADB46001C94E9 /* OpenSans.json */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -147,41 +239,22 @@
 			productReference = 2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */;
 			productType = "com.apple.product-type.application";
 		};
-		2BBF110A21EAD2B0001C94E9 /* Shape-ZTests */ = {
+		2BBF112B21EAD38D001C94E9 /* Shape-Z iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2BBF112221EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "Shape-ZTests" */;
+			buildConfigurationList = 2BBF115421EAD38E001C94E9 /* Build configuration list for PBXNativeTarget "Shape-Z iOS" */;
 			buildPhases = (
-				2BBF110721EAD2B0001C94E9 /* Sources */,
-				2BBF110821EAD2B0001C94E9 /* Frameworks */,
-				2BBF110921EAD2B0001C94E9 /* Resources */,
+				2BBF112821EAD38D001C94E9 /* Sources */,
+				2BBF112921EAD38D001C94E9 /* Frameworks */,
+				2BBF112A21EAD38D001C94E9 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				2BBF110D21EAD2B0001C94E9 /* PBXTargetDependency */,
 			);
-			name = "Shape-ZTests";
-			productName = "Shape-ZTests";
-			productReference = 2BBF110B21EAD2B0001C94E9 /* Shape-ZTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
-		2BBF111521EAD2B0001C94E9 /* Shape-ZUITests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 2BBF112521EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "Shape-ZUITests" */;
-			buildPhases = (
-				2BBF111221EAD2B0001C94E9 /* Sources */,
-				2BBF111321EAD2B0001C94E9 /* Frameworks */,
-				2BBF111421EAD2B0001C94E9 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				2BBF111821EAD2B0001C94E9 /* PBXTargetDependency */,
-			);
-			name = "Shape-ZUITests";
-			productName = "Shape-ZUITests";
-			productReference = 2BBF111621EAD2B0001C94E9 /* Shape-ZUITests.xctest */;
-			productType = "com.apple.product-type.bundle.ui-testing";
+			name = "Shape-Z iOS";
+			productName = "Shape-Z iOS";
+			productReference = 2BBF112C21EAD38D001C94E9 /* Shape-Z iOS.app */;
+			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
@@ -196,13 +269,8 @@
 					2BBF10F521EAD2AF001C94E9 = {
 						CreatedOnToolsVersion = 10.1;
 					};
-					2BBF110A21EAD2B0001C94E9 = {
+					2BBF112B21EAD38D001C94E9 = {
 						CreatedOnToolsVersion = 10.1;
-						TestTargetID = 2BBF10F521EAD2AF001C94E9;
-					};
-					2BBF111521EAD2B0001C94E9 = {
-						CreatedOnToolsVersion = 10.1;
-						TestTargetID = 2BBF10F521EAD2AF001C94E9;
 					};
 				};
 			};
@@ -220,8 +288,7 @@
 			projectRoot = "";
 			targets = (
 				2BBF10F521EAD2AF001C94E9 /* Shape-Z */,
-				2BBF110A21EAD2B0001C94E9 /* Shape-ZTests */,
-				2BBF111521EAD2B0001C94E9 /* Shape-ZUITests */,
+				2BBF112B21EAD38D001C94E9 /* Shape-Z iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -231,22 +298,22 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BBF11DB21EADB46001C94E9 /* OpenSans.json in Resources */,
 				2BBF110121EAD2B0001C94E9 /* Assets.xcassets in Resources */,
+				2BBF11D921EADB46001C94E9 /* OpenSans.tiff in Resources */,
 				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		2BBF110921EAD2B0001C94E9 /* Resources */ = {
+		2BBF112A21EAD38D001C94E9 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2BBF111421EAD2B0001C94E9 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
+				2BBF113C21EAD38E001C94E9 /* LaunchScreen.storyboard in Resources */,
+				2BBF113921EAD38E001C94E9 /* Assets.xcassets in Resources */,
+				2BBF113421EAD38E001C94E9 /* Main.storyboard in Resources */,
+				2BBF11DC21EADB46001C94E9 /* OpenSans.json in Resources */,
+				2BBF11DA21EADB46001C94E9 /* OpenSans.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -257,42 +324,63 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BBF11C321EADB46001C94E9 /* MMWidget.swift in Sources */,
+				2BBF11C121EADB46001C94E9 /* MMRenderer.swift in Sources */,
+				2BBF11A621EAD46B001C94E9 /* BottomRegion.swift in Sources */,
+				2BBF11CD21EADB46001C94E9 /* MMBaseView_mac.swift in Sources */,
+				2BBF11C921EADB46001C94E9 /* MMUtils.swift in Sources */,
+				2BBF11A221EAD46B001C94E9 /* LeftRegion.swift in Sources */,
+				2BBF11AC21EAD46B001C94E9 /* Mad4Metal.metal in Sources */,
+				2BBF11CB21EADB46001C94E9 /* MMView.swift in Sources */,
+				2BBF11D721EADB46001C94E9 /* MMSkin.swift in Sources */,
+				2BBF11AA21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
+				2BBF11A021EAD46B001C94E9 /* TopRegion.swift in Sources */,
+				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
+				2BBF11D521EADB46001C94E9 /* MMScrollArea.swift in Sources */,
+				2BBF11A821EAD46B001C94E9 /* RightRegion.swift in Sources */,
+				2BBF11A421EAD46B001C94E9 /* AppShaders.metal in Sources */,
+				2BBF11C521EADB46001C94E9 /* MMRegion.swift in Sources */,
+				2BBF11CF21EADB46001C94E9 /* MMFont.swift in Sources */,
 				2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */,
+				2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */,
 				2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */,
+				2BBF11D321EADB46001C94E9 /* MMCompute.swift in Sources */,
+				2BBF11C721EADB46001C94E9 /* MMDrawable.swift in Sources */,
 				2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		2BBF110721EAD2B0001C94E9 /* Sources */ = {
+		2BBF112821EAD38D001C94E9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2BBF111021EAD2B0001C94E9 /* Shape_ZTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		2BBF111221EAD2B0001C94E9 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				2BBF111B21EAD2B0001C94E9 /* Shape_ZUITests.swift in Sources */,
+				2BBF11C421EADB46001C94E9 /* MMWidget.swift in Sources */,
+				2BBF11DE21EADB46001C94E9 /* MMBaseView__ios.swift in Sources */,
+				2BBF11C221EADB46001C94E9 /* MMRenderer.swift in Sources */,
+				2BBF11A721EAD46B001C94E9 /* BottomRegion.swift in Sources */,
+				2BBF11CA21EADB46001C94E9 /* MMUtils.swift in Sources */,
+				2BBF11A321EAD46B001C94E9 /* LeftRegion.swift in Sources */,
+				2BBF11AD21EAD46B001C94E9 /* Mad4Metal.metal in Sources */,
+				2BBF11CC21EADB46001C94E9 /* MMView.swift in Sources */,
+				2BBF11D821EADB46001C94E9 /* MMSkin.swift in Sources */,
+				2BBF11AB21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
+				2BBF11A121EAD46B001C94E9 /* TopRegion.swift in Sources */,
+				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
+				2BBF11D621EADB46001C94E9 /* MMScrollArea.swift in Sources */,
+				2BBF11A921EAD46B001C94E9 /* RightRegion.swift in Sources */,
+				2BBF11A521EAD46B001C94E9 /* AppShaders.metal in Sources */,
+				2BBF11C621EADB46001C94E9 /* MMRegion.swift in Sources */,
+				2BBF11D021EADB46001C94E9 /* MMFont.swift in Sources */,
+				2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */,
+				2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */,
+				2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */,
+				2BBF11D421EADB46001C94E9 /* MMCompute.swift in Sources */,
+				2BBF11C821EADB46001C94E9 /* MMDrawable.swift in Sources */,
+				2BBF112F21EAD38E001C94E9 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		2BBF110D21EAD2B0001C94E9 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 2BBF10F521EAD2AF001C94E9 /* Shape-Z */;
-			targetProxy = 2BBF110C21EAD2B0001C94E9 /* PBXContainerItemProxy */;
-		};
-		2BBF111821EAD2B0001C94E9 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 2BBF10F521EAD2AF001C94E9 /* Shape-Z */;
-			targetProxy = 2BBF111721EAD2B0001C94E9 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		2BBF110221EAD2B0001C94E9 /* Main.storyboard */ = {
@@ -301,6 +389,22 @@
 				2BBF110321EAD2B0001C94E9 /* Base */,
 			);
 			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		2BBF113221EAD38E001C94E9 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2BBF113321EAD38E001C94E9 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		2BBF113A21EAD38E001C94E9 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2BBF113B21EAD38E001C94E9 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
@@ -459,85 +563,46 @@
 			};
 			name = Release;
 		};
-		2BBF112321EAD2B0001C94E9 /* Debug */ = {
+		2BBF115521EAD38E001C94E9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
-				INFOPLIST_FILE = "Shape-ZTests/Info.plist";
+				INFOPLIST_FILE = "Shape-Z iOS/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/../Frameworks",
+					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-ZTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
 				SWIFT_VERSION = 4.2;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Shape-Z.app/Contents/MacOS/Shape-Z";
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		2BBF112421EAD2B0001C94E9 /* Release */ = {
+		2BBF115621EAD38E001C94E9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				BUNDLE_LOADER = "$(TEST_HOST)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
-				INFOPLIST_FILE = "Shape-ZTests/Info.plist";
+				INFOPLIST_FILE = "Shape-Z iOS/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/../Frameworks",
+					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-ZTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
 				SWIFT_VERSION = 4.2;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Shape-Z.app/Contents/MacOS/Shape-Z";
-			};
-			name = Release;
-		};
-		2BBF112621EAD2B0001C94E9 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = G6R6L3VH62;
-				INFOPLIST_FILE = "Shape-ZUITests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-ZUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
-				TEST_TARGET_NAME = "Shape-Z";
-			};
-			name = Debug;
-		};
-		2BBF112721EAD2B0001C94E9 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = G6R6L3VH62;
-				INFOPLIST_FILE = "Shape-ZUITests/Info.plist";
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-					"@loader_path/../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-ZUITests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
-				TEST_TARGET_NAME = "Shape-Z";
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -562,20 +627,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2BBF112221EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "Shape-ZTests" */ = {
+		2BBF115421EAD38E001C94E9 /* Build configuration list for PBXNativeTarget "Shape-Z iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				2BBF112321EAD2B0001C94E9 /* Debug */,
-				2BBF112421EAD2B0001C94E9 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		2BBF112521EAD2B0001C94E9 /* Build configuration list for PBXNativeTarget "Shape-ZUITests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				2BBF112621EAD2B0001C94E9 /* Debug */,
-				2BBF112721EAD2B0001C94E9 /* Release */,
+				2BBF115521EAD38E001C94E9 /* Debug */,
+				2BBF115621EAD38E001C94E9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -590,6 +646,16 @@
 			);
 			currentVersion = 2BBF10FE21EAD2AF001C94E9 /* Shape_Z.xcdatamodel */;
 			path = Shape_Z.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+		2BBF113521EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				2BBF113621EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodel */,
+			);
+			currentVersion = 2BBF113621EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodel */;
+			path = Shape_Z_iOS.xcdatamodeld;
 			sourceTree = "<group>";
 			versionGroupType = wrapper.xcdatamodel;
 		};
