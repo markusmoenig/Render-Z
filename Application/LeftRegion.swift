@@ -21,6 +21,7 @@ class LeftRegion: MMRegion
     var compute         : MMCompute
     var kernelState     : MTLComputePipelineState?
     
+    var shapeSelector   : ShapeSelector
     var textureWidget   : MMTextureWidget
     var scrollArea      : MMScrollArea
 
@@ -31,14 +32,20 @@ class LeftRegion: MMRegion
         
         compute = MMCompute()
         compute.allocateTexture(width: 200, height: 1000)
-        textureWidget = MMTextureWidget( view, texture: compute.texture )
+//        textureWidget = MMTextureWidget( view, texture: compute.texture )
         kernelState = compute.createState(name: "cubeGradient")
+
+        shapeSelector = ShapeSelector(width : 200)
+        textureWidget = MMTextureWidget( view, texture: shapeSelector.compute!.texture )
 
         scrollArea = MMScrollArea(view, orientation:.Vertical)
         
         super.init( view, type: .Left )
 
-        renderShapesTexture()
+        scrollArea.clickedCB = { (x,y) -> Void in
+            print( "scrollArea clicked", x - self.rect.x, y - self.rect.y )
+            self.shapeSelector.selectAt(x - self.rect.x, y - self.rect.y)
+        }
         
         view.registerWidget(scrollArea, region:self)
     }
@@ -59,6 +66,7 @@ class LeftRegion: MMRegion
         self.mode = mode
     }
     
+    /*
     func renderShapesTexture()
     {
         let width = Float(compute.texture.width)
@@ -81,13 +89,13 @@ class LeftRegion: MMRegion
         
         let buffer = mmView.renderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
         compute.run( kernelState, inBuffer: buffer )
-    }
+    }*/
     
     override func build()
     {
         if mode != .Closed {
             super.build()
-//            mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 2,  fillColor : float4( 0.184, 0.431, 0.569, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+            mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0,  fillColor : float4( 0.125, 0.125, 0.125, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
             scrollArea.build(widget: textureWidget, area: rect, xOffset:(rect.width - 200))
         } else {
             rect.width = 0

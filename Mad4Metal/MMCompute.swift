@@ -16,6 +16,7 @@ class MMCompute {
 //    var computePipelineState    : MTLComputePipelineState?
 
     var texture                 : MTLTexture!
+    var width, height           : Float
     
     var threadgroupSize         : MTLSize!
     var threadgroupCount        : MTLSize!
@@ -25,6 +26,9 @@ class MMCompute {
         device = MTLCreateSystemDefaultDevice()!
         defaultLibrary = device.makeDefaultLibrary()
         commandQueue = device.makeCommandQueue()
+        
+        width = 0
+        height = 0
     }
     
     /// Creates a state from an optional library and the function name
@@ -88,6 +92,9 @@ class MMCompute {
         let tWidth = 1;//( inputTexture!.width + threadgroupSize.width -  1) / threadgroupSize.width
         let tHeight = 1;//( inputTexture!.height + threadgroupSize.height - 1) / threadgroupSize.height;
         threadgroupCount = MTLSize(width: tWidth, height: tHeight, depth: 1)
+        
+        self.width = width
+        self.height = height
         
         return texture
     }

@@ -20,14 +20,14 @@ class TopRegion: MMRegion
         super.init( view, type: .Top )
         
         shapesButton = MMButtonWidget( mmView, skinToUse: mmView.skin.toolBarButton, text: "Shapes" )
-        shapesButton.clickedCB = {
+        shapesButton.clickedCB = { (x,y) -> Void in
             print( "shapesButton clicked" )
             app.leftRegion?.setMode(.Shapes)
             self.materialsButton.removeState(.Checked)
         }
         
         materialsButton = MMButtonWidget( mmView, skinToUse: mmView.skin.toolBarButton, text: "Materials" )
-        materialsButton.clickedCB = {
+        materialsButton.clickedCB = { (x,y) -> Void in
             print( "materialsButton clicked" )
             app.leftRegion?.setMode(.Materials)
             self.shapesButton.removeState(.Checked)

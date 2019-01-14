@@ -62,6 +62,12 @@
 		2BBF11DB21EADB46001C94E9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF11BF21EADB46001C94E9 /* OpenSans.json */; };
 		2BBF11DC21EADB46001C94E9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF11BF21EADB46001C94E9 /* OpenSans.json */; };
 		2BBF11DE21EADB46001C94E9 /* MMBaseView__ios.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */; };
+		2BBF11E121EC1A92001C94E9 /* Shapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E021EC1A92001C94E9 /* Shapes.swift */; };
+		2BBF11E221EC1A92001C94E9 /* Shapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E021EC1A92001C94E9 /* Shapes.swift */; };
+		2BBF11E421EC2BBC001C94E9 /* Layer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E321EC2BBC001C94E9 /* Layer.swift */; };
+		2BBF11E521EC2BBC001C94E9 /* Layer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E321EC2BBC001C94E9 /* Layer.swift */; };
+		2BBF11E721EC4DC7001C94E9 /* ShapeSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */; };
+		2BBF11E821EC4DC7001C94E9 /* ShapeSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -105,6 +111,9 @@
 		2BBF11BE21EADB46001C94E9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2BBF11BF21EADB46001C94E9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
 		2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMBaseView__ios.swift; sourceTree = "<group>"; };
+		2BBF11E021EC1A92001C94E9 /* Shapes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shapes.swift; sourceTree = "<group>"; };
+		2BBF11E321EC2BBC001C94E9 /* Layer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Layer.swift; sourceTree = "<group>"; };
+		2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeSelector.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -185,6 +194,7 @@
 				2BBF119921EAD46B001C94E9 /* AppShaders.metal */,
 				2BBF119E21EAD46B001C94E9 /* Mad4Metal.metal */,
 				2BBF119A21EAD46B001C94E9 /* Mad4Metal_types.h */,
+				2BBF11DF21EC1A40001C94E9 /* Layers and Shapes */,
 			);
 			path = Application;
 			sourceTree = "<group>";
@@ -195,12 +205,12 @@
 				2BBF11BD21EADB46001C94E9 /* Fonts */,
 				2BBF11B721EADB46001C94E9 /* MMBaseView_mac.swift */,
 				2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */,
+				2BBF11B621EADB46001C94E9 /* MMView.swift */,
 				2BBF11B121EADB46001C94E9 /* MMRenderer.swift */,
 				2BBF11B221EADB46001C94E9 /* MMWidget.swift */,
 				2BBF11B321EADB46001C94E9 /* MMRegion.swift */,
 				2BBF11B421EADB46001C94E9 /* MMDrawable.swift */,
 				2BBF11B521EADB46001C94E9 /* MMUtils.swift */,
-				2BBF11B621EADB46001C94E9 /* MMView.swift */,
 				2BBF11B821EADB46001C94E9 /* MMFont.swift */,
 				2BBF11B921EADB46001C94E9 /* MMLabel.swift */,
 				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
@@ -217,6 +227,16 @@
 				2BBF11BF21EADB46001C94E9 /* OpenSans.json */,
 			);
 			path = Fonts;
+			sourceTree = "<group>";
+		};
+		2BBF11DF21EC1A40001C94E9 /* Layers and Shapes */ = {
+			isa = PBXGroup;
+			children = (
+				2BBF11E321EC2BBC001C94E9 /* Layer.swift */,
+				2BBF11E021EC1A92001C94E9 /* Shapes.swift */,
+				2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */,
+			);
+			path = "Layers and Shapes";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -335,12 +355,15 @@
 				2BBF11D721EADB46001C94E9 /* MMSkin.swift in Sources */,
 				2BBF11AA21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
 				2BBF11A021EAD46B001C94E9 /* TopRegion.swift in Sources */,
+				2BBF11E121EC1A92001C94E9 /* Shapes.swift in Sources */,
 				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BBF11D521EADB46001C94E9 /* MMScrollArea.swift in Sources */,
 				2BBF11A821EAD46B001C94E9 /* RightRegion.swift in Sources */,
 				2BBF11A421EAD46B001C94E9 /* AppShaders.metal in Sources */,
 				2BBF11C521EADB46001C94E9 /* MMRegion.swift in Sources */,
+				2BBF11E421EC2BBC001C94E9 /* Layer.swift in Sources */,
 				2BBF11CF21EADB46001C94E9 /* MMFont.swift in Sources */,
+				2BBF11E721EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */,
 				2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */,
 				2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */,
@@ -365,12 +388,15 @@
 				2BBF11D821EADB46001C94E9 /* MMSkin.swift in Sources */,
 				2BBF11AB21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
 				2BBF11A121EAD46B001C94E9 /* TopRegion.swift in Sources */,
+				2BBF11E221EC1A92001C94E9 /* Shapes.swift in Sources */,
 				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BBF11D621EADB46001C94E9 /* MMScrollArea.swift in Sources */,
 				2BBF11A921EAD46B001C94E9 /* RightRegion.swift in Sources */,
 				2BBF11A521EAD46B001C94E9 /* AppShaders.metal in Sources */,
 				2BBF11C621EADB46001C94E9 /* MMRegion.swift in Sources */,
+				2BBF11E521EC2BBC001C94E9 /* Layer.swift in Sources */,
 				2BBF11D021EADB46001C94E9 /* MMFont.swift in Sources */,
+				2BBF11E821EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */,
 				2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */,
 				2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */,

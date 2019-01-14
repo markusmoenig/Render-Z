@@ -40,7 +40,7 @@ class MMWidget
     var mmView      : MMView
     var rect        : MMRect
     var id          : Int
-    var clickedCB   : (()->())?
+    var clickedCB   : ((_ x: Float,_ y: Float)->())?
     
     init(_ view: MMView)
     {
@@ -72,8 +72,11 @@ class MMWidget
     {
     }
     
-    func clicked()
+    func clicked(_ x: Float,_ y: Float)
     {
+        if clickedCB != nil {
+            clickedCB!(x,y)
+        }
     }
     
     func addState(_ state: MMWidgetStates)
@@ -114,12 +117,10 @@ class MMButtonWidget : MMWidget
         }
     }
     
-    override func clicked()
+    override func clicked(_ x: Float,_ y: Float)
     {
+        super.clicked(x,y)
         addState( .Checked )
-        if clickedCB != nil {
-            clickedCB!()
-        }
     }
     
     override func draw()
