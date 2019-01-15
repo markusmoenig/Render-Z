@@ -57,7 +57,7 @@ class EditorRegion: MMRegion
         
         let renderEncoder = mmRenderer.renderEncoder!
         
-        let vertexBuffer = mmRenderer.createVertexBuffer( self.rect )
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( rect.x, rect.y, rect.width, rect.height, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         
         let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!

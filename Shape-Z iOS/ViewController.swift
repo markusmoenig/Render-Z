@@ -10,11 +10,17 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    var app : App!
+    var mmView : MMView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+
+        mmView = view as? MMView
+        app = App( mmView )
     }
-
-
+    
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
 }
-

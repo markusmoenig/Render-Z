@@ -36,8 +36,9 @@ class MMBaseView : MTKView
             lastY = 0
         }
         
+        let event = MMMouseEvent(Float(translation.x), Float(translation.y))
+        
         if hoverWidget != nil {
-            let event = MMMouseEvent(0, 0)
             event.deltaX = Float(translation.x) - lastX!
             event.deltaY = Float(translation.y) - lastY!
             event.deltaZ = 0
@@ -72,8 +73,16 @@ class MMBaseView : MTKView
                 completion: nil)
             */
             
+            if focusWidget != nil {
+                focusWidget!.mouseUp(event)
+            }
+            
             hoverWidget = nil
             focusWidget = nil
+        } else {
+            if focusWidget != nil {
+                focusWidget!.mouseMoved(event)
+            }
         }
         
         lastX = Float(translation.x)

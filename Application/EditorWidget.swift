@@ -34,8 +34,8 @@ class EditorWidget      : MMWidget
     override func mouseDown(_ event: MMMouseEvent)
     {
         mouseIsDown = true
-        dragStartPos.x = event.x - rect.x
-        dragStartPos.y = event.y - rect.y
+        dragStartPos.x = event.x - (rect.x / mmView.scaleFactor)
+        dragStartPos.y = event.y - (rect.y / mmView.scaleFactor)
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -58,14 +58,15 @@ class EditorWidget      : MMWidget
 
         if editorState == .DragCreation {
 
+            let scaleFactor : Float = mmView.scaleFactor
             mmView.preferredFramesPerSecond = mmView.maxFramerate
 
             var x, y, width, height : Float
             let x1 = dragStartPos.x
             let y1 = dragStartPos.y
             
-            let x2 = event.x - rect.x
-            let y2 = event.y - rect.y
+            let x2 = event.x - rect.x / scaleFactor
+            let y2 = event.y - rect.y / scaleFactor
             
             if x1 <= x2 {
                 x = x1
@@ -88,8 +89,8 @@ class EditorWidget      : MMWidget
             if dragShape!.properties["radius"] != nil {
                 let radius : Float = (width + height) / 4
                 
-                posX = (x+radius-rect.width/2) * 700 / rect.width
-                posY = (y+radius-rect.height/2) * 700 / rect.width
+                posX = (x+radius-rect.width/2/scaleFactor) * 700 / rect.width/scaleFactor
+                posY = (y+radius-rect.height/2/scaleFactor) * 700 / rect.width/scaleFactor
                 
                 dragShape!.properties["posX"] = posX
                 dragShape!.properties["posY"] = posY
