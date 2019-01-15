@@ -34,8 +34,9 @@ class EditorWidget      : MMWidget
     override func mouseDown(_ event: MMMouseEvent)
     {
         mouseIsDown = true
-        dragStartPos.x = event.x - (rect.x / mmView.scaleFactor)
-        dragStartPos.y = event.y - (rect.y / mmView.scaleFactor)
+        
+        dragStartPos.x = event.x - rect.x
+        dragStartPos.y = event.y - rect.y
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -53,59 +54,41 @@ class EditorWidget      : MMWidget
 
             app.layerManager.currentLayer.addShape(dragShape!)
             
+            dragShape!.properties["posX"] = (dragStartPos.x-rect.width/2) * 700 / rect.width
+            dragShape!.properties["posY"] = (dragStartPos.y-rect.height/2) * 700 / rect.width
+            
             editorState = .DragCreation
         }
 
         if editorState == .DragCreation {
 
-            let scaleFactor : Float = mmView.scaleFactor
             mmView.preferredFramesPerSecond = mmView.maxFramerate
 
-            var x, y, width, height : Float
+            var width, height : Float
             let x1 = dragStartPos.x
             let y1 = dragStartPos.y
             
-            let x2 = event.x - rect.x / scaleFactor
-            let y2 = event.y - rect.y / scaleFactor
+            let x2 = event.x - rect.x
+            let y2 = event.y - rect.y
             
             if x1 <= x2 {
-                x = x1
                 width = x2 - x1
             } else {
-                x = x2
                 width = (x1 - x2)
             }
             
             if y1 <= y2 {
-                y = y1
                 height = y2 - y1
             } else {
-                y = y2
                 height = (y1 - y2)
             }
             
-            var posX, posY : Float
-            
             if dragShape!.properties["radius"] != nil {
-                let radius : Float = (width + height) / 4
-                
-                posX = (x+radius-rect.width/2/scaleFactor) * 700 / rect.width/scaleFactor
-                posY = (y+radius-rect.height/2/scaleFactor) * 700 / rect.width/scaleFactor
-                
-                dragShape!.properties["posX"] = posX
-                dragShape!.properties["posY"] = posY
-                
-                dragShape!.properties["radius"] = radius
+                dragShape!.properties["radius"] = max(width, height)
             } else
             if dragShape!.properties["width"] != nil && dragShape!.properties["height"] != nil {
-                posX = (x+width/2-rect.width/2) * 700 / rect.width
-                posY = (y+height/2-rect.height/2) * 700 / rect.width
-                
-                dragShape!.properties["posX"] = posX
-                dragShape!.properties["posY"] = posY
-                
-                dragShape!.properties["width"] = width/2
-                dragShape!.properties["height"] = height/2
+                dragShape!.properties["width"] = width
+                dragShape!.properties["height"] = height
             }
             
             app.layerManager.currentLayer.build()

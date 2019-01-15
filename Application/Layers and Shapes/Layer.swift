@@ -108,8 +108,8 @@ class Layer : Codable
             }
         """
         
-        print( source )
-                
+//        print( source )
+        
         let library = compute!.createLibraryFromSource(source: source)
         state = compute!.createState(library: library, name: "layerBuilder")
     }
