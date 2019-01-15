@@ -18,9 +18,12 @@ class MMBaseView : MTKView
     
     var scaleFactor     : Float!
     
+    var mouseDownPos    : float2!
+    
     func platformInit()
     {
         scaleFactor = Float(UIScreen.main.scale)
+        mouseDownPos = float2()
         
         let panRecognizer = UIPanGestureRecognizer(target: self, action:(#selector(self.handlePanGesture(_:))))
         addGestureRecognizer(panRecognizer)
@@ -36,7 +39,7 @@ class MMBaseView : MTKView
             lastY = 0
         }
         
-        let event = MMMouseEvent(Float(translation.x), Float(translation.y))
+        let event = MMMouseEvent(Float(translation.x) + mouseDownPos.x, Float(translation.y) + mouseDownPos.y)
         
         if hoverWidget != nil {
             event.deltaX = Float(translation.x) - lastX!
@@ -93,6 +96,9 @@ class MMBaseView : MTKView
         if let touch = touches.first {
             let point = touch.location(in: self)
             let event = MMMouseEvent( Float(point.x), Float(point.y) )
+            
+            mouseDownPos.x = event.x
+            mouseDownPos.y = event.y
 
             if hoverWidget != nil {
                 hoverWidget!.removeState(.Hover)

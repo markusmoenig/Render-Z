@@ -34,7 +34,6 @@ class MMTextLabel: MMLabel
         self.scale = scale
         
         rect = font.getTextRect(text: text, scale: scale, rectToUse: rect)
-        print( rect.width, rect.height )
     }
     
     func draw()

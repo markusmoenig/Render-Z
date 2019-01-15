@@ -67,9 +67,7 @@ class Layer : Codable
 
             """
             
-            for shape in shapes {
-                source += shape.globalCode();
-            }
+            source += getGlobalCode()
         
             source +=
             """
@@ -116,12 +114,27 @@ class Layer : Codable
     
     @discardableResult func run(width:Float, height:Float) -> MTLTexture
     {
-        print( width, height )
         if compute!.width != width || compute!.height != height {
             compute!.allocateTexture(width: width, height: height)
         }
         
         compute!.run( state )
         return compute!.texture
+    }
+    
+    func getGlobalCode() -> String
+    {
+        var coll : [String] = []
+        var result = ""
+        
+        for shape in shapes {
+            
+            if !coll.contains(shape.name) {
+                result += shape.globalCode()
+                coll.append( shape.name )
+            }
+        }
+        
+        return result
     }
 }

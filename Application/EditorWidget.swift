@@ -80,9 +80,9 @@ class EditorWidget      : MMWidget
             if y1 <= y2 {
                 height = y2 - y1
             } else {
-                height = (y1 - y2)
+                height = y1 - y2
             }
-            
+                        
             if dragShape!.properties["radius"] != nil {
                 dragShape!.properties["radius"] = max(width, height)
             } else
