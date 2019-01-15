@@ -52,7 +52,7 @@ class EditorRegion: MMRegion
 
         let scaleFactor : Float = mmView.scaleFactor
         let settings: [Float] = [
-            rect.width * scaleFactor, rect.height * scaleFactor,
+            rect.width, rect.height,
         ];
         
         let renderEncoder = mmRenderer.renderEncoder!
