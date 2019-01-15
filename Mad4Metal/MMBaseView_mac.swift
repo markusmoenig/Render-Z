@@ -49,7 +49,7 @@ class MMBaseView : MTKView
             focusWidget!.addState( .Clicked )
             focusWidget!.addState( .Focus )
             focusWidget!.clicked(event.x, event.y)
-            focusWidget!.mouseUp(event)
+            focusWidget!.mouseDown(event)
         }
     }
     
@@ -89,6 +89,10 @@ class MMBaseView : MTKView
         if hoverWidget == nil {
 //            print( "nil" )
         }
+    }
+    
+    override func mouseDragged(with event: NSEvent) {
+        mouseMoved(with: event)
     }
     
     // Mouse scroll wheel

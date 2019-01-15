@@ -11,11 +11,12 @@ import MetalKit
 class EditorRegion: MMRegion
 {
     var app                     : App
+    var widget                  : EditorWidget!
     
-//    var compute                 : MMCompute
-//    var kernelState             : MTLComputePipelineState?
+    var patternState            : MTLRenderPipelineState?
     
     var layer                   : Layer
+    var result                  : MTLTexture?
     
     init( _ view: MMView, app: App )
     {
@@ -24,7 +25,7 @@ class EditorRegion: MMRegion
 //        compute = MMCompute()
 
 //        let library = compute.createLibraryFromSource(source: shader)
-//        kernelState = compute.createState(name: "grayscaleKernel")
+//        kernelState = compute.createState(name: "moduloPattern")
 //        compute.allocateTexture(width: 100, height: 100)
         
         layer = Layer()
@@ -37,16 +38,53 @@ class EditorRegion: MMRegion
         layer.build()
 
         super.init( view, type: .Editor )
+        
+        widget = EditorWidget(view, editorRegion: self, app: app)
+        let function = mmView.renderer!.defaultLibrary.makeFunction( name: "moduloPattern" )
+        patternState = mmView.renderer!.createNewPipelineState( function! )
+        
+        registerWidgets( widgets: widget! )
+    }
+    
+    func drawPattern()
+    {
+        let mmRenderer = mmView.renderer!
+
+        let scaleFactor : Float = mmView.scaleFactor
+        let settings: [Float] = [
+            rect.width * scaleFactor, rect.height * scaleFactor,
+        ];
+        
+        let renderEncoder = mmRenderer.renderEncoder!
+        
+        let vertexBuffer = mmRenderer.createVertexBuffer( self.rect )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        renderEncoder.setRenderPipelineState( patternState! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    
     }
     
     override func build()
     {
-//        mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 2,  fillColor : float4( 0.620, 0.506, 0.165, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+        widget.rect.copy(rect)
+        drawPattern()
         
-//        compute.run( kernelState )
-//        mmView.drawTexture.draw(compute.texture, x: rect.x + 50, y: rect.y + 50)
+        if result == nil || app.layerManager.width != rect.width || app.layerManager.height != rect.height {
+            compute()
+        }
         
-        layer.run(width: rect.width, height: rect.height)
-        mmView.drawTexture.draw(layer.compute!.texture, x: rect.x, y: rect.y)
+        if let texture = result {
+            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+        }
+    }
+    
+    func compute()
+    {
+        result = app.layerManager.run(width: rect.width, height: rect.height)
     }
 }

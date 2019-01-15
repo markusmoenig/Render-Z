@@ -110,7 +110,7 @@ class MMBaseView : MTKView
                 focusWidget = hoverWidget
 //                focusWidget!.addState( .Clicked )
 //                focusWidget!.addState( .Focus )
-                focusWidget!.clicked()
+                focusWidget!.clicked(event.x, event.y)
             }
             
 //            hoverWidget = nil

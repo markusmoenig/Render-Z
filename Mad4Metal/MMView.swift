@@ -83,6 +83,7 @@ class MMView : MMBaseView {
     /// Build the user interface for this view. Called for each frame inside the renderer.
     func build()
     {
+//        print( renderer.cWidth, renderer.cHeight )
         let rect = MMRect( 0, 0, renderer.cWidth, renderer.cHeight )
         if let region = topRegion {
             region.rect.x = 0

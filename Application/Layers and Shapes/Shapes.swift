@@ -38,6 +38,11 @@ class MM2DShape : Codable
     {
         return ""
     }
+    
+    func instance() -> MM2DShape
+    {
+        return MM2DShape()
+    }
 }
 
 class MM2DBox : MM2DShape
@@ -74,6 +79,11 @@ class MM2DBox : MM2DShape
         """
         return code;
     }
+    
+    override func instance() -> MM2DShape
+    {
+        return MM2DBox()
+    }
 }
 
 class MM2DDisk : MM2DShape
@@ -94,5 +104,10 @@ class MM2DDisk : MM2DShape
     {
         let radius = properties["radius"]
         return "length(\(uvName)) - \(radius ?? 1)"
+    }
+    
+    override func instance() -> MM2DShape
+    {
+        return MM2DDisk()
     }
 }

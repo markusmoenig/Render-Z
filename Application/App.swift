@@ -16,13 +16,17 @@ class App
     var rightRegion     : RightRegion?
     var bottomRegion    : BottomRegion?
     var editorRegion    : EditorRegion?
+    
+    var layerManager    : LayerManager
 
     init(_ view : MMView )
     {
         mmView = view
         
-        leftRegion = LeftRegion( mmView, app: self )
+        layerManager = LayerManager()
+        
         topRegion = TopRegion( mmView, app: self )
+        leftRegion = LeftRegion( mmView, app: self )
         rightRegion = RightRegion( mmView, app: self )
         bottomRegion = BottomRegion( mmView, app: self )
         editorRegion = EditorRegion( mmView, app: self )

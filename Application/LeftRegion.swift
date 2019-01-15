@@ -28,7 +28,7 @@ class LeftRegion: MMRegion
     init( _ view: MMView, app: App )
     {
         self.app = app
-        mode = .Closed
+        mode = .Shapes
         
         compute = MMCompute()
         compute.allocateTexture(width: 200, height: 1000)
@@ -47,6 +47,9 @@ class LeftRegion: MMRegion
             self.shapeSelector.selectAt(x - self.rect.x, y - self.rect.y)
         }
         
+        rect.width = 200
+        self.app.topRegion!.shapesButton.addState( .Checked )
+
         view.registerWidget(scrollArea, region:self)
     }
     
@@ -95,7 +98,7 @@ class LeftRegion: MMRegion
     {
         if mode != .Closed {
             super.build()
-            mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0,  fillColor : float4( 0.125, 0.125, 0.125, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+            mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
             scrollArea.build(widget: textureWidget, area: rect, xOffset:(rect.width - 200))
         } else {
             rect.width = 0

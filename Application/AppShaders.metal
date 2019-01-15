@@ -9,37 +9,42 @@
 #include <metal_stdlib>
 #include <simd/simd.h>
 using namespace metal;
- 
-// Rec. 709 luma values for grayscale image conversion
-//constant half3 kRec709Luma = half3(0.2126, 0.7152, 0.0722);
 
-// Grayscale compute kernel
-kernel void
-grayscaleKernel(texture2d<half, access::write>  outTexture  [[texture(0)]],
-                texture2d<half, access::read>   inTexture   [[texture(1)]],
-                uint2                           gid         [[thread_position_in_grid]])
+typedef struct
 {
-    // Check if the pixel is within the bounds of the output texture
-    if((gid.x >= outTexture.get_width()) || (gid.y >= outTexture.get_height()))
-    {
-//         Return early if the pixel is out of bounds
-        outTexture.write(half4(1, 1, 1, 1.0), gid);
-        return;
-    } 
-    
-//    half4 inColor  = inTexture.read(gid);
-//    half  gray     = dot(inColor.rgb, kRec709Luma);
-    //outTexture.write(half4(gray, gray, gray, 1.0), gid);
-//    outTexture.write(half4(255.0, 255.0, 255.0, 255.0), gid);
-    //outTexture.write(half4(1, 0, 0, 1.0), gid);
+    float4 clipSpacePosition [[position]];
+    float2 textureCoordinate;
+} RasterizerData;
 
-    float2 uv = float2( gid.x - outTexture.get_width() / 2.,
-                       gid.y - outTexture.get_height() / 2. );
+typedef struct
+{
+    float2 size;
     
-    float len = length( uv ) - 20;
+} MODULO_PATTERN;
+
+// --- Cube Drawable
+fragment float4 moduloPattern(RasterizerData in [[stage_in]],
+                                constant MODULO_PATTERN *data [[ buffer(0) ]] )
+{
     
-    if ( len <= 0 ) outTexture.write( half4(1, 1, 1, 1.0), gid );
-    else outTexture.write(half4(1, 0, 0, 1.0), gid);
+    float4 checkerColor1 = float4( 0.0, 0.0, 0.0, 1.0 );
+    float4 checkerColor2 = float4( 0.2, 0.2, 0.2, 1.0 );
+    
+    float2 uv = in.textureCoordinate * data->size;
+    uv -= float2( data->size / 2 );
+
+    float4 col = checkerColor1;
+    
+    float cWidth = 12.0;
+    float cHeight = 12.0;
+    
+    if ( fmod( floor( uv.x / cWidth ), 2.0 ) == 0.0 ) {
+        if ( fmod( floor( uv.y / cHeight ), 2.0 ) != 0.0 ) col=checkerColor2;
+    } else {
+        if ( fmod( floor( uv.y / cHeight ), 2.0 ) == 0.0 ) col=checkerColor2;
+    }
+    
+    return col;
 }
 
 typedef struct
