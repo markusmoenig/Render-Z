@@ -18,34 +18,34 @@ class LeftRegion: MMRegion
     var mode            : LeftRegionMode
     var app             : App
 
-    var compute         : MMCompute
-    var kernelState     : MTLComputePipelineState?
+//    var compute         : MMCompute
+//    var kernelState     : MTLComputePipelineState?
     
     var shapeSelector   : ShapeSelector
     var textureWidget   : MMTextureWidget
-    var scrollArea      : MMScrollArea
+    var scrollArea      : ShapeScrollArea
 
     init( _ view: MMView, app: App )
     {
         self.app = app
         mode = .Shapes
         
-        compute = MMCompute()
-        compute.allocateTexture(width: 200, height: 1000)
+//        compute = MMCompute()
+//        compute.allocateTexture(width: 200, height: 1000)
 //        textureWidget = MMTextureWidget( view, texture: compute.texture )
-        kernelState = compute.createState(name: "cubeGradient")
+//        kernelState = compute.createState(name: "cubeGradient")
 
-        shapeSelector = ShapeSelector(width : 200)
+        shapeSelector = ShapeSelector(view, width : 200)
         textureWidget = MMTextureWidget( view, texture: shapeSelector.compute!.texture )
 
-        scrollArea = MMScrollArea(view, orientation:.Vertical)
+        scrollArea = ShapeScrollArea(view, app: app)
         
         super.init( view, type: .Left )
 
-        scrollArea.clickedCB = { (x,y) -> Void in
-            print( "scrollArea clicked", x - self.rect.x, y - self.rect.y )
-            self.shapeSelector.selectAt(x - self.rect.x, y - self.rect.y)
-        }
+//        scrollArea.clickedCB = { (x,y) -> Void in
+//            print( "scrollArea clicked", x - self.rect.x, y - self.rect.y )
+//            self.shapeSelector.selectAt(x - self.rect.x, y - self.rect.y)
+//        }
         
         rect.width = 200
         self.app.topRegion!.shapesButton.addState( .Checked )
@@ -103,5 +103,46 @@ class LeftRegion: MMRegion
         } else {
             rect.width = 0
         }
+    }
+}
+
+/// The scroll area for the shapes
+class ShapeScrollArea: MMScrollArea
+{
+    var app                 : App
+    var mouseDownPos        : float2
+    var mouseIsDown         : Bool = false
+    
+    var dragSource          : ShapeSelectorDrag? = nil
+    var shapeAtMouse        : Shape?
+
+    init(_ view: MMView, app: App)
+    {
+        self.app = app
+        mouseDownPos = float2()
+        super.init(view, orientation:.Vertical)
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent) {
+        mouseDownPos.x = event.x - rect.x
+        mouseDownPos.y = event.y - rect.y
+        mouseIsDown = true
+        shapeAtMouse = app.leftRegion!.shapeSelector.selectAt(mouseDownPos.x,mouseDownPos.y)
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent) {
+        if mouseIsDown && dragSource == nil {
+            dragSource = app.leftRegion!.shapeSelector.createDragSource(mouseDownPos.x,mouseDownPos.y)
+            dragSource?.sourceWidget = self
+            mmView.dragStarted(source: dragSource!)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent) {
+        mouseIsDown = false
+    }
+    
+    override func dragTerminated() {
+        dragSource = nil
     }
 }

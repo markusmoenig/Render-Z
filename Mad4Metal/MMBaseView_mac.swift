@@ -18,6 +18,12 @@ class MMBaseView : MTKView
     
     var scaleFactor     : Float!
     
+    var mousePos        : float2 = float2()
+    
+    // --- Drag And Drop
+    var dragSource      : MMDragSource? = nil
+    
+    
     func platformInit()
     {
         scaleFactor = Float(NSScreen.main!.backingScaleFactor)
@@ -56,6 +62,20 @@ class MMBaseView : MTKView
     override func mouseUp(with event: NSEvent) {
         let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ) )
 
+        // --- Drag and Drop
+        if hoverWidget != nil && dragSource != nil {
+            if hoverWidget!.dropTargets.contains(dragSource!.id) {
+                hoverWidget!.dragEnded(event: event, dragSource: dragSource!)
+            }
+        }
+        
+        if dragSource != nil {
+            dragSource!.sourceWidget?.dragTerminated()
+            dragSource = nil
+
+        }        
+        // ---
+        
         if let widget = focusWidget {
             widget.removeState( .Clicked )
             widget.mouseUp(event)
@@ -66,6 +86,9 @@ class MMBaseView : MTKView
     override func mouseMoved(with event: NSEvent) {
         
         let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ) )
+        
+        mousePos.x = event.x
+        mousePos.y = event.y
         
 //        print( "mouse", event.x, event.y)
         

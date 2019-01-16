@@ -21,7 +21,7 @@ class EditorWidget      : MMWidget
     
     var mouseIsDown     : Bool = false
     var dragStartPos    : float2 = float2(0)
-    var dragShape       : Shape?
+//    var dragShape       : Shape?
     
     init(_ view: MMView, editorRegion: EditorRegion, app: App)
     {
@@ -29,6 +29,8 @@ class EditorWidget      : MMWidget
         region = editorRegion
         
         super.init(view)
+        
+        dropTargets.append( "ShapeSelectorItem" )
     }
 
     override func mouseDown(_ event: MMMouseEvent)
@@ -48,16 +50,15 @@ class EditorWidget      : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        /*
         if (mouseIsDown && editorState == .Lazy)
         {
             dragShape = app.leftRegion!.shapeSelector.createSelected()
             
-            print( dragShape!.name )
-
             app.layerManager.currentLayer.addShape(dragShape!)
             
-            dragShape!.properties["posX"] = (dragStartPos.x-rect.width/2) * 700 / rect.width
-            dragShape!.properties["posY"] = (dragStartPos.y-rect.height/2) * 700 / rect.width
+            dragShape!.properties["posX"] = (dragStartPos.x/*-rect.width/2*/) * 700 / rect.width
+            dragShape!.properties["posY"] = (dragStartPos.y/*-rect.height/2*/) * 700 / rect.width
             
             editorState = .DragCreation
         }
@@ -91,6 +92,38 @@ class EditorWidget      : MMWidget
             if dragShape!.properties["width"] != nil && dragShape!.properties["height"] != nil {
                 dragShape!.properties["width"] = width
                 dragShape!.properties["height"] = height
+            }
+            
+            app.layerManager.currentLayer.build()
+            region.result = nil
+        }
+        */
+    }
+    
+    /// Drag and Drop Target
+    override func dragEnded(event:MMMouseEvent, dragSource:MMDragSource)
+    {
+        if dragSource.id == "ShapeSelectorItem" {
+            let drag = dragSource as! ShapeSelectorDrag
+            
+            app.layerManager.currentLayer.addShape(drag.shape!)
+            
+            if let shape = drag.shape {
+                
+                var xOff : Float = 0
+                var yOff : Float = 0
+                
+                if shape.name == "Disk" {
+                    xOff = shape.properties["radius"]! - drag.pWidgetOffset!.x
+                    yOff = shape.properties["radius"]! - drag.pWidgetOffset!.y
+                } else
+                if shape.name == "Box" {
+                    xOff = shape.properties["width"]! - drag.pWidgetOffset!.x
+                    yOff = shape.properties["height"]! - drag.pWidgetOffset!.y
+                }
+                
+                shape.properties["posX"] = (event.x - rect.x + xOff) * 700 / rect.width
+                shape.properties["posY"] = (event.y - rect.y + yOff) * 700 / rect.width
             }
             
             app.layerManager.currentLayer.build()

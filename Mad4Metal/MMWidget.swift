@@ -8,6 +8,14 @@
 
 import MetalKit
 
+protocol MMDragSource
+{
+    var id              : String {get set}
+    var sourceWidget    : MMWidget? {get set}
+    var previewWidget   : MMWidget? {get set}
+    var pWidgetOffset   : float2? {get set}
+}
+
 class MMMouseEvent
 {
     // Position
@@ -42,10 +50,14 @@ class MMWidget
     var id          : Int
     var clickedCB   : ((_ x: Float,_ y: Float)->())?
     
+    var dropTargets : [String]
+    
     init(_ view: MMView)
     {
         validStates = [.Hover,.Clicked,.Focus]
         states = []
+        
+        dropTargets = []
         
         mmView = view
         rect = MMRect()
@@ -69,6 +81,14 @@ class MMWidget
     }
     
     func draw()
+    {
+    }
+    
+    func dragEnded(event:MMMouseEvent, dragSource:MMDragSource)
+    {
+    }
+    
+    func dragTerminated()
     {
     }
     

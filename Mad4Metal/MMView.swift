@@ -123,6 +123,15 @@ class MMView : MMBaseView {
             region.rect.copy( rect )
             region.build()
         }
+        
+        // --- Drag and drop ?
+        if dragSource != nil {
+            if let widget = dragSource!.previewWidget {
+                widget.rect.x = mousePos.x - dragSource!.pWidgetOffset!.x
+                widget.rect.y = mousePos.y - dragSource!.pWidgetOffset!.y
+                widget.draw()
+            }
+        }
     }
     
     /// Regsiter the widget to the view
@@ -147,5 +156,11 @@ class MMView : MMBaseView {
         let options: [MTKTextureLoader.Option : Any] = [.generateMipmaps : false, .SRGB : false]
         
         return try? textureLoader.newTexture(data: data, options: options)
+    }
+    
+    func dragStarted(source: MMDragSource )
+    {
+        dragSource = source
+        preferredFramesPerSecond = maxFramerate
     }
 }

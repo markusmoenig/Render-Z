@@ -20,6 +20,9 @@ class MMBaseView : MTKView
     
     var mouseDownPos    : float2!
     
+    // --- Drag And Drop
+    var dragSource      : MMDragSource? = nil
+    
     func platformInit()
     {
         scaleFactor = Float(UIScreen.main.scale)
