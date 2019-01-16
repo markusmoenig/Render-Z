@@ -10,7 +10,9 @@ import MetalKit
 
 class ShapeSelector
 {
-    var shapes          : [MM2DShape]
+    var shapes          : [Shape]
+    var shapeFactory    : ShapeFactory
+    
     var shapeRects      : [MMRect]
 
     var compute         : MMCompute?
@@ -21,11 +23,13 @@ class ShapeSelector
     var unitSize        : Float
     
     var selectedIndex   : Int
-    var selectedShape   : MM2DShape
+    var selectedShape   : Shape!
     
     init( width: Float )
     {
         shapes = []
+        shapeFactory = ShapeFactory()
+        
         shapeRects = []
         compute = MMCompute()
         
@@ -35,22 +39,14 @@ class ShapeSelector
         selectedIndex = 0
         
         // --- Shapes
-        
-        let reducer : Float = 8
-        
-        var shape : MM2DShape = MM2DBox()
-        shape.properties["width"] = unitSize / 2 - reducer
-        shape.properties["height"] = unitSize / 2 - reducer
-        shapes.append( shape )
-        selectedShape = shape
 
-        shape = MM2DDisk()
-        shape.properties["radius"] = unitSize / 2 - reducer
-        shapes.append( shape )
-        
-        shape = MM2DDisk()
-        shape.properties["radius"] = unitSize / 2 - reducer
-        shapes.append( shape )
+        for shapeDef in shapeFactory.shapes {
+            let shape = shapeFactory.createShape(shapeDef.name, size: unitSize / 2 - 8)
+            if shape.name == "Box" {
+                selectedShape = shape
+            }
+            shapes.append( shape )
+        }
         
         // ---
         
@@ -90,7 +86,7 @@ class ShapeSelector
         """
         
         for shape in shapes {
-            source += shape.globalCode();
+            source += shape.globalCode;
         }
         
         source +=
@@ -119,8 +115,8 @@ class ShapeSelector
         for (index, shape) in shapes.enumerated() {
 
             source += "uv = uvOrigin; uv.x += outTexture.get_width() / 2 - \(left); uv.y += outTexture.get_height() / 2 - \(top);\n"
-            source += "dist = merge( dist, " + shape.create(uvName: "uv") + ");"
-                
+            source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+            
             if index == selectedIndex {
                 selLeft = left
                 selTop = top
@@ -155,7 +151,8 @@ class ShapeSelector
                 outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
             }
         """
-                
+        
+//        print( source )
         let library = compute!.createLibraryFromSource(source: source)
         state = compute!.createState(library: library, name: "layerBuilder")
         
@@ -166,6 +163,7 @@ class ShapeSelector
         compute!.run( state )
     }
     
+    /// Selected the shape at the given relative mouse position
     func selectAt(_ x: Float,_ y: Float)
     {
         for (index, rect) in shapeRects.enumerated() {
@@ -178,7 +176,9 @@ class ShapeSelector
         }
     }
     
-    func run()
+    /// Create an instance of the currently selected shape
+    func createSelected() -> Shape
     {
+        return shapeFactory.createShape(selectedShape.name)
     }
 }

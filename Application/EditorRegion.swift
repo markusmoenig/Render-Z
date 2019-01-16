@@ -14,28 +14,15 @@ class EditorRegion: MMRegion
     var widget                  : EditorWidget!
     
     var patternState            : MTLRenderPipelineState?
-    
-    var layer                   : Layer
     var result                  : MTLTexture?
     
     init( _ view: MMView, app: App )
     {
         self.app = app
         
-//        compute = MMCompute()
-
 //        let library = compute.createLibraryFromSource(source: shader)
 //        kernelState = compute.createState(name: "moduloPattern")
 //        compute.allocateTexture(width: 100, height: 100)
-        
-        layer = Layer()
-        
-        let disk = MM2DDisk()
-        disk.properties["radius"] = 100;
-        
-        layer.addShape(disk)
-        
-        layer.build()
 
         super.init( view, type: .Editor )
         

@@ -21,7 +21,7 @@ class EditorWidget      : MMWidget
     
     var mouseIsDown     : Bool = false
     var dragStartPos    : float2 = float2(0)
-    var dragShape       : MM2DShape?
+    var dragShape       : Shape?
     
     init(_ view: MMView, editorRegion: EditorRegion, app: App)
     {
@@ -50,7 +50,9 @@ class EditorWidget      : MMWidget
     {
         if (mouseIsDown && editorState == .Lazy)
         {
-            dragShape = app.leftRegion!.shapeSelector.selectedShape.instance()
+            dragShape = app.leftRegion!.shapeSelector.createSelected()
+            
+            print( dragShape!.name )
 
             app.layerManager.currentLayer.addShape(dragShape!)
             

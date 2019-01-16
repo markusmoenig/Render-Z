@@ -10,7 +10,7 @@ import MetalKit
 
 class Layer : Codable
 {
-    var shapes          : [MM2DShape]
+    var shapes          : [Shape]
     var shapeIdCounter  : Int
     
     var compute         : MMCompute?
@@ -25,12 +25,9 @@ class Layer : Codable
     {
         shapes = []
         shapeIdCounter = 0
-        
-        compute = MMCompute()
-        build()
     }
     
-    func addShape(_ shape: MM2DShape)
+    func addShape(_ shape: Shape)
     {
         shapes.append( shape )
     }
@@ -91,7 +88,7 @@ class Layer : Codable
             let posX = shape.properties["posX"]
             let posY = shape.properties["posY"]
             source += "uv = translate( tuv, float2( \(posX ?? 0), \(posY ?? 0) ) );"
-            source += "dist = merge( dist, " + shape.create(uvName: "uv") + ");"
+            source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
         }
         
         source +=
@@ -114,6 +111,11 @@ class Layer : Codable
     
     @discardableResult func run(width:Float, height:Float) -> MTLTexture
     {
+        if compute == nil {
+            compute = MMCompute()
+            build()
+        }
+        
         if compute!.width != width || compute!.height != height {
             compute!.allocateTexture(width: width, height: height)
         }
@@ -130,7 +132,7 @@ class Layer : Codable
         for shape in shapes {
             
             if !coll.contains(shape.name) {
-                result += shape.globalCode()
+                result += shape.globalCode
                 coll.append( shape.name )
             }
         }

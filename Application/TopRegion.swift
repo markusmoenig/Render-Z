@@ -31,6 +31,37 @@ class TopRegion: MMRegion
             print( "materialsButton clicked" )
             app.leftRegion?.setMode(.Materials)
             self.shapesButton.removeState(.Checked)
+            
+            /// Testing
+            /*
+            let layerManager = app.layerManager
+            
+            /// Encoding
+            
+            let encodedData = try? JSONEncoder().encode(layerManager)
+            if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+            {
+                print(encodedObjectJsonString)
+                
+                /// Decoding
+
+                
+                if let jsonData = encodedObjectJsonString.data(using: .utf8)
+                {
+                    //And here you get the Supermarket object back
+                    if let layerM = try? JSONDecoder().decode(LayerManager.self, from: jsonData)
+                    {
+                        //let shape = layerM.layers[0].shapes[0]// as! MM2DBox
+                        //print( layerM.layers[0].shapes[0].globalCode() )
+                    
+                        layerM.currentLayer = layerM.layers[0]
+                        app.layerManager = layerM
+                        app.editorRegion?.result = nil
+                    }
+                }
+            }
+            */
+            
         }
         
         layoutH( startX: 10, startY: 4, spacing: 10, widgets: shapesButton, materialsButton )
