@@ -74,8 +74,8 @@ float m4mGradient_linear(float2 uv, float2 p1, float2 p2) {
 fragment float4 m4mCubeDrawable(RasterizerData in [[stage_in]],
                              constant MM_CUBE *data [[ buffer(0) ]] )
 {
-    float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) );
-    uv -= float2( data->size / 2 + data->borderSize / 2 );
+    float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0 );
+    uv -= float2( data->size / 2.0 + data->borderSize / 2.0 );
 
     float2 d = abs( uv ) - data->size / 2 + data->round;
     float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - data->round;
@@ -89,8 +89,8 @@ fragment float4 m4mCubeDrawable(RasterizerData in [[stage_in]],
 fragment float4 m4mCubeGradientDrawable(RasterizerData in [[stage_in]],
                              constant MM_CUBE_GRADIENT *data [[ buffer(0) ]] )
 {
-    float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) );
-    uv -= float2( data->size / 2 + data->borderSize / 2 );
+    float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0);
+    uv -= float2( data->size / 2.0 + data->borderSize / 2.0 );
     
     float2 d = abs( uv ) - data->size / 2 + data->round;
     float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - data->round;
@@ -147,5 +147,5 @@ fragment float4 m4mTextDrawable(RasterizerData in [[stage_in]],
     
     float d = m4mMedian(sample.r, sample.g, sample.b) - 0.5;
     float w = clamp(d/fwidth(d) + 0.5, 0.0, 1.0);
-    return float4( 1, 1, 1, w );
+    return float4( data->color.x, data->color.y, data->color.z, w * data->color.w );
 }

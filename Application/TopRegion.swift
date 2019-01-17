@@ -31,9 +31,9 @@ class TopRegion: MMRegion
             print( "materialsButton clicked" )
             app.leftRegion?.setMode(.Materials)
             self.shapesButton.removeState(.Checked)
-            
-            /// Testing
             /*
+            /// Testing
+            
             let layerManager = app.layerManager
             
             /// Encoding
@@ -55,12 +55,14 @@ class TopRegion: MMRegion
                         //print( layerM.layers[0].shapes[0].globalCode() )
                     
                         layerM.currentLayer = layerM.layers[0]
+                        layerM.currentLayer.currentObject = layerM.currentLayer.objects[0]
+
                         app.layerManager = layerM
                         app.editorRegion?.result = nil
                     }
                 }
-            }
-            */
+            }*/
+            
             
         }
         

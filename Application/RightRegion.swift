@@ -11,17 +11,116 @@ import MetalKit
 class RightRegion: MMRegion
 {
     var app             : App
+    var objectWidget    : ObjectWidget
+    var shapeListWidget : ShapeListScrollArea
+    
+    var shapeList       : ShapeList
     
     init( _ view: MMView, app: App )
     {
         self.app = app
+        
+        objectWidget = ObjectWidget(view, app: app)
+        shapeListWidget = ShapeListScrollArea(view, app: app)
+        
+        shapeList = ShapeList(view)
+        
         super.init( view, type: .Right )
+        
+        view.registerWidget(shapeListWidget, region: self)
     }
     
     override func build()
     {
-        rect.width = 200
+        rect.width = 300
         rect.x = mmView.renderer.cWidth - rect.width
-        mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 2,  fillColor : float4( 0.706, 0.416, 0.431, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+        
+        objectWidget.rect.width = rect.width
+        objectWidget.rect.height = rect.height * 1/3
+        
+        shapeListWidget.rect.width = rect.width
+        shapeListWidget.rect.height = rect.height * 2/3
+        
+        layoutV(startX: rect.x, startY: rect.y, spacing: 0, widgets: objectWidget, shapeListWidget)
+        
+        super.build()
+
+        objectWidget.draw()
+        shapeListWidget.draw()
+        
+        if app.changed {
+            shapeList.build( width: shapeListWidget.rect.width, object: app.layerManager.currentLayer.currentObject)
+            app.changed = false
+        }
+        shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x, shapeListWidget.rect.y+1, shapeListWidget.rect.width, shapeListWidget.rect.height-2) )
+    }
+}
+
+class ObjectWidget : MMWidget
+{
+    var app                 : App
+    var label               : MMTextLabel
+    
+    init(_ view: MMView, app: App)
+    {
+        self.app = app
+        label = MMTextLabel(view, font: view.openSans!, text:"Object Hierarchy", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
+        super.init(view)
+    }
+    
+    override func draw()
+    {
+        mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
+    
+        label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+        
+        mmView.drawCube.draw( x: rect.x, y: rect.y+30, width: rect.width, height: rect.height-30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+    }
+}
+
+/// The scroll area for the shapes list
+class ShapeListScrollArea: MMScrollArea
+{
+    var app                 : App
+    var mouseDownPos        : float2
+    var mouseIsDown         : Bool = false
+    
+    var dragSource          : ShapeSelectorDrag? = nil
+    var shapeAtMouse        : Shape?
+    
+    init(_ view: MMView, app: App)
+    {
+        self.app = app
+        mouseDownPos = float2()
+        super.init(view, orientation:.Vertical)
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent) {
+        
+        mouseDownPos.x = event.x - rect.x
+        mouseDownPos.y = event.y - rect.y
+        mouseIsDown = true
+        shapeAtMouse = app.leftRegion!.shapeSelector.selectAt(mouseDownPos.x,mouseDownPos.y)
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent) {
+        if mouseIsDown && dragSource == nil {
+            dragSource = app.leftRegion!.shapeSelector.createDragSource(mouseDownPos.x,mouseDownPos.y)
+            dragSource?.sourceWidget = self
+            mmView.dragStarted(source: dragSource!)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent) {
+        mouseIsDown = false
+    }
+    
+    override func dragTerminated() {
+        dragSource = nil
+    }
+    
+    override func draw()
+    {
+        mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
     }
 }

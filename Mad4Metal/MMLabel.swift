@@ -6,7 +6,7 @@
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
-import Foundation
+import MetalKit
 
 protocol MMLabel
 {
@@ -22,9 +22,10 @@ class MMTextLabel: MMLabel
     var font        : MMFont
     var text        : String
     var scale       : Float
+    var color       : float4
     var textBuffer  : MMTextBuffer?
     
-    init( _ view: MMView, font: MMFont, text: String, scale: Float = 0.5 )
+    init( _ view: MMView, font: MMFont, text: String, scale: Float = 0.5, color: float4 = float4(0.957, 0.957, 0.957, 1) )
     {
         rect = MMRect()
         
@@ -32,12 +33,27 @@ class MMTextLabel: MMLabel
         self.font = font
         self.text = text
         self.scale = scale
+        self.color = color
         
         rect = font.getTextRect(text: text, scale: scale, rectToUse: rect)
     }
     
     func draw()
     {
-        textBuffer = mmView.drawText.drawText(font, text: text, x: rect.x, y: rect.y, scale: scale, textBuffer: textBuffer)
+        textBuffer = mmView.drawText.drawText(font, text: text, x: rect.x, y: rect.y, scale: scale, color: color, textBuffer: textBuffer)
+    }
+    
+    func drawCentered(x:Float, y:Float, width:Float, height:Float)
+    {
+        let drawX = x + (width - rect.width) / 2
+        let drawY = y + (height - rect.height)/2
+        textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
+    }
+    
+    func drawYCentered(x:Float, y:Float, width:Float, height:Float)
+    {
+        let drawX = x
+        let drawY = y + (height - rect.height)/2
+        textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
     }
 }

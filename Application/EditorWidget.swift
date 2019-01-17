@@ -106,7 +106,8 @@ class EditorWidget      : MMWidget
         if dragSource.id == "ShapeSelectorItem" {
             let drag = dragSource as! ShapeSelectorDrag
             
-            app.layerManager.currentLayer.addShape(drag.shape!)
+            app.layerManager.currentLayer.currentObject.addShape(drag.shape!)
+            app.changed = true
             
             if let shape = drag.shape {
                 
@@ -114,12 +115,17 @@ class EditorWidget      : MMWidget
                 var yOff : Float = 0
                 
                 if shape.name == "Disk" {
-                    xOff = shape.properties["radius"]! - drag.pWidgetOffset!.x
-                    yOff = shape.properties["radius"]! - drag.pWidgetOffset!.y
+                    xOff = shape.properties["radius"]! - drag.pWidgetOffset!.x + 2.5
+                    yOff = shape.properties["radius"]! - drag.pWidgetOffset!.y + 2.5
+                    
+                    shape.properties["radius"] = shape.properties["radius"]! * 700 / rect.width
                 } else
                 if shape.name == "Box" {
-                    xOff = shape.properties["width"]! - drag.pWidgetOffset!.x
-                    yOff = shape.properties["height"]! - drag.pWidgetOffset!.y
+                    xOff = shape.properties["width"]! - drag.pWidgetOffset!.x + 2.5
+                    yOff = shape.properties["height"]! - drag.pWidgetOffset!.y + 2.5
+                    
+                    shape.properties["width"] = shape.properties["width"]! * 700 / rect.width
+                    shape.properties["height"] = shape.properties["height"]! * 700 / rect.width
                 }
                 
                 shape.properties["posX"] = (event.x - rect.x + xOff) * 700 / rect.width

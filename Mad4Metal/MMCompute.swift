@@ -1,8 +1,8 @@
 //
-//  Renderer.swift
+//  MMCompute.swift
 //  Framework
 //
-//  Created by Markus Moenig on 01.01.19.
+//  Created by Markus Moenig on 06.01.19.
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
@@ -63,6 +63,7 @@ class MMCompute {
         } catch
         {
             print( "Make Library Failed" )
+            print( error )
             return nil
         }
         return library;
@@ -79,9 +80,8 @@ class MMCompute {
         textureDescriptor.width = Int(width)
         textureDescriptor.height = Int(height)
         
-        textureDescriptor.usage = MTLTextureUsage.shaderWrite
         textureDescriptor.usage = MTLTextureUsage.unknown;
-        
+
         let texture = device.makeTexture( descriptor: textureDescriptor )
         if output! {
             self.texture = texture
@@ -100,7 +100,7 @@ class MMCompute {
     }
 
     /// Run the given state
-    func run(_ state: MTLComputePipelineState?, inBuffer: MTLBuffer? = nil )
+    func run(_ state: MTLComputePipelineState?, inBuffer: MTLBuffer? = nil, inTexture: MTLTexture? = nil )
     {
         let commandBuffer = commandQueue!.makeCommandBuffer()!
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
@@ -111,6 +111,10 @@ class MMCompute {
         
         if let buffer = inBuffer {
             computeEncoder.setBuffer(buffer, offset: 0, index: 1)
+        }
+        
+        if let texture = inTexture {
+            computeEncoder.setTexture(texture, index: 2)
         }
         
         computeEncoder.dispatchThreadgroups( threadgroupSize, threadsPerThreadgroup: threadgroupCount )

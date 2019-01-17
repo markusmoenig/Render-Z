@@ -55,9 +55,10 @@ typedef struct
 
 typedef struct
 {
-    vector_float2 atlasSize;
-    vector_float2 fontPos;
-    vector_float2 fontSize;
+    float2 atlasSize;
+    float2 fontPos;
+    float2 fontSize;
+    float4 color;
 } MM_TEXT;
 
 #endif /* Mad4Metal_types.h */

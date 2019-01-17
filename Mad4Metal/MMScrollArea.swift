@@ -46,7 +46,7 @@ class MMScrollArea : MMWidget
                 
                     let wHeight = widget.rect.height
                     widget.rect.x = area.x + xOffset
-                    
+                                        
                     // --- Check bounds
                     
                     if offsetY < -(wHeight-area.height) {

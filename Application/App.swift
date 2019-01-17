@@ -18,6 +18,8 @@ class App
     var editorRegion    : EditorRegion?
     
     var layerManager    : LayerManager
+    
+    var changed         : Bool = true
 
     init(_ view : MMView )
     {

@@ -17,9 +17,6 @@ class LeftRegion: MMRegion
     
     var mode            : LeftRegionMode
     var app             : App
-
-//    var compute         : MMCompute
-//    var kernelState     : MTLComputePipelineState?
     
     var shapeSelector   : ShapeSelector
     var textureWidget   : MMTextureWidget
@@ -29,11 +26,6 @@ class LeftRegion: MMRegion
     {
         self.app = app
         mode = .Shapes
-        
-//        compute = MMCompute()
-//        compute.allocateTexture(width: 200, height: 1000)
-//        textureWidget = MMTextureWidget( view, texture: compute.texture )
-//        kernelState = compute.createState(name: "cubeGradient")
 
         shapeSelector = ShapeSelector(view, width : 200)
         textureWidget = MMTextureWidget( view, texture: shapeSelector.compute!.texture )
@@ -41,11 +33,6 @@ class LeftRegion: MMRegion
         scrollArea = ShapeScrollArea(view, app: app)
         
         super.init( view, type: .Left )
-
-//        scrollArea.clickedCB = { (x,y) -> Void in
-//            print( "scrollArea clicked", x - self.rect.x, y - self.rect.y )
-//            self.shapeSelector.selectAt(x - self.rect.x, y - self.rect.y)
-//        }
         
         rect.width = 200
         self.app.topRegion!.shapesButton.addState( .Checked )

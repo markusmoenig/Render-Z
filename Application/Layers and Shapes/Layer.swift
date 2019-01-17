@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class Layer : Codable
+class Object : Codable
 {
     var shapes          : [Shape]
     var shapeIdCounter  : Int
@@ -30,6 +30,38 @@ class Layer : Codable
     func addShape(_ shape: Shape)
     {
         shapes.append( shape )
+    }
+}
+
+class Layer : Codable
+{
+    var objects         : [Object]
+    var objectIdCounter : Int
+    
+    var currentObject   : Object!
+    
+    var compute         : MMCompute?
+    var state           : MTLComputePipelineState?
+    
+    private enum CodingKeys: String, CodingKey {
+        case objects
+        case objectIdCounter
+    }
+    
+    init()
+    {
+        objects = []
+        objectIdCounter = 0
+        
+        let object = Object()
+        
+        objects.append( object )
+        currentObject = object
+    }
+    
+    func addObject(_ object: Object)
+    {
+        objects.append( object )
     }
     
     /// Build the source for the layer
@@ -84,11 +116,13 @@ class Layer : Codable
                 float dist = 1000;
         """
 
-        for shape in shapes {
-            let posX = shape.properties["posX"]
-            let posY = shape.properties["posY"]
-            source += "uv = translate( tuv, float2( \(posX ?? 0), \(posY ?? 0) ) );"
-            source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+        for object in objects {
+            for shape in object.shapes {
+                let posX = shape.properties["posX"]
+                let posY = shape.properties["posY"]
+                source += "uv = translate( tuv, float2( \(posX ?? 0), \(posY ?? 0) ) );"
+                source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+            }
         }
         
         source +=
@@ -129,11 +163,13 @@ class Layer : Codable
         var coll : [String] = []
         var result = ""
         
-        for shape in shapes {
-            
-            if !coll.contains(shape.name) {
-                result += shape.globalCode
-                coll.append( shape.name )
+        for object in objects {
+            for shape in object.shapes {
+                
+                if !coll.contains(shape.name) {
+                    result += shape.globalCode
+                    coll.append( shape.name )
+                }
             }
         }
         

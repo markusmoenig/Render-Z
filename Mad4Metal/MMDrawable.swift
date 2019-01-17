@@ -215,14 +215,16 @@ class MMDrawText : MMDrawable
         mmRenderer = renderer
     }
     
-    @discardableResult func drawChar( _ font: MMFont, char: BMChar, x: Float, y: Float, scale: Float = 1.0 ) -> MMCharBuffer
+    @discardableResult func drawChar( _ font: MMFont, char: BMChar, x: Float, y: Float, color: float4, scale: Float = 1.0 ) -> MMCharBuffer
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         
         let textSettings: [Float] = [
             Float(font.atlas!.width) * scaleFactor, Float(font.atlas!.height) * scaleFactor,
             char.x * scaleFactor, char.y * scaleFactor,
-            char.width * scaleFactor, char.height * scaleFactor
+            char.width * scaleFactor, char.height * scaleFactor,
+            0,0,
+            color.x, color.y, color.z, color.w,
         ];
                     
         let renderEncoder = mmRenderer.renderEncoder!
@@ -241,7 +243,7 @@ class MMDrawText : MMDrawable
         return MMCharBuffer(vertexBuffer: vertexBuffer!, dataBuffer: textData)
     }
     
-    @discardableResult func drawText( _ font: MMFont, text: String, x: Float, y: Float, scale: Float = 1.0, textBuffer: MMTextBuffer? = nil ) -> MMTextBuffer?
+    @discardableResult func drawText( _ font: MMFont, text: String, x: Float, y: Float, scale: Float = 1.0, color: float4 = float4(1), textBuffer: MMTextBuffer? = nil ) -> MMTextBuffer?
     {
         if textBuffer != nil && textBuffer!.x == x && textBuffer!.y == y && textBuffer!.viewWidth == mmRenderer.width && textBuffer!.viewHeight == mmRenderer.height {
             let renderEncoder = mmRenderer.renderEncoder!
@@ -261,7 +263,7 @@ class MMDrawText : MMDrawable
             for c in text {
                 let bmChar = font.getItemForChar( c )
                 if bmChar != nil {
-                    let char = drawChar( font, char: bmChar!, x: posX + bmChar!.xoffset * scale, y: y + bmChar!.yoffset * scale, scale: scale)
+                    let char = drawChar( font, char: bmChar!, x: posX + bmChar!.xoffset * scale, y: y + bmChar!.yoffset * scale, color: color, scale: scale)
                     array.append(char)
                     posX += bmChar!.xadvance * scale;
                 }

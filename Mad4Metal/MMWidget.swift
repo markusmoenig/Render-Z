@@ -157,7 +157,7 @@ class MMButtonWidget : MMWidget
         
         if label != nil {
             label!.rect.x = rect.x + skin.margin.left
-            label!.rect.y = rect.y + (skin.height - label!.rect.height/2) / 2
+            label!.rect.y = rect.y + (skin.height - label!.rect.height) / 2
             label!.draw()
         }
     }
@@ -179,6 +179,13 @@ class MMTextureWidget : MMWidget
     init( _ view: MMView, texture: MTLTexture? )
     {
         super.init(view)
+        self.texture = texture
+        rect.width = Float(texture!.width)
+        rect.height = Float(texture!.height)
+    }
+    
+    func setTexture(_ texture: MTLTexture?)
+    {
         self.texture = texture
         rect.width = Float(texture!.width)
         rect.height = Float(texture!.height)
