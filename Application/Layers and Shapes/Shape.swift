@@ -35,12 +35,14 @@ class Shape : Codable
         properties["posY"] = 0
     }
     
-    func createDistanceCode( uvName: String ) -> String
+    func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil ) -> String
     {
         var code = distanceCode
+        let props = transProperties != nil ? transProperties : properties
+        
         code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
         
-        for (name,value) in properties {
+        for (name,value) in props! {
             code = code.replacingOccurrences(of: "__" + name + "__", with: String(value))
         }        
         return code

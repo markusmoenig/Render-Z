@@ -19,7 +19,7 @@ class App
     
     var layerManager    : LayerManager
     
-    var changed         : Bool = true
+    var changed         : Bool = false
 
     init(_ view : MMView )
     {
@@ -38,5 +38,13 @@ class App
         mmView.rightRegion = rightRegion
         mmView.bottomRegion = bottomRegion
         mmView.editorRegion = editorRegion
+        
+        setChanged()
+    }
+
+    func setChanged()
+    {
+        changed = true
+        rightRegion!.changed = true
     }
 }

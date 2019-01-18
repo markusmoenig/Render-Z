@@ -12,8 +12,6 @@ class ShapeList
 {
     var mmView          : MMView
     
-    var shapeRects      : [MMRect]
-
     var compute         : MMCompute?
     var state           : MTLComputePipelineState?
     
@@ -35,14 +33,13 @@ class ShapeList
         width = 0
         height = 0
         
-        shapeRects = []
         compute = MMCompute()
         compute!.allocateTexture(width: 10, height: 10)
         
         spacing = 0
         unitSize = 40
         
-        selectedIndex = 0
+        selectedIndex = -1
         currentObject = nil
         selectedShape = nil
         
@@ -59,8 +56,6 @@ class ShapeList
         if height == 0 {
             height = 1
         }
-     
-        print( "build", count )
         
         var source =
         """
@@ -106,18 +101,18 @@ class ShapeList
                 float round = 4;
         
                 float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
+                float4 fillSelectedColor = float4(0.192, 0.573, 0.478, 1.000);
                 float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
-        
+                float4 primitiveColor = float4(1, 1, 1, 1.000);
+
                 float4 finalCol = float4( 0 ), col = float4( 0 );
         """
 
-        var counter : Int = 0
         let left : Float = width / 2
         var top : Float = unitSize / 2
         var selLeft : Float = 0
         var selTop : Float = 0
         
-        shapeRects = []
         for (index, shape) in object.shapes.enumerated() {
 
             source += "uv = uvOrigin; uv.x += outTexture.get_width() / 2.0 - \(left) + borderSize/2; uv.y += outTexture.get_height() / 2.0 - \(top) + borderSize/2;\n"
@@ -125,26 +120,27 @@ class ShapeList
             
             source += "d = abs( uv ) - float2( \((width)/2) - borderSize, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
-            
-            source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
+
+            if index == selectedIndex {
+                source += "col = float4( fillSelectedColor.x, fillSelectedColor.y, fillSelectedColor.z, fillMask( dist ) * fillSelectedColor.w );\n"
+            } else {
+                source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
+            }
             source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
-            source += "uv -= float2( 20., 20. );\n"
-            source += "dist = " + shape.createDistanceCode(uvName: "uv") + ";"
+            source += "uv -= float2( -130., 0. );\n"
+            source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(of: shape.properties, size: 12)) + ";"
 
-            source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
-            source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
+            source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
+//            source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
 
             if index == selectedIndex {
                 selLeft = left
                 selTop = top
             }
-                
-            shapeRects.append( MMRect(left - unitSize / 2, top - unitSize / 2, unitSize, unitSize ) )
             
-            counter += 1
             top += unitSize + spacing
         }
         
@@ -162,7 +158,6 @@ class ShapeList
             }
         """
         
-        print( source )
         let library = compute!.createLibraryFromSource(source: source)
         state = compute!.createState(library: library, name: "shapeListBuilder")
         
@@ -177,19 +172,42 @@ class ShapeList
     }
     
     /// Selected the shape at the given relative mouse position
-    func selectAt(_ x: Float,_ y: Float) -> Shape?
+    @discardableResult func selectAt(_ x: Float,_ y: Float) -> Shape?
     {
-        if let object = currentObject {
-            for (index, rect) in shapeRects.enumerated() {
-                if rect.contains( x, y ) {
-                    selectedIndex = index
-                    selectedShape = object.shapes[index]
-    //                build()
-                    return selectedShape
-                }
-            }
+        let index : Float = y / (unitSize+spacing)
+        selectedIndex = Int(index)
+
+        if selectedIndex >= 0 && selectedIndex < currentObject!.shapes.count {
+            selectedShape = currentObject!.shapes[selectedIndex]
+        } else {
+            selectedIndex = -1
+            selectedShape = nil
         }
-        return nil
+        
+        print( selectedIndex )
+
+        return selectedShape
+    }
+    
+    func transformPropertySize( of: [String:Float], size: Float ) -> [String:Float]
+    {
+        var properties : [String:Float] = [:]
+        
+        for (name, value) in of {
+            var v = value
+            if name == "radius" {
+                v = size
+            } else
+            if name == "width" {
+                v = size
+            } else
+            if name == "height" {
+                v = size
+            }
+            properties[name] = v
+        }
+        
+        return properties
     }
     
     /// Create a drag item for the given position
