@@ -68,6 +68,8 @@ class EditorRegion: MMRegion
         if let texture = result {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
         }
+        
+        app.changed = false
     }
     
     func compute()

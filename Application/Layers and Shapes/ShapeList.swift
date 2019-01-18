@@ -183,9 +183,6 @@ class ShapeList
             selectedIndex = -1
             selectedShape = nil
         }
-        
-        print( selectedIndex )
-
         return selectedShape
     }
     

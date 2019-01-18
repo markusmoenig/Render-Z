@@ -52,9 +52,14 @@ class RightRegion: MMRegion
         
         if changed {
             shapeList.build( width: shapeListWidget.rect.width, object: app.layerManager.currentLayer.currentObject)
-            app.changed = false
+            changed = false
         }
         shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x, shapeListWidget.rect.y+1, shapeListWidget.rect.width, shapeListWidget.rect.height-2) )
+    }
+    
+    func buildList()
+    {
+        shapeList.build( width: shapeListWidget.rect.width, object: app.layerManager.currentLayer.currentObject)
     }
 }
 
@@ -104,7 +109,7 @@ class ShapeListScrollArea: MMScrollArea
         mouseIsDown = true
         let oldSelected = app.rightRegion!.shapeList.selectedIndex
         shapeAtMouse = app.rightRegion!.shapeList.selectAt(mouseDownPos.x,mouseDownPos.y)
-        if oldSelected == app.rightRegion!.shapeList.selectedIndex {
+        if oldSelected != app.rightRegion!.shapeList.selectedIndex {
             app.rightRegion!.changed = true
         }
     }
