@@ -51,7 +51,7 @@ class RightRegion: MMRegion
         shapeListWidget.draw()
         
         if changed {
-            shapeList.build( width: shapeListWidget.rect.width, object: app.layerManager.currentLayer.currentObject)
+            shapeList.build( width: shapeListWidget.rect.width, object: app.layerManager.getCurrentLayer().getCurrentObject())
             changed = false
         }
         shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x, shapeListWidget.rect.y+1, shapeListWidget.rect.width, shapeListWidget.rect.height-2) )
@@ -59,7 +59,7 @@ class RightRegion: MMRegion
     
     func buildList()
     {
-        shapeList.build( width: shapeListWidget.rect.width, object: app.layerManager.currentLayer.currentObject)
+        shapeList.build( width: shapeListWidget.rect.width, object: app.layerManager.getCurrentLayer().getCurrentObject())
     }
 }
 

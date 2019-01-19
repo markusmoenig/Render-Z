@@ -122,4 +122,27 @@ class MMCompute {
         
         commandBuffer.commit()
     }
+
+    /// Run the given state
+    func runBuffer(_ state: MTLComputePipelineState?, outBuffer: MTLBuffer, inBuffer: MTLBuffer? = nil )
+    {
+        let commandBuffer = commandQueue!.makeCommandBuffer()!
+        let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
+        
+        computeEncoder.setComputePipelineState( state! )
+//        computeEncoder.setTexture( inputTexture, index: 0 )
+        computeEncoder.setBuffer(outBuffer, offset: 0, index: 0)
+
+        if let buffer = inBuffer {
+            computeEncoder.setBuffer(buffer, offset: 0, index: 1)
+        }
+        
+        let numThreadgroups = MTLSize(width: 1, height: 1, depth: 1)
+        let threadsPerThreadgroup = MTLSize(width: 1, height: 1, depth: 1)
+        computeEncoder.dispatchThreadgroups(numThreadgroups, threadsPerThreadgroup: threadsPerThreadgroup)
+        computeEncoder.endEncoding()
+        
+        commandBuffer.commit()
+        commandBuffer.waitUntilCompleted()
+    }
 }

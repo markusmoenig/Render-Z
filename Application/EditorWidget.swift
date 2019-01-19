@@ -39,6 +39,8 @@ class EditorWidget      : MMWidget
         
         dragStartPos.x = event.x - rect.x
         dragStartPos.y = event.y - rect.y
+        
+        app.layerManager.getShapeAt(x: event.x - rect.x, y: event.y - rect.y)
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -106,7 +108,7 @@ class EditorWidget      : MMWidget
         if dragSource.id == "ShapeSelectorItem" {
             let drag = dragSource as! ShapeSelectorDrag
             
-            app.layerManager.currentLayer.currentObject.addShape(drag.shape!)
+            app.layerManager.getCurrentLayer().getCurrentObject().addShape(drag.shape!)
             app.setChanged()
             
             if let shape = drag.shape {
@@ -132,7 +134,7 @@ class EditorWidget      : MMWidget
                 shape.properties["posY"] = (event.y - rect.y + yOff) * 700 / rect.width
             }
             
-            app.layerManager.currentLayer.build()
+            app.layerManager.getCurrentLayer().build()
             region.result = nil
         }
     }
