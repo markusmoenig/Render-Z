@@ -11,16 +11,17 @@ import MetalKit
 class LayerManager : Codable
 {
     var layers          : [Layer]
-    var layerIdCounter : Int
+    var layerIdCounter  : Int
 
     var currentIndex    : Int
     
     var compute         : MMCompute?
-    var state           : MTLComputePipelineState?
     
     var width           : Float!
     var height          : Float!
 
+    var app             : App?
+    
     private enum CodingKeys: String, CodingKey {
         case layers
         case currentIndex
@@ -129,7 +130,7 @@ class LayerManager : Codable
         //        print( source )
     
         let library = compute!.createLibraryFromSource(source: source)
-        state = compute!.createState(library: library, name: "selectedAt")
+        let state = compute!.createState(library: library, name: "selectedAt")
 
         let outBuffer = compute!.device.makeBuffer(length: MemoryLayout<float4>.stride, options: [])!
         compute!.runBuffer(state, outBuffer: outBuffer)
@@ -138,7 +139,16 @@ class LayerManager : Codable
         print( result )
         
         if result.x < 0 {
-        
+            let layerId : Int = Int(result.y)
+            let layer = layers[layerId]
+            
+            let objectId : Int = Int(result.z)
+            let object = layer.objects[objectId]
+            
+            let shapeId : Int = Int(result.w)
+            object.selectedShapes = [shapeId]
+            
+            app!.rightRegion!.changed = true
         }
     }
     

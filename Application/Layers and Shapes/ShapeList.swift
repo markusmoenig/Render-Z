@@ -21,9 +21,6 @@ class ShapeList
     
     var textureWidget   : MMTextureWidget
 
-    var selectedIndex   : Int
-    var selectedShape   : Shape?
-    
     var currentObject   : Object?
     
     init(_ view: MMView )
@@ -39,9 +36,7 @@ class ShapeList
         spacing = 0
         unitSize = 40
         
-        selectedIndex = -1
         currentObject = nil
-        selectedShape = nil
         
         textureWidget = MMTextureWidget( view, texture: compute!.texture )
 
@@ -110,10 +105,8 @@ class ShapeList
 
         let left : Float = width / 2
         var top : Float = unitSize / 2
-        var selLeft : Float = 0
-        var selTop : Float = 0
         
-        for (index, shape) in object.shapes.enumerated() {
+        for (_, shape) in object.shapes.enumerated() {
 
             source += "uv = uvOrigin; uv.x += outTexture.get_width() / 2.0 - \(left) + borderSize/2; uv.y += outTexture.get_height() / 2.0 - \(top) + borderSize/2;\n"
             //source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
@@ -121,7 +114,7 @@ class ShapeList
             source += "d = abs( uv ) - float2( \((width)/2) - borderSize, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
 
-            if index == selectedIndex {
+            if object.selectedShapes.contains( shape.id ) {
                 source += "col = float4( fillSelectedColor.x, fillSelectedColor.y, fillSelectedColor.z, fillMask( dist ) * fillSelectedColor.w );\n"
             } else {
                 source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
@@ -135,24 +128,12 @@ class ShapeList
             source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
 //            source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
-
-            if index == selectedIndex {
-                selLeft = left
-                selTop = top
-            }
             
             top += unitSize + spacing
         }
         
         source +=
         """
-        
-                //uv = uvOrigin; uv.x += outTexture.get_width() / 2 - \(selLeft); uv.y += outTexture.get_height() / 2 - \(selTop);
-        
-                //float2 d = abs( uv ) - \(unitSize) / 2 + 4;
-                //dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 4;
-
-                //col = mix( col, borderColor, borderMask( dist, 1 ) );
         
                 outTexture.write(half4(finalCol.x, finalCol.y, finalCol.z, finalCol.w), gid);
             }
@@ -172,18 +153,18 @@ class ShapeList
     }
     
     /// Selected the shape at the given relative mouse position
-    @discardableResult func selectAt(_ x: Float,_ y: Float) -> Shape?
+    @discardableResult func selectAt(_ x: Float,_ y: Float) -> Bool
     {
         let index : Float = y / (unitSize+spacing)
-        selectedIndex = Int(index)
-
+        let selectedIndex = Int(index)
+        var changed  = false
+        
         if selectedIndex >= 0 && selectedIndex < currentObject!.shapes.count {
-            selectedShape = currentObject!.shapes[selectedIndex]
-        } else {
-            selectedIndex = -1
-            selectedShape = nil
+            currentObject!.selectedShapes = [currentObject!.shapes[selectedIndex].id]
+            changed = true
         }
-        return selectedShape
+        
+        return changed
     }
     
     func transformPropertySize( of: [String:Float], size: Float ) -> [String:Float]

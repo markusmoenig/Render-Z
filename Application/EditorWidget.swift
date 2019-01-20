@@ -108,7 +108,7 @@ class EditorWidget      : MMWidget
         if dragSource.id == "ShapeSelectorItem" {
             let drag = dragSource as! ShapeSelectorDrag
             
-            app.layerManager.getCurrentLayer().getCurrentObject().addShape(drag.shape!)
+            app.layerManager.getCurrentLayer().getCurrentObject()?.addShape(drag.shape!)
             app.setChanged()
             
             if let shape = drag.shape {

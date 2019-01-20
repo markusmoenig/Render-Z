@@ -16,16 +16,20 @@ class Object : Codable
     var id              : Int
     var active          : Bool
     
+    var selectedShapes  : [Int]
+    
     private enum CodingKeys: String, CodingKey {
         case shapes
         case shapeIdCounter
         case active
         case id
+        case selectedShapes
     }
     
     init()
     {
         shapes = []
+        selectedShapes = []
         shapeIdCounter = 0
         id = -1
         active = true
@@ -46,7 +50,7 @@ class Layer : Codable
     
     var id              : Int
     var active          : Bool
-    var currentIndex    : Int
+    var currentId       : Int
 
     var compute         : MMCompute?
     var state           : MTLComputePipelineState?
@@ -56,7 +60,7 @@ class Layer : Codable
         case objectIdCounter
         case id
         case active
-        case currentIndex
+        case currentId
     }
     
     init()
@@ -65,10 +69,12 @@ class Layer : Codable
         objectIdCounter = 0
         id = -1
         active = true
-        currentIndex = 0
-        
+        currentId = -1
+
         let object = Object()
         addObject( object )
+        
+        currentId = object.id
     }
     
     func addObject(_ object: Object)
@@ -190,8 +196,18 @@ class Layer : Codable
         return result
     }
     
-    func getCurrentObject() -> Object
+    func getObjectFromId(_ id: Int ) -> Object?
     {
-        return objects[currentIndex]
+        for object in objects {
+            if object.id == id {
+                return object
+            }
+        }
+        return nil
+    }
+    
+    func getCurrentObject() -> Object?
+    {
+        return getObjectFromId( currentId )
     }
 }

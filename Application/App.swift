@@ -26,7 +26,8 @@ class App
         mmView = view
         
         layerManager = LayerManager()
-        
+        layerManager.app = self
+
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )
         rightRegion = RightRegion( mmView, app: self )
