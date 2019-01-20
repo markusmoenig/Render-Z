@@ -58,9 +58,17 @@ class LayerManager : Codable
         return texture
     }
     
+    /// Returns the current layer
     func getCurrentLayer() -> Layer
     {
         return layers[currentIndex]
+    }
+    
+    /// Returns the current object
+    func getCurrentObject() -> Object?
+    {
+        let layer = getCurrentLayer()
+        return layer.getCurrentObject()
     }
     
     /// Get the object and shape id at the specific location
@@ -136,7 +144,7 @@ class LayerManager : Codable
         compute!.runBuffer(state, outBuffer: outBuffer)
         
         let result = outBuffer.contents().load(as: float4.self)
-        print( result )
+        //print( result )
         
         if result.x < 0 {
             let layerId : Int = Int(result.y)
@@ -149,6 +157,11 @@ class LayerManager : Codable
             object.selectedShapes = [shapeId]
             
             app!.rightRegion!.changed = true
+        } else {
+            if let object = getCurrentObject() {
+                object.selectedShapes = []
+                app!.rightRegion!.changed = true
+            }
         }
     }
     
