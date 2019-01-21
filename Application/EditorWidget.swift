@@ -47,7 +47,6 @@ class EditorWidget      : MMWidget
     {
         mouseIsDown = false
         editorState = .Lazy
-        mmView.preferredFramesPerSecond = mmView.defaultFramerate
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
@@ -130,8 +129,16 @@ class EditorWidget      : MMWidget
                     shape.properties["height"] = shape.properties["height"]! * 700 / rect.width
                 }
                 
-                shape.properties["posX"] = (event.x - rect.x + xOff) * 700 / rect.width
-                shape.properties["posY"] = (event.y - rect.y + yOff) * 700 / rect.width
+                // --- Transform coordinates
+                xOff = (event.x - rect.x + xOff) * 700 / rect.width
+                yOff = (event.y - rect.y + yOff) * 700 / rect.width
+                
+                // --- Center
+                xOff -= 350;
+                yOff -= 350 * rect.height / rect.width
+                
+                shape.properties["posX"] = xOff
+                shape.properties["posY"] = yOff
             }
             
             app.layerManager.getCurrentLayer().build()

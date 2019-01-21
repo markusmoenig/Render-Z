@@ -31,7 +31,16 @@ typedef struct
     vector_float4 fillColor;
     vector_float4 borderColor;
 
-} MM_CUBE;
+} MM_BOX;
+
+typedef struct
+{
+    vector_float2 size;
+    float round, borderSize;
+    vector_float4 fillColor;
+    vector_float4 borderColor;
+    
+} MM_BOXEDMENU;
 
 typedef struct
 {
@@ -43,7 +52,7 @@ typedef struct
     vector_float4 gradientColor2;
     vector_float4 borderColor;
     
-} MM_CUBE_GRADIENT;
+} MM_BOX_GRADIENT;
 
 typedef struct
 {

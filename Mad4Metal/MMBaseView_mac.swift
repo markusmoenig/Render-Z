@@ -20,6 +20,8 @@ class MMBaseView : MTKView
     
     var mousePos        : float2 = float2()
     
+    var mouseTrackWidget: MMWidget? = nil
+
     // --- Drag And Drop
     var dragSource      : MMDragSource? = nil
     
@@ -72,7 +74,6 @@ class MMBaseView : MTKView
         if dragSource != nil {
             dragSource!.sourceWidget?.dragTerminated()
             dragSource = nil
-
         }        
         // ---
         
@@ -84,33 +85,28 @@ class MMBaseView : MTKView
     
     /// Mouse has moved
     override func mouseMoved(with event: NSEvent) {
-        
         let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ) )
         
         mousePos.x = event.x
         mousePos.y = event.y
-        
-//        print( "mouse", event.x, event.y)
-        
+                
         if hoverWidget != nil {
             hoverWidget!.removeState(.Hover)
         }
         
         hoverWidget = nil
         
-        for widget in widgets {
-            //            print( x, y, widget.rect.x, widget.rect.y, widget.rect.width, widget.rect.height )
-            if widget.rect.contains( event.x, event.y ) {
-                hoverWidget = widget
-                hoverWidget!.addState(.Hover)
-                hoverWidget!.mouseMoved(event)
-//                print( hoverWidget!.name )
-                break;
+        if mouseTrackWidget != nil {
+            mouseTrackWidget!.mouseMoved(event)
+        } else {
+            for widget in widgets {
+                if widget.rect.contains( event.x, event.y ) {
+                    hoverWidget = widget
+                    hoverWidget!.addState(.Hover)
+                    hoverWidget!.mouseMoved(event)
+                    break;
+                }
             }
-        }
-        
-        if hoverWidget == nil {
-//            print( "nil" )
         }
     }
     

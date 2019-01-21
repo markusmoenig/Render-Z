@@ -76,6 +76,8 @@
 		2BBF11F121EEC618001C94E9 /* ShapeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11EF21EEC618001C94E9 /* ShapeFactory.swift */; };
 		2BBF11F621F02EAD001C94E9 /* ShapeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F521F02EAD001C94E9 /* ShapeList.swift */; };
 		2BBF11F721F02EAD001C94E9 /* ShapeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F521F02EAD001C94E9 /* ShapeList.swift */; };
+		2BBF11F921F55D20001C94E9 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F821F55D20001C94E9 /* Object.swift */; };
+		2BBF11FA21F55D20001C94E9 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F821F55D20001C94E9 /* Object.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -126,6 +128,7 @@
 		2BBF11EC21ED709E001C94E9 /* LayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerManager.swift; sourceTree = "<group>"; };
 		2BBF11EF21EEC618001C94E9 /* ShapeFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeFactory.swift; sourceTree = "<group>"; };
 		2BBF11F521F02EAD001C94E9 /* ShapeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeList.swift; sourceTree = "<group>"; };
+		2BBF11F821F55D20001C94E9 /* Object.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Object.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -245,6 +248,7 @@
 		2BBF11DF21EC1A40001C94E9 /* Layers and Shapes */ = {
 			isa = PBXGroup;
 			children = (
+				2BBF11F821F55D20001C94E9 /* Object.swift */,
 				2BBF11E321EC2BBC001C94E9 /* Layer.swift */,
 				2BBF11EC21ED709E001C94E9 /* LayerManager.swift */,
 				2BBF11E021EC1A92001C94E9 /* Shape.swift */,
@@ -382,6 +386,7 @@
 				2BBF11C521EADB46001C94E9 /* MMRegion.swift in Sources */,
 				2BBF11E421EC2BBC001C94E9 /* Layer.swift in Sources */,
 				2BBF11CF21EADB46001C94E9 /* MMFont.swift in Sources */,
+				2BBF11F921F55D20001C94E9 /* Object.swift in Sources */,
 				2BBF11E721EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */,
 				2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */,
@@ -419,6 +424,7 @@
 				2BBF11C621EADB46001C94E9 /* MMRegion.swift in Sources */,
 				2BBF11E521EC2BBC001C94E9 /* Layer.swift in Sources */,
 				2BBF11D021EADB46001C94E9 /* MMFont.swift in Sources */,
+				2BBF11FA21F55D20001C94E9 /* Object.swift in Sources */,
 				2BBF11E821EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */,
 				2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */,

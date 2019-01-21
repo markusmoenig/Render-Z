@@ -49,12 +49,12 @@ class MMRegion
         animStepValue = stepValue
         animFinishedCB = finishedCB
         rect.width = animStartValue
-        mmView.preferredFramesPerSecond = mmView.maxFramerate
+        mmView.lockFramerate()
     }
     
     func endAnimation()
     {
-        mmView.preferredFramesPerSecond = mmView.defaultFramerate
+        mmView.unlockFramerate()
         animActive = false
         animFinishedCB()
     }

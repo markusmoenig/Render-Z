@@ -30,6 +30,7 @@ class RightRegion: MMRegion
         super.init( view, type: .Right )
         
         view.registerWidget(shapeListWidget, region: self)
+        view.registerWidget(objectWidget.menuWidget, region: self)
     }
     
     override func build()
@@ -67,21 +68,39 @@ class ObjectWidget : MMWidget
 {
     var app                 : App
     var label               : MMTextLabel
+    var menuWidget          : MMMenuWidget
     
     init(_ view: MMView, app: App)
     {
         self.app = app
-        label = MMTextLabel(view, font: view.openSans!, text:"Object Hierarchy", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
+        label = MMTextLabel(view, font: view.openSans!, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
+        
+        let objectMenuItems = [
+            MMMenuItem( text: "Add Child Object", cb: {print("add child") } )
+        ]
+        
+        menuWidget = MMMenuWidget( view, items: objectMenuItems )
+
         super.init(view)
     }
     
     override func draw()
     {
-        mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
     
-        label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+        if let object = app.layerManager.getCurrentObject() {
+            label.setText(object.name)
+            label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+        }
         
-        mmView.drawCube.draw( x: rect.x, y: rect.y+30, width: rect.width, height: rect.height-30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+        menuWidget.rect.x = rect.x + rect.width - 30 - 1
+        menuWidget.rect.y = rect.y + 1
+        menuWidget.rect.width = 30
+        menuWidget.rect.height = 28
+//        menuWidget.draw()
+        mmView.delayedDraws.append( menuWidget )
+        
+        mmView.drawBox.draw( x: rect.x, y: rect.y+30, width: rect.width, height: rect.height-30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
     }
 }
 
@@ -129,6 +148,6 @@ class ShapeListScrollArea: MMScrollArea
     
     override func draw()
     {
-        mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
     }
 }

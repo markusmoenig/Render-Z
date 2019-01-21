@@ -18,8 +18,11 @@ class MMBaseView : MTKView
     
     var scaleFactor     : Float!
     
+    var mousePos        : float2 = float2()
     var mouseDownPos    : float2!
     
+    var mouseTrackWidget: MMWidget? = nil
+
     // --- Drag And Drop
     var dragSource      : MMDragSource? = nil
     
@@ -43,6 +46,9 @@ class MMBaseView : MTKView
         }
         
         let event = MMMouseEvent(Float(translation.x) + mouseDownPos.x, Float(translation.y) + mouseDownPos.y)
+        
+        mousePos.x = event.x
+        mousePos.y = event.y
         
         if hoverWidget != nil {
             event.deltaX = Float(translation.x) - lastX!
@@ -78,14 +84,39 @@ class MMBaseView : MTKView
                 animations: {recognizer.view!.center = finalPoint },
                 completion: nil)
             */
+                        
+            // --- Drag and Drop
+            if hoverWidget != nil && dragSource != nil {
+                if hoverWidget!.dropTargets.contains(dragSource!.id) {
+                    hoverWidget!.dragEnded(event: event, dragSource: dragSource!)
+                }
+            }
+            
+            if dragSource != nil {
+                dragSource!.sourceWidget?.dragTerminated()
+                dragSource = nil
+            }
+            // ---
             
             if focusWidget != nil {
+//                focusWidget!.removeState( .Clicked )
                 focusWidget!.mouseUp(event)
             }
             
             hoverWidget = nil
             focusWidget = nil
         } else {
+            /// Mouse Move event
+        
+            hoverWidget = nil
+            for widget in widgets {
+                if widget.rect.contains( event.x, event.y ) {
+                    hoverWidget = widget
+                    hoverWidget!.mouseMoved(event)
+                    break;
+                }
+            }
+            
             if focusWidget != nil {
                 focusWidget!.mouseMoved(event)
             }
@@ -150,8 +181,22 @@ class MMBaseView : MTKView
 //            let x : Float = Float(currentPoint.x)
 //            let y : Float = Float(currentPoint.y)
             
+            
+            // --- Drag and Drop
+            if hoverWidget != nil && dragSource != nil {
+                if hoverWidget!.dropTargets.contains(dragSource!.id) {
+                    hoverWidget!.dragEnded(event: event, dragSource: dragSource!)
+                }
+            }
+            
+            if dragSource != nil {
+                dragSource!.sourceWidget?.dragTerminated()
+                dragSource = nil
+            }
+            // ---
+            
             if focusWidget != nil {
-                focusWidget!.removeState( .Clicked )
+//                focusWidget!.removeState( .Clicked )
                 focusWidget!.mouseUp(event)
             }
             hoverWidget = nil

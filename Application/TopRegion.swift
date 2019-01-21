@@ -19,14 +19,14 @@ class TopRegion: MMRegion
         self.app = app
         super.init( view, type: .Top )
         
-        shapesButton = MMButtonWidget( mmView, skinToUse: mmView.skin.toolBarButton, text: "Shapes" )
+        shapesButton = MMButtonWidget( mmView, text: "Shapes" )
         shapesButton.clickedCB = { (x,y) -> Void in
             print( "shapesButton clicked" )
             app.leftRegion?.setMode(.Shapes)
             self.materialsButton.removeState(.Checked)
         }
         
-        materialsButton = MMButtonWidget( mmView, skinToUse: mmView.skin.toolBarButton, text: "Materials" )
+        materialsButton = MMButtonWidget( mmView, text: "Materials" )
         materialsButton.clickedCB = { (x,y) -> Void in
             print( "materialsButton clicked" )
             app.leftRegion?.setMode(.Materials)
@@ -73,7 +73,7 @@ class TopRegion: MMRegion
     
     override func build()
     {
-        mmView.drawCubeGradient.draw( x: 0, y: 0, width: mmView.renderer.width, height: 48, round: 0, borderSize: 1, uv1: vector_float2( 0, 0 ), uv2: vector_float2( 0, 1 ), gradientColor1 : float4( 0.082, 0.082, 0.082, 1), gradientColor2 : float4( 0.169, 0.173, 0.169, 1), borderColor: vector_float4( 0.051, 0.051, 0.051, 1 ) )
+        mmView.drawBoxGradient.draw( x: 0, y: 0, width: mmView.renderer.width, height: 48, round: 0, borderSize: 1, uv1: vector_float2( 0, 0 ), uv2: vector_float2( 0, 1 ), gradientColor1 : float4( 0.082, 0.082, 0.082, 1), gradientColor2 : float4( 0.169, 0.173, 0.169, 1), borderColor: vector_float4( 0.051, 0.051, 0.051, 1 ) )
         rect.height = 48
         
         shapesButton.draw()

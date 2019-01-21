@@ -22,6 +22,6 @@ class BottomRegion: MMRegion
     {
         rect.height = 150
         rect.y = mmView.renderer.cHeight - rect.height
-        mmView.drawCube.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 2,  fillColor : float4( 0.192, 0.573, 0.478, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 2,  fillColor : float4( 0.192, 0.573, 0.478, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
     }
 }

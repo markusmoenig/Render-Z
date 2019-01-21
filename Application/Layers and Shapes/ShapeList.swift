@@ -96,7 +96,6 @@ class ShapeList
                 float round = 4;
         
                 float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
-                float4 fillSelectedColor = float4(0.192, 0.573, 0.478, 1.000);
                 float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
                 float4 primitiveColor = float4(1, 1, 1, 1.000);
 
@@ -115,7 +114,7 @@ class ShapeList
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
 
             if object.selectedShapes.contains( shape.id ) {
-                source += "col = float4( fillSelectedColor.x, fillSelectedColor.y, fillSelectedColor.z, fillMask( dist ) * fillSelectedColor.w );\n"
+                source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
             } else {
                 source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
             }

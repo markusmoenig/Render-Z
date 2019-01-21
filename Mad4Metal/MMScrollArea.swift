@@ -87,12 +87,12 @@ class MMScrollArea : MMWidget
         
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.mmView.preferredFramesPerSecond = self.mmView.defaultFramerate
+                self.mmView.unlockFramerate()
                 self.dispatched = false
             }
             dispatched = true
         }
         
-        mmView.preferredFramesPerSecond = mmView.maxFramerate
+        mmView.lockFramerate()
     }
 }

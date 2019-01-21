@@ -106,8 +106,8 @@ class LayerManager : Codable
                 float2 fragCoord = float2( \(x), \(y) );
                 float2 uv = 700. * (fragCoord.xy + float(0.5)) / \(width!);
         
-                //float2 center = float2( 350., 350. * \(height!) / \(width!) );
-                //uv = translate(uv, center );//- vec2( uOrigin.x * 40., uOrigin.y * 40. ) );
+                float2 center = float2( 350., 350. * \(height!) / \(width!) );
+                uv = translate(uv, center );//- vec2( uOrigin.x * 40., uOrigin.y * 40. ) );
                 float2 tuv = uv;
         
                 float4 dist = float4(1000, -1, -1, -1);
@@ -144,7 +144,7 @@ class LayerManager : Codable
         compute!.runBuffer(state, outBuffer: outBuffer)
         
         let result = outBuffer.contents().load(as: float4.self)
-        //print( result )
+//        print( result )
         
         if result.x < 0 {
             let layerId : Int = Int(result.y)

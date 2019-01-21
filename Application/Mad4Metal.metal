@@ -70,9 +70,9 @@ float m4mGradient_linear(float2 uv, float2 p1, float2 p2) {
     return clamp(dot(uv-p1,p2-p1)/dot(p2-p1,p2-p1),0.,1.);
 }
 
-// --- Cube Drawable
-fragment float4 m4mCubeDrawable(RasterizerData in [[stage_in]],
-                             constant MM_CUBE *data [[ buffer(0) ]] )
+// --- Box Drawable
+fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],
+                               constant MM_BOX *data [[ buffer(0) ]] )
 {
     float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0 );
     uv -= float2( data->size / 2.0 + data->borderSize / 2.0 );
@@ -85,9 +85,9 @@ fragment float4 m4mCubeDrawable(RasterizerData in [[stage_in]],
     return col;
 }
 
-// --- Cube Gradient
-fragment float4 m4mCubeGradientDrawable(RasterizerData in [[stage_in]],
-                             constant MM_CUBE_GRADIENT *data [[ buffer(0) ]] )
+// --- Box Gradient
+fragment float4 m4mBoxGradientDrawable(RasterizerData in [[stage_in]],
+                                       constant MM_BOX_GRADIENT *data [[ buffer(0) ]] )
 {
     float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0);
     uv -= float2( data->size / 2.0 + data->borderSize / 2.0 );
@@ -105,6 +105,55 @@ fragment float4 m4mCubeGradientDrawable(RasterizerData in [[stage_in]],
     return col;
 }
 
+// --- Box Drawable
+fragment float4 m4mBoxedMenuDrawable(RasterizerData in [[stage_in]],
+                                     constant MM_BOXEDMENU *data [[ buffer(0) ]] )
+{
+    float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0 );
+    uv -= float2( data->size / 2.0 + data->borderSize / 2.0 );
+    
+    // Main
+    float2 d = abs( uv ) - data->size / 2 + data->round;
+    float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - data->round;
+    
+    float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
+    col = mix( col, data->borderColor, m4mBorderMask( dist, data->borderSize ) );
+    
+    // --- Lines
+    
+    float lineWidth = 1.5;
+    float lineRound = 4.0;
+
+    // --- Middle
+    uv = in.textureCoordinate * data->size;
+    uv -= data->size / 2.0;
+
+    d = abs( uv ) -  float2( data->size.x / 3, lineWidth) + lineRound;
+    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - lineRound;
+    
+//    col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
+    col = mix( col,  float4( 0.957, 0.957, 0.957, 1 ), m4mFillMask( dist ) );
+
+    // --- Top
+    uv = in.textureCoordinate * data->size;
+    uv -= data->size / 2.0;
+    uv.y -= data->size.y / 4;
+    
+    d = abs( uv ) -  float2( data->size.x / 3, lineWidth) + lineRound;
+    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - lineRound;
+    col = mix( col,  float4( 0.957, 0.957, 0.957, 1 ), m4mFillMask( dist ) );
+    
+    // --- Bottom
+    uv = in.textureCoordinate * data->size;
+    uv -= data->size / 2.0;
+    uv.y += data->size.y / 4;
+    
+    d = abs( uv ) -  float2( data->size.x / 3, lineWidth) + lineRound;
+    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - lineRound;
+    col = mix( col,  float4( 0.957, 0.957, 0.957, 1 ), m4mFillMask( dist ) );
+    
+    return col;
+}
 
 /// Texture drawable
 fragment float4 m4mTextureDrawable(RasterizerData in [[stage_in]],

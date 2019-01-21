@@ -22,8 +22,9 @@ class MMView : MMBaseView {
 
     // --- Drawables
     var drawSphere      : MMDrawSphere!
-    var drawCube        : MMDrawCube!
-    var drawCubeGradient : MMDrawCubeGradient!
+    var drawBox         : MMDrawBox!
+    var drawBoxGradient : MMDrawBoxGradient!
+    var drawBoxedMenu   : MMDrawBoxedMenu!
     var drawTexture     : MMDrawTexture!
     var drawText        : MMDrawText!
 
@@ -38,6 +39,12 @@ class MMView : MMBaseView {
     
     var defaultFramerate = 10
     var maxFramerate = 60
+
+    var maxFramerateLocks : Int = 0
+    
+    // --- Drawing
+    
+    var delayedDraws    : [MMWidget] = []
 
     // ---
     
@@ -74,8 +81,9 @@ class MMView : MMBaseView {
         
         // --- Drawables
         drawSphere = MMDrawSphere( renderer )
-        drawCube = MMDrawCube( renderer )
-        drawCubeGradient = MMDrawCubeGradient( renderer )
+        drawBox = MMDrawBox( renderer )
+        drawBoxGradient = MMDrawBoxGradient( renderer )
+        drawBoxedMenu = MMDrawBoxedMenu( renderer )
         drawTexture = MMDrawTexture( renderer )
         drawText = MMDrawText( renderer )
     }
@@ -84,6 +92,7 @@ class MMView : MMBaseView {
     func build()
     {
 //        print( renderer.cWidth, renderer.cHeight )
+        delayedDraws = []
         let rect = MMRect( 0, 0, renderer.cWidth, renderer.cHeight )
         if let region = topRegion {
             region.rect.x = 0
@@ -132,6 +141,12 @@ class MMView : MMBaseView {
                 widget.draw()
             }
         }
+        
+        // --- Delayed Draws
+        
+        for widget in delayedDraws {
+            widget.draw()
+        }
     }
     
     /// Regsiter the widget to the view
@@ -158,9 +173,29 @@ class MMView : MMBaseView {
         return try? textureLoader.newTexture(data: data, options: options)
     }
     
+    /// Initiate a drag operation
     func dragStarted(source: MMDragSource )
     {
         dragSource = source
+        lockFramerate()
+    }
+
+    /// Increases the counter which locks the framerate at the max
+    func lockFramerate()
+    {
+        maxFramerateLocks += 1
         preferredFramesPerSecond = maxFramerate
+        print( "max framerate" )
+    }
+    
+    /// Decreases the counter which locks the framerate and sets it back to the default rate when <= 0
+    func unlockFramerate()
+    {
+        maxFramerateLocks -= 1
+        if maxFramerateLocks <= 0 {
+            preferredFramesPerSecond = defaultFramerate
+            maxFramerateLocks = 0
+            print( "framerate back to default" )
+        }
     }
 }

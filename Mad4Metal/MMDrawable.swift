@@ -55,15 +55,15 @@ class MMDrawSphere : MMDrawable
     }
 }
 
-/// Draws a cube
-class MMDrawCube : MMDrawable
+/// Draws a Box
+class MMDrawBox : MMDrawable
 {
     let mmRenderer : MMRenderer
     var state : MTLRenderPipelineState!
     
     required init( _ renderer : MMRenderer )
     {
-        let function = renderer.defaultLibrary.makeFunction( name: "m4mCubeDrawable" )
+        let function = renderer.defaultLibrary.makeFunction( name: "m4mBoxDrawable" )
         state = renderer.createNewPipelineState( function! )
         mmRenderer = renderer
     }
@@ -92,15 +92,15 @@ class MMDrawCube : MMDrawable
     }
 }
 
-/// Draws a cube gradient
-class MMDrawCubeGradient : MMDrawable
+/// Draws a box gradient
+class MMDrawBoxGradient : MMDrawable
 {
     let mmRenderer : MMRenderer
     var state : MTLRenderPipelineState!
     
     required init( _ renderer : MMRenderer )
     {
-        let function = renderer.defaultLibrary.makeFunction( name: "m4mCubeGradientDrawable" )
+        let function = renderer.defaultLibrary.makeFunction( name: "m4mBoxGradientDrawable" )
         state = renderer.createNewPipelineState( function! )
         mmRenderer = renderer
     }
@@ -115,6 +115,43 @@ class MMDrawCubeGradient : MMDrawable
             uv2.x, uv2.y,
             gradientColor1.x, gradientColor1.y, gradientColor1.z, 1,
             gradientColor2.x, gradientColor2.y, gradientColor2.z, 1,
+            borderColor.x, borderColor.y, borderColor.z, borderColor.w
+        ];
+        
+        let renderEncoder = mmRenderer.renderEncoder!
+        
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x - borderSize / 2, y - borderSize / 2, width + borderSize, height + borderSize, scale: scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        renderEncoder.setRenderPipelineState( state! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+}
+
+/// Draws a box with three lines inside representing a menu
+class MMDrawBoxedMenu : MMDrawable
+{
+    let mmRenderer : MMRenderer
+    var state : MTLRenderPipelineState!
+    
+    required init( _ renderer : MMRenderer )
+    {
+        let function = renderer.defaultLibrary.makeFunction( name: "m4mBoxedMenuDrawable" )
+        state = renderer.createNewPipelineState( function! )
+        mmRenderer = renderer
+    }
+    
+    func draw( x: Float, y: Float, width: Float, height: Float, round: Float, borderSize: Float, fillColor: vector_float4, borderColor: vector_float4 )
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        let settings: [Float] = [
+            width * scaleFactor, height * scaleFactor,
+            round, borderSize,
+            fillColor.x, fillColor.y, fillColor.z, fillColor.w,
             borderColor.x, borderColor.y, borderColor.z, borderColor.w
         ];
         

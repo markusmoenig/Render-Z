@@ -8,41 +8,6 @@
 
 import MetalKit
 
-class Object : Codable
-{
-    var shapes          : [Shape]
-    var shapeIdCounter  : Int
-    
-    var id              : Int
-    var active          : Bool
-    
-    var selectedShapes  : [Int]
-    
-    private enum CodingKeys: String, CodingKey {
-        case shapes
-        case shapeIdCounter
-        case active
-        case id
-        case selectedShapes
-    }
-    
-    init()
-    {
-        shapes = []
-        selectedShapes = []
-        shapeIdCounter = 0
-        id = -1
-        active = true
-    }
-    
-    func addShape(_ shape: Shape)
-    {
-        shapes.append( shape )
-        shape.id = shapeIdCounter
-        shapeIdCounter += 1
-    }
-}
-
 class Layer : Codable
 {
     var objects         : [Object]
@@ -81,6 +46,7 @@ class Layer : Codable
     {
         objects.append( object )
         object.id = objectIdCounter
+        object.name = "Object #" + String(object.id+1)
         objectIdCounter += 1
     }
     
@@ -129,8 +95,8 @@ class Layer : Codable
                 float2 fragCoord = float2( gid.x, gid.y );
                 float2 uv = 700. * (fragCoord.xy + float(0.5)) / outTexture.get_width();
 
-                //float2 center = float2( 350., 350. * outTexture.get_height() / outTexture.get_width() );
-                //uv = translate(uv, center );//- vec2( uOrigin.x * 40., uOrigin.y * 40. ) );
+                float2 center = float2( 350., 350. * outTexture.get_height() / outTexture.get_width() );
+                uv = translate(uv, center );//- vec2( uOrigin.x * 40., uOrigin.y * 40. ) );
                 float2 tuv = uv;
 
                 float dist = 1000;
