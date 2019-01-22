@@ -74,6 +74,6 @@ class EditorRegion: MMRegion
     
     func compute()
     {
-        result = app.layerManager.run(width: rect.width, height: rect.height)
+        result = app.layerManager.render(width: rect.width, height: rect.height)
     }
 }

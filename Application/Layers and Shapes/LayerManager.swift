@@ -49,12 +49,12 @@ class LayerManager : Codable
         layerIdCounter += 1
     }
     
-    @discardableResult func run(width:Float, height:Float) -> MTLTexture
+    @discardableResult func render(width:Float, height:Float) -> MTLTexture
     {
         let layer = layers[currentIndex]
         
         self.width = width; self.height = height
-        let texture = layer.run(width:width, height:height)
+        let texture = layer.render(width:width, height:height)
         return texture
     }
     

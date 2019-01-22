@@ -126,3 +126,30 @@ class MMBaseView : MTKView
         }
     }
 }
+
+func getStringDialog(view: MMView, title: String, message: String, defaultValue: String, cb: @escaping (String)->())
+{
+    let msg = NSAlert()
+    msg.addButton(withTitle: "OK")      // 1st button
+    msg.addButton(withTitle: "Cancel")  // 2nd button
+    msg.messageText = title
+    msg.informativeText = message
+    
+    let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+    txt.stringValue = defaultValue
+    
+    msg.window.initialFirstResponder = txt
+    msg.accessoryView = txt
+//    let response: NSApplication.ModalResponse = msg.runModal()
+    
+//    if (response == NSApplication.ModalResponse.alertFirstButtonReturn) {
+//        cb( txt.stringValue )
+//    }
+    
+    msg.beginSheetModal(for: view.window!, completionHandler: { (modalResponse) -> Void in
+        if modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn {
+            let enteredString = txt.stringValue
+            print("Entered string = \"\(enteredString)\"")
+        }
+    })
+}

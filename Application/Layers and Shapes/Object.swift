@@ -13,6 +13,8 @@ class Object : Codable
     var shapes          : [Shape]
     var shapeIdCounter  : Int
     
+    var childObjects    : [Object]
+    
     var name            : String = ""
     
     var id              : Int
@@ -22,6 +24,7 @@ class Object : Codable
     
     private enum CodingKeys: String, CodingKey {
         case shapes
+        case childObjects
         case shapeIdCounter
         case active
         case id
@@ -32,6 +35,7 @@ class Object : Codable
     init()
     {
         shapes = []
+        childObjects = []
         selectedShapes = []
         shapeIdCounter = 0
         id = -1

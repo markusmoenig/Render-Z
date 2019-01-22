@@ -74,11 +74,17 @@ class ObjectWidget : MMWidget
     {
         self.app = app
         label = MMTextLabel(view, font: view.openSans!, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
-        
+
         let objectMenuItems = [
-            MMMenuItem( text: "Add Child Object", cb: {print("add child") } )
+            MMMenuItem( text: "Add Child Object", cb: {print("add child") } ),
+            MMMenuItem( text: "Rename Object", cb: {
+                let object = app.layerManager.getCurrentObject()!
+                getStringDialog(view: view, title: "Rename Object", message: "Enter new name", defaultValue: object.name, cb: { (name) -> Void in
+                    object.name = name
+                } )
+            } ),
+            MMMenuItem( text: "Delete Object", cb: {print("add child") } )
         ]
-        
         menuWidget = MMMenuWidget( view, items: objectMenuItems )
 
         super.init(view)
@@ -97,8 +103,17 @@ class ObjectWidget : MMWidget
         menuWidget.rect.y = rect.y + 1
         menuWidget.rect.width = 30
         menuWidget.rect.height = 28
-//        menuWidget.draw()
-        mmView.delayedDraws.append( menuWidget )
+        
+        if menuWidget.states.contains(.Opened) {
+            mmView.delayedDraws.append( menuWidget )
+        } else {
+            menuWidget.draw()
+            // --- Make focus area the size of the toolbar
+            menuWidget.rect.x = rect.x
+            menuWidget.rect.y = rect.y
+            menuWidget.rect.width = rect.width
+            menuWidget.rect.height = 30
+        }
         
         mmView.drawBox.draw( x: rect.x, y: rect.y+30, width: rect.width, height: rect.height-30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
     }

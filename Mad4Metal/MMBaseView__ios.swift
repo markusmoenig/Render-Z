@@ -204,3 +204,26 @@ class MMBaseView : MTKView
         }
     }
 }
+
+func getStringDialog(view: MMView, title: String, message: String, defaultValue: String, cb: @escaping (String)->())
+{
+    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+    
+    alert.addTextField(configurationHandler: { (textField) -> Void in
+        textField.text = defaultValue
+    })
+    
+    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak alert] (action) -> Void in
+        let textField = alert!.textFields![0] as UITextField
+        //print("Text field: \(textField.text)")
+        cb( textField.text! )
+    }))
+    
+    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+        while let presentedViewController = topController.presentedViewController {
+            topController = presentedViewController
+        }
+
+        topController.present(alert, animated: true, completion: nil)
+    }
+}

@@ -62,7 +62,7 @@ class MMFont
         return nil
     }
     
-    func getTextRect( text: String, scale: Float = 1.0, rectToUse: MMRect? = nil ) -> MMRect
+    @discardableResult func getTextRect( text: String, scale: Float = 1.0, rectToUse: MMRect? = nil ) -> MMRect
     {
         var rect : MMRect
         if rectToUse == nil {

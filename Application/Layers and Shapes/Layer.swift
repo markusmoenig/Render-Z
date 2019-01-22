@@ -129,7 +129,8 @@ class Layer : Codable
         state = compute!.createState(library: library, name: "layerBuilder")
     }
     
-    @discardableResult func run(width:Float, height:Float) -> MTLTexture
+    /// Render the layer
+    @discardableResult func render(width:Float, height:Float) -> MTLTexture
     {
         if compute == nil {
             compute = MMCompute()
@@ -144,6 +145,7 @@ class Layer : Codable
         return compute!.texture
     }
     
+    /// Creates the global code for all shapes in this layer
     func getGlobalCode() -> String
     {
         var coll : [String] = []
@@ -162,6 +164,7 @@ class Layer : Codable
         return result
     }
     
+    /// --- Returns the object with the given id
     func getObjectFromId(_ id: Int ) -> Object?
     {
         for object in objects {
@@ -172,6 +175,7 @@ class Layer : Codable
         return nil
     }
     
+    /// --- Returns the currently selected object
     func getCurrentObject() -> Object?
     {
         return getObjectFromId( currentId )

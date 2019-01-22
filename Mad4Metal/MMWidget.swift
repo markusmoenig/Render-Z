@@ -169,14 +169,12 @@ struct MMMenuItem
     var cb          : ()->()
     
     var textBuffer  : MMTextBuffer?
-    var rect        : MMRect
     
     init(text: String, cb: @escaping ()->() )
     {
         self.text = text
         self.cb = cb
         textBuffer = nil
-        rect = MMRect()
     }
 }
 
@@ -187,7 +185,9 @@ class MMMenuWidget : MMWidget
     var menuRect    : MMRect
     
     var items       : [MMMenuItem]
+    
     var selIndex    : Int = -1
+    var itemHeight  : Int = 0
     
     init( _ view: MMView, skinToUse: MMSkinMenuWidget? = nil, items: [MMMenuItem])
     {
@@ -203,22 +203,19 @@ class MMMenuWidget : MMWidget
         
         validStates = [.Checked]
         
-        var y : Float = 0//skin.margin.top + skin.borderSize
-        
         let r = MMRect()
+        var maxHeight : Float = 0
         for item in self.items {
-            item.rect.copy( view.openSans!.getTextRect(text: item.text, scale: skin.fontScale, rectToUse: r) )
-            
-            item.rect.y = y
-            
+            view.openSans!.getTextRect(text: item.text, scale: skin.fontScale, rectToUse: r)
             menuRect.width = max(menuRect.width, r.width)
-            menuRect.height += r.height
-            
-            y += item.rect.height
+            maxHeight = max(maxHeight, r.height)
         }
         
-        menuRect.width += skin.margin.width() + skin.borderSize * 2
-        menuRect.height += skin.margin.height() + skin.borderSize * 2
+        itemHeight = Int(maxHeight)
+        menuRect.height = Float(items.count * itemHeight) + Float(items.count-1) * skin.spacing
+        
+        menuRect.width += skin.margin.width()
+        menuRect.height += skin.margin.height()
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -231,6 +228,11 @@ class MMMenuWidget : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if states.contains(.Opened) && selIndex > -1 {
+            removeState( .Opened )
+            let item = items[selIndex]
+            item.cb()
+        }
         removeState( .Checked )
         removeState( .Opened )
         mmView.mouseTrackWidget = nil
@@ -239,15 +241,14 @@ class MMMenuWidget : MMWidget
     override func mouseMoved(_ event: MMMouseEvent)
     {
         if states.contains(.Opened) {
-            let y = event.y - rect.y - rect.height
-
             selIndex = -1
-            for (index, item) in items.enumerated() {
-                if item.rect.y <= y && item.rect.y + item.rect.height >= y {
-                    selIndex = index
-                }
+            
+            let x = event.x - rect.x - rect.width + menuRect.width
+            let y : Int = Int(event.y - rect.y - rect.height - skin.margin.top)
+            
+            if  y >= 0 && Float(y) <= menuRect.height - skin.margin.height() && x >= 0 && x <= menuRect.width {
+                 selIndex = y / Int(itemHeight+Int(skin.spacing))
             }
-            print( y, selIndex )
         }
     }
     
@@ -265,17 +266,24 @@ class MMMenuWidget : MMWidget
         
         if states.contains(.Opened) {
             
-            let boxX = rect.x + rect.width - menuRect.width
-            let boxY = rect.y + rect.height
+            let x = rect.x + rect.width - menuRect.width
+            var y = rect.y + rect.height
 
-            mmView.drawBox.draw( x: boxX, y: boxY, width: menuRect.width, height: menuRect.height, round: 0, borderSize: skin.borderSize, fillColor : float4( 0.5, 0.5, 0.5, 1), borderColor: float4( 1, 1, 1, 1 ) )
+            mmView.drawBox.draw( x: x, y: y, width: menuRect.width, height: menuRect.height, round: 0, borderSize: skin.borderSize, fillColor : float4( 0.5, 0.5, 0.5, 1), borderColor: skin.borderColor )
 
+            y += skin.margin.top
+            
             for (index,var item) in self.items.enumerated() {
 
                 if index == selIndex {
-                    mmView.drawBox.draw( x: boxX + item.rect.x, y: boxY + item.rect.y, width: menuRect.width, height: menuRect.height, round: 0, borderSize: 0, fillColor : mmView.skin.Widget.selectionColor, borderColor: float4( 1, 1, 1, 1 ) )
+                    mmView.drawBox.draw( x: x + skin.borderSize, y: y - skin.spacing, width: menuRect.width - 2 * skin.borderSize - 1, height: Float(itemHeight) + 2 * skin.spacing, round: 0, borderSize: 0, fillColor : skin.selectionColor, borderColor: skin.borderColor )
+                    
+                    item.textBuffer = mmView.drawText.drawText(mmView.openSans!, text: item.text, x: x + skin.margin.left, y: y, scale: skin.fontScale, color: skin.selTextColor, textBuffer: item.textBuffer)
+                } else {
+                    item.textBuffer = mmView.drawText.drawText(mmView.openSans!, text: item.text, x: x + skin.margin.left, y: y, scale: skin.fontScale, color: skin.textColor, textBuffer: item.textBuffer)
                 }
-                item.textBuffer = mmView.drawText.drawText(mmView.openSans!, text: item.text, x: boxX + item.rect.x, y: boxY + item.rect.y, scale: skin.fontScale, color: skin.color, textBuffer: item.textBuffer)
+                
+                y += Float(itemHeight) + skin.spacing
             }
         }
     }
