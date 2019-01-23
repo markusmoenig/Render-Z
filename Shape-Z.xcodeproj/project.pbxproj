@@ -78,6 +78,8 @@
 		2BBF11F721F02EAD001C94E9 /* ShapeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F521F02EAD001C94E9 /* ShapeList.swift */; };
 		2BBF11F921F55D20001C94E9 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F821F55D20001C94E9 /* Object.swift */; };
 		2BBF11FA21F55D20001C94E9 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F821F55D20001C94E9 /* Object.swift */; };
+		2BBF11FC21F6D148001C94E9 /* ObjectEditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FB21F6D148001C94E9 /* ObjectEditorWidget.swift */; };
+		2BBF11FD21F6D148001C94E9 /* ObjectEditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FB21F6D148001C94E9 /* ObjectEditorWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -129,6 +131,7 @@
 		2BBF11EF21EEC618001C94E9 /* ShapeFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeFactory.swift; sourceTree = "<group>"; };
 		2BBF11F521F02EAD001C94E9 /* ShapeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeList.swift; sourceTree = "<group>"; };
 		2BBF11F821F55D20001C94E9 /* Object.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Object.swift; sourceTree = "<group>"; };
+		2BBF11FB21F6D148001C94E9 /* ObjectEditorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectEditorWidget.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -255,6 +258,7 @@
 				2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */,
 				2BBF11F521F02EAD001C94E9 /* ShapeList.swift */,
 				2BBF11EF21EEC618001C94E9 /* ShapeFactory.swift */,
+				2BBF11FB21F6D148001C94E9 /* ObjectEditorWidget.swift */,
 			);
 			path = "Layers and Shapes";
 			sourceTree = "<group>";
@@ -364,6 +368,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BBF11FC21F6D148001C94E9 /* ObjectEditorWidget.swift in Sources */,
 				2BBF11C321EADB46001C94E9 /* MMWidget.swift in Sources */,
 				2BBF11C121EADB46001C94E9 /* MMRenderer.swift in Sources */,
 				2BBF11A621EAD46B001C94E9 /* BottomRegion.swift in Sources */,
@@ -402,6 +407,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BBF11FD21F6D148001C94E9 /* ObjectEditorWidget.swift in Sources */,
 				2BBF11C421EADB46001C94E9 /* MMWidget.swift in Sources */,
 				2BBF11DE21EADB46001C94E9 /* MMBaseView__ios.swift in Sources */,
 				2BBF11C221EADB46001C94E9 /* MMRenderer.swift in Sources */,

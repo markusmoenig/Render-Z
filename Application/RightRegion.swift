@@ -31,6 +31,7 @@ class RightRegion: MMRegion
         
         view.registerWidget(shapeListWidget, region: self)
         view.registerWidget(objectWidget.menuWidget, region: self)
+        view.registerWidget(objectWidget.objectEditorWidget, region: self)
     }
     
     override func build()
@@ -69,12 +70,16 @@ class ObjectWidget : MMWidget
     var app                 : App
     var label               : MMTextLabel
     var menuWidget          : MMMenuWidget
+    var objectEditorWidget  : ObjectEditorWidget
     
     init(_ view: MMView, app: App)
     {
         self.app = app
+        
         label = MMTextLabel(view, font: view.openSans!, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
+        objectEditorWidget = ObjectEditorWidget(view, app: app)
 
+        // --- Object Menu
         let objectMenuItems = [
             MMMenuItem( text: "Add Child Object", cb: {print("add child") } ),
             MMMenuItem( text: "Rename Object", cb: {
@@ -97,6 +102,13 @@ class ObjectWidget : MMWidget
         if let object = app.layerManager.getCurrentObject() {
             label.setText(object.name)
             label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+            
+            objectEditorWidget.rect.x = rect.x
+            objectEditorWidget.rect.y = rect.y + 30
+            objectEditorWidget.rect.width = rect.width
+            objectEditorWidget.rect.height = rect.height - 30
+            
+            objectEditorWidget.draw(layer: app.layerManager.getCurrentLayer(), object: object)
         }
         
         menuWidget.rect.x = rect.x + rect.width - 30 - 1
@@ -114,8 +126,6 @@ class ObjectWidget : MMWidget
             menuWidget.rect.width = rect.width
             menuWidget.rect.height = 30
         }
-        
-        mmView.drawBox.draw( x: rect.x, y: rect.y+30, width: rect.width, height: rect.height-30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
     }
 }
 

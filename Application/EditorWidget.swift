@@ -21,6 +21,8 @@ class EditorWidget      : MMWidget
     
     var mouseIsDown     : Bool = false
     var dragStartPos    : float2 = float2(0)
+    
+    var dispatched      : Bool = false
 //    var dragShape       : Shape?
     
     init(_ view: MMView, editorRegion: EditorRegion, app: App)
@@ -47,6 +49,26 @@ class EditorWidget      : MMWidget
     {
         mouseIsDown = false
         editorState = .Lazy
+    }
+    
+    override func mouseScrolled(_ event: MMMouseEvent)
+    {
+        app.layerManager.camera[0] += event.deltaX! * 2
+        app.layerManager.camera[1] += event.deltaY! * 2
+
+        region.compute()
+        
+        if !dispatched {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.mmView.unlockFramerate()
+                self.dispatched = false
+            }
+            dispatched = true
+        }
+        
+        if mmView.maxFramerateLocks == 0 {
+            mmView.lockFramerate()
+        }
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
@@ -115,15 +137,18 @@ class EditorWidget      : MMWidget
                 var xOff : Float = 0
                 var yOff : Float = 0
                 
+                let deltaX = drag.pWidgetOffset!.x
+                let deltaY = drag.pWidgetOffset!.y
+
                 if shape.name == "Disk" {
-                    xOff = shape.properties["radius"]! - drag.pWidgetOffset!.x + 2.5
-                    yOff = shape.properties["radius"]! - drag.pWidgetOffset!.y + 2.5
+                    xOff = shape.properties["radius"]! - deltaX + 2.5
+                    yOff = shape.properties["radius"]! - deltaY + 2.5
                     
                     shape.properties["radius"] = shape.properties["radius"]! * 700 / rect.width
                 } else
                 if shape.name == "Box" {
-                    xOff = shape.properties["width"]! - drag.pWidgetOffset!.x + 2.5
-                    yOff = shape.properties["height"]! - drag.pWidgetOffset!.y + 2.5
+                    xOff = shape.properties["width"]! - deltaX + 2.5
+                    yOff = shape.properties["height"]! - deltaY + 2.5
                     
                     shape.properties["width"] = shape.properties["width"]! * 700 / rect.width
                     shape.properties["height"] = shape.properties["height"]! * 700 / rect.width
@@ -134,7 +159,8 @@ class EditorWidget      : MMWidget
                 yOff = (event.y - rect.y + yOff) * 700 / rect.width
                 
                 // --- Center
-                xOff -= 350;
+                xOff -= 350 - app.layerManager.camera[0]
+                yOff += app.layerManager.camera[1]
                 yOff -= 350 * rect.height / rect.width
                 
                 shape.properties["posX"] = xOff

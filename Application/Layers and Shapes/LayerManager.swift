@@ -19,6 +19,8 @@ class LayerManager : Codable
     
     var width           : Float!
     var height          : Float!
+    
+    var camera          : [Float]
 
     var app             : App?
     
@@ -26,6 +28,7 @@ class LayerManager : Codable
         case layers
         case currentIndex
         case layerIdCounter
+        case camera
     }
     
     init()
@@ -38,7 +41,9 @@ class LayerManager : Codable
         width = 0
         height = 0
         
-        let layer = Layer()
+        camera = [0,0]
+        
+        let layer = Layer( layerManager: self )
         addLayer( layer )
     }
     
@@ -47,6 +52,10 @@ class LayerManager : Codable
         layers.append( layer )
         layer.id = layerIdCounter
         layerIdCounter += 1
+    }
+    
+    func build()
+    {
     }
     
     @discardableResult func render(width:Float, height:Float) -> MTLTexture

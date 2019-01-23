@@ -148,8 +148,7 @@ func getStringDialog(view: MMView, title: String, message: String, defaultValue:
     
     msg.beginSheetModal(for: view.window!, completionHandler: { (modalResponse) -> Void in
         if modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn {
-            let enteredString = txt.stringValue
-            print("Entered string = \"\(enteredString)\"")
+            cb(txt.stringValue)
         }
     })
 }

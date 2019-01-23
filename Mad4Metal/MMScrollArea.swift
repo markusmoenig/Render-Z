@@ -93,6 +93,8 @@ class MMScrollArea : MMWidget
             dispatched = true
         }
         
-        mmView.lockFramerate()
+        if mmView.maxFramerateLocks == 0 {
+            mmView.lockFramerate()
+        }
     }
 }

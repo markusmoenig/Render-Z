@@ -10,6 +10,8 @@ import MetalKit
 
 class Layer : Codable
 {
+    var layerManager    : LayerManager?
+    
     var objects         : [Object]
     var objectIdCounter : Int
     
@@ -20,6 +22,9 @@ class Layer : Codable
     var compute         : MMCompute?
     var state           : MTLComputePipelineState?
     
+    var layerData       : [Float]?
+    var layerBuffer     : MTLBuffer?
+    
     private enum CodingKeys: String, CodingKey {
         case objects
         case objectIdCounter
@@ -28,13 +33,14 @@ class Layer : Codable
         case currentId
     }
     
-    init()
+    init(layerManager: LayerManager)
     {
         objects = []
         objectIdCounter = 0
         id = -1
         active = true
         currentId = -1
+        self.layerManager = layerManager
 
         let object = Object()
         addObject( object )
@@ -53,6 +59,8 @@ class Layer : Codable
     /// Build the source for the layer
     func build()
     {
+        layerData = []
+
         var source =
         """
             #include <metal_stdlib>
@@ -80,23 +88,40 @@ class Layer : Codable
                 return p - t;
             }
 
+            typedef struct
+            {
+                float2      pos;
+                
+            } SHAPE_DATA;
+
+            typedef struct
+            {
+                float2      camera;
+                
+                //SHAPE_DATA  shape[10];
+            } LAYER_DATA;
+
             """
             
             source += getGlobalCode()
         
+            layerData!.append( layerManager!.camera[0] )
+            layerData!.append( layerManager!.camera[1] )
+
             source +=
             """
 
             kernel void
             layerBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
-                         texture2d<half, access::read>   inTexture   [[texture(1)]],
+                         constant LAYER_DATA            *layerData   [[ buffer(1) ]],
+                         texture2d<half, access::read>   inTexture   [[texture(2)]],
                          uint2                           gid         [[thread_position_in_grid]])
             {
                 float2 fragCoord = float2( gid.x, gid.y );
                 float2 uv = 700. * (fragCoord.xy + float(0.5)) / outTexture.get_width();
 
                 float2 center = float2( 350., 350. * outTexture.get_height() / outTexture.get_width() );
-                uv = translate(uv, center );//- vec2( uOrigin.x * 40., uOrigin.y * 40. ) );
+                uv = translate(uv, center - float2( layerData->camera.x, layerData->camera.y ) );
                 float2 tuv = uv;
 
                 float dist = 1000;
@@ -125,6 +150,8 @@ class Layer : Codable
         
 //        print( source )
         
+        layerBuffer = compute!.device.makeBuffer(bytes: layerData!, length: layerData!.count * MemoryLayout<Float>.stride, options: [])!
+        
         let library = compute!.createLibraryFromSource(source: source)
         state = compute!.createState(library: library, name: "layerBuilder")
     }
@@ -141,7 +168,12 @@ class Layer : Codable
             compute!.allocateTexture(width: width, height: height)
         }
         
-        compute!.run( state )
+        layerData![0] = layerManager!.camera[0]
+        layerData![1] = layerManager!.camera[1]
+        
+        memcpy(layerBuffer?.contents(), layerData, layerData!.count * MemoryLayout<Float>.stride)
+
+        compute!.run( state, inBuffer: layerBuffer )
         return compute!.texture
     }
     
@@ -164,7 +196,7 @@ class Layer : Codable
         return result
     }
     
-    /// --- Returns the object with the given id
+    /// Returns the object with the given id
     func getObjectFromId(_ id: Int ) -> Object?
     {
         for object in objects {
@@ -175,8 +207,14 @@ class Layer : Codable
         return nil
     }
     
-    /// --- Returns the currently selected object
+    /// Returns the currently selected object
     func getCurrentObject() -> Object?
+    {
+        return getObjectFromId( currentId )
+    }
+    
+    /// Returns the currently selected object
+    func getCurrentRootObject() -> Object?
     {
         return getObjectFromId( currentId )
     }
