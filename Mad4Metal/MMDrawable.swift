@@ -6,7 +6,6 @@
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
-import Foundation
 import MetalKit
 
 protocol MMDrawable

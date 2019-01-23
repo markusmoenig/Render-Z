@@ -20,12 +20,15 @@ class App
     var layerManager    : LayerManager
     
     var changed         : Bool = false
+    
+    let gizmo           : Gizmo
 
     init(_ view : MMView )
     {
         mmView = view
-        
+
         layerManager = LayerManager()
+        gizmo = Gizmo(view, layerManager: layerManager)
         layerManager.app = self
 
         topRegion = TopRegion( mmView, app: self )

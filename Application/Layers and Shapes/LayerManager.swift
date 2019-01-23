@@ -116,7 +116,7 @@ class LayerManager : Codable
                 float2 uv = 700. * (fragCoord.xy + float(0.5)) / \(width!);
         
                 float2 center = float2( 350., 350. * \(height!) / \(width!) );
-                uv = translate(uv, center );//- vec2( uOrigin.x * 40., uOrigin.y * 40. ) );
+                uv = translate(uv, center - float2( \(camera[0]), \(camera[1]) ) );
                 float2 tuv = uv;
         
                 float4 dist = float4(1000, -1, -1, -1);
@@ -165,10 +165,13 @@ class LayerManager : Codable
             let shapeId : Int = Int(result.w)
             object.selectedShapes = [shapeId]
             
+            app!.gizmo.setObject(object)
             app!.rightRegion!.changed = true
         } else {
             if let object = getCurrentObject() {
                 object.selectedShapes = []
+                
+                app!.gizmo.setObject(nil)
                 app!.rightRegion!.changed = true
             }
         }

@@ -153,6 +153,10 @@ class ShapeListScrollArea: MMScrollArea
         mouseIsDown = true
         
         app.rightRegion!.changed = app.rightRegion!.shapeList.selectAt(mouseDownPos.x,mouseDownPos.y)
+        
+        if app.rightRegion!.changed {
+            app.gizmo.setObject(app.layerManager.getCurrentObject())
+        }
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {

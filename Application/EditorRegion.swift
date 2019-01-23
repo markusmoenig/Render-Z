@@ -69,6 +69,8 @@ class EditorRegion: MMRegion
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
         }
         
+        app.gizmo.draw(editorRect: rect)
+        
         app.changed = false
     }
     

@@ -80,6 +80,10 @@
 		2BBF11FA21F55D20001C94E9 /* Object.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11F821F55D20001C94E9 /* Object.swift */; };
 		2BBF11FC21F6D148001C94E9 /* ObjectEditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FB21F6D148001C94E9 /* ObjectEditorWidget.swift */; };
 		2BBF11FD21F6D148001C94E9 /* ObjectEditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FB21F6D148001C94E9 /* ObjectEditorWidget.swift */; };
+		2BBF11FF21F808B1001C94E9 /* Gizmo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FE21F808B1001C94E9 /* Gizmo.swift */; };
+		2BBF120021F808B1001C94E9 /* Gizmo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FE21F808B1001C94E9 /* Gizmo.swift */; };
+		2BBF120221F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
+		2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -132,6 +136,8 @@
 		2BBF11F521F02EAD001C94E9 /* ShapeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeList.swift; sourceTree = "<group>"; };
 		2BBF11F821F55D20001C94E9 /* Object.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Object.swift; sourceTree = "<group>"; };
 		2BBF11FB21F6D148001C94E9 /* ObjectEditorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectEditorWidget.swift; sourceTree = "<group>"; };
+		2BBF11FE21F808B1001C94E9 /* Gizmo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gizmo.swift; sourceTree = "<group>"; };
+		2BBF120121F80B32001C94E9 /* Gizmo.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Gizmo.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -259,6 +265,8 @@
 				2BBF11F521F02EAD001C94E9 /* ShapeList.swift */,
 				2BBF11EF21EEC618001C94E9 /* ShapeFactory.swift */,
 				2BBF11FB21F6D148001C94E9 /* ObjectEditorWidget.swift */,
+				2BBF11FE21F808B1001C94E9 /* Gizmo.swift */,
+				2BBF120121F80B32001C94E9 /* Gizmo.metal */,
 			);
 			path = "Layers and Shapes";
 			sourceTree = "<group>";
@@ -312,9 +320,11 @@
 				TargetAttributes = {
 					2BBF10F521EAD2AF001C94E9 = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1010;
 					};
 					2BBF112B21EAD38D001C94E9 = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1010;
 					};
 				};
 			};
@@ -378,6 +388,7 @@
 				2BBF11A221EAD46B001C94E9 /* LeftRegion.swift in Sources */,
 				2BBF11AC21EAD46B001C94E9 /* Mad4Metal.metal in Sources */,
 				2BBF11EA21ED623F001C94E9 /* EditorWidget.swift in Sources */,
+				2BBF120221F80B32001C94E9 /* Gizmo.metal in Sources */,
 				2BBF11CB21EADB46001C94E9 /* MMView.swift in Sources */,
 				2BBF11D721EADB46001C94E9 /* MMSkin.swift in Sources */,
 				2BBF11AA21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
@@ -388,6 +399,7 @@
 				2BBF11A821EAD46B001C94E9 /* RightRegion.swift in Sources */,
 				2BBF11F021EEC618001C94E9 /* ShapeFactory.swift in Sources */,
 				2BBF11A421EAD46B001C94E9 /* AppShaders.metal in Sources */,
+				2BBF11FF21F808B1001C94E9 /* Gizmo.swift in Sources */,
 				2BBF11C521EADB46001C94E9 /* MMRegion.swift in Sources */,
 				2BBF11E421EC2BBC001C94E9 /* Layer.swift in Sources */,
 				2BBF11CF21EADB46001C94E9 /* MMFont.swift in Sources */,
@@ -417,6 +429,7 @@
 				2BBF11A321EAD46B001C94E9 /* LeftRegion.swift in Sources */,
 				2BBF11AD21EAD46B001C94E9 /* Mad4Metal.metal in Sources */,
 				2BBF11EB21ED623F001C94E9 /* EditorWidget.swift in Sources */,
+				2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */,
 				2BBF11CC21EADB46001C94E9 /* MMView.swift in Sources */,
 				2BBF11D821EADB46001C94E9 /* MMSkin.swift in Sources */,
 				2BBF11AB21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
@@ -427,6 +440,7 @@
 				2BBF11A921EAD46B001C94E9 /* RightRegion.swift in Sources */,
 				2BBF11F121EEC618001C94E9 /* ShapeFactory.swift in Sources */,
 				2BBF11A521EAD46B001C94E9 /* AppShaders.metal in Sources */,
+				2BBF120021F808B1001C94E9 /* Gizmo.swift in Sources */,
 				2BBF11C621EADB46001C94E9 /* MMRegion.swift in Sources */,
 				2BBF11E521EC2BBC001C94E9 /* Layer.swift in Sources */,
 				2BBF11D021EADB46001C94E9 /* MMFont.swift in Sources */,
@@ -591,6 +605,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Shape-Z/Shape_Z.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -602,6 +617,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
@@ -610,6 +627,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = "Shape-Z/Shape_Z.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -621,6 +639,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
@@ -629,6 +648,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
@@ -641,6 +661,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -650,6 +672,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
@@ -662,6 +685,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;

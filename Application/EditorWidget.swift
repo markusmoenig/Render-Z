@@ -21,7 +21,7 @@ class EditorWidget      : MMWidget
     
     var mouseIsDown     : Bool = false
     var dragStartPos    : float2 = float2(0)
-    
+        
     var dispatched      : Bool = false
 //    var dragShape       : Shape?
     
@@ -53,8 +53,13 @@ class EditorWidget      : MMWidget
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
+//        #if os(iOS) || os(watchOS) || os(tvOS)
+//        app.layerManager.camera[0] -= event.deltaX! * 2
+//        app.layerManager.camera[1] -= event.deltaY! * 2
+//        #elseif os(OSX)
         app.layerManager.camera[0] += event.deltaX! * 2
         app.layerManager.camera[1] += event.deltaY! * 2
+//        #endif
 
         region.compute()
         
@@ -73,6 +78,7 @@ class EditorWidget      : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        app.gizmo.updateHoverState(editorRect: rect, event: event)
         /*
         if (mouseIsDown && editorState == .Lazy)
         {
@@ -129,7 +135,8 @@ class EditorWidget      : MMWidget
         if dragSource.id == "ShapeSelectorItem" {
             let drag = dragSource as! ShapeSelectorDrag
             
-            app.layerManager.getCurrentLayer().getCurrentObject()?.addShape(drag.shape!)
+            let addedShape = app.layerManager.getCurrentLayer().getCurrentObject()?.addShape(drag.shape!)
+            app.layerManager.getCurrentLayer().getCurrentObject()?.selectedShapes = [addedShape!.id]
             app.setChanged()
             
             if let shape = drag.shape {
@@ -168,6 +175,7 @@ class EditorWidget      : MMWidget
             }
             
             app.layerManager.getCurrentLayer().build()
+            app.gizmo.setObject(app.layerManager.getCurrentObject())
             region.result = nil
         }
     }

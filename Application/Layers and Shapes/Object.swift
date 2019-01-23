@@ -42,10 +42,26 @@ class Object : Codable
         active = true
     }
     
-    func addShape(_ shape: Shape)
+    @discardableResult func addShape(_ shape: Shape) -> Shape
     {
         shapes.append( shape )
         shape.id = shapeIdCounter
         shapeIdCounter += 1
+        
+        return shape
+    }
+    
+    /// Returns the current shape which is the first shape in the selectedShapes array
+    func getCurrentShape() -> Shape?
+    {
+        if selectedShapes.isEmpty { return nil }
+        
+        for shape in shapes {
+            if shape.id == selectedShapes[0] {
+                return shape
+            }
+        }
+        
+        return nil
     }
 }
