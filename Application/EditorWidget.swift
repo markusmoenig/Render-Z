@@ -43,12 +43,15 @@ class EditorWidget      : MMWidget
         dragStartPos.y = event.y - rect.y
         
         app.layerManager.getShapeAt(x: event.x - rect.x, y: event.y - rect.y)
+        app.gizmo.mouseDown(event)
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
         mouseIsDown = false
         editorState = .Lazy
+        
+        app.gizmo.mouseUp(event)
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -61,6 +64,8 @@ class EditorWidget      : MMWidget
         app.layerManager.camera[1] += event.deltaY! * 2
 //        #endif
 
+        print("scrolling")
+        
         region.compute()
         
         if !dispatched {
@@ -78,7 +83,7 @@ class EditorWidget      : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        app.gizmo.updateHoverState(editorRect: rect, event: event)
+        app.gizmo.mouseMoved(event)
         /*
         if (mouseIsDown && editorState == .Lazy)
         {

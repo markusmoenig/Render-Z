@@ -10,16 +10,16 @@ import MetalKit
 import simd
 
 /// Draws a sphere
-class Gizmo
+class Gizmo : MMWidget
 {
     enum GizmoMode : Float {
-        case Inactive, CenterMoveHover
+        case Inactive, CenterMove
     }
     
     var hoverState      : GizmoMode = .Inactive
-    
+    var dragState       : GizmoMode = .Inactive
+
     let layerManager    : LayerManager
-    let mmView          : MMView
     
     var state           : MTLRenderPipelineState!
     
@@ -28,16 +28,19 @@ class Gizmo
     
     var object          : Object?
     var shape           : Shape?
+    
+    var dragStartOffset : float2?
 
     required init( _ view : MMView, layerManager: LayerManager )
     {
         let function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmo" )
         state = view.renderer.createNewPipelineState( function! )
-        mmView = view
         self.layerManager = layerManager
         
         width = 40
         height = 40
+        
+        super.init(view)
     }
     
     func setObject(_ object:Object?)
@@ -49,9 +52,56 @@ class Gizmo
         }
     }
     
-    func draw(editorRect: MMRect)
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        #if os(iOS) || os(watchOS) || os(tvOS)
+            updateHoverState(editorRect: rect, event: event)
+        #endif
+        
+        if hoverState != .Inactive {
+            mmView.mouseTrackWidget = self
+            dragState = hoverState
+            mmView.lockFramerate()
+            
+            dragStartOffset = convertToSceneSpace(x: event.x, y: event.y)
+            
+            dragStartOffset!.x -= shape!.properties["posX"]!
+            dragStartOffset!.y -= shape!.properties["posY"]!
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        if dragState != .Inactive {
+            mmView.unlockFramerate()
+        }
+        mmView.mouseTrackWidget = nil
+        hoverState = .Inactive
+        dragState = .Inactive
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if dragState == .Inactive {
+            updateHoverState(editorRect: rect, event: event)
+        } else
+        if dragState == .CenterMove {
+            
+            let pos = convertToSceneSpace(x: event.x, y: event.y)
+            
+            shape!.properties["posX"] = pos.x - dragStartOffset!.x
+            shape!.properties["posY"] = pos.y - dragStartOffset!.y
+            
+            layerManager.getCurrentLayer().updateShape(shape!)
+            layerManager.app!.editorRegion?.result = nil
+        }
+    }
+    
+    override func draw()
     {
         if object == nil || shape == nil { hoverState = .Inactive; return }
+        
+        let editorRect = rect
         
         let mmRenderer = mmView.renderer!
         
@@ -62,13 +112,12 @@ class Gizmo
             hoverState.rawValue, 0
         ];
         
-        let x : Float = editorRect.x + editorRect.width / 2 + (shape?.properties["posX"])! - layerManager.camera[0]
-        let y : Float = editorRect.y + editorRect.height / 2 + (shape?.properties["posY"])! - layerManager.camera[1]
+        let screenSpace = convertToScreenSpace(x: (shape?.properties["posX"])!, y: (shape?.properties["posY"])! )
         
         mmRenderer.setClipRect(editorRect)
         let renderEncoder = mmRenderer.renderEncoder!
         
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x - width / 2, y - height / 2, width, height, scale: scaleFactor ) )
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( screenSpace.x - width / 2, screenSpace.y - height / 2, width, height, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         
         let buffer = mmRenderer.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
@@ -85,19 +134,19 @@ class Gizmo
         hoverState = .Inactive
         if object == nil || shape == nil { return }
 
-        let rect : MMRect =  MMRect()
+        let screenSpace = convertToScreenSpace(x: (shape?.properties["posX"])!, y: (shape?.properties["posY"])! )
+
+        let gizmoRect : MMRect =  MMRect()
         
-        rect.x = editorRect.x + editorRect.width / 2 + (shape?.properties["posX"])! - layerManager.camera[0] - width / 2
-        rect.y = editorRect.y + editorRect.height / 2 + (shape?.properties["posY"])! - layerManager.camera[1] - height / 2
-        rect.width = width
-        rect.height = height
+        gizmoRect.x = screenSpace.x - width / 2
+        gizmoRect.y = screenSpace.y - height / 2
+        gizmoRect.width = width
+        gizmoRect.height = height
         
-//        print( event.x, event.y, rect.x, rect.y )
-        
-        if rect.contains( event.x, event.y ) {
+        if gizmoRect.contains( event.x, event.y ) {
             
-            let x = event.x - rect.x
-            let y = event.y - rect.y
+            let x = event.x - gizmoRect.x
+            let y = event.y - gizmoRect.y
             
             var center = simd_float2(x:x, y:y)
             center = center - simd_float2(x:width/2, y: height/2)
@@ -106,16 +155,42 @@ class Gizmo
             let dist = simd_length( uv ) - 15
             
             if dist < 0 {
-                hoverState = .CenterMoveHover
+                hoverState = .CenterMove
                 return
             }
         }
+    }
+    
+    /// Converts the coordinate from scene space to screen space
+    func convertToScreenSpace(x: Float, y: Float) -> float2
+    {
+        var result : float2 = float2()
         
-//        float2 uv = in.textureCoordinate * data->size;
-//        uv -= float2( data->size / 2 );
+        result.x = (x - layerManager.camera[0] - 0.5) / 700 * rect.width
+        result.y = (y - layerManager.camera[1] - 0.5) / 700 * rect.width
         
-//        float dist = length( uv ) - 15;
+        result.x += rect.width/2
+        result.y += rect.width/2 * rect.height / rect.width
         
-
+        result.x += rect.x
+        result.y += rect.y
+        
+        return result
+    }
+    
+    /// Converts the coordinate from screen space to scene space
+    func convertToSceneSpace(x: Float, y: Float) -> float2
+    {
+        var result : float2 = float2()
+        
+        result.x = (x - rect.x) * 700 / rect.width
+        result.y = (y - rect.y) * 700 / rect.width
+        
+        // --- Center
+        result.x -= 350 - layerManager.camera[0]
+        result.y += layerManager.camera[1]
+        result.y -= 350 * rect.height / rect.width
+        
+        return result
     }
 }

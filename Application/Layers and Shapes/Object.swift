@@ -21,7 +21,7 @@ class Object : Codable
     var active          : Bool
     
     var selectedShapes  : [Int]
-    
+        
     private enum CodingKeys: String, CodingKey {
         case shapes
         case childObjects

@@ -50,7 +50,10 @@ class MMBaseView : MTKView
         mousePos.x = event.x
         mousePos.y = event.y
         
-        if hoverWidget != nil {
+        if mouseTrackWidget != nil {
+            mouseTrackWidget!.mouseMoved(event)
+        } else
+        if hoverWidget != nil && dragSource == nil {
             event.deltaX = Float(translation.x) - lastX!
             event.deltaY = Float(translation.y) - lastY!
             event.deltaZ = 0

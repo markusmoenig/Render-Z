@@ -17,6 +17,8 @@ class Shape : Codable
     var globalCode      : String = ""
     var distanceCode    : String = ""
 
+    var flatLayerIndex  : Int?
+
     private enum CodingKeys: String, CodingKey {
         case name
         case properties

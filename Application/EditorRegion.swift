@@ -59,6 +59,7 @@ class EditorRegion: MMRegion
     override func build()
     {
         widget.rect.copy(rect)
+        app.gizmo.rect.copy(rect)
         drawPattern()
         
         if result == nil || app.layerManager.width != rect.width || app.layerManager.height != rect.height {
@@ -69,7 +70,7 @@ class EditorRegion: MMRegion
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
         }
         
-        app.gizmo.draw(editorRect: rect)
+        app.gizmo.draw()
         
         app.changed = false
     }

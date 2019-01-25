@@ -60,6 +60,8 @@ class Layer : Codable
     func build()
     {
         layerData = []
+        
+        let shapeCount = assignShapeIndices()
 
         var source =
         """
@@ -97,8 +99,9 @@ class Layer : Codable
             typedef struct
             {
                 float2      camera;
+                float2      fill;
                 
-                //SHAPE_DATA  shape[10];
+                SHAPE_DATA  shape[\(max(shapeCount,1))];
             } LAYER_DATA;
 
             """
@@ -107,6 +110,8 @@ class Layer : Codable
         
             layerData!.append( layerManager!.camera[0] )
             layerData!.append( layerManager!.camera[1] )
+            layerData!.append( 0 )
+            layerData!.append( 0 )
 
             source +=
             """
@@ -126,15 +131,48 @@ class Layer : Codable
 
                 float dist = 1000;
         """
+        
+        /// Parse objects and their shapes
+        
+//        var index : Int = 0
+        
+        func parseObject(_ object: Object)
+        {
+            for shape in object.shapes {
+//                shape.flatLayerIndex = index
+//                index += 1
+                
+                let posX = shape.properties["posX"]
+                let posY = shape.properties["posY"]
+                source += "uv = translate( tuv, layerData->shape[\(shape.flatLayerIndex!)].pos );"
+                source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+                
+                layerData!.append( posX! )
+                layerData!.append( posY! )
+            }
+            
+            for childObject in object.childObjects {
+                parseObject(childObject)
+            }
+        }
+        
+        for object in objects {
+            parseObject(object)
+        }
+        
 
+        /*
         for object in objects {
             for shape in object.shapes {
                 let posX = shape.properties["posX"]
                 let posY = shape.properties["posY"]
                 source += "uv = translate( tuv, float2( \(posX ?? 0), \(posY ?? 0) ) );"
                 source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+                
+                layerData!.append( posX! )
+                layerData!.append( posY! )
             }
-        }
+        }*/
         
         source +=
         """
@@ -217,5 +255,37 @@ class Layer : Codable
     func getCurrentRootObject() -> Object?
     {
         return getObjectFromId( currentId )
+    }
+    
+    /// Assigns each shape an index
+    func assignShapeIndices() -> Int {
+        var index : Int = 0
+        
+        func parseObject(_ object: Object)
+        {
+            for shape in object.shapes {
+                shape.flatLayerIndex = index
+                index += 1
+            }
+
+            for childObject in object.childObjects {
+                parseObject(childObject)
+            }
+        }
+        
+        for object in objects {
+            parseObject(object)
+        }
+        
+        return index
+    }
+    
+    /// Writes the shape's data into the layerData
+    func updateShape(_ shape: Shape)
+    {
+        let offset : Int = 4 + 2 * shape.flatLayerIndex!
+        
+        layerData![offset]   = shape.properties["posX"]!
+        layerData![offset+1] = shape.properties["posY"]!
     }
 }
