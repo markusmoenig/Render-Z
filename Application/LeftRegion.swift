@@ -21,6 +21,7 @@ class LeftRegion: MMRegion
     var shapeSelector   : ShapeSelector
     var textureWidget   : MMTextureWidget
     var scrollArea      : ShapeScrollArea
+    var animating       : Bool = false
 
     init( _ view: MMView, app: App )
     {
@@ -42,16 +43,27 @@ class LeftRegion: MMRegion
     
     func setMode(_ mode: LeftRegionMode )
     {
+        if animating { return }
         if self.mode == mode && mode != .Closed {
-            startAnimation( 0, startValue: rect.width, finishedCB: {
-                print( "Closed" )
-                self.mode = .Closed
-                self.app.topRegion!.shapesButton.removeState( .Checked )
-                self.app.topRegion!.materialsButton.removeState( .Checked )
+            mmView.startAnimate( startValue: rect.width, endValue: 0, duration: 500, cb: { (value,finished) in
+                self.rect.width = value
+                if finished {
+                    self.animating = false
+                    self.mode = .Closed
+                    self.app.topRegion!.shapesButton.removeState( .Checked )
+                    self.app.topRegion!.materialsButton.removeState( .Checked )
+                }
             } )
-
+            animating = true
         } else if rect.width != 200 {
-            startAnimation( 200, finishedCB: { print( "Opened" ) } )
+            
+            mmView.startAnimate( startValue: rect.width, endValue: 200, duration: 500, cb: { (value,finished) in
+                if finished {
+                    self.animating = false
+                }
+                self.rect.width = value
+            } )
+            animating = true
         }
         self.mode = mode
     }

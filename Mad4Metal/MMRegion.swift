@@ -19,14 +19,6 @@ class MMRegion
     let mmView      : MMView
     
     let type        : MMRegionType
-    
-    // --- Animation
-    
-    var animActive      : Bool
-    var animTarget      : Float
-    var animStartValue  : Float
-    var animStepValue   : Float
-    var animFinishedCB  : ()->()
 
     init( _ view: MMView, type: MMRegionType )
     {
@@ -34,58 +26,10 @@ class MMRegion
         rect = MMRect()
         
         self.type = type
-        animActive = false
-        animTarget = 0
-        animStartValue = 0
-        animStepValue = 0
-        animFinishedCB = {}
-    }
-    
-    func startAnimation(_ target: Float, startValue: Float = 0, stepValue: Float = 10, finishedCB: @escaping ()->() = {} )
-    {
-        animActive = true
-        animTarget = target
-        animStartValue = startValue
-        animStepValue = stepValue
-        animFinishedCB = finishedCB
-        rect.width = animStartValue
-        mmView.lockFramerate()
-    }
-    
-    func endAnimation()
-    {
-        mmView.unlockFramerate()
-        animActive = false
-        animFinishedCB()
     }
     
     func build()
     {
-        if animActive {
-            switch type
-            {
-                case .Left:
-                
-                    if animTarget > rect.width {
-                        rect.width += animStepValue
-                        if rect.width >= animTarget {
-                            rect.width = animTarget
-                            endAnimation()
-                        }
-                    } else if animTarget < rect.width {
-                        rect.width -= animStepValue
-                        if rect.width <= animTarget {
-                            rect.width = animTarget
-                            endAnimation()
-                        }
-                    } else {
-                        endAnimation()
-                    }
-                
-                case .Right, .Top, .Bottom, .Editor:
-                    animActive = false
-            }
-        }
     }
     
     func layoutH( startX: Float, startY: Float, spacing: Float, widgets: MMWidget... )

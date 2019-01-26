@@ -12,6 +12,8 @@ class TopRegion: MMRegion
 {
     var shapesButton    : MMButtonWidget!
     var materialsButton : MMButtonWidget!
+    var timelineButton  : MMButtonWidget!
+    
     var app             : App
 
     init( _ view: MMView, app: App )
@@ -21,14 +23,12 @@ class TopRegion: MMRegion
         
         shapesButton = MMButtonWidget( mmView, text: "Shapes" )
         shapesButton.clickedCB = { (x,y) -> Void in
-            print( "shapesButton clicked" )
             app.leftRegion?.setMode(.Shapes)
             self.materialsButton.removeState(.Checked)
         }
         
         materialsButton = MMButtonWidget( mmView, text: "Materials" )
         materialsButton.clickedCB = { (x,y) -> Void in
-            print( "materialsButton clicked" )
             app.leftRegion?.setMode(.Materials)
             self.shapesButton.removeState(.Checked)
             /*
@@ -66,9 +66,14 @@ class TopRegion: MMRegion
             
         }
         
-        layoutH( startX: 10, startY: 4, spacing: 10, widgets: shapesButton, materialsButton )
+        timelineButton = MMButtonWidget( mmView, text: "Timeline" )
+        timelineButton.clickedCB = { (x,y) -> Void in
+            app.bottomRegion?.switchMode()
+        }
         
-        registerWidgets( widgets: shapesButton, materialsButton )
+        layoutH( startX: 10, startY: 4, spacing: 10, widgets: shapesButton, materialsButton, timelineButton )
+        
+        registerWidgets( widgets: shapesButton, materialsButton, timelineButton )
     }
     
     override func build()
@@ -78,6 +83,7 @@ class TopRegion: MMRegion
         
         shapesButton.draw()
         materialsButton.draw()
+        timelineButton.draw()
 
 //        mmView.drawText.drawText( mmView.openSans!, text: "Punk is not dead", x: 200, y: 200, scale: 0.5)
 //        mmView.drawSphere.draw( x: 200, y: 100, radius: 20, borderSize: 2, fillColor: vector_float4( 0.5, 0.5, 0.5, 1 ), borderColor: vector_float4( 1 ) )

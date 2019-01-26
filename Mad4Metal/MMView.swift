@@ -34,6 +34,9 @@ class MMView : MMBaseView {
     // --- Skin
     var skin            : MMSkin!;
     
+    // --- Animations
+    var animate         : [MMAnimate]
+    
     // --- Widget References
     var widgetIdCounter : Int!
     
@@ -49,6 +52,7 @@ class MMView : MMBaseView {
     // ---
     
     required init(coder: NSCoder) {
+        animate = []
         super.init(coder: coder)
         
         guard let defaultDevice = MTLCreateSystemDefaultDevice() else {
@@ -91,6 +95,21 @@ class MMView : MMBaseView {
     /// Build the user interface for this view. Called for each frame inside the renderer.
     func build()
     {
+        // --- Animations
+        
+        var newAnimate : [MMAnimate] = []
+        for anim in animate {
+            anim.tick()
+            if !anim.finished {
+                newAnimate.append( anim )
+            } else {
+                unlockFramerate()
+            }
+        }
+        animate = newAnimate
+        
+        // ---
+        
 //        print( renderer.cWidth, renderer.cHeight )
         delayedDraws = []
         let rect = MMRect( 0, 0, renderer.cWidth, renderer.cHeight )
@@ -104,13 +123,6 @@ class MMView : MMBaseView {
             rect.height -= region.rect.height
         }
         
-        if let region = bottomRegion {
-            region.rect.copy( rect )
-            region.build()
-            
-            rect.height -= region.rect.height
-        }
-        
         if let region = leftRegion {
             region.rect.x = rect.x
             region.rect.y = rect.y
@@ -119,6 +131,15 @@ class MMView : MMBaseView {
             
             rect.x += region.rect.width
             rect.width -= region.rect.width
+        }
+        
+        if let region = bottomRegion {
+            region.rect.x = rect.x
+            region.rect.y = rect.y
+            region.rect.width = rect.width
+            region.build()
+            
+            rect.height -= region.rect.height
         }
         
         if let region = rightRegion {
@@ -197,5 +218,13 @@ class MMView : MMBaseView {
             maxFramerateLocks = 0
             print( "framerate back to default" )
         }
+    }
+
+    /// Start animation
+    func startAnimate(startValue: Float, endValue: Float, duration: Float, cb:@escaping (Float, Bool)->())
+    {
+        let anim = MMAnimate(startValue: startValue, endValue: endValue, duration: duration, cb: cb)
+        animate.append(anim)
+        lockFramerate()
     }
 }

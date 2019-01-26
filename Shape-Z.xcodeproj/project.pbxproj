@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
+		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
 		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
 		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
@@ -87,6 +89,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -241,6 +244,7 @@
 				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
 				2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */,
 				2BBF11BC21EADB46001C94E9 /* MMSkin.swift */,
+				2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */,
 			);
 			path = Mad4Metal;
 			sourceTree = "<group>";
@@ -406,6 +410,7 @@
 				2BBF11F921F55D20001C94E9 /* Object.swift in Sources */,
 				2BBF11E721EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */,
+				2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */,
 				2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */,
 				2BBF11D321EADB46001C94E9 /* MMCompute.swift in Sources */,
@@ -447,6 +452,7 @@
 				2BBF11FA21F55D20001C94E9 /* Object.swift in Sources */,
 				2BBF11E821EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */,
+				2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */,
 				2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */,
 				2BBF11D421EADB46001C94E9 /* MMCompute.swift in Sources */,

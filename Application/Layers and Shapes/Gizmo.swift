@@ -54,9 +54,9 @@ class Gizmo : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        #if os(iOS) || os(watchOS) || os(tvOS)
+//        #if os(iOS) || os(watchOS) || os(tvOS)
             updateHoverState(editorRect: rect, event: event)
-        #endif
+//        #endif
         
         if hoverState != .Inactive {
             mmView.mouseTrackWidget = self
