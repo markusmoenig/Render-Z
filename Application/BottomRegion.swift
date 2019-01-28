@@ -33,7 +33,7 @@ class BottomRegion: MMRegion
         rect.height = 100
         self.app.topRegion!.timelineButton.addState( .Checked )
         
-        mmView.registerWidget(timeline, region: self)
+        mmView.registerWidget(timeline)
     }
     
     override func build()

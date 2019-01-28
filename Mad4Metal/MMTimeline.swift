@@ -41,6 +41,10 @@ class MMTimeline : MMWidget
     
     var tlRect                  : MMRect
     var pixelsPerFrame          : Float
+    
+    var recordButton            : MMButtonWidget
+    
+    var isRecording             : Bool = false
 
     override init(_ view: MMView )
     {
@@ -49,7 +53,20 @@ class MMTimeline : MMWidget
         tlRect = MMRect()
         pixelsPerFrame = 40
         
+        recordButton = MMButtonWidget(view, text: "Rec")
+
+        view.registerWidget(recordButton)
+        
         super.init(view)
+        
+        recordButton.clicked = { (event) in
+            if self.isRecording {
+                self.recordButton.removeState(.Checked)
+                self.isRecording = false
+            } else {
+                self.isRecording = true
+            }
+        }
     }
     
     func draw(_ sequence: MMTlSequence)
@@ -79,6 +96,15 @@ class MMTimeline : MMWidget
             mmView.drawBox.draw( x: cFrameX, y: y, width: pixelsPerFrame, height: 20, round: 0, fillColor : float4(0.675, 0.788, 0.184, 1.000) )
 
         }
+        
+        // Buttons
+        
+        recordButton.rect.x = tlRect.x
+        recordButton.rect.y = tlRect.y + 26
+
+//        recordButton.rect.width = 30
+//        recordButton.rect.height = 30
+        recordButton.draw()
     }
     
     override func mouseDown(_ event: MMMouseEvent)

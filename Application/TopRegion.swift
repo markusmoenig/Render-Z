@@ -22,13 +22,13 @@ class TopRegion: MMRegion
         super.init( view, type: .Top )
         
         shapesButton = MMButtonWidget( mmView, text: "Shapes" )
-        shapesButton.clickedCB = { (x,y) -> Void in
+        shapesButton.clicked = { (event) -> Void in
             app.leftRegion?.setMode(.Shapes)
             self.materialsButton.removeState(.Checked)
         }
         
         materialsButton = MMButtonWidget( mmView, text: "Materials" )
-        materialsButton.clickedCB = { (x,y) -> Void in
+        materialsButton.clicked = { (event) -> Void in
             app.leftRegion?.setMode(.Materials)
             self.shapesButton.removeState(.Checked)
             
@@ -70,7 +70,7 @@ class TopRegion: MMRegion
         }
         
         timelineButton = MMButtonWidget( mmView, text: "Timeline" )
-        timelineButton.clickedCB = { (x,y) -> Void in
+        timelineButton.clicked = { (event) -> Void in
             app.bottomRegion?.switchMode()
         }
         

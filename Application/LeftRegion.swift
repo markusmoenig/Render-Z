@@ -38,7 +38,7 @@ class LeftRegion: MMRegion
         rect.width = 200
         self.app.topRegion!.shapesButton.addState( .Checked )
 
-        view.registerWidget(scrollArea, region:self)
+        view.registerWidget(scrollArea)
     }
     
     func setMode(_ mode: LeftRegionMode )

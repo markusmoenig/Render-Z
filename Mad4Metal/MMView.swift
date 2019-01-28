@@ -112,7 +112,7 @@ class MMView : MMBaseView {
         
 //        print( renderer.cWidth, renderer.cHeight )
         delayedDraws = []
-        let rect = MMRect( 0, 0, renderer.cWidth, renderer.cHeight )
+        let rect = MMRect( 1, 0, renderer.cWidth - 1, renderer.cHeight )
         if let region = topRegion {
             region.rect.x = 0
             region.rect.y = 0
@@ -171,7 +171,7 @@ class MMView : MMBaseView {
     }
     
     /// Regsiter the widget to the view
-    func registerWidget( _ widget : MMWidget, region : MMRegion )
+    func registerWidget(_ widget : MMWidget)
     {
         widgets.append( widget )
     }

@@ -66,7 +66,7 @@ class MMRegion
     func registerWidgets( widgets: MMWidget... )
     {
         for widget in widgets {
-            mmView.registerWidget( widget, region: self )
+            mmView.registerWidget(widget)
         }
     }
     

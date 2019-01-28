@@ -48,7 +48,7 @@ class MMWidget
     var mmView      : MMView
     var rect        : MMRect
     var id          : Int
-    var clickedCB   : ((_ x: Float,_ y: Float)->())?
+    var clicked     : ((_ event: MMMouseEvent)->())?
     
     var dropTargets : [String]
     
@@ -92,10 +92,10 @@ class MMWidget
     {
     }
     
-    func clicked(_ x: Float,_ y: Float)
+    func _clicked(_ event: MMMouseEvent)
     {
-        if clickedCB != nil {
-            clickedCB!(x,y)
+        if clicked != nil {
+            clicked!(event)
         }
     }
     
@@ -137,15 +137,15 @@ class MMButtonWidget : MMWidget
         }
     }
     
-    override func clicked(_ x: Float,_ y: Float)
+    override func _clicked(_ event:MMMouseEvent)
     {
-        super.clicked(x,y)
         addState( .Checked )
+        super.clicked!(event)
     }
     
     override func draw()
     {
-        let fColor : vector_float4
+        let fColor : float4
         if states.contains(.Hover) {
             fColor = skin.hoverColor
         } else if states.contains(.Checked) || states.contains(.Clicked) {

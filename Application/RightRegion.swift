@@ -29,9 +29,9 @@ class RightRegion: MMRegion
         
         super.init( view, type: .Right )
         
-        view.registerWidget(shapeListWidget, region: self)
-        view.registerWidget(objectWidget.menuWidget, region: self)
-        view.registerWidget(objectWidget.objectEditorWidget, region: self)
+        view.registerWidget(shapeListWidget)
+        view.registerWidget(objectWidget.menuWidget)
+        view.registerWidget(objectWidget.objectEditorWidget)
     }
     
     override func build()
