@@ -67,7 +67,7 @@ class MMDrawBox : MMDrawable
         mmRenderer = renderer
     }
     
-    func draw( x: Float, y: Float, width: Float, height: Float, round: Float, borderSize: Float, fillColor: vector_float4, borderColor: vector_float4 )
+    func draw( x: Float, y: Float, width: Float, height: Float, round: Float = 0, borderSize: Float = 0, fillColor: float4, borderColor: float4 = float4(0) )
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let settings: [Float] = [

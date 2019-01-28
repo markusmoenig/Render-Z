@@ -11,13 +11,14 @@ import MetalKit
 class Layer : Codable
 {
     var layerManager    : LayerManager?
-    
     var objects         : [Object]
-    var objectIdCounter : Int
     
-    var id              : Int
+    var uuid            : UUID
     var active          : Bool
-    var currentId       : Int
+    var currentUUID     : UUID?
+    
+    /// The default sequence for all objects and shapes in the layer
+    var sequence        : MMTlSequence
 
     var compute         : MMCompute?
     var state           : MTLComputePipelineState?
@@ -27,33 +28,34 @@ class Layer : Codable
     
     private enum CodingKeys: String, CodingKey {
         case objects
-        case objectIdCounter
-        case id
+        case uuid
         case active
-        case currentId
+        case currentUUID
+        case sequence
     }
     
     init(layerManager: LayerManager)
     {
         objects = []
-        objectIdCounter = 0
-        id = -1
         active = true
-        currentId = -1
+        
+        uuid = UUID()
+        currentUUID = nil
+        
+        sequence = MMTlSequence()
+
         self.layerManager = layerManager
 
         let object = Object()
         addObject( object )
         
-        currentId = object.id
+        currentUUID = object.uuid
     }
     
     func addObject(_ object: Object)
     {
         objects.append( object )
-        object.id = objectIdCounter
-        object.name = "Object #" + String(object.id+1)
-        objectIdCounter += 1
+        object.name = "Object #" + String(objects.count)
     }
     
     /// Build the source for the layer
@@ -235,10 +237,10 @@ class Layer : Codable
     }
     
     /// Returns the object with the given id
-    func getObjectFromId(_ id: Int ) -> Object?
+    func getObjectFromUUID(_ uuid: UUID ) -> Object?
     {
         for object in objects {
-            if object.id == id {
+            if object.uuid == uuid {
                 return object
             }
         }
@@ -248,13 +250,8 @@ class Layer : Codable
     /// Returns the currently selected object
     func getCurrentObject() -> Object?
     {
-        return getObjectFromId( currentId )
-    }
-    
-    /// Returns the currently selected object
-    func getCurrentRootObject() -> Object?
-    {
-        return getObjectFromId( currentId )
+        if currentUUID == nil { return nil }
+        return getObjectFromUUID( currentUUID! )
     }
     
     /// Assigns each shape an index

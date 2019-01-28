@@ -11,25 +11,26 @@ import MetalKit
 class Object : Codable
 {
     var shapes          : [Shape]
-    var shapeIdCounter  : Int
-    
     var childObjects    : [Object]
     
+    /// The timeline sequences for this object
+    var sequences       : [MMTlSequence]
+
     var name            : String = ""
     
-    var id              : Int
+    var uuid            : UUID = UUID()
     var active          : Bool
     
-    var selectedShapes  : [Int]
+    var selectedShapes  : [UUID]
         
     private enum CodingKeys: String, CodingKey {
         case shapes
         case childObjects
-        case shapeIdCounter
         case active
-        case id
+        case uuid
         case selectedShapes
         case name
+        case sequences
     }
     
     init()
@@ -37,16 +38,13 @@ class Object : Codable
         shapes = []
         childObjects = []
         selectedShapes = []
-        shapeIdCounter = 0
-        id = -1
+        sequences = []
         active = true
     }
     
     @discardableResult func addShape(_ shape: Shape) -> Shape
     {
         shapes.append( shape )
-        shape.id = shapeIdCounter
-        shapeIdCounter += 1
         
         return shape
     }
@@ -57,7 +55,7 @@ class Object : Codable
         if selectedShapes.isEmpty { return nil }
         
         for shape in shapes {
-            if shape.id == selectedShapes[0] {
+            if shape.uuid == selectedShapes[0] {
                 return shape
             }
         }

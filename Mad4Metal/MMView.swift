@@ -120,7 +120,7 @@ class MMView : MMBaseView {
             region.build()
             
             rect.y += region.rect.height
-            rect.height -= region.rect.height
+            rect.height -= region.rect.height + 1
         }
         
         if let region = leftRegion {
@@ -139,7 +139,7 @@ class MMView : MMBaseView {
             region.rect.width = rect.width
             region.build()
             
-            rect.height -= region.rect.height
+            rect.height -= region.rect.height + 1
         }
         
         if let region = rightRegion {

@@ -61,9 +61,15 @@ struct MMSkinMenuWidget
     var selectionColor  : float4 = float4(0.224, 0.275, 0.361, 1.000)
 }
 
+struct MMSkinTimeline
+{
+    var margin          : MMMargin = MMMargin( 8, 8, 8, 8 )
+}
+
 struct MMSkin
 {
     var Widget : MMSkinWidget = MMSkinWidget()
     var ToolBarButton : MMSkinButton = MMSkinButton()
     var MenuWidget : MMSkinMenuWidget = MMSkinMenuWidget()
+    var TimelineWidget : MMSkinTimeline = MMSkinTimeline()
 }

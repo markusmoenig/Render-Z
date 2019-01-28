@@ -42,6 +42,17 @@ class MMRegion
         }        
     }
     
+    func layoutHFromRight( startX: Float, startY: Float, spacing: Float, widgets: MMWidget... )
+    {
+        var x : Float = startX
+        for widget in widgets {
+            widget.rect.y = startY
+            x -= widget.rect.width
+            widget.rect.x = x
+            x -= spacing
+        }
+    }
+    
     func layoutV( startX: Float, startY: Float, spacing: Float, widgets: MMWidget... )
     {
         var y : Float = startY

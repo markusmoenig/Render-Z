@@ -41,6 +41,18 @@ class MMRect
         }
         return false;
     }
+    
+    /// Returns the cordinate of the right edge of the rectangle
+    func right() -> Float
+    {
+        return x + width
+    }
+    
+    /// Returns the cordinate of the bottom of the rectangle
+    func bottom() -> Float
+    {
+        return y + height
+    }
 }
 
 /// MMMargin class

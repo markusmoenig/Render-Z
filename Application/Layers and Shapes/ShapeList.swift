@@ -113,7 +113,7 @@ class ShapeList
             source += "d = abs( uv ) - float2( \((width)/2) - borderSize, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
 
-            if object.selectedShapes.contains( shape.id ) {
+            if object.selectedShapes.contains( shape.uuid ) {
                 source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
             } else {
                 source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
@@ -159,7 +159,7 @@ class ShapeList
         var changed  = false
         
         if selectedIndex >= 0 && selectedIndex < currentObject!.shapes.count {
-            currentObject!.selectedShapes = [currentObject!.shapes[selectedIndex].id]
+            currentObject!.selectedShapes = [currentObject!.shapes[selectedIndex].uuid]
             changed = true
         }
         

@@ -63,8 +63,6 @@ class EditorWidget      : MMWidget
         app.layerManager.camera[0] += event.deltaX! * 2
         app.layerManager.camera[1] += event.deltaY! * 2
 //        #endif
-
-        print("scrolling")
         
         region.compute()
         
@@ -141,7 +139,7 @@ class EditorWidget      : MMWidget
             let drag = dragSource as! ShapeSelectorDrag
             
             let addedShape = app.layerManager.getCurrentLayer().getCurrentObject()?.addShape(drag.shape!)
-            app.layerManager.getCurrentLayer().getCurrentObject()?.selectedShapes = [addedShape!.id]
+            app.layerManager.getCurrentLayer().getCurrentObject()?.selectedShapes = [addedShape!.uuid]
             app.setChanged()
             
             if let shape = drag.shape {

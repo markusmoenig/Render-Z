@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
+		2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
+		2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
 		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
 		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
@@ -90,6 +92,7 @@
 
 /* Begin PBXFileReference section */
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
+		2BA344A121FE8497000BB2EB /* MMTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTimeline.swift; sourceTree = "<group>"; };
 		2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -245,6 +248,7 @@
 				2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */,
 				2BBF11BC21EADB46001C94E9 /* MMSkin.swift */,
 				2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */,
+				2BA344A121FE8497000BB2EB /* MMTimeline.swift */,
 			);
 			path = Mad4Metal;
 			sourceTree = "<group>";
@@ -398,6 +402,7 @@
 				2BBF11AA21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
 				2BBF11A021EAD46B001C94E9 /* TopRegion.swift in Sources */,
 				2BBF11E121EC1A92001C94E9 /* Shape.swift in Sources */,
+				2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */,
 				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BBF11D521EADB46001C94E9 /* MMScrollArea.swift in Sources */,
 				2BBF11A821EAD46B001C94E9 /* RightRegion.swift in Sources */,
@@ -440,6 +445,7 @@
 				2BBF11AB21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
 				2BBF11A121EAD46B001C94E9 /* TopRegion.swift in Sources */,
 				2BBF11E221EC1A92001C94E9 /* Shape.swift in Sources */,
+				2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */,
 				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BBF11D621EADB46001C94E9 /* MMScrollArea.swift in Sources */,
 				2BBF11A921EAD46B001C94E9 /* RightRegion.swift in Sources */,

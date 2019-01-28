@@ -11,8 +11,6 @@ import MetalKit
 class LayerManager : Codable
 {
     var layers          : [Layer]
-    var layerIdCounter  : Int
-
     var currentIndex    : Int
     
     var compute         : MMCompute?
@@ -27,14 +25,12 @@ class LayerManager : Codable
     private enum CodingKeys: String, CodingKey {
         case layers
         case currentIndex
-        case layerIdCounter
         case camera
     }
     
     init()
     {
         layers = []
-        layerIdCounter = 0
         
         currentIndex = 0
         
@@ -50,8 +46,6 @@ class LayerManager : Codable
     func addLayer(_ layer: Layer)
     {
         layers.append( layer )
-        layer.id = layerIdCounter
-        layerIdCounter += 1
     }
     
     func build()
@@ -122,13 +116,13 @@ class LayerManager : Codable
                 float4 dist = float4(1000, -1, -1, -1);
         """
         
-        for layer in layers {
-            for object in layer.objects {
-                for shape in object.shapes {
+        for (layerIndex, layer) in layers.enumerated() {
+            for (objectIndex, object) in layer.objects.enumerated() {
+                for (shapeIndex, shape) in object.shapes.enumerated() {
                     let posX = shape.properties["posX"]
                     let posY = shape.properties["posY"]
                     source += "uv = translate( tuv, float2( \(posX ?? 0), \(posY ?? 0) ) );"
-                    source += "dist = merge( dist, float4(" + shape.createDistanceCode(uvName: "uv") + ", \(layer.id), \(object.id), \(shape.id) ) );"
+                    source += "dist = merge( dist, float4(" + shape.createDistanceCode(uvName: "uv") + ", \(layerIndex), \(objectIndex), \(shapeIndex) ) );"
                 }
             }
         }
@@ -163,7 +157,8 @@ class LayerManager : Codable
             let object = layer.objects[objectId]
             
             let shapeId : Int = Int(result.w)
-            object.selectedShapes = [shapeId]
+            let shape = object.shapes[shapeId]
+            object.selectedShapes = [shape.uuid]
             
             app!.gizmo.setObject(object)
             app!.rightRegion!.changed = true

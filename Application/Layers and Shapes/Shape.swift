@@ -12,7 +12,7 @@ class Shape : Codable
 {
     var name            : String
     var properties      : [String: Float]
-    var id              : Int
+    var uuid            : UUID
     
     var globalCode      : String = ""
     var distanceCode    : String = ""
@@ -22,16 +22,17 @@ class Shape : Codable
     private enum CodingKeys: String, CodingKey {
         case name
         case properties
-        case id
+        case uuid
         case globalCode
         case distanceCode
     }
     
     required init()
     {
-        id = -1
         properties = [:]
-        name = "Unknown Shape"
+        name = "Unnamed Shape"
+     
+        uuid = UUID()
         
         properties["posX"] = 0
         properties["posY"] = 0

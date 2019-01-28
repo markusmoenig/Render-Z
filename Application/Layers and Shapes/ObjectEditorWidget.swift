@@ -27,9 +27,9 @@ class ObjectEditorWidget : MMWidget
         
         //
         
-        let rootObject = layer.getCurrentRootObject()!
-        let color = layer.currentId == rootObject.id ? mmView.skin.Widget.selectionColor : float4( 1 )
-        let borderSize : Float = layer.currentId == rootObject.id ? 0 : 4
+        let rootObject = layer.getCurrentObject()!
+        let color = layer.currentUUID == rootObject.uuid ? mmView.skin.Widget.selectionColor : float4( 1 )
+        let borderSize : Float = layer.currentUUID == rootObject.uuid ? 0 : 4
 
         mmView.drawBox.draw( x: rect.x + margin, y: rect.y + margin, width: rect.width - 2 * margin, height: rect.height - 2 * margin, round: 6, borderSize: borderSize,  fillColor : color, borderColor: vector_float4( 1 ) )
     }

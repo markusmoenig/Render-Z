@@ -13,6 +13,8 @@ class BottomRegion: MMRegion
     var app             : App
     var animating       : Bool = false
     
+    let timeline        : MMTimeline
+    
     enum BottomRegionMode
     {
         case Closed, Open
@@ -23,11 +25,15 @@ class BottomRegion: MMRegion
     init( _ view: MMView, app: App )
     {
         self.app = app
-        mode = .Closed
+        mode = .Open
+        timeline = MMTimeline(view)
         
         super.init( view, type: .Bottom )
         
-        rect.height = 0
+        rect.height = 100
+        self.app.topRegion!.timelineButton.addState( .Checked )
+        
+        mmView.registerWidget(timeline, region: self)
     }
     
     override func build()
@@ -35,7 +41,12 @@ class BottomRegion: MMRegion
         rect.y = mmView.renderer.cHeight - rect.height
 
         if rect.height > 0 {
-            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 2,  fillColor : float4( 0.192, 0.573, 0.478, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+            
+            // Timeline area
+            
+            timeline.rect.copy( rect )
+            timeline.rect.width -= app.rightRegion!.rect.width
+            timeline.draw(app.layerManager.getCurrentLayer().sequence)
         }
     }
     
@@ -53,9 +64,9 @@ class BottomRegion: MMRegion
                 }
             } )
             animating = true
-        } else if rect.height != 150 {
+        } else if rect.height != 100 {
             
-            mmView.startAnimate( startValue: rect.height, endValue: 150, duration: 500, cb: { (value,finished) in
+            mmView.startAnimate( startValue: rect.height, endValue: 100, duration: 500, cb: { (value,finished) in
                 if finished {
                     self.animating = false
                     self.mode = .Open

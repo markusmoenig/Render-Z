@@ -31,9 +31,10 @@ class TopRegion: MMRegion
         materialsButton.clickedCB = { (x,y) -> Void in
             app.leftRegion?.setMode(.Materials)
             self.shapesButton.removeState(.Checked)
-            /*
-            /// Testing
             
+            
+            /// Testing
+            /*
             let layerManager = app.layerManager
             
             /// Encoding
@@ -48,22 +49,24 @@ class TopRegion: MMRegion
                 
                 if let jsonData = encodedObjectJsonString.data(using: .utf8)
                 {
-                    //And here you get the Supermarket object back
                     if let layerM = try? JSONDecoder().decode(LayerManager.self, from: jsonData)
                     {
                         //let shape = layerM.layers[0].shapes[0]// as! MM2DBox
                         //print( layerM.layers[0].shapes[0].globalCode() )
                     
-                        layerM.currentLayer = layerM.layers[0]
-                        layerM.currentLayer.currentObject = layerM.currentLayer.objects[0]
+//                        layerM.currentLayer = layerM.layers[0]
+//                        layerM.currentLayer.currentObject = layerM.currentLayer.objects[0]
 
                         app.layerManager = layerM
                         app.editorRegion?.result = nil
+                        
+                        app.layerManager.layers[0].layerManager = layerM
+                        
+                        layerM.app = app
                     }
                 }
-            }*/
-            
-            
+            }
+            */
         }
         
         timelineButton = MMButtonWidget( mmView, text: "Timeline" )
@@ -72,12 +75,14 @@ class TopRegion: MMRegion
         }
         
         layoutH( startX: 10, startY: 4, spacing: 10, widgets: shapesButton, materialsButton, timelineButton )
-        
+
         registerWidgets( widgets: shapesButton, materialsButton, timelineButton )
     }
     
     override func build()
     {
+        layoutHFromRight( startX: rect.x + rect.width - 10, startY: 4, spacing: 10, widgets: timelineButton )
+        
         mmView.drawBoxGradient.draw( x: 0, y: 0, width: mmView.renderer.width, height: 48, round: 0, borderSize: 1, uv1: vector_float2( 0, 0 ), uv2: vector_float2( 0, 1 ), gradientColor1 : float4( 0.082, 0.082, 0.082, 1), gradientColor2 : float4( 0.169, 0.173, 0.169, 1), borderColor: vector_float4( 0.051, 0.051, 0.051, 1 ) )
         rect.height = 48
         
