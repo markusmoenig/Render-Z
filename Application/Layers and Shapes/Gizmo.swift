@@ -89,11 +89,33 @@ class Gizmo : MMWidget
             
             let pos = convertToSceneSpace(x: event.x, y: event.y)
             
-            shape!.properties["posX"] = pos.x - dragStartOffset!.x
-            shape!.properties["posY"] = pos.y - dragStartOffset!.y
+            let properties : [String:Float] = [
+                "posX" : pos.x - dragStartOffset!.x,
+                "posY" : pos.y - dragStartOffset!.y
+            ]
+            
+            processGizmoProperties(properties)
             
             layerManager.getCurrentLayer().updateShape(shape!)
             layerManager.app!.editorRegion?.result = nil
+        }
+    }
+    
+    /// Processes the new values for the properties, either as a keyframe or a global change
+    func processGizmoProperties(_ properties: [String:Float])
+    {
+        if !isRecording() {
+            
+            for(name, value) in properties {
+                if let currShape = shape {
+                    currShape.properties[name] = value
+                }
+            }
+            
+        } else {
+            let timeline = layerManager.app!.bottomRegion!.timeline
+            let uuid = shape != nil ? shape!.uuid : object!.uuid
+            timeline.addKeyProperties(sequence: layerManager.getCurrentLayer().sequence, uuid: uuid, properties: properties)
         }
     }
     
@@ -112,7 +134,23 @@ class Gizmo : MMWidget
             hoverState.rawValue, 0
         ];
         
-        let screenSpace = convertToScreenSpace(x: (shape?.properties["posX"])!, y: (shape?.properties["posY"])! )
+        var x : Float = 0
+        var y : Float = 0
+        let sequence = layerManager.getCurrentLayer().sequence
+        
+        if sequence.items[shape!.uuid] == nil {
+            // No animation for object / shape
+            x = (shape?.properties["posX"])!
+            y = (shape?.properties["posY"])!
+        } else {
+            // Animation
+            let timeline = layerManager.app!.bottomRegion!.timeline
+            let transformed = timeline.transformProperties(sequence:sequence, uuid:shape!.uuid, properties:shape!.properties)
+            x = transformed["posX"]!
+            y = transformed["posY"]!
+        }
+        
+        let screenSpace = convertToScreenSpace(x: x, y: y )
         
         mmRenderer.setClipRect(editorRect)
         let renderEncoder = mmRenderer.renderEncoder!
@@ -193,4 +231,11 @@ class Gizmo : MMWidget
         
         return result
     }
+    
+    /// Returns true if the timeline is currently recording
+    func isRecording() -> Bool
+    {
+        return layerManager.app!.bottomRegion!.timeline.isRecording
+    }
+    
 }

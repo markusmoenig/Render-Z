@@ -46,7 +46,7 @@ class BottomRegion: MMRegion
             
             timeline.rect.copy( rect )
             timeline.rect.width -= app.rightRegion!.rect.width
-            timeline.draw(app.layerManager.getCurrentLayer().sequence)
+            timeline.draw(app.layerManager.getCurrentLayer().sequence, uuid:app.layerManager.getCurrentUUID())
         }
     }
     

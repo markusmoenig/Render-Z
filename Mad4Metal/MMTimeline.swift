@@ -7,6 +7,7 @@
 //
 
 import MetalKit
+import simd
 
 /// A timeline key consisting property values at the given frame
 struct MMTlKey : Codable
@@ -69,7 +70,7 @@ class MMTimeline : MMWidget
         }
     }
     
-    func draw(_ sequence: MMTlSequence)
+    func draw(_ sequence: MMTlSequence, uuid: UUID)
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor : mmView.skin.Widget.color, borderColor: float4(0) )// mmView.skin.Widget.borderColor )
         
@@ -85,8 +86,24 @@ class MMTimeline : MMWidget
 
         let right = rect.right() - skin.margin.right
         
+        let item = sequence.items[uuid]
+//        print( "draw", uuid)
+//        print( item )
+        
         while x < right {
             mmView.drawBox.draw( x: x, y: y, width: 1.5, height: 20, round: 0, fillColor : mmView.skin.Widget.borderColor )
+            
+            if item != nil {
+                let frame = frameAt(x, y)
+                let key = item![frame]
+                
+                if key != nil {
+//                    print( "here" )
+                    mmView.drawBox.draw( x: x, y: y, width: 5.5, height: 20, round: 0, fillColor : float4(0.137, 0.620, 0.784, 1.000) )
+                }
+            }
+        
+            
             x += pixelsPerFrame
         }
         
@@ -124,6 +141,7 @@ class MMTimeline : MMWidget
     {
     }
     
+    /// Returns the frame number for the given mouse position
     func frameAt(_ x: Float,_ y: Float) -> Int
     {
         var frame : Float = 0
@@ -131,8 +149,119 @@ class MMTimeline : MMWidget
         let frameX = x - tlRect.x
         frame = frameX / pixelsPerFrame
         
-        print( Int(frame) )
+//        print( Int(frame) )
         
         return Int(frame)
+    }
+    
+    /// At the given properties to a key located at the currentframe for the object / shape identified by the uuid
+    func addKeyProperties(sequence: MMTlSequence, uuid: UUID, properties: [String:Float])
+    {
+        var itemDict = sequence.items[uuid]
+        
+        if itemDict == nil {
+            // If no entry yet for the given uuid create one
+            itemDict = [:]
+            sequence.items[uuid] = itemDict
+        }
+        
+        // Test if there is a key already at the current frame position
+        var key : MMTlKey? = itemDict![currentFrame]
+        if key == nil {
+            key = MMTlKey()
+            sequence.items[uuid]![currentFrame] = key
+        }
+        
+        for(name, value) in properties {
+            sequence.items[uuid]![currentFrame]!.values[name] = value
+        }
+        
+//        printSequence(sequence: sequence, uuid: uuid)
+    }
+    
+    /// Transform the properties of the given object based on the keys in the sequence (using the current frame position of the timeline)
+    func transformProperties(sequence: MMTlSequence, uuid: UUID, properties: [String:Float]) -> [String:Float]
+    {
+        let item = sequence.items[uuid]
+        if item == nil { return properties }
+
+        var props : [String:Float] = [:]
+
+        func calcValueFor(_ name:String) -> Float
+        {
+            var value : Float = 0
+            
+            var prevFrame : Int = -1
+            var prevValue : Float? = nil
+            var nextFrame : Int = 1000000
+            var nextValue : Float? = nil
+            
+            for(frame,key) in item! {
+                if frame < currentFrame && frame > prevFrame {
+                    if let value = key.values[name] {
+                        prevFrame = frame
+                        prevValue = value
+                    }
+                } else
+                if frame == currentFrame {
+                    if let value = key.values[name] {
+                        prevFrame = frame
+                        prevValue = value
+                        nextFrame = frame
+                        nextValue = value
+                    }
+                    break
+                } else
+                if frame > currentFrame && frame < nextFrame {
+                    if let value = key.values[name] {
+                        nextFrame = frame
+                        nextValue = value
+                    }
+                }
+            }
+            
+//            print( name, prevFrame, prevValue, nextFrame, nextValue)
+            
+            if prevValue != nil && nextValue == nil {
+                value = prevValue!
+            } else
+            if prevValue == nil && nextValue == nil {
+                value = properties[name]!
+            } else
+            if prevValue != nil && nextValue != nil && prevValue! == nextValue! {
+                value = prevValue!
+            } else {
+                prevFrame = prevValue == nil ? 0 : prevFrame
+                prevValue = prevValue == nil ? properties[name]! : prevValue
+                
+                let frameDur : Float = Float(nextFrame - prevFrame)
+                let frameOffset : Float = Float(currentFrame - prevFrame)
+                
+                let delta = nextValue! - prevValue!
+                
+//                value = prevValue! + ( delta / frameDur ) * frameOffset
+                value = delta != 0 ? prevValue! + delta * simd_smoothstep( prevValue!, nextValue!, prevValue! + ( delta / frameDur ) * frameOffset ) : 0;
+            }
+            
+            return value
+        }
+        
+        for(name,_) in properties {
+            props[name] = calcValueFor(name)
+        }
+        
+        return props
+    }
+    
+    /// Print the given squence to the console
+    func printSequence(sequence: MMTlSequence, uuid: UUID)
+    {
+        if sequence.items[uuid] == nil {
+            print( "No entry for \(uuid) in sequence" )
+        }
+        
+        for(frame,key) in sequence.items[uuid]! {
+            print( "Key at \(frame): \(key)" )
+        }
     }
 }

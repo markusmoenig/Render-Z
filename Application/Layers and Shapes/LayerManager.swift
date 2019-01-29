@@ -74,6 +74,19 @@ class LayerManager : Codable
         return layer.getCurrentObject()
     }
     
+    /// Returns either the uuid of the current shape or object
+    func getCurrentUUID() -> UUID
+    {
+        let object = getCurrentObject()
+        let shape : Shape? = object?.getCurrentShape()
+        
+        if shape != nil {
+            return shape!.uuid
+        } else {
+            return object!.uuid
+        }
+    }
+    
     /// Get the object and shape id at the specific location
     func getShapeAt( x: Float, y: Float )
     {
