@@ -144,8 +144,10 @@ class Layer : Codable
 //                shape.flatLayerIndex = index
 //                index += 1
                 
-                let posX = shape.properties["posX"]
-                let posY = shape.properties["posY"]
+                let properties = layerManager!.app?.bottomRegion?.timeline.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
+                
+                let posX = properties!["posX"]
+                let posY = properties!["posY"]
                 source += "uv = translate( tuv, layerData->shape[\(shape.flatLayerIndex!)].pos );"
                 source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
                 
@@ -210,6 +212,29 @@ class Layer : Codable
         
         layerData![0] = layerManager!.camera[0]
         layerData![1] = layerManager!.camera[1]
+        let offset : Int = 4
+        
+        // Update Shapes / Objects
+        func parseObject(_ object: Object)
+        {
+            for shape in object.shapes {
+                //                shape.flatLayerIndex = index
+                //                index += 1
+                
+                let properties = layerManager!.app?.bottomRegion?.timeline.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
+                
+                layerData![offset + shape.flatLayerIndex! * 2] = properties!["posX"]!
+                layerData![offset + shape.flatLayerIndex! * 2+1] = properties!["posY"]!
+            }
+            
+            for childObject in object.childObjects {
+                parseObject(childObject)
+            }
+        }
+        
+        for object in objects {
+            parseObject(object)
+        }
         
         memcpy(layerBuffer?.contents(), layerData, layerData!.count * MemoryLayout<Float>.stride)
 

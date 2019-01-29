@@ -27,6 +27,9 @@ class BottomRegion: MMRegion
         self.app = app
         mode = .Open
         timeline = MMTimeline(view)
+        timeline.changedCB = { (frame) in
+            app.editorRegion?.result = nil
+        }
         
         super.init( view, type: .Bottom )
         

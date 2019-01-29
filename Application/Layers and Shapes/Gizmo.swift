@@ -65,8 +65,10 @@ class Gizmo : MMWidget
             
             dragStartOffset = convertToSceneSpace(x: event.x, y: event.y)
             
-            dragStartOffset!.x -= shape!.properties["posX"]!
-            dragStartOffset!.y -= shape!.properties["posY"]!
+            let transformed = getTransformedProperties()
+
+            dragStartOffset!.x -= transformed["posX"]!
+            dragStartOffset!.y -= transformed["posY"]!
         }
     }
     
@@ -134,23 +136,11 @@ class Gizmo : MMWidget
             hoverState.rawValue, 0
         ];
         
-        var x : Float = 0
-        var y : Float = 0
-        let sequence = layerManager.getCurrentLayer().sequence
+        let transformed = getTransformedProperties()
+        let posX : Float = transformed["posX"]!
+        let posY : Float = transformed["posY"]!
         
-        if sequence.items[shape!.uuid] == nil {
-            // No animation for object / shape
-            x = (shape?.properties["posX"])!
-            y = (shape?.properties["posY"])!
-        } else {
-            // Animation
-            let timeline = layerManager.app!.bottomRegion!.timeline
-            let transformed = timeline.transformProperties(sequence:sequence, uuid:shape!.uuid, properties:shape!.properties)
-            x = transformed["posX"]!
-            y = transformed["posY"]!
-        }
-        
-        let screenSpace = convertToScreenSpace(x: x, y: y )
+        let screenSpace = convertToScreenSpace(x: posX, y: posY )
         
         mmRenderer.setClipRect(editorRect)
         let renderEncoder = mmRenderer.renderEncoder!
@@ -172,7 +162,11 @@ class Gizmo : MMWidget
         hoverState = .Inactive
         if object == nil || shape == nil { return }
 
-        let screenSpace = convertToScreenSpace(x: (shape?.properties["posX"])!, y: (shape?.properties["posY"])! )
+        let transformed = getTransformedProperties()
+        let posX : Float = transformed["posX"]!
+        let posY : Float = transformed["posY"]!
+        
+        let screenSpace = convertToScreenSpace(x: posX, y: posY)
 
         let gizmoRect : MMRect =  MMRect()
         
@@ -238,4 +232,12 @@ class Gizmo : MMWidget
         return layerManager.app!.bottomRegion!.timeline.isRecording
     }
     
+    /// Get transformed properties
+    func getTransformedProperties() -> [String:Float]
+    {
+        let sequence = layerManager.getCurrentLayer().sequence
+        let timeline = layerManager.app!.bottomRegion!.timeline
+        let transformed = timeline.transformProperties(sequence:sequence, uuid:shape!.uuid, properties:shape!.properties)
+        return transformed
+    }
 }

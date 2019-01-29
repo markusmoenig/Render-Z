@@ -132,9 +132,13 @@ class LayerManager : Codable
         for (layerIndex, layer) in layers.enumerated() {
             for (objectIndex, object) in layer.objects.enumerated() {
                 for (shapeIndex, shape) in object.shapes.enumerated() {
-                    let posX = shape.properties["posX"]
-                    let posY = shape.properties["posY"]
-                    source += "uv = translate( tuv, float2( \(posX ?? 0), \(posY ?? 0) ) );"
+                    
+                    let timeline = app!.bottomRegion!.timeline
+                    let transformed = timeline.transformProperties(sequence:layer.sequence, uuid:shape.uuid, properties:shape.properties)
+                    let posX : Float = transformed["posX"]!
+                    let posY : Float = transformed["posY"]!
+                    
+                    source += "uv = translate( tuv, float2( \(posX), \(posY) ) );"
                     source += "dist = merge( dist, float4(" + shape.createDistanceCode(uvName: "uv") + ", \(layerIndex), \(objectIndex), \(shapeIndex) ) );"
                 }
             }

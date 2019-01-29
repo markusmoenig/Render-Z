@@ -46,10 +46,14 @@ class MMTimeline : MMWidget
     var recordButton            : MMButtonWidget
     
     var isRecording             : Bool = false
+    
+    var changedCB               : ((Int)->())?
 
     override init(_ view: MMView )
     {
         mode = .Unused
+        changedCB = nil
+        
         currentFrame = 0
         tlRect = MMRect()
         pixelsPerFrame = 40
@@ -127,7 +131,11 @@ class MMTimeline : MMWidget
     override func mouseDown(_ event: MMMouseEvent)
     {
         if tlRect.contains(event.x, event.y) {
-            currentFrame = frameAt(event.x,event.y)
+            let frame = frameAt(event.x,event.y)
+            if frame != currentFrame {
+                currentFrame = frame
+                changedCB?(currentFrame)
+            }
             mode = .Scrubbing
         }
     }
