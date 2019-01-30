@@ -37,7 +37,7 @@ class MMMouseEvent
 class MMWidget
 {
     enum MMWidgetStates {
-        case Hover, Clicked, Focus, Disabled, Checked, Opened, Closed
+        case Hover, Clicked, Focus, Checked, Opened, Closed
     }
     
     var validStates : [MMWidgetStates]
@@ -49,6 +49,8 @@ class MMWidget
     var rect        : MMRect
     var id          : Int
     var clicked     : ((_ event: MMMouseEvent)->())?
+    
+    var isDisabled  : Bool = false
     
     var dropTargets : [String]
     
@@ -119,8 +121,9 @@ class MMButtonWidget : MMWidget
 {
     var skin        : MMSkinButton
     var label       : MMLabel?
+    var texture     : MTLTexture?
 
-    init( _ view: MMView, skinToUse: MMSkinButton? = nil, text: String? = nil )
+    init( _ view: MMView, skinToUse: MMSkinButton? = nil, text: String? = nil, iconName: String? = nil )
     {
         skin = skinToUse != nil ? skinToUse! : view.skin.ToolBarButton
         super.init(view)
@@ -135,6 +138,10 @@ class MMButtonWidget : MMWidget
             label = MMTextLabel(view, font: view.openSans!, text: text!, scale: skin.fontScale )
             rect.width = label!.rect.width + skin.margin.width()
         }
+
+        if iconName != nil {
+            texture = view.icons[iconName!]
+        }
     }
     
     override func _clicked(_ event:MMMouseEvent)
@@ -146,19 +153,31 @@ class MMButtonWidget : MMWidget
     override func draw()
     {
         let fColor : float4
-        if states.contains(.Hover) {
-            fColor = skin.hoverColor
-        } else if states.contains(.Checked) || states.contains(.Clicked) {
-            fColor = skin.activeColor
-        } else {
-            fColor = skin.color
+        if !isDisabled {
+            if states.contains(.Hover) {
+                fColor = skin.hoverColor
+            } else if states.contains(.Checked) || states.contains(.Clicked) {
+                fColor = skin.activeColor
+            } else {
+                fColor = skin.color
+            }
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fColor, borderColor: skin.borderColor )
         }
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fColor, borderColor: skin.borderColor )
         
         if label != nil {
             label!.rect.x = rect.x + skin.margin.left
             label!.rect.y = rect.y + (skin.height - label!.rect.height) / 2
+            
+            if label!.isDisabled != isDisabled {
+                label!.isDisabled = isDisabled
+            }
             label!.draw()
+        }
+        
+        if texture != nil {
+            let x = rect.x + (rect.width - Float(texture!.width)) / 2
+            let y = rect.y + (rect.height - Float(texture!.height)) / 2
+            mmView.drawTexture.draw(texture!, x: x, y: y)
         }
     }
 }

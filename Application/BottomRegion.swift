@@ -128,20 +128,23 @@ class SequenceWidget : MMWidget
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
     
+        label.setText("Current Sequence")
+        label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+        
+        /*
         if let object = app.layerManager.getCurrentObject() {
             label.setText("Current Sequence")
             label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
             
-            /*
             objectEditorWidget.rect.x = rect.x
             objectEditorWidget.rect.y = rect.y + 30
             objectEditorWidget.rect.width = rect.width
             objectEditorWidget.rect.height = rect.height - 30
             
-            objectEditorWidget.draw(layer: app.layerManager.getCurrentLayer(), object: object)*/
-        }
+            objectEditorWidget.draw(layer: app.layerManager.getCurrentLayer(), object: object)
+        }*/
+    
         /*
-        
         menuWidget.rect.x = rect.x + rect.width - 30 - 1
         menuWidget.rect.y = rect.y + 1
         menuWidget.rect.width = 30

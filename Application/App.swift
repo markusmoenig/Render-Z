@@ -26,11 +26,11 @@ class App
     init(_ view : MMView )
     {
         mmView = view
-
+    
         layerManager = LayerManager()
         gizmo = Gizmo(view, layerManager: layerManager)
         layerManager.app = self
-
+        
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )
         rightRegion = RightRegion( mmView, app: self )
@@ -52,3 +52,10 @@ class App
         rightRegion!.changed = true
     }
 }
+
+class AppUndo : UndoManager
+{
+    
+}
+
+

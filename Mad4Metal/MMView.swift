@@ -48,6 +48,7 @@ class MMView : MMBaseView {
     // --- Drawing
     
     var delayedDraws    : [MMWidget] = []
+    var icons           : [String:MTLTexture] = [:]
 
     // ---
     
@@ -192,6 +193,14 @@ class MMView : MMBaseView {
         let options: [MTKTextureLoader.Option : Any] = [.generateMipmaps : false, .SRGB : false]
         
         return try? textureLoader.newTexture(data: data, options: options)
+    }
+
+    /// Registers an icon texture of the given name in the icons dictionary
+    func registerIcon(_ name: String)
+    {
+        if let texture = loadTexture(name) {
+            icons[name] = texture
+        }
     }
     
     /// Initiate a drag operation

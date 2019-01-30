@@ -11,6 +11,7 @@ import MetalKit
 protocol MMLabel
 {
     var rect : MMRect {get set}
+    var isDisabled  : Bool {get set}
 
     func draw()
 }
@@ -24,6 +25,11 @@ class MMTextLabel: MMLabel
     var scale       : Float
     var color       : float4
     var textBuffer  : MMTextBuffer?
+    var isDisabled  : Bool {
+        didSet{
+            textBuffer = nil
+        }
+    }
     
     init( _ view: MMView, font: MMFont, text: String, scale: Float = 0.5, color: float4 = float4(0.957, 0.957, 0.957, 1) )
     {
@@ -34,13 +40,14 @@ class MMTextLabel: MMLabel
         self.text = text
         self.scale = scale
         self.color = color
+        self.isDisabled = false
         
         rect = font.getTextRect(text: text, scale: scale, rectToUse: rect)
     }
     
     func draw()
     {
-        textBuffer = mmView.drawText.drawText(font, text: text, x: rect.x, y: rect.y, scale: scale, color: color, textBuffer: textBuffer)
+        textBuffer = mmView.drawText.drawText(font, text: text, x: rect.x, y: rect.y, scale: scale, color: float4( color.x, color.y, color.z, isDisabled ? 0.1 : 1.0), textBuffer: textBuffer)
     }
     
     func drawCentered(x:Float, y:Float, width:Float, height:Float)

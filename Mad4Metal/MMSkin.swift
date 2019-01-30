@@ -70,6 +70,7 @@ struct MMSkin
 {
     var Widget : MMSkinWidget = MMSkinWidget()
     var ToolBarButton : MMSkinButton = MMSkinButton()
+    var IconButton : MMSkinButton = MMSkinButton()
     var MenuWidget : MMSkinMenuWidget = MMSkinMenuWidget()
     var TimelineWidget : MMSkinTimeline = MMSkinTimeline()
 }

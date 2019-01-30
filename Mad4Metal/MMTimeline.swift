@@ -69,8 +69,11 @@ class MMTimeline : MMWidget
         tlRect = MMRect()
         pixelsPerFrame = 40
         
-        recordButton = MMButtonWidget(view, text: "Rec")
-        playButton = MMButtonWidget(view, text: "Play")
+        view.registerIcon("timeline_recording")
+        view.registerIcon("timeline_play")
+
+        recordButton = MMButtonWidget(view, iconName: "timeline_recording")
+        playButton = MMButtonWidget(view, iconName: "timeline_play")
         
         view.registerWidget(recordButton)
         view.registerWidget(playButton)

@@ -138,9 +138,17 @@ class EditorWidget      : MMWidget
         if dragSource.id == "ShapeSelectorItem" {
             let drag = dragSource as! ShapeSelectorDrag
             
+            mmView.window!.undoManager!.registerUndo(withTarget: self) { target in
+                print( "undo" )
+            }
+        
             let addedShape = app.layerManager.getCurrentLayer().getCurrentObject()?.addShape(drag.shape!)
             app.layerManager.getCurrentLayer().getCurrentObject()?.selectedShapes = [addedShape!.uuid]
             app.setChanged()
+            
+//            app.undoManager.registerRedo(withTarget: self) { target in
+//                print( "redo" )
+//            }
             
             if let shape = drag.shape {
                 
