@@ -165,7 +165,7 @@ class MMTimeline : MMWidget
                 
                 mmView.drawBox.draw( x: x, y: y + 20, width: 2, height: 11, round: 0, fillColor : mmView.skin.Widget.borderColor )
                 
-                mmView.drawText.drawText(mmView.openSans!, text: String(frames), x: x, y: y + 3, scale: 0.32)
+                mmView.drawText.drawText(mmView.openSans, text: String(frames), x: x, y: y + 3, scale: 0.32)
             } else
             {
                 if (frames % (textEveryXFrames/10*2)) == 0 {
@@ -186,7 +186,7 @@ class MMTimeline : MMWidget
             
             if frame != nil {
                 mmView.drawBox.draw( x: x + 4.5, y: y + 0.5, width: Float(frame!.count * 10) + 5, height: 18, borderSize: 1.5, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : color)
-                mmView.drawText.drawText(mmView.openSans!, text: frame!, x: x + 7, y: y + 3, scale: 0.32)
+                mmView.drawText.drawText(mmView.openSans, text: frame!, x: x + 7, y: y + 3, scale: 0.32)
 
             } else {
                 mmView.drawBox.draw( x: x + 3, y: y + 1, width: 10, height: 18, fillColor : color)

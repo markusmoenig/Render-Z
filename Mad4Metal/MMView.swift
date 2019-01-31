@@ -29,7 +29,7 @@ class MMView : MMBaseView {
     var drawText        : MMDrawText!
 
     // --- Fonts
-    var openSans        : MMFont?
+    var openSans        : MMFont!
     
     // --- Skin
     var skin            : MMSkin!;

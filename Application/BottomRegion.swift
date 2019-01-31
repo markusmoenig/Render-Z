@@ -103,7 +103,7 @@ class SequenceWidget : MMWidget
     {
         self.app = app
         
-        label = MMTextLabel(view, font: view.openSans!, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
+        label = MMTextLabel(view, font: view.openSans, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
 //        objectEditorWidget = ObjectEditorWidget(view, app: app)
 
         /*

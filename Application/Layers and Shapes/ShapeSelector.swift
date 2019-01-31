@@ -27,6 +27,7 @@ class ShapeSelector
     var shapeRects      : [MMRect]
 
     var compute         : MMCompute?
+    var fragment        : MMFragment?
     var state           : MTLComputePipelineState?
     
     var width, height   : Float
@@ -45,7 +46,8 @@ class ShapeSelector
         
         shapeRects = []
         compute = MMCompute()
-        
+        fragment = MMFragment(view)
+
         spacing = 10
         unitSize = (width - spacing * 3) / 2
         
@@ -66,7 +68,8 @@ class ShapeSelector
         self.width = width
         height = spacing * 2
         let length : Int = shapes.count
-        height += Float((length / 2 + length % 2 ) * Int(unitSize))
+        let lines : Float = Float((length / 2 + length % 2))
+        height += Float(lines * Float(unitSize) + lines * Float(20))
 //        print( unitSize, height, length.truncatingRemainder(dividingBy: 2.0), length )
         
         build()
@@ -77,10 +80,7 @@ class ShapeSelector
     {
         var source =
         """
-            #include <metal_stdlib>
-            #include <simd/simd.h>
-            using namespace metal;
-
+            
             float merge(float d1, float d2)
             {
                 return min(d1, d2);
@@ -104,17 +104,30 @@ class ShapeSelector
         
         source +=
         """
-
+        
+            /*
             kernel void
             layerBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
-                         texture2d<half, access::read>   inTexture   [[texture(1)]],
+                         //texture2d<half, access::read>   inTexture   [[texture(2)]],
+                        texture2d<half> inTexture [[ texture(2) ]],
+
                          uint2                           gid         [[thread_position_in_grid]])
             {
                 float2 uvOrigin = float2( gid.x - outTexture.get_width() / 2.,
                                           gid.y - outTexture.get_height() / 2. );
                 float2 uv;
-
                 float dist = 10000;
+            */
+        
+            fragment float4 shapeBuilder(RasterizerData in [[stage_in]])
+            {
+                float2 size = float2( \(width), \(height) );
+                float2 uvOrigin = in.textureCoordinate * size - size / 2;
+                uvOrigin.y = 1 - uvOrigin.y;
+                float2 uv;
+        
+                float dist = 10000;
+        
         """
 
         var counter : Int = 0
@@ -126,7 +139,7 @@ class ShapeSelector
         shapeRects = []
         for (index, shape) in shapes.enumerated() {
 
-            source += "uv = uvOrigin; uv.x += outTexture.get_width() / 2 - \(left); uv.y += outTexture.get_height() / 2 - \(top);\n"
+            source += "uv = uvOrigin; uv.x += size.x / 2 - \(left); uv.y += size.y / 2 - \(top);\n"
             source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
             
             if index == selectedIndex {
@@ -160,19 +173,24 @@ class ShapeSelector
 
                 //col = mix( col, borderColor, borderMask( dist, 2 ) );
         
-                outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
+                //outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
+                return col;
             }
         """
         
-//        print( source )
-        let library = compute!.createLibraryFromSource(source: source)
-        state = compute!.createState(library: library, name: "layerBuilder")
+        let library = fragment!.createLibraryFromSource(source: source)
+        let fragmentState = fragment!.createState(library: library, name: "shapeBuilder")
         
-        if compute!.width != width || compute!.height != height {
-            compute!.allocateTexture(width: width, height: height)
+        if fragment!.width != width || fragment!.height != height {
+            fragment!.allocateTexture(width: width, height: height)
         }
         
-        compute!.run( state )
+        if fragment!.encoderStart() {
+
+            fragment!.encodeRun(fragmentState, inTexture: mmView.openSans.atlas)
+            fragment!.encodeEnd()
+        }
+
     }
     
     /// Creates a thumbnail for the given shape name

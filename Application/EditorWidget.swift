@@ -56,14 +56,18 @@ class EditorWidget      : MMWidget
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
-//        #if os(iOS) || os(watchOS) || os(tvOS)
-//        app.layerManager.camera[0] -= event.deltaX! * 2
-//        app.layerManager.camera[1] -= event.deltaY! * 2
-//        #elseif os(OSX)
+        #if os(iOS) || os(watchOS) || os(tvOS)
+        // If there is a selected shape, don't scroll
+        if app.layerManager.getCurrentObject()?.getCurrentShape() != nil {
+            return
+        }
+        app.layerManager.camera[0] -= event.deltaX! * 2
+        app.layerManager.camera[1] -= event.deltaY! * 2
+        #elseif os(OSX)
         app.layerManager.camera[0] += event.deltaX! * 2
         app.layerManager.camera[1] += event.deltaY! * 2
-//        #endif
-        
+        #endif
+
         region.compute()
         
         if !dispatched {

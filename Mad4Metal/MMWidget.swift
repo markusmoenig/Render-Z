@@ -135,7 +135,7 @@ class MMButtonWidget : MMWidget
         validStates = [.Checked]
         
         if text != nil {
-            label = MMTextLabel(view, font: view.openSans!, text: text!, scale: skin.fontScale )
+            label = MMTextLabel(view, font: view.openSans, text: text!, scale: skin.fontScale )
             rect.width = label!.rect.width + skin.margin.width()
         }
 
@@ -225,7 +225,7 @@ class MMMenuWidget : MMWidget
         let r = MMRect()
         var maxHeight : Float = 0
         for item in self.items {
-            view.openSans!.getTextRect(text: item.text, scale: skin.fontScale, rectToUse: r)
+            view.openSans.getTextRect(text: item.text, scale: skin.fontScale, rectToUse: r)
             menuRect.width = max(menuRect.width, r.width)
             maxHeight = max(maxHeight, r.height)
         }
@@ -297,9 +297,9 @@ class MMMenuWidget : MMWidget
                 if index == selIndex {
                     mmView.drawBox.draw( x: x + skin.borderSize, y: y - skin.spacing, width: menuRect.width - 2 * skin.borderSize - 1, height: Float(itemHeight) + 2 * skin.spacing, round: 0, borderSize: 0, fillColor : skin.selectionColor, borderColor: skin.borderColor )
                     
-                    item.textBuffer = mmView.drawText.drawText(mmView.openSans!, text: item.text, x: x + skin.margin.left, y: y, scale: skin.fontScale, color: skin.selTextColor, textBuffer: item.textBuffer)
+                    item.textBuffer = mmView.drawText.drawText(mmView.openSans, text: item.text, x: x + skin.margin.left, y: y, scale: skin.fontScale, color: skin.selTextColor, textBuffer: item.textBuffer)
                 } else {
-                    item.textBuffer = mmView.drawText.drawText(mmView.openSans!, text: item.text, x: x + skin.margin.left, y: y, scale: skin.fontScale, color: skin.textColor, textBuffer: item.textBuffer)
+                    item.textBuffer = mmView.drawText.drawText(mmView.openSans, text: item.text, x: x + skin.margin.left, y: y, scale: skin.fontScale, color: skin.textColor, textBuffer: item.textBuffer)
                 }
                 
                 y += Float(itemHeight) + skin.spacing

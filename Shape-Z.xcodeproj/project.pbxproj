@@ -15,6 +15,8 @@
 		2BA344A722015419000BB2EB /* timeline_recording.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BA344A522015419000BB2EB /* timeline_recording.tiff */; };
 		2BA344AA22015888000BB2EB /* timeline_play.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BA344A922015888000BB2EB /* timeline_play.tiff */; };
 		2BA344AB22015888000BB2EB /* timeline_play.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BA344A922015888000BB2EB /* timeline_play.tiff */; };
+		2BA344AD2202A0A0000BB2EB /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
+		2BA344AE2202A0AA000BB2EB /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
 		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
 		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
@@ -99,6 +101,7 @@
 		2BA344A121FE8497000BB2EB /* MMTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTimeline.swift; sourceTree = "<group>"; };
 		2BA344A522015419000BB2EB /* timeline_recording.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline_recording.tiff; sourceTree = "<group>"; };
 		2BA344A922015888000BB2EB /* timeline_play.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline_play.tiff; sourceTree = "<group>"; };
+		2BA344AC22029FA4000BB2EB /* MMFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFragment.swift; sourceTree = "<group>"; };
 		2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -269,6 +272,7 @@
 				2BBF11B821EADB46001C94E9 /* MMFont.swift */,
 				2BBF11B921EADB46001C94E9 /* MMLabel.swift */,
 				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
+				2BA344AC22029FA4000BB2EB /* MMFragment.swift */,
 				2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */,
 				2BBF11BC21EADB46001C94E9 /* MMSkin.swift */,
 				2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */,
@@ -414,6 +418,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BA344AD2202A0A0000BB2EB /* MMFragment.swift in Sources */,
 				2BBF11FC21F6D148001C94E9 /* ObjectEditorWidget.swift in Sources */,
 				2BBF11C321EADB46001C94E9 /* MMWidget.swift in Sources */,
 				2BBF11C121EADB46001C94E9 /* MMRenderer.swift in Sources */,
@@ -457,6 +462,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BA344AE2202A0AA000BB2EB /* MMFragment.swift in Sources */,
 				2BBF11FD21F6D148001C94E9 /* ObjectEditorWidget.swift in Sources */,
 				2BBF11C421EADB46001C94E9 /* MMWidget.swift in Sources */,
 				2BBF11DE21EADB46001C94E9 /* MMBaseView__ios.swift in Sources */,

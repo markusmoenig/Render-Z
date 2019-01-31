@@ -20,9 +20,6 @@ class MMRenderer : NSObject, MTKViewDelegate {
 
     var outputTexture : MTLTexture!
     
-    var threadgroupSize : MTLSize!
-    var threadgroupCount : MTLSize!
-    
     var viewportSize : vector_uint2
     
     let pipelineStateDescriptor : MTLRenderPipelineDescriptor
@@ -104,7 +101,7 @@ class MMRenderer : NSObject, MTKViewDelegate {
             renderEncoder?.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
             renderEncoder?.setVertexBytes( &viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
-            renderEncoder?.setFragmentTexture(outputTexture, index: 0)
+//            renderEncoder?.setFragmentTexture(outputTexture, index: 0)
             
             return renderEncoder
         }
@@ -158,12 +155,6 @@ class MMRenderer : NSObject, MTKViewDelegate {
         
         textureDescriptor.usage = MTLTextureUsage.unknown;
         outputTexture = device.makeTexture( descriptor: textureDescriptor )
-        
-        threadgroupSize = MTLSize(width: Int(viewportSize.x), height: Int(viewportSize.y), depth: 1)
-        
-        let tWidth = 1;//( inputTexture!.width + threadgroupSize.width -  1) / threadgroupSize.width
-        let tHeight = 1;//( inputTexture!.height + threadgroupSize.height - 1) / threadgroupSize.height;
-        threadgroupCount = MTLSize(width: tWidth, height: tHeight, depth: 1)
         
         // Setup the vertex buffer
         vertexBuffer = createVertexBuffer( MMRect( 0, 0, width, height ) )

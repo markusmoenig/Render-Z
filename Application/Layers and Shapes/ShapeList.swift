@@ -146,7 +146,7 @@ class ShapeList
             textureWidget.setTexture(compute!.texture)
         }
         
-        compute!.run( state )
+        compute!.run(state)
         
         currentObject = object
     }

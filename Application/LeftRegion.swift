@@ -29,7 +29,7 @@ class LeftRegion: MMRegion
         mode = .Shapes
 
         shapeSelector = ShapeSelector(view, width : 200)
-        textureWidget = MMTextureWidget( view, texture: shapeSelector.compute!.texture )
+        textureWidget = MMTextureWidget( view, texture: shapeSelector.fragment!.texture )
 
         scrollArea = ShapeScrollArea(view, app: app)
         
@@ -51,7 +51,7 @@ class LeftRegion: MMRegion
                     self.animating = false
                     self.mode = .Closed
                     self.app.topRegion!.shapesButton.removeState( .Checked )
-                    self.app.topRegion!.materialsButton.removeState( .Checked )
+                    self.app.topRegion!.decoratorButton.removeState( .Checked )
                 }
             } )
             animating = true
