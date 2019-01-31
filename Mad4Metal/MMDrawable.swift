@@ -279,7 +279,35 @@ class MMDrawText : MMDrawable
         return MMCharBuffer(vertexBuffer: vertexBuffer!, dataBuffer: textData)
     }
     
-    @discardableResult func drawText( _ font: MMFont, text: String, x: Float, y: Float, scale: Float = 1.0, color: float4 = float4(1), textBuffer: MMTextBuffer? = nil ) -> MMTextBuffer?
+    @discardableResult func drawCharFragment( _ font: MMFont, char: BMChar, x: Float, y: Float, color: float4, scale: Float = 1.0, fragment: MMFragment ) -> MMCharBuffer
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        
+        let textSettings: [Float] = [
+            Float(font.atlas!.width) * scaleFactor, Float(font.atlas!.height) * scaleFactor,
+            char.x * scaleFactor, char.y * scaleFactor,
+            char.width * scaleFactor, char.height * scaleFactor,
+            0,0,
+            color.x, color.y, color.z, color.w,
+            ];
+        
+        let renderEncoder = mmRenderer.renderEncoder!
+        
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, char.width * scale, char.height * scale, scale: scaleFactor) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let textData = mmRenderer.device.makeBuffer(bytes: textSettings, length: textSettings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(textData, offset: 0, index: 0)
+        renderEncoder.setFragmentTexture(font.atlas, index: 1)
+        
+        renderEncoder.setRenderPipelineState( state! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        
+        return MMCharBuffer(vertexBuffer: vertexBuffer!, dataBuffer: textData)
+    }
+    
+    @discardableResult func drawText( _ font: MMFont, text: String, x: Float, y: Float, scale: Float = 1.0, color: float4 = float4(1), textBuffer: MMTextBuffer? = nil, fragment: MMFragment? = nil ) -> MMTextBuffer?
     {
         if textBuffer != nil && textBuffer!.x == x && textBuffer!.y == y && textBuffer!.viewWidth == mmRenderer.width && textBuffer!.viewHeight == mmRenderer.height {
             let renderEncoder = mmRenderer.renderEncoder!
@@ -299,9 +327,15 @@ class MMDrawText : MMDrawable
             for c in text {
                 let bmChar = font.getItemForChar( c )
                 if bmChar != nil {
-                    let char = drawChar( font, char: bmChar!, x: posX + bmChar!.xoffset * scale, y: y + bmChar!.yoffset * scale, color: color, scale: scale)
-                    array.append(char)
-                    posX += bmChar!.xadvance * scale;
+                    if fragment == nil {
+                        let char = drawChar( font, char: bmChar!, x: posX + bmChar!.xoffset * scale, y: y + bmChar!.yoffset * scale, color: color, scale: scale)
+                        array.append(char)
+                        posX += bmChar!.xadvance * scale;
+                    } else {
+                        let char = drawCharFragment( font, char: bmChar!, x: posX + bmChar!.xoffset * scale, y: y + bmChar!.yoffset * scale, color: color, scale: scale, fragment: fragment!)
+                        array.append(char)
+                        posX += bmChar!.xadvance * scale;
+                    }
                 }
             }
         

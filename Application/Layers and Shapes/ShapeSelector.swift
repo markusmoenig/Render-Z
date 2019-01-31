@@ -188,6 +188,11 @@ class ShapeSelector
         if fragment!.encoderStart() {
 
             fragment!.encodeRun(fragmentState, inTexture: mmView.openSans.atlas)
+            
+            for (index, shape) in shapes.enumerated() {
+                
+            }
+            
             fragment!.encodeEnd()
         }
 
