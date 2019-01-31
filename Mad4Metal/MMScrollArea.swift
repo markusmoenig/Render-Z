@@ -44,7 +44,7 @@ class MMScrollArea : MMWidget
             {
                 case .Vertical:
                 
-                    let wHeight = widget.rect.height
+                    let wHeight = widget.rect.height / widget.zoom
                     widget.rect.x = area.x + xOffset
                                         
                     // --- Check bounds
@@ -60,7 +60,7 @@ class MMScrollArea : MMWidget
                     widget.rect.y = area.y + offsetY
                 
                 case .Horizontal:
-                    let wWidth = widget.rect.width
+                    let wWidth = widget.rect.width / widget.zoom
                 
                     widget.rect.y = area.y + yOffset
                     

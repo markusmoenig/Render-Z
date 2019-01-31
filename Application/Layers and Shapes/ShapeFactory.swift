@@ -49,13 +49,6 @@ class ShapeFactory
         def.distanceCode = "length(__uv__) - __radius__"
         def.properties["radius"] = defaultSize
         shapes.append( def )
-        
-        // --- Disk
-        def = ShapeDefinition()
-        def.name = "Disk"
-        def.distanceCode = "length(__uv__) - __radius__"
-        def.properties["radius"] = defaultSize
-        shapes.append( def )
     }
     
     func createShape(_ name: String, size: Float = 20) -> Shape

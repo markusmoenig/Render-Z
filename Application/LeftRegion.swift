@@ -30,6 +30,7 @@ class LeftRegion: MMRegion
 
         shapeSelector = ShapeSelector(view, width : 200)
         textureWidget = MMTextureWidget( view, texture: shapeSelector.fragment!.texture )
+        textureWidget.zoom = 2
 
         scrollArea = ShapeScrollArea(view, app: app)
         

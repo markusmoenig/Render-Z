@@ -122,23 +122,16 @@ class ShapeSelector
         var counter : Int = 0
         var left : Float = (spacing + unitSize / 2) * zoom
         var top : Float = (spacing + unitSize / 2) * zoom
-        var selLeft : Float = 0
-        var selTop : Float = 0
         
         shapeRects = []
-        for (index, shape) in shapes.enumerated() {
+        for (_, shape) in shapes.enumerated() {
 
             source += "uv = uvOrigin; uv.x += size.x / 2 - \(left); uv.y += size.y / 2 - \(top);\n"
             
             source += "uv /= \(zoom);\n"
             source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
             
-            if index == selectedIndex {
-                selLeft = left
-                selTop = top
-            }
-                
-            shapeRects.append( MMRect(left - unitSize / 2, top - unitSize / 2, unitSize, unitSize ) )
+            shapeRects.append( MMRect(left/zoom - unitSize / 2, top / zoom - unitSize / 2, unitSize, unitSize ) )
             
             counter += 1
             if counter % 2 == 0 {
@@ -175,15 +168,19 @@ class ShapeSelector
             top = spacing + unitSize - 4
             counter = 0
             
+            var fontRect = MMRect()
+            
             for shape in shapes {
-                mmView.drawText.drawText(mmView.openSans, text: shape.name, x: left, y: top, scale: 0.3 * zoom, fragment: fragment)
+                
+                fontRect = mmView.openSans.getTextRect(text: shape.name, scale: 0.35 * zoom, rectToUse: fontRect)
+                mmView.drawText.drawText(mmView.openSans, text: shape.name, x: left + (unitSize - fontRect.width) / 2, y: top + 4, scale: 0.3 * zoom, fragment: fragment)
                 
                 counter += 1
                 if counter % 2 == 0 {
                     top += (unitSize + spacing + 20)
                     left = spacing
                 } else {
-                    left += unitSize
+                    left += unitSize + spacing
                 }
             }
             
@@ -264,7 +261,6 @@ class ShapeSelector
             if rect.contains( x, y ) {
                 selectedIndex = index
                 selectedShape = shapes[index]
-//                build()
                 return selectedShape
             }
         }

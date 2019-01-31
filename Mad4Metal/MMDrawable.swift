@@ -181,7 +181,7 @@ class MMDrawTexture : MMDrawable
         mmRenderer = renderer
     }
     
-    func draw( _ texture: MTLTexture, x: Float, y: Float )
+    func draw( _ texture: MTLTexture, x: Float, y: Float, zoom: Float = 1 )
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let width : Float = Float(texture.width)
@@ -195,7 +195,7 @@ class MMDrawTexture : MMDrawable
         
         let renderEncoder = mmRenderer.renderEncoder!
 
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, width/2, height/2, scale: scaleFactor ) )
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
 
         let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!

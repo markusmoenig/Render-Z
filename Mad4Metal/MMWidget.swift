@@ -51,6 +51,7 @@ class MMWidget
     var clicked     : ((_ event: MMMouseEvent)->())?
     
     var isDisabled  : Bool = false
+    var zoom        : Float = 1
     
     var dropTargets : [String]
     
@@ -338,6 +339,6 @@ class MMTextureWidget : MMWidget
     
     override func draw()
     {
-        mmView.drawTexture.draw( texture!, x: rect.x, y: rect.y );
+        mmView.drawTexture.draw(texture!, x: rect.x, y: rect.y, zoom: zoom);
     }
 }
