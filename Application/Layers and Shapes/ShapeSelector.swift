@@ -171,9 +171,8 @@ class ShapeSelector
 
             fragment!.encodeRun(fragmentState, inTexture: mmView.openSans.atlas)
             
-            let scaleFactor : Float = mmView.scaleFactor
-            left = (spacing / scaleFactor) * zoom
-            top = ((spacing + unitSize - 4) / scaleFactor) * zoom
+            left = spacing
+            top = spacing + unitSize - 4
             counter = 0
             
             for shape in shapes {
@@ -181,10 +180,10 @@ class ShapeSelector
                 
                 counter += 1
                 if counter % 2 == 0 {
-                    top += ((unitSize + spacing + 20) / scaleFactor) * zoom
-                    left = (spacing / scaleFactor) * zoom
+                    top += (unitSize + spacing + 20)
+                    left = spacing
                 } else {
-                    left += (unitSize / scaleFactor) * zoom
+                    left += unitSize
                 }
             }
             

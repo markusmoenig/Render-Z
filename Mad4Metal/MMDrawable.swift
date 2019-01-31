@@ -253,7 +253,7 @@ class MMDrawText : MMDrawable
     
     @discardableResult func drawChar( _ font: MMFont, char: BMChar, x: Float, y: Float, color: float4, scale: Float = 1.0, fragment: MMFragment? = nil ) -> MMCharBuffer
     {
-        let scaleFactor : Float = mmRenderer.mmView.scaleFactor//fragment == nil ? mmRenderer.mmView.scaleFactor : 1
+        let scaleFactor : Float = fragment == nil ? mmRenderer.mmView.scaleFactor : 2
         
         let textSettings: [Float] = [
             Float(font.atlas!.width) * scaleFactor, Float(font.atlas!.height) * scaleFactor,
