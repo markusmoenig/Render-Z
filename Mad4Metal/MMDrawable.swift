@@ -195,7 +195,7 @@ class MMDrawTexture : MMDrawable
         
         let renderEncoder = mmRenderer.renderEncoder!
 
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, width, height, scale: scaleFactor ) )
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, width/2, height/2, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
 
         let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
@@ -251,9 +251,9 @@ class MMDrawText : MMDrawable
         mmRenderer = renderer
     }
     
-    @discardableResult func drawChar( _ font: MMFont, char: BMChar, x: Float, y: Float, color: float4, scale: Float = 1.0 ) -> MMCharBuffer
+    @discardableResult func drawChar( _ font: MMFont, char: BMChar, x: Float, y: Float, color: float4, scale: Float = 1.0, fragment: MMFragment? = nil ) -> MMCharBuffer
     {
-        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor//fragment == nil ? mmRenderer.mmView.scaleFactor : 1
         
         let textSettings: [Float] = [
             Float(font.atlas!.width) * scaleFactor, Float(font.atlas!.height) * scaleFactor,
@@ -263,37 +263,11 @@ class MMDrawText : MMDrawable
             color.x, color.y, color.z, color.w,
         ];
                     
-        let renderEncoder = mmRenderer.renderEncoder!
+        let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
 
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, char.width * scale, char.height * scale, scale: scaleFactor) )
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
-        let textData = mmRenderer.device.makeBuffer(bytes: textSettings, length: textSettings.count * MemoryLayout<Float>.stride, options: [])!
-        
-        renderEncoder.setFragmentBuffer(textData, offset: 0, index: 0)
-        renderEncoder.setFragmentTexture(font.atlas, index: 1)
-        
-        renderEncoder.setRenderPipelineState( state! )
-        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
-        
-        return MMCharBuffer(vertexBuffer: vertexBuffer!, dataBuffer: textData)
-    }
-    
-    @discardableResult func drawCharFragment( _ font: MMFont, char: BMChar, x: Float, y: Float, color: float4, scale: Float = 1.0, fragment: MMFragment ) -> MMCharBuffer
-    {
-        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
-        
-        let textSettings: [Float] = [
-            Float(font.atlas!.width) * scaleFactor, Float(font.atlas!.height) * scaleFactor,
-            char.x * scaleFactor, char.y * scaleFactor,
-            char.width * scaleFactor, char.height * scaleFactor,
-            0,0,
-            color.x, color.y, color.z, color.w,
-            ];
-        
-        let renderEncoder = mmRenderer.renderEncoder!
-        
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, char.width * scale, char.height * scale, scale: scaleFactor) )
+        let vertexBuffer = fragment == nil ?
+            mmRenderer.createVertexBuffer( MMRect( x, y, char.width * scale, char.height * scale, scale: scaleFactor) )
+            : fragment!.createVertexBuffer( MMRect( x, y, char.width * scale, char.height * scale, scale: scaleFactor) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         
         let textData = mmRenderer.device.makeBuffer(bytes: textSettings, length: textSettings.count * MemoryLayout<Float>.stride, options: [])!
@@ -327,15 +301,10 @@ class MMDrawText : MMDrawable
             for c in text {
                 let bmChar = font.getItemForChar( c )
                 if bmChar != nil {
-                    if fragment == nil {
-                        let char = drawChar( font, char: bmChar!, x: posX + bmChar!.xoffset * scale, y: y + bmChar!.yoffset * scale, color: color, scale: scale)
-                        array.append(char)
-                        posX += bmChar!.xadvance * scale;
-                    } else {
-                        let char = drawCharFragment( font, char: bmChar!, x: posX + bmChar!.xoffset * scale, y: y + bmChar!.yoffset * scale, color: color, scale: scale, fragment: fragment!)
-                        array.append(char)
-                        posX += bmChar!.xadvance * scale;
-                    }
+                    let char = drawChar( font, char: bmChar!, x: posX + bmChar!.xoffset * scale, y: y + bmChar!.yoffset * scale, color: color, scale: scale, fragment: fragment)
+                    array.append(char)
+                    posX += bmChar!.xadvance * scale;
+                
                 }
             }
         

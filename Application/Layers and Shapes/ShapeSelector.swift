@@ -37,6 +37,8 @@ class ShapeSelector
     var selectedIndex   : Int
     var selectedShape   : Shape!
     
+    var zoom            : Float = 2
+    
     init(_ view: MMView, width: Float )
     {
         mmView = view
@@ -65,13 +67,14 @@ class ShapeSelector
         
         // ---
         
-        self.width = width
-        height = spacing * 2
+        self.width = width * zoom
+        height = spacing * 4
         let length : Int = shapes.count
         let lines : Float = Float((length / 2 + length % 2))
         height += Float(lines * Float(unitSize) + lines * Float(20))
 //        print( unitSize, height, length.truncatingRemainder(dividingBy: 2.0), length )
         
+        height = height * zoom
         build()
     }
     
@@ -105,20 +108,6 @@ class ShapeSelector
         source +=
         """
         
-            /*
-            kernel void
-            layerBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
-                         //texture2d<half, access::read>   inTexture   [[texture(2)]],
-                        texture2d<half> inTexture [[ texture(2) ]],
-
-                         uint2                           gid         [[thread_position_in_grid]])
-            {
-                float2 uvOrigin = float2( gid.x - outTexture.get_width() / 2.,
-                                          gid.y - outTexture.get_height() / 2. );
-                float2 uv;
-                float dist = 10000;
-            */
-        
             fragment float4 shapeBuilder(RasterizerData in [[stage_in]])
             {
                 float2 size = float2( \(width), \(height) );
@@ -131,8 +120,8 @@ class ShapeSelector
         """
 
         var counter : Int = 0
-        var left : Float = spacing + unitSize / 2
-        var top : Float = spacing + unitSize / 2
+        var left : Float = (spacing + unitSize / 2) * zoom
+        var top : Float = (spacing + unitSize / 2) * zoom
         var selLeft : Float = 0
         var selTop : Float = 0
         
@@ -140,6 +129,8 @@ class ShapeSelector
         for (index, shape) in shapes.enumerated() {
 
             source += "uv = uvOrigin; uv.x += size.x / 2 - \(left); uv.y += size.y / 2 - \(top);\n"
+            
+            source += "uv /= \(zoom);\n"
             source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
             
             if index == selectedIndex {
@@ -151,10 +142,10 @@ class ShapeSelector
             
             counter += 1
             if counter % 2 == 0 {
-                top += unitSize + spacing
-                left = spacing + unitSize / 2
+                top += (unitSize + spacing + 20) * zoom
+                left = (spacing + unitSize / 2) * zoom
             } else {
-                left += unitSize + spacing
+                left += (unitSize + spacing) * zoom
             }
         }
         
@@ -165,15 +156,6 @@ class ShapeSelector
         
                 float4 col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
                 col = mix( col, borderColor, borderMask( dist, 2 ) );
-        
-                //uv = uvOrigin; uv.x += outTexture.get_width() / 2 - \(selLeft); uv.y += outTexture.get_height() / 2 - \(selTop);
-        
-                //float2 d = abs( uv ) - \(unitSize) / 2 + 4;
-                //dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 4;
-
-                //col = mix( col, borderColor, borderMask( dist, 2 ) );
-        
-                //outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
                 return col;
             }
         """
@@ -189,8 +171,21 @@ class ShapeSelector
 
             fragment!.encodeRun(fragmentState, inTexture: mmView.openSans.atlas)
             
-            for (index, shape) in shapes.enumerated() {
+            let scaleFactor : Float = mmView.scaleFactor
+            left = (spacing / scaleFactor) * zoom
+            top = ((spacing + unitSize - 4) / scaleFactor) * zoom
+            counter = 0
+            
+            for shape in shapes {
+                mmView.drawText.drawText(mmView.openSans, text: shape.name, x: left, y: top, scale: 0.3 * zoom, fragment: fragment)
                 
+                counter += 1
+                if counter % 2 == 0 {
+                    top += ((unitSize + spacing + 20) / scaleFactor) * zoom
+                    left = (spacing / scaleFactor) * zoom
+                } else {
+                    left += (unitSize / scaleFactor) * zoom
+                }
             }
             
             fragment!.encodeEnd()

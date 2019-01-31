@@ -190,7 +190,7 @@ class MMView : MMBaseView {
         let path = Bundle.main.path(forResource: name, ofType: "tiff")!
         let data = NSData(contentsOfFile: path)! as Data
         
-        let options: [MTKTextureLoader.Option : Any] = [.generateMipmaps : false, .SRGB : false]
+        let options: [MTKTextureLoader.Option : Any] = [.generateMipmaps : true, .SRGB : false]
         
         return try? textureLoader.newTexture(data: data, options: options)
     }
