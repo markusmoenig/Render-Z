@@ -12,7 +12,8 @@ class Object : Codable
 {
     var shapes          : [Shape]
     var childObjects    : [Object]
-    
+    var properties      : [String: Float]
+
     /// The timeline sequences for this object
     var sequences       : [MMTlSequence]
 
@@ -31,12 +32,14 @@ class Object : Codable
         case selectedShapes
         case name
         case sequences
+        case properties
     }
     
     init()
     {
         shapes = []
         childObjects = []
+        properties = [:]
         selectedShapes = []
         sequences = []
         active = true
@@ -45,7 +48,6 @@ class Object : Codable
     @discardableResult func addShape(_ shape: Shape) -> Shape
     {
         shapes.append( shape )
-        
         return shape
     }
     
@@ -61,5 +63,19 @@ class Object : Codable
         }
         
         return nil
+    }
+    
+    /// Returns an array of the currently selected shapes
+    func getSelectedShapes() -> [Shape]
+    {
+        var result : [Shape] = []
+        
+        for shape in shapes {
+            if selectedShapes.contains( shape.uuid ) {
+                result.append(shape)
+            }
+        }
+
+        return result
     }
 }

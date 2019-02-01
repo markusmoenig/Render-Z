@@ -25,12 +25,16 @@ class MMBaseView : MTKView
     // --- Drag And Drop
     var dragSource      : MMDragSource? = nil
     
+    // --- Key States
+    var shiftIsDown     : Bool = false
     
     func platformInit()
     {
         scaleFactor = Float(NSScreen.main!.backingScaleFactor)
     }
     
+    override var acceptsFirstResponder: Bool { return true }
+
     override func updateTrackingAreas()
     {
         if trackingArea != nil {
@@ -123,6 +127,22 @@ class MMBaseView : MTKView
         
         if let widget = hoverWidget {
             widget.mouseScrolled(scrollEvent)
+        }
+    }
+    
+    // Currently only used for checking modifier keys
+    /*
+    override func keyDown(with event: NSEvent)
+    {
+        //https://stackoverflow.com/questions/9268045/how-can-i-detect-that-the-shift-key-has-been-pressed
+        super.keyDown(with: event)
+    }*/
+    
+    override func flagsChanged(with event: NSEvent) {        
+        if event.modifierFlags.contains(.shift) {
+            shiftIsDown = true
+        } else {
+            shiftIsDown = false
         }
     }
 }

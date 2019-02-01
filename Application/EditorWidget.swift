@@ -41,9 +41,12 @@ class EditorWidget      : MMWidget
         
         dragStartPos.x = event.x - rect.x
         dragStartPos.y = event.y - rect.y
-        
-        app.layerManager.getShapeAt(x: event.x - rect.x, y: event.y - rect.y)
+
         app.gizmo.mouseDown(event)
+
+        if app.gizmo.hoverState == .Inactive {
+            app.layerManager.getShapeAt(x: event.x - rect.x, y: event.y - rect.y, multiSelect: mmView.shiftIsDown)
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -142,17 +145,15 @@ class EditorWidget      : MMWidget
         if dragSource.id == "ShapeSelectorItem" {
             let drag = dragSource as! ShapeSelectorDrag
             
-            mmView.window!.undoManager!.registerUndo(withTarget: self) { target in
-                print( "undo" )
-            }
-        
-            let addedShape = app.layerManager.getCurrentLayer().getCurrentObject()?.addShape(drag.shape!)
-            app.layerManager.getCurrentLayer().getCurrentObject()?.selectedShapes = [addedShape!.uuid]
-            app.setChanged()
-            
-//            app.undoManager.registerRedo(withTarget: self) { target in
-//                print( "redo" )
+//            mmView.window!.undoManager!.registerUndo(withTarget: self) { target in
+//                print( "undo" )
 //            }
+        
+            let currentObject = app.layerManager.getCurrentObject()
+            
+            let addedShape = currentObject!.addShape(drag.shape!)
+            currentObject!.selectedShapes = [addedShape.uuid]
+            app.setChanged()
             
             if let shape = drag.shape {
                 
@@ -190,7 +191,7 @@ class EditorWidget      : MMWidget
             }
             
             app.layerManager.getCurrentLayer().build()
-            app.gizmo.setObject(app.layerManager.getCurrentObject())
+            app.gizmo.setObject(currentObject)
             region.result = nil
         }
     }

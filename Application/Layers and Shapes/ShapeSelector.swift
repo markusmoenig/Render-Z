@@ -173,7 +173,7 @@ class ShapeSelector
             for shape in shapes {
                 
                 fontRect = mmView.openSans.getTextRect(text: shape.name, scale: 0.35 * zoom, rectToUse: fontRect)
-                mmView.drawText.drawText(mmView.openSans, text: shape.name, x: left + (unitSize - fontRect.width) / 2, y: top + 4, scale: 0.3 * zoom, fragment: fragment)
+                mmView.drawText.drawText(mmView.openSans, text: shape.name, x: left + (unitSize - fontRect.width) / 1.6, y: top + 4, scale: 0.3 * zoom, fragment: fragment)
                 
                 counter += 1
                 if counter % 2 == 0 {

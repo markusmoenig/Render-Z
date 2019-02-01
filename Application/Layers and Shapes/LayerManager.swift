@@ -88,7 +88,7 @@ class LayerManager : Codable
     }
     
     /// Get the object and shape id at the specific location
-    func getShapeAt( x: Float, y: Float )
+    func getShapeAt( x: Float, y: Float, multiSelect: Bool = false)
     {
         var source =
         """
@@ -175,11 +175,17 @@ class LayerManager : Codable
             
             let shapeId : Int = Int(result.w)
             let shape = object.shapes[shapeId]
-            object.selectedShapes = [shape.uuid]
+            
+            if !multiSelect {
+                object.selectedShapes = [shape.uuid]
+            } else if !object.selectedShapes.contains(shape.uuid) {
+                object.selectedShapes.append( shape.uuid )
+            }
             
             app!.gizmo.setObject(object)
             app!.rightRegion!.changed = true
-        } else {
+        } else
+        if !multiSelect {
             if let object = getCurrentObject() {
                 object.selectedShapes = []
                 

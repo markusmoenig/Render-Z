@@ -152,14 +152,18 @@ class ShapeList
     }
     
     /// Selected the shape at the given relative mouse position
-    @discardableResult func selectAt(_ x: Float,_ y: Float) -> Bool
+    @discardableResult func selectAt(_ x: Float,_ y: Float, multiSelect: Bool = false) -> Bool
     {
         let index : Float = y / (unitSize+spacing)
         let selectedIndex = Int(index)
         var changed  = false
         
         if selectedIndex >= 0 && selectedIndex < currentObject!.shapes.count {
-            currentObject!.selectedShapes = [currentObject!.shapes[selectedIndex].uuid]
+            if !multiSelect {
+                currentObject!.selectedShapes = [currentObject!.shapes[selectedIndex].uuid]
+            } else if !currentObject!.selectedShapes.contains( currentObject!.shapes[selectedIndex].uuid ) {
+                currentObject!.selectedShapes.append( currentObject!.shapes[selectedIndex].uuid )
+            }
             changed = true
         }
         

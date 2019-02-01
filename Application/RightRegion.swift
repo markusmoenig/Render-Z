@@ -152,7 +152,7 @@ class ShapeListScrollArea: MMScrollArea
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
         
-        app.rightRegion!.changed = app.rightRegion!.shapeList.selectAt(mouseDownPos.x,mouseDownPos.y)
+        app.rightRegion!.changed = app.rightRegion!.shapeList.selectAt(mouseDownPos.x,mouseDownPos.y, multiSelect: mmView.shiftIsDown)
         
         if app.rightRegion!.changed {
             app.gizmo.setObject(app.layerManager.getCurrentObject())

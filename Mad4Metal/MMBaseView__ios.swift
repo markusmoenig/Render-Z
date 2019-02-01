@@ -25,7 +25,10 @@ class MMBaseView : MTKView
 
     // --- Drag And Drop
     var dragSource      : MMDragSource? = nil
-    
+
+    // --- Key States
+    var shiftIsDown     : Bool = false
+
     func platformInit()
     {
         scaleFactor = Float(UIScreen.main.scale)

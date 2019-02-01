@@ -54,7 +54,7 @@ class MMWidget
     var zoom        : Float = 1
     
     var dropTargets : [String]
-    
+        
     init(_ view: MMView)
     {
         validStates = [.Hover,.Clicked,.Focus]

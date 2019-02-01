@@ -27,9 +27,10 @@ class Gizmo : MMWidget
     let height          : Float
     
     var object          : Object?
-    var shape           : Shape?
     
     var dragStartOffset : float2?
+    
+    var initialValues   : [UUID:[String:Float]] = [:]
 
     required init( _ view : MMView, layerManager: LayerManager )
     {
@@ -46,10 +47,6 @@ class Gizmo : MMWidget
     func setObject(_ object:Object?)
     {
         self.object = object
-        
-        if object != nil {
-            shape = object!.getCurrentShape()
-        }
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -65,10 +62,14 @@ class Gizmo : MMWidget
             
             dragStartOffset = convertToSceneSpace(x: event.x, y: event.y)
             
-            let transformed = getTransformedProperties()
-
-            dragStartOffset!.x -= transformed["posX"]!
-            dragStartOffset!.y -= transformed["posY"]!
+            initialValues = [:]
+            for shape in object!.getSelectedShapes() {
+                let transformed = getTransformedProperties(shape)
+                
+                initialValues[shape.uuid] = [:]
+                initialValues[shape.uuid]!["posX"] = transformed["posX"]!
+                initialValues[shape.uuid]!["posY"] = transformed["posY"]!
+            }
         }
     }
     
@@ -91,39 +92,41 @@ class Gizmo : MMWidget
             
             let pos = convertToSceneSpace(x: event.x, y: event.y)
             
-            let properties : [String:Float] = [
-                "posX" : pos.x - dragStartOffset!.x,
-                "posY" : pos.y - dragStartOffset!.y
-            ]
+            let selectedShapeObjects = object!.getSelectedShapes()
+            for shape in selectedShapeObjects {
+
+                let properties : [String:Float] = [
+                    "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                    "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                ]
             
-            processGizmoProperties(properties)
+                processGizmoProperties(properties, shape: shape)
+                layerManager.getCurrentLayer().updateShape(shape)
+            }
             
-            layerManager.getCurrentLayer().updateShape(shape!)
             layerManager.app!.editorRegion?.result = nil
         }
     }
     
-    /// Processes the new values for the properties, either as a keyframe or a global change
-    func processGizmoProperties(_ properties: [String:Float])
+    /// Processes the new values for the properties of the given shape, either as a keyframe or a global change
+    func processGizmoProperties(_ properties: [String:Float], shape: Shape)
     {
         if !isRecording() {
             
             for(name, value) in properties {
-                if let currShape = shape {
-                    currShape.properties[name] = value
-                }
+                shape.properties[name] = value
             }
             
         } else {
             let timeline = layerManager.app!.bottomRegion!.timeline
-            let uuid = shape != nil ? shape!.uuid : object!.uuid
+            let uuid = shape.uuid//shape != nil ? shape!.uuid : object!.uuid
             timeline.addKeyProperties(sequence: layerManager.getCurrentLayer().sequence, uuid: uuid, properties: properties)
         }
     }
     
     override func draw()
     {
-        if object == nil || shape == nil { hoverState = .Inactive; return }
+        if object == nil { hoverState = .Inactive; return }
         
         let editorRect = rect
         
@@ -136,9 +139,9 @@ class Gizmo : MMWidget
             hoverState.rawValue, 0
         ];
         
-        let transformed = getTransformedProperties()
-        let posX : Float = transformed["posX"]!
-        let posY : Float = transformed["posY"]!
+        let attributes = getCurrentGizmoAttributes()
+        let posX : Float = attributes["posX"]!
+        let posY : Float = attributes["posY"]!
         
         let screenSpace = convertToScreenSpace(x: posX, y: posY )
         
@@ -160,11 +163,11 @@ class Gizmo : MMWidget
     func updateHoverState(editorRect: MMRect, event: MMMouseEvent)
     {
         hoverState = .Inactive
-        if object == nil || shape == nil { return }
+        if object == nil { return }
 
-        let transformed = getTransformedProperties()
-        let posX : Float = transformed["posX"]!
-        let posY : Float = transformed["posY"]!
+        let attributes = getCurrentGizmoAttributes()
+        let posX : Float = attributes["posX"]!
+        let posY : Float = attributes["posY"]!
         
         let screenSpace = convertToScreenSpace(x: posX, y: posY)
 
@@ -233,11 +236,36 @@ class Gizmo : MMWidget
     }
     
     /// Get transformed properties
-    func getTransformedProperties() -> [String:Float]
+    func getTransformedProperties(_ shape: Shape) -> [String:Float]
     {
         let sequence = layerManager.getCurrentLayer().sequence
         let timeline = layerManager.app!.bottomRegion!.timeline
-        let transformed = timeline.transformProperties(sequence:sequence, uuid:shape!.uuid, properties:shape!.properties)
+        let transformed = timeline.transformProperties(sequence:sequence, uuid: shape.uuid, properties:shape.properties)
         return transformed
+    }
+    
+    /// Gets the attributes of the current Gizmo, i.e. its position and possibly further info
+    func getCurrentGizmoAttributes() -> [String:Float]
+    {
+        var attributes : [String:Float] = [:]
+
+        attributes["posX"] = 0
+        attributes["posY"] = 0
+        
+        let selectedShapeObjects = object!.getSelectedShapes()
+        if !selectedShapeObjects.isEmpty {
+            
+            for shape in selectedShapeObjects {
+                
+                let transformed = getTransformedProperties(shape)
+                
+                attributes["posX"]! += transformed["posX"]!
+                attributes["posY"]! += transformed["posY"]!
+            }
+            
+            attributes["posX"]! /= Float(selectedShapeObjects.count)
+            attributes["posY"]! /= Float(selectedShapeObjects.count)
+        }
+        return attributes
     }
 }
