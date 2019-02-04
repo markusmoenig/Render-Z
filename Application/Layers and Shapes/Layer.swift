@@ -91,10 +91,18 @@ class Layer : Codable
             {
                 return p - t;
             }
+            float2 rotateCW(float2 pos, float angle)
+            {
+                float ca = cos(angle), sa = sin(angle);
+                return pos * float2x2(ca, -sa, sa, ca);
+            }
 
             typedef struct
             {
                 float2      pos;
+                float2      scale;
+                float       rotate;
+                float       filler;
                 
             } SHAPE_DATA;
 
@@ -146,13 +154,22 @@ class Layer : Codable
                 
                 let properties = layerManager!.app?.bottomRegion?.timeline.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
                 
+                source += "uv = translate( tuv, layerData->shape[\(shape.flatLayerIndex!)].pos );"
+                source += "if ( layerData->shape[\(shape.flatLayerIndex!)].rotate != 0.0 ) uv = rotateCW( uv, layerData->shape[\(shape.flatLayerIndex!)].rotate );\n"
+                source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+                
                 let posX = properties!["posX"]
                 let posY = properties!["posY"]
-                source += "uv = translate( tuv, layerData->shape[\(shape.flatLayerIndex!)].pos );"
-                source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+                let scaleX = properties!["scaleX"]
+                let scaleY = properties!["scaleY"]
+                let rotate = (properties!["rotate"]!) * Float.pi / 180
                 
                 layerData!.append( posX! )
                 layerData!.append( posY! )
+                layerData!.append( scaleX! )
+                layerData!.append( scaleY! )
+                layerData!.append( rotate )
+                layerData!.append( 0 )
             }
             
             for childObject in object.childObjects {
@@ -223,8 +240,11 @@ class Layer : Codable
                 
                 let properties = layerManager!.app?.bottomRegion?.timeline.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
                 
-                layerData![offset + shape.flatLayerIndex! * 2] = properties!["posX"]!
-                layerData![offset + shape.flatLayerIndex! * 2+1] = properties!["posY"]!
+                layerData![offset + shape.flatLayerIndex! * 6] = properties!["posX"]!
+                layerData![offset + shape.flatLayerIndex! * 6+1] = properties!["posY"]!
+                layerData![offset + shape.flatLayerIndex! * 6+2] = properties!["scaleX"]!
+                layerData![offset + shape.flatLayerIndex! * 6+3] = properties!["scaleY"]!
+                layerData![offset + shape.flatLayerIndex! * 6+4] = properties!["rotate"]! * Float.pi / 180
             }
             
             for childObject in object.childObjects {
@@ -305,9 +325,12 @@ class Layer : Codable
     /// Writes the shape's data into the layerData
     func updateShape(_ shape: Shape)
     {
-        let offset : Int = 4 + 2 * shape.flatLayerIndex!
+        let offset : Int = 4 + 6 * shape.flatLayerIndex!
         
         layerData![offset]   = shape.properties["posX"]!
         layerData![offset+1] = shape.properties["posY"]!
+        layerData![offset+2] = shape.properties["scaleX"]!
+        layerData![offset+3] = shape.properties["scaleY"]!
+        layerData![offset+4] = shape.properties["rotate"]! * Float.pi / 180
     }
 }

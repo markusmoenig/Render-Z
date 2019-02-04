@@ -43,6 +43,12 @@ class Object : Codable
         selectedShapes = []
         sequences = []
         active = true
+        
+        properties["posX"] = 0
+        properties["posY"] = 0
+        properties["rotate"] = 0
+        properties["scaleX"] = 0
+        properties["scaleY"] = 0
     }
     
     @discardableResult func addShape(_ shape: Shape) -> Shape

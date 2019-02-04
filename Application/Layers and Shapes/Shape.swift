@@ -6,7 +6,7 @@
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
-import Foundation
+import MetalKit
 
 class Shape : Codable
 {
@@ -36,6 +36,9 @@ class Shape : Codable
         
         properties["posX"] = 0
         properties["posY"] = 0
+        properties["rotate"] = 0
+        properties["scaleX"] = 0
+        properties["scaleY"] = 0
     }
     
     func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil ) -> String
@@ -49,5 +52,21 @@ class Shape : Codable
             code = code.replacingOccurrences(of: "__" + name + "__", with: String(value))
         }        
         return code
+    }
+    
+    func getCurrentSize(_ transformed: [String:Float]) -> float2
+    {
+        var size : float2 =  float2()
+
+        if transformed["radius"] != nil {
+            size.x = transformed["radius"]! * 2
+            size.y = size.x
+        } else
+        if transformed["width"] != nil && transformed["height"] != nil {
+            size.x = transformed["width"]! * 2
+            size.y = transformed["height"]! * 2
+        }
+        
+        return size
     }
 }
