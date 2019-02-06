@@ -106,7 +106,7 @@ fragment float4 drawGizmo(RasterizerData        in [[stage_in]],
     d = abs( tuv ) - float2( 7, 8);
     dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
     
-    color = data->hoverState == 6.0 ? hoverColor : xAxisColor;
+    color = data->hoverState == 6.0 ? hoverColor : yAxisColor;
     finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
     
     // Up arrow Move
