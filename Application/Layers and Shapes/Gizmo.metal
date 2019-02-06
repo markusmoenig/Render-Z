@@ -73,32 +73,48 @@ fragment float4 drawGizmo(RasterizerData        in [[stage_in]],
     color = data->hoverState == 4.0 ? hoverColor : centerColor;
     finalColor = mix( finalColor, color, gizmoBorderMask( dist, 3.0 ) * color.w );
 
-    // Right arrow
-    tuv -= float2(50,0);
-    d = abs( tuv ) -  float2( 50, 3);
+    // Right arrow - Scale
+    tuv = uv - float2(25,0);
+    d = abs( tuv ) -  float2( 25, 3);
+    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+    
+    tuv = uv - float2(50,0.4);
+    d = abs( tuv ) - float2( 8, 7);
+    dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
+    
+    color = data->hoverState == 5.0 ? hoverColor : xAxisColor;
+    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
+    
+    // Right arrow - Move
+    tuv = uv - float2(75,0);
+    d = abs( tuv ) -  float2( 18, 3);
     dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
     
     tuv = uv - float2(110,0);
     tuv = rotateCW( tuv, 1.5708 );
     dist = min( dist, sdTriangleIsosceles( tuv, float2( 10, -20 ) ) );
-
-    tuv = uv - float2(50,0.4);
-    d = abs( tuv ) - float2( 8, 7);
-    dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
     
     color = data->hoverState == 2.0 ? hoverColor : xAxisColor;
     finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
 
-    // Up arrow
-    tuv = uv - float2(0,50);
-    d = abs( tuv ) -  float2( 3, 50);
+    // Up arrow Scale
+    tuv = uv - float2(0,25);
+    d = abs( tuv ) -  float2( 3, 25);
+    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+    
+    tuv = uv - float2(0.3,50);
+    d = abs( tuv ) - float2( 7, 8);
+    dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
+    
+    color = data->hoverState == 6.0 ? hoverColor : xAxisColor;
+    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
+    
+    // Up arrow Move
+    tuv = uv - float2(0,75);
+    d = abs( tuv ) -  float2( 3, 18);
     dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
     tuv = uv - float2(0,110);
     dist = min( dist, sdTriangleIsosceles( tuv, float2( 10, -20 ) ) );
-    
-    tuv = uv - float2(0.4,50);
-    d = abs( tuv ) - float2( 7, 8);
-    dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
     
     color = data->hoverState == 3.0 ? hoverColor : yAxisColor;
     finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );

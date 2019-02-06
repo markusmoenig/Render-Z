@@ -13,7 +13,7 @@ import simd
 class Gizmo : MMWidget
 {
     enum GizmoMode : Float {
-        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate
+        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale
     }
     
     var hoverState      : GizmoMode = .Inactive
@@ -73,6 +73,8 @@ class Gizmo : MMWidget
                 initialValues[shape.uuid] = [:]
                 initialValues[shape.uuid]!["posX"] = transformed["posX"]!
                 initialValues[shape.uuid]!["posY"] = transformed["posY"]!
+                initialValues[shape.uuid]!["scaleX"] = transformed["scaleX"]!
+                initialValues[shape.uuid]!["scaleY"] = transformed["scaleY"]!
                 initialValues[shape.uuid]!["rotate"] = transformed["rotate"]!
             }
         }
@@ -104,7 +106,6 @@ class Gizmo : MMWidget
                         "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
                     ]
                     processGizmoProperties(properties, shape: shape)
-                    layerManager.getCurrentLayer().updateShape(shape)
                 }
             } else
             if dragState == .xAxisMove {
@@ -113,7 +114,6 @@ class Gizmo : MMWidget
                         "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
                         ]
                     processGizmoProperties(properties, shape: shape)
-                    layerManager.getCurrentLayer().updateShape(shape)
                 }
             } else
             if dragState == .yAxisMove {
@@ -122,7 +122,22 @@ class Gizmo : MMWidget
                         "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
                         ]
                     processGizmoProperties(properties, shape: shape)
-                    layerManager.getCurrentLayer().updateShape(shape)
+                }
+            } else
+            if dragState == .xAxisScale {
+                for shape in selectedShapeObjects {
+                    let properties : [String:Float] = [
+                        "scaleX" : initialValues[shape.uuid]!["scaleX"]! + (pos.x - dragStartOffset!.x) * 0.1,
+                        ]
+                    processGizmoProperties(properties, shape: shape)
+                }
+            } else
+            if dragState == .yAxisScale {
+                for shape in selectedShapeObjects {
+                    let properties : [String:Float] = [
+                        "scaleY" : initialValues[shape.uuid]!["scaleY"]! - (pos.y - dragStartOffset!.y) * 0.1,
+                        ]
+                    processGizmoProperties(properties, shape: shape)
                 }
             } else
             if dragState == .Rotate {
@@ -133,7 +148,6 @@ class Gizmo : MMWidget
                         "rotate" : initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
                     ]
                     processGizmoProperties(properties, shape: shape)
-                    layerManager.getCurrentLayer().updateShape(shape)
                 }
             }
         }
@@ -254,9 +268,9 @@ class Gizmo : MMWidget
                 return
             }
             
-            // Right Arrow
-            uv -= float2(50,0);
-            var d : float2 = simd_abs( uv ) - float2( 50, 3)
+            // Right Arrow - Move
+            uv -= float2(75,0);
+            var d : float2 = simd_abs( uv ) - float2( 18, 3)
             dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
             uv = center - float2(110,0);
             uv = rotateCW(uv, angle: 1.5708 );
@@ -267,9 +281,23 @@ class Gizmo : MMWidget
                 return
             }
             
-            // Up Arrow
-            uv = center + float2(0,50);
-            d = simd_abs( uv ) - float2( 3, 50)
+            // Right Arrow - Scale
+            uv = center - float2(25,0);
+            d = simd_abs( uv ) - float2( 25, 3)
+            dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            
+            uv = center - float2(50,0.4);
+            d = simd_abs( uv ) - float2( 8, 7)
+            dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
+            
+            if dist < 0 {
+                hoverState = .xAxisScale
+                return
+            }
+            
+            // Up Arrow - Move
+            uv = center + float2(0,75);
+            d = simd_abs( uv ) - float2( 3, 18)
             dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
             uv = center + float2(0,110);
             dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,20)))
@@ -278,6 +306,21 @@ class Gizmo : MMWidget
                 hoverState = .yAxisMove
                 return
             }
+            
+            // Up Arrow - Scale
+            uv = center + float2(0,25);
+            d = simd_abs( uv ) - float2( 3, 25)
+            dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+
+            uv = center - float2(0.4,50);
+            d = simd_abs( uv ) - float2( 7, 8)
+            dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
+            
+            if dist < 0 {
+                hoverState = .yAxisScale
+                return
+            }
+            
             
             // Rotate
             

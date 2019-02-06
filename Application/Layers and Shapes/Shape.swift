@@ -36,9 +36,9 @@ class Shape : Codable
         
         properties["posX"] = 0
         properties["posY"] = 0
+        properties["scaleX"] = 1
+        properties["scaleY"] = 1
         properties["rotate"] = 0
-        properties["scaleX"] = 0
-        properties["scaleY"] = 0
     }
     
     func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil ) -> String

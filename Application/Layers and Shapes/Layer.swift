@@ -156,6 +156,7 @@ class Layer : Codable
                 
                 source += "uv = translate( tuv, layerData->shape[\(shape.flatLayerIndex!)].pos );"
                 source += "if ( layerData->shape[\(shape.flatLayerIndex!)].rotate != 0.0 ) uv = rotateCW( uv, layerData->shape[\(shape.flatLayerIndex!)].rotate );\n"
+                source += "uv /= layerData->shape[\(shape.flatLayerIndex!)].scale;"
                 source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
                 
                 let posX = properties!["posX"]
