@@ -12,17 +12,24 @@ import simd
 /// Draws a sphere
 class Gizmo : MMWidget
 {
-    enum GizmoMode : Float {
-        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale
+    enum GizmoMode {
+        case Normal, Point
     }
     
-    var hoverState      : GizmoMode = .Inactive
-    var dragState       : GizmoMode = .Inactive
+    enum GizmoState : Float {
+        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale
+    }
+    
+    var mode            : GizmoMode = .Normal
+    
+    var hoverState      : GizmoState = .Inactive
+    var dragState       : GizmoState = .Inactive
 
     let layerManager    : LayerManager
     
-    var state           : MTLRenderPipelineState!
-    
+    var normalState     : MTLRenderPipelineState!
+    var pointState      : MTLRenderPipelineState!
+
     let width           : Float
     let height          : Float
     
@@ -34,11 +41,18 @@ class Gizmo : MMWidget
     var startRotate     : Float = 0
     
     var initialValues   : [UUID:[String:Float]] = [:]
+    
+    // --- For the point based gizmo
+    
+    var pointShape      : Shape? = nil
+    var pointIndex      : Int = 0
 
     required init( _ view : MMView, layerManager: LayerManager )
     {
-        let function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmo" )
-        state = view.renderer.createNewPipelineState( function! )
+        var function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmo" )
+        normalState = view.renderer.createNewPipelineState( function! )
+        function = view.renderer.defaultLibrary.makeFunction( name: "drawPointGizmo" )
+        pointState = view.renderer.createNewPipelineState( function! )
         self.layerManager = layerManager
         
         width = 260
@@ -55,9 +69,47 @@ class Gizmo : MMWidget
     override func mouseDown(_ event: MMMouseEvent)
     {
 //        #if os(iOS) || os(watchOS) || os(tvOS)
-            updateHoverState(editorRect: rect, event: event)
+        if mode == .Normal {
+            updateNormalHoverState(editorRect: rect, event: event)
+        } else {
+            updatePointHoverState(editorRect: rect, event: event)
+        }
 //        #endif
         
+        if hoverState == .Inactive && object != nil {
+            // --- Check if a point was clicked (including the center point for the normal gizmo)
+            
+            pointShape = nil
+            
+            let attributes = getCurrentGizmoAttributes()
+            let posX : Float = attributes["posX"]!
+            let posY : Float = attributes["posY"]!
+            
+            // --- Points
+            for shape in object!.getSelectedShapes() {
+                
+                for index in 0..<shape.pointCount {
+                    
+                    let pX = posX + shape.properties["point_\(index)_x"]!
+                    let pY = posY + shape.properties["point_\(index)_y"]!
+                    
+                    let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+                    
+                    let radius : Float = 10
+                    #if os(OSX)
+                    let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                    if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
+                        print( "point", index)
+                        pointShape = shape
+                        pointIndex = index
+                        mode = .Point
+                    }
+                    #endif
+                }
+            }
+        }
+        
+        // --- Gizmo Action
         if hoverState != .Inactive {
             mmView.mouseTrackWidget = self
             dragState = hoverState
@@ -67,16 +119,34 @@ class Gizmo : MMWidget
             startRotate = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
 
             initialValues = [:]
-            for shape in object!.getSelectedShapes() {
-                let transformed = getTransformedProperties(shape)
+            
+            if mode == .Normal {
+                for shape in object!.getSelectedShapes() {
+                    let transformed = getTransformedProperties(shape)
+                    
+                    initialValues[shape.uuid] = [:]
+                    initialValues[shape.uuid]!["posX"] = transformed["posX"]!
+                    initialValues[shape.uuid]!["posY"] = transformed["posY"]!
+                    initialValues[shape.uuid]!["rotate"] = transformed["rotate"]!
+                    
+                    initialValues[shape.uuid]![shape.widthProperty] = transformed[shape.widthProperty]!
+                    initialValues[shape.uuid]![shape.heightProperty] = transformed[shape.heightProperty]!
+                }
+            } else {
+                // Save the point position
+                let shape = pointShape!
+                
+//                let transformed = getTransformedProperties(shape)
                 
                 initialValues[shape.uuid] = [:]
-                initialValues[shape.uuid]!["posX"] = transformed["posX"]!
-                initialValues[shape.uuid]!["posY"] = transformed["posY"]!
-                initialValues[shape.uuid]!["scaleX"] = transformed["scaleX"]!
-                initialValues[shape.uuid]!["scaleY"] = transformed["scaleY"]!
-                initialValues[shape.uuid]!["rotate"] = transformed["rotate"]!
+                initialValues[shape.uuid]!["posX"] = shape.properties["point_\(pointIndex)_x"]!
+                initialValues[shape.uuid]!["posY"] = shape.properties["point_\(pointIndex)_y"]!
             }
+        }
+        
+        // --- If no point selected switch to normal mode
+        if mode == .Point && pointShape == nil {
+            mode = .Normal
         }
     }
     
@@ -93,18 +163,31 @@ class Gizmo : MMWidget
     override func mouseMoved(_ event: MMMouseEvent)
     {
         if dragState == .Inactive {
-            updateHoverState(editorRect: rect, event: event)
+            if mode == .Normal {
+                updateNormalHoverState(editorRect: rect, event: event)
+            } else {
+                updatePointHoverState(editorRect: rect, event: event)
+            }
         } else {
             let pos = convertToSceneSpace(x: event.x, y: event.y)
             let selectedShapeObjects = object!.getSelectedShapes()
             layerManager.app!.editorRegion?.result = nil
 
             if dragState == .CenterMove {
-                for shape in selectedShapeObjects {
+                if mode == .Normal {
+                    for shape in selectedShapeObjects {
+                        let properties : [String:Float] = [
+                            "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                        ]
+                        processGizmoProperties(properties, shape: shape)
+                    }
+                } else {
+                    let shape = pointShape!
                     let properties : [String:Float] = [
-                        "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                        "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
-                    ]
+                        "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                        "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                        ]
                     processGizmoProperties(properties, shape: shape)
                 }
             } else
@@ -126,16 +209,18 @@ class Gizmo : MMWidget
             } else
             if dragState == .xAxisScale {
                 for shape in selectedShapeObjects {
+                    let propName : String = shape.widthProperty
                     let properties : [String:Float] = [
-                        "scaleX" : initialValues[shape.uuid]!["scaleX"]! + (pos.x - dragStartOffset!.x) * 0.1,
+                        propName : initialValues[shape.uuid]![propName]! + (pos.x - dragStartOffset!.x),
                         ]
                     processGizmoProperties(properties, shape: shape)
                 }
             } else
             if dragState == .yAxisScale {
                 for shape in selectedShapeObjects {
+                    let propName : String = shape.heightProperty
                     let properties : [String:Float] = [
-                        "scaleY" : initialValues[shape.uuid]!["scaleY"]! - (pos.y - dragStartOffset!.y) * 0.1,
+                        propName : initialValues[shape.uuid]![propName]! - (pos.y - dragStartOffset!.y),
                         ]
                     processGizmoProperties(properties, shape: shape)
                 }
@@ -188,33 +273,113 @@ class Gizmo : MMWidget
         let posX : Float = attributes["posX"]!
         let posY : Float = attributes["posY"]!
         
-        let screenSpace = convertToScreenSpace(x: posX, y: posY )
+        var screenSpace = convertToScreenSpace(x: posX, y: posY )
 
         mmRenderer.setClipRect(editorRect)
 
-        // --- Render Bound Box
-        
-        let margin : Float = 50
-        mmView.drawBox.draw(x: attributes["sizeMinX"]! - margin, y: attributes["sizeMinY"]! - margin, width: attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2*margin, height: attributes["sizeMaxY"]! - attributes["sizeMinY"]! + 2*margin, round: 0, borderSize: 2, fillColor: float4(0), borderColor: float4(0.5, 0.5, 0.5, 1))
-        
-        // --- Render Gizmo
-        
         let renderEncoder = mmRenderer.renderEncoder!
+        if mode == .Normal {
         
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( screenSpace.x - width / 2, screenSpace.y - height / 2, width, height, scale: scaleFactor ) )
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
-        let buffer = mmRenderer.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
-        
-        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
-        
-        renderEncoder.setRenderPipelineState( state! )
-        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            // --- Render Bound Box
+            
+            let margin : Float = 50
+            mmView.drawBox.draw(x: attributes["sizeMinX"]! - margin, y: attributes["sizeMinY"]! - margin, width: attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2*margin, height: attributes["sizeMaxY"]! - attributes["sizeMinY"]! + 2*margin, round: 0, borderSize: 2, fillColor: float4(0), borderColor: float4(0.5, 0.5, 0.5, 1))
+            
+            // --- Points
+            
+            for shape in object!.getSelectedShapes() {
+                
+                for index in 0..<shape.pointCount {
+                    
+                    let pX = posX + shape.properties["point_\(index)_x"]!
+                    let pY = posY + shape.properties["point_\(index)_y"]!
+
+                    let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+
+                    var pFillColor = float4(1)
+                    var pBorderColor = float4( 0, 0, 0, 1)
+                    let radius : Float = 10
+                    #if os(OSX)
+                    let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                    if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
+                        let temp = pBorderColor
+                        pBorderColor = pFillColor
+                        pFillColor = temp
+                    }
+                    #endif
+
+                    mmView.drawSphere.draw(x: pointInScreen.x - radius, y: pointInScreen.y - radius, radius: radius, borderSize: 3, fillColor: pFillColor, borderColor: pBorderColor)
+                }
+            }
+            
+            // --- Render Gizmo
+            let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( screenSpace.x - width / 2, screenSpace.y - height / 2, width, height, scale: scaleFactor ) )
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            
+            let buffer = mmRenderer.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
+            
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            
+            renderEncoder.setRenderPipelineState(normalState!)
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        } else {
+            // Point Mode
+            
+            // --- Draw all other points
+            
+            // --- Points
+            
+            for shape in object!.getSelectedShapes() {
+                
+                for index in 0..<shape.pointCount {
+                    
+                    if shape === pointShape! && index == pointIndex {
+                        continue
+                    }
+                    
+                    let pX = posX + shape.properties["point_\(index)_x"]!
+                    let pY = posY + shape.properties["point_\(index)_y"]!
+                    
+                    let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+                    
+                    var pFillColor = float4(1)
+                    var pBorderColor = float4( 0, 0, 0, 1)
+                    let radius : Float = 10
+                    #if os(OSX)
+                    let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                    if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
+                        let temp = pBorderColor
+                        pBorderColor = pFillColor
+                        pFillColor = temp
+                    }
+                    #endif
+                    
+                    mmView.drawSphere.draw(x: pointInScreen.x - radius, y: pointInScreen.y - radius, radius: radius, borderSize: 3, fillColor: pFillColor, borderColor: pBorderColor)
+                }
+            }
+            
+            let pX = posX + pointShape!.properties["point_\(pointIndex)_x"]!
+            let pY = posY + pointShape!.properties["point_\(pointIndex)_y"]!
+            
+            screenSpace = convertToScreenSpace(x: pX, y: pY)
+            
+            // --- Render Gizmo
+            let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( screenSpace.x - width / 2, screenSpace.y - height / 2, width, height, scale: scaleFactor ) )
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            
+            let buffer = mmRenderer.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
+            
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            
+            renderEncoder.setRenderPipelineState(pointState)
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        }
         
         mmRenderer.setClipRect()
     }
     
-    func updateHoverState(editorRect: MMRect, event: MMMouseEvent)
+    /// Update the hover state for the normal gizmo
+    func updateNormalHoverState(editorRect: MMRect, event: MMMouseEvent)
     {
         hoverState = .Inactive
         if object == nil { return }
@@ -312,7 +477,7 @@ class Gizmo : MMWidget
             d = simd_abs( uv ) - float2( 3, 25)
             dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
 
-            uv = center - float2(0.4,50);
+            uv = center + float2(0.4,50);
             d = simd_abs( uv ) - float2( 7, 8)
             dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
             
@@ -321,9 +486,7 @@ class Gizmo : MMWidget
                 return
             }
             
-            
             // Rotate
-            
             dist = simd_length( center ) - 73
             let ringSize : Float = 6
             
@@ -334,6 +497,89 @@ class Gizmo : MMWidget
             }
         }
     }
+    
+    /// Update the hover state for the point gizmo
+    func updatePointHoverState(editorRect: MMRect, event: MMMouseEvent)
+    {
+        hoverState = .Inactive
+        if object == nil { return }
+        
+        let attributes = getCurrentGizmoAttributes()
+        let posX : Float = attributes["posX"]! + pointShape!.properties["point_\(pointIndex)_x"]!
+        let posY : Float = attributes["posY"]! + pointShape!.properties["point_\(pointIndex)_y"]!
+        
+        gizmoCenter = convertToScreenSpace(x: posX, y: posY)
+        
+        let gizmoRect : MMRect =  MMRect()
+        
+        gizmoRect.x = gizmoCenter.x - width / 2
+        gizmoRect.y = gizmoCenter.y - height / 2
+        gizmoRect.width = width
+        gizmoRect.height = height
+        
+        if gizmoRect.contains( event.x, event.y ) {
+            
+            func sdTriangleIsosceles(_ uv : float2, q : float2) -> Float
+            {
+                var p : float2 = uv
+                p.x = abs(p.x)
+                
+                let a : float2 = p - q * simd_clamp( dot(p,q)/dot(q,q), 0.0, 1.0 )
+                let b : float2 = p - q*float2( simd_clamp( p.x/q.x, 0.0, 1.0 ), 1.0 )
+                let s : Float = -sign( q.y )
+                let d : float2 = min( float2( dot(a,a), s*(p.x*q.y-p.y*q.x) ),
+                                      float2( dot(b,b), s*(p.y-q.y)  ));
+                
+                return -sqrt(d.x)*sign(d.y);
+            }
+            
+            func rotateCW(_ pos : float2, angle: Float) -> float2
+            {
+                let ca : Float = cos(angle), sa = sin(angle)
+                return pos * float2x2(float2(ca, -sa), float2(sa, ca))
+            }
+            
+            let x = event.x - gizmoRect.x
+            let y = event.y - gizmoRect.y
+            
+            var center = simd_float2(x:x, y:y)
+            center = center - simd_float2(x:width/2, y: height/2)
+            
+            var uv = center
+            var dist = simd_length( uv ) - 15
+            
+            if dist < 0 {
+                hoverState = .CenterMove
+                return
+            }
+            
+            // Right Arrow - Move
+            uv -= float2(50,0);
+            var d : float2 = simd_abs( uv ) - float2( 50, 3)
+            dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            uv = center - float2(110,0);
+            uv = rotateCW(uv, angle: 1.5708 );
+            dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,-20)))
+            
+            if dist < 0 {
+                hoverState = .xAxisMove
+                return
+            }
+            
+            // Up Arrow - Move
+            uv = center + float2(0,50);
+            d = simd_abs( uv ) - float2( 3, 50)
+            dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            uv = center + float2(0,110);
+            dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,20)))
+            
+            if dist < 0 {
+                hoverState = .yAxisMove
+                return
+            }
+        }
+    }
+    
     
     /// Converts the coordinate from scene space to screen space
     func convertToScreenSpace(x: Float, y: Float) -> float2
@@ -414,8 +660,6 @@ class Gizmo : MMWidget
 
         attributes["posX"] = 0
         attributes["posY"] = 0
-        attributes["scaleX"] = 0
-        attributes["scaleY"] = 0
         attributes["rotate"] = 0
 
         var sizeMinX : Float = 10000
@@ -433,8 +677,6 @@ class Gizmo : MMWidget
                 
                 let posX = transformed["posX"]!
                 let posY = transformed["posY"]!
-                let scaleX = transformed["scaleX"]!
-                let scaleY = transformed["scaleY"]!
                 let rotate = transformed["rotate"]!
 
                 let size = shape.getCurrentSize(transformed)
@@ -454,15 +696,11 @@ class Gizmo : MMWidget
 
                 attributes["posX"]! += posX
                 attributes["posY"]! += posY
-                attributes["scaleX"]! += scaleX
-                attributes["scaleY"]! += scaleY
                 attributes["rotate"]! += rotate
             }
             
             attributes["posX"]! /= Float(selectedShapeObjects.count)
             attributes["posY"]! /= Float(selectedShapeObjects.count)
-            attributes["scaleX"]! /= Float(selectedShapeObjects.count)
-            attributes["scaleY"]! /= Float(selectedShapeObjects.count)
             attributes["rotate"]! /= Float(selectedShapeObjects.count)
         }
         

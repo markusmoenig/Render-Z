@@ -16,6 +16,11 @@ class Shape : Codable
     
     var globalCode      : String = ""
     var distanceCode    : String = ""
+    
+    var widthProperty   : String = ""
+    var heightProperty  : String = ""
+    
+    var pointCount      : Int = 0
 
     var flatLayerIndex  : Int?
 
@@ -36,12 +41,10 @@ class Shape : Codable
         
         properties["posX"] = 0
         properties["posY"] = 0
-        properties["scaleX"] = 1
-        properties["scaleY"] = 1
         properties["rotate"] = 0
     }
     
-    func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil ) -> String
+    func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil ) -> String
     {
         var code = distanceCode
         let props = transProperties != nil ? transProperties : properties
@@ -49,8 +52,30 @@ class Shape : Codable
         code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
         
         for (name,value) in props! {
-            code = code.replacingOccurrences(of: "__" + name + "__", with: String(value))
-        }        
+            if name == widthProperty && layerIndex != nil {
+                code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].size.x")
+            } else
+            if name == heightProperty && layerIndex != nil {
+                code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].size.y")
+            } else
+            if name.starts(with: "point_") && layerIndex != nil {
+                let index = name.index(name.startIndex, offsetBy: 6)
+                let coord = name.index(name.endIndex, offsetBy: -1)
+                
+                if name[index] == "0" && pointCount > 0 {
+                    code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].point0.\(name[coord])")
+                } else
+                if name[index] == "1" && pointCount > 1 {
+                    code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].point1.\(name[coord])")
+                } else
+                if name[index] == "2" && pointCount > 2 {
+                    code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].point3.\(name[coord])")
+                }
+            } else {
+                code = code.replacingOccurrences(of: "__" + name + "__", with: String(value))
+            }
+        }
+        
         return code
     }
     
@@ -58,14 +83,8 @@ class Shape : Codable
     {
         var size : float2 =  float2()
 
-        if transformed["radius"] != nil {
-            size.x = transformed["radius"]! * 2
-            size.y = size.x
-        } else
-        if transformed["width"] != nil && transformed["height"] != nil {
-            size.x = transformed["width"]! * 2
-            size.y = transformed["height"]! * 2
-        }
+        size.x = transformed[widthProperty]! * 2
+        size.y = transformed[heightProperty]! * 2
         
         return size
     }

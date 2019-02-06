@@ -100,7 +100,10 @@ class Layer : Codable
             typedef struct
             {
                 float2      pos;
-                float2      scale;
+                float2      size;
+                float2      point0;
+                float2      point1;
+                float2      point2;
                 float       rotate;
                 float       filler;
                 
@@ -156,19 +159,50 @@ class Layer : Codable
                 
                 source += "uv = translate( tuv, layerData->shape[\(shape.flatLayerIndex!)].pos );"
                 source += "if ( layerData->shape[\(shape.flatLayerIndex!)].rotate != 0.0 ) uv = rotateCW( uv, layerData->shape[\(shape.flatLayerIndex!)].rotate );\n"
-                source += "uv /= layerData->shape[\(shape.flatLayerIndex!)].scale;"
-                source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+                source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", layerIndex: shape.flatLayerIndex) + ");"
                 
                 let posX = properties!["posX"]
                 let posY = properties!["posY"]
-                let scaleX = properties!["scaleX"]
-                let scaleY = properties!["scaleY"]
+                let sizeX = properties![shape.widthProperty]
+                let sizeY = properties![shape.heightProperty]
                 let rotate = (properties!["rotate"]!) * Float.pi / 180
                 
                 layerData!.append( posX! )
                 layerData!.append( posY! )
-                layerData!.append( scaleX! )
-                layerData!.append( scaleY! )
+                layerData!.append( sizeX! )
+                layerData!.append( sizeY! )
+                if shape.pointCount == 0 {
+                    layerData!.append( 0 )
+                    layerData!.append( 0 )
+                    layerData!.append( 0 )
+                    layerData!.append( 0 )
+                    layerData!.append( 0 )
+                    layerData!.append( 0 )
+                } else
+                if shape.pointCount == 1 {
+                    layerData!.append( properties!["point_0_x"]! )
+                    layerData!.append( properties!["point_0_y"]! )
+                    layerData!.append( 0 )
+                    layerData!.append( 0 )
+                    layerData!.append( 0 )
+                    layerData!.append( 0 )
+                } else
+                if shape.pointCount == 2 {
+                    layerData!.append( properties!["point_0_x"]! )
+                    layerData!.append( properties!["point_0_y"]! )
+                    layerData!.append( properties!["point_1_x"]! )
+                    layerData!.append( properties!["point_1_y"]! )
+                    layerData!.append( 0 )
+                    layerData!.append( 0 )
+                } else
+                if shape.pointCount == 3 {
+                    layerData!.append( properties!["point_0_x"]! )
+                    layerData!.append( properties!["point_0_y"]! )
+                    layerData!.append( properties!["point_1_x"]! )
+                    layerData!.append( properties!["point_1_y"]! )
+                    layerData!.append( properties!["point_2_x"]! )
+                    layerData!.append( properties!["point_2_y"]! )
+                }
                 layerData!.append( rotate )
                 layerData!.append( 0 )
             }
@@ -241,11 +275,29 @@ class Layer : Codable
                 
                 let properties = layerManager!.app?.bottomRegion?.timeline.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
                 
-                layerData![offset + shape.flatLayerIndex! * 6] = properties!["posX"]!
-                layerData![offset + shape.flatLayerIndex! * 6+1] = properties!["posY"]!
-                layerData![offset + shape.flatLayerIndex! * 6+2] = properties!["scaleX"]!
-                layerData![offset + shape.flatLayerIndex! * 6+3] = properties!["scaleY"]!
-                layerData![offset + shape.flatLayerIndex! * 6+4] = properties!["rotate"]! * Float.pi / 180
+                layerData![offset + shape.flatLayerIndex! * 12] = properties!["posX"]!
+                layerData![offset + shape.flatLayerIndex! * 12+1] = properties!["posY"]!
+                layerData![offset + shape.flatLayerIndex! * 12+2] = properties![shape.widthProperty]!
+                layerData![offset + shape.flatLayerIndex! * 12+3] = properties![shape.heightProperty]!
+                if ( shape.pointCount == 1 ) {
+                    layerData![offset + shape.flatLayerIndex! * 12+4] = properties!["point_0_x"]!
+                    layerData![offset + shape.flatLayerIndex! * 12+5] = properties!["point_0_y"]!
+                } else
+                if ( shape.pointCount == 2 ) {
+                    layerData![offset + shape.flatLayerIndex! * 12+4] = properties!["point_0_x"]!
+                    layerData![offset + shape.flatLayerIndex! * 12+5] = properties!["point_0_y"]!
+                    layerData![offset + shape.flatLayerIndex! * 12+6] = properties!["point_1_x"]!
+                    layerData![offset + shape.flatLayerIndex! * 12+7] = properties!["point_1_y"]!
+                } else
+                if ( shape.pointCount == 3 ) {
+                    layerData![offset + shape.flatLayerIndex! * 12+4] = properties!["point_0_x"]!
+                    layerData![offset + shape.flatLayerIndex! * 12+5] = properties!["point_0_y"]!
+                    layerData![offset + shape.flatLayerIndex! * 12+6] = properties!["point_1_x"]!
+                    layerData![offset + shape.flatLayerIndex! * 12+7] = properties!["point_1_y"]!
+                    layerData![offset + shape.flatLayerIndex! * 12+8] = properties!["point_2_x"]!
+                    layerData![offset + shape.flatLayerIndex! * 12+9] = properties!["point_2_y"]!
+                }
+                layerData![offset + shape.flatLayerIndex! * 12+10] = properties!["rotate"]! * Float.pi / 180
             }
             
             for childObject in object.childObjects {
@@ -321,17 +373,5 @@ class Layer : Codable
         }
         
         return index
-    }
-    
-    /// Writes the shape's data into the layerData
-    func updateShape(_ shape: Shape)
-    {
-        let offset : Int = 4 + 6 * shape.flatLayerIndex!
-        
-        layerData![offset]   = shape.properties["posX"]!
-        layerData![offset+1] = shape.properties["posY"]!
-        layerData![offset+2] = shape.properties["scaleX"]!
-        layerData![offset+3] = shape.properties["scaleY"]!
-        layerData![offset+4] = shape.properties["rotate"]! * Float.pi / 180
     }
 }

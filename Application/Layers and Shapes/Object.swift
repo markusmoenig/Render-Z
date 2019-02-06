@@ -46,8 +46,6 @@ class Object : Codable
         
         properties["posX"] = 0
         properties["posY"] = 0
-        properties["scaleX"] = 1
-        properties["scaleY"] = 1
         properties["rotate"] = 0
     }
     
