@@ -69,7 +69,7 @@ class Shape : Codable
                     code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].point1.\(name[coord])")
                 } else
                 if name[index] == "2" && pointCount > 2 {
-                    code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].point3.\(name[coord])")
+                    code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].point2.\(name[coord])")
                 }
             } else {
                 code = code.replacingOccurrences(of: "__" + name + "__", with: String(value))
