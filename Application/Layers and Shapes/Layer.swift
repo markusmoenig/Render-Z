@@ -158,7 +158,12 @@ class Layer : Codable
                 let properties = layerManager!.app?.bottomRegion?.timeline.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
                 
                 source += "uv = translate( tuv, layerData->shape[\(shape.flatLayerIndex!)].pos );"
-                source += "if ( layerData->shape[\(shape.flatLayerIndex!)].rotate != 0.0 ) uv = rotateCW( uv, layerData->shape[\(shape.flatLayerIndex!)].rotate );\n"
+                if shape.pointCount < 2 {
+                    source += "if ( layerData->shape[\(shape.flatLayerIndex!)].rotate != 0.0 ) uv = rotateCW( uv, layerData->shape[\(shape.flatLayerIndex!)].rotate );\n"
+                } else {
+                    source += "if ( layerData->shape[\(shape.flatLayerIndex!)].rotate != 0.0 ) { uv = rotateCW( uv - ( layerData->shape[\(shape.flatLayerIndex!)].point0 + layerData->shape[\(shape.flatLayerIndex!)].point1) / 2, layerData->shape[\(shape.flatLayerIndex!)].rotate );\n"
+                    source += "uv += ( layerData->shape[\(shape.flatLayerIndex!)].point0 + layerData->shape[\(shape.flatLayerIndex!)].point1) / 2;}\n"
+                }
                 source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", layerIndex: shape.flatLayerIndex) + ");"
                 
                 let posX = properties!["posX"]

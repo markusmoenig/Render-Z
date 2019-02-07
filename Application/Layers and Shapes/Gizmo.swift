@@ -103,6 +103,7 @@ class Gizmo : MMWidget
                         pointShape = shape
                         pointIndex = index
                         mode = .Point
+                        hoverState = .CenterMove
                     }
                     #endif
                 }
@@ -192,17 +193,33 @@ class Gizmo : MMWidget
                 }
             } else
             if dragState == .xAxisMove {
-                for shape in selectedShapeObjects {
+                if mode == .Normal {
+                    for shape in selectedShapeObjects {
+                        let properties : [String:Float] = [
+                            "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            ]
+                        processGizmoProperties(properties, shape: shape)
+                    }
+                } else {
+                    let shape = pointShape!
                     let properties : [String:Float] = [
-                        "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                        "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
                         ]
                     processGizmoProperties(properties, shape: shape)
                 }
             } else
             if dragState == .yAxisMove {
-                for shape in selectedShapeObjects {
+                if  mode == .Normal {
+                    for shape in selectedShapeObjects {
+                        let properties : [String:Float] = [
+                            "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                            ]
+                        processGizmoProperties(properties, shape: shape)
+                    }
+                } else {
+                    let shape = pointShape!
                     let properties : [String:Float] = [
-                        "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                        "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
                         ]
                     processGizmoProperties(properties, shape: shape)
                 }
@@ -264,12 +281,12 @@ class Gizmo : MMWidget
         
         let scaleFactor : Float = mmView.scaleFactor
         
-        let data: [Float] = [
+        var data: [Float] = [
             width, height,
             hoverState.rawValue, 0
         ];
         
-        let attributes = getCurrentGizmoAttributes()
+        var attributes = getCurrentGizmoAttributes()
         let posX : Float = attributes["posX"]!
         let posY : Float = attributes["posY"]!
         
@@ -279,15 +296,9 @@ class Gizmo : MMWidget
 
         let renderEncoder = mmRenderer.renderEncoder!
         if mode == .Normal {
-        
-            // --- Render Bound Box
-            
-            let margin : Float = 50
-            mmView.drawBox.draw(x: attributes["sizeMinX"]! - margin, y: attributes["sizeMinY"]! - margin, width: attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2*margin, height: attributes["sizeMaxY"]! - attributes["sizeMinY"]! + 2*margin, round: 0, borderSize: 2, fillColor: float4(0), borderColor: float4(0.5, 0.5, 0.5, 1))
-            
             // --- Points
-            
-            for shape in object!.getSelectedShapes() {
+            let selectedShapes = object!.getSelectedShapes()
+            for shape in selectedShapes {
                 
                 for index in 0..<shape.pointCount {
                     
@@ -310,7 +321,33 @@ class Gizmo : MMWidget
 
                     mmView.drawSphere.draw(x: pointInScreen.x - radius, y: pointInScreen.y - radius, radius: radius, borderSize: 3, fillColor: pFillColor, borderColor: pBorderColor)
                 }
+                
+                // --- Correct the gizmo position to be between the first two points
+                if shape.pointCount >= 2 {
+                    let offX : Float = (shape.properties["point_0_x"]! + shape.properties["point_1_x"]!) / 2
+                    let offY : Float = (shape.properties["point_0_y"]! + shape.properties["point_1_y"]!) / 2
+                    let pX = posX + offX
+                    let pY = posY + offY
+                    screenSpace = convertToScreenSpace(x: pX, y: pY )
+                
+                    attributes["sizeMinX"]! += offX
+                    attributes["sizeMinY"]! += offY
+                    attributes["sizeMaxX"]! += offX
+                    attributes["sizeMaxY"]! += offY
+                }
+                
+                // --- Test if we have to hover highlight both scale axes
+                if selectedShapes.count == 1 && (hoverState == .xAxisScale || hoverState == .yAxisScale) {
+                    if shape.widthProperty == shape.heightProperty {
+                        data[3] = 1
+                    }
+                }
             }
+            
+            // --- Render Bound Box
+            
+            let margin : Float = 50
+            mmView.drawBox.draw(x: attributes["sizeMinX"]! - margin, y: attributes["sizeMinY"]! - margin, width: attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2*margin, height: attributes["sizeMaxY"]! - attributes["sizeMinY"]! + 2*margin, round: 0, borderSize: 2, fillColor: float4(0), borderColor: float4(0.5, 0.5, 0.5, 1))
             
             // --- Render Gizmo
             let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( screenSpace.x - width / 2, screenSpace.y - height / 2, width, height, scale: scaleFactor ) )
@@ -385,8 +422,16 @@ class Gizmo : MMWidget
         if object == nil { return }
 
         let attributes = getCurrentGizmoAttributes()
-        let posX : Float = attributes["posX"]!
-        let posY : Float = attributes["posY"]!
+        var posX : Float = attributes["posX"]!
+        var posY : Float = attributes["posY"]!
+        
+        for shape in object!.getSelectedShapes() {
+            // --- Correct the gizmo position to be between the first two points
+            if shape.pointCount >= 2 {
+                posX += (shape.properties["point_0_x"]! + shape.properties["point_1_x"]!) / 2
+                posY += (shape.properties["point_0_y"]! + shape.properties["point_1_y"]!) / 2
+            }
+        }
         
         gizmoCenter = convertToScreenSpace(x: posX, y: posY)
 
@@ -693,7 +738,7 @@ class Gizmo : MMWidget
                 if posY + size.y / 2 > sizeMaxY {
                     sizeMaxY = posY + size.y / 2
                 }
-
+                
                 attributes["posX"]! += posX
                 attributes["posY"]! += posY
                 attributes["rotate"]! += rotate

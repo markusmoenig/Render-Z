@@ -107,6 +107,18 @@ class LayerManager : Codable
             {
                 return p - t;
             }
+            
+            float2 rotateCW(float2 pos, float angle)
+            {
+                float ca = cos(angle), sa = sin(angle);
+                return pos * float2x2(ca, -sa, sa, ca);
+            }
+
+            float2 rotateCCW(float2 pos, float angle)
+            {
+                float ca = cos(angle),  sa = sin(angle);
+                return pos * float2x2(ca, sa, -sa, ca);
+            }
 
         """
         
@@ -127,6 +139,7 @@ class LayerManager : Codable
                 float2 tuv = uv;
         
                 float4 dist = float4(1000, -1, -1, -1);
+        
         """
         
         for (layerIndex, layer) in layers.enumerated() {
@@ -137,8 +150,19 @@ class LayerManager : Codable
                     let transformed = timeline.transformProperties(sequence:layer.sequence, uuid:shape.uuid, properties:shape.properties)
                     let posX : Float = transformed["posX"]!
                     let posY : Float = transformed["posY"]!
-                    
-                    source += "uv = translate( tuv, float2( \(posX), \(posY) ) );"
+                    let rotate : Float = transformed["rotate"]! * Float.pi / 180
+
+                    source += "uv = translate( tuv, float2( \(posX), \(posY) ) );\n"
+                    if rotate != 0.0 {
+                        if shape.pointCount < 2 {
+                            source += "uv = rotateCW( uv, \(rotate) );\n"
+                        } else {
+                            let offX = (transformed["point_0_x"]! + transformed["point_1_x"]!) / 2
+                            let offY = (transformed["point_0_y"]! + transformed["point_1_y"]!) / 2
+                            source += "uv = rotateCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
+                            source += "uv += float2( \(offX), \(offY) );\n"
+                        }
+                    }
                     source += "dist = merge( dist, float4(" + shape.createDistanceCode(uvName: "uv") + ", \(layerIndex), \(objectIndex), \(shapeIndex) ) );"
                 }
             }
@@ -154,9 +178,7 @@ class LayerManager : Codable
         if compute == nil {
             compute = MMCompute()
         }
-        
-        //        print( source )
-    
+            
         let library = compute!.createLibraryFromSource(source: source)
         let state = compute!.createState(library: library, name: "selectedAt")
 
