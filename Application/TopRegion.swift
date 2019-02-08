@@ -14,7 +14,7 @@ class TopRegion: MMRegion
     var redoButton      : MMButtonWidget!
     
     var shapesButton    : MMButtonWidget!
-    var decoratorButton : MMButtonWidget!
+    var materialsButton : MMButtonWidget!
     var timelineButton  : MMButtonWidget!
     
     var app             : App
@@ -46,11 +46,11 @@ class TopRegion: MMRegion
         shapesButton = MMButtonWidget( mmView, text: "Shapes" )
         shapesButton.clicked = { (event) -> Void in
             app.leftRegion?.setMode(.Shapes)
-            self.decoratorButton.removeState(.Checked)
+            self.materialsButton.removeState(.Checked)
         }
         
-        decoratorButton = MMButtonWidget( mmView, text: "Decorator" )
-        decoratorButton.clicked = { (event) -> Void in
+        materialsButton = MMButtonWidget( mmView, text: "Materials" )
+        materialsButton.clicked = { (event) -> Void in
             app.leftRegion?.setMode(.Materials)
             self.shapesButton.removeState(.Checked)
             
@@ -97,9 +97,9 @@ class TopRegion: MMRegion
         }
         
         layoutH( startX: 10, startY: 8, spacing: 10, widgets: undoButton, redoButton )
-        layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: shapesButton, decoratorButton, timelineButton )
+        layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: shapesButton, materialsButton, timelineButton )
 
-        registerWidgets( widgets: undoButton, redoButton, shapesButton, decoratorButton, timelineButton )
+        registerWidgets( widgets: undoButton, redoButton, shapesButton, materialsButton, timelineButton )
     }
     
     override func build()
@@ -123,7 +123,7 @@ class TopRegion: MMRegion
         #endif
 
         shapesButton.draw()
-        decoratorButton.draw()
+        materialsButton.draw()
         timelineButton.draw()
 
 //        mmView.drawText.drawText( mmView.openSans!, text: "Punk is not dead", x: 200, y: 200, scale: 0.5)

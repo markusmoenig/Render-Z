@@ -52,7 +52,7 @@ class LeftRegion: MMRegion
                     self.animating = false
                     self.mode = .Closed
                     self.app.topRegion!.shapesButton.removeState( .Checked )
-                    self.app.topRegion!.decoratorButton.removeState( .Checked )
+                    self.app.topRegion!.materialsButton.removeState( .Checked )
                 }
             } )
             animating = true

@@ -163,7 +163,7 @@ class LayerManager : Codable
                             source += "uv += float2( \(offX), \(offY) );\n"
                         }
                     }
-                    source += "dist = merge( dist, float4(" + shape.createDistanceCode(uvName: "uv") + ", \(layerIndex), \(objectIndex), \(shapeIndex) ) );"
+                    source += "dist = merge( dist, float4(" + shape.createDistanceCode(uvName: "uv", transProperties: transformed) + ", \(layerIndex), \(objectIndex), \(shapeIndex) ) );"
                 }
             }
         }
