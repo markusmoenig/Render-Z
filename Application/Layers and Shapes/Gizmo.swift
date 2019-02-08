@@ -429,11 +429,14 @@ class Gizmo : MMWidget
         var posX : Float = attributes["posX"]!
         var posY : Float = attributes["posY"]!
         
-        for shape in object!.getSelectedShapes() {
-            // --- Correct the gizmo position to be between the first two points
-            if shape.pointCount >= 2 {
-                posX += (attributes["point_0_x"]! + attributes["point_1_x"]!) / 2
-                posY += (attributes["point_0_y"]! + attributes["point_1_y"]!) / 2
+        let selectedShapes = object!.getSelectedShapes()
+        if selectedShapes.count == 1 {
+            for shape in selectedShapes {
+                // --- Correct the gizmo position to be between the first two points
+                if shape.pointCount >= 2 {
+                    posX += (attributes["point_0_x"]! + attributes["point_1_x"]!) / 2
+                    posY += (attributes["point_0_y"]! + attributes["point_1_y"]!) / 2
+                }
             }
         }
         
