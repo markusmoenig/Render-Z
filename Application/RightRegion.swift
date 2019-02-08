@@ -156,15 +156,17 @@ class ShapeListScrollArea: MMScrollArea
         
         if app.rightRegion!.changed {
             app.gizmo.setObject(app.layerManager.getCurrentObject())
+            app.layerManager.getCurrentLayer().build()
+            app.editorRegion?.result = nil
         }
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {
-        if mouseIsDown && dragSource == nil {
-            dragSource = app.leftRegion!.shapeSelector.createDragSource(mouseDownPos.x,mouseDownPos.y)
-            dragSource?.sourceWidget = self
-            mmView.dragStarted(source: dragSource!)
-        }
+//        if mouseIsDown && dragSource == nil {
+//            dragSource = app.leftRegion!.shapeSelector.createDragSource(mouseDownPos.x,mouseDownPos.y)
+//            dragSource?.sourceWidget = self
+//            mmView.dragStarted(source: dragSource!)
+//        }
     }
     
     override func mouseUp(_ event: MMMouseEvent) {

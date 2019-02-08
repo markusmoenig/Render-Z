@@ -67,57 +67,67 @@ class Layer : Codable
 
         var source =
         """
-            #include <metal_stdlib>
-            #include <simd/simd.h>
-            using namespace metal;
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
 
-            float merge(float d1, float d2)
-            {
-                return min(d1, d2);
-            }
+        float merge(float d1, float d2)
+        {
+            return min(d1, d2);
+        }
+        
+        float subtract(float d1, float d2)
+        {
+            return max(d1, -d2);
+        }
+        
+        float intersect(float d1, float d2)
+        {
+            return max(d1, d2);
+        }
 
-            float fillMask(float dist)
-            {
-                return clamp(-dist, 0.0, 1.0);
-            }
+        float fillMask(float dist)
+        {
+            return clamp(-dist, 0.0, 1.0);
+        }
 
-            float borderMask(float dist, float width)
-            {
-                //dist += 1.0;
-                return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
-            }
+        float borderMask(float dist, float width)
+        {
+            //dist += 1.0;
+            return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
+        }
 
-            float2 translate(float2 p, float2 t)
-            {
-                return p - t;
-            }
-            float2 rotateCW(float2 pos, float angle)
-            {
-                float ca = cos(angle), sa = sin(angle);
-                return pos * float2x2(ca, -sa, sa, ca);
-            }
+        float2 translate(float2 p, float2 t)
+        {
+            return p - t;
+        }
+        float2 rotateCW(float2 pos, float angle)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pos * float2x2(ca, -sa, sa, ca);
+        }
 
-            typedef struct
-            {
-                float2      pos;
-                float2      size;
-                float2      point0;
-                float2      point1;
-                float2      point2;
-                float       rotate;
-                float       filler;
-                
-            } SHAPE_DATA;
+        typedef struct
+        {
+            float2      pos;
+            float2      size;
+            float2      point0;
+            float2      point1;
+            float2      point2;
+            float       rotate;
+            float       filler;
+        
+        } SHAPE_DATA;
 
-            typedef struct
-            {
-                float2      camera;
-                float2      fill;
-                
-                SHAPE_DATA  shape[\(max(shapeCount,1))];
-            } LAYER_DATA;
+        typedef struct
+        {
+            float2      camera;
+            float2      fill;
+        
+            SHAPE_DATA  shape[\(max(shapeCount,1))];
+        } LAYER_DATA;
 
-            """
+        """
             
             source += getGlobalCode()
         
@@ -169,7 +179,16 @@ class Layer : Codable
                     source += "if ( layerData->shape[\(shape.flatLayerIndex!)].rotate != 0.0 ) { uv = rotateCW( uv - ( layerData->shape[\(shape.flatLayerIndex!)].point0 + layerData->shape[\(shape.flatLayerIndex!)].point1 + + layerData->shape[\(shape.flatLayerIndex!)].point2) / 3, layerData->shape[\(shape.flatLayerIndex!)].rotate );\n"
                     source += "uv += ( layerData->shape[\(shape.flatLayerIndex!)].point0 + layerData->shape[\(shape.flatLayerIndex!)].point1 + layerData->shape[\(shape.flatLayerIndex!)].point2) / 3;}\n"
                 }
-                source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", layerIndex: shape.flatLayerIndex) + ");"
+                
+                var booleanCode = "merge"
+                if shape.mode == .Subtract {
+                    booleanCode = "subtract"
+                } else
+                if shape.mode == .Intersect {
+                    booleanCode = "intersect"
+                }
+                
+                source += "dist = \(booleanCode)( dist, " + shape.createDistanceCode(uvName: "uv", layerIndex: shape.flatLayerIndex) + ");"
                 
                 let posX = properties!["posX"]
                 let posY = properties!["posY"]

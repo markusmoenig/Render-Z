@@ -54,25 +54,25 @@ class ShapeList
         
         var source =
         """
-            #include <metal_stdlib>
-            #include <simd/simd.h>
-            using namespace metal;
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
 
-            float merge(float d1, float d2)
-            {
-                return min(d1, d2);
-            }
+        float merge(float d1, float d2)
+        {
+            return min(d1, d2);
+        }
 
-            float fillMask(float dist)
-            {
-                return clamp(-dist, 0.0, 1.0);
-            }
+        float fillMask(float dist)
+        {
+            return clamp(-dist, 0.0, 1.0);
+        }
 
-            float borderMask(float dist, float width)
-            {
-                //dist += 1.0;
-                return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
-            }
+        float borderMask(float dist, float width)
+        {
+            //dist += 1.0;
+            return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
+        }
         """
         
         source += getGlobalCode(object: object)
@@ -99,6 +99,9 @@ class ShapeList
                 float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
                 float4 primitiveColor = float4(1, 1, 1, 1.000);
 
+                float4 modeInactiveColor = float4(0.5, 0.5, 0.5, 1.000);
+                float4 modeActiveColor = float4(1);
+
                 float4 finalCol = float4( 0 ), col = float4( 0 );
         """
 
@@ -122,11 +125,35 @@ class ShapeList
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
             source += "uv -= float2( -130., 0. );\n"
-            source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(of: shape.properties, size: 12)) + ";"
+            source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12)) + ";"
 
             source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
-//            source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
+            
+            // --- Modes
+            
+            // --- Merge
+            source += "uv -= float2( 50., 0. );\n"
+            source += "dist = min( length(uv) - 10, length(uv - float2(10,0)) - 10);"
+            source += shape.mode == .Merge ? "col = float4( modeActiveColor.xyz, fillMask( dist ) * modeActiveColor.w );\n" : "col = float4( modeInactiveColor.xyz, fillMask( dist ) * modeInactiveColor.w );\n"
+            source += "finalCol = mix( finalCol, col, col.a );\n"
+            
+            // --- Subtract
+            source += "uv -= float2( 25., 0. );\n"
+            source += "dist = max( -(length(uv) - 10), length(uv - float2(10,0)) - 10);"
+            source += shape.mode == .Subtract ? "col = float4( modeActiveColor.xyz, fillMask( dist ) * modeActiveColor.w );\n" : "col = float4( modeInactiveColor.xyz, fillMask( dist ) * modeInactiveColor.w );\n"
+            source += "finalCol = mix( finalCol, col, col.a );\n"
+            
+            // --- Intersect
+            source += "uv -= float2( 30., 0. );\n"
+            source += "dist = max( length(uv) - 10, length(uv - float2(10,0)) - 10);"
+            source += shape.mode == .Intersect ? "col = float4( modeActiveColor.xyz, fillMask( dist ) * modeActiveColor.w );\n" : "col = float4( modeInactiveColor.xyz, fillMask( dist ) * modeInactiveColor.w );\n"
+            source += "finalCol = mix( finalCol, col, col.a );\n"
+            
+            // ---
+            
+//            source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
+//            source += "finalCol = mix( finalCol, col, col.a );\n"
             
             top += unitSize + spacing
         }
@@ -160,7 +187,24 @@ class ShapeList
         
         if selectedIndex >= 0 && selectedIndex < currentObject!.shapes.count {
             if !multiSelect {
-                currentObject!.selectedShapes = [currentObject!.shapes[selectedIndex].uuid]
+                
+                let shape = currentObject!.shapes[selectedIndex]
+                
+                currentObject!.selectedShapes = [shape.uuid]
+                
+//                print( x )
+                
+                if x >= 60 && x <= 92 {
+                    shape.mode = .Merge
+                } else
+                if x >= 95 && x <= 119 {
+                    shape.mode = .Subtract
+                } else
+                if x >= 122 && x <= 139 {
+                    shape.mode = .Intersect
+                }
+                
+                
             } else if !currentObject!.selectedShapes.contains( currentObject!.shapes[selectedIndex].uuid ) {
                 currentObject!.selectedShapes.append( currentObject!.shapes[selectedIndex].uuid )
             }
@@ -170,11 +214,42 @@ class ShapeList
         return changed
     }
     
-    func transformPropertySize( of: [String:Float], size: Float ) -> [String:Float]
+    func transformPropertySize( shape: Shape, size: Float ) -> [String:Float]
     {
-        var properties : [String:Float] = [:]
+        var properties : [String:Float] = shape.properties
         
-        for (name, value) in of {
+        properties[shape.widthProperty] = size
+        properties[shape.heightProperty] = size
+
+        if shape.name == "Ellipse" {
+            properties[shape.heightProperty] = size / 1.5
+        } else
+        if shape.name == "Triangle" {
+            properties["point_0_x"] = 0
+            properties["point_0_y"] = -size
+            properties["point_1_x"] = -size
+            properties["point_1_y"] = size
+            properties["point_2_x"] = size
+            properties["point_2_y"] = size
+        } else
+        if shape.name == "Line" {
+            properties["point_0_x"] = -size/2
+            properties["point_0_y"] = 0
+            properties["point_1_x"] = size/2
+            properties["point_1_y"] = 0
+            properties["lineWidth"] = 6
+        } else
+        if shape.name == "Capsule" {
+            properties["point_0_x"] = -size/2
+            properties["point_0_y"] = 0
+            properties["point_1_x"] = size/2
+            properties["point_1_y"] = 0
+            properties["radius1"] = 4
+            properties["radius2"] = 8
+        }
+        
+        /*
+        for (name, value) in of.properties {
             var v = value
             if name == "radius" {
                 v = size
@@ -186,7 +261,7 @@ class ShapeList
                 v = size
             }
             properties[name] = v
-        }
+        }*/
         
         return properties
     }

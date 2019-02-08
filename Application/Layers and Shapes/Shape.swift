@@ -10,9 +10,15 @@ import MetalKit
 
 class Shape : Codable
 {
+    enum ShapeMode {
+        case Merge, Subtract, Intersect
+    }
+    
     var name            : String
     var properties      : [String: Float]
     var uuid            : UUID
+    
+    var mode            : ShapeMode = .Merge
     
     var globalCode      : String = ""
     var distanceCode    : String = ""
