@@ -21,6 +21,7 @@ class Shape : Codable
     var heightProperty  : String = ""
     
     var pointCount      : Int = 0
+    var pointsScale     : Bool = false
 
     var flatLayerIndex  : Int?
 
@@ -30,6 +31,10 @@ class Shape : Codable
         case uuid
         case globalCode
         case distanceCode
+        case widthProperty
+        case heightProperty
+        case pointCount
+        case pointsScale
     }
     
     required init()
@@ -85,6 +90,16 @@ class Shape : Codable
 
         size.x = transformed[widthProperty]! * 2
         size.y = transformed[heightProperty]! * 2
+        
+        if pointCount >= 2 {
+            let x0 = abs( transformed["point_0_x"]! )
+            let y0 = abs( transformed["point_0_y"]! )
+            let x1 = abs( transformed["point_1_x"]! )
+            let y1 = abs( transformed["point_1_y"]! )
+            
+            size.x += max(x0, x1)
+            size.y += max(y0, y1)
+        }
         
         return size
     }

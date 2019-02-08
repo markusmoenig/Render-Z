@@ -64,6 +64,7 @@ class Gizmo : MMWidget
     func setObject(_ object:Object?)
     {
         self.object = object
+        mode = .Normal
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -327,8 +328,16 @@ class Gizmo : MMWidget
                     
                     // --- Correct the gizmo position to be between the first two points
                     if shape.pointCount >= 2 {
-                        let offX : Float = (attributes["point_0_x"]! + attributes["point_1_x"]!) / 2
-                        let offY : Float = (attributes["point_0_y"]! + attributes["point_1_y"]!) / 2
+                        var offX : Float = 0
+                        var offY : Float = 0
+                        if shape.pointCount == 2 {
+                            offX = (attributes["point_0_x"]! + attributes["point_1_x"]!) / 2
+                            offY = (attributes["point_0_y"]! + attributes["point_1_y"]!) / 2
+                        } else
+                        if shape.pointCount == 3 {
+                            offX = (attributes["point_0_x"]! + attributes["point_1_x"]! + attributes["point_2_x"]!) / 3
+                            offY = (attributes["point_0_y"]! + attributes["point_1_y"]! + attributes["point_2_y"]!) / 3
+                        }
                         let pX = posX + offX
                         let pY = posY + offY
                         screenSpace = convertToScreenSpace(x: pX, y: pY )
@@ -433,9 +442,13 @@ class Gizmo : MMWidget
         if selectedShapes.count == 1 {
             for shape in selectedShapes {
                 // --- Correct the gizmo position to be between the first two points
-                if shape.pointCount >= 2 {
+                if shape.pointCount == 2 {
                     posX += (attributes["point_0_x"]! + attributes["point_1_x"]!) / 2
                     posY += (attributes["point_0_y"]! + attributes["point_1_y"]!) / 2
+                } else
+                if shape.pointCount == 3 {
+                    posX += (attributes["point_0_x"]! + attributes["point_1_x"]! + attributes["point_2_x"]!) / 3
+                    posY += (attributes["point_0_y"]! + attributes["point_1_y"]! + attributes["point_2_y"]!) / 3
                 }
             }
         }

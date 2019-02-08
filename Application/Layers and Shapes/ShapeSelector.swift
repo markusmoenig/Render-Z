@@ -167,13 +167,14 @@ class ShapeSelector
             left = spacing
             top = spacing + unitSize - 4
             counter = 0
+            let fontScale : Float = 0.26
             
             var fontRect = MMRect()
             
             for shape in shapes {
                 
-                fontRect = mmView.openSans.getTextRect(text: shape.name, scale: 0.35 * zoom, rectToUse: fontRect)
-                mmView.drawText.drawText(mmView.openSans, text: shape.name, x: left + (unitSize - fontRect.width) / 1.6, y: top + 4, scale: 0.3 * zoom, fragment: fragment)
+                fontRect = mmView.openSans.getTextRect(text: shape.name, scale: fontScale * zoom, rectToUse: fontRect)
+                mmView.drawText.drawText(mmView.openSans, text: shape.name, x: left + (unitSize - fontRect.width) / 2, y: top + 4, scale: fontScale * zoom, fragment: fragment)
                 
                 counter += 1
                 if counter % 2 == 0 {

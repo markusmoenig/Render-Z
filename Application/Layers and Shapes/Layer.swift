@@ -160,9 +160,14 @@ class Layer : Codable
                 source += "uv = translate( tuv, layerData->shape[\(shape.flatLayerIndex!)].pos );"
                 if shape.pointCount < 2 {
                     source += "if ( layerData->shape[\(shape.flatLayerIndex!)].rotate != 0.0 ) uv = rotateCW( uv, layerData->shape[\(shape.flatLayerIndex!)].rotate );\n"
-                } else {
+                } else
+                if shape.pointCount == 2 {
                     source += "if ( layerData->shape[\(shape.flatLayerIndex!)].rotate != 0.0 ) { uv = rotateCW( uv - ( layerData->shape[\(shape.flatLayerIndex!)].point0 + layerData->shape[\(shape.flatLayerIndex!)].point1) / 2, layerData->shape[\(shape.flatLayerIndex!)].rotate );\n"
                     source += "uv += ( layerData->shape[\(shape.flatLayerIndex!)].point0 + layerData->shape[\(shape.flatLayerIndex!)].point1) / 2;}\n"
+                } else
+                if shape.pointCount == 3 {
+                    source += "if ( layerData->shape[\(shape.flatLayerIndex!)].rotate != 0.0 ) { uv = rotateCW( uv - ( layerData->shape[\(shape.flatLayerIndex!)].point0 + layerData->shape[\(shape.flatLayerIndex!)].point1 + + layerData->shape[\(shape.flatLayerIndex!)].point2) / 3, layerData->shape[\(shape.flatLayerIndex!)].rotate );\n"
+                    source += "uv += ( layerData->shape[\(shape.flatLayerIndex!)].point0 + layerData->shape[\(shape.flatLayerIndex!)].point1 + layerData->shape[\(shape.flatLayerIndex!)].point2) / 3;}\n"
                 }
                 source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", layerIndex: shape.flatLayerIndex) + ");"
                 

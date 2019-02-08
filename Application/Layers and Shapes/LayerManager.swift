@@ -156,9 +156,16 @@ class LayerManager : Codable
                     if rotate != 0.0 {
                         if shape.pointCount < 2 {
                             source += "uv = rotateCW( uv, \(rotate) );\n"
-                        } else {
+                        } else
+                        if shape.pointCount == 2 {
                             let offX = (transformed["point_0_x"]! + transformed["point_1_x"]!) / 2
                             let offY = (transformed["point_0_y"]! + transformed["point_1_y"]!) / 2
+                            source += "uv = rotateCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
+                            source += "uv += float2( \(offX), \(offY) );\n"
+                        } else
+                        if shape.pointCount == 3 {
+                            let offX = (transformed["point_0_x"]! + transformed["point_1_x"]! + transformed["point_2_x"]!) / 3
+                            let offY = (transformed["point_0_y"]! + transformed["point_1_y"]! + transformed["point_2_y"]!) / 3
                             source += "uv = rotateCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
                             source += "uv += float2( \(offX), \(offY) );\n"
                         }
