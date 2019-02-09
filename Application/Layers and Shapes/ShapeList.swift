@@ -246,6 +246,15 @@ class ShapeList
             properties["point_1_y"] = 0
             properties["radius1"] = 4
             properties["radius2"] = 8
+        } else
+        if shape.name == "Bezier" {
+            properties["lineWidth"] = 2
+            properties["point_0_x"] = 0
+            properties["point_0_y"] = -size
+            properties["point_1_x"] = -size
+            properties["point_1_y"] = size
+            properties["point_2_x"] = size
+            properties["point_2_y"] = size
         }
         
         /*

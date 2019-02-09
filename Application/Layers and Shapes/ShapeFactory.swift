@@ -61,27 +61,16 @@ class ShapeFactory
         // --- Line
         def = ShapeDefinition()
         def.name = "Line"
-        def.distanceCode = "sdLine(__uv__, float2(__point_0_x__,__point_0_y__), float2(__point_1_x__,__point_1_y__), __lineWidth__, 20)"
+        def.distanceCode = "sdLine(__uv__, float2(__point_0_x__,__point_0_y__), float2(__point_1_x__,__point_1_y__), __lineWidth__)"
         def.globalCode =
         """
-            float sdLine(float2 uv, float2 pA, float2 pB, float2 thick, float rounded) {
-                rounded = min(thick.y, rounded);
-                float2 mid = (pB + pA) * 0.5;
-                float2 delta = pB - pA;
-                float lenD = length(delta);
-                float2 unit = delta / lenD;
-                if (lenD < 0.0001) unit = float2(1.0, 0.0);
-                float2 perp = unit.yx * float2(-1.0, 1.0);
-                float dpx = dot(unit, uv - mid);
-                float dpy = dot(perp, uv - mid);
-                float disty = abs(dpy) - thick.y + rounded;
-                float distx = abs(dpx) - lenD * 0.5 - thick.x + rounded;
-        
-                float dist = length(float2(max(0.0, distx), max(0.0,disty))) - rounded;
-                dist = min(dist, max(distx, disty));
-        
-                return dist;
-            }
+        float sdLine( float2 uv, float2 pa, float2 pb, float r) {
+            float2 o = uv-pa;
+            float2 l = pb-pa;
+            float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
+            return -(r-distance(o,l*h));
+        }
+
         """
         def.properties["lineWidth"] = 5
         def.properties["point_0_x"] = -35
@@ -99,23 +88,19 @@ class ShapeFactory
         def.distanceCode = "sdBiCapsule(__uv__, float2(__point_0_x__,__point_0_y__), float2(__point_1_x__,__point_1_y__), __radius1__, __radius2__)"
         def.globalCode =
         """
-        float sdBiCapsule(float2 pos, float2 a, float2 b, float r1, float r2) {
-            float2 ba = b - a;
-            float baMagnitude = length(ba);
-            float alpha = (dot(pos - a, ba) / dot(ba, ba));
-            float2 capsuleSegmentPos = mix(a, b, alpha);
         
-            float pointSphereRadius = r1 - r2;
-            float exsecantLength = ((baMagnitude / abs(pointSphereRadius)) - 1.0) * baMagnitude;
-            float tangentAngle =  acos(1.0 / (exsecantLength + 1.0));
-            float tangentOffset = length(capsuleSegmentPos - pos) / tan(tangentAngle);
-            tangentOffset *= sign(pointSphereRadius);
-        
-            float clampedOffsetAlpha = clamp(alpha - tangentOffset, 0.0, 1.0);
-            float2 bicapsuleSegmentPos = mix(a, b, clampedOffsetAlpha);
-            float bicapsuleRadius = mix(r1, r2, clampedOffsetAlpha);
-            return distance(pos, bicapsuleSegmentPos) - bicapsuleRadius;
+        float sdBiCapsule( float2 uv, float2 pa, float2 pb, float ra, float rb) {
+            float2 o = uv-pa;
+            float2 l = pb-pa;
+            float ll = length(l);
+            float theta = (ra-rb)/ll;
+            float xa = ra*theta;
+            float xb = rb*theta;
+            float h = dot(o,l)/ll;
+            float nc = clamp((h-xa)/(ll-xa+xb),0.0,1.0);
+            return -(mix(ra,rb,nc)-distance(o,l*nc));
         }
+
         """
         def.properties["radius1"] = 15
         def.properties["radius2"] = 5
@@ -127,6 +112,86 @@ class ShapeFactory
         def.heightProperty = "radius1"
         def.pointCount = 2
         shapes.append( def )
+        
+        // --- Bezier
+        def = ShapeDefinition()
+        def.name = "Bezier"
+        def.distanceCode = "udBezier(__uv__, float2(__point_0_x__,__point_0_y__), float2(__point_1_x__,__point_1_y__), float2(__point_2_x__,__point_2_y__)) - __lineWidth__"
+        def.globalCode =
+        """
+        float udBezier(float2 pos, float2 p0, float2 p1, float2 p2)
+        {
+            // p(t)    = (1-t)^2*p0 + 2(1-t)t*p1 + t^2*p2
+            // p'(t)   = 2*t*(p0-2*p1+p2) + 2*(p1-p0)
+            // p'(0)   = 2(p1-p0)
+            // p'(1)   = 2(p2-p1)
+            // p'(1/2) = 2(p2-p0)
+            float2 a = p1 - p0;
+            float2 b = p0 - 2.0*p1 + p2;
+            float2 c = p0 - pos;
+        
+            float kk = 1.0 / dot(b,b);
+            float kx = kk * dot(a,b);
+            float ky = kk * (2.0*dot(a,a)+dot(c,b)) / 3.0;
+            float kz = kk * dot(c,a);
+        
+            float2 res;
+        
+            float p = ky - kx*kx;
+            float p3 = p*p*p;
+            float q = kx*(2.0*kx*kx - 3.0*ky) + kz;
+            float h = q*q + 4.0*p3;
+        
+            if(h >= 0.0)
+            {
+                h = sqrt(h);
+                float2 x = (float2(h, -h) - q) / 2.0;
+                float2 uv = sign(x)*pow(abs(x), float2(1.0/3.0));
+                float t = uv.x + uv.y - kx;
+                t = clamp( t, 0.0, 1.0 );
+        
+                // 1 root
+                float2 qos = c + (2.0*a + b*t)*t;
+                res = float2( length(qos),t);
+            } else {
+                float z = sqrt(-p);
+                float v = acos( q/(p*z*2.0) ) / 3.0;
+                float m = cos(v);
+                float n = sin(v)*1.732050808;
+                float3 t = float3(m + m, -n - m, n - m) * z - kx;
+                t = clamp( t, 0.0, 1.0 );
+        
+                // 3 roots
+                float2 qos = c + (2.0*a + b*t.x)*t.x;
+                float dis = dot(qos,qos);
+        
+                res = float2(dis,t.x);
+        
+                qos = c + (2.0*a + b*t.y)*t.y;
+                dis = dot(qos,qos);
+                if( dis<res.x ) res = float2(dis,t.y );
+        
+                qos = c + (2.0*a + b*t.z)*t.z;
+                dis = dot(qos,qos);
+                if( dis<res.x ) res = float2(dis,t.z );
+        
+                res.x = sqrt( res.x );
+            }
+            return res.x;
+        }
+        """
+        def.properties["lineWidth"] = 5
+        def.properties["point_0_x"] = 0
+        def.properties["point_0_y"] = -35
+        def.properties["point_1_x"] = -35
+        def.properties["point_1_y"] = 35
+        def.properties["point_2_x"] = 35
+        def.properties["point_2_y"] = 35
+        def.widthProperty = "lineWidth"
+        def.heightProperty = "lineWidth"
+        def.pointCount = 3
+        shapes.append( def )
+
         
         // --- Triangle
         def = ShapeDefinition()
