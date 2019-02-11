@@ -23,6 +23,11 @@ class ShapeList
 
     var currentObject   : Object?
     
+    var hoverData       : [Float]
+    var hoverBuffer     : MTLBuffer?
+    var hoverIndex      : Int = -1
+    var hoverUp         : Bool = false
+    
     init(_ view: MMView )
     {
         mmView = view
@@ -39,12 +44,15 @@ class ShapeList
         currentObject = nil
         
         textureWidget = MMTextureWidget( view, texture: compute!.texture )
+        
+        hoverData = [-1,0]
+        hoverBuffer = compute!.device.makeBuffer(bytes: hoverData, length: hoverData.count * MemoryLayout<Float>.stride, options: [])!
 
         // ---
     }
     
     /// Build the source
-    func build( width: Float, object: Object )
+    func build(width: Float, object: Object)
     {
         let count : Float = Float(object.shapes.count)
         height = count * unitSize + (count > 0 ? (count-1) * spacing : Float(0))
@@ -73,6 +81,20 @@ class ShapeList
             //dist += 1.0;
             return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
         }
+
+        float sdLineScroller( float2 uv, float2 pa, float2 pb, float r) {
+            float2 o = uv-pa;
+            float2 l = pb-pa;
+            float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
+            return -(r-distance(o,l*h));
+        }
+
+        typedef struct
+        {
+            float      hoverOffset;
+            float      fill;
+        } SHAPELIST_HOVER_DATA;
+
         """
         
         source += getGlobalCode(object: object)
@@ -80,35 +102,40 @@ class ShapeList
         source +=
         """
 
-            kernel void
-            shapeListBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
-                         texture2d<half, access::read>   inTexture   [[texture(1)]],
+        kernel void
+        shapeListBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
+                         constant SHAPELIST_HOVER_DATA  *hoverData   [[ buffer(1) ]],
                          uint2                           gid         [[thread_position_in_grid]])
-            {
-                float2 uvOrigin = float2( gid.x - outTexture.get_width() / 2.,
-                                          gid.y - outTexture.get_height() / 2. );
-                float2 uv;
+        {
+            float2 uvOrigin = float2( gid.x - outTexture.get_width() / 2.,
+                                      gid.y - outTexture.get_height() / 2. );
+            float2 uv;
 
-                float dist = 10000;
-                float2 d;
+            float dist = 10000;
+            float2 d;
         
-                float borderSize = 2;
-                float round = 4;
+            float borderSize = 2;
+            float round = 4;
         
-                float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
-                float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
-                float4 primitiveColor = float4(1, 1, 1, 1.000);
+            float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
+            float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
+            float4 primitiveColor = float4(1, 1, 1, 1.000);
 
-                float4 modeInactiveColor = float4(0.5, 0.5, 0.5, 1.000);
-                float4 modeActiveColor = float4(1);
+            float4 modeInactiveColor = float4(0.5, 0.5, 0.5, 1.000);
+            float4 modeActiveColor = float4(1);
+        
+            float4 scrollInactiveColor = float4(0.5, 0.5, 0.5, 0.2);
+            float4 scrollHoverColor = float4(1);
+            float4 scrollActiveColor = float4(0.5, 0.5, 0.5, 1);
 
-                float4 finalCol = float4( 0 ), col = float4( 0 );
+            float4 finalCol = float4( 0 ), col = float4( 0 );
+        
         """
 
         let left : Float = width / 2
         var top : Float = unitSize / 2
         
-        for (_, shape) in object.shapes.enumerated() {
+        for (index, shape) in object.shapes.enumerated() {
 
             source += "uv = uvOrigin; uv.x += outTexture.get_width() / 2.0 - \(left) + borderSize/2; uv.y += outTexture.get_height() / 2.0 - \(top) + borderSize/2;\n"
             //source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
@@ -150,6 +177,29 @@ class ShapeList
             source += shape.mode == .Intersect ? "col = float4( modeActiveColor.xyz, fillMask( dist ) * modeActiveColor.w );\n" : "col = float4( modeInactiveColor.xyz, fillMask( dist ) * modeInactiveColor.w );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
+            // --- Up / Down Arrows
+            
+            // --- Up
+            source += "uv -= float2( 105., 0. );\n"
+            source += "dist = sdLineScroller( uv, float2( 0, 6 ), float2( 10, -4), 2);\n"
+            source += "dist = min( dist, sdLineScroller( uv, float2( 10, -4), float2( 20, 6), 2) );\n"
+            if index == 0 || object.shapes.count < 2 {
+                source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
+            } else {
+                source += "if (\(index*2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
+            }
+            source += "finalCol = mix( finalCol, col, col.a );\n"
+            
+            // --- Down
+            source += "uv -= float2( 35., 0. );\n"
+            source += "dist = sdLineScroller( uv, float2( 0, -4 ), float2( 10, 6), 2);\n"
+            source += "dist = min( dist, sdLineScroller( uv, float2( 10, 6 ), float2( 20, -4), 2) );\n"
+            if index == object.shapes.count - 1 || object.shapes.count < 2 {
+                source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
+            } else {
+                source += "if (\(index*2+1) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"            }
+            source += "finalCol = mix( finalCol, col, col.a );\n"
+            
             // ---
             
 //            source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
@@ -173,9 +223,15 @@ class ShapeList
             textureWidget.setTexture(compute!.texture)
         }
         
-        compute!.run(state)
-        
         currentObject = object
+        
+        update()
+    }
+    
+    func update()
+    {
+        memcpy(hoverBuffer?.contents(), hoverData, hoverData.count * MemoryLayout<Float>.stride)
+        compute!.run(state, inBuffer: hoverBuffer)
     }
     
     /// Selected the shape at the given relative mouse position
@@ -212,6 +268,31 @@ class ShapeList
         }
         
         return changed
+    }
+    
+    /// Sets the hover index for the given mouse position
+    @discardableResult func hoverAt(_ x: Float,_ y: Float) -> Bool
+    {
+        let index : Float = y / (unitSize+spacing)
+        hoverIndex = Int(index)
+        let oldIndex = hoverData[0]
+        hoverData[0] = -1
+        
+        if hoverIndex >= 0 && hoverIndex < currentObject!.shapes.count {
+
+//            print( x )
+            
+            if x >= 227 && x <= 255 {
+                hoverData[0] = Float(hoverIndex*2)
+                hoverUp = true
+            } else
+            if x >= 262 && x <= 289 {
+                hoverData[0] = Float(hoverIndex*2+1)
+                hoverUp = false
+            }
+        }
+        
+        return hoverData[0] != oldIndex
     }
     
     func transformPropertySize( shape: Shape, size: Float ) -> [String:Float]

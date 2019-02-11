@@ -152,7 +152,26 @@ class ShapeListScrollArea: MMScrollArea
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
         
-        app.rightRegion!.changed = app.rightRegion!.shapeList.selectAt(mouseDownPos.x,mouseDownPos.y, multiSelect: mmView.shiftIsDown)
+        let shapeList = app.rightRegion!.shapeList
+        
+        app.rightRegion!.changed = shapeList.selectAt(mouseDownPos.x,mouseDownPos.y, multiSelect: mmView.shiftIsDown)
+        
+        // --- Move up / down
+        if shapeList.hoverData[0] != -1 {
+            let object = app.layerManager.getCurrentObject()
+            if shapeList.hoverUp && object!.shapes.count > 1 && shapeList.hoverIndex > 0 {
+                let shape = object!.shapes.remove(at: shapeList.hoverIndex)
+                object!.shapes.insert(shape, at: shapeList.hoverIndex - 1)
+            } else
+            if !shapeList.hoverUp && object!.shapes.count > 1 && shapeList.hoverIndex < object!.shapes.count-1 {
+                let shape = object!.shapes.remove(at: shapeList.hoverIndex)
+                object!.shapes.insert(shape, at: shapeList.hoverIndex + 1)
+            }
+            
+            shapeList.hoverData[0] = -1
+            shapeList.hoverIndex = -1
+        }
+        // ---
         
         if app.rightRegion!.changed {
             app.gizmo.setObject(app.layerManager.getCurrentObject())
@@ -162,6 +181,11 @@ class ShapeListScrollArea: MMScrollArea
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {
+        if !mouseIsDown {
+            if app.rightRegion!.shapeList.hoverAt(event.x - rect.x, event.y - rect.y) {
+                app.rightRegion!.shapeList.update()
+            }
+        }
 //        if mouseIsDown && dragSource == nil {
 //            dragSource = app.leftRegion!.shapeSelector.createDragSource(mouseDownPos.x,mouseDownPos.y)
 //            dragSource?.sourceWidget = self

@@ -326,7 +326,7 @@ class Gizmo : MMWidget
                         mmView.drawSphere.draw(x: pointInScreen.x - radius, y: pointInScreen.y - radius, radius: radius, borderSize: 3, fillColor: pFillColor, borderColor: pBorderColor)
                     }
                     
-                    // --- Correct the gizmo position to be between the first two points
+                    // --- Correct the gizmo position to be between the points
                     if shape.pointCount >= 2 {
                         var offX : Float = 0
                         var offY : Float = 0
@@ -342,10 +342,10 @@ class Gizmo : MMWidget
                         let pY = posY + offY
                         screenSpace = convertToScreenSpace(x: pX, y: pY )
                     
-                        attributes["sizeMinX"]! += offX
-                        attributes["sizeMinY"]! += offY
-                        attributes["sizeMaxX"]! += offX
-                        attributes["sizeMaxY"]! += offY
+//                        attributes["sizeMinX"]! += offX
+//                        attributes["sizeMinY"]! += offY
+//                        attributes["sizeMaxX"]! += offX
+//                        attributes["sizeMaxY"]! += offY
                     }
                     
                     // --- Test if we have to hover highlight both scale axes
@@ -744,20 +744,69 @@ class Gizmo : MMWidget
                 let posY = transformed["posY"]!
                 let rotate = transformed["rotate"]!
 
-                let size = shape.getCurrentSize(transformed)
+                // --- Calc Bounding Rectangle
                 
-                if posX - size.x / 2 < sizeMinX {
-                    sizeMinX = posX - size.x / 2
+                if shape.pointCount == 0 {
+                    var size = float2()
+                    
+                    size.x = transformed[shape.widthProperty]! * 2
+                    size.y = transformed[shape.heightProperty]! * 2
+                    
+                    if posX - size.x / 2 < sizeMinX {
+                        sizeMinX = posX - size.x / 2
+                    }
+                    if posY - size.y / 2 < sizeMinY {
+                        sizeMinY = posY - size.y / 2
+                    }
+                    if posX + size.x / 2 > sizeMaxX {
+                        sizeMaxX = posX + size.x / 2
+                    }
+                    if posY + size.y / 2 > sizeMaxY {
+                        sizeMaxY = posY + size.y / 2
+                    }
+                } else {
+                    let width = transformed[shape.widthProperty]!
+                    let height = transformed[shape.heightProperty]!
+                    
+                    if shape.pointCount == 2 {
+                        let minX = min( posX + transformed["point_0_x"]!, posX + transformed["point_1_x"]!) - width
+                        if minX < sizeMinX {
+                            sizeMinX = minX
+                        }
+                        let minY = min( posY + transformed["point_0_y"]!, posY + transformed["point_1_y"]!) - height
+                        if minY < sizeMinY {
+                            sizeMinY = minY
+                        }
+                        let maxX = max( posX + transformed["point_0_x"]!, posX + transformed["point_1_x"]!) + width
+                        if maxX > sizeMaxX {
+                            sizeMaxX = maxX
+                        }
+                        let maxY = max( posY + transformed["point_0_y"]!, posY + transformed["point_1_y"]!) + height
+                        if maxY > sizeMaxY {
+                            sizeMaxY = maxY
+                        }
+                    } else
+                    if shape.pointCount == 3 {
+                        let minX = min( posX + transformed["point_0_x"]!, posX + transformed["point_1_x"]!, posX + transformed["point_2_x"]!) - width
+                        if minX < sizeMinX {
+                            sizeMinX = minX
+                        }
+                        let minY = min( posY + transformed["point_0_y"]!, posY + transformed["point_1_y"]!, posY + transformed["point_2_y"]!) - height
+                        if minY < sizeMinY {
+                            sizeMinY = minY
+                        }
+                        let maxX = max( posX + transformed["point_0_x"]!, posX + transformed["point_1_x"]!, posX + transformed["point_2_x"]!) + width
+                        if maxX > sizeMaxX {
+                            sizeMaxX = maxX
+                        }
+                        let maxY = max( posY + transformed["point_0_y"]!, posY + transformed["point_1_y"]!, posY + transformed["point_2_y"]!) + height
+                        if maxY > sizeMaxY {
+                            sizeMaxY = maxY
+                        }
+                    }
                 }
-                if posY - size.y / 2 < sizeMinY {
-                    sizeMinY = posY - size.y / 2
-                }
-                if posX + size.x / 2 > sizeMaxX {
-                    sizeMaxX = posX + size.x / 2
-                }
-                if posY + size.y / 2 > sizeMaxY {
-                    sizeMaxY = posY + size.y / 2
-                }
+                
+                // ---
                 
                 attributes["posX"]! += posX
                 attributes["posY"]! += posY
