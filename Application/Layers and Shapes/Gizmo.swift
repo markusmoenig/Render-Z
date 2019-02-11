@@ -230,8 +230,12 @@ class Gizmo : MMWidget
             if dragState == .xAxisScale {
                 for shape in selectedShapeObjects {
                     let propName : String = shape.widthProperty
+                    var value = initialValues[shape.uuid]![propName]! + (pos.x - dragStartOffset!.x)
+                    if value < 0 {
+                        value = 0
+                    }
                     let properties : [String:Float] = [
-                        propName : initialValues[shape.uuid]![propName]! + (pos.x - dragStartOffset!.x),
+                        propName : value,
                         ]
                     processGizmoProperties(properties, shape: shape)
                 }
@@ -239,8 +243,12 @@ class Gizmo : MMWidget
             if dragState == .yAxisScale {
                 for shape in selectedShapeObjects {
                     let propName : String = shape.heightProperty
+                    var value = initialValues[shape.uuid]![propName]! - (pos.y - dragStartOffset!.y)
+                    if value < 0 {
+                        value = 0
+                    }
                     let properties : [String:Float] = [
-                        propName : initialValues[shape.uuid]![propName]! - (pos.y - dragStartOffset!.y),
+                        propName : value,
                         ]
                     processGizmoProperties(properties, shape: shape)
                 }
