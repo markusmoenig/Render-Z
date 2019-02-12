@@ -14,15 +14,22 @@ class Node : Codable
 {
     var name            : String = ""
     var uuid            : UUID = UUID()
+    
+    var xPos            : Float = 50
+    var yPos            : Float = 50
+
+    var rect            : MMRect = MMRect()
 
     private enum CodingKeys: String, CodingKey {
         case name
         case uuid
+        case xPos
+        case yPos
     }
     
     init()
     {
-        
+        setup()
     }
     
     required init(from decoder: Decoder) throws
@@ -30,6 +37,15 @@ class Node : Codable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
         uuid = try container.decode(UUID.self, forKey: .uuid)
+        xPos = try container.decode(Float.self, forKey: .xPos)
+        yPos = try container.decode(Float.self, forKey: .yPos)
+
+        setup()
+    }
+
+    func setup()
+    {
+
     }
 }
 

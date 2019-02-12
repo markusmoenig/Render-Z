@@ -32,7 +32,7 @@ class App
         nodeGraph = NodeGraph()
         
         /*
-        var json = nodeGraph.encodeJSON()
+        let json = nodeGraph.encodeJSON()
         
         if let jsonData = json.data(using: .utf8)
         {
@@ -47,7 +47,7 @@ class App
         gizmo = Gizmo(view, layerManager: layerManager)
         
         layerManager.app = self
-        nodeGraph.app = self
+        nodeGraph.setup(app: self)
 
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )

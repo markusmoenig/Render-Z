@@ -58,7 +58,10 @@ class EditorRegion: MMRegion
     
     override func build()
     {
+        app.nodeGraph.drawEditor(self)
+        
         widget.rect.copy(rect)
+        /*
         app.gizmo.rect.copy(rect)
         drawPattern()
         
@@ -72,7 +75,7 @@ class EditorRegion: MMRegion
         
         app.gizmo.draw()
         
-        app.changed = false
+        app.changed = false*/
     }
     
     func compute()

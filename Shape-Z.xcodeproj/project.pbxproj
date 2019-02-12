@@ -98,6 +98,8 @@
 		2BE67103221259F500B95241 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67101221259F500B95241 /* Node.swift */; };
 		2BE6710522125D7D00B95241 /* NodeGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710422125D7D00B95241 /* NodeGraph.swift */; };
 		2BE6710622125D7D00B95241 /* NodeGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710422125D7D00B95241 /* NodeGraph.swift */; };
+		2BE67108221291D300B95241 /* Node.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67107221291D200B95241 /* Node.metal */; };
+		2BE67109221291D300B95241 /* Node.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67107221291D200B95241 /* Node.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -159,6 +161,7 @@
 		2BBF120121F80B32001C94E9 /* Gizmo.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Gizmo.metal; sourceTree = "<group>"; };
 		2BE67101221259F500B95241 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		2BE6710422125D7D00B95241 /* NodeGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeGraph.swift; sourceTree = "<group>"; };
+		2BE67107221291D200B95241 /* Node.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Node.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -319,6 +322,7 @@
 			children = (
 				2BE67101221259F500B95241 /* Node.swift */,
 				2BE6710422125D7D00B95241 /* NodeGraph.swift */,
+				2BE67107221291D200B95241 /* Node.metal */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -444,6 +448,7 @@
 				2BBF11F621F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2BE67102221259F500B95241 /* Node.swift in Sources */,
 				2BBF11C921EADB46001C94E9 /* MMUtils.swift in Sources */,
+				2BE67109221291D300B95241 /* Node.metal in Sources */,
 				2BBF11A221EAD46B001C94E9 /* LeftRegion.swift in Sources */,
 				2BBF11AC21EAD46B001C94E9 /* Mad4Metal.metal in Sources */,
 				2BBF11EA21ED623F001C94E9 /* EditorWidget.swift in Sources */,
@@ -490,6 +495,7 @@
 				2BBF11F721F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2BE67103221259F500B95241 /* Node.swift in Sources */,
 				2BBF11CA21EADB46001C94E9 /* MMUtils.swift in Sources */,
+				2BE67108221291D300B95241 /* Node.metal in Sources */,
 				2BBF11A321EAD46B001C94E9 /* LeftRegion.swift in Sources */,
 				2BBF11AD21EAD46B001C94E9 /* Mad4Metal.metal in Sources */,
 				2BBF11EB21ED623F001C94E9 /* EditorWidget.swift in Sources */,

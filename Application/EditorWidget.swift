@@ -59,6 +59,11 @@ class EditorWidget      : MMWidget
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
+        if app.nodeGraph.maximizedNode == nil {
+            app.nodeGraph.xOffset -= event.deltaX!
+            app.nodeGraph.yOffset -= event.deltaY!
+        }
+        /*
         #if os(iOS) || os(watchOS) || os(tvOS)
         // If there is a selected shape, don't scroll
         if app.layerManager.getCurrentObject()?.getCurrentShape() != nil {
@@ -72,7 +77,7 @@ class EditorWidget      : MMWidget
         #endif
 
         region.compute()
-        
+        */
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.mmView.unlockFramerate()
