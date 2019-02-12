@@ -18,6 +18,7 @@ class App
     var editorRegion    : EditorRegion?
     
     var layerManager    : LayerManager
+    var nodeGraph       : NodeGraph
     
     var changed         : Bool = false
     
@@ -28,9 +29,26 @@ class App
         mmView = view
     
         layerManager = LayerManager()
-        gizmo = Gizmo(view, layerManager: layerManager)
-        layerManager.app = self
+        nodeGraph = NodeGraph()
         
+        /*
+        var json = nodeGraph.encodeJSON()
+        
+        if let jsonData = json.data(using: .utf8)
+        {
+            print( json )
+
+            if let graph =  try? JSONDecoder().decode(NodeGraph.self, from: jsonData) {
+                print( "yes" )
+                print( graph.encodeJSON() )
+            }
+        }*/
+        
+        gizmo = Gizmo(view, layerManager: layerManager)
+        
+        layerManager.app = self
+        nodeGraph.app = self
+
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )
         rightRegion = RightRegion( mmView, app: self )
