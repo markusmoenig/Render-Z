@@ -19,7 +19,7 @@ typedef struct
 {
     float2  size;
     float   selected;
-    float   lockedScaleAxes;
+    float   hoverIndex;
     
 } NODE;
 
@@ -52,6 +52,8 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     const float4 borderColor = float4(0.173, 0.173, 0.173, 1.000);
     const float4 selBorderColor = float4(0.820, 0.820, 0.820, 1.000);
     const float4 centerColor = float4(0.702, 0.702, 0.702, 1.000);
+    const float4 iconColor = float4(0.5, 0.5, 0.5, 1);
+    const float4 iconHoverColor = float4(1);
 
     const float borderSize = 2;
     const float borderRound = 4;
@@ -60,6 +62,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     
     float2 uv = in.textureCoordinate * ( data->size + float2( borderSize ) * 2.0 );
     uv -= float2( data->size / 2.0 + borderSize / 2.0 );
+    float2 uvCopy = uv;
     
     float2 d = abs( uv ) - data->size / 2 + borderRound;
     float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - borderRound;
@@ -86,7 +89,22 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         color = data->selected == 1 ? selBorderColor : borderColor;
         finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );
     }
+    
+    // Header
 
+    uv = uvCopy;
+    uv -= float2( 60, 120.5 );
+
+    d = abs( uv ) - float2(6,5);
+    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 2;
+    
+    uv -= float2( 0, 10 );
+    d = abs( uv ) - float2(7, 1);
+    dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 1);
+    
+    color = data->hoverIndex == 1 ? iconHoverColor : iconColor;
+    finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+    
     /*
     // Right arrow - Scale
     tuv = uv - float2(25,0);

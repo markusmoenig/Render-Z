@@ -22,6 +22,8 @@ class Node : Codable
     
     var maxDelegate     : NodeMaxDelegate?
     
+    var titleTextBuffer : MMTextBuffer?
+    
     private enum CodingKeys: String, CodingKey {
         case name
         case uuid

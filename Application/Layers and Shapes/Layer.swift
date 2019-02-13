@@ -244,7 +244,6 @@ class Layer : Codable
         for object in objects {
             parseObject(object)
         }
-        
 
         /*
         for object in objects {

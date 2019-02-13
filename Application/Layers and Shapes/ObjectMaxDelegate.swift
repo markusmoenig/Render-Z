@@ -47,12 +47,15 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     var timeline        : MMTimeline!
     var sequenceWidget  : SequenceWidget!
 
+    // ---
+    var currentObject   : Object?
     var patternState    : MTLRenderPipelineState?
     var dispatched      : Bool = false
 
     override func activate(_ app: App)
     {
         self.app = app
+        self.currentObject = app.nodeGraph.maximizedNode as? Object
         
         // Top Region
         shapesButton = MMButtonWidget( app.mmView, text: "Shapes" )
@@ -76,6 +79,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             self.deactivate()
             app.nodeGraph.maximizedNode = nil
             app.nodeGraph.activate()
+            app.closeButton.removeState(.Hover)
+            app.closeButton.removeState(.Checked)
         }
 
         // Left Region
@@ -88,7 +93,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         app.leftRegion!.rect.width = 200
         
         // Right Region
-        objectWidget = ObjectWidget(app.mmView, app: app)
+        objectWidget = ObjectWidget(app.mmView, app: app, delegate:self)
         shapeListWidget = ShapeListScrollArea(app.mmView, app: app, delegate: self)
         shapeList = ShapeList(app.mmView)
         app.rightRegion!.rect.width = 300
@@ -197,7 +202,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             shapeListWidget.draw()
             
             if shapeListChanged {
-                shapeList.build( width: shapeListWidget.rect.width, object: app.layerManager.getCurrentLayer().getCurrentObject()!)
+                shapeList.build( width: shapeListWidget.rect.width, object: currentObject!)
                 shapeListChanged = false
             }
             shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x, shapeListWidget.rect.y+1, shapeListWidget.rect.width, shapeListWidget.rect.height-2) )
@@ -244,7 +249,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     {
          #if os(iOS) || os(watchOS) || os(tvOS)
          // If there is a selected shape, don't scroll
-         if app.layerManager.getCurrentObject()?.getCurrentShape() != nil {
+         if currentObject!.getCurrentShape() != nil {
             return
          }
          app.layerManager.camera[0] -= event.deltaX! * 2
@@ -301,7 +306,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     /// Rebuilds the shape list in the right region
     func buildShapeList()
     {
-        shapeList.build( width: shapeListWidget.rect.width, object: app.layerManager.getCurrentLayer().getCurrentObject()!)
+        shapeList.build( width: shapeListWidget.rect.width, object: currentObject!)
     }
     
     /// Switches the mode of the timeline (Open / Closed)
@@ -387,10 +392,12 @@ class ObjectWidget : MMWidget
     var label               : MMTextLabel
     var menuWidget          : MMMenuWidget
     var objectEditorWidget  : ObjectEditorWidget
+    var delegate            : ObjectMaxDelegate
     
-    init(_ view: MMView, app: App)
+    init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
     {
         self.app = app
+        self.delegate = delegate
         
         label = MMTextLabel(view, font: view.openSans, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
         objectEditorWidget = ObjectEditorWidget(view, app: app)
@@ -399,7 +406,7 @@ class ObjectWidget : MMWidget
         let objectMenuItems = [
             MMMenuItem( text: "Add Child Object", cb: {print("add child") } ),
             MMMenuItem( text: "Rename Object", cb: {
-                let object = app.layerManager.getCurrentObject()!
+                let object = delegate.currentObject!
                 getStringDialog(view: view, title: "Rename Object", message: "Enter new name", defaultValue: object.name, cb: { (name) -> Void in
                     object.name = name
                 } )
@@ -415,7 +422,7 @@ class ObjectWidget : MMWidget
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
-        if let object = app.layerManager.getCurrentObject() {
+        if let object = delegate.currentObject {
             label.setText(object.name)
             label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
             
@@ -478,7 +485,7 @@ class ShapeListScrollArea: MMScrollArea
         
         // --- Move up / down
         if shapeList.hoverData[0] != -1 {
-            let object = app.layerManager.getCurrentObject()
+            let object = delegate.currentObject
             if shapeList.hoverUp && object!.shapes.count > 1 && shapeList.hoverIndex > 0 {
                 let shape = object!.shapes.remove(at: shapeList.hoverIndex)
                 object!.shapes.insert(shape, at: shapeList.hoverIndex - 1)
@@ -494,7 +501,7 @@ class ShapeListScrollArea: MMScrollArea
         // ---
         
         if delegate.shapeListChanged {
-            app.gizmo.setObject(app.layerManager.getCurrentObject())
+            app.gizmo.setObject(delegate.currentObject)
             app.layerManager.getCurrentLayer().build()
             app.editorRegion?.result = nil
         }

@@ -241,32 +241,33 @@ class ShapeList
         let selectedIndex = Int(index)
         var changed  = false
         
-        if selectedIndex >= 0 && selectedIndex < currentObject!.shapes.count {
-            if !multiSelect {
-                
-                let shape = currentObject!.shapes[selectedIndex]
-                
-                currentObject!.selectedShapes = [shape.uuid]
-                
-//                print( x )
-                
-                if x >= 60 && x <= 92 {
-                    shape.mode = .Merge
-                } else
-                if x >= 95 && x <= 119 {
-                    shape.mode = .Subtract
-                } else
-                if x >= 122 && x <= 139 {
-                    shape.mode = .Intersect
+        if currentObject != nil {
+            if selectedIndex >= 0 && selectedIndex < currentObject!.shapes.count {
+                if !multiSelect {
+                    
+                    let shape = currentObject!.shapes[selectedIndex]
+                    
+                    currentObject!.selectedShapes = [shape.uuid]
+                    
+    //                print( x )
+                    
+                    if x >= 60 && x <= 92 {
+                        shape.mode = .Merge
+                    } else
+                    if x >= 95 && x <= 119 {
+                        shape.mode = .Subtract
+                    } else
+                    if x >= 122 && x <= 139 {
+                        shape.mode = .Intersect
+                    }
+                    
+                    
+                } else if !currentObject!.selectedShapes.contains( currentObject!.shapes[selectedIndex].uuid ) {
+                    currentObject!.selectedShapes.append( currentObject!.shapes[selectedIndex].uuid )
                 }
-                
-                
-            } else if !currentObject!.selectedShapes.contains( currentObject!.shapes[selectedIndex].uuid ) {
-                currentObject!.selectedShapes.append( currentObject!.shapes[selectedIndex].uuid )
+                changed = true
             }
-            changed = true
         }
-        
         return changed
     }
     
@@ -278,17 +279,19 @@ class ShapeList
         let oldIndex = hoverData[0]
         hoverData[0] = -1
         
-        if hoverIndex >= 0 && hoverIndex < currentObject!.shapes.count {
+        if currentObject != nil {
+            if hoverIndex >= 0 && hoverIndex < currentObject!.shapes.count {
 
-//            print( x )
-            
-            if x >= 227 && x <= 255 {
-                hoverData[0] = Float(hoverIndex*2)
-                hoverUp = true
-            } else
-            if x >= 262 && x <= 289 {
-                hoverData[0] = Float(hoverIndex*2+1)
-                hoverUp = false
+    //            print( x )
+                
+                if x >= 227 && x <= 255 {
+                    hoverData[0] = Float(hoverIndex*2)
+                    hoverUp = true
+                } else
+                if x >= 262 && x <= 289 {
+                    hoverData[0] = Float(hoverIndex*2+1)
+                    hoverUp = false
+                }
             }
         }
         

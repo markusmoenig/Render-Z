@@ -84,7 +84,7 @@ class EditorWidget      : MMWidget
 //                print( "undo" )
 //            }
         
-            let currentObject = app.layerManager.getCurrentObject()
+            let currentObject = app.nodeGraph.maximizedNode as? Object
             
             let addedShape = currentObject!.addShape(drag.shape!)
             currentObject!.selectedShapes = [addedShape.uuid]

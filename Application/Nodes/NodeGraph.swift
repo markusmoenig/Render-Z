@@ -10,6 +10,10 @@ import MetalKit
 
 class NodeGraph : Codable
 {
+    enum NodeHoverMode : Float {
+        case None, Maximize, Dragging
+    }
+    
     var nodes           : [Node] = []
     
     var xOffset         : Float = 0
@@ -24,6 +28,10 @@ class NodeGraph : Codable
     var hoverNode       : Node?
     var selectedUUID    : [UUID] = []
     
+    var dragStartPos    : float2 = float2()
+    var nodeDragStartPos: float2 = float2()
+
+    var nodeHoverMode   : NodeHoverMode = .None
     var nodesButton     : MMButtonWidget!
     
     private enum CodingKeys: String, CodingKey {
@@ -36,6 +44,7 @@ class NodeGraph : Codable
     required init()
     {
         let object = Object()
+        object.name = "Object"
         nodes.append(object)
     }
     
@@ -85,21 +94,54 @@ class NodeGraph : Codable
 //            let offX = selectedNode.rect.x - event.x
             let offY = selectedNode.rect.y - event.y
             
-            if offY < 25 && selectedNode.maxDelegate != nil {
+            if nodeHoverMode == .Maximize {
                 maximizedNode = selectedNode
                 deactivate()
                 maximizedNode!.maxDelegate!.activate(app!)
+                nodeHoverMode = .None
+            } else
+            if offY < 26 {
+                dragStartPos.x = event.x
+                dragStartPos.y = event.y
+                
+                nodeDragStartPos.x = selectedNode.xPos
+                nodeDragStartPos.y = selectedNode.yPos
+                nodeHoverMode = .Dragging
+                
+                app?.mmView.mouseTrackWidget = app?.editorRegion?.widget
+                app?.mmView.lockFramerate()
             }
         }
     }
     
     func mouseUp(_ event: MMMouseEvent)
     {
+        app?.mmView.mouseTrackWidget = nil
+        app?.mmView.unlockFramerate()
+        nodeHoverMode = .None
     }
     
     func mouseMoved(_ event: MMMouseEvent)
     {
+        if nodeHoverMode == .Dragging {
+            
+            hoverNode!.xPos = nodeDragStartPos.x + event.x - dragStartPos.x
+            hoverNode!.yPos = nodeDragStartPos.y + event.y - dragStartPos.y
+            
+            return
+        }
+        
+        nodeHoverMode = .None
+        
         hoverNode = nodeAt(event.x, event.y)
+        if hoverNode != nil {
+            let x = event.x - hoverNode!.rect.x
+            let y =  event.y - hoverNode!.rect.y
+            
+            if x > 125 && y < 26 {
+                nodeHoverMode = .Maximize
+            }
+        }
     }
     
     ///
@@ -180,7 +222,8 @@ class NodeGraph : Codable
         
         let data: [Float] = [
             node.rect.width, node.rect.height,
-            selectedUUID.contains(node.uuid) ? 1 : 0, 0
+            selectedUUID.contains(node.uuid) ? 1 : 0,
+            nodeHoverMode.rawValue
         ];
         
         let buffer = renderer.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
@@ -189,6 +232,8 @@ class NodeGraph : Codable
         
         renderEncoder.setRenderPipelineState(drawNodeState!)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        
+        node.titleTextBuffer = app!.mmView.drawText.drawText(app!.mmView.openSans, text: node.name, x: node.rect.x + 10, y: node.rect.y + 6, scale: 0.4, color: float4( 0.765, 0.765, 0.765, 1), textBuffer: node.titleTextBuffer)
     }
     
     /// Returns the node (if any) at the given mouse coordinates
