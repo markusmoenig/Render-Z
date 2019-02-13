@@ -106,6 +106,7 @@ class NodeGraph : Codable
     func activate()
     {
         app?.mmView.registerWidget(nodesButton)
+        app!.leftRegion!.rect.width = 0
     }
     
     ///

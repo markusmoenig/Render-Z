@@ -27,6 +27,7 @@ class MMView : MMBaseView {
     var drawBoxedMenu   : MMDrawBoxedMenu!
     var drawTexture     : MMDrawTexture!
     var drawText        : MMDrawText!
+    var drawCustomState : MMDrawCustomState!
 
     // --- Fonts
     var openSans        : MMFont!
@@ -91,6 +92,7 @@ class MMView : MMBaseView {
         drawBoxedMenu = MMDrawBoxedMenu( renderer )
         drawTexture = MMDrawTexture( renderer )
         drawText = MMDrawText( renderer )
+        drawCustomState = MMDrawCustomState( renderer )
     }
     
     /// Build the user interface for this view. Called for each frame inside the renderer.

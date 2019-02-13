@@ -123,8 +123,9 @@ class MMButtonWidget : MMWidget
     var skin        : MMSkinButton
     var label       : MMLabel?
     var texture     : MTLTexture?
-
-    init( _ view: MMView, skinToUse: MMSkinButton? = nil, text: String? = nil, iconName: String? = nil )
+    var customState : MTLRenderPipelineState?
+    
+    init( _ view: MMView, skinToUse: MMSkinButton? = nil, text: String? = nil, iconName: String? = nil, customState: MTLRenderPipelineState? = nil )
     {
         skin = skinToUse != nil ? skinToUse! : view.skin.ToolBarButton
         super.init(view)
@@ -143,12 +144,16 @@ class MMButtonWidget : MMWidget
         if iconName != nil {
             texture = view.icons[iconName!]
         }
+        
+        self.customState = customState
     }
     
     override func _clicked(_ event:MMMouseEvent)
     {
         addState( .Checked )
-        super.clicked!(event)
+        if super.clicked != nil {
+            super.clicked!(event)
+        }
     }
     
     override func draw()
@@ -179,6 +184,10 @@ class MMButtonWidget : MMWidget
             let x = rect.x + (rect.width - Float(texture!.width)) / 2
             let y = rect.y + (rect.height - Float(texture!.height)) / 2
             mmView.drawTexture.draw(texture!, x: x, y: y)
+        }
+        
+        if customState != nil {
+            mmView.drawCustomState.draw(customState!, x: rect.x + skin.margin.left, y: rect.y + skin.margin.left, width: rect.width - skin.margin.width(), height: rect.height - skin.margin.height())
         }
     }
 }

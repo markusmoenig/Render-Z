@@ -45,7 +45,7 @@ class MMRegion
     func layoutHFromRight( startX: Float, startY: Float, spacing: Float, widgets: MMWidget... )
     {
         var x : Float = startX
-        for widget in widgets {
+        for widget in widgets.reversed() {
             widget.rect.y = startY
             x -= widget.rect.width
             widget.rect.x = x

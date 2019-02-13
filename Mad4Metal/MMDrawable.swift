@@ -208,6 +208,106 @@ class MMDrawTexture : MMDrawable
     }
 }
 
+/// Draws custom code
+class MMDrawCustomState : MMDrawable
+{
+    let mmRenderer : MMRenderer
+    var state      : MTLRenderPipelineState!
+    
+    required init( _ renderer : MMRenderer )
+    {
+        mmRenderer = renderer
+    }
+    
+    /// Create a state for the given custom code
+    func createState(source: String, name: String) -> MTLRenderPipelineState?
+    {
+        var library : MTLLibrary
+        do {
+            let header = """
+
+                            #include <metal_stdlib>
+                            #include <simd/simd.h>
+                            using namespace metal;
+
+                            typedef struct
+                            {
+                                float2 size;
+                                float  hover, fill;
+                            } MM_CUSTOMSTATE_DATA;
+
+                            float m4mFillMask(float dist)
+                            {
+                                return clamp(-dist, 0.0, 1.0);
+                            }
+
+                            float m4mBorderMask(float dist, float width)
+                            {
+                                return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
+                            }
+
+                            typedef struct
+                            {
+                                float4 clipSpacePosition [[position]];
+                                float2 textureCoordinate;
+                            } RasterizerData;
+
+                        """
+            library = try mmRenderer.mmView.device!.makeLibrary( source: header + source, options: nil )
+        } catch
+        {
+            print( "MMDrawCustomState: Make Library Failed" )
+            print( error )
+            return nil
+        }
+        
+        let pipelineStateDescriptor = MTLRenderPipelineDescriptor()
+        pipelineStateDescriptor.colorAttachments[0].pixelFormat = MTLPixelFormat.bgra8Unorm;
+        
+        pipelineStateDescriptor.colorAttachments[0].isBlendingEnabled = true
+        pipelineStateDescriptor.colorAttachments[0].rgbBlendOperation = .add
+        pipelineStateDescriptor.colorAttachments[0].alphaBlendOperation = .add
+        pipelineStateDescriptor.colorAttachments[0].sourceRGBBlendFactor = .sourceAlpha
+        pipelineStateDescriptor.colorAttachments[0].sourceAlphaBlendFactor = .sourceAlpha
+        pipelineStateDescriptor.colorAttachments[0].destinationRGBBlendFactor = .oneMinusSourceAlpha
+        pipelineStateDescriptor.colorAttachments[0].destinationAlphaBlendFactor = .oneMinusSourceAlpha
+        
+        let state : MTLRenderPipelineState?
+        pipelineStateDescriptor.fragmentFunction = library.makeFunction( name: name )
+        pipelineStateDescriptor.vertexFunction = mmRenderer.defaultLibrary.makeFunction( name: "m4mQuadVertexShader" )
+
+        do {
+            state = try mmRenderer.mmView.device!.makeRenderPipelineState( descriptor: pipelineStateDescriptor )
+        } catch {
+            print( "MMDrawCustomState makeRenderPipelineState failed" )
+            return nil
+        }
+
+        return state
+    }
+    
+    func draw( _ state: MTLRenderPipelineState, x: Float, y: Float, width: Float, height: Float, zoom: Float = 1 )
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        
+        let settings: [Float] = [
+            width, height,
+            0, 0
+        ];
+        
+        let renderEncoder = mmRenderer.renderEncoder!
+        
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        renderEncoder.setRenderPipelineState( state )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+}
+
 /// Class for storing the MTLBuffers for a single char
 class MMCharBuffer
 {

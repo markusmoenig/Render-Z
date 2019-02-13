@@ -72,6 +72,12 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             self.switchTimelineMode()
         }
         
+        app.closeButton.clicked = { (event) -> Void in
+            self.deactivate()
+            app.nodeGraph.maximizedNode = nil
+            app.nodeGraph.activate()
+        }
+
         // Left Region
         shapeSelector = ShapeSelector(app.mmView, width : 200)
         textureWidget = MMTextureWidget(app.mmView, texture: shapeSelector.fragment!.texture )
@@ -100,7 +106,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timelineButton.addState( .Checked )
         app.bottomRegion!.rect.height = 100
         
-        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget)
+        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget, app.closeButton)
     }
     
     override func deactivate()
@@ -157,11 +163,12 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         } else
         if region.type == .Top {
             region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: shapesButton, materialsButton )
-            region.layoutHFromRight( startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton )
+            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton, app.closeButton)
             
             shapesButton.draw()
             materialsButton.draw()
             timelineButton.draw()
+            app.closeButton.draw()
         } else
         if region.type == .Left {
             let leftRegion = app.leftRegion!
