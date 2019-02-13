@@ -165,7 +165,7 @@ class Layer : Codable
 //                shape.flatLayerIndex = index
 //                index += 1
                 
-                let properties = layerManager!.app?.bottomRegion?.timeline.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
+                let properties = layerManager!.app?.objectTimeline!.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
                 
                 source += "uv = translate( tuv, layerData->shape[\(shape.flatLayerIndex!)].pos );"
                 if shape.pointCount < 2 {
@@ -302,7 +302,7 @@ class Layer : Codable
                 //                shape.flatLayerIndex = index
                 //                index += 1
                 
-                let properties = layerManager!.app?.bottomRegion?.timeline.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
+                let properties = layerManager!.app?.objectTimeline!.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
                 
                 layerData![offset + shape.flatLayerIndex! * 12] = properties!["posX"]!
                 layerData![offset + shape.flatLayerIndex! * 12+1] = properties!["posY"]!

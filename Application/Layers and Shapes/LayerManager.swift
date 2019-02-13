@@ -146,7 +146,7 @@ class LayerManager : Codable
             for (objectIndex, object) in layer.objects.enumerated() {
                 for (shapeIndex, shape) in object.shapes.enumerated() {
                     
-                    let timeline = app!.bottomRegion!.timeline
+                    let timeline = app!.objectTimeline!
                     let transformed = timeline.transformProperties(sequence:layer.sequence, uuid:shape.uuid, properties:shape.properties)
                     let posX : Float = transformed["posX"]!
                     let posY : Float = transformed["posY"]!
@@ -212,14 +212,14 @@ class LayerManager : Codable
             }
             
             app!.gizmo.setObject(object)
-            app!.rightRegion!.changed = true
+            //? app!.rightRegion!.changed = true
         } else
         if !multiSelect {
             if let object = getCurrentObject() {
                 object.selectedShapes = []
                 
                 app!.gizmo.setObject(nil)
-                app!.rightRegion!.changed = true
+                //? app!.rightRegion!.changed = true
             }
         }
     }

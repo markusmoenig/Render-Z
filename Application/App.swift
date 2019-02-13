@@ -20,6 +20,8 @@ class App
     var layerManager    : LayerManager
     var nodeGraph       : NodeGraph
     
+    var objectTimeline  : MMTimeline!
+    
     var changed         : Bool = false
     
     let gizmo           : Gizmo
@@ -30,6 +32,8 @@ class App
     
         layerManager = LayerManager()
         nodeGraph = NodeGraph()
+        
+        objectTimeline = MMTimeline(mmView)
         
         /*
         let json = nodeGraph.encodeJSON()
@@ -60,6 +64,8 @@ class App
         mmView.rightRegion = rightRegion
         mmView.bottomRegion = bottomRegion
         mmView.editorRegion = editorRegion
+
+        nodeGraph.activate()
         
         setChanged()
     }
@@ -67,7 +73,7 @@ class App
     func setChanged()
     {
         changed = true
-        rightRegion!.changed = true
+        nodeGraph.maximizedNode?.maxDelegate?.setChanged()
     }
 }
 

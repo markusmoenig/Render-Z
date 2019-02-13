@@ -276,7 +276,7 @@ class Gizmo : MMWidget
             }
             
         } else {
-            let timeline = layerManager.app!.bottomRegion!.timeline
+            let timeline = layerManager.app!.objectTimeline!
             let uuid = shape.uuid//shape != nil ? shape!.uuid : object!.uuid
             timeline.addKeyProperties(sequence: layerManager.getCurrentLayer().sequence, uuid: uuid, properties: properties)
         }
@@ -690,14 +690,14 @@ class Gizmo : MMWidget
     /// Returns true if the timeline is currently recording
     func isRecording() -> Bool
     {
-        return layerManager.app!.bottomRegion!.timeline.isRecording
+        return layerManager.app!.objectTimeline!.isRecording
     }
     
     /// Get transformed properties
     func getTransformedProperties(_ shape: Shape) -> [String:Float]
     {
         let sequence = layerManager.getCurrentLayer().sequence
-        let timeline = layerManager.app!.bottomRegion!.timeline
+        let timeline = layerManager.app!.objectTimeline!
         let transformed = timeline.transformProperties(sequence:sequence, uuid: shape.uuid, properties:shape.properties)
         return transformed
     }

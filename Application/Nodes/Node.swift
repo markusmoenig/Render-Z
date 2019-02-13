@@ -19,7 +19,9 @@ class Node : Codable
     var yPos            : Float = 50
 
     var rect            : MMRect = MMRect()
-
+    
+    var maxDelegate     : NodeMaxDelegate?
+    
     private enum CodingKeys: String, CodingKey {
         case name
         case uuid
@@ -46,6 +48,42 @@ class Node : Codable
     func setup()
     {
 
+    }
+}
+
+/// Handles the maximized UI of a node
+class NodeMaxDelegate
+{
+    func activate(_ app: App)
+    {
+    }
+    
+    func deactivate()
+    {
+    }
+    
+    func setChanged()
+    {
+    }
+    
+    func drawRegion(_ region: MMRegion)
+    {
+    }
+
+    func mouseDown(_ event: MMMouseEvent)
+    {
+    }
+    
+    func mouseUp(_ event: MMMouseEvent)
+    {
+    }
+    
+    func mouseMoved(_ event: MMMouseEvent)
+    {
+    }
+    
+    func mouseScrolled(_ event: MMMouseEvent)
+    {
     }
 }
 

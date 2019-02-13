@@ -43,6 +43,8 @@ class Object : Node
         properties["rotate"] = 0
         
         super.init()
+        
+        maxDelegate = ObjectMaxDelegate()
     }
     
     required init(from decoder: Decoder) throws
@@ -57,6 +59,8 @@ class Object : Node
 
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
+        
+        maxDelegate = ObjectMaxDelegate()
     }
     
     override func encode(to encoder: Encoder) throws
@@ -69,8 +73,8 @@ class Object : Node
         try container.encode(selectedShapes, forKey: .selectedShapes)
         try container.encode(sequences, forKey: .sequences)
 
-        let superdecoder = container.superEncoder()
-        try super.encode(to: superdecoder)
+        //let superdecoder = container.superEncoder()
+        //try super.encode(to: superdecoder)
     }
     
     @discardableResult func addShape(_ shape: Shape) -> Shape

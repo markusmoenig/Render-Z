@@ -67,7 +67,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     float2 point = in.textureCoordinate * data->size;
     point.y = data->size.y - point.y;
 
-    if ( point.y <= 19 ) {
+    if ( point.y <= 25 ) {
         float s = nodeGradient_linear(point, float2( 0, 19 ), float2( 0, 0 ) );
         color = mix(float4(0.251, 0.251, 0.251, 1.000), float4(0.298, 0.298, 0.298, 1.000), clamp(s, 0, 1) );
 
@@ -75,7 +75,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         color = data->selected == 1 ? selBorderColor : borderColor;
         finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );
     } else
-    if ( point.y <= 20 && point.x > 3 && point.x < data->size.x - 5 ) {
+    if ( point.y <= 26 && point.x > 3 && point.x < data->size.x - 5 ) {
         color = float4(0, 0, 0, 1.000);
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
     }

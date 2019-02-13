@@ -142,7 +142,7 @@ class MMView : MMBaseView {
             
             rect.height -= region.rect.height + 1
         }
-        
+
         if let region = rightRegion {
             region.rect.copy( rect )
             region.build()
@@ -171,10 +171,30 @@ class MMView : MMBaseView {
         }
     }
     
-    /// Regsiter the widget to the view
+    /// Register the widget to the view
     func registerWidget(_ widget : MMWidget)
     {
         widgets.append( widget )
+    }
+    
+    func registerWidgets( widgets: MMWidget... )
+    {
+        for widget in widgets {
+            registerWidget(widget)
+        }
+    }
+    
+    /// Deregister the widget from the view
+    func deregisterWidget(_ widget : MMWidget)
+    {
+        widgets.removeAll(where: { $0 == widget })
+    }
+    
+    func deregisterWidgets( widgets: MMWidget... )
+    {
+        for widget in widgets {
+            deregisterWidget(widget)
+        }
     }
     
     /// Gets a uniquge id for your widget
