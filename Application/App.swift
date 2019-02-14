@@ -17,21 +17,20 @@ class App
     var bottomRegion    : BottomRegion?
     var editorRegion    : EditorRegion?
     
-    var layerManager    : LayerManager
     var nodeGraph       : NodeGraph
     
-    var objectTimeline  : MMTimeline!
-
     var changed         : Bool = false
     
     let gizmo           : Gizmo
     let closeButton     : MMButtonWidget!
+    
+    let builder         : Builder
 
     init(_ view : MMView )
     {
         mmView = view
     
-        layerManager = LayerManager()
+//        layerManager = LayerManager()
         nodeGraph = NodeGraph()
         
         // --- Reusable buttons
@@ -63,9 +62,7 @@ class App
         
         closeButton = MMButtonWidget(mmView, customState: state)
         // ---
-        
-        objectTimeline = MMTimeline(mmView)
-        
+                
         /*
         let json = nodeGraph.encodeJSON()
         
@@ -79,9 +76,9 @@ class App
             }
         }*/
         
-        gizmo = Gizmo(view, layerManager: layerManager)
+        gizmo = Gizmo(view)
+        builder = Builder()
         
-        layerManager.app = self
         nodeGraph.setup(app: self)
 
         topRegion = TopRegion( mmView, app: self )

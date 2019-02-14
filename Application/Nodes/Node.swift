@@ -87,6 +87,20 @@ class NodeMaxDelegate
     func mouseScrolled(_ event: MMMouseEvent)
     {
     }
+    
+    func update(_ hard: Bool = false)
+    {
+    }
+    
+    func getCamera() -> Camera?
+    {
+        return nil
+    }
+    
+    func getTimeline() -> MMTimeline?
+    {
+        return nil
+    }
 }
 
 // --- Helper for heterogeneous node arrays

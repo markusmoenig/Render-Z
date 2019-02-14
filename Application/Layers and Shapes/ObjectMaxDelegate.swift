@@ -49,13 +49,15 @@ class ObjectMaxDelegate : NodeMaxDelegate {
 
     // ---
     var currentObject   : Object?
+    var camera          : Camera = Camera()
     var patternState    : MTLRenderPipelineState?
     var dispatched      : Bool = false
 
     override func activate(_ app: App)
     {
         self.app = app
-        self.currentObject = app.nodeGraph.maximizedNode as? Object
+        currentObject = app.nodeGraph.maximizedNode as? Object
+        app.gizmo.setObject(currentObject)
         
         // Top Region
         shapesButton = MMButtonWidget( app.mmView, text: "Shapes" )
@@ -103,9 +105,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         patternState = app.mmView.renderer!.createNewPipelineState( function! )
         
         // Bottom Region
-        timeline = app.objectTimeline
+        timeline = MMTimeline(app.mmView)
         timeline.changedCB = { (frame) in
-            app.editorRegion?.result = nil
+            self.update()
         }
         sequenceWidget = SequenceWidget(app.mmView, app: app)
         timelineButton.addState( .Checked )
@@ -151,20 +153,23 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Editor {
-             app.gizmo.rect.copy(region.rect)
-             drawPattern(region)
+            app.gizmo.rect.copy(region.rect)
+            drawPattern(region)
             
-             if app.editorRegion!.result == nil || app.layerManager.width != region.rect.width || app.layerManager.height != region.rect.height {
-                app.editorRegion!.compute()
-             }
+            if let instance = currentObject!.instance {
+            
+                if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
+                    app.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, timeline: timeline)
+                }
+                
+                if let texture = instance.texture {
+                    
+                    app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
+                }
+            }
              
-             if let texture = app.editorRegion!.result {
-                app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
-             }
-             
-             app.gizmo.draw()
-             
-             app.changed = false
+            app.gizmo.draw()
+            app.changed = false
         } else
         if region.type == .Top {
             region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: shapesButton, materialsButton )
@@ -214,7 +219,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 // Timeline area
                 timeline.rect.copy( region.rect )
                 timeline.rect.width -= app.rightRegion!.rect.width
-                timeline.draw(app.layerManager.getCurrentLayer().sequence, uuid:app.layerManager.getCurrentUUID())
+                timeline.draw(currentObject!.sequences[0], uuid:currentObject!.uuid)
                 
                 // Sequence area
                 sequenceWidget.rect.copy( region.rect )
@@ -231,7 +236,11 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         
         if app.gizmo.hoverState == .Inactive {
             let editorRegion = app.editorRegion!
-            app.layerManager.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, multiSelect: app.mmView.shiftIsDown)
+//            app.layerManager.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, multiSelect: app.mmView.shiftIsDown)
+            
+//            func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera, timeline: MMTimeline)
+
+            app.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera, timeline: timeline)
         }
     }
     
@@ -252,14 +261,14 @@ class ObjectMaxDelegate : NodeMaxDelegate {
          if currentObject!.getCurrentShape() != nil {
             return
          }
-         app.layerManager.camera[0] -= event.deltaX! * 2
-         app.layerManager.camera[1] -= event.deltaY! * 2
+         camera.xPos -= event.deltaX! * 2
+         camera.yPos -= event.deltaY! * 2
          #elseif os(OSX)
-         app.layerManager.camera[0] += event.deltaX! * 2
-         app.layerManager.camera[1] += event.deltaY! * 2
+         camera.xPos += event.deltaX! * 2
+         camera.yPos += event.deltaY! * 2
          #endif
          
-         app.editorRegion!.compute()
+         update()
         
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -337,6 +346,29 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             animating = true
         }
     }
+    
+    /// Updates the preview. hard does a rebuild, otherwise just a render
+    override func update(_ hard: Bool = false)
+    {
+        if hard {
+            currentObject!.instance = app.builder.buildObjects(objects: [currentObject!], camera: camera, timeline: timeline)
+        } else {
+            let region = app.editorRegion!
+            app.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, timeline: timeline)
+        }
+    }
+    
+    /// Return the camera (used by Gizmo)
+    override func getCamera() -> Camera?
+    {
+        return camera
+    }
+    
+    /// Return the timeline (used by Gizmo)
+    override func getTimeline() -> MMTimeline?
+    {
+        return timeline
+    }
 }
 
 /// The scroll area for the shapes
@@ -382,6 +414,32 @@ class ShapeScrollArea: MMScrollArea
     override func dragTerminated() {
         dragSource = nil
         mmView.unlockFramerate()
+    }
+}
+
+/// Object Editor Widget
+class ObjectEditorWidget : MMWidget
+{
+    var app             : App
+    var margin          : Float = 2
+    
+    init(_ view: MMView, app: App)
+    {
+        self.app = app
+        super.init(view)
+    }
+    
+    func draw(object: Object)
+    {
+        // Background
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+        
+        //
+        
+        let color = float4( 1 )// layer.currentUUID == rootObject.uuid ? mmView.skin.Widget.selectionColor : float4( 1 )
+        let borderSize : Float = 4//layer.currentUUID == rootObject.uuid ? 0 : 4
+        
+        mmView.drawBox.draw( x: rect.x + margin, y: rect.y + margin, width: rect.width - 2 * margin, height: rect.height - 2 * margin, round: 6, borderSize: borderSize,  fillColor : color, borderColor: vector_float4( 1 ) )
     }
 }
 
@@ -431,7 +489,7 @@ class ObjectWidget : MMWidget
             objectEditorWidget.rect.width = rect.width
             objectEditorWidget.rect.height = rect.height - 30
             
-            objectEditorWidget.draw(layer: app.layerManager.getCurrentLayer(), object: object)
+            objectEditorWidget.draw(object: object)
         }
         
         menuWidget.rect.x = rect.x + rect.width - 30 - 1
@@ -501,9 +559,7 @@ class ShapeListScrollArea: MMScrollArea
         // ---
         
         if delegate.shapeListChanged {
-            app.gizmo.setObject(delegate.currentObject)
-            app.layerManager.getCurrentLayer().build()
-            app.editorRegion?.result = nil
+            delegate.update()
         }
     }
     

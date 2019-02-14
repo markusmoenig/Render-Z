@@ -117,17 +117,19 @@ class EditorWidget      : MMWidget
                 yOff = (event.y - rect.y + yOff) * 700 / rect.width
                 
                 // --- Center
-                xOff -= 350 - app.layerManager.camera[0]
-                yOff += app.layerManager.camera[1]
+                xOff -= 350 - currentObject!.maxDelegate!.getCamera()!.xPos
+                yOff += currentObject!.maxDelegate!.getCamera()!.yPos
                 yOff -= 350 * rect.height / rect.width
                 
                 shape.properties["posX"] = xOff
                 shape.properties["posY"] = yOff
             }
             
-            app.layerManager.getCurrentLayer().build()
-            app.gizmo.setObject(currentObject)
-            region.result = nil
+//            app.layerManager.getCurrentLayer().build()
+//            app.gizmo.setObject(currentObject)
+//            region.result = nil
+            
+            currentObject!.maxDelegate?.update(true)
         }
     }
 }

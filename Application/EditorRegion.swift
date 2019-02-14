@@ -12,9 +12,7 @@ class EditorRegion: MMRegion
 {
     var app                     : App
     var widget                  : EditorWidget!
-    
-    var result                  : MTLTexture?
-    
+        
     init( _ view: MMView, app: App )
     {
         self.app = app
@@ -34,10 +32,5 @@ class EditorRegion: MMRegion
         }
         
         widget.rect.copy(rect)
-    }
-    
-    func compute()
-    {
-        result = app.layerManager.render(width: rect.width, height: rect.height)
     }
 }

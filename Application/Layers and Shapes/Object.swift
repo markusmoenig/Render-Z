@@ -20,6 +20,8 @@ class Object : Node
     var sequences       : [MMTlSequence]
     
     var selectedShapes  : [UUID]
+    
+    var instance        : BuilderInstance?
         
     private enum CodingKeys: String, CodingKey {
         case type

@@ -24,8 +24,6 @@ class Gizmo : MMWidget
     
     var hoverState      : GizmoState = .Inactive
     var dragState       : GizmoState = .Inactive
-
-    let layerManager    : LayerManager
     
     var normalState     : MTLRenderPipelineState!
     var pointState      : MTLRenderPipelineState!
@@ -47,13 +45,12 @@ class Gizmo : MMWidget
     var pointShape      : Shape? = nil
     var pointIndex      : Int = 0
 
-    required init( _ view : MMView, layerManager: LayerManager )
+    override required init(_ view : MMView)
     {
         var function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmo" )
         normalState = view.renderer.createNewPipelineState( function! )
         function = view.renderer.defaultLibrary.makeFunction( name: "drawPointGizmo" )
         pointState = view.renderer.createNewPipelineState( function! )
-        self.layerManager = layerManager
         
         width = 260
         height = 260
@@ -175,8 +172,8 @@ class Gizmo : MMWidget
         } else {
             let pos = convertToSceneSpace(x: event.x, y: event.y)
             let selectedShapeObjects = object!.getSelectedShapes()
-            layerManager.app!.editorRegion?.result = nil
-
+            object!.maxDelegate!.update(false)
+            
             if dragState == .CenterMove {
                 if mode == .Normal {
                     for shape in selectedShapeObjects {
@@ -276,15 +273,17 @@ class Gizmo : MMWidget
             }
             
         } else {
-            let timeline = layerManager.app!.objectTimeline!
-            let uuid = shape.uuid//shape != nil ? shape!.uuid : object!.uuid
-            timeline.addKeyProperties(sequence: layerManager.getCurrentLayer().sequence, uuid: uuid, properties: properties)
+//            let timeline = layerManager.app!.objectTimeline!
+//            let uuid = shape.uuid//shape != nil ? shape!.uuid : object!.uuid
+//            timeline.addKeyProperties(sequence: layerManager.getCurrentLayer().sequence, uuid: uuid, properties: properties)
         }
     }
     
     override func draw()
     {
         if object == nil { hoverState = .Inactive; return }
+        let selectedShapes = object!.getSelectedShapes()
+        if selectedShapes.count == 0 { hoverState = .Inactive; return }
         
         let editorRect = rect
         
@@ -308,7 +307,6 @@ class Gizmo : MMWidget
         let renderEncoder = mmRenderer.renderEncoder!
         if mode == .Normal {
             // --- Points
-            let selectedShapes = object!.getSelectedShapes()
             if selectedShapes.count == 1 {
                 // Points only get drawn when only one shape is selected
                 for shape in selectedShapes {
@@ -387,7 +385,7 @@ class Gizmo : MMWidget
             
             // --- Points
             
-            for shape in object!.getSelectedShapes() {
+            for shape in selectedShapes {
                 
                 for index in 0..<shape.pointCount {
                     
@@ -659,8 +657,10 @@ class Gizmo : MMWidget
     {
         var result : float2 = float2()
         
-        result.x = (x - layerManager.camera[0] - 0.5) / 700 * rect.width
-        result.y = (y - layerManager.camera[1] - 0.5) / 700 * rect.width
+        let camera = object!.maxDelegate!.getCamera()!
+        
+        result.x = (x - camera.xPos - 0.5) / 700 * rect.width
+        result.y = (y - camera.yPos - 0.5) / 700 * rect.width
         
         result.x += rect.width/2
         result.y += rect.width/2 * rect.height / rect.width
@@ -679,9 +679,11 @@ class Gizmo : MMWidget
         result.x = (x - rect.x) * 700 / rect.width
         result.y = (y - rect.y) * 700 / rect.width
         
+        let camera = object!.maxDelegate!.getCamera()!
+
         // --- Center
-        result.x -= 350 - layerManager.camera[0]
-        result.y += layerManager.camera[1]
+        result.x -= 350 - camera.xPos
+        result.y += camera.yPos
         result.y -= 350 * rect.height / rect.width
         
         return result
@@ -690,15 +692,18 @@ class Gizmo : MMWidget
     /// Returns true if the timeline is currently recording
     func isRecording() -> Bool
     {
-        return layerManager.app!.objectTimeline!.isRecording
+        let timeline = object!.maxDelegate!.getTimeline()!
+
+        return timeline.isRecording
     }
     
     /// Get transformed properties
     func getTransformedProperties(_ shape: Shape) -> [String:Float]
     {
-        let sequence = layerManager.getCurrentLayer().sequence
-        let timeline = layerManager.app!.objectTimeline!
-        let transformed = timeline.transformProperties(sequence:sequence, uuid: shape.uuid, properties:shape.properties)
+        let timeline = object!.maxDelegate!.getTimeline()!
+        
+//        let sequence = layerManager.getCurrentLayer().sequence
+        let transformed = timeline.transformProperties(sequence:timeline.currentSequence!, uuid: shape.uuid, properties:shape.properties)
         return transformed
     }
     
