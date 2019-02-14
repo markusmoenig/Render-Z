@@ -23,7 +23,7 @@ struct MMTlKey : Codable
 }
 
 /// A sequence defines a set of keys for objects
-class MMTlSequence : Codable
+class MMTlSequence : Codable, MMListWidgetItem
 {
     var uuid            : UUID = UUID()
     var name            : String = "New Animation"

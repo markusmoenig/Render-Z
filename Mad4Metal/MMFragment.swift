@@ -166,6 +166,11 @@ class MMFragment {
     func encodeRun(_ state: MTLRenderPipelineState?, inBuffer: MTLBuffer? = nil, inTexture: MTLTexture? = nil )
     {
         renderEncoder!.setRenderPipelineState( state! )
+        
+        if inBuffer != nil {
+            renderEncoder!.setVertexBuffer(inBuffer, offset: 0, index: 2)
+        }
+        
         renderEncoder!.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
     

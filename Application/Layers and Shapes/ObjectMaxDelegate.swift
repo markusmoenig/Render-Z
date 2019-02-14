@@ -75,6 +75,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
         timelineButton.clicked = { (event) -> Void in
             self.switchTimelineMode()
+            self.shapesButton.removeState(.Checked)
         }
         
         app.closeButton.clicked = { (event) -> Void in
@@ -225,6 +226,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 sequenceWidget.rect.copy( region.rect )
                 sequenceWidget.rect.x = region.rect.right() - app.rightRegion!.rect.width
                 sequenceWidget.rect.width = app.rightRegion!.rect.width
+                sequenceWidget.build(items: currentObject!.sequences)
                 sequenceWidget.draw()
             }
         }
@@ -234,7 +236,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     {
         app.gizmo.mouseDown(event)
         
-        if app.gizmo.hoverState == .Inactive {
+        if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
             let editorRegion = app.editorRegion!
 //            app.layerManager.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, multiSelect: app.mmView.shiftIsDown)
             
@@ -354,7 +356,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             currentObject!.instance = app.builder.buildObjects(objects: [currentObject!], camera: camera, timeline: timeline)
         } else {
             let region = app.editorRegion!
-            app.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, timeline: timeline)
+            if currentObject!.instance != nil {
+                app.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, timeline: timeline)
+            }
         }
     }
     
@@ -598,11 +602,15 @@ class SequenceWidget : MMWidget
     //    var menuWidget          : MMMenuWidget
     //    var objectEditorWidget  : ObjectEditorWidget
     
+    var listWidget          : MMListWidget
+    
     init(_ view: MMView, app: App)
     {
         self.app = app
         
         label = MMTextLabel(view, font: view.openSans, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
+        listWidget = MMListWidget(view)
+        
         //        objectEditorWidget = ObjectEditorWidget(view, app: app)
         
         /*
@@ -623,11 +631,28 @@ class SequenceWidget : MMWidget
         super.init(view)
     }
     
+    func build(items: [MMListWidgetItem])
+    {
+        listWidget.build(items: items)
+    }
+    
     override func draw()
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
-        label.setText("Current Sequence")
+        label.setText("Current Animation")
         label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+        
+        listWidget.rect.x = rect.x
+        listWidget.rect.y = rect.y + 30
+        listWidget.rect.width = rect.width
+        listWidget.rect.height = rect.height - 30
+        
+        listWidget.draw()
+    }
+    
+    override func mouseScrolled(_ event: MMMouseEvent)
+    {
+        listWidget.mouseScrolled(event)
     }
 }

@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
+		2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
+		2B5CCB0322152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
@@ -102,6 +104,7 @@
 
 /* Begin PBXFileReference section */
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
+		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2BA344A121FE8497000BB2EB /* MMTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTimeline.swift; sourceTree = "<group>"; };
 		2BA344A522015419000BB2EB /* timeline_recording.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline_recording.tiff; sourceTree = "<group>"; };
@@ -281,6 +284,7 @@
 				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
 				2BA344AC22029FA4000BB2EB /* MMFragment.swift */,
 				2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */,
+				2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */,
 				2BBF11BC21EADB46001C94E9 /* MMSkin.swift */,
 				2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */,
 				2BA344A121FE8497000BB2EB /* MMTimeline.swift */,
@@ -441,6 +445,7 @@
 				2BBF11A621EAD46B001C94E9 /* BottomRegion.swift in Sources */,
 				2BBF11CD21EADB46001C94E9 /* MMBaseView_mac.swift in Sources */,
 				2BBF11F621F02EAD001C94E9 /* ShapeList.swift in Sources */,
+				2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */,
 				2BE67102221259F500B95241 /* Node.swift in Sources */,
 				2BBF11C921EADB46001C94E9 /* MMUtils.swift in Sources */,
 				2BE67109221291D300B95241 /* Node.metal in Sources */,
@@ -487,6 +492,7 @@
 				2BBF11C221EADB46001C94E9 /* MMRenderer.swift in Sources */,
 				2BBF11A721EAD46B001C94E9 /* BottomRegion.swift in Sources */,
 				2BBF11F721F02EAD001C94E9 /* ShapeList.swift in Sources */,
+				2B5CCB0322152EB6005BAA2B /* MMListWidget.swift in Sources */,
 				2BE67103221259F500B95241 /* Node.swift in Sources */,
 				2BBF11CA21EADB46001C94E9 /* MMUtils.swift in Sources */,
 				2BE67108221291D300B95241 /* Node.metal in Sources */,

@@ -26,9 +26,7 @@ class ShapeSelector
     
     var shapeRects      : [MMRect]
 
-    var compute         : MMCompute?
     var fragment        : MMFragment?
-    var state           : MTLComputePipelineState?
     
     var width, height   : Float
     var spacing         : Float
@@ -47,7 +45,6 @@ class ShapeSelector
         shapeFactory = ShapeFactory()
         
         shapeRects = []
-        compute = MMCompute()
         fragment = MMFragment(view)
 
         spacing = 10
@@ -187,7 +184,6 @@ class ShapeSelector
             
             fragment!.encodeEnd()
         }
-
     }
     
     /// Creates a thumbnail for the given shape name
@@ -248,7 +244,7 @@ class ShapeSelector
         
         //        print( source )
         let library = comp.createLibraryFromSource(source: source)
-        state = comp.createState(library: library, name: "iconBuilder")
+        let state = comp.createState(library: library, name: "iconBuilder")
         
         comp.run( state )
         
