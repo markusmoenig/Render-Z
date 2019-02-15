@@ -261,7 +261,6 @@ class ShapeList
                         shape.mode = .Intersect
                     }
                     
-                    
                 } else if !currentObject!.selectedShapes.contains( currentObject!.shapes[selectedIndex].uuid ) {
                     currentObject!.selectedShapes.append( currentObject!.shapes[selectedIndex].uuid )
                 }

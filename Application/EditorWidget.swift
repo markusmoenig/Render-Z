@@ -125,10 +125,6 @@ class EditorWidget      : MMWidget
                 shape.properties["posY"] = yOff
             }
             
-//            app.layerManager.getCurrentLayer().build()
-//            app.gizmo.setObject(currentObject)
-//            region.result = nil
-            
             currentObject!.maxDelegate?.update(true)
         }
     }

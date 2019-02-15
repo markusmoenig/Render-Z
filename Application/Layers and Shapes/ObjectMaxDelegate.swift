@@ -75,7 +75,6 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
         timelineButton.clicked = { (event) -> Void in
             self.switchTimelineMode()
-            self.shapesButton.removeState(.Checked)
         }
         
         app.closeButton.clicked = { (event) -> Void in
@@ -358,6 +357,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func update(_ hard: Bool = false)
     {
         if hard {
+            app.gizmo.setObject(currentObject)
             currentObject!.instance = app.builder.buildObjects(objects: [currentObject!], camera: camera, timeline: timeline)
         } else {
             let region = app.editorRegion!
@@ -568,7 +568,7 @@ class ShapeListScrollArea: MMScrollArea
         // ---
         
         if delegate.shapeListChanged {
-            delegate.update()
+            delegate.update(true)
         }
     }
     
@@ -681,7 +681,7 @@ class SequenceWidget : MMWidget
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
-        label.setText("Current Animation")
+        label.setText("Animation Sequence")
         label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
         
         menuWidget.rect.x = rect.x + rect.width - 30 - 1
