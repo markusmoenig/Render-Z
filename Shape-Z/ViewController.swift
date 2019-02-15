@@ -13,11 +13,60 @@ class ViewController: NSViewController {
     var app : App!
     var mmView : MMView!
     
+    var containerUrl: URL? {
+        return FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         mmView = view as? MMView
         app = App( mmView )
+        
+/*
+        // check for container existence
+        if let url = self.containerUrl, !FileManager.default.fileExists(atPath: url.path, isDirectory: nil) {
+            do {
+                try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+            }
+            catch {
+                print(error.localizedDescription)
+            }
+        }
+        
+        let myDocumentUrl = self.containerUrl//?
+//            .appendingPathComponent("testing")
+//            .appendingPathExtension("shape-z")
+        
+        var string = "Lots of data"
+        do {
+//            try string.write(to: myDocumentUrl!, atomically: true, encoding: .utf8)
+            
+//            let test = try String(contentsOf: myDocumentUrl!)
+//            print( test )
+            
+            let contents = try FileManager.default.contentsOfDirectory(at: myDocumentUrl!,
+                                                            includingPropertiesForKeys: nil,
+                                                            options: [.skipsHiddenFiles])
+//            print( contents )
+            
+            var isDir : ObjCBool = false
+            for file in contents {
+//                print( file )
+//                let attr = try FileManager.default.attributesOfItem(atPath:file.path)
+//                print( file.lastPathComponent )
+                
+                let dd = try FileManager.default.fileExists(atPath: file.path, isDirectory:&isDir)
+                print( file.lastPathComponent, file.path, isDir )
+
+//                try FileManager.default.removeItem(at: file.absoluteURL)
+
+            }
+
+        } catch {
+            print(error.localizedDescription)
+        }*/
+
     }
 
     override var representedObject: Any? {
@@ -25,7 +74,5 @@ class ViewController: NSViewController {
         // Update the view, if already loaded.
         }
     }
-
-
 }
 
