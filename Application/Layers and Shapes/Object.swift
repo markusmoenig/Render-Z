@@ -18,6 +18,7 @@ class Object : Node
 
     /// The timeline sequences for this object
     var sequences       : [MMTlSequence]
+    var currentSequence : MMTlSequence? = nil
     
     var selectedShapes  : [UUID]
     
@@ -59,6 +60,10 @@ class Object : Node
         selectedShapes = try container.decode([UUID].self, forKey: .selectedShapes)
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
 
+        if sequences.count > 0 {
+            currentSequence = sequences[0]
+        }
+        
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
         

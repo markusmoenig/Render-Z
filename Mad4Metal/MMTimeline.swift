@@ -26,8 +26,8 @@ struct MMTlKey : Codable
 class MMTlSequence : Codable, MMListWidgetItem
 {
     var uuid            : UUID = UUID()
-    var name            : String = "New Animation"
-    
+    var name            : String = "Idle"
+
     var items           : [UUID: [Int:MMTlKey]] = [:]
 }
 
@@ -59,8 +59,6 @@ class MMTimeline : MMWidget
     
     var visibleStartFrame       : Float = 0
     var barStartX               : Float = 0
-    
-    var currentSequence         : MMTlSequence? = nil
     
     override init(_ view: MMView )
     {
@@ -110,8 +108,6 @@ class MMTimeline : MMWidget
     
     func draw(_ sequence: MMTlSequence, uuid: UUID)
     {
-        currentSequence = sequence
-        
         mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor : float4(0.110, 0.110, 0.110, 1.000), borderColor: float4(0) )// mmView.skin.Widget.borderColor )
         
         let skin = mmView.skin.TimelineWidget

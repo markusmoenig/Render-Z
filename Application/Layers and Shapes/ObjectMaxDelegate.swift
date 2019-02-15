@@ -110,16 +110,21 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timeline.changedCB = { (frame) in
             self.update()
         }
-        sequenceWidget = SequenceWidget(app.mmView, app: app)
+        sequenceWidget = SequenceWidget(app.mmView, app: app, delegate: self)
+        sequenceWidget.listWidget.selectedItems = [currentObject!.sequences[0].uuid]
+        sequenceWidget.listWidget.selectionChanged = { (items:[MMListWidgetItem]) -> Void in
+            self.currentObject!.currentSequence = items[0] as? MMTlSequence
+            self.update()
+        }
         timelineButton.addState( .Checked )
         app.bottomRegion!.rect.height = 100
         
-        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget, app.closeButton)
+        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
     }
     
     override func deactivate()
     {
-        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget)
+        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -220,7 +225,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 // Timeline area
                 timeline.rect.copy( region.rect )
                 timeline.rect.width -= app.rightRegion!.rect.width
-                timeline.draw(currentObject!.sequences[0], uuid:currentObject!.uuid)
+                timeline.draw(currentObject!.currentSequence!, uuid:currentObject!.uuid)
                 
                 // Sequence area
                 sequenceWidget.rect.copy( region.rect )
@@ -332,7 +337,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 if finished {
                     self.animating = false
                     self.bottomRegionMode = .Closed
-                    //? self.app.topRegion!.timelineButton.removeState( .Checked )
+                    self.timelineButton.removeState( .Checked )
                 }
             } )
             animating = true
@@ -599,41 +604,77 @@ class SequenceWidget : MMWidget
 {
     var app                 : App
     var label               : MMTextLabel
-    //    var menuWidget          : MMMenuWidget
-    //    var objectEditorWidget  : ObjectEditorWidget
+    var menuWidget          : MMMenuWidget
     
     var listWidget          : MMListWidget
+    var items               : [MMListWidgetItem] = []
     
-    init(_ view: MMView, app: App)
+    var delegate            : ObjectMaxDelegate
+    
+    init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
     {
         self.app = app
+        self.delegate = delegate
         
         label = MMTextLabel(view, font: view.openSans, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
         listWidget = MMListWidget(view)
         
-        //        objectEditorWidget = ObjectEditorWidget(view, app: app)
+        // ---  Menu
         
-        /*
-         // --- Object Menu
-         let objectMenuItems = [
-         MMMenuItem( text: "Add Child Object", cb: {print("add child") } ),
-         MMMenuItem( text: "Rename Object", cb: {
-         let object = app.layerManager.getCurrentObject()!
-         getStringDialog(view: view, title: "Rename Object", message: "Enter new name", defaultValue: object.name, cb: { (name) -> Void in
-         object.name = name
-         } )
-         } ),
-         MMMenuItem( text: "Delete Object", cb: {print("add child") } )
-         ]
-         menuWidget = MMMenuWidget( view, items: objectMenuItems )
-         */
+        let sequenceMenuItems = [
+            MMMenuItem( text: "Add", cb: {} ),
+            MMMenuItem( text: "Rename", cb: {} ),
+            MMMenuItem( text: "Delete", cb: {print("add child") } )
+        ]
+        menuWidget = MMMenuWidget( view, items: sequenceMenuItems )
         
         super.init(view)
+        
+        // ---
+        
+        menuWidget.items[0].cb = {
+            let object = self.delegate.currentObject!
+            let seq = MMTlSequence()
+            seq.name = "New Animation"
+            object.sequences.append(seq)
+            object.currentSequence = seq
+            self.listWidget.selectedItems = [seq.uuid]
+        }
+        
+        menuWidget.items[1].cb = {
+            var item = self.getCurrentItem()
+            if item != nil {
+                getStringDialog(view: view, title: "Rename Animation", message: "New name", defaultValue: item!.name, cb: { (name) -> Void in
+                    item!.name = name
+                } )
+            }
+        }
+        
+        menuWidget.items[2].cb = {
+            if self.items.count < 2 { return }
+
+            var item = self.getCurrentItem()
+
+            let object = self.delegate.currentObject!
+            object.sequences.remove(at: object.sequences.index(where: { $0.uuid == item!.uuid })!)
+            self.listWidget.selectedItems = [object.sequences[0].uuid]
+        }
     }
     
     func build(items: [MMListWidgetItem])
     {
+        self.items = items
         listWidget.build(items: items)
+    }
+    
+    func getCurrentItem() -> MMListWidgetItem?
+    {
+        for item in items {
+            if listWidget.selectedItems.contains( item.uuid ) {
+                return item
+            }
+        }
+        return nil
     }
     
     override func draw()
@@ -643,12 +684,35 @@ class SequenceWidget : MMWidget
         label.setText("Current Animation")
         label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
         
+        menuWidget.rect.x = rect.x + rect.width - 30 - 1
+        menuWidget.rect.y = rect.y + 1
+        menuWidget.rect.width = 30
+        menuWidget.rect.height = 28
+        
+        if menuWidget.states.contains(.Opened) {
+            mmView.delayedDraws.append( menuWidget )
+        } else {
+            menuWidget.draw()
+            // --- Make focus area the size of the toolbar
+            menuWidget.rect.x = rect.x
+            menuWidget.rect.y = rect.y
+            menuWidget.rect.width = rect.width
+            menuWidget.rect.height = 30
+        }
+        
         listWidget.rect.x = rect.x
         listWidget.rect.y = rect.y + 30
         listWidget.rect.width = rect.width
         listWidget.rect.height = rect.height - 30
-        
         listWidget.draw()
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y) - 30, items: items)
+        if changed {
+            listWidget.build(items: items)
+        }
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)

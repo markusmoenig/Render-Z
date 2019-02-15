@@ -28,15 +28,11 @@ class Camera
 
 class Builder
 {
-    /// The default sequence for all objects and shapes in the layer
-    var sequence        : MMTlSequence
-    
     var compute         : MMCompute?
     
     init()
     {
         compute = MMCompute()
-        sequence = MMTlSequence()
     }
     
     /// Build the state for the given objects
@@ -144,7 +140,7 @@ class Builder
         {
             for shape in object.shapes {
                 
-                let properties = timeline.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
+                let properties = timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
                 
                 source += "uv = translate( tuv, layerData->shape[\(index)].pos );"
                 if shape.pointCount < 2 {
@@ -266,7 +262,7 @@ class Builder
         func parseObject(_ object: Object)
         {
             for shape in object.shapes {
-                let properties = timeline.transformProperties(sequence: sequence, uuid: shape.uuid, properties: shape.properties)
+                let properties = timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
                 
                 instance.data![offset + index * 12] = properties["posX"]!
                 instance.data![offset + index * 12+1] = properties["posY"]!
@@ -368,7 +364,7 @@ class Builder
         for (objectIndex, object) in instance.objects.enumerated() {
             for (shapeIndex, shape) in object.shapes.enumerated() {
                 
-                let transformed = timeline.transformProperties(sequence:sequence, uuid:shape.uuid, properties:shape.properties)
+                let transformed = timeline.transformProperties(sequence: object.currentSequence!, uuid:shape.uuid, properties:shape.properties)
                 let posX : Float = transformed["posX"]!
                 let posY : Float = transformed["posY"]!
                 let rotate : Float = transformed["rotate"]! * Float.pi / 180

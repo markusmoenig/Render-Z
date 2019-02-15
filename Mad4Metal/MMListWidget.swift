@@ -31,6 +31,9 @@ class MMListWidget : MMWidget
     var textureWidget   : MMTextureWidget
     var scrollArea      : MMScrollArea
     
+    var selectedItems   : [UUID] = []
+    var selectionChanged: ((_ item: [MMListWidgetItem])->())? = nil
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -42,22 +45,25 @@ class MMListWidget : MMWidget
         fragment!.allocateTexture(width: 10, height: 10)
         
         spacing = 0
-        unitSize = 40
+        unitSize = 35
         
         textureWidget = MMTextureWidget( view, texture: fragment!.texture )
-        
+
         hoverData = [-1,0]
         hoverBuffer = fragment!.device.makeBuffer(bytes: hoverData, length: hoverData.count * MemoryLayout<Float>.stride, options: [])!
         
         super.init(view)
+        zoom = 2
+//        unitSize *= zoom
+        textureWidget.zoom = zoom
     }
     
     /// Build the source
     func build(items: [MMListWidgetItem])
     {
         let count : Float = Float(items.count)
-        width = rect.width
-        height = count * unitSize + (count > 0 ? (count-1) * spacing : Float(0))
+        width = rect.width * zoom
+        height = (count * unitSize + (count > 0 ? (count-1) * spacing : Float(0))) * zoom
         if width == 0 {
             width = 1
         }
@@ -116,7 +122,7 @@ class MMListWidget : MMWidget
             float dist = 10000;
             float2 d;
         
-            float borderSize = 2;
+            float borderSize = 2.0;
             float round = 4;
         
             float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
@@ -134,23 +140,25 @@ class MMListWidget : MMWidget
         
         """
         
-        let left : Float = width / 2
-        var top : Float = unitSize / 2
+        let left : Float = (width / 2) * zoom
+        var top : Float = (unitSize / 2) * zoom
         
-        for (index, item) in items.enumerated() {
+        for (_, item) in items.enumerated() {
 
             source += "uv = uvOrigin; uv.x += size.x / 2.0 - \(left) + borderSize/2; uv.y += size.y / 2.0 - \(top) + borderSize/2;\n"
+            source += "uv /= \(zoom);\n"
+
             //source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
             
             source += "d = abs( uv ) - float2( \((width)/2) - borderSize, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
             
-//            if object.selectedShapes.contains( shape.uuid ) {
-//                source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
-//            } else {
+            if selectedItems.contains( item.uuid ) {
+                source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
+            } else {
                 source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
-//            }
-            source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
+            }
+            source += "col = mix( col, borderColor, borderMask( dist, 2.0 ) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             /*
             // --- Up / Down Arrows
@@ -181,7 +189,7 @@ class MMListWidget : MMWidget
             //            source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
             //            source += "finalCol = mix( finalCol, col, col.a );\n"
             
-            top += unitSize + spacing
+            top += (unitSize + spacing) * zoom
         }
         
         source +=
@@ -205,18 +213,20 @@ class MMListWidget : MMWidget
             
             fragment!.encodeRun(state )//, inBuffer: hoverBuffer)
             
-            let left = spacing
-            var top : Float = 10
-            let fontScale : Float = 0.26
+            let left : Float = 6 * zoom
+            var top : Float = 2 * zoom
+            let fontScale : Float = 0.3
             
             var fontRect = MMRect()
             
+//            let item = items[0]
+            
             for item in items {
+            
+                fontRect = mmView.openSans.getTextRect(text: item.name, scale: fontScale, rectToUse: fontRect)
+                mmView.drawText.drawText(mmView.openSans, text: item.name, x: left, y: top, scale: fontScale * zoom, fragment: fragment)
                 
-                fontRect = mmView.openSans.getTextRect(text: item.name, scale: fontScale * zoom, rectToUse: fontRect)
-                mmView.drawText.drawText(mmView.openSans, text: item.name, x: left + (unitSize - fontRect.width) / 2, y: top + 4, scale: fontScale * zoom, fragment: fragment)
-                
-                top += spacing
+                top += (unitSize / 2) * zoom
             }
             
             fragment!.encodeEnd()
@@ -236,40 +246,29 @@ class MMListWidget : MMWidget
     }
     
     /// Selected the shape at the given relative mouse position
-    @discardableResult func selectAt(_ x: Float,_ y: Float, multiSelect: Bool = false) -> Bool
+    @discardableResult func selectAt(_ x: Float,_ y: Float, items: [MMListWidgetItem], multiSelect: Bool = false) -> Bool
     {
-        let index : Float = y / (unitSize+spacing)
+        let index : Float = (y - scrollArea.offsetY) / (unitSize+spacing)
         let selectedIndex = Int(index)
         var changed  = false
         
-        /*
-        if currentObject != nil {
-            if selectedIndex >= 0 && selectedIndex < currentObject!.shapes.count {
-                if !multiSelect {
-                    
-                    let shape = currentObject!.shapes[selectedIndex]
-                    
-                    currentObject!.selectedShapes = [shape.uuid]
-                    
-                    //                print( x )
-                    
-                    if x >= 60 && x <= 92 {
-                        shape.mode = .Merge
-                    } else
-                        if x >= 95 && x <= 119 {
-                            shape.mode = .Subtract
-                        } else
-                            if x >= 122 && x <= 139 {
-                                shape.mode = .Intersect
-                    }
-                    
-                    
-                } else if !currentObject!.selectedShapes.contains( currentObject!.shapes[selectedIndex].uuid ) {
-                    currentObject!.selectedShapes.append( currentObject!.shapes[selectedIndex].uuid )
+        if selectedIndex >= 0 && selectedIndex < items.count {
+            if !multiSelect {
+                
+                let item = items[selectedIndex]
+                
+                selectedItems = [item.uuid]
+                
+                if selectionChanged != nil {
+                    selectionChanged!( [item] )
                 }
-                changed = true
-            }
-        }*/
+                
+            } //else if !currentObject!.selectedShapes.contains( currentObject!.shapes[selectedIndex].uuid ) {
+                //currentObject!.selectedShapes.append( currentObject!.shapes[selectedIndex].uuid )
+            //}
+            changed = true
+        }
+        
         return changed
     }
     

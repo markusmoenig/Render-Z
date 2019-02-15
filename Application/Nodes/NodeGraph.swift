@@ -46,9 +46,8 @@ class NodeGraph : Codable
         let object = Object()
         object.name = "Object"
         object.sequences.append( MMTlSequence() )
-        object.sequences.append( MMTlSequence() )
-        object.sequences.append( MMTlSequence() )
-        object.sequences.append( MMTlSequence() )
+        object.currentSequence = object.sequences[0]
+        
         nodes.append(object)
     }
     

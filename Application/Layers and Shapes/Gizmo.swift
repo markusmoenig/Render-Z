@@ -273,9 +273,9 @@ class Gizmo : MMWidget
             }
             
         } else {
-//            let timeline = layerManager.app!.objectTimeline!
-//            let uuid = shape.uuid//shape != nil ? shape!.uuid : object!.uuid
-//            timeline.addKeyProperties(sequence: layerManager.getCurrentLayer().sequence, uuid: uuid, properties: properties)
+            let timeline = object!.maxDelegate!.getTimeline()!
+            let uuid = shape.uuid
+            timeline.addKeyProperties(sequence: object!.currentSequence!, uuid: uuid, properties: properties)
         }
     }
     
@@ -651,7 +651,6 @@ class Gizmo : MMWidget
         }
     }
     
-    
     /// Converts the coordinate from scene space to screen space
     func convertToScreenSpace(x: Float, y: Float) -> float2
     {
@@ -702,8 +701,7 @@ class Gizmo : MMWidget
     {
         let timeline = object!.maxDelegate!.getTimeline()!
         
-//        let sequence = layerManager.getCurrentLayer().sequence
-        let transformed = timeline.transformProperties(sequence:timeline.currentSequence!, uuid: shape.uuid, properties:shape.properties)
+        let transformed = timeline.transformProperties(sequence: object!.currentSequence!, uuid: shape.uuid, properties:shape.properties)
         return transformed
     }
     
