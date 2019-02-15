@@ -78,7 +78,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         color = data->selected == 1 ? selBorderColor : borderColor;
         finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );
     } else
-    if ( point.y <= 26 && point.x > 3 && point.x < data->size.x - 5 ) {
+    if ( point.y <= 26 && point.x > 2.5 && point.x < data->size.x - 4 ) {
         color = float4(0, 0, 0, 1.000);
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
     }
@@ -88,6 +88,58 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     
         color = data->selected == 1 ? selBorderColor : borderColor;
         finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );
+    }
+    
+    // Preview Area
+    
+    if ( 1 )
+    {
+        float previewStartY = data->size.y - 134;
+        if ( point.y >= data->size.y - 135 && point.y <= data->size.y - 134 && point.x > 2.5 && point.x < data->size.x - 4)
+        {
+            color = float4(0, 0, 0, 1.000);
+            finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+        }
+        if ( point.y > previewStartY && point.x > 2.5 && point.x < data->size.x - 4 )
+        {
+            float s = nodeGradient_linear(point, float2( 0, previewStartY), float2( 0, previewStartY + 116 ) );
+            color = mix(float4(0.631, 0.631, 0.631, 1.000), float4(0.255, 0.255, 0.255, 1.000), clamp(s, 0, 1) );
+            
+            finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+        }
+        
+        if ( point.y >= previewStartY + 5 && point.y <= previewStartY + 116 && point.x > 8 && point.x < data->size.x - 10)
+        {
+            float2 d = abs( uv + float2( 0, 60 ) ) - float2(67, 50);
+            float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            
+            float4 checkerColor1 = float4(0.698, 0.698, 0.698, 0.8);
+            float4 checkerColor2 = float4(0.157, 0.157, 0.157, 0.8);
+            
+            color = checkerColor1;
+            
+            float cWidth = 20.0;
+            float cHeight = 20.0;
+            
+            if ( fmod( floor( uv.x / cWidth ), 2.0 ) == 0.0 ) {
+                if ( fmod( floor( uv.y / cHeight ), 2.0 ) != 0.0 ) color = checkerColor2;
+            } else {
+                if ( fmod( floor( uv.y / cHeight ), 2.0 ) == 0.0 ) color = checkerColor2;
+            }
+            
+            finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+            color = float4(0, 0, 0, 1);
+            finalColor = mix( finalColor, color, nodeBorderMask( dist, 2 ) );
+        }
+        
+        finalColor.w = 1.0;
+    }
+    
+    float footerStartY = data->size.y - 20;
+    if ( point.y >= footerStartY && point.y <= footerStartY + 1 && point.x > 2.5 && point.x < data->size.x - 4 )
+    {
+        color = float4(0, 0, 0, 1.000);
+        finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
     }
     
     // Header

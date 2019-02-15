@@ -237,6 +237,14 @@ class NodeGraph : Codable
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         
         node.titleTextBuffer = app!.mmView.drawText.drawText(app!.mmView.openSans, text: node.name, x: node.rect.x + 10, y: node.rect.y + 6, scale: 0.4, color: float4( 0.765, 0.765, 0.765, 1), textBuffer: node.titleTextBuffer)
+        
+        //
+        
+        let object = node as! Object
+        if object.instance != nil {
+            app!.builder.render(width: 130, height: 100, instance: object.instance!, camera: object.maxDelegate!.getCamera()!, timeline: node.maxDelegate!.getTimeline()!)
+            app!.mmView.drawTexture.draw(object.instance!.texture!, x: node.rect.x + 10, y: node.rect.y + 140)
+        }
     }
     
     /// Returns the node (if any) at the given mouse coordinates
