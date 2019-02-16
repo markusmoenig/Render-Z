@@ -10,8 +10,6 @@ import MetalKit
 
 class Object : Node
 {
-    var type            : String = "Object"
-
     var shapes          : [Shape]
     var childObjects    : [Object]
     var properties      : [String: Float]
@@ -47,13 +45,13 @@ class Object : Node
         
         super.init()
         
+        type = "Object"
         maxDelegate = ObjectMaxDelegate()
     }
     
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        type = try container.decode(String.self, forKey: .type)
         shapes = try container.decode([Shape].self, forKey: .shapes)
         childObjects = try container.decode([Object].self, forKey: .shapes)
         properties = try container.decode([String: Float].self, forKey: .properties)
@@ -67,6 +65,7 @@ class Object : Node
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
         
+        type = "Object"
         maxDelegate = ObjectMaxDelegate()
     }
     

@@ -23,6 +23,7 @@ class EditorWidget      : MMWidget
         super.init(view)
         
         dropTargets.append( "ShapeSelectorItem" )
+        dropTargets.append( "NodeItem" )
     }
 
     override func mouseDown(_ event: MMMouseEvent)
@@ -126,6 +127,23 @@ class EditorWidget      : MMWidget
             }
             
             currentObject!.maxDelegate?.update(true)
+        } else
+        if dragSource.id == "NodeItem"
+        {
+            let drag = dragSource as! NodeListDrag
+            let node = drag.node!
+            
+            node.xPos = event.x - rect.x - app.nodeGraph.xOffset
+            node.yPos = event.y - rect.y - app.nodeGraph.yOffset
+
+            if node.type == "Object" {
+                let object = node as! Object
+                object.name = "New Object"
+                object.sequences.append( MMTlSequence() )
+                object.currentSequence = object.sequences[0]
+            }
+            
+            app.nodeGraph.nodes.append(node)
         }
     }
 }

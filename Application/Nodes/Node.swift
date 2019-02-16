@@ -12,6 +12,8 @@ import Foundation
 
 class Node : Codable
 {
+    var type            : String = ""
+
     var name            : String = ""
     var uuid            : UUID = UUID()
     

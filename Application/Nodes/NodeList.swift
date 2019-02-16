@@ -10,13 +10,25 @@ import MetalKit
 
 class NodeListItem : MMListWidgetItem
 {
-    var         name : String = ""
-    var         uuid : UUID = UUID()
+    var name         : String = ""
+    var uuid         : UUID = UUID()
+    
+    var createNode   : (() -> Node)? = nil
     
     init(_ name: String)
     {
         self.name = name
     }
+}
+
+struct NodeListDrag : MMDragSource
+{
+    var id              : String = ""
+    var sourceWidget    : MMWidget? = nil
+    var previewWidget   : MMWidget? = nil
+    var pWidgetOffset   : float2? = float2()
+    var node            : Node? = nil
+    var name            : String = ""
 }
 
 class NodeList : MMWidget
@@ -26,13 +38,20 @@ class NodeList : MMWidget
     var listWidget          : MMListWidget
     var items               : [NodeListItem] = []
     
+    var mouseIsDown         : Bool = false
+    var dragSource          : NodeListDrag?
+    
     init(_ view: MMView, app: App)
     {
         self.app = app
         
         listWidget = MMListWidget(view)
         
-        var item = NodeListItem("Object")
+        // --- Object
+        let item = NodeListItem("Object")
+        item.createNode = {
+            return Object()
+        }
         
         items.append(item)
         
@@ -69,6 +88,51 @@ class NodeList : MMWidget
         if changed {
             listWidget.build(items: items, fixedWidth: 200)
         }
+        mouseIsDown = true
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if mouseIsDown && dragSource == nil {
+            dragSource = createDragSource(event.x - rect.x, event.y - rect.y)
+            dragSource?.sourceWidget = self
+            mmView.dragStarted(source: dragSource!)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        mouseIsDown = false
+    }
+    
+    override func dragTerminated() {
+        dragSource = nil
+        mmView.unlockFramerate()
+    }
+    
+    /// Create a drag item for the given position
+    func createDragSource(_ x: Float,_ y: Float) -> NodeListDrag?
+    {
+        let listItem = listWidget.itemAt(x, y, items: items)
+
+        if listItem != nil {
+            
+            let item = listItem as! NodeListItem
+            var drag = NodeListDrag()
+            
+            drag.id = "NodeItem"
+            drag.name = item.name
+            drag.pWidgetOffset!.x = x - rect.x
+            drag.pWidgetOffset!.y = y - rect.y
+            //drag.shape = shapeFactory.createShape(drag.name, size: unitSize / 2 - 2)
+            drag.node = item.createNode!()
+            
+            //let texture = createShapeThumbnail(drag.shape!)
+            //drag.previewWidget = MMTextureWidget(mmView, texture: texture)
+            
+            return drag
+        }
+        return nil
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)

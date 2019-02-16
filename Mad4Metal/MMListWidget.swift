@@ -252,19 +252,16 @@ class MMListWidget : MMWidget
     /// Selected the shape at the given relative mouse position
     @discardableResult func selectAt(_ x: Float,_ y: Float, items: [MMListWidgetItem], multiSelect: Bool = false) -> Bool
     {
-        let index : Float = (y - scrollArea.offsetY) / (unitSize+spacing)
-        let selectedIndex = Int(index)
-        var changed  = false
+        let item = itemAt(x, y, items: items)
+        var changed : Bool = false
         
-        if selectedIndex >= 0 && selectedIndex < items.count {
+        if item != nil {
             if !multiSelect {
                 
-                let item = items[selectedIndex]
-                
-                selectedItems = [item.uuid]
+                selectedItems = [item!.uuid]
                 
                 if selectionChanged != nil {
-                    selectionChanged!( [item] )
+                    selectionChanged!( [item!] )
                 }
                 
             } //else if !currentObject!.selectedShapes.contains( currentObject!.shapes[selectedIndex].uuid ) {
@@ -274,6 +271,19 @@ class MMListWidget : MMWidget
         }
         
         return changed
+    }
+    
+    /// Returns the item at the given location
+    @discardableResult func itemAt(_ x: Float,_ y: Float, items: [MMListWidgetItem]) -> MMListWidgetItem?
+    {
+        let index : Float = (y - scrollArea.offsetY) / (unitSize+spacing)
+        let selectedIndex = Int(index)
+        
+        if selectedIndex >= 0 && selectedIndex < items.count {
+            return items[selectedIndex]
+        }
+        
+        return nil
     }
     
     /*
