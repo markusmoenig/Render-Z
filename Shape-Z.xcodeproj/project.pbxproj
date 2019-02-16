@@ -11,6 +11,8 @@
 		2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
 		2B5CCB0322152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
+		2B639F17221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
+		2B639F18221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
@@ -106,6 +108,7 @@
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
 		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
 		2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Shape-Z iOS.entitlements"; sourceTree = "<group>"; };
+		2B639F16221791F500576542 /* NodeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeList.swift; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2BA344A121FE8497000BB2EB /* MMTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTimeline.swift; sourceTree = "<group>"; };
 		2BA344A522015419000BB2EB /* timeline_recording.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline_recording.tiff; sourceTree = "<group>"; };
@@ -333,6 +336,7 @@
 				2BE67101221259F500B95241 /* Node.swift */,
 				2BE6710422125D7D00B95241 /* NodeGraph.swift */,
 				2BE67107221291D200B95241 /* Node.metal */,
+				2B639F16221791F500576542 /* NodeList.swift */,
 			);
 			path = Nodes;
 			sourceTree = "<group>";
@@ -493,6 +497,7 @@
 				2BBF11F021EEC618001C94E9 /* ShapeFactory.swift in Sources */,
 				2BBF11A421EAD46B001C94E9 /* AppShaders.metal in Sources */,
 				2BBF11FF21F808B1001C94E9 /* Gizmo.swift in Sources */,
+				2B639F17221791F500576542 /* NodeList.swift in Sources */,
 				2BBF11C521EADB46001C94E9 /* MMRegion.swift in Sources */,
 				2BBF11CF21EADB46001C94E9 /* MMFont.swift in Sources */,
 				2BBF11F921F55D20001C94E9 /* Object.swift in Sources */,
@@ -540,6 +545,7 @@
 				2BBF11F121EEC618001C94E9 /* ShapeFactory.swift in Sources */,
 				2BBF11A521EAD46B001C94E9 /* AppShaders.metal in Sources */,
 				2BBF120021F808B1001C94E9 /* Gizmo.swift in Sources */,
+				2B639F18221791F500576542 /* NodeList.swift in Sources */,
 				2BBF11C621EADB46001C94E9 /* MMRegion.swift in Sources */,
 				2BBF11D021EADB46001C94E9 /* MMFont.swift in Sources */,
 				2BBF11FA21F55D20001C94E9 /* Object.swift in Sources */,

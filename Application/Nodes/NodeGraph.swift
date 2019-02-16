@@ -10,6 +10,11 @@ import MetalKit
 
 class NodeGraph : Codable
 {
+    enum LeftRegionMode
+    {
+        case Closed, Nodes
+    }
+    
     enum NodeHoverMode : Float {
         case None, Maximize, Dragging
     }
@@ -33,6 +38,10 @@ class NodeGraph : Codable
 
     var nodeHoverMode   : NodeHoverMode = .None
     var nodesButton     : MMButtonWidget!
+    
+    var nodeList        : NodeList?
+    var animating       : Bool = false
+    var leftRegionMode  : LeftRegionMode = .Nodes
     
     private enum CodingKeys: String, CodingKey {
         case nodes
@@ -83,9 +92,39 @@ class NodeGraph : Codable
         
         nodesButton = MMButtonWidget( app.mmView, text: "Nodes" )
         nodesButton.clicked = { (event) -> Void in
-//            app.leftRegion?.setMode(.Shapes)
-//            self.materialsButton.removeState(.Checked)
+            self.setLeftRegionMode(.Nodes)
         }
+        nodesButton.addState(.Checked)
+        
+        nodeList = NodeList(app.mmView, app:app)
+    }
+
+    /// Controls the tab mode in the left region
+    func setLeftRegionMode(_ mode: LeftRegionMode )
+    {
+        if animating { return }
+        let leftRegion = app!.leftRegion!
+        if self.leftRegionMode == mode && leftRegionMode != .Closed {
+            app!.mmView.startAnimate( startValue: leftRegion.rect.width, endValue: 0, duration: 500, cb: { (value,finished) in
+                leftRegion.rect.width = value
+                if finished {
+                    self.animating = false
+                    self.leftRegionMode = .Closed
+                    self.nodesButton.removeState( .Checked )
+                }
+            } )
+            animating = true
+        } else if leftRegion.rect.width != 200 {
+            
+            app!.mmView.startAnimate( startValue: leftRegion.rect.width, endValue: 200, duration: 500, cb: { (value,finished) in
+                if finished {
+                    self.animating = false
+                }
+                leftRegion.rect.width = value
+            } )
+            animating = true
+        }
+        self.leftRegionMode = mode
     }
     
     func mouseDown(_ event: MMMouseEvent)
@@ -150,14 +189,14 @@ class NodeGraph : Codable
     ///
     func activate()
     {
-        app?.mmView.registerWidget(nodesButton)
-        app!.leftRegion!.rect.width = 0
+        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!)
+        app!.leftRegion!.rect.width = 200
     }
     
     ///
     func deactivate()
     {
-        app?.mmView.deregisterWidget(nodesButton)
+        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!)
     }
     
     /// Draws the given region
@@ -194,6 +233,10 @@ class NodeGraph : Codable
             }
             
             renderer.setClipRect()
+        } else
+        if region.type == .Left {
+            nodeList!.rect.copy(region.rect)
+            nodeList!.draw()
         } else
         if region.type == .Top {
             region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: nodesButton )

@@ -59,10 +59,10 @@ class MMListWidget : MMWidget
     }
     
     /// Build the source
-    func build(items: [MMListWidgetItem])
+    func build(items: [MMListWidgetItem], fixedWidth: Float? = nil)
     {
         let count : Float = Float(items.count)
-        width = rect.width * zoom
+        width = fixedWidth != nil ? fixedWidth! * zoom : rect.width * zoom
         height = (count * unitSize + (count > 0 ? (count-1) * spacing : Float(0))) * zoom
         if width == 0 {
             width = 1
@@ -114,7 +114,7 @@ class MMListWidget : MMWidget
         fragment float4 listWidgetBuilder(RasterizerData in [[stage_in]],
                                           constant MMLISTWIDGET_HOVER_DATA  *hoverData   [[ buffer(2) ]])
         {
-            float2 size = float2( \(width), \(height) );
+            float2 size = float2( \(width*zoom), \(height) );
 
             float2 uvOrigin = float2( in.textureCoordinate.x * size.x - size.x / 2., size.y - in.textureCoordinate.y * size.y - size.y / 2. );
             float2 uv;
@@ -140,17 +140,15 @@ class MMListWidget : MMWidget
         
         """
         
-        let left : Float = (width / 2) * zoom
+        let left : Float = (width/2) * zoom
         var top : Float = (unitSize / 2) * zoom
         
         for (_, item) in items.enumerated() {
 
             source += "uv = uvOrigin; uv.x += size.x / 2.0 - \(left) + borderSize/2; uv.y += size.y / 2.0 - \(top) + borderSize/2;\n"
             source += "uv /= \(zoom);\n"
-
-            //source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
             
-            source += "d = abs( uv ) - float2( \((width)/2) - borderSize, \(unitSize/2) - borderSize ) + float2( round );\n"
+            source += "d = abs( uv ) - float2( \((width)/2) - borderSize - 2, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
             
             if selectedItems.contains( item.uuid ) {
@@ -214,8 +212,8 @@ class MMListWidget : MMWidget
             fragment!.encodeRun(state )//, inBuffer: hoverBuffer)
             
             let left : Float = 6 * zoom
-            var top : Float = 2 * zoom
-            let fontScale : Float = 0.3
+            var top : Float = 4 * zoom
+            let fontScale : Float = 0.22
             
             var fontRect = MMRect()
             
@@ -237,6 +235,12 @@ class MMListWidget : MMWidget
     {
         scrollArea.rect.copy(rect)
         scrollArea.build(widget:textureWidget, area: rect)
+    }
+    
+    func drawWithXOffset(xOffset: Float)
+    {
+        scrollArea.rect.copy(rect)
+        scrollArea.build(widget:textureWidget, area: rect, xOffset: xOffset)
     }
     
     func update()

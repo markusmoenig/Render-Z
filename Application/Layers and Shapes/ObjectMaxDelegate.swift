@@ -247,6 +247,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
 //            func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera, timeline: MMTimeline)
 
             app.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera, timeline: timeline)
+            update()
         }
     }
     
@@ -700,6 +701,8 @@ class SequenceWidget : MMWidget
             menuWidget.rect.height = 30
         }
         
+        mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height - 30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+
         listWidget.rect.x = rect.x
         listWidget.rect.y = rect.y + 30
         listWidget.rect.width = rect.width
