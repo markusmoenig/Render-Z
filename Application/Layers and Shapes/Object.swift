@@ -122,6 +122,8 @@ class Object : Node
         if previewTexture == nil {
             previewTexture = app.builder.compute!.allocateTexture(width: 130, height: 100, output: true)
         }
-        app.builder.render(width: 130, height: 100, instance: instance!, camera: maxDelegate!.getCamera()!, timeline: maxDelegate!.getTimeline()!, outTexture: previewTexture)
+        if instance != nil {
+            app.builder.render(width: 130, height: 100, instance: instance!, camera: maxDelegate!.getCamera()!, timeline: maxDelegate!.getTimeline()!, outTexture: previewTexture)
+        }
     }
 }
