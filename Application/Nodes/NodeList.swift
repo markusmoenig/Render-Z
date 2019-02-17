@@ -122,13 +122,13 @@ class NodeList : MMWidget
             
             drag.id = "NodeItem"
             drag.name = item.name
-            drag.pWidgetOffset!.x = x - rect.x
-            drag.pWidgetOffset!.y = y - rect.y
-            //drag.shape = shapeFactory.createShape(drag.name, size: unitSize / 2 - 2)
+            drag.pWidgetOffset!.x = x
+            drag.pWidgetOffset!.y = y
             drag.node = item.createNode!()
             
-            //let texture = createShapeThumbnail(drag.shape!)
-            //drag.previewWidget = MMTextureWidget(mmView, texture: texture)
+            let texture = listWidget.createShapeThumbnail(item: listItem!)
+            drag.previewWidget = MMTextureWidget(mmView, texture: texture)
+            drag.previewWidget!.zoom = 2
             
             return drag
         }

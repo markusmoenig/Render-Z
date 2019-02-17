@@ -156,7 +156,7 @@ class MMListWidget : MMWidget
             } else {
                 source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
             }
-            source += "col = mix( col, borderColor, borderMask( dist, 2.0 ) );\n"
+            source += "col = mix( col, borderColor, borderMask( dist, borderSize) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             /*
             // --- Up / Down Arrows
@@ -317,5 +317,109 @@ class MMListWidget : MMWidget
     override func mouseScrolled(_ event: MMMouseEvent)
     {
         scrollArea.mouseScrolled(event)
+    }
+    
+    /// Creates a thumbnail for the given shape name
+    func createShapeThumbnail(item: MMListWidgetItem) -> MTLTexture?
+    {
+        var source =
+        """
+            #include <metal_stdlib>
+            #include <simd/simd.h>
+            using namespace metal;
+
+            float merge(float d1, float d2)
+            {
+                return min(d1, d2);
+            }
+
+            float fillMask(float dist)
+            {
+                return clamp(-dist, 0.0, 1.0);
+            }
+
+            float borderMask(float dist, float width)
+            {
+                //dist += 1.0;
+                return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
+            }
+        """
+        
+        let width : Float = 200 * zoom
+        let height : Float = unitSize * zoom
+        
+        let texture = fragment!.allocateTexture(width: width, height: height, output: true)
+        
+        let left : Float = (width/2) * zoom
+        let top : Float = (unitSize / 2) * zoom
+        
+        source +=
+        """
+        
+        fragment float4 listWidgetThumbnail(RasterizerData in [[stage_in]])
+        {
+            float2 size = float2( \(width*zoom), \(height) );
+        
+            float2 uvOrigin = float2( in.textureCoordinate.x * size.x - size.x / 2., size.y - in.textureCoordinate.y * size.y - size.y / 2. );
+            float2 uv;
+        
+            float dist = 10000;
+            float2 d;
+        
+            float borderSize = 2.0;
+            float round = 4;
+        
+            float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
+            float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
+            float4 primitiveColor = float4(1, 1, 1, 1.000);
+        
+            float4 modeInactiveColor = float4(0.5, 0.5, 0.5, 1.000);
+            float4 modeActiveColor = float4(1);
+        
+            float4 scrollInactiveColor = float4(0.5, 0.5, 0.5, 0.2);
+            float4 scrollHoverColor = float4(1);
+            float4 scrollActiveColor = float4(0.5, 0.5, 0.5, 1);
+        
+            float4 finalCol = float4( 0 ), col = float4( 0 );
+        """
+        
+        source += "uv = uvOrigin; uv.x += size.x / 2.0 - \(left) + borderSize/2; uv.y += size.y / 2.0 - \(top) + borderSize/2;\n"
+        source += "uv /= \(zoom);\n"
+        
+        source += "d = abs( uv ) - float2( \((width)/2) - borderSize - 2, \(unitSize/2) - borderSize ) + float2( round );\n"
+        source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
+        
+        source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
+        
+        source += "col = mix( col, borderColor, borderMask( dist, borderSize) );\n"
+        source += "finalCol = mix( finalCol, col, col.a );\n"
+        
+        source +=
+        """
+            return finalCol;
+        }
+        """
+        
+        //        print( source )
+        let library = fragment!.createLibraryFromSource(source: source)
+        let state = fragment!.createState(library: library, name: "listWidgetThumbnail")
+        
+        if fragment!.encoderStart(outTexture: texture) {
+            
+            fragment!.encodeRun(state)
+            
+            let left : Float = 6 * zoom
+            let top : Float = 4 * zoom
+            let fontScale : Float = 0.22
+            
+            var fontRect = MMRect()
+            
+            fontRect = mmView.openSans.getTextRect(text: item.name, scale: fontScale, rectToUse: fontRect)
+            mmView.drawText.drawText(mmView.openSans, text: item.name, x: left, y: top, scale: fontScale * zoom, fragment: fragment)
+ 
+            fragment!.encodeEnd()
+        }
+        
+        return texture
     }
 }

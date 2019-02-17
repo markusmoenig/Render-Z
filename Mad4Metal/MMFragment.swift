@@ -140,17 +140,19 @@ class MMFragment {
     }
 
     /// Run the given state
-    func encoderStart() -> Bool
+    func encoderStart(outTexture: MTLTexture? = nil) -> Bool
     {
+        let tex = outTexture == nil ? texture : outTexture
+
         let renderPassDescriptor = MTLRenderPassDescriptor()
-        renderPassDescriptor.colorAttachments[0].texture = texture
+        renderPassDescriptor.colorAttachments[0].texture = tex
         renderPassDescriptor.colorAttachments[0].loadAction = .clear
         renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor( red: 0, green: 0, blue: 0, alpha: 0)
         
         commandBuffer = commandQueue!.makeCommandBuffer()!
         if let renderEncoder = commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor) {
         
-            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(texture.width), height: Double(texture.height), znear: -1.0, zfar: 1.0 ) )
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(tex!.width), height: Double(tex!.height), znear: -1.0, zfar: 1.0 ) )
         
             renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
             renderEncoder.setVertexBytes( &viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)

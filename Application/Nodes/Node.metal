@@ -121,6 +121,8 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
             float cWidth = 20.0;
             float cHeight = 20.0;
             
+            float2 uv = in.textureCoordinate * data->size - float2( 3, 3);
+            
             if ( fmod( floor( uv.x / cWidth ), 2.0 ) == 0.0 ) {
                 if ( fmod( floor( uv.y / cHeight ), 2.0 ) != 0.0 ) color = checkerColor2;
             } else {

@@ -133,12 +133,13 @@ class EditorWidget      : MMWidget
             let drag = dragSource as! NodeListDrag
             let node = drag.node!
             
-            node.xPos = event.x - rect.x - app.nodeGraph.xOffset
-            node.yPos = event.y - rect.y - app.nodeGraph.yOffset
+            node.xPos = event.x - rect.x - app.nodeGraph.xOffset - drag.pWidgetOffset!.x
+            node.yPos = event.y - rect.y - app.nodeGraph.yOffset - drag.pWidgetOffset!.y
+
+            node.name = "New " + node.type
 
             if node.type == "Object" {
                 let object = node as! Object
-                object.name = "New Object"
                 object.sequences.append( MMTlSequence() )
                 object.currentSequence = object.sequences[0]
             }
