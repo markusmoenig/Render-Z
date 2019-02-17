@@ -245,13 +245,15 @@ class Builder
     }
     
     /// Render the layer
-    @discardableResult func render(width:Float, height:Float, instance: BuilderInstance, camera: Camera, timeline: MMTimeline) -> MTLTexture
+    @discardableResult func render(width:Float, height:Float, instance: BuilderInstance, camera: Camera, timeline: MMTimeline, outTexture: MTLTexture? = nil) -> MTLTexture
     {
-        if compute!.width != width || compute!.height != height {
-            compute!.allocateTexture(width: width, height: height)
+        if outTexture == nil {
+            if compute!.width != width || compute!.height != height {
+                compute!.allocateTexture(width: width, height: height)
+            }
         }
         
-        instance.texture = compute!.texture
+        instance.texture = outTexture == nil ? compute!.texture : outTexture
 
         instance.data![0] = camera.xPos
         instance.data![1] = camera.yPos
@@ -302,8 +304,13 @@ class Builder
         
         memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
         
-        compute!.run( instance.state, inBuffer: instance.buffer )
-        return compute!.texture
+        if outTexture == nil {
+            compute!.run( instance.state, inBuffer: instance.buffer )
+            return compute!.texture
+        } else {
+            compute!.run( instance.state, outTexture: outTexture, inBuffer: instance.buffer )
+            return outTexture!
+        }
     }
     
     ///

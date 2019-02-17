@@ -6,7 +6,7 @@
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
-import Foundation
+import MetalKit
 
 //
 
@@ -25,6 +25,7 @@ class Node : Codable
     var maxDelegate     : NodeMaxDelegate?
     
     var titleTextBuffer : MMTextBuffer?
+    var previewTexture  : MTLTexture?
     
     private enum CodingKeys: String, CodingKey {
         case name
@@ -52,6 +53,10 @@ class Node : Codable
     func setup()
     {
 
+    }
+    
+    func updatePreview(app: App)
+    {
     }
 }
 

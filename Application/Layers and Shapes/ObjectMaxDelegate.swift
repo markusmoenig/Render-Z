@@ -124,6 +124,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func deactivate()
     {
         app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
+        
+        currentObject!.updatePreview(app: app)
     }
     
     /// Called when the project changes (Undo / Redo)

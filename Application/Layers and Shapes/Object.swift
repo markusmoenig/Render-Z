@@ -116,4 +116,12 @@ class Object : Node
 
         return result
     }
+    
+    override func updatePreview(app: App)
+    {
+        if previewTexture == nil {
+            previewTexture = app.builder.compute!.allocateTexture(width: 130, height: 100, output: true)
+        }
+        app.builder.render(width: 130, height: 100, instance: instance!, camera: maxDelegate!.getCamera()!, timeline: maxDelegate!.getTimeline()!, outTexture: previewTexture)
+    }
 }

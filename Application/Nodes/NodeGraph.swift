@@ -283,10 +283,8 @@ class NodeGraph : Codable
         
         //
         
-        let object = node as! Object
-        if object.instance != nil {
-            app!.builder.render(width: 130, height: 100, instance: object.instance!, camera: object.maxDelegate!.getCamera()!, timeline: node.maxDelegate!.getTimeline()!)
-            app!.mmView.drawTexture.draw(object.instance!.texture!, x: node.rect.x + 10, y: node.rect.y + 140)
+        if let texture = node.previewTexture {
+            app!.mmView.drawTexture.draw(texture, x: node.rect.x + 10, y: node.rect.y + 140)
         }
     }
     

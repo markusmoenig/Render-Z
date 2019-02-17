@@ -25,6 +25,7 @@ class App
     let closeButton     : MMButtonWidget!
     
     let builder         : Builder
+    let compute         : MMCompute = MMCompute()
 
     init(_ view : MMView )
     {
