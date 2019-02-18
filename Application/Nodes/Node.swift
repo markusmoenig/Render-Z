@@ -36,7 +36,6 @@ class Node : Codable
     
     init()
     {
-        setup()
     }
     
     required init(from decoder: Decoder) throws
@@ -46,13 +45,15 @@ class Node : Codable
         uuid = try container.decode(UUID.self, forKey: .uuid)
         xPos = try container.decode(Float.self, forKey: .xPos)
         yPos = try container.decode(Float.self, forKey: .yPos)
-
-        setup()
     }
 
-    func setup()
+    func encode(to encoder: Encoder) throws
     {
-
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(uuid, forKey: .uuid)
+        try container.encode(xPos, forKey: .xPos)
+        try container.encode(yPos, forKey: .yPos)
     }
     
     func updatePreview(app: App)

@@ -126,6 +126,8 @@ class Builder
             float2 fragCoord = float2( gid.x, gid.y );
             float2 uv = 700. * (fragCoord.xy + float(0.5)) / outTexture.get_width();
         
+            float aspect = outTexture.get_width() < 700 ? 700 / outTexture.get_width() : 1;
+        
             float2 center = float2( 350., 350. * outTexture.get_height() / outTexture.get_width() );
             uv = translate(uv, center - float2( layerData->camera.x, layerData->camera.y ) );
             float2 tuv = uv;
@@ -228,7 +230,7 @@ class Builder
             float4 borderColor = float4( 1 );
         
             float4 col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
-            col = mix( col, borderColor, borderMask( dist, 2 ) );
+            col = mix( col, borderColor, borderMask( dist, 2 * aspect ) );
         
             outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
         }

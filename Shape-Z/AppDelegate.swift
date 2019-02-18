@@ -11,12 +11,18 @@ import Cocoa
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
 
+    weak var app: App!
+    
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
     }
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
+        
+        let window = app.mmView.window!
+        window.representedURL = app.mmFile.url()
+        window.title = app.mmFile.name
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {

@@ -12,6 +12,8 @@ class TopRegion: MMRegion
 {
     var undoButton      : MMButtonWidget!
     var redoButton      : MMButtonWidget!
+    var openButton      : MMButtonWidget!
+    var saveButton      : MMButtonWidget!
     
     var app             : App
 
@@ -39,8 +41,25 @@ class TopRegion: MMRegion
             view.undoManager?.redo()
         }
         
-        layoutH( startX: 10, startY: 8, spacing: 10, widgets: undoButton, redoButton )
-        registerWidgets( widgets: undoButton, redoButton )
+        openButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Open" )
+        openButton.isDisabled = false
+        openButton.clicked = { (event) -> Void in
+            self.openButton.removeState(.Checked)
+//            view.undoManager?.undo()
+            app.mmFile.chooseFile(app: app)
+        }
+        
+        saveButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Save" )
+        saveButton.isDisabled = false
+        saveButton.clicked = { (event) -> Void in
+            self.saveButton.removeState(.Checked)
+            
+            let json = app.nodeGraph.encodeJSON()
+            app.mmFile.saveAs(json)
+        }
+        
+        layoutH( startX: 10, startY: 8, spacing: 10, widgets: undoButton, redoButton, openButton, saveButton )
+        registerWidgets( widgets: undoButton, redoButton, openButton, saveButton )
     }
     
     override func build()
@@ -56,7 +75,10 @@ class TopRegion: MMRegion
         
         redoButton.isDisabled = !mmView.window!.undoManager!.canRedo
         redoButton.draw()
-        
+
+        openButton.draw()
+        saveButton.draw()
+
         #if os(OSX)
         mmView.window!.isDocumentEdited = !undoButton.isDisabled
         #endif

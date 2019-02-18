@@ -26,12 +26,14 @@ class App
     
     let builder         : Builder
     let compute         : MMCompute = MMCompute()
+    
+    let mmFile          : MMFile!
 
     init(_ view : MMView )
     {
         mmView = view
-    
-//        layerManager = LayerManager()
+        mmFile = MMFile( view )
+            
         nodeGraph = NodeGraph()
         
         // --- Reusable buttons
@@ -63,7 +65,7 @@ class App
         
         closeButton = MMButtonWidget(mmView, customState: state)
         // ---
-                
+        
         /*
         let json = nodeGraph.encodeJSON()
         
@@ -73,7 +75,7 @@ class App
 
             if let graph =  try? JSONDecoder().decode(NodeGraph.self, from: jsonData) {
                 print( "yes" )
-                print( graph.encodeJSON() )
+
             }
         }*/
         
@@ -99,6 +101,21 @@ class App
         setChanged()
     }
 
+    func loadFrom(_ json: String)
+    {
+        if let jsonData = json.data(using: .utf8) {
+            if let graph =  try? JSONDecoder().decode(NodeGraph.self, from: jsonData) {
+                
+                nodeGraph.deactivate()
+                
+                nodeGraph = graph
+                nodeGraph.setup(app: self)
+                nodeGraph.activate()
+                nodeGraph.updateNodes()
+            }
+        }
+    }
+    
     func setChanged()
     {
         changed = true

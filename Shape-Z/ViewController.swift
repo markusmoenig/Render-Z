@@ -13,26 +13,15 @@ class ViewController: NSViewController {
     var app : App!
     var mmView : MMView!
     
-    var containerUrl: URL? {
-        return FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents")
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         mmView = view as? MMView
         app = App( mmView )
         
+        (NSApplication.shared.delegate as! AppDelegate).app = app
+        
 /*
-        // check for container existence
-        if let url = self.containerUrl, !FileManager.default.fileExists(atPath: url.path, isDirectory: nil) {
-            do {
-                try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
-            }
-            catch {
-                print(error.localizedDescription)
-            }
-        }
         
         let myDocumentUrl = self.containerUrl//?
 //            .appendingPathComponent("testing")

@@ -10,7 +10,7 @@ import MetalKit
 
 class Shape : Codable
 {
-    enum ShapeMode {
+    enum ShapeMode : Int, Codable {
         case Merge, Subtract, Intersect
     }
     
@@ -29,10 +29,9 @@ class Shape : Codable
     var pointCount      : Int = 0
     var pointsScale     : Bool = false
 
-    var flatLayerIndex  : Int?
-
     private enum CodingKeys: String, CodingKey {
         case name
+        case mode
         case properties
         case uuid
         case globalCode
@@ -53,6 +52,38 @@ class Shape : Codable
         properties["posX"] = 0
         properties["posY"] = 0
         properties["rotate"] = 0
+    }
+    
+
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        mode = try container.decode(ShapeMode.self, forKey: .mode)
+        uuid = try container.decode(UUID.self, forKey: .uuid)
+        properties = try container.decode([String: Float].self, forKey: .properties)
+        globalCode = try container.decode(String.self, forKey: .globalCode)
+        distanceCode = try container.decode(String.self, forKey: .distanceCode)
+        widthProperty = try container.decode(String.self, forKey: .widthProperty)
+        heightProperty = try container.decode(String.self, forKey: .heightProperty)
+        pointCount = try container.decode(Int.self, forKey: .pointCount)
+        pointsScale = try container.decode(Bool.self, forKey: .pointsScale)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(name, forKey: .name)
+        try container.encode(mode, forKey: .mode)
+        try container.encode(uuid, forKey: .uuid)
+        try container.encode(properties, forKey: .properties)
+        try container.encode(globalCode, forKey: .globalCode)
+        try container.encode(distanceCode, forKey: .distanceCode)
+        try container.encode(widthProperty, forKey: .widthProperty)
+        try container.encode(heightProperty, forKey: .heightProperty)
+        try container.encode(pointCount, forKey: .pointCount)
+        try container.encode(pointsScale, forKey: .pointsScale)
     }
     
     func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil ) -> String

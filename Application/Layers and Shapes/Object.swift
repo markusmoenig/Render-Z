@@ -53,10 +53,10 @@ class Object : Node
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         shapes = try container.decode([Shape].self, forKey: .shapes)
-        childObjects = try container.decode([Object].self, forKey: .shapes)
-        properties = try container.decode([String: Float].self, forKey: .properties)
-        selectedShapes = try container.decode([UUID].self, forKey: .selectedShapes)
+        childObjects = try container.decode([Object].self, forKey: .childObjects)
+        selectedShapes = try container.decode([UUID].self, forKey: .selectedShapes)        
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
+        properties = try container.decode([String: Float].self, forKey: .properties)
 
         if sequences.count > 0 {
             currentSequence = sequences[0]
@@ -75,12 +75,12 @@ class Object : Node
         try container.encode(type, forKey: .type)
         try container.encode(shapes, forKey: .shapes)
         try container.encode(childObjects, forKey: .childObjects)
-        try container.encode(properties, forKey: .properties)
         try container.encode(selectedShapes, forKey: .selectedShapes)
         try container.encode(sequences, forKey: .sequences)
+        try container.encode(properties, forKey: .properties)
 
-        //let superdecoder = container.superEncoder()
-        //try super.encode(to: superdecoder)
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
     }
     
     @discardableResult func addShape(_ shape: Shape) -> Shape
