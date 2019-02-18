@@ -35,11 +35,19 @@ class ViewController: UIViewController, UIDocumentPickerDelegate {
     }
     
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
-        print( "test")
         if controller.documentPickerMode == UIDocumentPickerMode.import {
-            // This is what it should be
-//            self.newNoteBody.text = String(contentsOfFile: url.path!)
-            print( url )
+
+            do {
+                let string = try String(contentsOf: url, encoding: .utf8)
+                print( string )
+
+                app.loadFrom(string)
+
+                app.mmFile.name = url.deletingPathExtension().lastPathComponent
+            } catch
+            {
+                
+            }
         }
     }
 }
