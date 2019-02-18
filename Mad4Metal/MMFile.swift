@@ -7,7 +7,12 @@
 //
 
 import Foundation
+
+#if os(OSX)
 import AppKit
+#else
+import UIKit
+#endif
 
 class MMFile
 {
@@ -65,6 +70,8 @@ class MMFile
     
     func saveAs(_ stringData: String)
     {
+        #if os(OSX)
+
         let savePanel = NSSavePanel()
         savePanel.canCreateDirectories = false
         savePanel.title = "Select Project"
@@ -87,11 +94,17 @@ class MMFile
                 save(url: savePanel.url!)
             }
         }
+        
+        #else
+        
+        #endif
     }
 
     ///
     func chooseFile(app: App)
     {
+        #if os(OSX)
+
         let openPanel = NSOpenPanel()
         openPanel.canChooseFiles = true
         openPanel.allowsMultipleSelection = false
@@ -120,8 +133,19 @@ class MMFile
             if response == NSApplication.ModalResponse.OK {
                 let string = load(url: openPanel.url!)
                 app.loadFrom(string)
+                
+                self.name = openPanel.url!.deletingPathExtension().lastPathComponent
+                
+                app.mmView.window!.title = self.name
+                app.mmView.window!.representedURL = self.url()
             }
             openPanel.close()
         }
+        
+        #else
+        
+        app.viewController?.importFile()
+        
+        #endif
     }
 }

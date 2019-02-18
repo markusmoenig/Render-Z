@@ -31,6 +31,12 @@ class App
     let timeline        : MMTimeline!
     
     let mmFile          : MMFile!
+    
+    #if os(OSX)
+    var viewController  : NSViewController?
+    #else
+    var viewController  : ViewController?
+    #endif
 
     init(_ view : MMView )
     {
