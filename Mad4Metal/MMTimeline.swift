@@ -74,9 +74,6 @@ class MMTimeline : MMWidget
 
         recordButton = MMButtonWidget(view, iconName: "timeline_recording")
         playButton = MMButtonWidget(view, iconName: "timeline_play")
-        
-        view.registerWidget(recordButton)
-        view.registerWidget(playButton)
 
         super.init(view)
 
@@ -104,6 +101,16 @@ class MMTimeline : MMWidget
                 self.isRecording = true
             }
         }
+    }
+    
+    func activate()
+    {
+        mmView.registerWidgets(widgets: recordButton, playButton)
+    }
+    
+    func deactivate()
+    {
+        mmView.deregisterWidgets(widgets: recordButton, playButton)
     }
     
     func draw(_ sequence: MMTlSequence, uuid: UUID)

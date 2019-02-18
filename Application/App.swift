@@ -27,6 +27,9 @@ class App
     let builder         : Builder
     let compute         : MMCompute = MMCompute()
     
+    let camera          : Camera!
+    let timeline        : MMTimeline!
+    
     let mmFile          : MMFile!
 
     init(_ view : MMView )
@@ -82,6 +85,9 @@ class App
         gizmo = Gizmo(view)
         builder = Builder()
         
+        camera = Camera()
+        timeline = MMTimeline(view)
+
         nodeGraph.setup(app: self)
 
         topRegion = TopRegion( mmView, app: self )

@@ -60,19 +60,21 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         app.gizmo.setObject(currentObject)
         
         // Top Region
-        shapesButton = MMButtonWidget( app.mmView, text: "Shapes" )
+        if shapesButton == nil {
+            shapesButton = MMButtonWidget( app.mmView, text: "Shapes" )
+            materialsButton = MMButtonWidget( app.mmView, text: "Materials" )
+            timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
+        }
         shapesButton.clicked = { (event) -> Void in
             self.setLeftRegionMode(.Shapes)
             self.materialsButton.removeState(.Checked)
         }
         
-        materialsButton = MMButtonWidget( app.mmView, text: "Materials" )
         materialsButton.clicked = { (event) -> Void in
             self.setLeftRegionMode(.Materials)
             self.shapesButton.removeState(.Checked)
         }
             
-        timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
         timelineButton.clicked = { (event) -> Void in
             self.switchTimelineMode()
         }
@@ -86,30 +88,41 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         }
 
         // Left Region
-        shapeSelector = ShapeSelector(app.mmView, width : 200)
-        textureWidget = MMTextureWidget(app.mmView, texture: shapeSelector.fragment!.texture )
-        textureWidget.zoom = 2
+        if shapeSelector == nil {
+            shapeSelector = ShapeSelector(app.mmView, width : 200)
+            textureWidget = MMTextureWidget(app.mmView, texture: shapeSelector.fragment!.texture )
+            textureWidget.zoom = 2
+            
+            scrollArea = ShapeScrollArea(app.mmView, app: app, delegate:self)
+        }
         
-        scrollArea = ShapeScrollArea(app.mmView, app: app, delegate:self)
         shapesButton.addState( .Checked )
         app.leftRegion!.rect.width = 200
         
         // Right Region
-        objectWidget = ObjectWidget(app.mmView, app: app, delegate:self)
-        shapeListWidget = ShapeListScrollArea(app.mmView, app: app, delegate: self)
-        shapeList = ShapeList(app.mmView)
+        if objectWidget == nil {
+            objectWidget = ObjectWidget(app.mmView, app: app, delegate:self)
+            shapeListWidget = ShapeListScrollArea(app.mmView, app: app, delegate: self)
+            shapeList = ShapeList(app.mmView)
+        }
         app.rightRegion!.rect.width = 300
 
         // Editor Region
-        let function = app.mmView.renderer!.defaultLibrary.makeFunction( name: "moduloPattern" )
-        patternState = app.mmView.renderer!.createNewPipelineState( function! )
+        if patternState == nil {
+            let function = app.mmView.renderer!.defaultLibrary.makeFunction( name: "moduloPattern" )
+            patternState = app.mmView.renderer!.createNewPipelineState( function! )
+        }
         
         // Bottom Region
-        timeline = MMTimeline(app.mmView)
-        timeline.changedCB = { (frame) in
-            self.update()
+        if timeline == nil {
+            timeline = MMTimeline(app.mmView)
+            timeline.changedCB = { (frame) in
+                self.update()
+            }
+            sequenceWidget = SequenceWidget(app.mmView, app: app, delegate: self)
         }
-        sequenceWidget = SequenceWidget(app.mmView, app: app, delegate: self)
+        timeline.activate()
+
         sequenceWidget.listWidget.selectedItems = [currentObject!.sequences[0].uuid]
         sequenceWidget.listWidget.selectionChanged = { (items:[MMListWidgetItem]) -> Void in
             self.currentObject!.currentSequence = items[0] as? MMTlSequence
@@ -123,6 +136,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func deactivate()
     {
+        timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
         
         currentObject!.updatePreview(app: app)

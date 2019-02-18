@@ -328,20 +328,13 @@ class NodeGraph : Codable
     {
         for node in nodes {
             
-//            let maxDelegate = node.maxDelegate as! ObjectMaxDelegate
-//            maxDelegate.currentObject = (node as! Object)
-//            node.maxDelegate?.update(true)
-            
             if node.type == "Object" {
                 let object = node as! Object
-
-                maximizedNode = node
-                object.maxDelegate?.activate(app!)
-                object.instance = app!.builder.buildObjects(objects: [object], camera: node.maxDelegate!.getCamera()!, timeline: node.maxDelegate!.getTimeline()!)
+                object.instance = app!.builder.buildObjects(objects: [object], camera: app!.camera, timeline: app!.timeline )
             }
             
             node.updatePreview(app: app!)
-            maximizedNode = nil
         }
+        maximizedNode = nil
     }
 }
