@@ -72,7 +72,7 @@ class MMDrawBox : MMDrawable
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let settings: [Float] = [
             width * scaleFactor, height * scaleFactor,
-            round, borderSize,
+            round, borderSize * scaleFactor,
             fillColor.x, fillColor.y, fillColor.z, fillColor.w,
             borderColor.x, borderColor.y, borderColor.z, borderColor.w
         ];
@@ -123,7 +123,7 @@ class MMDrawLine : MMDrawable
             areaWidth * scaleFactor, areaHeight * scaleFactor,
             (sx - middleX) * scaleFactor, (middleY - sy) * scaleFactor,
             (ex - middleX) * scaleFactor, (middleY - ey) * scaleFactor,
-            radius * scaleFactor, borderSize,
+            radius * scaleFactor, borderSize * scaleFactor,
             fillColor.x, fillColor.y, fillColor.z, fillColor.w,
             borderColor.x, borderColor.y, borderColor.z, borderColor.w
         ];
@@ -160,7 +160,7 @@ class MMDrawBoxGradient : MMDrawable
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let settings: [Float] = [
             width * scaleFactor, height * scaleFactor,
-            round, borderSize,
+            round, borderSize * scaleFactor,
             uv1.x, uv1.y,
             uv2.x, uv2.y,
             gradientColor1.x, gradientColor1.y, gradientColor1.z, 1,
@@ -200,7 +200,7 @@ class MMDrawBoxedMenu : MMDrawable
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let settings: [Float] = [
             width * scaleFactor, height * scaleFactor,
-            round, borderSize,
+            round, borderSize * scaleFactor,
             fillColor.x, fillColor.y, fillColor.z, fillColor.w,
             borderColor.x, borderColor.y, borderColor.z, borderColor.w
         ];
