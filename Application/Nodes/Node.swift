@@ -27,6 +27,8 @@ class Node : Codable
     var titleTextBuffer : MMTextBuffer?
     var previewTexture  : MTLTexture?
     
+    var terminals       : [Terminal] = []
+    
     private enum CodingKeys: String, CodingKey {
         case name
         case uuid
@@ -56,8 +58,66 @@ class Node : Codable
         try container.encode(yPos, forKey: .yPos)
     }
     
+    /// Sets up the node terminals
+    func setupTerminals()
+    {
+    }
+    
+    /// Update the preview of the node
     func updatePreview(app: App)
     {
+    }
+}
+
+enum TerminalConnector : Int, Codable {
+    case In, Out, InOut
+}
+
+class Terminal : Codable
+{
+    enum TerminalType : Int, Codable {
+        case All, Object
+    }
+    
+    var name            : String = ""
+    var connector       : TerminalConnector = .InOut
+    var type            : TerminalType = .All
+    var uuid            : UUID!
+
+    var textBuffer      : MMTextBuffer?
+
+    var connections     : [Connection] = []
+    
+    private enum CodingKeys: String, CodingKey {
+        case name
+        case connector
+        case type
+        case uuid
+        case connections
+    }
+    
+    init(name: String? = nil, uuid: UUID? = nil, connector: TerminalConnector? = nil, type: TerminalType? = nil)
+    {
+        self.name = name != nil ? name! : ""
+        self.uuid = uuid != nil ? uuid! : UUID()
+        self.connector = connector != nil ? connector! : .InOut
+        self.type = type != nil ? type! : .All
+    }
+}
+
+class Connection : Codable
+{
+    var fromConnector   : TerminalConnector = .In
+    
+    var toUUID          : UUID = UUID()
+    var toConnector     : TerminalConnector = .Out
+    
+    var toNode          : Node? = nil
+    
+    private enum CodingKeys: String, CodingKey {
+        case fromConnector
+        case toUUID
+        case toConnector
     }
 }
 

@@ -97,6 +97,13 @@ class MMFile
         
         #else
         
+        do {
+            try stringData.write(to: url()!, atomically: true, encoding: .utf8)
+        } catch
+        {
+            print(error.localizedDescription)
+        }
+        
         #endif
     }
 

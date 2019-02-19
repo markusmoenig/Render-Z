@@ -46,7 +46,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
 //    uv -= float2( data->size / 2 );
 //    float2 tuv = uv, d;
 //    float dist;
-    float4 color, finalColor = float4( 0 );
+    float4 color = float4( 0 ), finalColor = float4( 0 );
     
 //    const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
     const float4 borderColor = float4(0.173, 0.173, 0.173, 1.000);
@@ -60,8 +60,9 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
 
     // Body
     
-    float2 uv = in.textureCoordinate * ( data->size + float2( borderSize ) * 2.0 );
+    float2 uv = in.textureCoordinate * ( data->size + float2( borderSize ) * 2 );
     uv -= float2( data->size / 2.0 + borderSize / 2.0 );
+    uv.y -= 0.5;
     float2 uvCopy = uv;
     
     float2 d = abs( uv ) - data->size / 2 + borderRound;
@@ -121,7 +122,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
             float cWidth = 20.0;
             float cHeight = 20.0;
             
-            float2 uv = in.textureCoordinate * data->size - float2( 3, 3);
+            float2 uv = in.textureCoordinate * data->size - float2( 4, 4);
             
             if ( fmod( floor( uv.x / cWidth ), 2.0 ) == 0.0 ) {
                 if ( fmod( floor( uv.y / cHeight ), 2.0 ) != 0.0 ) color = checkerColor2;
@@ -158,71 +159,6 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     
     color = data->hoverIndex == 1 ? iconHoverColor : iconColor;
     finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
-    
-    /*
-    // Right arrow - Scale
-    tuv = uv - float2(25,0);
-    d = abs( tuv ) -  float2( 25, 3);
-    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
-    
-    tuv = uv - float2(50,0.4);
-    d = abs( tuv ) - float2( 8, 7);
-    dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
-    
-    color = data->hoverState == 5.0 || data->lockedScaleAxes == 1.0 ? hoverColor : xAxisColor;
-    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
-    
-    // Right arrow - Move
-    tuv = uv - float2(75,0);
-    d = abs( tuv ) -  float2( 18, 3);
-    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
-    
-    tuv = uv - float2(110,0);
-    tuv = rotateCW( tuv, 1.5708 );
-    dist = min( dist, sdTriangleIsosceles( tuv, float2( 10, -20 ) ) );
-    
-    color = data->hoverState == 2.0 ? hoverColor : xAxisColor;
-    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
-
-    // Up arrow Scale
-    tuv = uv - float2(0,25);
-    d = abs( tuv ) -  float2( 3, 25);
-    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
-    
-    tuv = uv - float2(0.4,50);
-    d = abs( tuv ) - float2( 7, 8);
-    dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
-    
-    color = data->hoverState == 6.0 || data->lockedScaleAxes == 1.0 ? hoverColor : yAxisColor;
-    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
-    
-    // Up arrow Move
-    tuv = uv - float2(0,75);
-    d = abs( tuv ) -  float2( 3, 18);
-    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
-    tuv = uv - float2(0,110);
-    dist = min( dist, sdTriangleIsosceles( tuv, float2( 10, -20 ) ) );
-    
-    color = data->hoverState == 3.0 ? hoverColor : yAxisColor;
-    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
-
-    // Center
-    
-    tuv = uv;
-    dist = length( tuv ) - 5;
-    color = data->hoverState == 1.0 ? hoverColor : centerColor;
-    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
-
-    dist = length( tuv ) - 15;
-    if ( dist <= 0 ) {
-        
-        if ( data->hoverState == 1 ) finalColor = float4( hoverColor.xyz, gizmoFillMask( dist ) );
-        else {
-            float4 overlayColor = float4( centerColor.xyz, gizmoFillMask( dist ) );
-            finalColor = mix( finalColor, overlayColor, 0.7 );
-        }
-    }
-     */
     
     return finalColor;
 }

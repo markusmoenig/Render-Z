@@ -136,13 +136,14 @@ class EditorWidget      : MMWidget
             node.xPos = event.x - rect.x - app.nodeGraph.xOffset - drag.pWidgetOffset!.x
             node.yPos = event.y - rect.y - app.nodeGraph.yOffset - drag.pWidgetOffset!.y
 
-            //node.name = "New " + node.type
+            node.name = "New " + node.type
 
-//            if node.type == "Object" {
-//                let object = node as! Object
-//                object.sequences.append( MMTlSequence() )
-//                object.currentSequence = object.sequences[0]
-//            }
+            if node.type == "Object" {
+                let object = node as! Object
+                object.sequences.append( MMTlSequence() )
+                object.currentSequence = object.sequences[0]
+                object.setupTerminals()
+            }
             
             app.nodeGraph.nodes.append(node)
         }

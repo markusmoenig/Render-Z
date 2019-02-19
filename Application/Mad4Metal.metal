@@ -69,6 +69,39 @@ fragment float4 m4mSphereDrawable(RasterizerData in [[stage_in]],
 float m4mGradient_linear(float2 uv, float2 p1, float2 p2) {
     return clamp(dot(uv-p1,p2-p1)/dot(p2-p1,p2-p1),0.,1.);
 }
+/*
+float sdLine( float2 uv, float2 pa, float2 pb, float r) {
+    float2 o = uv-pa;
+    float2 l = pb-pa;
+    float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
+    return -(r-distance(o,l*h));
+}*/
+
+fragment float4 m4mLineDrawable(RasterizerData in [[stage_in]],
+                               constant MM_LINE *data [[ buffer(0) ]] )
+{
+    float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0 );
+    uv -= float2( data->size / 2.0 + data->borderSize / 2.0 );
+//    uv.y = data->size.y - uv.y;
+
+    uv -= (data->sp + data->ep) / 2;
+
+    
+//    float2 o = uv - float2( 20, 20);//data->sp;
+//    float2 l = float2( -20, -20) - float2( 20, 20);//data->ep - data->sp;
+
+    float2 o = uv - data->sp;
+    float2 l = data->ep - data->sp;
+//    l.y = -l.y;//data->size.y - l.y;
+    
+    float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
+    float dist = -(data->width-distance(o,l*h));
+    
+    float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
+    col = mix( col, data->borderColor, m4mBorderMask( dist, data->borderSize ) );
+    
+    return col;
+}
 
 // --- Box Drawable
 fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],

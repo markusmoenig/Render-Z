@@ -91,6 +91,57 @@ class MMDrawBox : MMDrawable
     }
 }
 
+/// Draws a line
+class MMDrawLine : MMDrawable
+{
+    let mmRenderer : MMRenderer
+    var state : MTLRenderPipelineState!
+    
+    required init( _ renderer : MMRenderer )
+    {
+        let function = renderer.defaultLibrary.makeFunction( name: "m4mLineDrawable" )
+        state = renderer.createNewPipelineState( function! )
+        mmRenderer = renderer
+    }
+    
+    func draw( sx: Float, sy: Float, ex: Float, ey: Float, width: Float = 2, borderSize: Float = 0, fillColor: float4, borderColor: float4 = float4(0) )
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        
+        let minX = min(sx, ex)
+        let maxX = max(sx, ex)
+        let minY = min(sy, ey)
+        let maxY = max(sy, ey)
+        
+        let areaWidth : Float = maxX - minX + borderSize + width
+        let areaHeight : Float = maxY - minY + borderSize + width
+        
+        let middleX : Float = (sx + ex) / 2
+        let middleY : Float = (sy + ey) / 2
+        
+        let settings: [Float] = [
+            areaWidth * scaleFactor, areaHeight * scaleFactor,
+            (sx - middleX) * scaleFactor, (middleY - sy) * scaleFactor,
+            (ex - middleX) * scaleFactor, (middleY - ey) * scaleFactor,
+            width, borderSize,
+            fillColor.x, fillColor.y, fillColor.z, fillColor.w,
+            borderColor.x, borderColor.y, borderColor.z, borderColor.w
+        ];
+
+        let renderEncoder = mmRenderer.renderEncoder!
+
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( minX - borderSize / 2, minY - borderSize / 2, areaWidth, areaHeight, scale: scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        renderEncoder.setRenderPipelineState( state! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+}
+
 /// Draws a box gradient
 class MMDrawBoxGradient : MMDrawable
 {

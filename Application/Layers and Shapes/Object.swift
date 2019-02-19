@@ -83,6 +83,19 @@ class Object : Node
         try super.encode(to: superdecoder)
     }
     
+    /// Add the terminals
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "Physics", connector: .In)
+//            Terminal()
+        ]
+        
+        for seq in sequences {
+            terminals.append( Terminal(name: seq.name, uuid: seq.uuid) )
+        }
+    }
+    
     @discardableResult func addShape(_ shape: Shape) -> Shape
     {
         shapes.append( shape )

@@ -28,12 +28,13 @@ class MMView : MMBaseView {
     var drawTexture     : MMDrawTexture!
     var drawText        : MMDrawText!
     var drawCustomState : MMDrawCustomState!
+    var drawLine        : MMDrawLine!
 
     // --- Fonts
     var openSans        : MMFont!
     
     // --- Skin
-    var skin            : MMSkin!;
+    var skin            : MMSkin!
     
     // --- Animations
     var animate         : [MMAnimate]
@@ -93,6 +94,7 @@ class MMView : MMBaseView {
         drawTexture = MMDrawTexture( renderer )
         drawText = MMDrawText( renderer )
         drawCustomState = MMDrawCustomState( renderer )
+        drawLine = MMDrawLine( renderer )
     }
     
     /// Build the user interface for this view. Called for each frame inside the renderer.

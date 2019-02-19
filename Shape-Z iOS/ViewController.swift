@@ -34,20 +34,29 @@ class ViewController: UIViewController, UIDocumentPickerDelegate {
         self.present(documentPicker, animated: true, completion: nil)
     }
     
+    func exportFile() {
+        
+        let documentPicker: UIDocumentPickerViewController = UIDocumentPickerViewController(documentTypes: ["com.moenig.shapez.document"], in: UIDocumentPickerMode.exportToService)
+        documentPicker.delegate = self
+        
+        self.present(documentPicker, animated: true, completion: nil)
+    }
+    
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentAt url: URL) {
         if controller.documentPickerMode == UIDocumentPickerMode.import {
 
             do {
                 let string = try String(contentsOf: url, encoding: .utf8)
-                print( string )
 
                 app.loadFrom(string)
-
                 app.mmFile.name = url.deletingPathExtension().lastPathComponent
-            } catch
-            {
-                
+            } catch {
+                print(error.localizedDescription)
             }
+        } else
+        if controller.documentPickerMode == UIDocumentPickerMode.exportToService {
+            
+            print( url )
         }
     }
 }
