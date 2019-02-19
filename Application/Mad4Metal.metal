@@ -82,17 +82,10 @@ fragment float4 m4mLineDrawable(RasterizerData in [[stage_in]],
 {
     float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0 );
     uv -= float2( data->size / 2.0 + data->borderSize / 2.0 );
-//    uv.y = data->size.y - uv.y;
-
-    uv -= (data->sp + data->ep) / 2;
-
-    
-//    float2 o = uv - float2( 20, 20);//data->sp;
-//    float2 l = float2( -20, -20) - float2( 20, 20);//data->ep - data->sp;
+//    uv -= (data->sp + data->ep) / 2;
 
     float2 o = uv - data->sp;
     float2 l = data->ep - data->sp;
-//    l.y = -l.y;//data->size.y - l.y;
     
     float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
     float dist = -(data->width-distance(o,l*h));

@@ -274,11 +274,8 @@ class NodeGraph : Codable
             
             if nodeHoverMode == .TerminalConnection {
                 
-                let color = float4(1)
-                app!.mmView.drawLine.draw( sx: hoverTerminal!.2, sy: hoverTerminal!.3, ex: mousePos.x, ey: mousePos.y, width: 4, borderSize: 2, fillColor : color, borderColor: float4( 0, 0, 0, 1 ) )
-                
-//                app!.mmView.drawLine.draw( sx: mousePos.x, sy: mousePos.y, ex: mousePos.x + 100, ey: mousePos.y + 100, width: 4, borderSize: 2, fillColor : color, borderColor: float4( 0, 0, 0, 1 ) )
-
+                let color = float4(0,0,0,1)
+                app!.mmView.drawLine.draw( sx: hoverTerminal!.2 - 2, sy: hoverTerminal!.3 - 2, ex: mousePos.x, ey: mousePos.y, radius: 2, fillColor : color )
             }
             
             renderer.setClipRect()

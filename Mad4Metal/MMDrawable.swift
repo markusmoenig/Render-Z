@@ -104,17 +104,17 @@ class MMDrawLine : MMDrawable
         mmRenderer = renderer
     }
     
-    func draw( sx: Float, sy: Float, ex: Float, ey: Float, width: Float = 2, borderSize: Float = 0, fillColor: float4, borderColor: float4 = float4(0) )
+    func draw( sx: Float, sy: Float, ex: Float, ey: Float, radius: Float = 2, borderSize: Float = 0, fillColor: float4, borderColor: float4 = float4(0) )
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
-        
+    
         let minX = min(sx, ex)
         let maxX = max(sx, ex)
         let minY = min(sy, ey)
         let maxY = max(sy, ey)
         
-        let areaWidth : Float = maxX - minX + borderSize + width
-        let areaHeight : Float = maxY - minY + borderSize + width
+        let areaWidth : Float = maxX - minX + borderSize + radius * 2
+        let areaHeight : Float = maxY - minY + borderSize + radius * 2
         
         let middleX : Float = (sx + ex) / 2
         let middleY : Float = (sy + ey) / 2
@@ -123,7 +123,7 @@ class MMDrawLine : MMDrawable
             areaWidth * scaleFactor, areaHeight * scaleFactor,
             (sx - middleX) * scaleFactor, (middleY - sy) * scaleFactor,
             (ex - middleX) * scaleFactor, (middleY - ey) * scaleFactor,
-            width, borderSize,
+            radius * scaleFactor, borderSize,
             fillColor.x, fillColor.y, fillColor.z, fillColor.w,
             borderColor.x, borderColor.y, borderColor.z, borderColor.w
         ];
