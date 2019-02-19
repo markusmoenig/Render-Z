@@ -145,6 +145,8 @@ class NodeGraph : Codable
         
         if nodeHoverMode == .Terminal {
             nodeHoverMode = .TerminalConnection
+            mousePos.x = event.x
+            mousePos.y = event.y
         } else
         if let selectedNode = nodeAt(event.x, event.y) {
             selectedUUID = [selectedNode.uuid]
@@ -334,7 +336,7 @@ class NodeGraph : Codable
             let hasHover = (nodeHoverMode == .Terminal || nodeHoverMode == .TerminalConnection) && hoverTerminal != nil && hoverTerminal!.0.uuid == terminal.uuid && hoverTerminal!.1 == connector
             
             let color = !hasHover ? float4(1) : float4(0,0,0,1)
-            app!.mmView.drawSphere.draw( x: x, y: y, radius: 7, borderSize: 2, fillColor : color, borderColor: float4( 0, 0, 0, 1 ) )
+            app!.mmView.drawSphere.draw( x: x, y: y, radius: 7, borderSize: 1.5, fillColor : color, borderColor: float4( 0, 0, 0, 1 ) )
         }
         
         var terminalY : Float = 35

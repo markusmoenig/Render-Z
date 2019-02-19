@@ -36,7 +36,7 @@ class MMDrawSphere : MMDrawable
         let settings: [Float] = [
             fillColor.x, fillColor.y, fillColor.z, fillColor.w,
             borderColor.x, borderColor.y, borderColor.z, borderColor.w,
-            radius * scaleFactor, borderSize,
+            radius * scaleFactor, borderSize * scaleFactor,
             0, 0
         ];
         
