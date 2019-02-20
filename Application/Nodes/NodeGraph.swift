@@ -95,7 +95,7 @@ class NodeGraph : Codable
         
         var function = renderer.defaultLibrary.makeFunction( name: "drawNode" )
         drawNodeState = renderer.createNewPipelineState( function! )
-        function = renderer.defaultLibrary.makeFunction( name: "moduloPattern" )
+        function = renderer.defaultLibrary.makeFunction( name: "nodeGridPattern" )
         drawPatternState = renderer.createNewPipelineState( function! )
         
         nodesButton = MMButtonWidget( app.mmView, text: "Nodes" )
@@ -147,6 +147,7 @@ class NodeGraph : Codable
             nodeHoverMode = .TerminalConnection
             mousePos.x = event.x
             mousePos.y = event.y
+            selectedUUID = [hoverNode!.uuid]
         } else
         if let selectedNode = nodeAt(event.x, event.y) {
             selectedUUID = [selectedNode.uuid]
@@ -209,11 +210,15 @@ class NodeGraph : Codable
         nodeHoverMode = .None
         
         hoverNode = nodeAt(event.x, event.y)
-        if hoverNode != nil {
+        if hoverNode != nil && hoverNode!.maxDelegate != nil {
             let x = event.x - hoverNode!.rect.x
             let y =  event.y - hoverNode!.rect.y
             
-            if x > 125 && y < 26 {
+            let iconSize : Float = 18
+            let xStart : Float = hoverNode!.rect.width - 41
+            let yStart : Float = 21
+            
+            if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize {
                 nodeHoverMode = .Maximize
                 return
             }
@@ -221,8 +226,10 @@ class NodeGraph : Codable
             if let terminalTuple = terminalAt(hoverNode!, event.x, event.y) {
                 nodeHoverMode = .Terminal
                 hoverTerminal = terminalTuple
+                print("yes")
                 return
             }
+            print("no")
         }
     }
     
@@ -308,18 +315,67 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + node.xPos + xOffset
         node.rect.y = region.rect.y + node.yPos + yOffset
 
-        node.rect.width = 150
-        node.rect.height = 270
+        node.rect.width = 300
+        node.rect.height = 220
 
         let vertexBuffer = renderer.createVertexBuffer( MMRect( node.rect.x, node.rect.y, node.rect.width, node.rect.height, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         
-        let data: [Float] = [
+        if node.label == nil {
+            node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name)
+        }
+        
+        var data: [Float] = [
             node.rect.width, node.rect.height,
             selectedUUID.contains(node.uuid) ? 1 : 0,
-            nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid ? 1 : 0
+            nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid ? 1 : 0,
+            
+            node.maxDelegate != nil ? 1 : 0, 0, 0, 0,
+
+            0, 0, 0, 0, // Terminal Counts
+            
+            0, 0, 0, 0, // Left 1
+            0, 0, 0, 30, // Left 2
+            0, 0, 0, 30, // Left 3
+            0, 0, 0, 30, // Left 4
+            0, 0, 0, 30, // Left 5
+            
+            0, 0, 0, 30, // Top
+            0, 0, 0, 30, // Right
+
+            0, 0, 0, 30, // Bottom 1
+            0, 0, 0, 30, // Bottom 2
+            0, 0, 0, 30, // Bottom 3
+            0, 0, 0, 30, // Bottom 4
+            0, 0, 0, 30, // Bottom 5
         ];
         
+        let terminalCountOffset : Int = 8
+        
+        var leftTerminalCount : Int = 0
+        var leftTerminalY : Float = 40
+        
+        for terminal in node.terminals {
+            if terminal.connector == .Left {
+                
+                let offset : Int = 4 + 4 * leftTerminalCount
+                
+                if terminal.type == .Properties{
+                    data[terminalCountOffset + offset] = 0.62
+                    data[terminalCountOffset + offset + 1] = 0.506
+                    data[terminalCountOffset + offset + 2] = 0.165
+                }
+                
+                data[terminalCountOffset + offset + 3] = leftTerminalY
+
+                leftTerminalCount += 1
+                leftTerminalY += 25
+            }
+        }
+        
+        data[terminalCountOffset] = Float(leftTerminalCount)
+        
+        // --- Draw It
         let buffer = renderer.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
         
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
@@ -327,42 +383,11 @@ class NodeGraph : Codable
         renderEncoder.setRenderPipelineState(drawNodeState!)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         
-        node.titleTextBuffer = app!.mmView.drawText.drawText(app!.mmView.openSans, text: node.name, x: node.rect.x + 10, y: node.rect.y + 6, scale: 0.4, color: float4( 0.765, 0.765, 0.765, 1), textBuffer: node.titleTextBuffer)
+        // --- Label
+        node.label?.drawCentered(x: node.rect.x, y: node.rect.y + 19, width: node.rect.width, height: 20)
         
-        // --- Terminals
-        
-        func drawTerminal(_ x: Float,_ y: Float, terminal: Terminal, connector: TerminalConnector) {
-            
-            let hasHover = (nodeHoverMode == .Terminal || nodeHoverMode == .TerminalConnection) && hoverTerminal != nil && hoverTerminal!.0.uuid == terminal.uuid && hoverTerminal!.1 == connector
-            
-            let color = !hasHover ? float4(1) : float4(0,0,0,1)
-            app!.mmView.drawSphere.draw( x: x, y: y, radius: 7, borderSize: 1.5, fillColor : color, borderColor: float4( 0, 0, 0, 1 ) )
-        }
-        
-        var terminalY : Float = 35
-        for terminal in node.terminals {
-            if terminal.name == "" {
-                
-            } else {
-                if terminal.connector == .In || terminal.connector == .InOut {
-                    drawTerminal(node.rect.x + 5, node.rect.y + terminalY, terminal: terminal, connector: .In)
-                }
-                
-                if terminal.connector == .Out || terminal.connector == .InOut {
-                    drawTerminal(node.rect.x + node.rect.width - 6 - 14, node.rect.y + terminalY, terminal: terminal, connector: .Out)
-                }
-                
-                // --- Node UI
-                
-                terminal.textBuffer = app!.mmView.drawText.drawText(app!.mmView.openSans, text: terminal.name, x: node.rect.x + 30, y: node.rect.y + terminalY - 1, scale: 0.4, color: float4( 0, 0, 0, 1), textBuffer: terminal.textBuffer)
-            }
-            
-            terminalY += 25
-        }
-        
-        // ---
         if let texture = node.previewTexture {
-            app!.mmView.drawTexture.draw(texture, x: node.rect.x + 10, y: node.rect.y + 140)
+            app!.mmView.drawTexture.draw(texture, x: node.rect.x + 25, y: node.rect.y + 50)
         }
     }
     
@@ -380,30 +405,23 @@ class NodeGraph : Codable
     /// Returns the terminal and the terminal connector at the given mouse position for the given node (if any)
     func terminalAt(_ node: Node, _ x: Float, _ y: Float) -> (Terminal, TerminalConnector, Float, Float)?
     {
-        var terminalY : Float = 35
+        var lefTerminalY : Float = 40
         for terminal in node.terminals {
-            if terminal.name == "" {
-                
-            } else
-            if y >= node.rect.y + terminalY && y <= node.rect.y + terminalY + 15 {
-                if terminal.connector == .In || terminal.connector == .InOut {
-                    if x >= node.rect.x + 5 && x <= node.rect.x + 5 + 15 {
-                        return (terminal, .In, node.rect.x + 8.5, node.rect.y + terminalY + 7)
-                    }
-                }
-                
-                if terminal.connector == .Out || terminal.connector == .InOut {
-                    if x >= node.rect.x + node.rect.width - 6 - 14 && x <= node.rect.x + node.rect.width - 5 {
-                        return (terminal, .Out, node.rect.x + node.rect.width - 6 - 7, node.rect.y + terminalY + 7)
+
+            if terminal.connector == .Left {
+                if y >= node.rect.y + lefTerminalY && y <= node.rect.y + lefTerminalY + 15 {
+                    if x >= node.rect.x && x <= node.rect.x + 20 {
+                        return (terminal, .Left, node.rect.x + 8.5, node.rect.y + lefTerminalY + 7)
                     }
                 }
             }
             
-            terminalY += 25
+            lefTerminalY += 25
         }
 
         return nil
     }
+    
     /// Decode a new nodegraph from JSON
     func decodeJSON(_ json: String) -> NodeGraph?
     {

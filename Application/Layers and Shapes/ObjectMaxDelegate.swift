@@ -493,6 +493,7 @@ class ObjectWidget : MMWidget
                 let object = delegate.currentObject!
                 getStringDialog(view: view, title: "Rename Object", message: "Enter new name", defaultValue: object.name, cb: { (name) -> Void in
                     object.name = name
+                    object.label?.setText(name)
                 } )
             } ),
             MMMenuItem( text: "Delete Object", cb: {print("add child") } )

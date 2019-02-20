@@ -13,6 +13,7 @@ import MetalKit
 class Node : Codable
 {
     var type            : String = ""
+    var properties      : [String: Float]
 
     var name            : String = ""
     var uuid            : UUID = UUID()
@@ -24,13 +25,14 @@ class Node : Codable
     
     var maxDelegate     : NodeMaxDelegate?
     
-    var titleTextBuffer : MMTextBuffer?
+    var label           : MMTextLabel?
     var previewTexture  : MTLTexture?
     
     var terminals       : [Terminal] = []
     
     private enum CodingKeys: String, CodingKey {
         case name
+        case properties
         case uuid
         case xPos
         case yPos
@@ -38,12 +40,14 @@ class Node : Codable
     
     init()
     {
+        properties = [:]
     }
     
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
+        properties = try container.decode([String: Float].self, forKey: .properties)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         xPos = try container.decode(Float.self, forKey: .xPos)
         yPos = try container.decode(Float.self, forKey: .yPos)
@@ -53,6 +57,7 @@ class Node : Codable
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
+        try container.encode(properties, forKey: .properties)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(xPos, forKey: .xPos)
         try container.encode(yPos, forKey: .yPos)
@@ -70,21 +75,19 @@ class Node : Codable
 }
 
 enum TerminalConnector : Int, Codable {
-    case In, Out, InOut
+    case Left, Top, Right, Bottom
 }
 
 class Terminal : Codable
 {
     enum TerminalType : Int, Codable {
-        case All, Object
+        case All, Properties, Object
     }
     
     var name            : String = ""
-    var connector       : TerminalConnector = .InOut
+    var connector       : TerminalConnector = .Left
     var type            : TerminalType = .All
     var uuid            : UUID!
-
-    var textBuffer      : MMTextBuffer?
 
     var connections     : [Connection] = []
     
@@ -100,17 +103,17 @@ class Terminal : Codable
     {
         self.name = name != nil ? name! : ""
         self.uuid = uuid != nil ? uuid! : UUID()
-        self.connector = connector != nil ? connector! : .InOut
+        self.connector = connector != nil ? connector! : .Left
         self.type = type != nil ? type! : .All
     }
 }
 
 class Connection : Codable
 {
-    var fromConnector   : TerminalConnector = .In
+    var fromConnector   : TerminalConnector = .Left
     
     var toUUID          : UUID = UUID()
-    var toConnector     : TerminalConnector = .Out
+    var toConnector     : TerminalConnector = .Right
     
     var toNode          : Node? = nil
     

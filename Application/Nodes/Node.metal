@@ -21,6 +21,20 @@ typedef struct
     float   selected;
     float   hoverIndex;
     
+    float4  hasIcons1;
+
+    float   leftTerminalCount;
+    float   topTerminalCount;
+    float   rightTerminalCount;
+    float   bottomTerminalCount;
+
+    float4  leftTerminals[5];
+
+    float4  topTerminal;
+    float4  rightTerminal;
+    
+    float4  bottomTerminals[5];
+
 } NODE;
 
 float nodeFillMask(float dist)
@@ -47,30 +61,83 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
 //    float2 tuv = uv, d;
 //    float dist;
     float4 color = float4( 0 ), finalColor = float4( 0 );
+    float2 size = data->size;
     
 //    const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
     const float4 borderColor = float4(0.173, 0.173, 0.173, 1.000);
     const float4 selBorderColor = float4(0.820, 0.820, 0.820, 1.000);
-    const float4 centerColor = float4(0.702, 0.702, 0.702, 1.000);
+//    const float4 centerColor = float4(0.702, 0.702, 0.702, 1.000);
     const float4 iconColor = float4(0.5, 0.5, 0.5, 1);
     const float4 iconHoverColor = float4(1);
 
-    const float borderSize = 2;
+    const float borderSize = 4;
     const float borderRound = 4;
 
     // Body
-    
     float2 uv = in.textureCoordinate * ( data->size + float2( borderSize ) * 2 );
-    uv -= float2( data->size / 2.0 + borderSize / 2.0 );
-    uv.y -= 0.5;
     float2 uvCopy = uv;
-    
-    float2 d = abs( uv ) - data->size / 2 + borderRound;
+
+    uv -= float2( data->size / 2.0 + borderSize / 2.0 );
+
+    float2 d = abs( uv ) - data->size / 2 + borderRound + 5;
     float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - borderRound;
-    
+
     float2 point = in.textureCoordinate * data->size;
     point.y = data->size.y - point.y;
 
+    for( int i = 0; i < data->leftTerminalCount; i += 1)
+    {
+        uv = uvCopy;
+        uv -= float2( 10, size.y - data->leftTerminals[i].w );
+        dist = min( dist, length( uv ) - 10 );
+    }
+    
+    // Body Color
+    color = float4(0.118, 0.118, 0.118, 1.000);
+    finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+    color = data->selected != 0 ? selBorderColor : borderColor;
+    finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );
+    
+    // Terminal Bodies
+    for( int i = 0; i < data->leftTerminalCount; i += 1)
+    {
+        uv = uvCopy;
+        uv -= float2( 10, size.y - data->leftTerminals[i].w );
+        dist = length( uv ) - 7;
+        
+        color = float4( data->leftTerminals[i].xyz, 1);
+        finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+    }    
+    
+    // Body Color
+    float s = nodeGradient_linear(point, float2( 0, 0 ), float2( 0, data->size.y ) );
+    color = mix( float4(0.251, 0.251, 0.251, 1.000), float4(0.224, 0.224, 0.224, 1.000), clamp(s, 0, 1) );
+    
+    color = float4(0.118, 0.118, 0.118, 1.000);
+    
+    // Maximize Icon
+    if ( data->hasIcons1.x == 1 )
+    {
+        uv = uvCopy;
+        uv -= float2( 275, size.y - 25 );
+        
+        d = abs( uv ) - float2(6,5);
+        dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 2;
+        
+        uv -= float2( 0, 10 );
+        d = abs( uv ) - float2(7, 1);
+        dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 1);
+        
+        color = data->hoverIndex == 1 ? iconHoverColor : iconColor;
+        finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+    }
+
+//    finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+//    color = float4(0.212, 0.208, 0.208, 1.000);
+
+//    finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );
+    
+    /*
     if ( point.y <= 25 ) {
         float s = nodeGradient_linear(point, float2( 0, 19 ), float2( 0, 0 ) );
         color = mix(float4(0.251, 0.251, 0.251, 1.000), float4(0.298, 0.298, 0.298, 1.000), clamp(s, 0, 1) );
@@ -159,6 +226,6 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     
     color = data->hoverIndex == 1 ? iconHoverColor : iconColor;
     finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
-    
+    */
     return finalColor;
 }

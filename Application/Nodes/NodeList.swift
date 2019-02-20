@@ -48,13 +48,19 @@ class NodeList : MMWidget
         listWidget = MMListWidget(view)
         
         // --- Object
-        let item = NodeListItem("Object")
+        var item = NodeListItem("Object")
         item.createNode = {
             return Object()
         }
-        
         items.append(item)
-        
+        // --- Object Physics
+        item = NodeListItem("Object Physics")
+        item.createNode = {
+            return ObjectPhysics()
+        }
+        items.append(item)
+
+        // ---
         listWidget.build(items: items, fixedWidth: 200)
 
         super.init(view)
@@ -84,7 +90,7 @@ class NodeList : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y) - 30, items: items)
+        let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y), items: items)
         if changed {
             listWidget.build(items: items, fixedWidth: 200)
         }
@@ -123,7 +129,8 @@ class NodeList : MMWidget
             drag.id = "NodeItem"
             drag.name = item.name
             drag.pWidgetOffset!.x = x
-            drag.pWidgetOffset!.y = y
+            drag.pWidgetOffset!.y = y.truncatingRemainder(dividingBy: listWidget.unitSize)
+            
             drag.node = item.createNode!()
             
             let texture = listWidget.createShapeThumbnail(item: listItem!)

@@ -12,7 +12,6 @@ class Object : Node
 {
     var shapes          : [Shape]
     var childObjects    : [Object]
-    var properties      : [String: Float]
 
     /// The timeline sequences for this object
     var sequences       : [MMTlSequence]
@@ -28,24 +27,23 @@ class Object : Node
         case childObjects
         case selectedShapes
         case sequences
-        case properties
     }
     
     override init()
     {
         shapes = []
         childObjects = []
-        properties = [:]
         selectedShapes = []
         sequences = []
+        
+        super.init()
+        
+        type = "Object"
         
         properties["posX"] = 0
         properties["posY"] = 0
         properties["rotate"] = 0
         
-        super.init()
-        
-        type = "Object"
         maxDelegate = ObjectMaxDelegate()
     }
     
@@ -56,7 +54,6 @@ class Object : Node
         childObjects = try container.decode([Object].self, forKey: .childObjects)
         selectedShapes = try container.decode([UUID].self, forKey: .selectedShapes)        
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
-        properties = try container.decode([String: Float].self, forKey: .properties)
 
         if sequences.count > 0 {
             currentSequence = sequences[0]
@@ -77,7 +74,6 @@ class Object : Node
         try container.encode(childObjects, forKey: .childObjects)
         try container.encode(selectedShapes, forKey: .selectedShapes)
         try container.encode(sequences, forKey: .sequences)
-        try container.encode(properties, forKey: .properties)
 
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
@@ -87,13 +83,8 @@ class Object : Node
     override func setupTerminals()
     {
         terminals = [
-            Terminal(name: "Physics", connector: .In)
-//            Terminal()
+            Terminal(name: "Properties", connector: .Left, type: .Properties)
         ]
-        
-        for seq in sequences {
-            terminals.append( Terminal(name: seq.name, uuid: seq.uuid) )
-        }
     }
     
     @discardableResult func addShape(_ shape: Shape) -> Shape
@@ -133,10 +124,10 @@ class Object : Node
     override func updatePreview(app: App)
     {
         if previewTexture == nil {
-            previewTexture = app.builder.compute!.allocateTexture(width: 130, height: 100, output: true)
+            previewTexture = app.builder.compute!.allocateTexture(width: 250, height: 160, output: true)
         }
         if instance != nil {
-            app.builder.render(width: 130, height: 100, instance: instance!, camera: app.camera, timeline: app.timeline, outTexture: previewTexture)
+            app.builder.render(width: 250, height: 160, instance: instance!, camera: app.camera, timeline: app.timeline, outTexture: previewTexture)
         }
     }
 }

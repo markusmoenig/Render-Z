@@ -104,6 +104,8 @@
 		2BE67109221291D300B95241 /* Node.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67107221291D200B95241 /* Node.metal */; };
 		2BE6710B2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
 		2BE6710C2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
+		2BF5D361221D2B2400EAAA76 /* Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* Nodes.swift */; };
+		2BF5D362221D2B2400EAAA76 /* Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* Nodes.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -169,6 +171,7 @@
 		2BE6710422125D7D00B95241 /* NodeGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeGraph.swift; sourceTree = "<group>"; };
 		2BE67107221291D200B95241 /* Node.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Node.metal; sourceTree = "<group>"; };
 		2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectMaxDelegate.swift; sourceTree = "<group>"; };
+		2BF5D360221D2B2400EAAA76 /* Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nodes.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -338,6 +341,7 @@
 			isa = PBXGroup;
 			children = (
 				2BE67101221259F500B95241 /* Node.swift */,
+				2BF5D360221D2B2400EAAA76 /* Nodes.swift */,
 				2BE6710422125D7D00B95241 /* NodeGraph.swift */,
 				2BE67107221291D200B95241 /* Node.metal */,
 				2B639F16221791F500576542 /* NodeList.swift */,
@@ -508,6 +512,7 @@
 				2BBF11E721EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */,
 				2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
+				2BF5D361221D2B2400EAAA76 /* Nodes.swift in Sources */,
 				2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */,
 				2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */,
 				2BBF11D321EADB46001C94E9 /* MMCompute.swift in Sources */,
@@ -557,6 +562,7 @@
 				2BBF11E821EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */,
 				2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
+				2BF5D362221D2B2400EAAA76 /* Nodes.swift in Sources */,
 				2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */,
 				2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */,
 				2BBF11D421EADB46001C94E9 /* MMCompute.swift in Sources */,
