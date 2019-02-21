@@ -28,7 +28,7 @@ class ObjectPhysics : Node
     override func setupTerminals()
     {
         terminals = [
-            Terminal(name: "Properties", connector: .Right, type: .Properties, node: self)
+            Terminal(name: "Properties", connector: .Right, brand: .Properties, node: self)
         ]
     }
     

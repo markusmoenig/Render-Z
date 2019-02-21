@@ -7,6 +7,8 @@
 //
 
 #include <metal_stdlib>
+#include "Application/Data.h"
+
 using namespace metal;
 
 typedef struct
@@ -14,28 +16,6 @@ typedef struct
     float4 clipSpacePosition [[position]];
     float2 textureCoordinate;
 } RasterizerData;
-
-typedef struct
-{
-    float2  size;
-    float   selected;
-    float   hoverIndex;
-    
-    float4  hasIcons1;
-
-    float   leftTerminalCount;
-    float   topTerminalCount;
-    float   rightTerminalCount;
-    float   bottomTerminalCount;
-
-    float4  leftTerminals[5];
-
-    float4  topTerminal;
-    float4  rightTerminal;
-    
-    float4  bottomTerminals[5];
-
-} NODE;
 
 float nodeFillMask(float dist)
 {
@@ -54,7 +34,7 @@ float nodeGradient_linear(float2 uv, float2 p1, float2 p2) {
 // --- Normal Gizmo
 
 fragment float4 drawNode(RasterizerData        in [[stage_in]],
-                         constant NODE       *data [[ buffer(0) ]] )
+                         constant NODE_DATA   *data [[ buffer(0) ]] )
 {
 //    float2 uv = in.textureCoordinate * data->size;
 //    uv -= float2( data->size / 2 );

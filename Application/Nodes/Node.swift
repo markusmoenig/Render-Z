@@ -26,6 +26,9 @@ class Node : Codable
     var maxDelegate     : NodeMaxDelegate?
     
     var label           : MMTextLabel?
+    var data            : NODE_DATA = NODE_DATA()
+    var buffer          : MTLBuffer? = nil
+    
     var previewTexture  : MTLTexture?
     
     var terminals       : [Terminal] = []
@@ -90,19 +93,19 @@ class Node : Codable
     }
 }
 
-enum TerminalConnector : Int, Codable {
-    case Left, Top, Right, Bottom
-}
-
 class Terminal : Codable
 {
-    enum TerminalType : Int, Codable {
+    enum Connector : Int, Codable {
+        case Left, Top, Right, Bottom
+    }
+    
+    enum Brand : Int, Codable {
         case All, Properties, Object
     }
     
     var name            : String = ""
-    var connector       : TerminalConnector = .Left
-    var type            : TerminalType = .All
+    var connector       : Connector = .Left
+    var brand           : Brand = .All
     var uuid            : UUID!
 
     var connections     : [Connection] = []
@@ -112,17 +115,17 @@ class Terminal : Codable
     private enum CodingKeys: String, CodingKey {
         case name
         case connector
-        case type
+        case brand
         case uuid
         case connections
     }
     
-    init(name: String? = nil, uuid: UUID? = nil, connector: TerminalConnector? = nil, type: TerminalType? = nil, node: Node)
+    init(name: String? = nil, uuid: UUID? = nil, connector: Terminal.Connector? = nil, brand: Terminal.Brand? = nil, node: Node)
     {
         self.name = name != nil ? name! : ""
         self.uuid = uuid != nil ? uuid! : UUID()
         self.connector = connector != nil ? connector! : .Left
-        self.type = type != nil ? type! : .All
+        self.brand = brand != nil ? brand! : .All
         self.node = node
     }
     
@@ -130,9 +133,9 @@ class Terminal : Codable
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
-        connector = try container.decode(TerminalConnector.self, forKey: .connector)
+        connector = try container.decode(Connector.self, forKey: .connector)
         uuid = try container.decode(UUID.self, forKey: .uuid)
-        type = try container.decode(TerminalType.self, forKey: .type)
+        brand = try container.decode(Brand.self, forKey: .brand)
         connections = try container.decode([Connection].self, forKey: .connections)
         
         for connection in connections {
@@ -146,7 +149,7 @@ class Terminal : Codable
         try container.encode(name, forKey: .name)
         try container.encode(connector, forKey: .connector)
         try container.encode(uuid, forKey: .uuid)
-        try container.encode(type, forKey: .type)
+        try container.encode(brand, forKey: .brand)
         try container.encode(connections, forKey: .connections)
     }
 }

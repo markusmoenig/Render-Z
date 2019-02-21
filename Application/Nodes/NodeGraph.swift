@@ -32,8 +32,8 @@ class NodeGraph : Codable
     var maximizedNode   : Node?
     var hoverNode       : Node?
     
-    var hoverTerminal   : (Terminal, TerminalConnector, Float, Float)?
-    var connectTerminal : (Terminal, TerminalConnector, Float, Float)?
+    var hoverTerminal   : (Terminal, Terminal.Connector, Float, Float)?
+    var connectTerminal : (Terminal, Terminal.Connector, Float, Float)?
 
     var selectedUUID    : [UUID] = []
     
@@ -219,7 +219,7 @@ class NodeGraph : Codable
                 if let connectTerminal = terminalAt(hoverNode!, event.x, event.y) {
                     
                     self.connectTerminal = nil
-                    if hoverTerminal!.0.type == connectTerminal.0.type && hoverTerminal!.1 != connectTerminal.1 {
+                    if hoverTerminal!.0.brand == connectTerminal.0.brand && hoverTerminal!.1 != connectTerminal.1 {
                         self.connectTerminal = connectTerminal
                         
                         print("connection")
@@ -360,79 +360,53 @@ class NodeGraph : Codable
             node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name)
         }
         
-        var data: [Float] = [
-            node.rect.width, node.rect.height,
-            selectedUUID.contains(node.uuid) ? 1 : 0,
-            nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid ? 1 : 0,
-            
-            node.maxDelegate != nil ? 1 : 0, 0, 0, 0,
-
-            0, 0, 0, 0, // Terminal Counts
-            
-            0, 0, 0, 0, // Left 1
-            0, 0, 0, 30, // Left 2
-            0, 0, 0, 30, // Left 3
-            0, 0, 0, 30, // Left 4
-            0, 0, 0, 30, // Left 5
-            
-            0, 0, 0, 30, // Top
-            0, 0, 0, 30, // Right
-
-            0, 0, 0, 30, // Bottom 1
-            0, 0, 0, 30, // Bottom 2
-            0, 0, 0, 30, // Bottom 3
-            0, 0, 0, 30, // Bottom 4
-            0, 0, 0, 30, // Bottom 5
-        ];
+        // --- Fill the node data
         
-        let terminalCountOffset : Int = 8
+        node.data.size.x = node.rect.width
+        node.data.size.y = node.rect.height
+        
+        node.data.selected = selectedUUID.contains(node.uuid) ? 1 : 0
+        node.data.hoverIndex = nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid ? 1 : 0
+        node.data.hasIcons1.x = node.maxDelegate != nil ? 1 : 0
         
         var leftTerminalCount : Int = 0
         var rightTerminalCount : Int = 0
         
         var leftTerminalY : Float = 40
         
-        for terminal in node.terminals {
+        var color : float3 = float3()
+
+        for (index,terminal) in node.terminals.enumerated() {
+            color = getColorForTerminal(terminal)
             if terminal.connector == .Left {
                 
-                let offset : Int = 4 + 4 * leftTerminalCount
-                
-                if terminal.type == .Properties{
-                    data[terminalCountOffset + offset] = 0.62
-                    data[terminalCountOffset + offset + 1] = 0.506
-                    data[terminalCountOffset + offset + 2] = 0.165
+                if index == 0 {
+                    node.data.leftTerminals.0 = float4( color.x, color.y, color.z, leftTerminalY )
                 }
-                
-                data[terminalCountOffset + offset + 3] = leftTerminalY
 
                 leftTerminalCount += 1
                 leftTerminalY += 25
             }  else
             if terminal.connector == .Right {
                 
-                let offset : Int = 4 + 4 * 6
-                
-                if terminal.type == .Properties{
-                    data[terminalCountOffset + offset] = 0.62
-                    data[terminalCountOffset + offset + 1] = 0.506
-                    data[terminalCountOffset + offset + 2] = 0.165
-                }
-                
-                data[terminalCountOffset + offset + 3] = 40
-                
+                color = getColorForTerminal(terminal)
+
+                node.data.rightTerminal = float4( color.x, color.y, color.z, NodeGraph.tOffY )
                 rightTerminalCount += 1
-//                leftTerminalY += 25
             }
         }
         
-        data[terminalCountOffset] = Float(leftTerminalCount)
-        data[terminalCountOffset + 2] = Float(rightTerminalCount)
+        node.data.leftTerminalCount = Float(leftTerminalCount)
+        node.data.rightTerminalCount = Float(rightTerminalCount)
 
         // --- Draw It
-        let buffer = renderer.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
         
-        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        if node.buffer == nil {
+            node.buffer = renderer.device.makeBuffer(length: MemoryLayout<NODE_DATA>.stride, options: [])!
+        }
         
+        memcpy(node.buffer!.contents(), &node.data, MemoryLayout<NODE_DATA>.stride)
+        renderEncoder.setFragmentBuffer(node.buffer!, offset: 0, index: 0)
         renderEncoder.setRenderPipelineState(drawNodeState!)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         
@@ -502,7 +476,7 @@ class NodeGraph : Codable
     }
     
     /// Returns the terminal and the terminal connector at the given mouse position for the given node (if any)
-    func terminalAt(_ node: Node, _ x: Float, _ y: Float) -> (Terminal, TerminalConnector, Float, Float)?
+    func terminalAt(_ node: Node, _ x: Float, _ y: Float) -> (Terminal, Terminal.Connector, Float, Float)?
     {
         var lefTerminalY : Float = NodeGraph.tOffY
         for terminal in node.terminals {
@@ -542,6 +516,22 @@ class NodeGraph : Codable
         
         terminal1.node!.onConnect(myTerminal: terminal1, toTerminal: terminal2)
         terminal2.node!.onConnect(myTerminal: terminal2, toTerminal: terminal1)
+    }
+    
+    func getColorForTerminal(_ terminal: Terminal) -> float3
+    {
+        var color : float3
+        
+        switch(terminal.brand)
+        {
+            case .Properties:
+                color = float3(0.62, 0.506, 0.165)
+            
+            default:
+                color = float3()
+        }
+        
+        return color
     }
     
     /// Decode a new nodegraph from JSON

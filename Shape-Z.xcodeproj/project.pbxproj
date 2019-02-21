@@ -172,6 +172,7 @@
 		2BE67107221291D200B95241 /* Node.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Node.metal; sourceTree = "<group>"; };
 		2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectMaxDelegate.swift; sourceTree = "<group>"; };
 		2BF5D360221D2B2400EAAA76 /* Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nodes.swift; sourceTree = "<group>"; };
+		2BF5D363221E7E2D00EAAA76 /* Data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -278,6 +279,7 @@
 				2BBF119921EAD46B001C94E9 /* AppShaders.metal */,
 				2BBF119E21EAD46B001C94E9 /* Mad4Metal.metal */,
 				2BBF119A21EAD46B001C94E9 /* Mad4Metal_types.h */,
+				2BF5D363221E7E2D00EAAA76 /* Data.h */,
 				2BBF11DF21EC1A40001C94E9 /* Layers and Shapes */,
 				2BE67100221259A200B95241 /* Nodes */,
 				2BA344A422015402000BB2EB /* Icons */,
@@ -734,6 +736,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "";
+				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 			};
@@ -756,6 +759,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "";
+				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
 				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
@@ -779,6 +783,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
+				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -803,7 +808,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z-iOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = Application/Data.h;
+				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = "";
 				SWIFT_VERSION = 4.2;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
