@@ -32,10 +32,12 @@ class Node : Codable
     
     private enum CodingKeys: String, CodingKey {
         case name
+        case type
         case properties
         case uuid
         case xPos
         case yPos
+        case terminals
     }
     
     init()
@@ -51,6 +53,11 @@ class Node : Codable
         uuid = try container.decode(UUID.self, forKey: .uuid)
         xPos = try container.decode(Float.self, forKey: .xPos)
         yPos = try container.decode(Float.self, forKey: .yPos)
+        terminals = try container.decode([Terminal].self, forKey: .terminals)
+        
+        for terminal in terminals {
+            terminal.node = self
+        }
     }
 
     func encode(to encoder: Encoder) throws
@@ -61,6 +68,15 @@ class Node : Codable
         try container.encode(uuid, forKey: .uuid)
         try container.encode(xPos, forKey: .xPos)
         try container.encode(yPos, forKey: .yPos)
+        try container.encode(terminals, forKey: .terminals)
+    }
+    
+    func onConnect(myTerminal: Terminal, toTerminal: Terminal)
+    {
+    }
+    
+    func onDisconnect(myTerminal: Terminal, toTerminal: Terminal)
+    {
     }
     
     /// Sets up the node terminals
@@ -91,6 +107,8 @@ class Terminal : Codable
 
     var connections     : [Connection] = []
     
+    var node            : Node? = nil
+
     private enum CodingKeys: String, CodingKey {
         case name
         case connector
@@ -99,28 +117,64 @@ class Terminal : Codable
         case connections
     }
     
-    init(name: String? = nil, uuid: UUID? = nil, connector: TerminalConnector? = nil, type: TerminalType? = nil)
+    init(name: String? = nil, uuid: UUID? = nil, connector: TerminalConnector? = nil, type: TerminalType? = nil, node: Node)
     {
         self.name = name != nil ? name! : ""
         self.uuid = uuid != nil ? uuid! : UUID()
         self.connector = connector != nil ? connector! : .Left
         self.type = type != nil ? type! : .All
+        self.node = node
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        connector = try container.decode(TerminalConnector.self, forKey: .connector)
+        uuid = try container.decode(UUID.self, forKey: .uuid)
+        type = try container.decode(TerminalType.self, forKey: .type)
+        connections = try container.decode([Connection].self, forKey: .connections)
+        
+        for connection in connections {
+            connection.terminal = self
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(connector, forKey: .connector)
+        try container.encode(uuid, forKey: .uuid)
+        try container.encode(type, forKey: .type)
+        try container.encode(connections, forKey: .connections)
     }
 }
 
 class Connection : Codable
 {
-    var fromConnector   : TerminalConnector = .Left
+    var uuid            : UUID!
+    var terminal        : Terminal?
     
-    var toUUID          : UUID = UUID()
-    var toConnector     : TerminalConnector = .Right
-    
-    var toNode          : Node? = nil
+    /// UUID of the Terminal this connection is connected to
+    var toTerminalUUID  : UUID!
+    /// UUID of the Connection this connection is connected to
+    var toUUID          : UUID!
+    var toTerminal      : Terminal? = nil
     
     private enum CodingKeys: String, CodingKey {
-        case fromConnector
+        case uuid
+        case toTerminalUUID
         case toUUID
-        case toConnector
+    }
+    
+    init(from: Terminal, to: Terminal)
+    {
+        uuid = UUID()
+        self.terminal = from
+        
+        toTerminalUUID = to.uuid
+        toTerminal = to
     }
 }
 
@@ -190,13 +244,18 @@ enum NodeDiscriminator: String, CodingKey {
 /// The NodeFamily enum describes the node types
 enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
+    case objectPhysics = "Object Physics"
     
     static var discriminator: NodeDiscriminator = .type
     
-    func getType() -> AnyObject.Type {
-        switch self {
-        case .object:
-            return Object.self
+    func getType() -> AnyObject.Type
+    {
+        switch self
+        {
+            case .object:
+                return Object.self
+            case .objectPhysics:
+                return ObjectPhysics.self
         }
     }
 }

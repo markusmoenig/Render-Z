@@ -143,9 +143,9 @@ class EditorWidget      : MMWidget
 
                 object.sequences.append( MMTlSequence() )
                 object.currentSequence = object.sequences[0]
-                object.setupTerminals()
             }
-            
+            node.setupTerminals()
+
             app.nodeGraph.nodes.append(node)
         }
     }

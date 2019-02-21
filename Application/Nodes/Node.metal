@@ -92,6 +92,13 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         dist = min( dist, length( uv ) - 10 );
     }
     
+    if ( data->rightTerminalCount == 1 )
+    {
+        uv = uvCopy;
+        uv -= float2( size.x - 8, size.y - data->rightTerminal.w );
+        dist = min( dist, length( uv ) - 10 );
+    }
+    
     // Body Color
     color = float4(0.118, 0.118, 0.118, 1.000);
     finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
@@ -107,7 +114,17 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         
         color = float4( data->leftTerminals[i].xyz, 1);
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
-    }    
+    }
+    
+    if ( data->rightTerminalCount == 1 )
+    {
+        uv = uvCopy;
+        uv -= float2( size.x - 8, size.y - data->rightTerminal.w );
+        dist = length( uv ) - 7;
+        
+        color = float4( data->rightTerminal.xyz, 1);
+        finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+    }
     
     // Body Color
     float s = nodeGradient_linear(point, float2( 0, 0 ), float2( 0, data->size.y ) );
@@ -119,7 +136,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     if ( data->hasIcons1.x == 1 )
     {
         uv = uvCopy;
-        uv -= float2( 275, size.y - 25 );
+        uv -= float2( size.x - 41 + 16, size.y - 25 );
         
         d = abs( uv ) - float2(6,5);
         dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 2;

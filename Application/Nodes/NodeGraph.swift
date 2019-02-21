@@ -49,6 +49,17 @@ class NodeGraph : Codable
     var animating       : Bool = false
     var leftRegionMode  : LeftRegionMode = .Nodes
     
+    // --- Static Node Skin
+    
+    static var tOffY    : Float = 40 // Vertical Offset of the first terminal
+    static var tLeftY   : Float = 1.5 // Offset from the left for .Left Terminals
+    static var tRightY  : Float = 20 // Offset from the right for .Right Terminals
+    static var tSpacing : Float = 25 // Spacing between terminals
+
+    static var tRadius  : Float = 7 // Radius of terminals
+    static var tDiam    : Float = 14 // Diameter of terminals
+
+    // ---
     
     private enum CodingKeys: String, CodingKey {
         case nodes
@@ -60,6 +71,7 @@ class NodeGraph : Codable
     required init()
     {
         let object = Object()
+
         object.name = "New Object"
         object.sequences.append( MMTlSequence() )
         object.currentSequence = object.sequences[0]
@@ -177,6 +189,10 @@ class NodeGraph : Codable
     
     func mouseUp(_ event: MMMouseEvent)
     {
+        if nodeHoverMode == .TerminalConnection && connectTerminal != nil {
+            connectTerminals(hoverTerminal!.0, connectTerminal!.0)
+        }
+        
         app?.mmView.mouseTrackWidget = nil
         app?.mmView.unlockFramerate()
         nodeHoverMode = .None
@@ -192,44 +208,50 @@ class NodeGraph : Codable
             return
         }
         
+        hoverNode = nodeAt(event.x, event.y)
+        
         if nodeHoverMode == .TerminalConnection {
             
             mousePos.x = event.x
             mousePos.y = event.y
-            
-            if let connectTerminal = terminalAt(hoverNode!, event.x, event.y) {
-                print("possible connection")
-            } else {
-                print("no")
+           
+            if hoverNode != nil {
+                if let connectTerminal = terminalAt(hoverNode!, event.x, event.y) {
+                    
+                    self.connectTerminal = nil
+                    if hoverTerminal!.0.type == connectTerminal.0.type && hoverTerminal!.1 != connectTerminal.1 {
+                        self.connectTerminal = connectTerminal
+                        
+                        print("connection")
+                    }
+                }
             }
-
 
             return
         }
         
         nodeHoverMode = .None
         
-        hoverNode = nodeAt(event.x, event.y)
-        if hoverNode != nil && hoverNode!.maxDelegate != nil {
+        if hoverNode != nil {
             let x = event.x - hoverNode!.rect.x
             let y =  event.y - hoverNode!.rect.y
             
-            let iconSize : Float = 18
-            let xStart : Float = hoverNode!.rect.width - 41
-            let yStart : Float = 21
+            if hoverNode!.maxDelegate != nil {
+                let iconSize : Float = 18
+                let xStart : Float = hoverNode!.rect.width - 41
+                let yStart : Float = 21
             
-            if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize {
-                nodeHoverMode = .Maximize
-                return
+                if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize {
+                    nodeHoverMode = .Maximize
+                    return
+                }
             }
             
             if let terminalTuple = terminalAt(hoverNode!, event.x, event.y) {
                 nodeHoverMode = .Terminal
                 hoverTerminal = terminalTuple
-                print("yes")
                 return
             }
-            print("no")
         }
     }
     
@@ -273,18 +295,31 @@ class NodeGraph : Codable
             renderEncoder.setRenderPipelineState( drawPatternState! )
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             
-            // --- Draw Node Graph
+            // --- Draw Nodes
             
             for node in nodes {
                 drawNode( node, region: region)
             }
             
-            // --- Node Connection going on ?
+            // --- Ongoing Node connection attempt ?
             
             if nodeHoverMode == .TerminalConnection {
                 
                 let color = float4(0,0,0,1)
                 app!.mmView.drawLine.draw( sx: hoverTerminal!.2 - 2, sy: hoverTerminal!.3 - 2, ex: mousePos.x, ey: mousePos.y, radius: 2, fillColor : color )
+            }
+            
+            // --- DrawConnections
+            
+            for node in nodes {
+                for terminal in node.terminals {
+                    
+                    if terminal.connector == .Right || terminal.connector == .Bottom {
+                        for connection in terminal.connections {
+                            drawConnection(connection)
+                        }
+                    }
+                }
             }
             
             renderer.setClipRect()
@@ -315,7 +350,7 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + node.xPos + xOffset
         node.rect.y = region.rect.y + node.yPos + yOffset
 
-        node.rect.width = 300
+        node.rect.width = 260
         node.rect.height = 220
 
         let vertexBuffer = renderer.createVertexBuffer( MMRect( node.rect.x, node.rect.y, node.rect.width, node.rect.height, scale: scaleFactor ) )
@@ -353,6 +388,8 @@ class NodeGraph : Codable
         let terminalCountOffset : Int = 8
         
         var leftTerminalCount : Int = 0
+        var rightTerminalCount : Int = 0
+        
         var leftTerminalY : Float = 40
         
         for terminal in node.terminals {
@@ -370,11 +407,27 @@ class NodeGraph : Codable
 
                 leftTerminalCount += 1
                 leftTerminalY += 25
+            }  else
+            if terminal.connector == .Right {
+                
+                let offset : Int = 4 + 4 * 6
+                
+                if terminal.type == .Properties{
+                    data[terminalCountOffset + offset] = 0.62
+                    data[terminalCountOffset + offset + 1] = 0.506
+                    data[terminalCountOffset + offset + 2] = 0.165
+                }
+                
+                data[terminalCountOffset + offset + 3] = 40
+                
+                rightTerminalCount += 1
+//                leftTerminalY += 25
             }
         }
         
         data[terminalCountOffset] = Float(leftTerminalCount)
-        
+        data[terminalCountOffset + 2] = Float(rightTerminalCount)
+
         // --- Draw It
         let buffer = renderer.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
         
@@ -386,9 +439,55 @@ class NodeGraph : Codable
         // --- Label
         node.label?.drawCentered(x: node.rect.x, y: node.rect.y + 19, width: node.rect.width, height: 20)
         
+        // --- Preview
         if let texture = node.previewTexture {
             app!.mmView.drawTexture.draw(texture, x: node.rect.x + 25, y: node.rect.y + 50)
         }
+    }
+    
+    /// Draws the given connection
+    func drawConnection(_ conn: Connection)
+    {
+        func getPointForConnection(_ conn:Connection) -> (Float, Float)
+        {
+            var x : Float = 0
+            var y : Float = 0
+            
+            let node = conn.terminal!.node!
+
+            if conn.terminal!.connector == .Left || conn.terminal!.connector == .Right {
+                
+                if conn.terminal!.connector == .Left {
+                    x = NodeGraph.tLeftY + NodeGraph.tRadius
+                } else {
+                    x = node.rect.width - NodeGraph.tRightY + NodeGraph.tRadius
+                }
+                    
+                y = NodeGraph.tOffY
+                y += NodeGraph.tRadius
+            }
+            
+            return (node.rect.x + x, node.rect.y + y)
+        }
+        
+        /// Returns the connection identified by its UUID in the given terminal
+        func getConnectionInTerminal(_ terminal: Terminal, uuid: UUID) -> Connection?
+        {
+            for conn in terminal.connections {
+                if conn.uuid == uuid {
+                    return conn
+                }
+            }
+            return nil
+        }
+        
+        let fromTuple = getPointForConnection(conn)
+        
+        let toConnection = getConnectionInTerminal(conn.toTerminal!, uuid: conn.toUUID)
+        
+        let toTuple = getPointForConnection(toConnection!)
+
+        app!.mmView.drawLine.draw( sx: fromTuple.0, sy: fromTuple.1, ex: toTuple.0, ey: toTuple.1, radius: 2, fillColor : float4(0,0,0,1) )
     }
     
     /// Returns the node (if any) at the given mouse coordinates
@@ -405,21 +504,44 @@ class NodeGraph : Codable
     /// Returns the terminal and the terminal connector at the given mouse position for the given node (if any)
     func terminalAt(_ node: Node, _ x: Float, _ y: Float) -> (Terminal, TerminalConnector, Float, Float)?
     {
-        var lefTerminalY : Float = 40
+        var lefTerminalY : Float = NodeGraph.tOffY
         for terminal in node.terminals {
 
             if terminal.connector == .Left {
-                if y >= node.rect.y + lefTerminalY && y <= node.rect.y + lefTerminalY + 15 {
-                    if x >= node.rect.x && x <= node.rect.x + 20 {
-                        return (terminal, .Left, node.rect.x + 8.5, node.rect.y + lefTerminalY + 7)
+                if y >= node.rect.y + lefTerminalY && y <= node.rect.y + lefTerminalY + NodeGraph.tDiam {
+                    if x >= node.rect.x && x <= node.rect.x + NodeGraph.tLeftY + NodeGraph.tDiam {
+                        return (terminal, .Left, node.rect.x + NodeGraph.tLeftY + NodeGraph.tRadius, node.rect.y + lefTerminalY + 7)
+                    }
+                }
+            } else
+            if terminal.connector == .Right {
+                if y >= node.rect.y + NodeGraph.tOffY && y <= node.rect.y + NodeGraph.tOffY + NodeGraph.tDiam {
+                    if x >= node.rect.x + node.rect.width - NodeGraph.tRightY && x <= node.rect.x + node.rect.width {
+                        return (terminal, .Right, node.rect.x + node.rect.width - NodeGraph.tRightY + NodeGraph.tRadius, node.rect.y +  NodeGraph.tOffY + NodeGraph.tRadius)
                     }
                 }
             }
             
-            lefTerminalY += 25
+            lefTerminalY += NodeGraph.tSpacing
         }
 
         return nil
+    }
+    
+    /// Connects two terminals
+    func connectTerminals(_ terminal1: Terminal,_ terminal2: Terminal)
+    {
+        let t1Connection = Connection(from: terminal1, to: terminal2)
+        let t2Connection = Connection(from: terminal2, to: terminal1)
+        
+        t1Connection.toUUID = t2Connection.uuid
+        t2Connection.toUUID = t1Connection.uuid
+        
+        terminal1.connections.append(t1Connection)
+        terminal2.connections.append(t2Connection)
+        
+        terminal1.node!.onConnect(myTerminal: terminal1, toTerminal: terminal2)
+        terminal2.node!.onConnect(myTerminal: terminal2, toTerminal: terminal1)
     }
     
     /// Decode a new nodegraph from JSON
@@ -428,7 +550,6 @@ class NodeGraph : Codable
         if let jsonData = json.data(using: .utf8)
         {
             if let graph =  try? JSONDecoder().decode(NodeGraph.self, from: jsonData) {
-                print( json )
                 return graph
             }
         }
@@ -449,11 +570,30 @@ class NodeGraph : Codable
     /// Updates all nodes
     func updateNodes()
     {
+        /// Returns the terminal of the given UUID
+        func getTerminalOfUUID(_ uuid: UUID) -> Terminal?
+        {
+            for node in nodes {
+                for terminal in node.terminals {
+                    if terminal.uuid == uuid {
+                        return terminal
+                    }
+                }
+            }
+            return nil
+        }
+        
         for node in nodes {
             
             if node.type == "Object" {
                 let object = node as! Object
                 object.instance = app!.builder.buildObjects(objects: [object], camera: app!.camera, timeline: app!.timeline )
+            }
+            
+            for terminal in node.terminals {
+                for conn in terminal.connections {
+                    conn.toTerminal = getTerminalOfUUID(conn.toTerminalUUID)
+                }
             }
             
             node.updatePreview(app: app!)

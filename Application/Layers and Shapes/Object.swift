@@ -83,7 +83,7 @@ class Object : Node
     override func setupTerminals()
     {
         terminals = [
-            Terminal(name: "Properties", connector: .Left, type: .Properties)
+            Terminal(name: "Properties", connector: .Left, type: .Properties, node: self)
         ]
     }
     

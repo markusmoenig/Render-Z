@@ -115,6 +115,7 @@ class App
 
     func loadFrom(_ json: String)
     {
+//        print( json )
         if let jsonData = json.data(using: .utf8) {
             if let graph =  try? JSONDecoder().decode(NodeGraph.self, from: jsonData) {
                 
