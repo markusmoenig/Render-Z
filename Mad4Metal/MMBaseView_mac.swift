@@ -27,7 +27,8 @@ class MMBaseView : MTKView
     
     // --- Key States
     var shiftIsDown     : Bool = false
-    
+    var commandIsDown   : Bool = false
+
     func platformInit()
     {
         scaleFactor = Float(NSScreen.main!.backingScaleFactor)
@@ -124,7 +125,7 @@ class MMBaseView : MTKView
         scrollEvent.deltaX = Float(event.deltaX)
         scrollEvent.deltaY = Float(event.deltaY)
         scrollEvent.deltaZ = Float(event.deltaZ)
-        
+                
         if let widget = hoverWidget {
             widget.mouseScrolled(scrollEvent)
         }
@@ -143,6 +144,12 @@ class MMBaseView : MTKView
             shiftIsDown = true
         } else {
             shiftIsDown = false
+        }
+        
+        if event.modifierFlags.contains(.command) {
+            commandIsDown = true
+        } else {
+            commandIsDown = false
         }
     }
 }

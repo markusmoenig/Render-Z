@@ -237,9 +237,9 @@ class NodeGraph : Codable
             let y =  event.y - hoverNode!.rect.y
             
             if hoverNode!.maxDelegate != nil {
-                let iconSize : Float = 18
-                let xStart : Float = hoverNode!.rect.width - 41
-                let yStart : Float = 21
+                let iconSize : Float = 18 * scale
+                let xStart : Float = hoverNode!.rect.width - 41 * scale
+                let yStart : Float = 22 * scale
             
                 if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize {
                     nodeHoverMode = .Maximize
@@ -296,21 +296,18 @@ class NodeGraph : Codable
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             
             // --- Draw Nodes
-            
             for node in nodes {
                 drawNode( node, region: region)
             }
             
             // --- Ongoing Node connection attempt ?
-            
             if nodeHoverMode == .TerminalConnection {
                 
-                let color = float4(0,0,0,1)
-                app!.mmView.drawLine.draw( sx: hoverTerminal!.2 - 2, sy: hoverTerminal!.3 - 2, ex: mousePos.x, ey: mousePos.y, radius: 2, fillColor : color )
+                let color = getColorForTerminal(hoverTerminal!.0)
+                app!.mmView.drawLine.draw( sx: hoverTerminal!.2 - 2, sy: hoverTerminal!.3 - 2, ex: mousePos.x, ey: mousePos.y, radius: 2 * scale, fillColor : float4(color.x, color.y, color.z, 1) )
             }
             
             // --- DrawConnections
-            
             for node in nodes {
                 for terminal in node.terminals {
                     
@@ -350,8 +347,8 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + node.xPos + xOffset
         node.rect.y = region.rect.y + node.yPos + yOffset
 
-        node.rect.width = 260
-        node.rect.height = 220
+        node.rect.width = 260 * scale
+        node.rect.height = 220 * scale
 
         let vertexBuffer = renderer.createVertexBuffer( MMRect( node.rect.x, node.rect.y, node.rect.width, node.rect.height, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
@@ -369,6 +366,8 @@ class NodeGraph : Codable
         node.data.hoverIndex = nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid ? 1 : 0
         node.data.hasIcons1.x = node.maxDelegate != nil ? 1 : 0
         
+        node.data.scale = scale
+        
         var leftTerminalCount : Int = 0
         var rightTerminalCount : Int = 0
         
@@ -381,7 +380,7 @@ class NodeGraph : Codable
             if terminal.connector == .Left {
                 
                 if index == 0 {
-                    node.data.leftTerminals.0 = float4( color.x, color.y, color.z, leftTerminalY )
+                    node.data.leftTerminals.0 = float4( color.x, color.y, color.z, leftTerminalY * scale)
                 }
 
                 leftTerminalCount += 1
@@ -391,7 +390,7 @@ class NodeGraph : Codable
                 
                 color = getColorForTerminal(terminal)
 
-                node.data.rightTerminal = float4( color.x, color.y, color.z, NodeGraph.tOffY )
+                node.data.rightTerminal = float4( color.x, color.y, color.z, NodeGraph.tOffY * scale)
                 rightTerminalCount += 1
             }
         }
@@ -411,7 +410,13 @@ class NodeGraph : Codable
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         
         // --- Label
-        node.label?.drawCentered(x: node.rect.x, y: node.rect.y + 19, width: node.rect.width, height: 20)
+        
+        if let label = node.label {
+            if label.scale != 0.5 * scale {
+                label.setText(node.name, scale: 0.5 * scale)
+            }
+            label.drawCentered(x: node.rect.x, y: node.rect.y + 19 * scale, width: node.rect.width, height: label.rect.height)
+        }
         
         // --- Preview
         if let texture = node.previewTexture {
@@ -432,13 +437,13 @@ class NodeGraph : Codable
             if conn.terminal!.connector == .Left || conn.terminal!.connector == .Right {
                 
                 if conn.terminal!.connector == .Left {
-                    x = NodeGraph.tLeftY + NodeGraph.tRadius
+                    x = NodeGraph.tLeftY * scale + NodeGraph.tRadius * scale
                 } else {
-                    x = node.rect.width - NodeGraph.tRightY + NodeGraph.tRadius
+                    x = node.rect.width - NodeGraph.tRightY * scale + NodeGraph.tRadius * scale
                 }
                     
-                y = NodeGraph.tOffY
-                y += NodeGraph.tRadius
+                y = NodeGraph.tOffY * scale
+                y += NodeGraph.tRadius * scale
             }
             
             return (node.rect.x + x, node.rect.y + y)
@@ -461,7 +466,8 @@ class NodeGraph : Codable
         
         let toTuple = getPointForConnection(toConnection!)
 
-        app!.mmView.drawLine.draw( sx: fromTuple.0, sy: fromTuple.1, ex: toTuple.0, ey: toTuple.1, radius: 2, fillColor : float4(0,0,0,1) )
+        let color = getColorForTerminal(conn.terminal!)
+        app!.mmView.drawLine.draw( sx: fromTuple.0, sy: fromTuple.1, ex: toTuple.0, ey: toTuple.1, radius: 2 * scale, fillColor : float4(color.x,color.y,color.z,1) )
     }
     
     /// Returns the node (if any) at the given mouse coordinates
@@ -482,16 +488,16 @@ class NodeGraph : Codable
         for terminal in node.terminals {
 
             if terminal.connector == .Left {
-                if y >= node.rect.y + lefTerminalY && y <= node.rect.y + lefTerminalY + NodeGraph.tDiam {
-                    if x >= node.rect.x && x <= node.rect.x + NodeGraph.tLeftY + NodeGraph.tDiam {
-                        return (terminal, .Left, node.rect.x + NodeGraph.tLeftY + NodeGraph.tRadius, node.rect.y + lefTerminalY + 7)
+                if y >= node.rect.y + lefTerminalY * scale && y <= node.rect.y + lefTerminalY * scale + NodeGraph.tDiam * scale {
+                    if x >= node.rect.x && x <= node.rect.x + NodeGraph.tLeftY * scale + NodeGraph.tDiam * scale {
+                        return (terminal, .Left, node.rect.x + NodeGraph.tLeftY * scale + NodeGraph.tRadius * scale, node.rect.y + lefTerminalY * scale + NodeGraph.tRadius * scale)
                     }
                 }
             } else
             if terminal.connector == .Right {
-                if y >= node.rect.y + NodeGraph.tOffY && y <= node.rect.y + NodeGraph.tOffY + NodeGraph.tDiam {
-                    if x >= node.rect.x + node.rect.width - NodeGraph.tRightY && x <= node.rect.x + node.rect.width {
-                        return (terminal, .Right, node.rect.x + node.rect.width - NodeGraph.tRightY + NodeGraph.tRadius, node.rect.y +  NodeGraph.tOffY + NodeGraph.tRadius)
+                if y >= node.rect.y + NodeGraph.tOffY * scale && y <= node.rect.y + NodeGraph.tOffY * scale + NodeGraph.tDiam * scale {
+                    if x >= node.rect.x + node.rect.width - NodeGraph.tRightY * scale && x <= node.rect.x + node.rect.width {
+                        return (terminal, .Right, node.rect.x + node.rect.width - NodeGraph.tRightY * scale + NodeGraph.tRadius * scale, node.rect.y +  NodeGraph.tOffY * scale + NodeGraph.tRadius * scale)
                     }
                 }
             }
@@ -518,6 +524,7 @@ class NodeGraph : Codable
         terminal2.node!.onConnect(myTerminal: terminal2, toTerminal: terminal1)
     }
     
+    /// Returns the color for the given terminal
     func getColorForTerminal(_ terminal: Terminal) -> float3
     {
         var color : float3

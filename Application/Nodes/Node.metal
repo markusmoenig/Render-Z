@@ -42,6 +42,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
 //    float dist;
     float4 color = float4( 0 ), finalColor = float4( 0 );
     float2 size = data->size;
+    float scale = data->scale;
     
 //    const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
     const float4 borderColor = float4(0.173, 0.173, 0.173, 1.000);
@@ -50,7 +51,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     const float4 iconColor = float4(0.5, 0.5, 0.5, 1);
     const float4 iconHoverColor = float4(1);
 
-    const float borderSize = 4;
+    const float borderSize = 4 * scale;
     const float borderRound = 4;
 
     // Body
@@ -59,7 +60,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
 
     uv -= float2( data->size / 2.0 + borderSize / 2.0 );
 
-    float2 d = abs( uv ) - data->size / 2 + borderRound + 5;
+    float2 d = abs( uv ) - data->size / 2 + borderRound + 5 * scale;
     float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - borderRound;
 
     float2 point = in.textureCoordinate * data->size;
@@ -68,15 +69,15 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     for( int i = 0; i < data->leftTerminalCount; i += 1)
     {
         uv = uvCopy;
-        uv -= float2( 10, size.y - data->leftTerminals[i].w );
-        dist = min( dist, length( uv ) - 10 );
+        uv -= float2( 10 * scale, size.y - data->leftTerminals[i].w );
+        dist = min( dist, length( uv ) - 10 * scale );
     }
     
     if ( data->rightTerminalCount == 1 )
     {
         uv = uvCopy;
-        uv -= float2( size.x - 8, size.y - data->rightTerminal.w );
-        dist = min( dist, length( uv ) - 10 );
+        uv -= float2( size.x - 8 * scale, size.y - data->rightTerminal.w );
+        dist = min( dist, length( uv ) - 10 * scale );
     }
     
     // Body Color
@@ -89,8 +90,8 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     for( int i = 0; i < data->leftTerminalCount; i += 1)
     {
         uv = uvCopy;
-        uv -= float2( 10, size.y - data->leftTerminals[i].w );
-        dist = length( uv ) - 7;
+        uv -= float2( 10 * scale, size.y - data->leftTerminals[i].w );
+        dist = length( uv ) - 7 * scale;
         
         color = float4( data->leftTerminals[i].xyz, 1);
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
@@ -99,8 +100,8 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     if ( data->rightTerminalCount == 1 )
     {
         uv = uvCopy;
-        uv -= float2( size.x - 8, size.y - data->rightTerminal.w );
-        dist = length( uv ) - 7;
+        uv -= float2( size.x - 8 * scale, size.y - data->rightTerminal.w );
+        dist = length( uv ) - 7 * scale;
         
         color = float4( data->rightTerminal.xyz, 1);
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
@@ -116,13 +117,13 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     if ( data->hasIcons1.x == 1 )
     {
         uv = uvCopy;
-        uv -= float2( size.x - 41 + 16, size.y - 25 );
+        uv -= float2( size.x - 41 * scale + 16 * scale, size.y - borderSize - 22 * scale );
         
-        d = abs( uv ) - float2(6,5);
-        dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 2;
+        d = abs( uv ) - float2(6,5) * scale;
+        dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 2 * scale;
         
-        uv -= float2( 0, 10 );
-        d = abs( uv ) - float2(7, 1);
+        uv -= float2( 0, 10 ) * scale;
+        d = abs( uv ) - float2(7, 1) * scale;
         dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 1);
         
         color = data->hoverIndex == 1 ? iconHoverColor : iconColor;

@@ -64,12 +64,15 @@ class MMTextLabel: MMLabel
         textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
     }
     
-    func setText(_ text: String)
+    func setText(_ text: String, scale: Float? = nil)
     {
-        if text != self.text {
+        if text != self.text || (scale != nil && self.scale != scale) {
             self.text = text
             textBuffer = nil
-            rect = font.getTextRect(text: text, scale: scale, rectToUse: rect)
+            if scale != nil {
+                self.scale = scale!
+            }
+            rect = font.getTextRect(text: text, scale: self.scale, rectToUse: rect)
         }
     }
 }

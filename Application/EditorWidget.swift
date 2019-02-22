@@ -47,8 +47,21 @@ class EditorWidget      : MMWidget
     override func mouseScrolled(_ event: MMMouseEvent)
     {
         if app.nodeGraph.maximizedNode == nil {
+            
+            #if os(OSX)
+            
+            if mmView.commandIsDown && event.deltaY! != 0 {
+                app.nodeGraph.scale += event.deltaY! * 0.003
+                app.nodeGraph.scale = max(0.2, app.nodeGraph.scale)
+            } else {
+                app.nodeGraph.xOffset -= event.deltaX!
+                app.nodeGraph.yOffset -= event.deltaY!
+            }
+            
+            #else
             app.nodeGraph.xOffset -= event.deltaX!
             app.nodeGraph.yOffset -= event.deltaY!
+            #endif
             
             if !dispatched {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
