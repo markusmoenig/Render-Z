@@ -32,8 +32,7 @@ typedef struct
     
     float4   topTerminal;
     float4   rightTerminal;
-    
-    float4   bottomTerminals[5];
+    float4   bottomTerminal;
     
 } NODE_DATA;
 

@@ -53,6 +53,8 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
 
     const float borderSize = 4 * scale;
     const float borderRound = 4;
+    const float tRadius = 7 * scale;
+    const float tSpacing = 25 * scale;
 
     // Body
     float2 uv = in.textureCoordinate * ( data->size + float2( borderSize ) * 2 );
@@ -69,15 +71,35 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     for( int i = 0; i < data->leftTerminalCount; i += 1)
     {
         uv = uvCopy;
-        uv -= float2( 10 * scale, size.y - data->leftTerminals[i].w );
-        dist = min( dist, length( uv ) - 10 * scale );
+        uv -= float2( 7 * scale, size.y - data->leftTerminals[i].w );
+        dist = max( dist, -(length( uv ) - tRadius) );
+    }
+    
+    if ( data->topTerminalCount == 1 )
+    {
+        uv = uvCopy;
+        uv -= float2( size.x / 2, size.y - data->topTerminal.w );
+        dist = max( dist, -(length( uv ) - tRadius) );
     }
     
     if ( data->rightTerminalCount == 1 )
     {
         uv = uvCopy;
-        uv -= float2( size.x - 8 * scale, size.y - data->rightTerminal.w );
-        dist = min( dist, length( uv ) - 10 * scale );
+        uv -= float2( size.x - 4 * scale, size.y - data->rightTerminal.w );
+        dist = max( dist, -(length( uv ) - tRadius) );
+    }
+    
+    if ( data->bottomTerminalCount > 0 )
+    {
+        float left = (size.x - (data->bottomTerminalCount * tRadius + (data->bottomTerminalCount-1) * tSpacing)) / 2;
+        for( int i = 0; i < data->bottomTerminalCount; i += 1)
+        {
+            uv = uvCopy;
+            uv -= float2( left, 8 * scale );
+            dist = max( dist, -(length( uv ) - tRadius) );
+            
+            left += tRadius + tSpacing;
+        }
     }
     
     // Body Color
@@ -90,21 +112,46 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     for( int i = 0; i < data->leftTerminalCount; i += 1)
     {
         uv = uvCopy;
-        uv -= float2( 10 * scale, size.y - data->leftTerminals[i].w );
-        dist = length( uv ) - 7 * scale;
+        uv -= float2( 7 * scale, size.y - data->leftTerminals[i].w );
+        dist = length( uv ) - tRadius;
         
         color = float4( data->leftTerminals[i].xyz, 1);
+        finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+    }
+    
+    if ( data->topTerminalCount == 1 )
+    {
+        uv = uvCopy;
+        uv -= float2( size.x / 2, size.y - data->topTerminal.w );
+        dist = length( uv ) - tRadius;
+        
+        color = float4( data->topTerminal.xyz, 1);
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
     }
     
     if ( data->rightTerminalCount == 1 )
     {
         uv = uvCopy;
-        uv -= float2( size.x - 8 * scale, size.y - data->rightTerminal.w );
-        dist = length( uv ) - 7 * scale;
+        uv -= float2( size.x - 4 * scale, size.y - data->rightTerminal.w );
+        dist = length( uv ) - tRadius;
         
         color = float4( data->rightTerminal.xyz, 1);
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+    }
+    
+    if ( data->bottomTerminalCount > 0 )
+    {
+        float left = (size.x - (data->bottomTerminalCount * tRadius + (data->bottomTerminalCount-1) * tSpacing)) / 2;
+        for( int i = 0; i < data->bottomTerminalCount; i += 1)
+        {
+            uv = uvCopy;
+            uv -= float2( left, 8 * scale );
+            dist = length( uv ) - tRadius;
+            
+            color = float4( data->bottomTerminal.xyz, 1);
+            finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+            left += tRadius + tSpacing;
+        }
     }
     
     // Body Color

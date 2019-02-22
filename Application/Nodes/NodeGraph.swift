@@ -51,7 +51,7 @@ class NodeGraph : Codable
     
     // --- Static Node Skin
     
-    static var tOffY    : Float = 40 // Vertical Offset of the first terminal
+    static var tOffY    : Float = 45 // Vertical Offset of the first terminal
     static var tLeftY   : Float = 1.5 // Offset from the left for .Left Terminals
     static var tRightY  : Float = 20 // Offset from the right for .Right Terminals
     static var tSpacing : Float = 25 // Spacing between terminals
@@ -369,34 +369,48 @@ class NodeGraph : Codable
         node.data.scale = scale
         
         var leftTerminalCount : Int = 0
+        var topTerminalCount : Int = 0
         var rightTerminalCount : Int = 0
-        
-        var leftTerminalY : Float = 40
+        var bottomTerminalCount : Int = 0
+
         
         var color : float3 = float3()
-
+        var leftTerminalY : Float = NodeGraph.tOffY * scale
         for (index,terminal) in node.terminals.enumerated() {
             color = getColorForTerminal(terminal)
             if terminal.connector == .Left {
                 
                 if index == 0 {
-                    node.data.leftTerminals.0 = float4( color.x, color.y, color.z, leftTerminalY * scale)
+                    node.data.leftTerminals.0 = float4( color.x, color.y, color.z, leftTerminalY)
                 }
 
                 leftTerminalCount += 1
-                leftTerminalY += 25
+                leftTerminalY += NodeGraph.tSpacing * 2
             }  else
+            if terminal.connector == .Top {
+                
+                node.data.topTerminal = float4( color.x, color.y, color.z, 3 * scale)
+                topTerminalCount += 1
+            } else
             if terminal.connector == .Right {
                 
                 color = getColorForTerminal(terminal)
 
                 node.data.rightTerminal = float4( color.x, color.y, color.z, NodeGraph.tOffY * scale)
                 rightTerminalCount += 1
+            } else
+            if terminal.connector == .Bottom {
+                
+                node.data.bottomTerminal = float4( color.x, color.y, color.z, 10 * scale)
+
+                bottomTerminalCount += 1
             }
         }
         
         node.data.leftTerminalCount = Float(leftTerminalCount)
+        node.data.topTerminalCount = Float(topTerminalCount)
         node.data.rightTerminalCount = Float(rightTerminalCount)
+        node.data.bottomTerminalCount = Float(bottomTerminalCount)
 
         // --- Draw It
         
@@ -484,25 +498,50 @@ class NodeGraph : Codable
     /// Returns the terminal and the terminal connector at the given mouse position for the given node (if any)
     func terminalAt(_ node: Node, _ x: Float, _ y: Float) -> (Terminal, Terminal.Connector, Float, Float)?
     {
-        var lefTerminalY : Float = NodeGraph.tOffY
+        var lefTerminalY : Float = NodeGraph.tOffY * scale
+        var rightTerminalY : Float = NodeGraph.tOffY * scale
+        
+        var bottomCount : Float = 0
+        for terminal in node.terminals {
+            if terminal.connector == .Bottom {
+                bottomCount += 1
+            }
+        }
+        var bottomX : Float = (node.rect.width - (bottomCount * NodeGraph.tDiam * scale + (bottomCount - 1) * NodeGraph.tSpacing * scale )) / 2
+        
         for terminal in node.terminals {
 
             if terminal.connector == .Left {
-                if y >= node.rect.y + lefTerminalY * scale && y <= node.rect.y + lefTerminalY * scale + NodeGraph.tDiam * scale {
+                if y >= node.rect.y + lefTerminalY && y <= node.rect.y + lefTerminalY + NodeGraph.tDiam * scale {
                     if x >= node.rect.x && x <= node.rect.x + NodeGraph.tLeftY * scale + NodeGraph.tDiam * scale {
-                        return (terminal, .Left, node.rect.x + NodeGraph.tLeftY * scale + NodeGraph.tRadius * scale, node.rect.y + lefTerminalY * scale + NodeGraph.tRadius * scale)
+                        return (terminal, .Left, node.rect.x + NodeGraph.tLeftY * scale + NodeGraph.tRadius * scale, node.rect.y + lefTerminalY + NodeGraph.tRadius * scale)
+                    }
+                }
+                lefTerminalY += NodeGraph.tSpacing * scale
+            } else
+            if terminal.connector == .Top {
+                if y >= node.rect.y + 3 * scale && y <= node.rect.y + 3 * scale + NodeGraph.tDiam * scale {
+                    if x >= node.rect.x + node.rect.width / 2 - NodeGraph.tRadius * scale - 3 * scale && x <= node.rect.x + node.rect.width / 2 + NodeGraph.tRadius * scale - 3 * scale {
+                        return (terminal, .Top, node.rect.x + node.rect.width / 2 - 3 * scale, node.rect.y + 3 * scale + NodeGraph.tRadius * scale)
                     }
                 }
             } else
             if terminal.connector == .Right {
-                if y >= node.rect.y + NodeGraph.tOffY * scale && y <= node.rect.y + NodeGraph.tOffY * scale + NodeGraph.tDiam * scale {
+                if y >= node.rect.y + rightTerminalY && y <= node.rect.y + rightTerminalY + NodeGraph.tDiam * scale {
                     if x >= node.rect.x + node.rect.width - NodeGraph.tRightY * scale && x <= node.rect.x + node.rect.width {
-                        return (terminal, .Right, node.rect.x + node.rect.width - NodeGraph.tRightY * scale + NodeGraph.tRadius * scale, node.rect.y +  NodeGraph.tOffY * scale + NodeGraph.tRadius * scale)
+                        return (terminal, .Right, node.rect.x + node.rect.width - NodeGraph.tRightY * scale + NodeGraph.tRadius * scale, node.rect.y + rightTerminalY + NodeGraph.tRadius * scale)
                     }
                 }
+                rightTerminalY += NodeGraph.tSpacing * scale
+            } else
+            if terminal.connector == .Bottom {
+                if y >= node.rect.y + node.rect.height - 0 * scale - NodeGraph.tDiam * scale && y <= node.rect.y + node.rect.height - 0 * scale {
+                    if x >= node.rect.x + bottomX && x <= node.rect.x + bottomX + NodeGraph.tDiam * scale {
+                        return (terminal, .Bottom, node.rect.x + bottomX + NodeGraph.tRadius * scale, node.rect.y + node.rect.height - 3 * scale - NodeGraph.tRadius * scale)
+                    }
+                    bottomX += NodeGraph.tSpacing * scale + NodeGraph.tRadius * scale
+                }
             }
-            
-            lefTerminalY += NodeGraph.tSpacing
         }
 
         return nil
@@ -533,7 +572,10 @@ class NodeGraph : Codable
         {
             case .Properties:
                 color = float3(0.62, 0.506, 0.165)
-            
+            case .Object:
+                color = float3(1)//float3(0.192, 0.573, 0.478)
+            case .Behavior:
+                color = float3(0.129, 0.216, 0.612)
             default:
                 color = float3()
         }

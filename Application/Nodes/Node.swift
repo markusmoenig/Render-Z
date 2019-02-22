@@ -100,7 +100,7 @@ class Terminal : Codable
     }
     
     enum Brand : Int, Codable {
-        case All, Properties, Object
+        case All, Properties, Object, Layer, Material, Behavior
     }
     
     var name            : String = ""
