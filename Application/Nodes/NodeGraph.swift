@@ -151,15 +151,22 @@ class NodeGraph : Codable
     {
         selectedUUID = []
         
-        #if !os(OSX)
+//        #if !os(OSX)
         mouseMoved( event )
-        #endif
+//        #endif
         
         if nodeHoverMode == .Terminal {
-            nodeHoverMode = .TerminalConnection
-            mousePos.x = event.x
-            mousePos.y = event.y
-            selectedUUID = [hoverNode!.uuid]
+            
+            if hoverTerminal!.0.connections.count != 0 {
+                for conn in hoverTerminal!.0.connections {
+                    disconnectConnection(conn)
+                }
+            } else {
+                nodeHoverMode = .TerminalConnection
+                mousePos.x = event.x
+                mousePos.y = event.y
+                selectedUUID = [hoverNode!.uuid]
+            }
         } else
         if let selectedNode = nodeAt(event.x, event.y) {
             selectedUUID = [selectedNode.uuid]
@@ -222,7 +229,8 @@ class NodeGraph : Codable
                     if hoverTerminal!.0.brand == connectTerminal.0.brand && hoverTerminal!.1 != connectTerminal.1 {
                         self.connectTerminal = connectTerminal
                         
-                        print("connection")
+                        mousePos.x = connectTerminal.2
+                        mousePos.y = connectTerminal.3
                     }
                 }
             }
@@ -561,6 +569,19 @@ class NodeGraph : Codable
         
         terminal1.node!.onConnect(myTerminal: terminal1, toTerminal: terminal2)
         terminal2.node!.onConnect(myTerminal: terminal2, toTerminal: terminal1)
+    }
+    
+    /// Disconnects the connection
+    func disconnectConnection(_ conn: Connection)
+    {
+        let terminal = conn.terminal!
+        terminal.connections.removeAll{$0.uuid == conn.uuid}
+
+        let toTerminal = conn.toTerminal!
+        toTerminal.connections.removeAll{$0.uuid == conn.toUUID!}
+        
+        terminal.node!.onConnect(myTerminal: terminal, toTerminal: toTerminal)
+        toTerminal.node!.onConnect(myTerminal: toTerminal, toTerminal: terminal)
     }
     
     /// Returns the color for the given terminal
