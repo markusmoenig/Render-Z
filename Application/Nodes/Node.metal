@@ -54,6 +54,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     const float borderSize = 4 * scale;
     const float borderRound = 4;
     const float tRadius = 7 * scale;
+    const float tDiam = 14 * scale;
     const float tSpacing = 25 * scale;
 
     // Body
@@ -91,14 +92,14 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     
     if ( data->bottomTerminalCount > 0 )
     {
-        float left = (size.x - (data->bottomTerminalCount * tRadius + (data->bottomTerminalCount-1) * tSpacing)) / 2;
+        float left = (size.x - (data->bottomTerminalCount * tDiam + (data->bottomTerminalCount-1) * tSpacing)) / 2 + tRadius;
         for( int i = 0; i < data->bottomTerminalCount; i += 1)
         {
             uv = uvCopy;
             uv -= float2( left, 8 * scale );
             dist = max( dist, -(length( uv ) - tRadius) );
             
-            left += tRadius + tSpacing;
+            left += tSpacing + tDiam;
         }
     }
     
@@ -141,7 +142,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     
     if ( data->bottomTerminalCount > 0 )
     {
-        float left = (size.x - (data->bottomTerminalCount * tRadius + (data->bottomTerminalCount-1) * tSpacing)) / 2;
+        float left = (size.x - (data->bottomTerminalCount * tDiam + (data->bottomTerminalCount-1) * tSpacing)) / 2 + tRadius;
         for( int i = 0; i < data->bottomTerminalCount; i += 1)
         {
             uv = uvCopy;
@@ -150,7 +151,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
             
             color = float4( data->bottomTerminal.xyz, 1);
             finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
-            left += tRadius + tSpacing;
+            left += tSpacing + tDiam;
         }
     }
     

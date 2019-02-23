@@ -355,8 +355,8 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + node.xPos + xOffset
         node.rect.y = region.rect.y + node.yPos + yOffset
 
-        node.rect.width = 260 * scale
-        node.rect.height = 220 * scale
+        node.rect.width = node.minimumSize.x * scale
+        node.rect.height = node.minimumSize.y * scale
 
         let vertexBuffer = renderer.createVertexBuffer( MMRect( node.rect.x, node.rect.y, node.rect.width, node.rect.height, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
@@ -453,19 +453,50 @@ class NodeGraph : Codable
         {
             var x : Float = 0
             var y : Float = 0
-            
-            let node = conn.terminal!.node!
+            let terminal = conn.terminal!
+            let node = terminal.node!
 
-            if conn.terminal!.connector == .Left || conn.terminal!.connector == .Right {
-                
-                if conn.terminal!.connector == .Left {
-                    x = NodeGraph.tLeftY * scale + NodeGraph.tRadius * scale
-                } else {
-                    x = node.rect.width - NodeGraph.tRightY * scale + NodeGraph.tRadius * scale
+            var bottomCount : Float = 0
+            for terminal in node.terminals {
+                if terminal.connector == .Bottom {
+                    bottomCount += 1
                 }
+            }
+            
+            var bottomX : Float = (node.rect.width - (bottomCount * NodeGraph.tDiam * scale + (bottomCount - 1) * NodeGraph.tSpacing * scale )) / 2 - 3.5 * scale
+            
+            for t in node.terminals {
+                if t.connector == .Left || t.connector == .Right {
+                    if t.uuid == conn.terminal!.uuid {
+                        if t.connector == .Left {
+                            x = NodeGraph.tLeftY * scale + NodeGraph.tRadius * scale
+                        } else {
+                            x = node.rect.width - NodeGraph.tRightY * scale + NodeGraph.tRadius * scale
+                        }
+                     
+                        y = NodeGraph.tOffY * scale
+                        break
+                    }
                     
-                y = NodeGraph.tOffY * scale
-                y += NodeGraph.tRadius * scale
+                    y += NodeGraph.tRadius * scale
+                } else
+                if t.connector == .Top {
+                    if t.uuid == conn.terminal!.uuid {
+                        x = node.rect.width / 2 - 3 * scale
+                        y = 3 * scale + NodeGraph.tRadius * scale
+                        
+                        break;
+                    }
+                } else
+                if t.connector == .Bottom {
+                    if t.uuid == terminal.uuid {
+                        x = bottomX + NodeGraph.tRadius * scale
+                        y = node.rect.height - 3 * scale - NodeGraph.tRadius * scale
+                        
+                        break;
+                    }
+                    bottomX += NodeGraph.tSpacing * scale + NodeGraph.tDiam * scale
+                }
             }
             
             return (node.rect.x + x, node.rect.y + y)
@@ -515,7 +546,7 @@ class NodeGraph : Codable
                 bottomCount += 1
             }
         }
-        var bottomX : Float = (node.rect.width - (bottomCount * NodeGraph.tDiam * scale + (bottomCount - 1) * NodeGraph.tSpacing * scale )) / 2
+        var bottomX : Float = (node.rect.width - (bottomCount * NodeGraph.tDiam * scale + (bottomCount - 1) * NodeGraph.tSpacing * scale )) / 2 - 3.5 * scale
         
         for terminal in node.terminals {
 
@@ -547,7 +578,7 @@ class NodeGraph : Codable
                     if x >= node.rect.x + bottomX && x <= node.rect.x + bottomX + NodeGraph.tDiam * scale {
                         return (terminal, .Bottom, node.rect.x + bottomX + NodeGraph.tRadius * scale, node.rect.y + node.rect.height - 3 * scale - NodeGraph.tRadius * scale)
                     }
-                    bottomX += NodeGraph.tSpacing * scale + NodeGraph.tRadius * scale
+                    bottomX += NodeGraph.tSpacing * scale + NodeGraph.tDiam * scale
                 }
             }
         }

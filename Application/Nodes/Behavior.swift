@@ -1,21 +1,23 @@
 //
-//  Nodes.swift
+//  Behavior.swift
 //  Shape-Z
 //
-//  Created by Markus Moenig on 20.02.19.
+//  Created by Markus Moenig on 23.02.19.
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
 import Foundation
 
-class ObjectPhysics : Node
+class Sequence : Node
 {
     override init()
     {
         super.init()
         
-        name = "Object Physics"
-        type = "Object Physics"
+        name = "Sequence"
+        type = "Sequence"
+        
+        minimumSize = float2(240, 70)
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -25,7 +27,13 @@ class ObjectPhysics : Node
     override func setupTerminals()
     {
         terminals = [
-            Terminal(name: "Properties", connector: .Right, brand: .Properties, node: self)
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self),
+
+            Terminal(name: "Behavior1", connector: .Bottom, brand: .Behavior, node: self),
+            Terminal(name: "Behavior2", connector: .Bottom, brand: .Behavior, node: self),
+            Terminal(name: "Behavior3", connector: .Bottom, brand: .Behavior, node: self),
+            Terminal(name: "Behavior4", connector: .Bottom, brand: .Behavior, node: self),
+            Terminal(name: "Behavior5", connector: .Bottom, brand: .Behavior, node: self)
         ]
     }
     
@@ -33,18 +41,18 @@ class ObjectPhysics : Node
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 //        test = try container.decode(Float.self, forKey: .test)
-
+        
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
         
-        type = "Object Physics"
+        type = "Sequence"
     }
     
     override func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(type, forKey: .type)
-
+        
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
     }

@@ -33,6 +33,9 @@ class Node : Codable
     
     var terminals       : [Terminal] = []
     
+    var minimumSize     : float2 = float2(260,220)
+    var isMinimized     : Bool = false
+    
     private enum CodingKeys: String, CodingKey {
         case name
         case type
@@ -41,6 +44,7 @@ class Node : Codable
         case xPos
         case yPos
         case terminals
+        case isMinimized
     }
     
     init()
@@ -57,7 +61,8 @@ class Node : Codable
         xPos = try container.decode(Float.self, forKey: .xPos)
         yPos = try container.decode(Float.self, forKey: .yPos)
         terminals = try container.decode([Terminal].self, forKey: .terminals)
-        
+        isMinimized = try container.decode(Bool.self, forKey: .isMinimized)
+
         for terminal in terminals {
             terminal.node = self
         }
@@ -72,6 +77,7 @@ class Node : Codable
         try container.encode(xPos, forKey: .xPos)
         try container.encode(yPos, forKey: .yPos)
         try container.encode(terminals, forKey: .terminals)
+        try container.encode(isMinimized, forKey: .isMinimized)
     }
     
     func onConnect(myTerminal: Terminal, toTerminal: Terminal)
@@ -248,7 +254,8 @@ enum NodeDiscriminator: String, CodingKey {
 enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
     case objectPhysics = "Object Physics"
-    
+    case sequence = "Sequence"
+
     static var discriminator: NodeDiscriminator = .type
     
     func getType() -> AnyObject.Type
@@ -259,6 +266,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return Object.self
             case .objectPhysics:
                 return ObjectPhysics.self
+            case .sequence:
+                return Sequence.self
         }
     }
 }

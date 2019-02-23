@@ -84,7 +84,7 @@ class Object : Node
     {
         terminals = [
             Terminal(name: "Properties", connector: .Left, brand: .Properties, node: self),
-            Terminal(name: "Out", connector: .Right, brand: .Object, node: self),
+//            Terminal(name: "Out", connector: .Right, brand: .Object, node: self),
             Terminal(name: "Behavior1", connector: .Bottom, brand: .Behavior, node: self),
             Terminal(name: "Behavior2", connector: .Bottom, brand: .Behavior, node: self),
             Terminal(name: "Behavior3", connector: .Bottom, brand: .Behavior, node: self)

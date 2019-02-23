@@ -106,6 +106,8 @@
 		2BE6710C2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
 		2BF5D361221D2B2400EAAA76 /* Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* Nodes.swift */; };
 		2BF5D362221D2B2400EAAA76 /* Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* Nodes.swift */; };
+		2BF5D3652220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
+		2BF5D3662220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -173,6 +175,7 @@
 		2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectMaxDelegate.swift; sourceTree = "<group>"; };
 		2BF5D360221D2B2400EAAA76 /* Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nodes.swift; sourceTree = "<group>"; };
 		2BF5D363221E7E2D00EAAA76 /* Data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
+		2BF5D3642220D50D00EAAA76 /* Behavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Behavior.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -344,6 +347,7 @@
 			children = (
 				2BE67101221259F500B95241 /* Node.swift */,
 				2BF5D360221D2B2400EAAA76 /* Nodes.swift */,
+				2BF5D3642220D50D00EAAA76 /* Behavior.swift */,
 				2BE6710422125D7D00B95241 /* NodeGraph.swift */,
 				2BE67107221291D200B95241 /* Node.metal */,
 				2B639F16221791F500576542 /* NodeList.swift */,
@@ -483,6 +487,7 @@
 				2BBF11C321EADB46001C94E9 /* MMWidget.swift in Sources */,
 				2BBF11C121EADB46001C94E9 /* MMRenderer.swift in Sources */,
 				2BBF11A621EAD46B001C94E9 /* BottomRegion.swift in Sources */,
+				2BF5D3652220D50D00EAAA76 /* Behavior.swift in Sources */,
 				2BBF11CD21EADB46001C94E9 /* MMBaseView_mac.swift in Sources */,
 				2BBF11F621F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */,
@@ -533,6 +538,7 @@
 				2BBF11C421EADB46001C94E9 /* MMWidget.swift in Sources */,
 				2BBF11DE21EADB46001C94E9 /* MMBaseView__ios.swift in Sources */,
 				2BBF11C221EADB46001C94E9 /* MMRenderer.swift in Sources */,
+				2BF5D3662220D50D00EAAA76 /* Behavior.swift in Sources */,
 				2BBF11A721EAD46B001C94E9 /* BottomRegion.swift in Sources */,
 				2BBF11F721F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2B5CCB0322152EB6005BAA2B /* MMListWidget.swift in Sources */,

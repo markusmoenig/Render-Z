@@ -59,6 +59,12 @@ class NodeList : MMWidget
             return ObjectPhysics()
         }
         items.append(item)
+        // --- Behavior: Sequence
+        item = NodeListItem("Sequence")
+        item.createNode = {
+            return Sequence()
+        }
+        items.append(item)
 
         // ---
         listWidget.build(items: items, fixedWidth: 200)
@@ -101,8 +107,10 @@ class NodeList : MMWidget
     {
         if mouseIsDown && dragSource == nil {
             dragSource = createDragSource(event.x - rect.x, event.y - rect.y)
-            dragSource?.sourceWidget = self
-            mmView.dragStarted(source: dragSource!)
+            if dragSource != nil {
+                dragSource?.sourceWidget = self
+                mmView.dragStarted(source: dragSource!)
+            }
         }
     }
     
