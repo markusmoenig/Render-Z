@@ -220,11 +220,13 @@ class MMView : MMBaseView {
     }
 
     /// Registers an icon texture of the given name in the icons dictionary
-    func registerIcon(_ name: String)
+    @discardableResult func registerIcon(_ name: String) -> MTLTexture?
     {
         if let texture = loadTexture(name) {
             icons[name] = texture
+            return texture
         }
+        return nil
     }
     
     /// Initiate a drag operation

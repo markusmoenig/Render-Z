@@ -31,6 +31,36 @@ float nodeGradient_linear(float2 uv, float2 p1, float2 p2) {
     return clamp(dot(uv-p1,p2-p1)/dot(p2-p1,p2-p1),0.,1.);
 }
 
+float nodeEquilateralTriangle( float2 p )
+{
+    const float k = sqrt(3.0);
+    
+    p.x = abs(p.x) - 1.0;
+    p.y = p.y + 1.0/k;
+    if( p.x + k*p.y > 0.0 ) p = float2( p.x - k*p.y, -k*p.x - p.y )/2.0;
+    p.x -= clamp( p.x, -2.0, 0.0 );
+    return -length(p)*sign(p.y);
+}
+
+float nodeTriangleIsosceles( float2 p, float2 q )
+{
+    p.x = abs(p.x);
+    
+    float2 a = p - q*clamp( dot(p,q)/dot(q,q), 0.0, 1.0 );
+    float2 b = p - q*float2( clamp( p.x/q.x, 0.0, 1.0 ), 1.0 );
+    float s = -sign( q.y );
+    float2 d = min( float2( dot(a,a), s*(p.x*q.y-p.y*q.x) ),
+                 float2( dot(b,b), s*(p.y-q.y)  ));
+    
+    return -sqrt(d.x)*sign(d.y);
+}
+
+float2 nodeRotateCW(float2 pos, float angle)
+{
+    float ca = cos(angle), sa = sin(angle);
+    return pos * float2x2(ca, -sa, sa, ca);
+}
+
 // --- Normal Gizmo
 
 fragment float4 drawNode(RasterizerData        in [[stage_in]],
@@ -109,6 +139,22 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     color = data->selected != 0 ? selBorderColor : borderColor;
     finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );
     
+    // Bottom border
+    if ( data->hasIcons1.y == 1 )
+    {
+        uv = uvCopy;
+        uv -= float2(size.x / 2 + 2.5 * scale, 16 * scale);
+        
+        d = abs( uv ) - float2((data->size.x - 10 * scale) / 2, 20 * scale);
+        float box = (length(max(d,float2(0))) + min(max(d.x,d.y),0.0));
+        //dist = min( dist,  );
+        if ( dist < 0 ) {
+            dist = box;
+//            color = borderColor;
+            finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+        }
+    }
+    
     // Terminal Bodies
     for( int i = 0; i < data->leftTerminalCount; i += 1)
     {
@@ -175,6 +221,18 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 1);
         
         color = data->hoverIndex == 1 ? iconHoverColor : iconColor;
+        finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+    }
+    
+    if ( data->hasIcons1.y == 1 )
+    {
+        uv = uvCopy;
+        uv -= float2( 30 * scale, 22 * scale);
+        
+        uv = nodeRotateCW( uv, -1.5707963268 );
+        dist = nodeTriangleIsosceles( uv, float2( 10, 16) * scale);
+        
+        color = data->hoverIndex == 2 ? iconHoverColor : iconColor;
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
     }
 

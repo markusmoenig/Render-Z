@@ -16,7 +16,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Maximize, Dragging, Terminal, TerminalConnection
+        case None, Maximize, Dragging, Terminal, TerminalConnection, Play
     }
     
     var nodes           : [Node] = []
@@ -31,7 +31,8 @@ class NodeGraph : Codable
     var app             : App?
     var maximizedNode   : Node?
     var hoverNode       : Node?
-    
+    var playNode        : Node?
+
     var hoverTerminal   : (Terminal, Terminal.Connector, Float, Float)?
     var connectTerminal : (Terminal, Terminal.Connector, Float, Float)?
 
@@ -48,6 +49,10 @@ class NodeGraph : Codable
     var nodeList        : NodeList?
     var animating       : Bool = false
     var leftRegionMode  : LeftRegionMode = .Nodes
+    
+    // --- Icons
+    
+    var executeIcon     : MTLTexture?
     
     // --- Static Node Skin
     
@@ -117,6 +122,13 @@ class NodeGraph : Codable
         nodesButton.addState(.Checked)
         
         nodeList = NodeList(app.mmView, app:app)
+        
+        // --- Register icons at first time start
+//        if app.mmView.icons["execute"] == nil {
+//            executeIcon = app.mmView.registerIcon("execute")
+//        } else {
+//            executeIcon = app.mmView.icons["execute"]
+//        }
     }
 
     /// Controls the tab mode in the left region
@@ -180,6 +192,14 @@ class NodeGraph : Codable
                 maximizedNode!.maxDelegate!.activate(app!)
                 nodeHoverMode = .None
             } else
+            if nodeHoverMode == .Play {
+                if playNode == nil {
+                    playNode = selectedNode
+                } else {
+                    playNode = nil
+                }
+                return
+            }
             if offY < 26 {
                 dragStartPos.x = event.x
                 dragStartPos.y = event.y
@@ -245,12 +265,23 @@ class NodeGraph : Codable
             let y =  event.y - hoverNode!.rect.y
             
             if hoverNode!.maxDelegate != nil {
-                let iconSize : Float = 18 * scale
-                let xStart : Float = hoverNode!.rect.width - 41 * scale
-                let yStart : Float = 22 * scale
+                var iconSize : Float = 18 * scale
+                var xStart : Float = hoverNode!.rect.width - 41 * scale
+                var yStart : Float = 22 * scale
             
-                if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize {
+                if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
+                {
                     nodeHoverMode = .Maximize
+                    return
+                }
+                
+                iconSize = 20 * scale
+                xStart = 13 * scale
+                yStart = hoverNode!.rect.height - 30 * scale
+                
+                if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
+                {
+                    nodeHoverMode = .Play
                     return
                 }
             }
@@ -371,9 +402,18 @@ class NodeGraph : Codable
         node.data.size.y = node.rect.height
         
         node.data.selected = selectedUUID.contains(node.uuid) ? 1 : 0
-        node.data.hoverIndex = nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid ? 1 : 0
-        node.data.hasIcons1.x = node.maxDelegate != nil ? 1 : 0
+        node.data.hoverIndex = 0
         
+        if nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid {
+            node.data.hoverIndex = 1
+        } else
+        if (nodeHoverMode == .Play && node.uuid == hoverNode!.uuid) || (playNode != nil) {
+            node.data.hoverIndex = 2
+        }
+        
+        node.data.hasIcons1.x = node.maxDelegate != nil ? 1 : 0
+        node.data.hasIcons1.y = node.type == "Object" ? 1 : 0
+
         node.data.scale = scale
         
         var leftTerminalCount : Int = 0
@@ -381,7 +421,6 @@ class NodeGraph : Codable
         var rightTerminalCount : Int = 0
         var bottomTerminalCount : Int = 0
 
-        
         var color : float3 = float3()
         var leftTerminalY : Float = NodeGraph.tOffY * scale
         for (index,terminal) in node.terminals.enumerated() {
@@ -437,7 +476,7 @@ class NodeGraph : Codable
             if label.scale != 0.5 * scale {
                 label.setText(node.name, scale: 0.5 * scale)
             }
-            label.drawCentered(x: node.rect.x, y: node.rect.y + 19 * scale, width: node.rect.width, height: label.rect.height)
+            label.drawCentered(x: node.rect.x, y: node.rect.y + 24 * scale, width: node.rect.width, height: label.rect.height)//19
         }
         
         // --- Preview
