@@ -12,6 +12,10 @@ import MetalKit
 
 class Node : Codable
 {
+    enum Result {
+        case Success, Failure, Running
+    }
+    
     var type            : String = ""
     var properties      : [String: Float]
 
@@ -86,6 +90,11 @@ class Node : Codable
     
     func onDisconnect(myTerminal: Terminal, toTerminal: Terminal)
     {
+    }
+    
+    func execute(nodeGraph: NodeGraph, root: Node, parent: Node) -> Result
+    {
+        return .Failure
     }
     
     /// Sets up the node terminals
@@ -255,6 +264,7 @@ enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
     case objectPhysics = "Object Physics"
     case sequence = "Sequence"
+    case selector = "Selector"
 
     static var discriminator: NodeDiscriminator = .type
     
@@ -268,6 +278,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectPhysics.self
             case .sequence:
                 return Sequence.self
+            case .selector:
+                return Selector.self
         }
     }
 }

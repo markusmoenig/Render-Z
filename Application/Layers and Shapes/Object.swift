@@ -91,6 +91,23 @@ class Object : Node
         ]
     }
     
+    /// Execute all bevavior outputs
+    override func execute(nodeGraph: NodeGraph, root: Node, parent: Node) -> Result
+    {
+        var result : Result = .Success
+        for terminal in terminals {
+            
+            if terminal.connector == .Bottom {
+                for conn in terminal.connections {
+                    let toTerminal = conn.toTerminal!
+                    result = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
+                }
+            }
+        }
+        
+        return result
+    }
+    
     @discardableResult func addShape(_ shape: Shape) -> Shape
     {
         shapes.append( shape )

@@ -65,6 +65,12 @@ class NodeList : MMWidget
             return Sequence()
         }
         items.append(item)
+        // --- Behavior: Selector
+        item = NodeListItem("Selector")
+        item.createNode = {
+            return Selector()
+        }
+        items.append(item)
 
         // ---
         listWidget.build(items: items, fixedWidth: 200)
