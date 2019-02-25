@@ -24,6 +24,7 @@ class EditorWidget      : MMWidget
         
         dropTargets.append( "ShapeSelectorItem" )
         dropTargets.append( "NodeItem" )
+        dropTargets.append( "AvailableObjectItem" )
     }
 
     override func mouseDown(_ event: MMMouseEvent)
@@ -92,6 +93,7 @@ class EditorWidget      : MMWidget
     override func dragEnded(event:MMMouseEvent, dragSource:MMDragSource)
     {
         if dragSource.id == "ShapeSelectorItem" {
+            // Object Editor, shape drag to editor
             let drag = dragSource as! ShapeSelectorDrag
             
 //            mmView.window!.undoManager!.registerUndo(withTarget: self) { target in
@@ -143,6 +145,8 @@ class EditorWidget      : MMWidget
         } else
         if dragSource.id == "NodeItem"
         {
+            // NodeGraph, node drag to editor
+
             let drag = dragSource as! NodeListDrag
             let node = drag.node!
             
@@ -160,6 +164,26 @@ class EditorWidget      : MMWidget
             node.setupTerminals()
 
             app.nodeGraph.nodes.append(node)
+        } else
+        if dragSource.id == "AvailableObjectItem"
+        {
+            // Layer editor, available object drag to editor
+            
+            let drag = dragSource as! AvailableObjectListItemDrag
+            let node = drag.node!
+            
+            node.xPos = event.x - rect.x - app.nodeGraph.xOffset - drag.pWidgetOffset!.x
+            node.yPos = event.y - rect.y - app.nodeGraph.yOffset - drag.pWidgetOffset!.y
+            
+            if node.type == "Object" {
+                let currentLayer = app.nodeGraph.maximizedNode as? Layer
+                if currentLayer != nil {
+                    currentLayer!.objectRefs.append(node.uuid)
+                    
+                    let layerDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! LayerMaxDelegate
+                    layerDelegate.objectList!.rebuildList()
+                }
+            }
         }
     }
 }

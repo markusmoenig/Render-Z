@@ -195,6 +195,9 @@ class NodeGraph : Codable
             if nodeHoverMode == .Play {
                 if playNode == nil {
                     playNode = selectedNode
+                    for node in nodes {
+                        node.playResult = nil
+                    }
                 } else {
                     playNode = nil
                 }
@@ -299,6 +302,7 @@ class NodeGraph : Codable
     {
         app?.mmView.registerWidgets(widgets: nodesButton, nodeList!)
         app!.leftRegion!.rect.width = 200
+        nodeHoverMode = .None
     }
     
     ///
@@ -335,6 +339,11 @@ class NodeGraph : Codable
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             
             // --- Draw Nodes
+            
+            if playNode != nil {
+                _ = playNode!.execute(nodeGraph: self, root: playNode!, parent: playNode!)
+            }
+            
             for node in nodes {
                 drawNode( node, region: region)
             }
@@ -402,8 +411,19 @@ class NodeGraph : Codable
         node.data.size.y = node.rect.height
         
         node.data.selected = selectedUUID.contains(node.uuid) ? 1 : 0
-        node.data.hoverIndex = 0
         
+        if playNode != nil && node.playResult != nil {
+            if node.playResult! == .Success {
+                node.data.selected = 2
+            } else
+            if node.playResult! == .Failure {
+                node.data.selected = 3
+            } else {
+                node.data.selected = 4
+            }
+        }
+        
+        node.data.hoverIndex = 0
         if nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid {
             node.data.hoverIndex = 1
         } else
@@ -669,6 +689,20 @@ class NodeGraph : Codable
                 color = float3(0.129, 0.216, 0.612)
             default:
                 color = float3()
+        }
+        
+        if playNode != nil {
+            if terminal.node!.playResult != nil {
+                if terminal.node!.playResult! == .Success {
+                    color = float3(0.192, 0.573, 0.478);
+                } else
+                if terminal.node!.playResult! == .Failure {
+                    color = float3(0.988, 0.129, 0.188);
+                } else
+                if terminal.node!.playResult! == .Running {
+                    color = float3(0,0,0);
+                }
+            }
         }
         
         return color

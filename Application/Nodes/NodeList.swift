@@ -59,6 +59,12 @@ class NodeList : MMWidget
             return ObjectPhysics()
         }
         items.append(item)
+        // --- Layer
+        item = NodeListItem("Layer")
+        item.createNode = {
+            return Layer()
+        }
+        items.append(item)
         // --- Behavior: Sequence
         item = NodeListItem("Sequence")
         item.createNode = {
@@ -69,6 +75,12 @@ class NodeList : MMWidget
         item = NodeListItem("Selector")
         item.createNode = {
             return Selector()
+        }
+        items.append(item)
+        // --- Leave: Key Down
+        item = NodeListItem("Key Down")
+        item.createNode = {
+            return KeyDown()
         }
         items.append(item)
 

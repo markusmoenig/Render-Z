@@ -60,21 +60,21 @@ class Sequence : Node
     /// Return Success if all behavior outputs succeeded
     override func execute(nodeGraph: NodeGraph, root: Node, parent: Node) -> Result
     {
-        var result : Result = .Failure
+        playResult = .Success
         for terminal in terminals {
             
             if terminal.connector == .Bottom {
                 for conn in terminal.connections {
                     let toTerminal = conn.toTerminal!
-                    result = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
-                    if result == .Failure {
+                    playResult = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
+                    if playResult == .Failure {
                         return .Failure
                     }
                 }
             }
         }
         
-        return result
+        return playResult!
     }
 }
 
@@ -130,20 +130,20 @@ class Selector : Node
     /// Return Success if the first encountered behavior output succeeded
     override func execute(nodeGraph: NodeGraph, root: Node, parent: Node) -> Result
     {
-        var result : Result = .Failure
+        playResult = .Failure
         for terminal in terminals {
             
             if terminal.connector == .Bottom {
                 for conn in terminal.connections {
                     let toTerminal = conn.toTerminal!
-                    result = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
-                    if result == .Success {
+                    playResult = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
+                    if playResult == .Success {
                         return .Success
                     }
                 }
             }
         }
         
-        return result
+        return playResult!
     }
 }

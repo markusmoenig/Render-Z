@@ -49,3 +49,58 @@ class ObjectPhysics : Node
         try super.encode(to: superdecoder)
     }
 }
+
+class KeyDown : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Key Down"
+        type = "Key Down"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+        
+        type = "Key Down"
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Return Success if the selected key is currently down
+    override func execute(nodeGraph: NodeGraph, root: Node, parent: Node) -> Result
+    {
+        playResult = .Failure
+        
+        if nodeGraph.app!.mmView.shiftIsDown {
+            playResult = .Success
+        }
+        
+        return playResult!
+    }
+}
+

@@ -38,7 +38,8 @@ class Node : Codable
     var terminals       : [Terminal] = []
     
     var minimumSize     : float2 = float2(260,220)
-    var isMinimized     : Bool = false
+    
+    var playResult      : Result? = nil
     
     private enum CodingKeys: String, CodingKey {
         case name
@@ -48,7 +49,6 @@ class Node : Codable
         case xPos
         case yPos
         case terminals
-        case isMinimized
     }
     
     init()
@@ -65,7 +65,6 @@ class Node : Codable
         xPos = try container.decode(Float.self, forKey: .xPos)
         yPos = try container.decode(Float.self, forKey: .yPos)
         terminals = try container.decode([Terminal].self, forKey: .terminals)
-        isMinimized = try container.decode(Bool.self, forKey: .isMinimized)
 
         for terminal in terminals {
             terminal.node = self
@@ -81,7 +80,6 @@ class Node : Codable
         try container.encode(xPos, forKey: .xPos)
         try container.encode(yPos, forKey: .yPos)
         try container.encode(terminals, forKey: .terminals)
-        try container.encode(isMinimized, forKey: .isMinimized)
     }
     
     func onConnect(myTerminal: Terminal, toTerminal: Terminal)
@@ -265,6 +263,8 @@ enum NodeFamily: String, NodeClassFamily {
     case objectPhysics = "Object Physics"
     case sequence = "Sequence"
     case selector = "Selector"
+    case layer = "Layer"
+//    case scene = "Scene"
 
     static var discriminator: NodeDiscriminator = .type
     
@@ -280,6 +280,10 @@ enum NodeFamily: String, NodeClassFamily {
                 return Sequence.self
             case .selector:
                 return Selector.self
+            case .layer:
+                return Layer.self
+//            case .scene:
+//                return Scene.self
         }
     }
 }

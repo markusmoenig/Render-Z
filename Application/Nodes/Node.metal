@@ -75,18 +75,31 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     float scale = data->scale;
     
 //    const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
-    const float4 borderColor = float4(0.173, 0.173, 0.173, 1.000);
-    const float4 selBorderColor = float4(0.820, 0.820, 0.820, 1.000);
+    float4 borderColor = float4(0.173, 0.173, 0.173, 1.000);
+    const float4 selBorderColor = float4(0.620, 0.620, 0.620, 1.000);//820
 //    const float4 centerColor = float4(0.702, 0.702, 0.702, 1.000);
     const float4 iconColor = float4(0.5, 0.5, 0.5, 1);
     const float4 iconHoverColor = float4(1);
-
+    
     const float borderSize = 4 * scale;
     const float borderRound = 4;
     const float tRadius = 7 * scale;
     const float tDiam = 14 * scale;
     const float tSpacing = 25 * scale;
 
+    if ( data->selected == 2 ) {
+        // Success
+        borderColor = float4(0.192, 0.573, 0.478, 1.000);
+    } else
+    if ( data->selected == 3 ) {
+        // Failure
+        borderColor = float4(0.988, 0.129, 0.188, 1.000);
+    } else
+    if ( data->selected == 4 ) {
+        // Running
+        borderColor = float4(0, 0, 0, 1);
+    }
+    
     // Body
     float2 uv = in.textureCoordinate * ( data->size + float2( borderSize ) * 2 );
     float2 uvCopy = uv;
@@ -136,7 +149,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     // Body Color
     color = float4(0.118, 0.118, 0.118, 1.000);
     finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
-    color = data->selected != 0 ? selBorderColor : borderColor;
+    color = data->selected == 1 ? selBorderColor : borderColor;
     finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );
     
     // Bottom border

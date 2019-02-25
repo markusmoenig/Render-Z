@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B4CC2272222260600A47812 /* Layer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2262222260600A47812 /* Layer.swift */; };
+		2B4CC2282222260600A47812 /* Layer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2262222260600A47812 /* Layer.swift */; };
+		2B4CC22A2222301300A47812 /* LayerMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */; };
+		2B4CC22B2222301300A47812 /* LayerMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */; };
 		2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
@@ -111,6 +115,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2B4CC2262222260600A47812 /* Layer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Layer.swift; sourceTree = "<group>"; };
+		2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerMaxDelegate.swift; sourceTree = "<group>"; };
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
 		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
 		2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Shape-Z iOS.entitlements"; sourceTree = "<group>"; };
@@ -332,6 +338,8 @@
 				2B5CCAFE2214F2FF005BAA2B /* Builder.swift */,
 				2BBF11F821F55D20001C94E9 /* Object.swift */,
 				2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */,
+				2B4CC2262222260600A47812 /* Layer.swift */,
+				2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */,
 				2BBF11E021EC1A92001C94E9 /* Shape.swift */,
 				2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */,
 				2BBF11F521F02EAD001C94E9 /* ShapeList.swift */,
@@ -482,6 +490,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B4CC2272222260600A47812 /* Layer.swift in Sources */,
 				2BA344AD2202A0A0000BB2EB /* MMFragment.swift in Sources */,
 				2BE6710522125D7D00B95241 /* NodeGraph.swift in Sources */,
 				2BBF11C321EADB46001C94E9 /* MMWidget.swift in Sources */,
@@ -521,6 +530,7 @@
 				2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BF5D361221D2B2400EAAA76 /* Nodes.swift in Sources */,
 				2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */,
+				2B4CC22A2222301300A47812 /* LayerMaxDelegate.swift in Sources */,
 				2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */,
 				2BBF11D321EADB46001C94E9 /* MMCompute.swift in Sources */,
 				2BBF11C721EADB46001C94E9 /* MMDrawable.swift in Sources */,
@@ -533,6 +543,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B4CC2282222260600A47812 /* Layer.swift in Sources */,
 				2BA344AE2202A0AA000BB2EB /* MMFragment.swift in Sources */,
 				2BE6710622125D7D00B95241 /* NodeGraph.swift in Sources */,
 				2BBF11C421EADB46001C94E9 /* MMWidget.swift in Sources */,
@@ -572,6 +583,7 @@
 				2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BF5D362221D2B2400EAAA76 /* Nodes.swift in Sources */,
 				2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */,
+				2B4CC22B2222301300A47812 /* LayerMaxDelegate.swift in Sources */,
 				2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */,
 				2BBF11D421EADB46001C94E9 /* MMCompute.swift in Sources */,
 				2BBF11C821EADB46001C94E9 /* MMDrawable.swift in Sources */,
