@@ -46,6 +46,26 @@ class Object : Node
         
         maxDelegate = ObjectMaxDelegate()
     }
+
+    /// Creates an instance of the given object with the given instance properties
+    init(instanceFor: Object, instanceProperties: [String:Float])
+    {
+        self.shapes = instanceFor.shapes
+        self.childObjects = instanceFor.childObjects
+        self.sequences = instanceFor.sequences
+        self.selectedShapes = []
+        
+        super.init()
+
+        properties = instanceProperties
+        self.type = instanceFor.type
+
+        if properties["posX"] == nil {
+            properties["posX"] = 0
+            properties["posY"] = 0
+            properties["rotate"] = 0
+        }
+    }
     
     required init(from decoder: Decoder) throws
     {

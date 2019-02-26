@@ -8,9 +8,41 @@
 
 import MetalKit
 
+class ObjectInstance : Codable
+{
+    var objectUUID   : UUID
+    var properties   : [String:Float]
+    var instance     : Object? = nil
+    
+    private enum CodingKeys: String, CodingKey {
+        case objectUUID
+        case properties
+    }
+    
+    init( uuid: UUID, properties: [String:Float])
+    {
+        objectUUID = uuid
+        self.properties = properties
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        objectUUID = try container.decode(UUID.self, forKey: .objectUUID)
+        properties = try container.decode([String:Float].self, forKey: .properties)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(objectUUID, forKey: .objectUUID)
+        try container.encode(properties, forKey: .properties)
+    }
+}
+
 class Layer : Node
 {
-    var objectRefs      : [UUID]
+    var objectInstances : [ObjectInstance]
 
     /// The timeline sequences for this object
     var sequences       : [MMTlSequence]
@@ -21,14 +53,15 @@ class Layer : Node
     var instance        : BuilderInstance?
         
     private enum CodingKeys: String, CodingKey {
-        case objectRefs
+        case type
+        case objectInstances
         case selectedObjects
         case sequences
     }
     
     override init()
     {
-        objectRefs = []
+        objectInstances = []
         selectedObjects = []
         sequences = []
         
@@ -43,7 +76,7 @@ class Layer : Node
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        objectRefs = try container.decode([UUID].self, forKey: .objectRefs)
+        objectInstances = try container.decode([ObjectInstance].self, forKey: .objectInstances)
         selectedObjects = try container.decode([UUID].self, forKey: .selectedObjects)
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
 
@@ -61,7 +94,8 @@ class Layer : Node
     override func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(objectRefs, forKey: .objectRefs)
+        try container.encode(type, forKey: .type)
+        try container.encode(objectInstances, forKey: .objectInstances)
         try container.encode(selectedObjects, forKey: .selectedObjects)
         try container.encode(sequences, forKey: .sequences)
 
@@ -129,5 +163,11 @@ class Layer : Node
     
     override func updatePreview(app: App)
     {
+        if previewTexture == nil {
+            previewTexture = app.builder.compute!.allocateTexture(width: 250, height: 160, output: true)
+        }
+        if instance != nil {
+            app.builder.render(width: 250, height: 160, instance: instance!, camera: app.camera, timeline: app.timeline, outTexture: previewTexture)
+        }
     }
 }

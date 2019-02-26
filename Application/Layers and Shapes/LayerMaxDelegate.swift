@@ -32,7 +32,6 @@ class LayerMaxDelegate : NodeMaxDelegate {
 
     var shapeSelector   : ShapeSelector!
     var textureWidget   : MMTextureWidget!
-//    var scrollArea      : ShapeScrollArea!
     var animating       : Bool = false
     
     // Right Region
@@ -55,7 +54,6 @@ class LayerMaxDelegate : NodeMaxDelegate {
     {
         self.app = app
         currentLayer = app.nodeGraph.maximizedNode as? Layer
-//        app.gizmo.setObject(currentLayer)
         
         // Top Region
         if objectsButton == nil {
@@ -98,37 +96,39 @@ class LayerMaxDelegate : NodeMaxDelegate {
         }
         
         // Bottom Region
-        /*
+        
         if timeline == nil {
             timeline = MMTimeline(app.mmView)
             timeline.changedCB = { (frame) in
                 self.update()
             }
-            sequenceWidget = SequenceWidget(app.mmView, app: app, delegate: self)
+            //sequenceWidget = SequenceWidget(app.mmView, app: app, delegate: self)
         }
         timeline.activate()
 
-        sequenceWidget.listWidget.selectedItems = [currentObject!.sequences[0].uuid]
+        /*
+        sequenceWidget.listWidget.selectedItems = []//[currentObject!.sequences[0].uuid]
         sequenceWidget.listWidget.selectionChanged = { (items:[MMListWidgetItem]) -> Void in
             self.currentObject!.currentSequence = items[0] as? MMTlSequence
             self.update()
         }
-        timelineButton.addState( .Checked )
-        app.bottomRegion!.rect.height = 100
+         
+        //timelineButton.addState( .Checked )
+        //app.bottomRegion!.rect.height = 100
         
         app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
         */
         
         app.mmView.registerWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList)
+        
+        update(true)
     }
     
     override func deactivate()
     {
-        /*
-        timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
-        
-        currentObject!.updatePreview(app: app)*/
+//        timeline.deactivate()
+        app.mmView.deregisterWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList)
+        currentLayer!.updatePreview(app: app)
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -165,11 +165,11 @@ class LayerMaxDelegate : NodeMaxDelegate {
         if region.type == .Editor {
             app.gizmo.rect.copy(region.rect)
             drawPattern(region)
-            /*
-            if let instance = currentObject!.instance {
+            
+            if let instance = currentLayer!.instance {
             
                 if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
-                    app.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, timeline: timeline)
+                    app.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera, timeline: timeline)
                 }
                 
                 if let texture = instance.texture {
@@ -180,7 +180,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
              
             app.gizmo.draw()
             app.changed = false
-            */
+            
         } else
         if region.type == .Top {
             region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: objectsButton )
@@ -353,19 +353,52 @@ class LayerMaxDelegate : NodeMaxDelegate {
         }
     }
     
+    /// Returns the current object which is the first object in the selectedObjects array
+    func getCurrentObject() -> Object?
+    {
+        if currentLayer!.selectedObjects.isEmpty { return nil }
+        
+        for inst in currentLayer!.objectInstances {
+            if inst.objectUUID == currentLayer!.selectedObjects[0] {
+                return inst.instance
+            }
+        }
+        
+        return nil
+    }
+    
+    func updateGizmo()
+    {
+        let object = getCurrentObject()
+        app.gizmo.setObject(object, context: .ObjectEditor)
+    }
+    
     /// Updates the preview. hard does a rebuild, otherwise just a render
     override func update(_ hard: Bool = false)
     {
-        /*
         if hard {
-            app.gizmo.setObject(currentObject)
-            currentObject!.instance = app.builder.buildObjects(objects: [currentObject!], camera: camera, timeline: timeline)
+//            app.gizmo.setObject(currentObject)
+            
+            var objects : [Object] = []
+            for inst in currentLayer!.objectInstances {
+                
+                for node in app.nodeGraph.nodes {
+                    if node.uuid == inst.objectUUID {
+                        inst.instance = Object(instanceFor: node as! Object, instanceProperties: inst.properties)
+                        inst.instance!.maxDelegate = self
+                        objects.append(inst.instance!)
+                    }
+                }
+            }
+            
+            currentLayer!.instance = app.builder.buildObjects(objects: objects, camera: camera, timeline: timeline)
+            updateGizmo()
         } else {
             let region = app.editorRegion!
-            if currentObject!.instance != nil {
-                app.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, timeline: timeline)
+            if currentLayer!.instance != nil {
+                app.builder.render(width: region.rect.width, height: region.rect.height, instance: currentLayer!.instance!, camera: camera, timeline: timeline)
             }
-        }*/
+        }
     }
     
     /// Return the camera (used by Gizmo)
@@ -673,10 +706,10 @@ class ObjectList : MMWidget
     func rebuildList()
     {
         items = []
-        for uuid in delegate.currentLayer!.objectRefs {
+        for instance in delegate.currentLayer!.objectInstances {
             for node in app.nodeGraph.nodes {
-                if node.uuid == uuid {
-                    print("here")
+                if node.uuid == instance.objectUUID {
+                    
                     let item = ObjectListItem()
                     item.name = node.name + " Instance"
                     item.uuid = node.uuid

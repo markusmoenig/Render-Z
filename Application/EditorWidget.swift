@@ -172,16 +172,16 @@ class EditorWidget      : MMWidget
             let drag = dragSource as! AvailableObjectListItemDrag
             let node = drag.node!
             
-            node.xPos = event.x - rect.x - app.nodeGraph.xOffset - drag.pWidgetOffset!.x
-            node.yPos = event.y - rect.y - app.nodeGraph.yOffset - drag.pWidgetOffset!.y
-            
             if node.type == "Object" {
                 let currentLayer = app.nodeGraph.maximizedNode as? Layer
                 if currentLayer != nil {
-                    currentLayer!.objectRefs.append(node.uuid)
+                    let instance = ObjectInstance(uuid: node.uuid, properties: [:])
+                    currentLayer!.objectInstances.append(instance)
                     
                     let layerDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! LayerMaxDelegate
                     layerDelegate.objectList!.rebuildList()
+                    currentLayer!.selectedObjects = [node.uuid]
+                    currentLayer!.maxDelegate?.update(true)
                 }
             }
         }

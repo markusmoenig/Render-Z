@@ -138,11 +138,23 @@ class Builder
         /// Parse objects and their shapes
         
         var index : Int = 0
+        var parentPosX : Float = 0
+        var parentPosY : Float = 0
+        var parentRotate : Float = 0
         func parseObject(_ object: Object)
         {
+            parentPosX += object.properties["posX"]!
+            parentPosY += object.properties["posY"]!
+            parentRotate += object.properties["rotate"]!
+
             for shape in object.shapes {
                 
-                let properties = timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
+                let properties : [String:Float]
+                if object.currentSequence != nil {
+                    properties = timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
+                } else {
+                    properties = shape.properties
+                }
                 
                 source += "uv = translate( tuv, layerData->shape[\(index)].pos );"
                 if shape.pointCount < 2 {
@@ -167,14 +179,14 @@ class Builder
                 
                 source += "dist = \(booleanCode)( dist, " + shape.createDistanceCode(uvName: "uv", layerIndex: index) + ");"
                 
-                let posX = properties["posX"]
-                let posY = properties["posY"]
+                let posX = properties["posX"]! + parentPosX
+                let posY = properties["posY"]! + parentPosY
                 let sizeX = properties[shape.widthProperty]
                 let sizeY = properties[shape.heightProperty]
-                let rotate = (properties["rotate"]!) * Float.pi / 180
+                let rotate = (properties["rotate"]!+parentRotate) * Float.pi / 180
                 
-                instance.data!.append( posX! )
-                instance.data!.append( posY! )
+                instance.data!.append( posX )
+                instance.data!.append( posY )
                 instance.data!.append( sizeX! )
                 instance.data!.append( sizeY! )
                 if shape.pointCount == 0 {
@@ -218,6 +230,10 @@ class Builder
             for childObject in object.childObjects {
                 parseObject(childObject)
             }
+            
+            parentPosX -= object.properties["posX"]!
+            parentPosY -= object.properties["posY"]!
+            parentRotate -= object.properties["rotate"]!
         }
         
         for object in objects {
@@ -263,13 +279,28 @@ class Builder
         var index : Int = 0
 
         // Update Shapes / Objects
+        
+        var parentPosX : Float = 0
+        var parentPosY : Float = 0
+        var parentRotate : Float = 0
+        
         func parseObject(_ object: Object)
         {
+            parentPosX += object.properties["posX"]!
+            parentPosY += object.properties["posY"]!
+            parentRotate += object.properties["rotate"]!
+            
             for shape in object.shapes {
-                let properties = timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
                 
-                instance.data![offset + index * 12] = properties["posX"]!
-                instance.data![offset + index * 12+1] = properties["posY"]!
+                let properties : [String:Float]
+                if object.currentSequence != nil {
+                    properties = timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
+                } else {
+                    properties = shape.properties
+                }
+                
+                instance.data![offset + index * 12] = properties["posX"]! + parentPosX
+                instance.data![offset + index * 12+1] = properties["posY"]! + parentPosY
                 instance.data![offset + index * 12+2] = properties[shape.widthProperty]!
                 instance.data![offset + index * 12+3] = properties[shape.heightProperty]!
                 if ( shape.pointCount == 1 ) {
@@ -290,7 +321,7 @@ class Builder
                             instance.data![offset + index * 12+8] = properties["point_2_x"]!
                             instance.data![offset + index * 12+9] = properties["point_2_y"]!
                 }
-                instance.data![offset + index * 12+10] = properties["rotate"]! * Float.pi / 180
+                instance.data![offset + index * 12+10] = (properties["rotate"]!+parentRotate) * Float.pi / 180
                 
                 index += 1
             }
@@ -298,6 +329,10 @@ class Builder
             for childObject in object.childObjects {
                 parseObject(childObject)
             }
+            
+            parentPosX -= object.properties["posX"]!
+            parentPosY -= object.properties["posY"]!
+            parentRotate -= object.properties["rotate"]!
         }
         
         for object in instance.objects {

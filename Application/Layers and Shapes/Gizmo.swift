@@ -20,8 +20,13 @@ class Gizmo : MMWidget
         case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale
     }
     
-    var mode            : GizmoMode = .Normal
+    enum GizmoContext : Float {
+        case ShapeEditor, ObjectEditor
+    }
     
+    var mode            : GizmoMode = .Normal
+    var context         : GizmoContext = .ShapeEditor
+
     var hoverState      : GizmoState = .Inactive
     var dragState       : GizmoState = .Inactive
     
@@ -58,9 +63,10 @@ class Gizmo : MMWidget
         super.init(view)
     }
     
-    func setObject(_ object:Object?)
+    func setObject(_ object:Object?, context: GizmoContext = .ShapeEditor)
     {
         self.object = object
+        self.context = context
         mode = .Normal
     }
     
@@ -193,19 +199,24 @@ class Gizmo : MMWidget
                 }
             } else
             if dragState == .xAxisMove {
-                if mode == .Normal {
-                    for shape in selectedShapeObjects {
+                if context == .ShapeEditor {
+                    if mode == .Normal {
+                        for shape in selectedShapeObjects {
+                            let properties : [String:Float] = [
+                                "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                                ]
+                            processGizmoProperties(properties, shape: shape)
+                        }
+                    } else {
+                        let shape = pointShape!
                         let properties : [String:Float] = [
-                            "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
                             ]
                         processGizmoProperties(properties, shape: shape)
                     }
-                } else {
-                    let shape = pointShape!
-                    let properties : [String:Float] = [
-                        "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                        ]
-                    processGizmoProperties(properties, shape: shape)
+                } else
+                if context == .ObjectEditor {
+                        
                 }
             } else
             if dragState == .yAxisMove {
@@ -267,11 +278,9 @@ class Gizmo : MMWidget
     func processGizmoProperties(_ properties: [String:Float], shape: Shape)
     {
         if !isRecording() {
-            
             for(name, value) in properties {
                 shape.properties[name] = value
             }
-            
         } else {
             let timeline = object!.maxDelegate!.getTimeline()!
             let uuid = shape.uuid
@@ -279,11 +288,21 @@ class Gizmo : MMWidget
         }
     }
     
+    /// Processes the new values for the properties of the given object, either as a keyframe or a global change
+    func processObjectGizmoProperties(_ properties: [String:Float])
+    {
+        if !isRecording() {
+            for(name, value) in properties {
+                object!.properties[name] = value
+            }
+        }
+    }
+    
     override func draw()
     {
         if object == nil { hoverState = .Inactive; return }
         let selectedShapes = object!.getSelectedShapes()
-        if selectedShapes.count == 0 { hoverState = .Inactive; return }
+        if selectedShapes.count == 0 && context == .ShapeEditor { hoverState = .Inactive; return }
         
         let editorRect = rect
         

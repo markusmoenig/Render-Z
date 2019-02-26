@@ -162,7 +162,7 @@ class NodeGraph : Codable
     func mouseDown(_ event: MMMouseEvent)
     {
         selectedUUID = []
-        
+                
 //        #if !os(OSX)
         mouseMoved( event )
 //        #endif
