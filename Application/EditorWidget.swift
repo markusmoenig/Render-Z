@@ -118,24 +118,24 @@ class EditorWidget      : MMWidget
                     xOff = shape.properties["radius"]! - deltaX + 2.5
                     yOff = shape.properties["radius"]! - deltaY + 2.5
                     
-                    shape.properties["radius"] = shape.properties["radius"]! * 700 / rect.width
+                    shape.properties["radius"] = shape.properties["radius"]!// * 700 / rect.width
                 } else
                 if shape.name == "Box" {
                     xOff = shape.properties["width"]! - deltaX + 2.5
                     yOff = shape.properties["height"]! - deltaY + 2.5
                     
-                    shape.properties["width"] = shape.properties["width"]! * 700 / rect.width
-                    shape.properties["height"] = shape.properties["height"]! * 700 / rect.width
+                    shape.properties["width"] = shape.properties["width"]!// * 700 / rect.width
+                    shape.properties["height"] = shape.properties["height"]!// * 700 / rect.width
                 }
                 
                 // --- Transform coordinates
-                xOff = (event.x - rect.x + xOff) * 700 / rect.width
-                yOff = (event.y - rect.y + yOff) * 700 / rect.width
+                xOff = (event.x - rect.x + xOff)// * 700 / rect.width
+                yOff = (event.y - rect.y + yOff)// * 700 / rect.width
                 
                 // --- Center
-                xOff -= 350 - currentObject!.maxDelegate!.getCamera()!.xPos
+                xOff -= rect.width / 2 - currentObject!.maxDelegate!.getCamera()!.xPos
                 yOff += currentObject!.maxDelegate!.getCamera()!.yPos
-                yOff -= 350 * rect.height / rect.width
+                yOff -= rect.width / 2 * rect.height / rect.width
                 
                 shape.properties["posX"] = xOff
                 shape.properties["posY"] = yOff
@@ -162,6 +162,7 @@ class EditorWidget      : MMWidget
                 object.currentSequence = object.sequences[0]
             }
             node.setupTerminals()
+            node.updatePreview(app: app, hard: true)
 
             app.nodeGraph.nodes.append(node)
         } else
@@ -175,12 +176,12 @@ class EditorWidget      : MMWidget
             if node.type == "Object" {
                 let currentLayer = app.nodeGraph.maximizedNode as? Layer
                 if currentLayer != nil {
-                    let instance = ObjectInstance(uuid: node.uuid, properties: [:])
+                    let instance = ObjectInstance(objectUUID: node.uuid, properties: [:])
                     currentLayer!.objectInstances.append(instance)
                     
                     let layerDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! LayerMaxDelegate
                     layerDelegate.objectList!.rebuildList()
-                    currentLayer!.selectedObjects = [node.uuid]
+                    currentLayer!.selectedObjects = [instance.uuid]
                     currentLayer!.maxDelegate?.update(true)
                 }
             }

@@ -129,6 +129,8 @@ class NodeGraph : Codable
 //        } else {
 //            executeIcon = app.mmView.icons["execute"]
 //        }
+        
+        updateNodes()
     }
 
     /// Controls the tab mode in the left region
@@ -191,6 +193,7 @@ class NodeGraph : Codable
                 deactivate()
                 maximizedNode!.maxDelegate!.activate(app!)
                 nodeHoverMode = .None
+                return
             } else
             if nodeHoverMode == .Play {
                 if playNode == nil {
@@ -496,12 +499,12 @@ class NodeGraph : Codable
             if label.scale != 0.5 * scale {
                 label.setText(node.name, scale: 0.5 * scale)
             }
-            label.drawCentered(x: node.rect.x, y: node.rect.y + 24 * scale, width: node.rect.width, height: label.rect.height)//19
+            label.drawCentered(x: node.rect.x - (node.maxDelegate != nil ? 10 : 0), y: node.rect.y + 23 * scale, width: node.rect.width, height: label.rect.height)//19
         }
         
         // --- Preview
         if let texture = node.previewTexture {
-            app!.mmView.drawTexture.draw(texture, x: node.rect.x + 25, y: node.rect.y + 50)
+            app!.mmView.drawTexture.draw(texture, x: node.rect.x + (node.rect.width - 200)/2, y: node.rect.y + 50)
         }
     }
     
@@ -760,7 +763,7 @@ class NodeGraph : Codable
                 }
             }
             
-            node.updatePreview(app: app!)
+            node.updatePreview(app: app!, hard: true)
         }
         maximizedNode = nil
     }

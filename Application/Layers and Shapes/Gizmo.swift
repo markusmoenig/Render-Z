@@ -37,6 +37,7 @@ class Gizmo : MMWidget
     let height          : Float
     
     var object          : Object?
+    var objects         : [Object]
     
     var dragStartOffset : float2?
     var gizmoCenter     : float2 = float2()
@@ -59,6 +60,7 @@ class Gizmo : MMWidget
         
         width = 260
         height = 260
+        objects = []
         
         super.init(view)
     }
@@ -68,6 +70,11 @@ class Gizmo : MMWidget
         self.object = object
         self.context = context
         mode = .Normal
+        if object != nil {
+            objects = [object!]
+        } else {
+            objects = []
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -80,7 +87,7 @@ class Gizmo : MMWidget
         }
 //        #endif
         
-        if hoverState == .Inactive && object != nil {
+        if hoverState == .Inactive && object != nil && context == .ShapeEditor {
             // --- Check if a point was clicked (including the center point for the normal gizmo)
             
             pointShape = nil
@@ -127,7 +134,7 @@ class Gizmo : MMWidget
 
             initialValues = [:]
             
-            if mode == .Normal {
+            if mode == .Normal && context == .ShapeEditor {
                 for shape in object!.getSelectedShapes() {
                     let transformed = getTransformedProperties(shape)
                     
@@ -138,6 +145,15 @@ class Gizmo : MMWidget
                     
                     initialValues[shape.uuid]![shape.widthProperty] = transformed[shape.widthProperty]!
                     initialValues[shape.uuid]![shape.heightProperty] = transformed[shape.heightProperty]!
+                }
+            } else
+            if mode == .Normal && context == .ObjectEditor {
+                for object in objects {
+                    initialValues[object.uuid] = [:]
+                    let transformed = object.properties
+                    initialValues[object.uuid]!["posX"] = transformed["posX"]!
+                    initialValues[object.uuid]!["posY"] = transformed["posY"]!
+                    initialValues[object.uuid]!["rotate"] = transformed["rotate"]!
                 }
             } else {
                 // Save the point position
@@ -181,21 +197,32 @@ class Gizmo : MMWidget
             object!.maxDelegate!.update(false)
             
             if dragState == .CenterMove {
-                if mode == .Normal {
-                    for shape in selectedShapeObjects {
+                if context == .ShapeEditor {
+                    if mode == .Normal {
+                        for shape in selectedShapeObjects {
+                            let properties : [String:Float] = [
+                                "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                                "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                            ]
+                            processGizmoProperties(properties, shape: shape)
+                        }
+                    } else {
+                        let shape = pointShape!
                         let properties : [String:Float] = [
-                            "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                            "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
-                        ]
+                            "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                            ]
                         processGizmoProperties(properties, shape: shape)
                     }
-                } else {
-                    let shape = pointShape!
-                    let properties : [String:Float] = [
-                        "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                        "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
-                        ]
-                    processGizmoProperties(properties, shape: shape)
+                } else
+                if context == .ObjectEditor {
+                    for object in objects {
+                        let properties : [String:Float] = [
+                            "posX" : initialValues[object.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            "posY" : initialValues[object.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                            ]
+                        processGizmoObjectProperties(properties, object: object)
+                    }
                 }
             } else
             if dragState == .xAxisMove {
@@ -216,23 +243,38 @@ class Gizmo : MMWidget
                     }
                 } else
                 if context == .ObjectEditor {
-                        
+                    for object in objects {
+                        let properties : [String:Float] = [
+                            "posX" : initialValues[object.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            ]
+                        processGizmoObjectProperties(properties, object: object)
+                    }
                 }
             } else
             if dragState == .yAxisMove {
-                if  mode == .Normal {
-                    for shape in selectedShapeObjects {
+                if context == .ShapeEditor {
+                    if  mode == .Normal {
+                        for shape in selectedShapeObjects {
+                            let properties : [String:Float] = [
+                                "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                                ]
+                            processGizmoProperties(properties, shape: shape)
+                        }
+                    } else {
+                        let shape = pointShape!
                         let properties : [String:Float] = [
-                            "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                            "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
                             ]
                         processGizmoProperties(properties, shape: shape)
                     }
-                } else {
-                    let shape = pointShape!
-                    let properties : [String:Float] = [
-                        "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
-                        ]
-                    processGizmoProperties(properties, shape: shape)
+                } else
+                if context == .ObjectEditor {
+                    for object in objects {
+                        let properties : [String:Float] = [
+                            "posY" : initialValues[object.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                            ]
+                        processGizmoObjectProperties(properties, object: object)
+                    }
                 }
             } else
             if dragState == .xAxisScale {
@@ -263,12 +305,23 @@ class Gizmo : MMWidget
             } else
             if dragState == .Rotate {
                 let angle = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
-                for shape in selectedShapeObjects {
-                    let initialValue = initialValues[shape.uuid]!["rotate"]!
-                    let properties : [String:Float] = [
-                        "rotate" : initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
-                    ]
-                    processGizmoProperties(properties, shape: shape)
+                if context == .ShapeEditor {
+                    for shape in selectedShapeObjects {
+                        let initialValue = initialValues[shape.uuid]!["rotate"]!
+                        let properties : [String:Float] = [
+                            "rotate" : initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                        ]
+                        processGizmoProperties(properties, shape: shape)
+                    }
+                } else
+                if context == .ObjectEditor {
+                    for object in objects {
+                        let initialValue = initialValues[object.uuid]!["rotate"]!
+                        let properties : [String:Float] = [
+                            "rotate" : initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                        ]
+                        processGizmoObjectProperties(properties, object: object)
+                    }
                 }
             }
         }
@@ -289,11 +342,11 @@ class Gizmo : MMWidget
     }
     
     /// Processes the new values for the properties of the given object, either as a keyframe or a global change
-    func processObjectGizmoProperties(_ properties: [String:Float])
+    func processGizmoObjectProperties(_ properties: [String:Float], object: Object)
     {
         if !isRecording() {
             for(name, value) in properties {
-                object!.properties[name] = value
+                object.properties[name] = value
             }
         }
     }
@@ -677,8 +730,8 @@ class Gizmo : MMWidget
         
         let camera = object!.maxDelegate!.getCamera()!
         
-        result.x = (x - camera.xPos - 0.5) / 700 * rect.width
-        result.y = (y - camera.yPos - 0.5) / 700 * rect.width
+        result.x = (x - camera.xPos - 0.5)// / 700 * rect.width
+        result.y = (y - camera.yPos - 0.5)// / 700 * rect.width
         
         result.x += rect.width/2
         result.y += rect.width/2 * rect.height / rect.width
@@ -694,15 +747,15 @@ class Gizmo : MMWidget
     {
         var result : float2 = float2()
         
-        result.x = (x - rect.x) * 700 / rect.width
-        result.y = (y - rect.y) * 700 / rect.width
+        result.x = (x - rect.x)// * 700 / rect.width
+        result.y = (y - rect.y)// * 700 / rect.width
         
         let camera = object!.maxDelegate!.getCamera()!
 
         // --- Center
-        result.x -= 350 - camera.xPos
+        result.x -= rect.width / 2 - camera.xPos
         result.y += camera.yPos
-        result.y -= 350 * rect.height / rect.width
+        result.y -= rect.width / 2 * rect.height / rect.width
         
         return result
     }
@@ -753,9 +806,9 @@ class Gizmo : MMWidget
     {
         var attributes : [String:Float] = [:]
 
-        attributes["posX"] = 0
-        attributes["posY"] = 0
-        attributes["rotate"] = 0
+        attributes["posX"] = object!.properties["posX"]
+        attributes["posY"] = object!.properties["posY"]
+        attributes["rotate"] = object!.properties["rotate"]
 
         var sizeMinX : Float = 10000
         var sizeMinY : Float = 10000

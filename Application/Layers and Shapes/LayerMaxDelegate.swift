@@ -129,6 +129,12 @@ class LayerMaxDelegate : NodeMaxDelegate {
 //        timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList)
         currentLayer!.updatePreview(app: app)
+        
+        for inst in currentLayer!.objectInstances {
+            inst.properties = inst.instance!.properties
+        }
+        
+        currentLayer!.updatePreview(app: app, hard: true)
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -237,9 +243,8 @@ class LayerMaxDelegate : NodeMaxDelegate {
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        /*
         app.gizmo.mouseDown(event)
-        
+        /*
         if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
             let editorRegion = app.editorRegion!
 //            app.layerManager.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, multiSelect: app.mmView.shiftIsDown)
@@ -359,7 +364,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
         if currentLayer!.selectedObjects.isEmpty { return nil }
         
         for inst in currentLayer!.objectInstances {
-            if inst.objectUUID == currentLayer!.selectedObjects[0] {
+            if inst.uuid == currentLayer!.selectedObjects[0] {
                 return inst.instance
             }
         }
@@ -377,19 +382,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
     override func update(_ hard: Bool = false)
     {
         if hard {
-//            app.gizmo.setObject(currentObject)
-            
-            var objects : [Object] = []
-            for inst in currentLayer!.objectInstances {
-                
-                for node in app.nodeGraph.nodes {
-                    if node.uuid == inst.objectUUID {
-                        inst.instance = Object(instanceFor: node as! Object, instanceProperties: inst.properties)
-                        inst.instance!.maxDelegate = self
-                        objects.append(inst.instance!)
-                    }
-                }
-            }
+            let objects = currentLayer!.createInstances(app: app)
             
             currentLayer!.instance = app.builder.buildObjects(objects: objects, camera: camera, timeline: timeline)
             updateGizmo()
@@ -712,7 +705,7 @@ class ObjectList : MMWidget
                     
                     let item = ObjectListItem()
                     item.name = node.name + " Instance"
-                    item.uuid = node.uuid
+                    item.uuid = instance.uuid
                     items.append(item)
                 }
             }
@@ -746,7 +739,10 @@ class ObjectList : MMWidget
     {
         let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y), items: items)
         if changed {
-            listWidget.build(items: items, fixedWidth: 200)
+            delegate.currentLayer!.selectedObjects = listWidget.selectedItems
+            rebuildList()
+            listWidget.build(items: items, fixedWidth: 300)
+            delegate.updateGizmo()
         }
         mouseIsDown = true
     }

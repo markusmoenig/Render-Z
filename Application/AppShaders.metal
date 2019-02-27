@@ -47,6 +47,12 @@ fragment float4 moduloPattern(RasterizerData in [[stage_in]],
     return col;
 }
 
+typedef struct
+{
+    float2 size;
+    float2 camera;
+} COORDINATE_SYSTEM;
+
 float IsGridLine(float2 fragCoord)
 {
     float2 vPixelsPerGridSquare = float2(40.0, 40.0);
@@ -57,6 +63,25 @@ float IsGridLine(float2 fragCoord)
     
     float fIsGridLine = max(vIsGridLine.x, vIsGridLine.y);
     return fIsGridLine;
+}
+
+fragment float4 coordinateSystem(RasterizerData in [[stage_in]],
+                                constant COORDINATE_SYSTEM *data [[ buffer(0) ]] )
+{
+    float2 uv = in.textureCoordinate * data->size;
+    uv -= float2( data->size / 2 );
+    uv += float2( data->camera.x, -data->camera.y);
+    
+    float4 checkerColor1 = float4(0.149, 0.149, 0.149, 1.000);
+    float4 checkerColor2 = float4( 0.1, 0.1, 0.1, 1.0 );
+    
+    float grid = IsGridLine( uv );
+    float4 col = mix(checkerColor2, checkerColor1, grid);
+    
+    float axis = min(abs(uv.x), abs(uv.y));
+    col = mix( abs(uv.x) < abs(uv.y) ? float4(0.871, 0.122, 0.184, 1.000) : float4(0.165, 0.239, 0.969, 1.000), col, smoothstep( 0, 1, axis ) );
+    
+    return col;
 }
 
 fragment float4 nodeGridPattern(RasterizerData in [[stage_in]],

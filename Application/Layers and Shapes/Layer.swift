@@ -10,24 +10,28 @@ import MetalKit
 
 class ObjectInstance : Codable
 {
+    var uuid         : UUID
     var objectUUID   : UUID
     var properties   : [String:Float]
     var instance     : Object? = nil
     
     private enum CodingKeys: String, CodingKey {
+        case uuid
         case objectUUID
         case properties
     }
     
-    init( uuid: UUID, properties: [String:Float])
+    init( objectUUID: UUID, properties: [String:Float])
     {
-        objectUUID = uuid
+        uuid = UUID()
+        self.objectUUID = objectUUID
         self.properties = properties
     }
     
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        uuid = try container.decode(UUID.self, forKey: .uuid)
         objectUUID = try container.decode(UUID.self, forKey: .objectUUID)
         properties = try container.decode([String:Float].self, forKey: .properties)
     }
@@ -35,6 +39,7 @@ class ObjectInstance : Codable
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(uuid, forKey: .uuid)
         try container.encode(objectUUID, forKey: .objectUUID)
         try container.encode(properties, forKey: .properties)
     }
@@ -161,13 +166,38 @@ class Layer : Node
         return result
     }*/
     
-    override func updatePreview(app: App)
+    /// Cretes the object instances contained in this layer
+    func createInstances(app: App) -> [Object]
     {
-        if previewTexture == nil {
-            previewTexture = app.builder.compute!.allocateTexture(width: 250, height: 160, output: true)
+        var objects : [Object] = []
+        for inst in objectInstances {
+            
+            for node in app.nodeGraph.nodes {
+                if node.uuid == inst.objectUUID {
+                    inst.instance = Object(instanceFor: node as! Object, instanceUUID: inst.uuid, instanceProperties: inst.properties)
+                    inst.instance!.maxDelegate = maxDelegate
+                    objects.append(inst.instance!)
+                }
+            }
         }
+        return objects
+    }
+    
+    override func updatePreview(app: App, hard: Bool = false)
+    {
+        let width : Float = 200
+        let height : Float = 130
+        
+        if previewTexture == nil {
+            previewTexture = app.builder.compute!.allocateTexture(width: width, height: height, output: true)
+        }
+        
+        if instance == nil || hard {
+            instance = app.builder.buildObjects(objects: createInstances(app: app), camera: app.camera, timeline: app.timeline, preview: true)
+        }
+        
         if instance != nil {
-            app.builder.render(width: 250, height: 160, instance: instance!, camera: app.camera, timeline: app.timeline, outTexture: previewTexture)
+            app.builder.render(width: width, height: height, instance: instance!, camera: app.camera, timeline: app.timeline, outTexture: previewTexture)
         }
     }
 }

@@ -101,7 +101,7 @@ class Node : Codable
     }
     
     /// Update the preview of the node
-    func updatePreview(app: App)
+    func updatePreview(app: App, hard: Bool = false)
     {
     }
 }

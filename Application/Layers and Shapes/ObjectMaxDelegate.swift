@@ -109,7 +109,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
 
         // Editor Region
         if patternState == nil {
-            let function = app.mmView.renderer!.defaultLibrary.makeFunction( name: "moduloPattern" )
+            let function = app.mmView.renderer!.defaultLibrary.makeFunction( name: "coordinateSystem" )
             patternState = app.mmView.renderer!.createNewPipelineState( function! )
         }
         
@@ -132,6 +132,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         app.bottomRegion!.rect.height = 100
         
         app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
+
+        update(true)
     }
     
     override func deactivate()
@@ -139,7 +141,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
         
-        currentObject!.updatePreview(app: app)
+        currentObject!.updatePreview(app: app, hard: true)
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -155,7 +157,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         
         let scaleFactor : Float = app.mmView.scaleFactor
         let settings: [Float] = [
-            region.rect.width, region.rect.height,
+                region.rect.width, region.rect.height,
+                camera.xPos, camera.yPos,
             ];
         
         let renderEncoder = mmRenderer.renderEncoder!
@@ -258,12 +261,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         
         if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
             let editorRegion = app.editorRegion!
-//            app.layerManager.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, multiSelect: app.mmView.shiftIsDown)
-            
-//            func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera, timeline: MMTimeline)
 
             app.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera, timeline: timeline)
             update()
+            shapeListChanged = true
         }
     }
     

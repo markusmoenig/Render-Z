@@ -36,7 +36,7 @@ class Builder
     }
     
     /// Build the state for the given objects
-    func buildObjects(objects: [Object], camera: Camera, timeline: MMTimeline) -> BuilderInstance
+    func buildObjects(objects: [Object], camera: Camera, timeline: MMTimeline, preview: Bool  = false) -> BuilderInstance
     {
         var instance = BuilderInstance()
         
@@ -123,12 +123,11 @@ class Builder
         texture2d<half, access::read>   inTexture   [[texture(2)]],
         uint2                           gid         [[thread_position_in_grid]])
         {
+            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
             float2 fragCoord = float2( gid.x, gid.y );
-            float2 uv = 700. * (fragCoord.xy + float(0.5)) / outTexture.get_width();
+            float2 uv = fragCoord;
         
-            float aspect = outTexture.get_width() < 700 ? 700 / outTexture.get_width() : 1;
-        
-            float2 center = float2( 350., 350. * outTexture.get_height() / outTexture.get_width() );
+            float2 center = size / 2;
             uv = translate(uv, center - float2( layerData->camera.x, layerData->camera.y ) );
             float2 tuv = uv;
         
@@ -245,9 +244,55 @@ class Builder
             float4 fillColor = float4( 0.5, 0.5, 0.5, 1);
             float4 borderColor = float4( 1 );
         
-            float4 col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
-            col = mix( col, borderColor, borderMask( dist, 2 * aspect ) );
+            float4 col = float4(0);
+        """
         
+        if preview {
+            // Preview Pattern
+            source +=
+            """
+            float4 checkerColor1 = float4( 0.0, 0.0, 0.0, 1.0 );
+            float4 checkerColor2 = float4( 0.2, 0.2, 0.2, 1.0 );
+            
+            uv = fragCoord;
+            uv -= float2( size / 2  - 0.5);
+            
+            col = checkerColor1;
+            
+            float cWidth = 12.0;
+            float cHeight = 12.0;
+            
+            if ( fmod( floor( uv.x / cWidth ), 2.0 ) == 0.0 ) {
+                if ( fmod( floor( uv.y / cHeight ), 2.0 ) != 0.0 ) col=checkerColor2;
+            } else {
+                if ( fmod( floor( uv.y / cHeight ), 2.0 ) == 0.0 ) col=checkerColor2;
+            }
+
+            """
+        }
+        
+        source +=
+        """
+        
+            col = mix( col, fillColor, fillMask( dist ) * fillColor.w );
+            col = mix( col, borderColor, borderMask( dist, 2 ) );
+        
+        """
+        
+        if preview {
+            // Preview border
+            source +=
+            """
+            
+            float2 d = abs( uv ) - float2( 100, 65 );
+            float borderDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            col = mix( col, float4(0,0,0,1), borderMask( borderDist, 2 ) );
+            
+            """
+        }
+        
+        source +=
+        """
             outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
         }
         """
@@ -395,9 +440,9 @@ class Builder
         uint id [[ thread_position_in_grid ]])
         {
             float2 fragCoord = float2( \(x), \(y) );
-            float2 uv = 700. * (fragCoord.xy + float(0.5)) / \(width);
+            float2 uv = fragCoord;
         
-            float2 center = float2( 350., 350. * \(height) / \(width) );
+            float2 center = float2(\(width/2), \(height/2) );
             uv = translate(uv, center - float2( \(camera.xPos), \(camera.yPos) ) );
             float2 tuv = uv;
         
@@ -449,7 +494,7 @@ class Builder
         compute!.runBuffer(state, outBuffer: outBuffer)
         
         let result = outBuffer.contents().load(as: float4.self)
-        //        print( result )
+//                print( result )
         
         if result.x < 0 {
             let objectId : Int = Int(result.z)

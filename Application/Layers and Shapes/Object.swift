@@ -48,7 +48,7 @@ class Object : Node
     }
 
     /// Creates an instance of the given object with the given instance properties
-    init(instanceFor: Object, instanceProperties: [String:Float])
+    init(instanceFor: Object, instanceUUID: UUID, instanceProperties: [String:Float])
     {
         self.shapes = instanceFor.shapes
         self.childObjects = instanceFor.childObjects
@@ -59,6 +59,7 @@ class Object : Node
 
         properties = instanceProperties
         self.type = instanceFor.type
+        self.uuid = instanceUUID
 
         if properties["posX"] == nil {
             properties["posX"] = 0
@@ -162,13 +163,21 @@ class Object : Node
         return result
     }
     
-    override func updatePreview(app: App)
+    override func updatePreview(app: App, hard: Bool = false)
     {
+        let width : Float = 200
+        let height : Float = 130
+
         if previewTexture == nil {
-            previewTexture = app.builder.compute!.allocateTexture(width: 250, height: 160, output: true)
+            previewTexture = app.builder.compute!.allocateTexture(width: width, height: height, output: true)
         }
+        
+        if instance == nil || hard {
+            instance = app.builder.buildObjects(objects: [self], camera: app.camera, timeline: app.timeline, preview: true)
+        }
+        
         if instance != nil {
-            app.builder.render(width: 250, height: 160, instance: instance!, camera: app.camera, timeline: app.timeline, outTexture: previewTexture)
+            app.builder.render(width: width, height: height, instance: instance!, camera: app.camera, timeline: app.timeline, outTexture: previewTexture)
         }
     }
 }
