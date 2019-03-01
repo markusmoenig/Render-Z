@@ -510,7 +510,7 @@ class ObjectWidget : MMWidget
         
         if let object = delegate.currentObject {
             label.setText(object.name)
-            label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+            label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
             
             objectEditorWidget.rect.x = rect.x
             objectEditorWidget.rect.y = rect.y + 30
@@ -701,7 +701,7 @@ class SequenceWidget : MMWidget
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
         label.setText("Animation Sequence")
-        label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+        label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
         
         menuWidget.rect.x = rect.x + rect.width - 30 - 1
         menuWidget.rect.y = rect.y + 1

@@ -45,6 +45,7 @@ class Object : Node
         properties["rotate"] = 0
         
         maxDelegate = ObjectMaxDelegate()
+        minimumSize = Node.NodeWithPreviewSize
     }
 
     /// Creates an instance of the given object with the given instance properties
@@ -66,6 +67,7 @@ class Object : Node
             properties["posY"] = 0
             properties["rotate"] = 0
         }
+        minimumSize = Node.NodeWithPreviewSize
     }
     
     required init(from decoder: Decoder) throws

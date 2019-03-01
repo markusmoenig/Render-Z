@@ -57,9 +57,16 @@ class MMTextLabel: MMLabel
         textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
     }
     
-    func drawYCentered(x:Float, y:Float, width:Float, height:Float)
+    func drawCenteredY(x:Float, y:Float, width:Float, height:Float)
     {
         let drawX = x
+        let drawY = y + (height - rect.height)/2
+        textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
+    }
+    
+    func drawRightCenteredY(x:Float, y:Float, width:Float, height:Float)
+    {
+        let drawX = x + width - rect.width
         let drawY = y + (height - rect.height)/2
         textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
     }

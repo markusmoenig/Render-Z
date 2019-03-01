@@ -16,8 +16,6 @@ class Sequence : Node
         
         name = "Sequence"
         type = "Sequence"
-        
-        minimumSize = float2(240, 70)
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -86,8 +84,6 @@ class Selector : Node
         
         name = "Selector"
         type = "Selector"
-        
-        minimumSize = float2(240, 70)
     }
     
     private enum CodingKeys: String, CodingKey {

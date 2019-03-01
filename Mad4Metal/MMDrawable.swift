@@ -462,4 +462,22 @@ class MMDrawText : MMDrawable
             return MMTextBuffer(chars:array, x: x, y: y, viewWidth: mmRenderer.width, viewHeight: mmRenderer.height)
         }
     }
+    
+    @discardableResult func drawTextCentered( _ font: MMFont, text: String, x: Float, y: Float, width: Float, height: Float, scale: Float = 1.0, color: float4 = float4(1), textBuffer: MMTextBuffer? = nil, fragment: MMFragment? = nil ) -> MMTextBuffer?
+    {
+        let rect = font.getTextRect(text: text, scale: scale)
+
+        let drawX = x + (width - rect.width) / 2
+        let drawY = y + (height - rect.height) / 2
+        return drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
+    }
+    
+    @discardableResult func drawTextCenteredY( _ font: MMFont, text: String, x: Float, y: Float, width: Float, height: Float, scale: Float = 1.0, color: float4 = float4(1), textBuffer: MMTextBuffer? = nil, fragment: MMFragment? = nil ) -> MMTextBuffer?
+    {
+        let rect = font.getTextRect(text: text, scale: scale)
+        
+        let drawX = x
+        let drawY = y + (height - rect.height) / 2
+        return drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
+    }
 }

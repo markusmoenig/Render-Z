@@ -16,7 +16,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Maximize, Dragging, Terminal, TerminalConnection, Play
+        case None, Maximize, Dragging, Terminal, TerminalConnection, Play, NodeUI, NodeUIMouseLocked
     }
     
     var nodes           : [Node] = []
@@ -32,6 +32,8 @@ class NodeGraph : Codable
     var maximizedNode   : Node?
     var hoverNode       : Node?
     var playNode        : Node?
+    
+    var hoverUIItem     : NodeUI?
 
     var hoverTerminal   : (Terminal, Terminal.Connector, Float, Float)?
     var connectTerminal : (Terminal, Terminal.Connector, Float, Float)?
@@ -63,6 +65,8 @@ class NodeGraph : Codable
 
     static var tRadius  : Float = 7 // Radius of terminals
     static var tDiam    : Float = 14 // Diameter of terminals
+    
+    static var bodyY    : Float = 50 // Start of the y position of the body
 
     // ---
     
@@ -169,6 +173,12 @@ class NodeGraph : Codable
         mouseMoved( event )
 //        #endif
         
+        if nodeHoverMode == .NodeUI {
+            hoverUIItem!.mouseDown(event)
+            nodeHoverMode = .NodeUIMouseLocked
+            return
+        }
+        
         if nodeHoverMode == .Terminal {
             
             if hoverTerminal!.0.connections.count != 0 {
@@ -222,6 +232,10 @@ class NodeGraph : Codable
     
     func mouseUp(_ event: MMMouseEvent)
     {
+        if nodeHoverMode == .NodeUIMouseLocked {
+            hoverUIItem!.mouseUp(event)
+        }
+
         if nodeHoverMode == .TerminalConnection && connectTerminal != nil {
             connectTerminals(hoverTerminal!.0, connectTerminal!.0)
         }
@@ -233,6 +247,11 @@ class NodeGraph : Codable
     
     func mouseMoved(_ event: MMMouseEvent)
     {
+        if nodeHoverMode == .NodeUIMouseLocked {
+            hoverUIItem!.mouseMoved(event)
+            return
+        }
+        
         if nodeHoverMode == .Dragging {
             
             hoverNode!.xPos = nodeDragStartPos.x + event.x - dragStartPos.x
@@ -296,6 +315,26 @@ class NodeGraph : Codable
                 nodeHoverMode = .Terminal
                 hoverTerminal = terminalTuple
                 return
+            }
+            
+            // --- Look for NodeUI item under the mouse
+            var uiItemY = hoverNode!.rect.y + NodeGraph.bodyY * scale
+            let uiItemX = hoverNode!.rect.x + (hoverNode!.rect.width - hoverNode!.uiArea.width*scale) / 2
+            let uiRect = MMRect()
+            for uiItem in hoverNode!.uiItems {
+                
+                uiRect.x = uiItemX
+                uiRect.y = uiItemY
+                uiRect.width = uiItem.rect.width * scale
+                uiRect.height = uiItem.rect.height * scale
+
+                if uiRect.contains(event.x, event.y) {
+                    hoverUIItem = uiItem
+                    nodeHoverMode = .NodeUI
+                    hoverUIItem!.mouseMoved(event)
+                    return
+                }
+                uiItemY += uiItem.rect.height * scale
             }
         }
     }
@@ -398,8 +437,8 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + node.xPos + xOffset
         node.rect.y = region.rect.y + node.yPos + yOffset
 
-        node.rect.width = node.minimumSize.x * scale
-        node.rect.height = node.minimumSize.y * scale
+        node.rect.width = max(node.minimumSize.x, node.uiArea.width) * scale
+        node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
 
         let vertexBuffer = renderer.createVertexBuffer( MMRect( node.rect.x, node.rect.y, node.rect.width, node.rect.height, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
@@ -502,9 +541,30 @@ class NodeGraph : Codable
             label.drawCentered(x: node.rect.x - (node.maxDelegate != nil ? 10 : 0), y: node.rect.y + 23 * scale, width: node.rect.width, height: label.rect.height)//19
         }
         
+        // --- UI
+        let uiItemX = node.rect.x + (node.rect.width - node.uiArea.width*scale) / 2
+        var uiItemY = node.rect.y + NodeGraph.bodyY * scale
+
+        for uiItem in node.uiItems {
+            uiItem.rect.x = uiItemX
+            uiItem.rect.y = uiItemY
+            
+            if nodeHoverMode == .NodeUIMouseLocked && node === hoverNode && uiItem === hoverUIItem! {
+                uiItemY += uiItem.rect.height
+                continue
+            }
+            
+            uiItem.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, scale: scale)
+            uiItemY += uiItem.rect.height
+        }
+        
+        if nodeHoverMode == .NodeUIMouseLocked && node === hoverNode {
+            hoverUIItem!.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, scale: scale)
+        }
+        
         // --- Preview
         if let texture = node.previewTexture {
-            app!.mmView.drawTexture.draw(texture, x: node.rect.x + (node.rect.width - 200)/2, y: node.rect.y + 50)
+            app!.mmView.drawTexture.draw(texture, x: node.rect.x + (node.rect.width - 200*scale)/2, y: node.rect.y + NodeGraph.bodyY * scale + node.uiArea.height * scale, zoom: 1/scale)
         }
     }
     
@@ -763,6 +823,7 @@ class NodeGraph : Codable
                 }
             }
             
+            node.setupUI(mmView: app!.mmView)
             node.updatePreview(app: app!, hard: true)
         }
         maximizedNode = nil

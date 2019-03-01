@@ -29,6 +29,16 @@ class ObjectPhysics : Node
         ]
     }
     
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1),
+            NodeDropDown(self, variable: "physicsMode", title: "Testing", items: ["Off", "Static", "On"], index: 1)
+        ]
+        
+        super.setupUI(mmView: mmView)
+    }
+    
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)

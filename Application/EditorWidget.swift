@@ -162,6 +162,7 @@ class EditorWidget      : MMWidget
                 object.currentSequence = object.sequences[0]
             }
             node.setupTerminals()
+            node.setupUI(mmView: app.mmView)
             node.updatePreview(app: app, hard: true)
 
             app.nodeGraph.nodes.append(node)

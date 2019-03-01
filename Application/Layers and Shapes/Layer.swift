@@ -76,6 +76,7 @@ class Layer : Node
         name = "New Layer"
         
         maxDelegate = LayerMaxDelegate()
+        minimumSize = Node.NodeWithPreviewSize
     }
     
     required init(from decoder: Decoder) throws
@@ -94,6 +95,7 @@ class Layer : Node
         
         type = "Layer"
         maxDelegate = LayerMaxDelegate()
+        minimumSize = Node.NodeWithPreviewSize
     }
     
     override func encode(to encoder: Encoder) throws

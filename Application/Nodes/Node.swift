@@ -36,11 +36,18 @@ class Node : Codable
     var previewTexture  : MTLTexture?
     
     var terminals       : [Terminal] = []
-    
-    var minimumSize     : float2 = float2(260,220)
-    
+    var uiItems         : [NodeUI] = []
+
+    var minimumSize     : float2 = float2()
+    var uiArea          : MMRect = MMRect()
+    var uiMaxTitleSize  : float2 = float2()
+
     var playResult      : Result? = nil
-    
+
+    /// Static sizes
+    static var NodeWithPreviewSize : float2 = float2(260,220)
+    static var NodeMinimumSize     : float2 = float2(240,70)
+
     private enum CodingKeys: String, CodingKey {
         case name
         case type
@@ -54,6 +61,7 @@ class Node : Codable
     init()
     {
         properties = [:]
+        minimumSize = Node.NodeMinimumSize
     }
     
     required init(from decoder: Decoder) throws
@@ -69,6 +77,8 @@ class Node : Codable
         for terminal in terminals {
             terminal.node = self
         }
+        
+        minimumSize = Node.NodeMinimumSize
     }
 
     func encode(to encoder: Encoder) throws
@@ -98,6 +108,24 @@ class Node : Codable
     /// Sets up the node terminals
     func setupTerminals()
     {
+    }
+    
+    /// Setup the UI of the node
+    func setupUI(mmView: MMView)
+    {
+        uiArea.width = 0; uiArea.height = 0;
+        uiMaxTitleSize.x = 0; uiMaxTitleSize.y = 0
+        
+        for item in uiItems {
+            item.calcSize(mmView: mmView)
+            
+            uiArea.width = max(uiArea.width, item.rect.width)
+            uiArea.height += item.rect.height
+            uiMaxTitleSize.x = max(uiMaxTitleSize.x, item.titleLabel!.rect.width)
+            uiMaxTitleSize.y = max(uiMaxTitleSize.y, item.titleLabel!.rect.height)
+        }
+        uiMaxTitleSize.x += NodeUI.titleMargin.width()
+        uiMaxTitleSize.y += NodeUI.titleMargin.height()
     }
     
     /// Update the preview of the node
