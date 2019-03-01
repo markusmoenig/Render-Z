@@ -191,6 +191,7 @@ class NodeGraph : Codable
         if nodeHoverMode == .NodeUI {
             hoverUIItem!.mouseDown(event)
             nodeHoverMode = .NodeUIMouseLocked
+            selectedUUID = [hoverNode!.uuid]
             return
         }
         
@@ -333,14 +334,15 @@ class NodeGraph : Codable
             }
             
             // --- Look for NodeUI item under the mouse
-            var uiItemY = hoverNode!.rect.y + NodeGraph.bodyY * scale
             let uiItemX = hoverNode!.rect.x + (hoverNode!.rect.width - hoverNode!.uiArea.width*scale) / 2
+            var uiItemY = hoverNode!.rect.y + NodeGraph.bodyY * scale
             let uiRect = MMRect()
+            let titleWidth : Float = (hoverNode!.uiMaxTitleSize.x + NodeUI.titleSpacing) * scale
             for uiItem in hoverNode!.uiItems {
                 
-                uiRect.x = uiItemX
+                uiRect.x = uiItemX + titleWidth
                 uiRect.y = uiItemY
-                uiRect.width = uiItem.rect.width * scale
+                uiRect.width = uiItem.rect.width * scale - titleWidth
                 uiRect.height = uiItem.rect.height * scale
 
                 if uiRect.contains(event.x, event.y) {
