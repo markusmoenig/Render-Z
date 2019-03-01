@@ -87,6 +87,8 @@ class NodeGraph : Codable
         object.setupTerminals()
         
         nodes.append(object)
+        selectedUUID = [object.uuid]
+
     }
     
     required init(from decoder: Decoder) throws

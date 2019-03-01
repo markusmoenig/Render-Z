@@ -28,6 +28,8 @@ class MMBaseView : MTKView
     // --- Key States
     var shiftIsDown     : Bool = false
     var commandIsDown   : Bool = false
+    
+    var keysDown        : [Float] = []
 
     func platformInit()
     {
@@ -135,6 +137,7 @@ class MMBaseView : MTKView
     
     override func keyDown(with event: NSEvent)
     {
+        keysDown.append(Float(event.keyCode))
         if focusWidget != nil {
             let keyEvent = MMKeyEvent(event.characters, event.keyCode)
             focusWidget!.keyDown(keyEvent)
@@ -144,6 +147,7 @@ class MMBaseView : MTKView
     
     override func keyUp(with event: NSEvent)
     {
+        keysDown.removeAll{$0 == Float(event.keyCode)}
         if focusWidget != nil {
             let keyEvent = MMKeyEvent(event.characters, event.keyCode)
             focusWidget!.keyUp(keyEvent)

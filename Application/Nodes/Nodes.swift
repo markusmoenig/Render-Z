@@ -32,8 +32,7 @@ class ObjectPhysics : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1),
-            NodeUIKeyDown(self, variable: "keyCode", title: "Key")
+            NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1)
         ]
         
         super.setupUI(mmView: mmView)
@@ -81,6 +80,15 @@ class KeyDown : Node
         ]
     }
     
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIKeyDown(self, variable: "keyCode", title: "Key")
+        ]
+        
+        super.setupUI(mmView: mmView)
+    }
+    
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -106,7 +114,9 @@ class KeyDown : Node
     {
         playResult = .Failure
         
-        if nodeGraph.app!.mmView.shiftIsDown {
+        let index = nodeGraph.app!.mmView.keysDown.index{$0 == properties["keyCode"]!}
+        
+        if index != nil {
             playResult = .Success
         }
         
