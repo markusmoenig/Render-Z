@@ -27,6 +27,24 @@ class EditorWidget      : MMWidget
         dropTargets.append( "AvailableObjectItem" )
     }
 
+    override func keyDown(_ event: MMKeyEvent)
+    {
+        if app.nodeGraph.maximizedNode == nil {
+            app.nodeGraph.keyDown(event)
+        } else {
+            app.nodeGraph.maximizedNode!.maxDelegate!.keyDown(event)
+        }
+    }
+    
+    override func keyUp(_ event: MMKeyEvent)
+    {
+        if app.nodeGraph.maximizedNode == nil {
+            app.nodeGraph.keyUp(event)
+        } else {
+            app.nodeGraph.maximizedNode!.maxDelegate!.keyUp(event)
+        }
+    }
+    
     override func mouseDown(_ event: MMMouseEvent)
     {
         if app.nodeGraph.maximizedNode == nil {

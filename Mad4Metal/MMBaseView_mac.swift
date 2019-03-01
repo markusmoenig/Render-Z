@@ -132,14 +132,27 @@ class MMBaseView : MTKView
     }
     
     // Currently only used for checking modifier keys
-    /*
+    
     override func keyDown(with event: NSEvent)
     {
-        //https://stackoverflow.com/questions/9268045/how-can-i-detect-that-the-shift-key-has-been-pressed
-        super.keyDown(with: event)
-    }*/
+        if focusWidget != nil {
+            let keyEvent = MMKeyEvent(event.characters, event.keyCode)
+            focusWidget!.keyDown(keyEvent)
+        }
+        //super.keyDown(with: event)
+    }
     
-    override func flagsChanged(with event: NSEvent) {        
+    override func keyUp(with event: NSEvent)
+    {
+        if focusWidget != nil {
+            let keyEvent = MMKeyEvent(event.characters, event.keyCode)
+            focusWidget!.keyUp(keyEvent)
+        }
+        //super.keyUp(with: event)
+    }
+    
+    override func flagsChanged(with event: NSEvent) {
+        //https://stackoverflow.com/questions/9268045/how-can-i-detect-that-the-shift-key-has-been-pressed
         if event.modifierFlags.contains(.shift) {
             shiftIsDown = true
         } else {

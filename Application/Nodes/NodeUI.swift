@@ -11,7 +11,7 @@ import Foundation
 class NodeUI
 {
     enum Brand {
-        case DropDown
+        case DropDown, KeyDown
     }
     
     var brand       : Brand
@@ -32,9 +32,17 @@ class NodeUI
     init(_ node : Node, brand: Brand, variable: String, title: String)
     {
         self.node = node
-        self.brand = .DropDown
+        self.brand = brand
         self.variable = variable
         self.title = title
+    }
+    
+    func keyDown(_ event: MMKeyEvent)
+    {
+    }
+    
+    func keyUp(_ event: MMKeyEvent)
+    {
     }
     
     func mouseDown(_ event: MMMouseEvent)
@@ -61,7 +69,7 @@ class NodeUI
 }
 
 /// Drop down NodeUI class
-class NodeDropDown : NodeUI
+class NodeUIDropDown : NodeUI
 {
     var items       : [String]
     var index       : Float
@@ -142,5 +150,67 @@ class NodeDropDown : NodeUI
                 itemY += itemHeight
             }
         }
+    }
+}
+
+/// Key down NodeUI class
+class NodeUIKeyDown : NodeUI
+{
+    var keyCode     : Float = -1
+    var keyText     : String = ""
+    var keyCodes    : [UInt16:String] = [
+        123: "Arrow Left",
+        126: "Arrow Up",
+        124: "Arrow Right",
+        125: "Arrow Down",
+        53: "Escape"
+    ]
+    
+    init(_ node: Node, variable: String, title: String)
+    {
+        if node.properties[variable] == nil {
+            node.properties[variable] = keyCode
+        }
+        
+        super.init(node, brand: .KeyDown, variable: variable, title: title)
+    }
+    
+    override func calcSize(mmView: MMView) {
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
+        
+        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 120
+        rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
+    }
+    
+    override func keyDown(_ event: MMKeyEvent)
+    {
+        if event.characters != nil {
+            keyText = event.characters!.uppercased()
+        }
+        keyCode = Float(event.keyCode)
+        
+        let desc = keyCodes[event.keyCode]
+        if desc != nil {
+            keyText = desc!
+        }
+        node.properties[variable] = keyCode
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: float2, scale: Float)
+    {
+        if titleLabel!.scale != NodeUI.fontScale * scale {
+            titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
+        }
+        titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
+        
+        let x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
+        let width = 120 * scale
+        let height = rect.height * scale
+        
+        let skin = mmView.skin.MenuWidget
+        
+        mmView.drawBox.draw( x: x, y: rect.y, width: width, height: height, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
+        
+        mmView.drawText.drawTextCentered(mmView.openSans, text: keyText, x: x, y: rect.y, width: width, height: height, scale: NodeUI.fontScale * scale, color: skin.textColor)
     }
 }

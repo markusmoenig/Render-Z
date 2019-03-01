@@ -32,8 +32,8 @@ class ObjectPhysics : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1),
-            NodeDropDown(self, variable: "physicsMode", title: "Testing", items: ["Off", "Static", "On"], index: 1)
+            NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1),
+            NodeUIKeyDown(self, variable: "keyCode", title: "Key")
         ]
         
         super.setupUI(mmView: mmView)

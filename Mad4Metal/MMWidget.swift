@@ -33,6 +33,17 @@ class MMMouseEvent
     }
 }
 
+class MMKeyEvent
+{
+    var characters  : String?
+    var keyCode     : UInt16
+    
+    init(_ characters: String?,_ keyCode: UInt16 )
+    {
+        self.characters = characters; self.keyCode = keyCode
+    }
+}
+
 /// Widget Base Class
 class MMWidget
 {
@@ -80,6 +91,14 @@ class MMWidget
     }
     
     func mouseScrolled(_ event: MMMouseEvent)
+    {
+    }
+    
+    func keyDown(_ event: MMKeyEvent)
+    {
+    }
+    
+    func keyUp(_ event: MMKeyEvent)
     {
     }
     

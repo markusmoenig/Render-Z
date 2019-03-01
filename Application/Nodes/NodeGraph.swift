@@ -165,6 +165,21 @@ class NodeGraph : Codable
         self.leftRegionMode = mode
     }
     
+    func keyDown(_ event: MMKeyEvent)
+    {
+        if hoverNode != nil {
+            for uiItem in hoverNode!.uiItems {
+                if uiItem.brand == .KeyDown {
+                    uiItem.keyDown(event)
+                }
+            }
+        }
+    }
+    
+    func keyUp(_ event: MMKeyEvent)
+    {
+    }
+    
     func mouseDown(_ event: MMMouseEvent)
     {
         selectedUUID = []

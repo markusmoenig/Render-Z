@@ -240,6 +240,14 @@ class NodeMaxDelegate
     func drawRegion(_ region: MMRegion)
     {
     }
+    
+    func keyDown(_ event: MMKeyEvent)
+    {
+    }
+    
+    func keyUp(_ event: MMKeyEvent)
+    {
+    }
 
     func mouseDown(_ event: MMMouseEvent)
     {
