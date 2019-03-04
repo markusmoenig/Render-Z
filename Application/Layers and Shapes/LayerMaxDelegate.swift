@@ -382,7 +382,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
     override func update(_ hard: Bool = false)
     {
         if hard {
-            let objects = currentLayer!.createInstances(app: app)
+            let objects = currentLayer!.createInstances(nodeGraph: app.nodeGraph)
             
             currentLayer!.instance = app.builder.buildObjects(objects: objects, camera: camera, timeline: timeline)
             updateGizmo()

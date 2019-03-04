@@ -63,6 +63,7 @@ class Object : Node
         
         super.init()
 
+        terminals = instanceFor.terminals
         properties = instanceProperties
         self.type = instanceFor.type
         self.uuid = instanceUUID

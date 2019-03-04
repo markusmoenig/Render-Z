@@ -168,13 +168,13 @@ class Layer : Node
         return result
     }*/
     
-    /// Cretes the object instances contained in this layer
-    func createInstances(app: App) -> [Object]
+    /// Creates the object instances contained in this layer
+    @discardableResult func createInstances(nodeGraph: NodeGraph) -> [Object]
     {
         var objects : [Object] = []
         for inst in objectInstances {
             
-            for node in app.nodeGraph.nodes {
+            for node in nodeGraph.nodes {
                 if node.uuid == inst.objectUUID {
                     inst.instance = Object(instanceFor: node as! Object, instanceUUID: inst.uuid, instanceProperties: inst.properties)
                     inst.instance!.maxDelegate = maxDelegate
@@ -183,6 +183,16 @@ class Layer : Node
             }
         }
         return objects
+    }
+    
+    /// Sets up the object instances for execution
+    func setupExecution(nodeGraph: NodeGraph)
+    {
+        let objects = createInstances(nodeGraph: nodeGraph)
+        for object in objects {
+            object.executeProperties(nodeGraph)
+        }
+        executeProperties(nodeGraph)
     }
     
     override func updatePreview(app: App, hard: Bool = false)
@@ -195,7 +205,7 @@ class Layer : Node
         }
         
         if instance == nil || hard {
-            instance = app.builder.buildObjects(objects: createInstances(app: app), camera: app.camera, timeline: app.timeline, preview: true)
+            instance = app.builder.buildObjects(objects: createInstances(nodeGraph: app.nodeGraph), camera: app.camera, timeline: app.timeline, preview: true)
         }
         
         if instance != nil {

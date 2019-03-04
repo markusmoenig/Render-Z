@@ -57,6 +57,13 @@ class ObjectPhysics : Node
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
     }
+    
+    /// Execute Object physic properties
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
+    {
+        print("Physic Properties", root.rootNode.name)
+        return .Success
+    }
 }
 
 class KeyDown : Node

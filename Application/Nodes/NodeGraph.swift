@@ -132,6 +132,14 @@ class NodeGraph : Codable
         playNodeButton.clicked = { (event) -> Void in
             if self.playNode == nil {
                 self.playNode = self.currentNode
+                
+                let node = self.currentNode
+                
+                if node!.type == "Layer" {
+                    let layer = node as! Layer
+                    layer.setupExecution(nodeGraph: self)
+                }
+                
                 self.playNodeButton.addState(.Checked)
             } else {
                 self.playNode = nil
@@ -396,7 +404,7 @@ class NodeGraph : Codable
             // --- Draw Nodes
             
             if playNode != nil {
-                var btRoot = BehaviorTreeRoot(playNode!)
+                let btRoot = BehaviorTreeRoot(playNode!)
                 _ = playNode!.execute(nodeGraph: self, root: btRoot, parent: playNode!)
             }
             

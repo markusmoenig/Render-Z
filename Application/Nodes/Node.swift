@@ -128,6 +128,19 @@ class Node : Codable
         uiMaxTitleSize.y += NodeUI.titleMargin.height()
     }
     
+    /// Executes the connected properties for the node
+    func executeProperties(_ nodeGraph: NodeGraph)
+    {
+        for terminal in terminals {
+            if terminal.connector == .Left && terminal.brand == .Properties {
+                for conn in terminal.connections {
+                    let propertyNode = conn.toTerminal!.node!
+                    _ = propertyNode.execute(nodeGraph: nodeGraph, root: BehaviorTreeRoot(self), parent: self)
+                }
+            }
+        }
+    }
+    
     /// Update the preview of the node
     func updatePreview(app: App, hard: Bool = false)
     {
