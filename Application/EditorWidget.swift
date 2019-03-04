@@ -185,6 +185,9 @@ class EditorWidget      : MMWidget
 
             app.nodeGraph.nodes.append(node)
             app.nodeGraph.setCurrentNode(node)
+            
+            app.mmView.focusWidget = app.editorRegion!.widget!
+            app.mmView.hoverWidget = app.editorRegion!.widget!
         } else
         if dragSource.id == "AvailableObjectItem"
         {

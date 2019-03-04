@@ -87,6 +87,7 @@ class Object : Node
         
         type = "Object"
         maxDelegate = ObjectMaxDelegate()
+        minimumSize = Node.NodeWithPreviewSize
     }
     
     override func encode(to encoder: Encoder) throws

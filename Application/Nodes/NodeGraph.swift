@@ -181,8 +181,8 @@ class NodeGraph : Codable
     
     func keyDown(_ event: MMKeyEvent)
     {
-        if hoverNode != nil {
-            for uiItem in hoverNode!.uiItems {
+        if currentNode != nil {
+            for uiItem in currentNode!.uiItems {
                 if uiItem.brand == .KeyDown {
                     uiItem.keyDown(event)
                 }

@@ -300,7 +300,7 @@ enum NodeFamily: String, NodeClassFamily {
     case sequence = "Sequence"
     case selector = "Selector"
     case layer = "Layer"
-//    case scene = "Scene"
+    case keyDown = "Key Down"
 
     static var discriminator: NodeDiscriminator = .type
     
@@ -318,6 +318,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return Selector.self
             case .layer:
                 return Layer.self
+            case .keyDown:
+                return KeyDown.self
 //            case .scene:
 //                return Scene.self
         }
