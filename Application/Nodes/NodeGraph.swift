@@ -396,7 +396,8 @@ class NodeGraph : Codable
             // --- Draw Nodes
             
             if playNode != nil {
-                _ = playNode!.execute(nodeGraph: self, root: playNode!, parent: playNode!)
+                var btRoot = BehaviorTreeRoot(playNode!)
+                _ = playNode!.execute(nodeGraph: self, root: btRoot, parent: playNode!)
             }
             
             for node in nodes {

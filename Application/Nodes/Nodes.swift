@@ -110,7 +110,7 @@ class KeyDown : Node
     }
     
     /// Return Success if the selected key is currently down
-    override func execute(nodeGraph: NodeGraph, root: Node, parent: Node) -> Result
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
         

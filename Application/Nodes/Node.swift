@@ -100,7 +100,7 @@ class Node : Codable
     {
     }
     
-    func execute(nodeGraph: NodeGraph, root: Node, parent: Node) -> Result
+    func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         return .Failure
     }
@@ -134,6 +134,7 @@ class Node : Codable
     }
 }
 
+/// Terminal class, connects nodes
 class Terminal : Codable
 {
     enum Connector : Int, Codable {
@@ -195,6 +196,7 @@ class Terminal : Codable
     }
 }
 
+/// Connection between two terminals
 class Connection : Codable
 {
     var uuid            : UUID!
@@ -277,6 +279,21 @@ class NodeMaxDelegate
     func getTimeline() -> MMTimeline?
     {
         return nil
+    }
+}
+
+/// A class describing the root node of a behavior tree
+class BehaviorTreeRoot
+{
+    var rootNode        : Node
+    var objectRoot      : Object?=nil
+    var layerRoot       : Layer?=nil
+    
+    init(_ node : Node)
+    {
+        rootNode = node
+        objectRoot = node as? Object
+        layerRoot = node as? Layer
     }
 }
 

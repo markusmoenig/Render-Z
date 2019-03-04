@@ -56,7 +56,7 @@ class Sequence : Node
     }
     
     /// Return Success if all behavior outputs succeeded
-    override func execute(nodeGraph: NodeGraph, root: Node, parent: Node) -> Result
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Success
         for terminal in terminals {
@@ -124,7 +124,7 @@ class Selector : Node
     }
     
     /// Return Success if the first encountered behavior output succeeded
-    override func execute(nodeGraph: NodeGraph, root: Node, parent: Node) -> Result
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
         for terminal in terminals {

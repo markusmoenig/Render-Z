@@ -123,7 +123,7 @@ class Layer : Node
     }
     
     /// Execute all bevavior outputs
-    override func execute(nodeGraph: NodeGraph, root: Node, parent: Node) -> Result
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         var result : Result = .Success
         for terminal in terminals {
