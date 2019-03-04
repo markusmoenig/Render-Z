@@ -19,7 +19,11 @@ class Object : Node
     
     var selectedShapes  : [UUID]
     
+    /// The render instance for this object, used for preview
     var instance        : BuilderInstance?
+    
+    /// If this object is an instance, this uuid is the uuid of the original object
+    var instanceOf      : UUID? = nil
         
     private enum CodingKeys: String, CodingKey {
         case type
@@ -55,6 +59,7 @@ class Object : Node
         self.childObjects = instanceFor.childObjects
         self.sequences = instanceFor.sequences
         self.selectedShapes = []
+        self.instanceOf = instanceFor.uuid
         
         super.init()
 

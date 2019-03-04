@@ -75,13 +75,14 @@ class MMBaseView : MTKView
         if hoverWidget != nil && dragSource != nil {
             if hoverWidget!.dropTargets.contains(dragSource!.id) {
                 hoverWidget!.dragEnded(event: event, dragSource: dragSource!)
+                focusWidget = hoverWidget
             }
         }
         
         if dragSource != nil {
             dragSource!.sourceWidget?.dragTerminated()
             dragSource = nil
-        }        
+        }
         // ---
         
         if let widget = focusWidget {

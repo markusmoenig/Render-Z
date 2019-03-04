@@ -140,6 +140,7 @@ class NodeList : MMWidget
     override func dragTerminated() {
         dragSource = nil
         mmView.unlockFramerate()
+        mouseIsDown = false
     }
     
     /// Create a drag item for the given position
