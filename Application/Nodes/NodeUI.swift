@@ -26,7 +26,7 @@ class NodeUI
     
     static let fontName = "Open Sans"
     static let fontScale : Float = 0.4
-    static let titleMargin : MMMargin = MMMargin(5, 5, 5, 5)
+    static let titleMargin : MMMargin = MMMargin(0, 5, 5, 5)
     static let titleSpacing : Float = 5
 
     init(_ node : Node, brand: Brand, variable: String, title: String)
@@ -145,7 +145,7 @@ class NodeUIDropDown : NodeUI
             var itemY : Float = rect.y
             for (ind,item) in items.enumerated() {
                 
-                let textColor = Float(ind) == index ? skin.selTextColor : skin.textColor
+                let textColor = Float(ind) == index ? float4(1) : skin.textColor
                 mmView.drawText.drawTextCentered(mmView.openSans, text: item, x: x, y: itemY, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: textColor)
                 itemY += itemHeight
             }

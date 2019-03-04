@@ -46,7 +46,7 @@ class Node : Codable
 
     /// Static sizes
     static var NodeWithPreviewSize : float2 = float2(260,220)
-    static var NodeMinimumSize     : float2 = float2(240,70)
+    static var NodeMinimumSize     : float2 = float2(240,75)
 
     private enum CodingKeys: String, CodingKey {
         case name

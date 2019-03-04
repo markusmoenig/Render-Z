@@ -57,7 +57,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
         
         // Top Region
         if objectsButton == nil {
-            objectsButton = MMButtonWidget( app.mmView, text: "Available Objects" )
+            objectsButton = MMButtonWidget( app.mmView, text: "Objects" )
             timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
         }
         objectsButton.clicked = { (event) -> Void in

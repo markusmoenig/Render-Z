@@ -16,7 +16,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Maximize, Dragging, Terminal, TerminalConnection, Play, NodeUI, NodeUIMouseLocked
+        case None, Maximize, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked
     }
     
     var nodes           : [Node] = []
@@ -32,6 +32,7 @@ class NodeGraph : Codable
     var maximizedNode   : Node?
     var hoverNode       : Node?
     var playNode        : Node?
+    var currentNode     : Node?
     
     var hoverUIItem     : NodeUI?
 
@@ -47,7 +48,8 @@ class NodeGraph : Codable
 
     var nodeHoverMode   : NodeHoverMode = .None
     var nodesButton     : MMButtonWidget!
-    
+    var playNodeButton  : MMButtonWidget!
+
     var nodeList        : NodeList?
     var animating       : Bool = false
     var leftRegionMode  : LeftRegionMode = .Nodes
@@ -66,7 +68,7 @@ class NodeGraph : Codable
     static var tRadius  : Float = 7 // Radius of terminals
     static var tDiam    : Float = 14 // Diameter of terminals
     
-    static var bodyY    : Float = 50 // Start of the y position of the body
+    static var bodyY    : Float = 60 // Start of the y position of the body
 
     // ---
     
@@ -87,8 +89,7 @@ class NodeGraph : Codable
         object.setupTerminals()
         
         nodes.append(object)
-        selectedUUID = [object.uuid]
-
+        setCurrentNode(object)
     }
     
     required init(from decoder: Decoder) throws
@@ -126,6 +127,17 @@ class NodeGraph : Codable
             self.setLeftRegionMode(.Nodes)
         }
         nodesButton.addState(.Checked)
+        
+        playNodeButton = MMButtonWidget( app.mmView, text: "Play Node" )
+        playNodeButton.clicked = { (event) -> Void in
+            if self.playNode == nil {
+                self.playNode = self.currentNode
+                self.playNodeButton.addState(.Checked)
+            } else {
+                self.playNode = nil
+                self.playNodeButton.removeState(.Checked)
+            }
+        }
         
         nodeList = NodeList(app.mmView, app:app)
         
@@ -184,7 +196,7 @@ class NodeGraph : Codable
     
     func mouseDown(_ event: MMMouseEvent)
     {
-        selectedUUID = []
+        setCurrentNode()
                 
 //        #if !os(OSX)
         mouseMoved( event )
@@ -193,7 +205,7 @@ class NodeGraph : Codable
         if nodeHoverMode == .NodeUI {
             hoverUIItem!.mouseDown(event)
             nodeHoverMode = .NodeUIMouseLocked
-            selectedUUID = [hoverNode!.uuid]
+            setCurrentNode(hoverNode!)
             return
         }
         
@@ -207,11 +219,13 @@ class NodeGraph : Codable
                 nodeHoverMode = .TerminalConnection
                 mousePos.x = event.x
                 mousePos.y = event.y
-                selectedUUID = [hoverNode!.uuid]
+                setCurrentNode(hoverNode!)
             }
         } else
         if let selectedNode = nodeAt(event.x, event.y) {
-            selectedUUID = [selectedNode.uuid]
+            setCurrentNode(selectedNode)
+
+
             
 //            let offX = selectedNode.rect.x - event.x
             let offY = selectedNode.rect.y - event.y
@@ -222,18 +236,8 @@ class NodeGraph : Codable
                 maximizedNode!.maxDelegate!.activate(app!)
                 nodeHoverMode = .None
                 return
-            } else
-            if nodeHoverMode == .Play {
-                if playNode == nil {
-                    playNode = selectedNode
-                    for node in nodes {
-                        node.playResult = nil
-                    }
-                } else {
-                    playNode = nil
-                }
-                return
             }
+            
             if offY < 26 {
                 dragStartPos.x = event.x
                 dragStartPos.y = event.y
@@ -308,23 +312,13 @@ class NodeGraph : Codable
             let y =  event.y - hoverNode!.rect.y
             
             if hoverNode!.maxDelegate != nil {
-                var iconSize : Float = 18 * scale
-                var xStart : Float = hoverNode!.rect.width - 41 * scale
-                var yStart : Float = 22 * scale
+                let iconSize : Float = 18 * scale
+                let xStart : Float = hoverNode!.rect.width - 41 * scale
+                let yStart : Float = 22 * scale
             
                 if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
                 {
                     nodeHoverMode = .Maximize
-                    return
-                }
-                
-                iconSize = 20 * scale
-                xStart = 13 * scale
-                yStart = hoverNode!.rect.height - 30 * scale
-                
-                if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
-                {
-                    nodeHoverMode = .Play
                     return
                 }
             }
@@ -361,7 +355,7 @@ class NodeGraph : Codable
     ///
     func activate()
     {
-        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!)
+        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, playNodeButton)
         app!.leftRegion!.rect.width = 200
         nodeHoverMode = .None
     }
@@ -369,7 +363,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!)
+        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playNodeButton)
     }
     
     /// Draws the given region
@@ -435,8 +429,10 @@ class NodeGraph : Codable
             nodeList!.draw()
         } else
         if region.type == .Top {
-            region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: nodesButton )
+            region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: nodesButton)
+            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: playNodeButton)
             nodesButton.draw()
+            playNodeButton.draw()
         } else
         if region.type == .Right {
             region.rect.width = 0
@@ -487,9 +483,6 @@ class NodeGraph : Codable
         node.data.hoverIndex = 0
         if nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid {
             node.data.hoverIndex = 1
-        } else
-        if (nodeHoverMode == .Play && node.uuid == hoverNode!.uuid) || (playNode != nil) {
-            node.data.hoverIndex = 2
         }
         
         node.data.hasIcons1.x = node.maxDelegate != nil ? 1 : 0
@@ -561,7 +554,7 @@ class NodeGraph : Codable
         }
         
         // --- UI
-        let uiItemX = node.rect.x + (node.rect.width - node.uiArea.width*scale) / 2
+        let uiItemX = node.rect.x + (node.rect.width - node.uiArea.width*scale) / 2 - 5 * scale
         var uiItemY = node.rect.y + NodeGraph.bodyY * scale
 
         for uiItem in node.uiItems {
@@ -788,6 +781,25 @@ class NodeGraph : Codable
         }
         
         return color
+    }
+    
+    /// Sets the current node
+    func setCurrentNode(_ node: Node?=nil)
+    {
+        if playNodeButton != nil {
+            playNodeButton.isDisabled = true
+        }
+
+        if node == nil {
+            selectedUUID = []
+            currentNode = nil
+        } else {
+            selectedUUID = [node!.uuid]
+            currentNode = node
+            if playNodeButton != nil && (node!.type == "Object" || node!.type == "Layer") {
+                playNodeButton.isDisabled = false
+            }
+        }
     }
     
     /// Decode a new nodegraph from JSON

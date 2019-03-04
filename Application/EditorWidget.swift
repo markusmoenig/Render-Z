@@ -184,7 +184,7 @@ class EditorWidget      : MMWidget
             node.updatePreview(app: app, hard: true)
 
             app.nodeGraph.nodes.append(node)
-            app.nodeGraph.selectedUUID = [node.uuid]
+            app.nodeGraph.setCurrentNode(node)
         } else
         if dragSource.id == "AvailableObjectItem"
         {

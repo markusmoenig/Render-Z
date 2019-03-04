@@ -76,7 +76,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     
 //    const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
     float4 borderColor = float4(0.173, 0.173, 0.173, 1.000);
-    const float4 selBorderColor = float4(0.620, 0.620, 0.620, 1.000);//820
+    const float4 selBorderColor = float4(0.820, 0.820, 0.820, 1.000);
 //    const float4 centerColor = float4(0.702, 0.702, 0.702, 1.000);
     const float4 iconColor = float4(0.5, 0.5, 0.5, 1);
     const float4 iconHoverColor = float4(1);
@@ -153,6 +153,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );
     
     // Bottom border
+    /*
     if ( data->hasIcons1.y == 1 )
     {
         uv = uvCopy;
@@ -166,7 +167,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
 //            color = borderColor;
             finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
         }
-    }
+    }*/
     
     // Terminal Bodies
     for( int i = 0; i < data->leftTerminalCount; i += 1)
@@ -237,6 +238,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
     }
     
+    /*
     if ( data->hasIcons1.y == 1 )
     {
         uv = uvCopy;
@@ -247,7 +249,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         
         color = data->hoverIndex == 2 ? iconHoverColor : iconColor;
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
-    }
+    }*/
 
 //    finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
 //    color = float4(0.212, 0.208, 0.208, 1.000);
