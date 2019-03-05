@@ -67,6 +67,7 @@ class Object : Node
         properties = instanceProperties
         self.type = instanceFor.type
         self.uuid = instanceUUID
+        self.name = "Instance of " + instanceFor.name
 
         if properties["posX"] == nil {
             properties["posX"] = 0
@@ -172,21 +173,26 @@ class Object : Node
         return result
     }
     
-    override func updatePreview(app: App, hard: Bool = false)
+    override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
         let width : Float = 200
         let height : Float = 130
 
         if previewTexture == nil {
-            previewTexture = app.builder.compute!.allocateTexture(width: width, height: height, output: true)
+            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: width, height: height, output: true)
         }
         
+        let prevOffsetX = properties["previewOffsetX"] != nil ? properties["previewOffsetX"]! : 0
+        let prevOffsetY = properties["previewOffsetY"] != nil ? properties["previewOffsetY"]! : 0
+        let prevScale = properties["previewScale"] != nil ? properties["previewScale"]! : 1
+        let camera = Camera(x: prevOffsetX, y: prevOffsetY, zoom: prevScale)
+
         if instance == nil || hard {
-            instance = app.builder.buildObjects(objects: [self], camera: app.camera, timeline: app.timeline, preview: true)
+            instance = nodeGraph.builder.buildObjects(objects: [self], camera: camera, preview: true)
         }
         
         if instance != nil {
-            app.builder.render(width: width, height: height, instance: instance!, camera: app.camera, timeline: app.timeline, outTexture: previewTexture)
+            nodeGraph.builder.render(width: width, height: height, instance: instance!, camera: camera, outTexture: previewTexture)
         }
     }
 }

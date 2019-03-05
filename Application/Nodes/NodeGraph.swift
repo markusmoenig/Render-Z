@@ -16,7 +16,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Maximize, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked
+        case None, Maximize, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview
     }
     
     var nodes           : [Node] = []
@@ -54,6 +54,9 @@ class NodeGraph : Codable
     var animating       : Bool = false
     var leftRegionMode  : LeftRegionMode = .Nodes
     
+    var builder         : Builder!
+    var timeline        : MMTimeline!
+
     // --- Icons
     
     var executeIcon     : MTLTexture?
@@ -115,6 +118,9 @@ class NodeGraph : Codable
     {
         self.app = app
         
+        timeline = MMTimeline(app.mmView)
+        builder = Builder(self)
+
         let renderer = app.mmView.renderer!
         
         var function = renderer.defaultLibrary.makeFunction( name: "drawNode" )
@@ -142,6 +148,7 @@ class NodeGraph : Codable
                 
                 self.playNodeButton.addState(.Checked)
             } else {
+                self.playNode!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
                 self.playNode = nil
                 self.playNodeButton.removeState(.Checked)
             }
@@ -357,6 +364,23 @@ class NodeGraph : Codable
                 }
                 uiItemY += uiItem.rect.height * scale
             }
+            
+            // --- Check if mouse is over the preview area
+            // --- Preview
+            if let texture = hoverNode!.previewTexture {
+                
+                let rect = MMRect()
+            
+                rect.x = hoverNode!.rect.x + (hoverNode!.rect.width - 200*scale) / 2
+                rect.y = hoverNode!.rect.y + NodeGraph.bodyY * scale + hoverNode!.uiArea.height * scale
+                rect.width = Float(texture.width) * scale
+                rect.height = Float(texture.height) * scale
+            
+                if rect.contains(event.x, event.y) {
+                    nodeHoverMode = .Preview
+                    return
+                }
+            }
         }
     }
     
@@ -406,6 +430,7 @@ class NodeGraph : Codable
             if playNode != nil {
                 let btRoot = BehaviorTreeRoot(playNode!)
                 _ = playNode!.execute(nodeGraph: self, root: btRoot, parent: playNode!)
+                playNode!.updatePreview(nodeGraph: self)
             }
             
             for node in nodes {
@@ -854,7 +879,7 @@ class NodeGraph : Codable
             
             if node.type == "Object" {
                 let object = node as! Object
-                object.instance = app!.builder.buildObjects(objects: [object], camera: app!.camera, timeline: app!.timeline )
+                object.instance = app!.nodeGraph.builder.buildObjects(objects: [object], camera: app!.camera)
             }
             
             for terminal in node.terminals {
@@ -864,7 +889,7 @@ class NodeGraph : Codable
             }
             
             node.setupUI(mmView: app!.mmView)
-            node.updatePreview(app: app!, hard: true)
+            node.updatePreview(nodeGraph: self, hard: true)
         }
         maximizedNode = nil
     }

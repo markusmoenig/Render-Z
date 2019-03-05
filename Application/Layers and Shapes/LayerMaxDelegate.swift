@@ -128,13 +128,13 @@ class LayerMaxDelegate : NodeMaxDelegate {
     {
 //        timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList)
-        currentLayer!.updatePreview(app: app)
+        currentLayer!.updatePreview(nodeGraph: app.nodeGraph)
         
         for inst in currentLayer!.objectInstances {
             inst.properties = inst.instance!.properties
         }
         
-        currentLayer!.updatePreview(app: app, hard: true)
+        currentLayer!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -175,7 +175,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
             if let instance = currentLayer!.instance {
             
                 if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
-                    app.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera, timeline: timeline)
+                    app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera)
                 }
                 
                 if let texture = instance.texture {
@@ -384,12 +384,12 @@ class LayerMaxDelegate : NodeMaxDelegate {
         if hard {
             let objects = currentLayer!.createInstances(nodeGraph: app.nodeGraph)
             
-            currentLayer!.instance = app.builder.buildObjects(objects: objects, camera: camera, timeline: timeline)
+            currentLayer!.instance = app.nodeGraph.builder.buildObjects(objects: objects, camera: camera)
             updateGizmo()
         } else {
             let region = app.editorRegion!
             if currentLayer!.instance != nil {
-                app.builder.render(width: region.rect.width, height: region.rect.height, instance: currentLayer!.instance!, camera: camera, timeline: timeline)
+                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentLayer!.instance!, camera: camera)
             }
         }
     }
@@ -631,6 +631,7 @@ class AvailableObjectList : MMWidget
     override func dragTerminated() {
         dragSource = nil
         mmView.unlockFramerate()
+        mouseIsDown = false
     }
     
     /// Create a drag item for the given position

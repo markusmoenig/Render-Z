@@ -122,23 +122,6 @@ class Layer : Node
         ]
     }
     
-    /// Execute all bevavior outputs
-    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
-    {
-        var result : Result = .Success
-        for terminal in terminals {
-            
-            if terminal.connector == .Bottom {
-                for conn in terminal.connections {
-                    let toTerminal = conn.toTerminal!
-                    result = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
-                }
-            }
-        }
-        
-        return result
-    }
-    
     /*
     /// Returns the current object which is the first object in the selectedObjects array
     func getCurrentObject() -> Object?
@@ -193,23 +176,59 @@ class Layer : Node
             object.executeProperties(nodeGraph)
         }
         executeProperties(nodeGraph)
+        
+        instance = nodeGraph.builder.buildObjects(objects: objects, camera: maxDelegate!.getCamera()!, preview: true)
     }
     
-    override func updatePreview(app: App, hard: Bool = false)
+    /// Execute the layer
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        var result : Result = .Success
+        
+        for object in objectInstances {
+            
+            let instance = object.instance!
+            
+            let physicsMode = instance.properties["physicsMode"]
+            if physicsMode != nil && physicsMode! == 2 {
+                instance.properties["posY"]! += 0.3
+            }
+            print(instance.name, object.instance!.properties["posY"]!)
+        }
+        
+        /// Execute behavior outputs
+        for terminal in terminals {
+            if terminal.connector == .Bottom {
+                for conn in terminal.connections {
+                    let toTerminal = conn.toTerminal!
+                    result = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
+                }
+            }
+        }
+        
+        return result
+    }
+    
+    override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
         let width : Float = 200
         let height : Float = 130
         
         if previewTexture == nil {
-            previewTexture = app.builder.compute!.allocateTexture(width: width, height: height, output: true)
+            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: width, height: height, output: true)
         }
         
+        let prevOffsetX = properties["previewOffsetX"] != nil ? properties["previewOffsetX"]! : 0
+        let prevOffsetY = properties["previewOffsetY"] != nil ? properties["previewOffsetY"]! : 0
+        let prevScale = properties["previewScale"] != nil ? properties["previewScale"]! : 1
+        let camera = Camera(x: prevOffsetX, y: prevOffsetY, zoom: prevScale)
+        
         if instance == nil || hard {
-            instance = app.builder.buildObjects(objects: createInstances(nodeGraph: app.nodeGraph), camera: app.camera, timeline: app.timeline, preview: true)
+            instance = nodeGraph.builder.buildObjects(objects: createInstances(nodeGraph: nodeGraph), camera: camera, preview: true)
         }
         
         if instance != nil {
-            app.builder.render(width: width, height: height, instance: instance!, camera: app.camera, timeline: app.timeline, outTexture: previewTexture)
+            nodeGraph.builder.render(width: width, height: height, instance: instance!, camera: camera, outTexture: previewTexture)
         }
     }
 }

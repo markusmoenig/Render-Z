@@ -23,20 +23,31 @@ class Camera
 {
     var xPos            : Float = 0
     var yPos            : Float = 0
-    var zoom            : Float = 0
+    var zoom            : Float = 1
+    
+    convenience init(x: Float, y: Float, zoom: Float)
+    {
+        self.init()
+        
+        self.xPos = x
+        self.yPos = y
+        self.zoom = zoom
+    }
 }
 
 class Builder
 {
     var compute         : MMCompute?
+    var nodeGraph       : NodeGraph
     
-    init()
+    init(_ nodeGraph: NodeGraph)
     {
+        self.nodeGraph = nodeGraph
         compute = MMCompute()
     }
     
     /// Build the state for the given objects
-    func buildObjects(objects: [Object], camera: Camera, timeline: MMTimeline, preview: Bool  = false) -> BuilderInstance
+    func buildObjects(objects: [Object], camera: Camera, preview: Bool  = false) -> BuilderInstance
     {
         var instance = BuilderInstance()
         
@@ -111,7 +122,7 @@ class Builder
         
         instance.data!.append( camera.xPos )
         instance.data!.append( camera.yPos )
-        instance.data!.append( 0 )
+        instance.data!.append( 1/camera.zoom )
         instance.data!.append( 0 )
         
         source +=
@@ -129,6 +140,7 @@ class Builder
         
             float2 center = size / 2;
             uv = translate(uv, center - float2( layerData->camera.x, layerData->camera.y ) );
+            uv *= layerData->fill.x;
             float2 tuv = uv;
         
             float dist = 1000;
@@ -150,7 +162,7 @@ class Builder
                 
                 let properties : [String:Float]
                 if object.currentSequence != nil {
-                    properties = timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
+                    properties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
                 } else {
                     properties = shape.properties
                 }
@@ -308,7 +320,7 @@ class Builder
     }
     
     /// Render the layer
-    @discardableResult func render(width:Float, height:Float, instance: BuilderInstance, camera: Camera, timeline: MMTimeline, outTexture: MTLTexture? = nil) -> MTLTexture
+    @discardableResult func render(width:Float, height:Float, instance: BuilderInstance, camera: Camera, outTexture: MTLTexture? = nil) -> MTLTexture
     {
         if outTexture == nil {
             if compute!.width != width || compute!.height != height {
@@ -320,6 +332,7 @@ class Builder
 
         instance.data![0] = camera.xPos
         instance.data![1] = camera.yPos
+        instance.data![2] = 1/camera.zoom
         let offset : Int = 4
         var index : Int = 0
 
@@ -339,7 +352,7 @@ class Builder
                 
                 let properties : [String:Float]
                 if object.currentSequence != nil {
-                    properties = timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
+                    properties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
                 } else {
                     properties = shape.properties
                 }
@@ -396,7 +409,7 @@ class Builder
     }
     
     ///
-    func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera, timeline: MMTimeline)
+    func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera)
     {
         var source =
         """
@@ -453,7 +466,7 @@ class Builder
         for (objectIndex, object) in instance.objects.enumerated() {
             for (shapeIndex, shape) in object.shapes.enumerated() {
                 
-                let transformed = timeline.transformProperties(sequence: object.currentSequence!, uuid:shape.uuid, properties:shape.properties)
+                let transformed = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid:shape.uuid, properties:shape.properties)
                 let posX : Float = transformed["posX"]!
                 let posY : Float = transformed["posY"]!
                 let rotate : Float = transformed["rotate"]! * Float.pi / 180

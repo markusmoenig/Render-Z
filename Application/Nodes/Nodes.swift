@@ -61,8 +61,13 @@ class ObjectPhysics : Node
     /// Execute Object physic properties
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
     {
-        print("Physic Properties", root.rootNode.name)
-        return .Success
+        if let object = root.objectRoot {
+            let value = properties["physicsMode"]!
+            object.properties["physicsMode"] = value
+            //print("Physic Properties", object.name, value)
+            return .Success
+        }
+        return .Failure
     }
 }
 

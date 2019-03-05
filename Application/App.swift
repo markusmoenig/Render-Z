@@ -24,7 +24,6 @@ class App
     let gizmo           : Gizmo
     let closeButton     : MMButtonWidget!
     
-    let builder         : Builder
     let compute         : MMCompute = MMCompute()
     
     let camera          : Camera!
@@ -89,7 +88,6 @@ class App
         }*/
         
         gizmo = Gizmo(view)
-        builder = Builder()
         
         camera = Camera()
         timeline = MMTimeline(view)

@@ -67,20 +67,45 @@ class EditorWidget      : MMWidget
     {
         if app.nodeGraph.maximizedNode == nil {
             
-            #if os(OSX)
-            
-            if mmView.commandIsDown && event.deltaY! != 0 {
-                app.nodeGraph.scale += event.deltaY! * 0.003
-                app.nodeGraph.scale = max(0.2, app.nodeGraph.scale)
-            } else {
+            if app.nodeGraph.hoverNode != nil && app.nodeGraph.nodeHoverMode == .Preview {
+                // Node preview translation
+                let node = app.nodeGraph.hoverNode!
+                var prevOffsetX = node.properties["previewOffsetX"] != nil ? node.properties["previewOffsetX"]! : 0
+                var prevOffsetY = node.properties["previewOffsetY"] != nil ? node.properties["previewOffsetY"]! : 0
+                var prevScale = node.properties["previewScale"] != nil ? node.properties["previewScale"]! : 1
+                
+                #if os(OSX)
+                if mmView.commandIsDown && event.deltaY! != 0 {
+                    prevScale += event.deltaY! * 0.003
+                    prevScale = max(0.2, prevScale)
+                } else {
+                    prevOffsetX += event.deltaX!
+                    prevOffsetY += event.deltaY!
+                }
+                #else
                 app.nodeGraph.xOffset -= event.deltaX!
                 app.nodeGraph.yOffset -= event.deltaY!
+                #endif
+                
+                node.properties["previewOffsetX"] = prevOffsetX
+                node.properties["previewOffsetY"] = prevOffsetY
+                node.properties["previewScale"] = prevScale
+                node.updatePreview(nodeGraph: app.nodeGraph)
+            } else {
+                // NodeGraph translation
+                #if os(OSX)
+                if mmView.commandIsDown && event.deltaY! != 0 {
+                    app.nodeGraph.scale += event.deltaY! * 0.003
+                    app.nodeGraph.scale = max(0.2, app.nodeGraph.scale)
+                } else {
+                    app.nodeGraph.xOffset -= event.deltaX!
+                    app.nodeGraph.yOffset -= event.deltaY!
+                }
+                #else
+                app.nodeGraph.xOffset -= event.deltaX!
+                app.nodeGraph.yOffset -= event.deltaY!
+                #endif
             }
-            
-            #else
-            app.nodeGraph.xOffset -= event.deltaX!
-            app.nodeGraph.yOffset -= event.deltaY!
-            #endif
             
             if !dispatched {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -181,7 +206,7 @@ class EditorWidget      : MMWidget
             }
             node.setupTerminals()
             node.setupUI(mmView: app.mmView)
-            node.updatePreview(app: app, hard: true)
+            node.updatePreview(nodeGraph: app.nodeGraph, hard: true)
 
             app.nodeGraph.nodes.append(node)
             app.nodeGraph.setCurrentNode(node)

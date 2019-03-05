@@ -141,7 +141,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
         
-        currentObject!.updatePreview(app: app, hard: true)
+        currentObject!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -183,7 +183,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             if let instance = currentObject!.instance {
             
                 if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
-                    app.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, timeline: timeline)
+                    app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera)
                 }
                 
                 if let texture = instance.texture {
@@ -262,7 +262,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
             let editorRegion = app.editorRegion!
 
-            app.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera, timeline: timeline)
+            app.nodeGraph.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera)
             update()
             shapeListChanged = true
         }
@@ -376,11 +376,11 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     {
         if hard {
             app.gizmo.setObject(currentObject)
-            currentObject!.instance = app.builder.buildObjects(objects: [currentObject!], camera: camera, timeline: timeline)
+            currentObject!.instance = app.nodeGraph.builder.buildObjects(objects: [currentObject!], camera: camera)
         } else {
             let region = app.editorRegion!
             if currentObject!.instance != nil {
-                app.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, timeline: timeline)
+                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera)
             }
         }
     }
