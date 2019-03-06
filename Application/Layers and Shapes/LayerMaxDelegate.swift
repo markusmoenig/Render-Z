@@ -172,7 +172,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
             app.gizmo.rect.copy(region.rect)
             drawPattern(region)
             
-            if let instance = currentLayer!.instance {
+            if let instance = currentLayer!.builderInstance {
             
                 if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
                     app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera)
@@ -384,12 +384,12 @@ class LayerMaxDelegate : NodeMaxDelegate {
         if hard {
             let objects = currentLayer!.createInstances(nodeGraph: app.nodeGraph)
             
-            currentLayer!.instance = app.nodeGraph.builder.buildObjects(objects: objects, camera: camera)
+            currentLayer!.builderInstance = app.nodeGraph.builder.buildObjects(objects: objects, camera: camera)
             updateGizmo()
         } else {
             let region = app.editorRegion!
-            if currentLayer!.instance != nil {
-                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentLayer!.instance!, camera: camera)
+            if currentLayer!.builderInstance != nil {
+                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentLayer!.builderInstance!, camera: camera)
             }
         }
     }

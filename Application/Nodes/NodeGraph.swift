@@ -55,6 +55,7 @@ class NodeGraph : Codable
     var leftRegionMode  : LeftRegionMode = .Nodes
     
     var builder         : Builder!
+    var physics         : Physics!
     var timeline        : MMTimeline!
 
     // --- Icons
@@ -120,6 +121,7 @@ class NodeGraph : Codable
         
         timeline = MMTimeline(app.mmView)
         builder = Builder(self)
+        physics = Physics(self)
 
         let renderer = app.mmView.renderer!
         
@@ -148,6 +150,12 @@ class NodeGraph : Codable
                 
                 self.playNodeButton.addState(.Checked)
             } else {
+                
+                if self.playNode!.type == "Layer" {
+                    let layer = self.playNode as! Layer
+                    layer.physicsInstance = nil
+                }
+                
                 self.playNode!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
                 self.playNode = nil
                 self.playNodeButton.removeState(.Checked)

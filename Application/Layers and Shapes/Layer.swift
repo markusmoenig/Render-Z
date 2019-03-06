@@ -55,7 +55,8 @@ class Layer : Node
     
     var selectedObjects : [UUID]
     
-    var instance        : BuilderInstance?
+    var builderInstance : BuilderInstance?
+    var physicsInstance : PhysicsInstance?
         
     private enum CodingKeys: String, CodingKey {
         case type
@@ -177,7 +178,8 @@ class Layer : Node
         }
         executeProperties(nodeGraph)
         
-        instance = nodeGraph.builder.buildObjects(objects: objects, camera: maxDelegate!.getCamera()!, preview: true)
+        builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: maxDelegate!.getCamera()!, preview: true)
+        physicsInstance = nodeGraph.physics.buildPhysics(objects: objects, camera: maxDelegate!.getCamera()!)
     }
     
     /// Execute the layer
@@ -185,6 +187,7 @@ class Layer : Node
     {
         var result : Result = .Success
         
+        /*
         for object in objectInstances {
             
             let instance = object.instance!
@@ -194,7 +197,7 @@ class Layer : Node
                 instance.properties["posY"]! += 0.3
             }
             print(instance.name, object.instance!.properties["posY"]!)
-        }
+        }*/
         
         /// Execute behavior outputs
         for terminal in terminals {
@@ -218,17 +221,21 @@ class Layer : Node
             previewTexture = nodeGraph.builder.compute!.allocateTexture(width: width, height: height, output: true)
         }
         
-        let prevOffsetX = properties["previewOffsetX"] != nil ? properties["previewOffsetX"]! : 0
-        let prevOffsetY = properties["previewOffsetY"] != nil ? properties["previewOffsetY"]! : 0
-        let prevScale = properties["previewScale"] != nil ? properties["previewScale"]! : 1
-        let camera = Camera(x: prevOffsetX, y: prevOffsetY, zoom: prevScale)
+        let prevOffX = properties["prevOffX"]
+        let prevOffY = properties["prevOffY"]
+        let prevScale = properties["prevScale"]
+        let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
         
-        if instance == nil || hard {
-            instance = nodeGraph.builder.buildObjects(objects: createInstances(nodeGraph: nodeGraph), camera: camera, preview: true)
+        if builderInstance == nil || hard {
+            builderInstance = nodeGraph.builder.buildObjects(objects: createInstances(nodeGraph: nodeGraph), camera: camera, preview: true)
         }
         
-        if instance != nil {
-            nodeGraph.builder.render(width: width, height: height, instance: instance!, camera: camera, outTexture: previewTexture)
+        if physicsInstance != nil {
+            nodeGraph.physics.render(width: width, height: height, instance: physicsInstance!, camera: camera)
+        }
+        
+        if builderInstance != nil {
+            nodeGraph.builder.render(width: width, height: height, instance: builderInstance!, camera: camera, outTexture: previewTexture)
         }
     }
 }

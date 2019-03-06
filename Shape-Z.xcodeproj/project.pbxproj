@@ -13,6 +13,8 @@
 		2B4CC22B2222301300A47812 /* LayerMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */; };
 		2B4CC22D2226669000A47812 /* NodeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22C2226669000A47812 /* NodeUI.swift */; };
 		2B4CC22E2226669000A47812 /* NodeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22C2226669000A47812 /* NodeUI.swift */; };
+		2B4CC230222F5D5C00A47812 /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22F222F5D5C00A47812 /* Physics.swift */; };
+		2B4CC231222F5D5C00A47812 /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22F222F5D5C00A47812 /* Physics.swift */; };
 		2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
@@ -120,6 +122,7 @@
 		2B4CC2262222260600A47812 /* Layer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Layer.swift; sourceTree = "<group>"; };
 		2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerMaxDelegate.swift; sourceTree = "<group>"; };
 		2B4CC22C2226669000A47812 /* NodeUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeUI.swift; sourceTree = "<group>"; };
+		2B4CC22F222F5D5C00A47812 /* Physics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics.swift; sourceTree = "<group>"; };
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
 		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
 		2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Shape-Z iOS.entitlements"; sourceTree = "<group>"; };
@@ -339,6 +342,7 @@
 			isa = PBXGroup;
 			children = (
 				2B5CCAFE2214F2FF005BAA2B /* Builder.swift */,
+				2B4CC22F222F5D5C00A47812 /* Physics.swift */,
 				2BBF11F821F55D20001C94E9 /* Object.swift */,
 				2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */,
 				2B4CC2262222260600A47812 /* Layer.swift */,
@@ -505,6 +509,7 @@
 				2BBF11F621F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */,
 				2BE67102221259F500B95241 /* Node.swift in Sources */,
+				2B4CC230222F5D5C00A47812 /* Physics.swift in Sources */,
 				2BBF11C921EADB46001C94E9 /* MMUtils.swift in Sources */,
 				2BE67109221291D300B95241 /* Node.metal in Sources */,
 				2BBF11A221EAD46B001C94E9 /* LeftRegion.swift in Sources */,
@@ -559,6 +564,7 @@
 				2BBF11F721F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2B5CCB0322152EB6005BAA2B /* MMListWidget.swift in Sources */,
 				2BE67103221259F500B95241 /* Node.swift in Sources */,
+				2B4CC231222F5D5C00A47812 /* Physics.swift in Sources */,
 				2BBF11CA21EADB46001C94E9 /* MMUtils.swift in Sources */,
 				2BE67108221291D300B95241 /* Node.metal in Sources */,
 				2BBF11A321EAD46B001C94E9 /* LeftRegion.swift in Sources */,

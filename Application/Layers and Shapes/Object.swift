@@ -182,10 +182,10 @@ class Object : Node
             previewTexture = nodeGraph.builder.compute!.allocateTexture(width: width, height: height, output: true)
         }
         
-        let prevOffsetX = properties["previewOffsetX"] != nil ? properties["previewOffsetX"]! : 0
-        let prevOffsetY = properties["previewOffsetY"] != nil ? properties["previewOffsetY"]! : 0
-        let prevScale = properties["previewScale"] != nil ? properties["previewScale"]! : 1
-        let camera = Camera(x: prevOffsetX, y: prevOffsetY, zoom: prevScale)
+        let prevOffX = properties["prevOffX"]
+        let prevOffY = properties["prevOffY"]
+        let prevScale = properties["prevScale"]
+        let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
 
         if instance == nil || hard {
             instance = nodeGraph.builder.buildObjects(objects: [self], camera: camera, preview: true)

@@ -70,26 +70,26 @@ class EditorWidget      : MMWidget
             if app.nodeGraph.hoverNode != nil && app.nodeGraph.nodeHoverMode == .Preview {
                 // Node preview translation
                 let node = app.nodeGraph.hoverNode!
-                var prevOffsetX = node.properties["previewOffsetX"] != nil ? node.properties["previewOffsetX"]! : 0
-                var prevOffsetY = node.properties["previewOffsetY"] != nil ? node.properties["previewOffsetY"]! : 0
-                var prevScale = node.properties["previewScale"] != nil ? node.properties["previewScale"]! : 1
+                var prevOffX = node.properties["prevOffX"] != nil ? node.properties["prevOffX"]! : 0
+                var prevOffY = node.properties["prevOffY"] != nil ? node.properties["prevOffY"]! : 0
+                var prevScale = node.properties["prevScale"] != nil ? node.properties["prevScale"]! : 1
                 
                 #if os(OSX)
                 if mmView.commandIsDown && event.deltaY! != 0 {
                     prevScale += event.deltaY! * 0.003
                     prevScale = max(0.2, prevScale)
                 } else {
-                    prevOffsetX += event.deltaX!
-                    prevOffsetY += event.deltaY!
+                    prevOffX += event.deltaX!
+                    prevOffY += event.deltaY!
                 }
                 #else
                 app.nodeGraph.xOffset -= event.deltaX!
                 app.nodeGraph.yOffset -= event.deltaY!
                 #endif
                 
-                node.properties["previewOffsetX"] = prevOffsetX
-                node.properties["previewOffsetY"] = prevOffsetY
-                node.properties["previewScale"] = prevScale
+                node.properties["prevOffX"] = prevOffX
+                node.properties["prevOffY"] = prevOffY
+                node.properties["prevScale"] = prevScale
                 node.updatePreview(nodeGraph: app.nodeGraph)
             } else {
                 // NodeGraph translation
