@@ -140,6 +140,7 @@ class Builder
         
             float2 center = size / 2;
             uv = translate(uv, center - float2( layerData->camera.x, layerData->camera.y ) );
+            uv.y = -uv.y;
             uv *= layerData->fill.x;
             float2 tuv = uv;
         
@@ -357,6 +358,8 @@ class Builder
                     properties = shape.properties
                 }
                 
+                print( properties)
+                
                 instance.data![offset + index * 12] = properties["posX"]! + parentPosX
                 instance.data![offset + index * 12+1] = properties["posY"]! + parentPosY
                 instance.data![offset + index * 12+2] = properties[shape.widthProperty]!
@@ -457,6 +460,7 @@ class Builder
         
             float2 center = float2(\(width/2), \(height/2) );
             uv = translate(uv, center - float2( \(camera.xPos), \(camera.yPos) ) );
+            uv.y = -uv.y;
             float2 tuv = uv;
         
             float4 dist = float4(1000, -1, -1, -1);

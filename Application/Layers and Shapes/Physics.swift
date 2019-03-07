@@ -164,7 +164,7 @@ class Physics
             for (uint i = 0; i < dynaCount; i += 1 )
             {
                 float2 pos = physicsData->dynamicObjects[i].pos;
-                out[gid+i] = float4( pos.x, pos.y + 0.8, 0, 0 );
+                out[gid+i] = float4( pos.x, pos.y - 0.8, 0, 0 );
             }
         }
 

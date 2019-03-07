@@ -149,6 +149,7 @@ class NodeGraph : Codable
                 }
                 
                 self.playNodeButton.addState(.Checked)
+                app.mmView.lockFramerate()
             } else {
                 
                 if self.playNode!.type == "Layer" {
@@ -159,6 +160,7 @@ class NodeGraph : Codable
                 self.playNode!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
                 self.playNode = nil
                 self.playNodeButton.removeState(.Checked)
+                app.mmView.unlockFramerate()
             }
         }
         

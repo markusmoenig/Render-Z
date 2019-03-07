@@ -181,7 +181,20 @@ class EditorWidget      : MMWidget
                 yOff -= rect.width / 2 * rect.height / rect.width
                 
                 shape.properties["posX"] = xOff
-                shape.properties["posY"] = yOff
+                shape.properties["posY"] = -yOff
+                
+                if shape.pointCount == 1 {
+                    shape.properties["point_0_y"] = -shape.properties["point_0_y"]!
+                } else
+                if shape.pointCount == 2 {
+                    shape.properties["point_0_y"] = -shape.properties["point_0_y"]!
+                    shape.properties["point_1_y"] = -shape.properties["point_1_y"]!
+                } else
+                if shape.pointCount == 3 {
+                    shape.properties["point_0_y"] = -shape.properties["point_0_y"]!
+                    shape.properties["point_1_y"] = -shape.properties["point_1_y"]!
+                    shape.properties["point_2_y"] = -shape.properties["point_2_y"]!
+                }
             }
             
             currentObject!.maxDelegate?.update(true)

@@ -441,6 +441,7 @@ class ShapeScrollArea: MMScrollArea
     override func dragTerminated() {
         dragSource = nil
         mmView.unlockFramerate()
+        mouseIsDown = false
     }
 }
 

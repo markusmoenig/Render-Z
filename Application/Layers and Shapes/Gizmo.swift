@@ -202,7 +202,7 @@ class Gizmo : MMWidget
                         for shape in selectedShapeObjects {
                             let properties : [String:Float] = [
                                 "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                                "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                                "posY" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
                             ]
                             processGizmoProperties(properties, shape: shape)
                         }
@@ -210,7 +210,7 @@ class Gizmo : MMWidget
                         let shape = pointShape!
                         let properties : [String:Float] = [
                             "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                            "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                            "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
                             ]
                         processGizmoProperties(properties, shape: shape)
                     }
@@ -219,7 +219,7 @@ class Gizmo : MMWidget
                     for object in objects {
                         let properties : [String:Float] = [
                             "posX" : initialValues[object.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                            "posY" : initialValues[object.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                            "posY" : initialValues[object.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
                             ]
                         processGizmoObjectProperties(properties, object: object)
                     }
@@ -256,14 +256,14 @@ class Gizmo : MMWidget
                     if  mode == .Normal {
                         for shape in selectedShapeObjects {
                             let properties : [String:Float] = [
-                                "posY" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                                "posY" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
                                 ]
                             processGizmoProperties(properties, shape: shape)
                         }
                     } else {
                         let shape = pointShape!
                         let properties : [String:Float] = [
-                            "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                            "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
                             ]
                         processGizmoProperties(properties, shape: shape)
                     }
@@ -271,7 +271,7 @@ class Gizmo : MMWidget
                 if context == .ObjectEditor {
                     for object in objects {
                         let properties : [String:Float] = [
-                            "posY" : initialValues[object.uuid]!["posY"]! + (pos.y - dragStartOffset!.y),
+                            "posY" : initialValues[object.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
                             ]
                         processGizmoObjectProperties(properties, object: object)
                     }
@@ -807,7 +807,7 @@ class Gizmo : MMWidget
         var attributes : [String:Float] = [:]
 
         attributes["posX"] = object!.properties["posX"]
-        attributes["posY"] = object!.properties["posY"]
+        attributes["posY"] = -object!.properties["posY"]!
         attributes["rotate"] = object!.properties["rotate"]
 
         var sizeMinX : Float = 10000
@@ -824,7 +824,7 @@ class Gizmo : MMWidget
                 let transformed = getTransformedProperties(shape)
                 
                 let posX = transformed["posX"]!
-                let posY = transformed["posY"]!
+                let posY = -transformed["posY"]!
                 let rotate = transformed["rotate"]!
 
                 // --- Calc Bounding Rectangle
@@ -856,7 +856,7 @@ class Gizmo : MMWidget
                         if minX < sizeMinX {
                             sizeMinX = minX
                         }
-                        let minY = min( posY + transformed["point_0_y"]!, posY + transformed["point_1_y"]!) - height
+                        let minY = min( posY - transformed["point_0_y"]!, posY - transformed["point_1_y"]!) - height
                         if minY < sizeMinY {
                             sizeMinY = minY
                         }
@@ -864,7 +864,7 @@ class Gizmo : MMWidget
                         if maxX > sizeMaxX {
                             sizeMaxX = maxX
                         }
-                        let maxY = max( posY + transformed["point_0_y"]!, posY + transformed["point_1_y"]!) + height
+                        let maxY = max( posY - transformed["point_0_y"]!, posY - transformed["point_1_y"]!) + height
                         if maxY > sizeMaxY {
                             sizeMaxY = maxY
                         }
@@ -874,7 +874,7 @@ class Gizmo : MMWidget
                         if minX < sizeMinX {
                             sizeMinX = minX
                         }
-                        let minY = min( posY + transformed["point_0_y"]!, posY + transformed["point_1_y"]!, posY + transformed["point_2_y"]!) - height
+                        let minY = min( posY - transformed["point_0_y"]!, posY - transformed["point_1_y"]!, posY - transformed["point_2_y"]!) - height
                         if minY < sizeMinY {
                             sizeMinY = minY
                         }
@@ -882,7 +882,7 @@ class Gizmo : MMWidget
                         if maxX > sizeMaxX {
                             sizeMaxX = maxX
                         }
-                        let maxY = max( posY + transformed["point_0_y"]!, posY + transformed["point_1_y"]!, posY + transformed["point_2_y"]!) + height
+                        let maxY = max( posY - transformed["point_0_y"]!, posY - transformed["point_1_y"]!, posY - transformed["point_2_y"]!) + height
                         if maxY > sizeMaxY {
                             sizeMaxY = maxY
                         }
@@ -898,21 +898,21 @@ class Gizmo : MMWidget
                 if selectedShapeObjects.count == 1 {
                     if shape.pointCount == 1 {
                         attributes["point_0_x"] = transformed["point_0_x"]
-                        attributes["point_0_y"] = transformed["point_0_y"]
+                        attributes["point_0_y"] = -transformed["point_0_y"]!
                     } else
                     if shape.pointCount == 2 {
                         attributes["point_0_x"] = transformed["point_0_x"]
-                        attributes["point_0_y"] = transformed["point_0_y"]
+                        attributes["point_0_y"] = -transformed["point_0_y"]!
                         attributes["point_1_x"] = transformed["point_1_x"]
-                        attributes["point_1_y"] = transformed["point_1_y"]
+                        attributes["point_1_y"] = -transformed["point_1_y"]!
                     } else
                     if shape.pointCount == 3 {
                         attributes["point_0_x"] = transformed["point_0_x"]
-                        attributes["point_0_y"] = transformed["point_0_y"]
+                        attributes["point_0_y"] = -transformed["point_0_y"]!
                         attributes["point_1_x"] = transformed["point_1_x"]
-                        attributes["point_1_y"] = transformed["point_1_y"]
+                        attributes["point_1_y"] = -transformed["point_1_y"]!
                         attributes["point_2_x"] = transformed["point_2_x"]
-                        attributes["point_2_y"] = transformed["point_2_y"]
+                        attributes["point_2_y"] = -transformed["point_2_y"]!
                     }
                 }
             }
