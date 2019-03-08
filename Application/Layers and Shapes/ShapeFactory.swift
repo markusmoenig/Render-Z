@@ -52,7 +52,7 @@ class ShapeFactory
         // --- Disk
         def = ShapeDefinition()
         def.name = "Disk"
-        def.distanceCode = "length(__uv__) - __radius__"
+        def.distanceCode = "(length(__uv__) - __radius__)"
         def.properties["radius"] = defaultSize
         def.widthProperty = "radius"
         def.heightProperty = "radius"
@@ -116,7 +116,7 @@ class ShapeFactory
         // --- Bezier
         def = ShapeDefinition()
         def.name = "Bezier"
-        def.distanceCode = "udBezier(__uv__, float2(__point_0_x__,__point_0_y__), float2(__point_1_x__,__point_1_y__), float2(__point_2_x__,__point_2_y__)) - __lineWidth__"
+        def.distanceCode = "(udBezier(__uv__, float2(__point_0_x__,__point_0_y__), float2(__point_1_x__,__point_1_y__), float2(__point_2_x__,__point_2_y__)) - __lineWidth__)"
         def.globalCode =
         """
         float udBezier(float2 pos, float2 p0, float2 p1, float2 p2)

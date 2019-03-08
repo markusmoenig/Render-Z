@@ -380,7 +380,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         } else {
             let region = app.editorRegion!
             if currentObject!.instance != nil {
-                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera)
+                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, frame: timeline.currentFrame)
             }
         }
     }

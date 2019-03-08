@@ -97,6 +97,12 @@ class Builder
             return pos * float2x2(ca, -sa, sa, ca);
         }
         
+        float2 rotateCCW (float2 pos, float angle)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pos * float2x2(ca, sa, -sa, ca);
+        }
+        
         typedef struct
         {
             float2      pos;
@@ -170,14 +176,14 @@ class Builder
                 
                 source += "uv = translate( tuv, layerData->shape[\(index)].pos );"
                 if shape.pointCount < 2 {
-                    source += "if ( layerData->shape[\(index)].rotate != 0.0 ) uv = rotateCW( uv, layerData->shape[\(index)].rotate );\n"
+                    source += "if ( layerData->shape[\(index)].rotate != 0.0 ) uv = rotateCCW( uv, layerData->shape[\(index)].rotate );\n"
                 } else
                     if shape.pointCount == 2 {
-                        source += "if ( layerData->shape[\(index)].rotate != 0.0 ) { uv = rotateCW( uv - ( layerData->shape[\(index)].point0 + layerData->shape[\(index)].point1) / 2, layerData->shape[\(index)].rotate );\n"
+                        source += "if ( layerData->shape[\(index)].rotate != 0.0 ) { uv = rotateCCW( uv - ( layerData->shape[\(index)].point0 + layerData->shape[\(index)].point1) / 2, layerData->shape[\(index)].rotate );\n"
                         source += "uv += ( layerData->shape[\(index)].point0 + layerData->shape[\(index)].point1) / 2;}\n"
                     } else
                         if shape.pointCount == 3 {
-                            source += "if ( layerData->shape[\(index)].rotate != 0.0 ) { uv = rotateCW( uv - ( layerData->shape[\(index)].point0 + layerData->shape[\(index)].point1 + + layerData->shape[\(index)].point2) / 3, layerData->shape[\(index)].rotate );\n"
+                            source += "if ( layerData->shape[\(index)].rotate != 0.0 ) { uv = rotateCCW( uv - ( layerData->shape[\(index)].point0 + layerData->shape[\(index)].point1 + + layerData->shape[\(index)].point2) / 3, layerData->shape[\(index)].rotate );\n"
                             source += "uv += ( layerData->shape[\(index)].point0 + layerData->shape[\(index)].point1 + layerData->shape[\(index)].point2) / 3;}\n"
                 }
                 
@@ -189,7 +195,9 @@ class Builder
                         booleanCode = "intersect"
                 }
                 
-                source += "dist = \(booleanCode)( dist, " + shape.createDistanceCode(uvName: "uv", layerIndex: index) + ");"
+                let inverse = shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1
+                
+                source += "dist = \(booleanCode)( dist, \(inverse ? "-" : "")" + shape.createDistanceCode(uvName: "uv", layerIndex: index) + ");"
                 
                 let posX = properties["posX"]! + parentPosX
                 let posY = properties["posY"]! + parentPosY
@@ -321,7 +329,7 @@ class Builder
     }
     
     /// Render the layer
-    @discardableResult func render(width:Float, height:Float, instance: BuilderInstance, camera: Camera, outTexture: MTLTexture? = nil) -> MTLTexture
+    @discardableResult func render(width:Float, height:Float, instance: BuilderInstance, camera: Camera, outTexture: MTLTexture? = nil, frame: Int = 0) -> MTLTexture
     {
         if outTexture == nil {
             if compute!.width != width || compute!.height != height {
@@ -353,12 +361,10 @@ class Builder
                 
                 let properties : [String:Float]
                 if object.currentSequence != nil {
-                    properties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
+                    properties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: frame)
                 } else {
                     properties = shape.properties
                 }
-                
-                print( properties)
                 
                 instance.data![offset + index * 12] = properties["posX"]! + parentPosX
                 instance.data![offset + index * 12+1] = properties["posY"]! + parentPosY
@@ -438,9 +444,9 @@ class Builder
             return pos * float2x2(ca, -sa, sa, ca);
         }
 
-        float2 rotateCCW(float2 pos, float angle)
+        float2 rotateCCW (float2 pos, float angle)
         {
-            float ca = cos(angle),  sa = sin(angle);
+            float ca = cos(angle), sa = sin(angle);
             return pos * float2x2(ca, sa, -sa, ca);
         }
 
@@ -478,18 +484,18 @@ class Builder
                 source += "uv = translate( tuv, float2( \(posX), \(posY) ) );\n"
                 if rotate != 0.0 {
                     if shape.pointCount < 2 {
-                        source += "uv = rotateCW( uv, \(rotate) );\n"
+                        source += "uv = rotateCCW( uv, \(rotate) );\n"
                     } else
                         if shape.pointCount == 2 {
                             let offX = (transformed["point_0_x"]! + transformed["point_1_x"]!) / 2
                             let offY = (transformed["point_0_y"]! + transformed["point_1_y"]!) / 2
-                            source += "uv = rotateCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
+                            source += "uv = rotateCCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
                             source += "uv += float2( \(offX), \(offY) );\n"
                         } else
                             if shape.pointCount == 3 {
                                 let offX = (transformed["point_0_x"]! + transformed["point_1_x"]! + transformed["point_2_x"]!) / 3
                                 let offY = (transformed["point_0_y"]! + transformed["point_1_y"]! + transformed["point_2_y"]!) / 3
-                                source += "uv = rotateCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
+                                source += "uv = rotateCCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
                                 source += "uv += float2( \(offX), \(offY) );\n"
                     }
                 }

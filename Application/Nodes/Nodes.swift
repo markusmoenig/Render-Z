@@ -64,7 +64,12 @@ class ObjectPhysics : Node
         if let object = root.objectRoot {
             let value = properties["physicsMode"]!
             object.properties["physicsMode"] = value
-            //print("Physic Properties", object.name, value)
+            
+            if value == 2 {
+                // Set velocity to 0 by default
+                object.properties["velocityX"] = 0
+                object.properties["velocityY"] = 0
+            }
             return .Success
         }
         return .Failure

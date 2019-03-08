@@ -86,6 +86,12 @@ class Physics
             return pos * float2x2(ca, -sa, sa, ca);
         }
         
+        float2 rotateCCW (float2 pos, float angle)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pos * float2x2(ca, sa, -sa, ca);
+        }
+        
         typedef struct
         {
             float2      pos;
@@ -121,33 +127,29 @@ class Physics
         instance.data!.append( 0 )
         
         source += getGlobalCode(objects:objects)
+        source += buildStaticObjectCode(objects:objects)
 
         source +=
         """
+        float2 normal(float2 uv) {
+            float2 eps = float2( 0.0005, 0.0 );
+            return normalize(
+                float2(sdf(uv+eps.xy) - sdf(uv-eps.xy),
+                sdf(uv+eps.yx) - sdf(uv-eps.yx)));
+        }
         
         kernel void layerPhysics(constant PHYSICS_DATA *physicsData [[ buffer(1) ]],
                                         device float4  *out [[ buffer(0) ]],
                                                   uint  gid [[thread_position_in_grid]])
         {
-            /*
-            float2 size = physicsData->size;
-            float2 fragCoord = float2( gid.x, gid.y );
-            float2 uv = fragCoord;
-        
-            float2 center = size / 2;
-            uv = translate(uv, center - float2( layerData->camera.x, layerData->camera.y ) );
-            uv *= layerData->fill.x;
-            float2 tuv = uv;
-        
-            float dist = 1000;*/
         """
         
         for object in instance.dynamicObjects {
          
             instance.data!.append( object.properties["posX"]! )
             instance.data!.append( object.properties["posY"]! )
-            instance.data!.append( 0 )
-            instance.data!.append( 0 )
+            instance.data!.append( object.properties["velocityX"]! )
+            instance.data!.append( object.properties["velocityY"]! )
 
             instance.data!.append( 0 )
             instance.data!.append( 0 )
@@ -156,15 +158,33 @@ class Physics
         instance.data!.append( 0 )
         instance.data!.append( 0 )
         
-        print( instance.data!.count, instance.dynamicObjects.count )
-        
         source +=
         """
             float dynaCount = physicsData->objectCount.x;
             for (uint i = 0; i < dynaCount; i += 1 )
             {
-                float2 pos = physicsData->dynamicObjects[i].pos;
-                out[gid+i] = float4( pos.x, pos.y - 0.8, 0, 0 );
+                float2 pos =  physicsData->dynamicObjects[i].pos;
+                float2 velocity =  physicsData->dynamicObjects[i].velocity;
+                float radius =  physicsData->dynamicObjects[i].radius;
+
+                float dt = 0.26 / 16;//float(SUB_STEPS);
+        
+                for(int i = 0; i < 16; i++)
+                {
+                    // Collisions
+                    if ( sdf(pos) < radius )
+                    {
+                        velocity = length(velocity) * reflect(normalize(velocity), -normal(pos)) * 0.99;
+                    } else
+        
+                    // Gravity
+                    velocity.y -= 0.05 * dt;
+        
+                    // Add velocity
+                    pos += velocity * dt * 100.0;
+                }
+        
+                out[gid+i] = float4( pos.x, pos.y, velocity.x, velocity.y );
             }
         }
 
@@ -197,6 +217,10 @@ class Physics
         for object in instance.dynamicObjects {
             instance.data![offset + 0] = object.properties["posX"]!
             instance.data![offset + 1] = object.properties["posY"]!
+            instance.data![offset + 2] = object.properties["velocityX"]!
+            instance.data![offset + 3] = object.properties["velocityY"]!
+            
+            instance.data![offset + 4] = 40;//object.properties["radius"]!
 
             offset += 6
         }
@@ -211,7 +235,10 @@ class Physics
         for object in instance.dynamicObjects {
             object.properties["posX"]  = result[offset]
             object.properties["posY"]  = result[offset + 1]
+            object.properties["velocityX"]  = result[offset + 2]
+            object.properties["velocityY"]  = result[offset + 3]
             
+//            print( "dist", result[offset + 2] )
             offset += 4
         }
     }
@@ -248,5 +275,108 @@ class Physics
         }
         
         return result
+    }
+    
+    /// Builds the sdf() function which returns the distance to the static physic objects
+    func buildStaticObjectCode(objects: [Object]) -> String
+    {
+        var source =
+        """
+        
+        float sdf( float2 uv )
+        {
+            float2 tuv = uv;
+            float dist = 1000;
+        
+        """
+        
+        var parentPosX : Float = 0
+        var parentPosY : Float = 0
+        var parentRotate : Float = 0
+        func parseObject(_ object: Object)
+        {
+            parentPosX += object.properties["posX"]!
+            parentPosY += object.properties["posY"]!
+            parentRotate += object.properties["rotate"]!
+            
+            for shape in object.shapes {
+                
+                let properties : [String:Float]
+                if object.currentSequence != nil {
+                    properties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
+                } else {
+                    properties = shape.properties
+                }
+                
+                let posX = properties["posX"]! + parentPosX
+                let posY = properties["posY"]! + parentPosY
+                //let sizeX = properties[shape.widthProperty]
+                //let sizeY = properties[shape.heightProperty]
+                let rotate = (properties["rotate"]!+parentRotate) * Float.pi / 180
+                
+                source += "uv = translate( tuv, float2( \(posX), \(posY) ) );"
+                
+                if shape.pointCount < 2 {
+                    source += "if ( \(rotate) != 0.0 ) uv = rotateCCW( uv, \(rotate) );\n"
+                } else
+                if shape.pointCount == 2 {
+                    let p0X = properties["point_0_x"]!
+                    let p0Y = properties["point_0_y"]!
+                    let p1X = properties["point_1_x"]!
+                    let p1Y = properties["point_1_y"]!
+
+                    source += "if ( \(rotate) != 0.0 ) { uv = rotateCCW( uv - ( float2( \(p0X), \(p0Y) ) + float2( \(p1X), \(p1Y) ) ) / 2, \(rotate) );\n"
+                    source += "uv += ( float2( \(p0X), \(p0Y) ) + float2( \(p1X), \(p1Y) )) / 2;}\n"
+                } else
+                if shape.pointCount == 3 {
+                    let p0X = properties["point_0_x"]!
+                    let p0Y = properties["point_0_y"]!
+                    let p1X = properties["point_1_x"]!
+                    let p1Y = properties["point_1_y"]!
+                    let p2X = properties["point_2_x"]!
+                    let p2Y = properties["point_2_y"]!
+                    
+                    source += "if ( \(rotate) != 0.0 ) { uv = rotateCCW( uv - ( float2( \(p0X), \(p0Y) ) + float2( \(p1X), \(p1Y) ) + float2( \(p2X), \(p2Y) ) ) / 3, \(rotate) );\n"
+                    source += "uv += ( float2( \(p0X), \(p0Y) ) + float2( \(p1X), \(p1Y) ) + float2( \(p2X), \(p2Y) ) ) / 3;}\n"
+                }
+                
+                var booleanCode = "merge"
+                if shape.mode == .Subtract {
+                    booleanCode = "subtract"
+                } else
+                    if shape.mode == .Intersect {
+                        booleanCode = "intersect"
+                }
+                
+                source += "dist = \(booleanCode)( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+            }
+            
+            for childObject in object.childObjects {
+                parseObject(childObject)
+            }
+            
+            parentPosX -= object.properties["posX"]!
+            parentPosY -= object.properties["posY"]!
+            parentRotate -= object.properties["rotate"]!
+        }
+        
+        for object in objects {
+            let physicsMode = object.properties["physicsMode"]
+            if physicsMode != nil && physicsMode! == 1 {
+                parseObject(object)
+            }
+        }
+
+        source +=
+        """
+        
+            return dist;
+        }
+        
+        """
+        
+        print( source )
+        
+        return source;
     }
 }

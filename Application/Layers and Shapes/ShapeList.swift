@@ -151,9 +151,19 @@ class ShapeList
             source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
-            source += "uv -= float2( -130., 0. );\n"
+            source += "uv -= float2( -128., 0. );\n"
             source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12)) + ";"
-
+            
+            if shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1 {
+                // Inverse
+                source += "dist = -dist;\n"
+                source += "{\n"
+                source += "  float2 d = abs(uv)-float2(14,14);\n"
+                source += "  float limit = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
+                source += "  if ( limit > 0 ) dist = 1000;"
+                source += "}\n"
+            }
+            
             source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
@@ -246,21 +256,29 @@ class ShapeList
                 if !multiSelect {
                     
                     let shape = currentObject!.shapes[selectedIndex]
+                    let sameShapeSelected = currentObject!.selectedShapes.count == 0 || (currentObject!.selectedShapes.count > 0 && currentObject!.selectedShapes[0] == shape.uuid)
                     
                     currentObject!.selectedShapes = [shape.uuid]
+
+                    if sameShapeSelected {
                     
-    //                print( x )
-                    
-                    if x >= 60 && x <= 92 {
-                        shape.mode = .Merge
-                    } else
-                    if x >= 95 && x <= 119 {
-                        shape.mode = .Subtract
-                    } else
-                    if x >= 122 && x <= 139 {
-                        shape.mode = .Intersect
+                        if x >= 60 && x <= 92 {
+                            shape.mode = .Merge
+                        } else
+                        if x >= 95 && x <= 119 {
+                            shape.mode = .Subtract
+                        } else
+                        if x >= 122 && x <= 139 {
+                            shape.mode = .Intersect
+                        } else if x < 35 {
+                            // Switch inverse state
+                            if shape.properties["inverse"] == nil || shape.properties["inverse"]! == 0 {
+                                shape.properties["inverse"] = 1
+                            } else {
+                                shape.properties["inverse"] = 0
+                            }
+                        }
                     }
-                    
                 } else if !currentObject!.selectedShapes.contains( currentObject!.shapes[selectedIndex].uuid ) {
                     currentObject!.selectedShapes.append( currentObject!.shapes[selectedIndex].uuid )
                 }
@@ -280,8 +298,6 @@ class ShapeList
         
         if currentObject != nil {
             if hoverIndex >= 0 && hoverIndex < currentObject!.shapes.count {
-
-    //            print( x )
                 
                 if x >= 227 && x <= 255 {
                     hoverData[0] = Float(hoverIndex*2)

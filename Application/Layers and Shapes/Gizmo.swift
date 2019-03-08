@@ -17,7 +17,7 @@ class Gizmo : MMWidget
     }
     
     enum GizmoState : Float {
-        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale
+        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked
     }
     
     enum GizmoContext : Float {
@@ -45,7 +45,15 @@ class Gizmo : MMWidget
     var startRotate     : Float = 0
     
     var initialValues   : [UUID:[String:Float]] = [:]
+
+    var gizmoRect       : MMRect = MMRect()
+    var gizmoNode       : Node = Node()
+
+    var gizmoUIMenuRect : MMRect = MMRect()
+    var gizmoUIOpen     : Bool = false
     
+    var hoverUIItem     : NodeUI?
+
     // --- For the point based gizmo
     
     var pointShape      : Shape? = nil
@@ -75,6 +83,17 @@ class Gizmo : MMWidget
         } else {
             objects = []
         }
+        
+        // Setup Gizmo UI
+        gizmoNode.uiItems = []
+        if context == .ShapeEditor
+        {
+            gizmoNode.uiItems = [
+                NodeUIDropDown(gizmoNode, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1)
+            ]
+            gizmoNode.setupUI(mmView: mmView)
+
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -82,10 +101,25 @@ class Gizmo : MMWidget
 //        #if os(iOS) || os(watchOS) || os(tvOS)
         if mode == .Normal {
             updateNormalHoverState(editorRect: rect, event: event)
+            
+            // --- Open / Close UI menu
+            if hoverState == .GizmoUIMenu {
+                if gizmoUIOpen == false {
+                    gizmoUIOpen = true
+                } else {
+                    gizmoUIOpen = false
+                }
+                return
+            } else
+            if gizmoUIOpen && hoverState == .GizmoUI {
+                hoverUIItem!.mouseDown(event)
+                hoverState = .GizmoUIMouseLocked
+            }
         } else {
             updatePointHoverState(editorRect: rect, event: event)
         }
 //        #endif
+    
         
         if hoverState == .Inactive && object != nil && context == .ShapeEditor {
             // --- Check if a point was clicked (including the center point for the normal gizmo)
@@ -175,6 +209,9 @@ class Gizmo : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if hoverState == .GizmoUIMouseLocked {
+            hoverUIItem!.mouseUp(event)
+        }
         if dragState != .Inactive {
             mmView.unlockFramerate()
         }
@@ -185,6 +222,11 @@ class Gizmo : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        if hoverState == .GizmoUIMouseLocked {
+            hoverUIItem!.mouseMoved(event)
+            return
+        }
+        
         if dragState == .Inactive {
             if mode == .Normal {
                 updateNormalHoverState(editorRect: rect, event: event)
@@ -438,7 +480,57 @@ class Gizmo : MMWidget
             // --- Render Bound Box
             
             let margin : Float = 50
-            mmView.drawBox.draw(x: attributes["sizeMinX"]! - margin, y: attributes["sizeMinY"]! - margin, width: attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2*margin, height: attributes["sizeMaxY"]! - attributes["sizeMinY"]! + 2*margin, round: 0, borderSize: 2, fillColor: float4(0), borderColor: float4(0.5, 0.5, 0.5, 1))
+            gizmoRect.x = attributes["sizeMinX"]! - margin
+            gizmoRect.y = attributes["sizeMinY"]! - margin
+            gizmoRect.width = attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2 * margin
+            gizmoRect.height = attributes["sizeMaxY"]! - attributes["sizeMinY"]! + 2 * margin
+            
+            mmView.drawBox.draw(x: gizmoRect.x, y: gizmoRect.y, width: gizmoRect.width, height: gizmoRect.height, round: 0, borderSize: 2, fillColor: float4(0), borderColor: float4(0.5, 0.5, 0.5, 1))
+            
+            // --- Render Menu
+            if gizmoNode.uiItems.count > 0 {
+                let skin = mmView.skin.MenuWidget
+                
+                gizmoUIMenuRect.width = 30
+                gizmoUIMenuRect.height = 28
+                
+                gizmoUIMenuRect.x = gizmoRect.x + gizmoRect.width - gizmoUIMenuRect.width - 5
+                gizmoUIMenuRect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
+                
+                let fColor : float4
+                if hoverState == .GizmoUIMenu {
+                    fColor = skin.button.hoverColor
+                } else if gizmoUIOpen {
+                    fColor = skin.button.activeColor
+                } else {
+                    fColor = skin.button.color
+                }
+                
+                mmView.drawBoxedMenu.draw(x: gizmoUIMenuRect.x, y: gizmoUIMenuRect.y, width: gizmoUIMenuRect.width, height: gizmoUIMenuRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(0)/*-skin.button.borderColor*/)
+                
+                if gizmoUIOpen {
+                    // --- Draw the UI
+                    let uiItemX = gizmoRect.x + (gizmoRect.width - gizmoNode.uiArea.width) / 2 - 5
+                    var uiItemY = gizmoRect.y + gizmoRect.height + 5
+                    
+                    for uiItem in gizmoNode.uiItems {
+                        uiItem.rect.x = uiItemX
+                        uiItem.rect.y = uiItemY
+                        
+                        if hoverState == .GizmoUIMouseLocked && uiItem === hoverUIItem! {
+                            uiItemY += uiItem.rect.height
+                            continue
+                        }
+                        
+                        uiItem.draw(mmView: mmView, maxTitleSize: gizmoNode.uiMaxTitleSize, scale: 1)
+                        uiItemY += uiItem.rect.height
+                    }
+                    
+                    if hoverState == .GizmoUIMouseLocked {
+                        hoverUIItem!.draw(mmView: mmView, maxTitleSize: gizmoNode.uiMaxTitleSize, scale: 1)
+                    }
+                }
+            }
             
             // --- Render Gizmo
             let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( screenSpace.x - width / 2, screenSpace.y - height / 2, width, height, scale: scaleFactor ) )
@@ -511,6 +603,35 @@ class Gizmo : MMWidget
     {
         hoverState = .Inactive
         if object == nil { return }
+        
+        if gizmoNode.uiItems.count > 0 {
+            if gizmoUIMenuRect.contains(event.x, event.y) {
+                hoverState = .GizmoUIMenu
+                return
+            }
+            
+            if gizmoUIOpen {
+                let uiItemX = self.gizmoRect.x + (self.gizmoRect.width - gizmoNode.uiArea.width) / 2 - 5
+                var uiItemY = self.gizmoRect.y + self.gizmoRect.height + 5
+                let uiRect = MMRect()
+                let titleWidth : Float = (gizmoNode.uiMaxTitleSize.x + NodeUI.titleSpacing)
+                for uiItem in gizmoNode.uiItems {
+                    
+                    uiRect.x = uiItemX + titleWidth
+                    uiRect.y = uiItemY
+                    uiRect.width = uiItem.rect.width - titleWidth
+                    uiRect.height = uiItem.rect.height
+                    
+                    if uiRect.contains(event.x, event.y) {
+                        hoverUIItem = uiItem
+                        hoverState = .GizmoUI
+                        hoverUIItem!.mouseMoved(event)
+                        return
+                    }
+                    uiItemY += uiItem.rect.height
+                }
+            }
+        }
 
         let attributes = getCurrentGizmoAttributes()
         var posX : Float = attributes["posX"]!

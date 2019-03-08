@@ -292,11 +292,13 @@ class MMTimeline : MMWidget
     }
     
     /// Transform the properties of the given object based on the keys in the sequence (using the current frame position of the timeline)
-    func transformProperties(sequence: MMTlSequence, uuid: UUID, properties: [String:Float]) -> [String:Float]
+    func transformProperties(sequence: MMTlSequence, uuid: UUID, properties: [String:Float], frame: Int? = nil) -> [String:Float]
     {
         let item = sequence.items[uuid]
         if item == nil { return properties }
 
+        let currentFrame = frame == nil ? self.currentFrame : frame!
+        
         var props : [String:Float] = [:]
 
         func calcValueFor(_ name:String) -> Float
