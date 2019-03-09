@@ -47,7 +47,7 @@ class Gizmo : MMWidget
     var initialValues   : [UUID:[String:Float]] = [:]
 
     var gizmoRect       : MMRect = MMRect()
-    var gizmoNode       : Node = Node()
+    var gizmoNode       : GizmoNode!
 
     var gizmoUIMenuRect : MMRect = MMRect()
     var gizmoUIOpen     : Bool = false
@@ -71,6 +71,8 @@ class Gizmo : MMWidget
         objects = []
         
         super.init(view)
+
+        gizmoNode = GizmoNode(self)
     }
     
     func setObject(_ object:Object?, context: GizmoContext = .ShapeEditor)
@@ -89,7 +91,8 @@ class Gizmo : MMWidget
         if context == .ShapeEditor
         {
             gizmoNode.uiItems = [
-                NodeUIDropDown(gizmoNode, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1)
+                NodeUIDropDown(gizmoNode, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1),
+                NodeUINumber(gizmoNode, variable: "test", title: "testing", range: float2( -2, 3), value: 0.5)
             ]
             gizmoNode.setupUI(mmView: mmView)
 
@@ -1052,5 +1055,27 @@ class Gizmo : MMWidget
         attributes["sizeMaxY"] = maxScreen.y
 
         return attributes
+    }
+}
+
+class GizmoNode : Node
+{
+    var gizmo       : Gizmo?
+    
+    init(_ gizmo: Gizmo)
+    {
+        self.gizmo = gizmo
+        super.init()
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        self.gizmo = nil
+        super.init()
+    }
+    
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
+    {
+        print( "variableChanged", oldValue, newValue, continuous)
     }
 }

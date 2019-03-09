@@ -100,8 +100,7 @@ class KeyDown : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIKeyDown(self, variable: "keyCode", title: "Key"),
-            NodeUINumber(self, variable: "test", title: "testing", range: float2( -2, 3), value: 0.5)
+            NodeUIKeyDown(self, variable: "keyCode", title: "Key")
         ]
         
         super.setupUI(mmView: mmView)
