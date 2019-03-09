@@ -128,6 +128,11 @@ class Node : Codable
         uiMaxTitleSize.y += NodeUI.titleMargin.height()
     }
     
+    /// A UI Variable changed
+    func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
+    {
+    }
+    
     /// Executes the connected properties
     func executeProperties(_ nodeGraph: NodeGraph)
     {
