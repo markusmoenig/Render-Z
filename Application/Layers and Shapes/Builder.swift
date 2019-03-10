@@ -65,14 +65,31 @@ class Builder
             return min(d1, d2);
         }
         
+        float mergeSmooth(float d1, float d2, float k) {
+            float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+            return mix( d2, d1, h ) - k*h*(1.0-h);
+        }
+        
         float subtract(float d1, float d2)
         {
             return max(d1, -d2);
         }
         
+        float subtractSmooth( float d1, float d2, float k )
+        {
+            float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
+            return mix( d2, -d1, h ) + k*h*(1.0-h);
+        }
+        
         float intersect(float d1, float d2)
         {
             return max(d1, d2);
+        }
+        
+        float intersectSmooth( float d1, float d2, float k )
+        {
+            float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
+            return mix( d2, d1, h ) + k*h*(1.0-h);
         }
         
         float fillMask(float dist)
@@ -111,7 +128,9 @@ class Builder
             float2      point1;
             float2      point2;
             float       rotate;
-            float       filler;
+            float       rounding;
+            float       annular;
+            float       smoothBoolean;
         } SHAPE_DATA;
         
         typedef struct
@@ -150,7 +169,7 @@ class Builder
             uv *= layerData->fill.x;
             float2 tuv = uv;
         
-            float dist = 1000;
+            float dist = 1000, newDist;
         """
         
         /// Parse objects and their shapes
@@ -195,10 +214,30 @@ class Builder
                         booleanCode = "intersect"
                 }
                 
-                let inverse = shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1
+                source += "newDist = " + shape.createDistanceCode(uvName: "uv", layerIndex: index) + ";\n"
+
+                if shape.supportsRounding {
+                    source += "newDist -= layerData->shape[\(index)].rounding;\n"
+                }
                 
-                source += "dist = \(booleanCode)( dist, \(inverse ? "-" : "")" + shape.createDistanceCode(uvName: "uv", layerIndex: index) + ");"
+                // --- Annular
+                source += "if ( layerData->shape[\(index)].annular != 0.0 ) newDist = abs(newDist) - layerData->shape[\(index)].annular;\n"
+
+                // --- Inverse
+                if shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1 {
+                    source += "newDist = -newDist;\n"
+                }
                 
+                if booleanCode != "subtract" {
+                    source += "if ( layerData->shape[\(index)].smoothBoolean == 0.0 )"
+                    source += "  dist = \(booleanCode)( dist, newDist );"
+                    source += "  else dist = \(booleanCode)Smooth( dist, newDist, layerData->shape[\(index)].smoothBoolean );"
+                } else {
+                    source += "if ( layerData->shape[\(index)].smoothBoolean == 0.0 )"
+                    source += "  dist = \(booleanCode)( dist, newDist );"
+                    source += "  else dist = \(booleanCode)Smooth( newDist, dist, layerData->shape[\(index)].smoothBoolean );"
+                }
+
                 let posX = properties["posX"]! + parentPosX
                 let posY = properties["posY"]! + parentPosY
                 let sizeX = properties[shape.widthProperty]
@@ -242,7 +281,9 @@ class Builder
                                 instance.data!.append( properties["point_2_y"]! )
                 }
                 instance.data!.append( rotate )
-                instance.data!.append( 0 )
+                instance.data!.append( properties["rounding"]! )
+                instance.data!.append( properties["annular"]! )
+                instance.data!.append( properties["smoothBoolean"]! )
                 
                 index += 1
             }
@@ -350,6 +391,7 @@ class Builder
         var parentPosX : Float = 0
         var parentPosY : Float = 0
         var parentRotate : Float = 0
+        let itemSize : Int = 14
         
         func parseObject(_ object: Object)
         {
@@ -366,29 +408,35 @@ class Builder
                     properties = shape.properties
                 }
                 
-                instance.data![offset + index * 12] = properties["posX"]! + parentPosX
-                instance.data![offset + index * 12+1] = properties["posY"]! + parentPosY
-                instance.data![offset + index * 12+2] = properties[shape.widthProperty]!
-                instance.data![offset + index * 12+3] = properties[shape.heightProperty]!
+                instance.data![offset + index * itemSize] = properties["posX"]! + parentPosX
+                instance.data![offset + index * itemSize+1] = properties["posY"]! + parentPosY
+                instance.data![offset + index * itemSize+2] = properties[shape.widthProperty]!
+                instance.data![offset + index * itemSize+3] = properties[shape.heightProperty]!
                 if ( shape.pointCount == 1 ) {
-                    instance.data![offset + index * 12+4] = properties["point_0_x"]!
-                    instance.data![offset + index * 12+5] = properties["point_0_y"]!
+                    instance.data![offset + index * itemSize+4] = properties["point_0_x"]!
+                    instance.data![offset + index * itemSize+5] = properties["point_0_y"]!
                 } else
                     if ( shape.pointCount == 2 ) {
-                        instance.data![offset + index * 12+4] = properties["point_0_x"]!
-                        instance.data![offset + index * 12+5] = properties["point_0_y"]!
-                        instance.data![offset + index * 12+6] = properties["point_1_x"]!
-                        instance.data![offset + index * 12+7] = properties["point_1_y"]!
+                        instance.data![offset + index * itemSize+4] = properties["point_0_x"]!
+                        instance.data![offset + index * itemSize+5] = properties["point_0_y"]!
+                        instance.data![offset + index * itemSize+6] = properties["point_1_x"]!
+                        instance.data![offset + index * itemSize+7] = properties["point_1_y"]!
                     } else
                         if ( shape.pointCount == 3 ) {
-                            instance.data![offset + index * 12+4] = properties["point_0_x"]!
-                            instance.data![offset + index * 12+5] = properties["point_0_y"]!
-                            instance.data![offset + index * 12+6] = properties["point_1_x"]!
-                            instance.data![offset + index * 12+7] = properties["point_1_y"]!
-                            instance.data![offset + index * 12+8] = properties["point_2_x"]!
-                            instance.data![offset + index * 12+9] = properties["point_2_y"]!
+                            instance.data![offset + index * itemSize+4] = properties["point_0_x"]!
+                            instance.data![offset + index * itemSize+5] = properties["point_0_y"]!
+                            instance.data![offset + index * itemSize+6] = properties["point_1_x"]!
+                            instance.data![offset + index * itemSize+7] = properties["point_1_y"]!
+                            instance.data![offset + index * itemSize+8] = properties["point_2_x"]!
+                            instance.data![offset + index * itemSize+9] = properties["point_2_y"]!
                 }
-                instance.data![offset + index * 12+10] = (properties["rotate"]!+parentRotate) * Float.pi / 180
+                instance.data![offset + index * itemSize+10] = (properties["rotate"]!+parentRotate) * Float.pi / 180
+                
+                let minSize : Float = min(properties[shape.widthProperty]!,properties[shape.heightProperty]!)
+                
+                instance.data![offset + index * itemSize+11] = properties["rounding"]! * minSize
+                instance.data![offset + index * itemSize+12] = properties["annular"]! * minSize
+                instance.data![offset + index * itemSize+13] = properties["smoothBoolean"]! * minSize
                 
                 index += 1
             }
@@ -432,6 +480,18 @@ class Builder
             else return d2;
         }
 
+        float4 mergeSmooth(float4 d1, float4 d2, float k) {
+            float h = clamp( 0.5 + 0.5*(d2.x-d1.x)/k, 0.0, 1.0 );
+            float rc = mix( d2.x, d1.x, h ) - k*h*(1.0-h);
+            
+            if ( d1.x < d2.x ) {
+                d1.x = rc;
+                return d1;
+            } else {
+                d2.x = rc;
+                return d2;
+            }
+        }
 
         float2 translate(float2 p, float2 t)
         {
@@ -470,7 +530,7 @@ class Builder
             float2 tuv = uv;
         
             float4 dist = float4(1000, -1, -1, -1);
-        
+            float newDist;
         """
         
         for (objectIndex, object) in instance.objects.enumerated() {
@@ -499,7 +559,31 @@ class Builder
                                 source += "uv += float2( \(offX), \(offY) );\n"
                     }
                 }
-                source += "dist = merge( dist, float4(" + shape.createDistanceCode(uvName: "uv", transProperties: transformed) + ", \(0), \(objectIndex), \(shapeIndex) ) );"
+                
+                source += "newDist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformed) + ";\n"
+                
+                let minSize : Float = min(transformed[shape.widthProperty]!,transformed[shape.heightProperty]!)
+                
+                if shape.supportsRounding {
+                    source += "newDist -= \(transformed["rounding"]!*minSize);\n"
+                }
+                
+                // --- Annular
+                if transformed["annular"]! != 0 {
+                    source += "newDist = abs(newDist) - \(transformed["annular"]!*minSize);\n"
+                }
+
+                // --- Inverse
+                if shape.properties["inverse"]! == 1 {
+                    source += "newDist = -newDist;\n"
+                }
+
+                if transformed["smoothBoolean"]! == 0.0 {
+                    source += "dist = merge( dist, float4( newDist, \(0), \(objectIndex), \(shapeIndex) ) );"
+                } else {
+                    source += "dist = mergeSmooth( dist, float4( newDist, \(0), \(objectIndex), \(shapeIndex) ), \(transformed["smoothBoolean"]!) );"
+                    print( source )
+                }
             }
         }
         

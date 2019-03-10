@@ -90,12 +90,48 @@ class Gizmo : MMWidget
         gizmoNode.uiItems = []
         if context == .ShapeEditor
         {
-            gizmoNode.uiItems = [
-                NodeUIDropDown(gizmoNode, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1),
-                NodeUINumber(gizmoNode, variable: "test", title: "testing", range: float2( -2, 3), value: 0.5)
-            ]
-            gizmoNode.setupUI(mmView: mmView)
+            let selectedShapes = object!.getSelectedShapes()
+            
+            func getInterpolatedValue(variable: String) -> Float
+            {
+                if selectedShapes.count == 0 { return 0}
+                
+                var value : Float = 0
+                var count : Float = 0
+                for shape in selectedShapes {
+                    value += shape.properties[variable]!
+                    count += 1
+                }
+                value /= count
+                return value
+            }
+            
+            // Smoothing
+            gizmoNode.properties["smoothBoolean"] = getInterpolatedValue(variable: "smoothBoolean")
+            gizmoNode.uiItems.append(
+                NodeUINumber(gizmoNode, variable: "smoothBoolean", title: "Smooth Bool", range: float2(0, 1), value: 0.0)
+            )
+        
+            // Shape specific variables
+            for shape in selectedShapes {
+                
+                if shape.supportsRounding {
+                    gizmoNode.properties["rounding"] = getInterpolatedValue(variable: "rounding")
+                    gizmoNode.uiItems.append(
+                        NodeUINumber(gizmoNode, variable: "rounding", title: "Rounding", range: float2(0, 1), value: 0.0)
+                    )
+                }
+            }
+            
+            // Variables which work for every shape
+            // -- Annular
+            gizmoNode.properties["annular"] = getInterpolatedValue(variable: "annular")
+            gizmoNode.uiItems.append(
+                NodeUINumber(gizmoNode, variable: "annular", title: "Annular", range: float2(0, 1), value: 0.0)
+            )
+            // --
 
+            gizmoNode.setupUI(mmView: mmView)
         }
     }
     
@@ -1076,6 +1112,12 @@ class GizmoNode : Node
     
     override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
     {
-        print( "variableChanged", oldValue, newValue, continuous)
+//        print( "variableChanged", variable, oldValue, newValue, continuous)
+        let selectedShapes = gizmo!.object!.getSelectedShapes()
+        let properties : [String:Float] = [variable:newValue]
+        for shape in selectedShapes {
+            gizmo!.processGizmoProperties(properties, shape: shape)
+        }
+         gizmo!.object!.maxDelegate!.update(false)
     }
 }

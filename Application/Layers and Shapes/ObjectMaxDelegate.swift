@@ -265,6 +265,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             app.nodeGraph.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera)
             update()
             shapeListChanged = true
+            app.gizmo.setObject(currentObject)
         }
     }
     
@@ -424,6 +425,7 @@ class ShapeScrollArea: MMScrollArea
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
         shapeAtMouse = delegate.shapeSelector.selectAt(mouseDownPos.x,mouseDownPos.y)
+        delegate.app.gizmo.setObject(delegate.currentObject)
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {

@@ -28,6 +28,7 @@ class Shape : Codable
     
     var pointCount      : Int = 0
     var pointsScale     : Bool = false
+    var supportsRounding: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case name
@@ -40,6 +41,7 @@ class Shape : Codable
         case heightProperty
         case pointCount
         case pointsScale
+        case supportsRounding
     }
     
     required init()
@@ -52,6 +54,10 @@ class Shape : Codable
         properties["posX"] = 0
         properties["posY"] = 0
         properties["rotate"] = 0
+        properties["inverse"] = 0
+        properties["smoothBoolean"] = 0
+        properties["rounding"] = 0
+        properties["annular"] = 0
     }
     
 
@@ -68,6 +74,7 @@ class Shape : Codable
         heightProperty = try container.decode(String.self, forKey: .heightProperty)
         pointCount = try container.decode(Int.self, forKey: .pointCount)
         pointsScale = try container.decode(Bool.self, forKey: .pointsScale)
+        supportsRounding = try container.decode(Bool.self, forKey: .supportsRounding)
     }
     
     func encode(to encoder: Encoder) throws
@@ -84,6 +91,7 @@ class Shape : Codable
         try container.encode(heightProperty, forKey: .heightProperty)
         try container.encode(pointCount, forKey: .pointCount)
         try container.encode(pointsScale, forKey: .pointsScale)
+        try container.encode(supportsRounding, forKey: .supportsRounding)
     }
     
     func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil ) -> String
@@ -95,10 +103,29 @@ class Shape : Codable
         
         for (name,value) in props! {
             if name == widthProperty && layerIndex != nil {
-                code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].size.x")
+                var widthCode = "layerData->shape[\(layerIndex!)].size.x"
+                if supportsRounding {
+                    widthCode += "- layerData->shape[\(layerIndex!)].rounding"
+                }
+                widthCode += "- layerData->shape[\(layerIndex!)].annular"
+                code = code.replacingOccurrences(of: "__" + name + "__", with: widthCode)
             } else
             if name == heightProperty && layerIndex != nil {
-                code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].size.y")
+                var heightCode = "layerData->shape[\(layerIndex!)].size.y"
+                if supportsRounding {
+                    heightCode += "- layerData->shape[\(layerIndex!)].rounding"
+                }
+                heightCode += "- layerData->shape[\(layerIndex!)].annular"
+                code = code.replacingOccurrences(of: "__" + name + "__", with: heightCode)
+            } else
+            if (name == widthProperty || name == heightProperty) && transProperties != nil {
+                var widthHeightCode = String(value)
+                let minSize : Float = min(transProperties![widthProperty]!,transProperties![heightProperty]!)
+                if supportsRounding {
+                    widthHeightCode += "- \(transProperties!["rounding"]!*minSize)"
+                }
+                widthHeightCode += "- \(transProperties!["annular"]!*minSize)"
+                code = code.replacingOccurrences(of: "__" + name + "__", with: widthHeightCode)
             } else
             if name.starts(with: "point_") && layerIndex != nil {
                 let index = name.index(name.startIndex, offsetBy: 6)

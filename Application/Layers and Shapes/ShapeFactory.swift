@@ -18,6 +18,8 @@ struct ShapeDefinition
     var heightProperty  : String = ""
     var pointCount      : Int = 0
     var pointsScale     : Bool = false
+
+    var supportsRounding: Bool = false
 }
 
 class ShapeFactory
@@ -47,6 +49,7 @@ class ShapeFactory
         def.properties["height"] = defaultSize
         def.widthProperty = "width"
         def.heightProperty = "height"
+        def.supportsRounding = true
         shapes.append( def )
         
         // --- Disk
@@ -216,8 +219,8 @@ class ShapeFactory
             return -sqrt(d.x)*sign(d.y);
         }
         """
-        def.properties["radius1"] = 0
-        def.properties["radius2"] = 0
+        def.properties["radius1"] = 80 // Used for rounding
+        def.properties["radius2"] = 80
         def.properties["point_0_x"] = 0
         def.properties["point_0_y"] = -35
         def.properties["point_1_x"] = -35
@@ -227,6 +230,7 @@ class ShapeFactory
         def.widthProperty = "radius2"
         def.heightProperty = "radius1"
         def.pointCount = 3
+        def.supportsRounding = true
         shapes.append( def )
         
         // --- Ellipse
@@ -302,6 +306,7 @@ class ShapeFactory
             shape.heightProperty = def.heightProperty
             shape.pointCount = def.pointCount
             shape.pointsScale = def.pointsScale
+            shape.supportsRounding = def.supportsRounding
 
             for (name,_) in shape.properties {
                 if (name == "radius" || name == "width" || name == "height") && shape.name != "Ellipse" {
