@@ -628,14 +628,22 @@ class Builder
         var coll : [String] = []
         var result = ""
         
-        for object in objects {
+        func parseObject(_ object: Object)
+        {
             for shape in object.shapes {
-                
                 if !coll.contains(shape.name) {
                     result += shape.globalCode
                     coll.append( shape.name )
                 }
             }
+            
+            for childObject in object.childObjects {
+                parseObject(childObject)
+            }
+        }
+        
+        for object in objects {
+            parseObject(object)
         }
         
         return result

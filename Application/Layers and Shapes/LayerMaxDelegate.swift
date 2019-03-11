@@ -323,12 +323,6 @@ class LayerMaxDelegate : NodeMaxDelegate {
         self.leftRegionMode = mode
     }
     
-    /// Rebuilds the shape list in the right region
-    func buildShapeList()
-    {
-//        shapeList.build( width: shapeListWidget.rect.width, object: currentObject!)
-    }
-    
     /// Switches the mode of the timeline (Open / Closed)
     func switchTimelineMode()
     {

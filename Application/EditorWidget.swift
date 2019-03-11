@@ -144,9 +144,11 @@ class EditorWidget      : MMWidget
 //            }
         
             let currentObject = app.nodeGraph.maximizedNode as? Object
+            let delegate = currentObject!.maxDelegate as! ObjectMaxDelegate
+            let selObject = delegate.selObject!
             
-            let addedShape = currentObject!.addShape(drag.shape!)
-            currentObject!.selectedShapes = [addedShape.uuid]
+            let addedShape = selObject.addShape(drag.shape!)
+            selObject.selectedShapes = [addedShape.uuid]
             app.setChanged()
             
             if let shape = drag.shape {

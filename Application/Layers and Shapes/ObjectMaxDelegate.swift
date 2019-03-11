@@ -52,12 +52,20 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     var camera          : Camera = Camera()
     var patternState    : MTLRenderPipelineState?
     var dispatched      : Bool = false
+    
+    /// The currently displayed object
+    var selObject       : Object? = nil
+    
+    /// Gizmo works on the selected object, gets disabled when shape gets selected
+    var selObjectActive : Bool = false
 
     override func activate(_ app: App)
     {
         self.app = app
         currentObject = app.nodeGraph.maximizedNode as? Object
         app.gizmo.setObject(currentObject)
+        
+        selObject = currentObject
         
         // Top Region
         if shapesButton == nil {
@@ -131,7 +139,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timelineButton.addState( .Checked )
         app.bottomRegion!.rect.height = 100
         
-        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
+        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
 
         update(true)
     }
@@ -139,7 +147,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func deactivate()
     {
         timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
+        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
         
         currentObject!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
     }
@@ -231,7 +239,12 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             shapeListWidget.draw()
             
             if shapeListChanged {
-                shapeList.build( width: shapeListWidget.rect.width, object: currentObject!)
+                shapeList.build( width: shapeListWidget.rect.width, object: selObject!)
+                
+                // Remove gizmo focus from the selected object if it has selected shapes
+                if selObject!.selectedShapes.count > 0 {
+                    selObjectActive = false
+                }
                 shapeListChanged = false
             }
             shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x, shapeListWidget.rect.y+1, shapeListWidget.rect.width, shapeListWidget.rect.height-2) )
@@ -337,10 +350,13 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         self.leftRegionMode = mode
     }
     
-    /// Rebuilds the shape list in the right region
-    func buildShapeList()
+    func setSelectedObject(_ object: Object)
     {
-        shapeList.build( width: shapeListWidget.rect.width, object: currentObject!)
+        selObject = object
+        selObject!.selectedShapes = []
+        selObjectActive = true
+        shapeListChanged = true
+        app.gizmo.setObject(selObject!, context: .ObjectEditor)
     }
     
     /// Switches the mode of the timeline (Open / Closed)
@@ -447,16 +463,63 @@ class ShapeScrollArea: MMScrollArea
     }
 }
 
-/// Object Editor Widget
-class ObjectEditorWidget : MMWidget
+/// Object List Widget
+class ObjectListWidget : MMWidget
 {
     var app             : App
     var margin          : Float = 2
+    var delegate        : ObjectMaxDelegate
     
-    init(_ view: MMView, app: App)
+    var objectSize      : float2 = float2(40,30)
+    var objectMargin    : float2 = float2(20,20)
+    
+    init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
     {
         self.app = app
+        self.delegate = delegate
         super.init(view)
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent) {
+        let selObject = getObjectAt(event.x - rect.x, event.y - rect.y)
+        if selObject != nil {
+            delegate.setSelectedObject(selObject!)
+        }
+    }
+    
+    func getObjectAt(_ xPos: Float, _ yPos: Float) -> Object?
+    {
+        var y : Float = 10
+        
+        let objRect = MMRect()
+        
+        func testRow(objects: [Object]) -> Object?
+        {
+            let count : Float = Float(objects.count)
+            var x : Float = (rect.width - (count * objectSize.x + (count-1) *  objectMargin.x)) / 2
+            
+            for object in objects
+            {
+                objRect.x = x
+                objRect.y = y
+                objRect.width = objectSize.x
+                objRect.height = objectSize.y
+                if objRect.contains( xPos, yPos ) {
+                    return object
+                }
+                x += objectMargin.x
+            }
+            return nil
+        }
+        
+        var result = testRow(objects: [delegate.currentObject!])
+        if ( result != nil ) { return result }
+        if delegate.currentObject!.childObjects.count > 0 {
+            y += objectSize.y + 10
+            result = testRow(objects: delegate.currentObject!.childObjects)
+            if ( result != nil ) { return result }
+        }
+        return nil
     }
     
     func draw(object: Object)
@@ -466,10 +529,39 @@ class ObjectEditorWidget : MMWidget
         
         //
         
-        let color = float4( 1 )// layer.currentUUID == rootObject.uuid ? mmView.skin.Widget.selectionColor : float4( 1 )
-        let borderSize : Float = 4//layer.currentUUID == rootObject.uuid ? 0 : 4
+        var y : Float = 10
         
-        mmView.drawBox.draw( x: rect.x + margin, y: rect.y + margin, width: rect.width - 2 * margin, height: rect.height - 2 * margin, round: 6, borderSize: borderSize,  fillColor : color, borderColor: vector_float4( 1 ) )
+        func drawRow(objects: [Object])
+        {
+            let count : Float = Float(objects.count)
+            var x : Float = (rect.width - (count * objectSize.x + (count-1) *  objectMargin.x)) / 2
+            
+            for object in objects
+            {
+                let fillColor : float4
+                    
+                if delegate.selObject!.uuid == object.uuid {
+                    if delegate.selObjectActive {
+                        fillColor = app.mmView.skin.Widget.selectionColor
+                    } else {
+                        fillColor = float4( 0.5, 0.5, 0.5, 1 )
+                    }
+                } else {
+                    fillColor = float4(0)
+                }
+                
+                let borderSize : Float = 2
+                
+                mmView.drawBox.draw( x: rect.x + x, y: rect.y + y, width: objectSize.x, height: objectSize.y, round: 6, borderSize: borderSize,  fillColor : fillColor, borderColor: float4( 1 ) )
+                x += objectMargin.x
+            }
+        }
+        
+        drawRow(objects: [delegate.currentObject!])
+        if delegate.currentObject!.childObjects.count > 0 {
+            y += objectSize.y + 10
+            drawRow(objects: delegate.currentObject!.childObjects)
+        }
     }
 }
 
@@ -479,7 +571,7 @@ class ObjectWidget : MMWidget
     var app                 : App
     var label               : MMTextLabel
     var menuWidget          : MMMenuWidget
-    var objectEditorWidget  : ObjectEditorWidget
+    var objectListWidget    : ObjectListWidget
     var delegate            : ObjectMaxDelegate
     
     init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
@@ -488,19 +580,29 @@ class ObjectWidget : MMWidget
         self.delegate = delegate
         
         label = MMTextLabel(view, font: view.openSans, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
-        objectEditorWidget = ObjectEditorWidget(view, app: app)
+        objectListWidget = ObjectListWidget(view, app: app, delegate: delegate)
         
         // --- Object Menu
         let objectMenuItems = [
-            MMMenuItem( text: "Add Child Object", cb: {print("add child") } ),
+            MMMenuItem( text: "Add Child Object", cb: {
+                print("add child")
+                let object = delegate.selObject!
+                getStringDialog(view: view, title: "Add Child Object", message: "Object name", defaultValue: "New Object", cb: { (name) -> Void in
+                    let child = Object()
+                    child.name = name
+                    child.label?.setText(name)
+                    child.maxDelegate = delegate.currentObject!.maxDelegate
+                    object.childObjects.append(child)
+                } )
+            } ),
             MMMenuItem( text: "Rename Object", cb: {
-                let object = delegate.currentObject!
+                let object = delegate.selObject!
                 getStringDialog(view: view, title: "Rename Object", message: "Enter new name", defaultValue: object.name, cb: { (name) -> Void in
                     object.name = name
                     object.label?.setText(name)
                 } )
             } ),
-            MMMenuItem( text: "Delete Object", cb: {print("add child") } )
+            MMMenuItem( text: "Delete Object", cb: {print("delete child") } )
         ]
         menuWidget = MMMenuWidget( view, items: objectMenuItems )
         
@@ -511,16 +613,16 @@ class ObjectWidget : MMWidget
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
-        if let object = delegate.currentObject {
+        if let object = delegate.selObject {
             label.setText(object.name)
             label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
             
-            objectEditorWidget.rect.x = rect.x
-            objectEditorWidget.rect.y = rect.y + 30
-            objectEditorWidget.rect.width = rect.width
-            objectEditorWidget.rect.height = rect.height - 30
+            objectListWidget.rect.x = rect.x
+            objectListWidget.rect.y = rect.y + 30
+            objectListWidget.rect.width = rect.width
+            objectListWidget.rect.height = rect.height - 30
             
-            objectEditorWidget.draw(object: object)
+            objectListWidget.draw(object: object)
         }
         
         menuWidget.rect.x = rect.x + rect.width - 30 - 1
