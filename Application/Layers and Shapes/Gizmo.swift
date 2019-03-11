@@ -38,6 +38,7 @@ class Gizmo : MMWidget
     
     var object          : Object?
     var objects         : [Object]
+    var rootObject      : Object?
     
     var dragStartOffset : float2?
     var gizmoCenter     : float2 = float2()
@@ -75,10 +76,17 @@ class Gizmo : MMWidget
         gizmoNode = GizmoNode(self)
     }
     
-    func setObject(_ object:Object?, context: GizmoContext = .ShapeEditor)
+    func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor)
     {
         self.object = object
         self.context = context
+        
+        if rootObject != nil {
+            self.rootObject = rootObject
+        } else {
+            self.rootObject = object
+        }
+        
         mode = .Normal
         if object != nil {
             objects = [object!]
@@ -275,7 +283,7 @@ class Gizmo : MMWidget
         } else {
             let pos = convertToSceneSpace(x: event.x, y: event.y)
             let selectedShapeObjects = object!.getSelectedShapes()
-            object!.maxDelegate!.update(false)
+            rootObject!.maxDelegate!.update(false)
             
             if dragState == .CenterMove {
                 if context == .ShapeEditor {
@@ -416,9 +424,9 @@ class Gizmo : MMWidget
                 shape.properties[name] = value
             }
         } else {
-            let timeline = object!.maxDelegate!.getTimeline()!
+            let timeline = rootObject!.maxDelegate!.getTimeline()!
             let uuid = shape.uuid
-            timeline.addKeyProperties(sequence: object!.currentSequence!, uuid: uuid, properties: properties)
+            timeline.addKeyProperties(sequence: rootObject!.currentSequence!, uuid: uuid, properties: properties)
         }
     }
     
@@ -429,6 +437,10 @@ class Gizmo : MMWidget
             for(name, value) in properties {
                 object.properties[name] = value
             }
+        } else {
+            let timeline = rootObject!.maxDelegate!.getTimeline()!
+            let uuid = object.uuid
+            timeline.addKeyProperties(sequence: rootObject!.currentSequence!, uuid: uuid, properties: properties)
         }
     }
     
@@ -888,7 +900,7 @@ class Gizmo : MMWidget
     {
         var result : float2 = float2()
         
-        let camera = object!.maxDelegate!.getCamera()!
+        let camera = rootObject!.maxDelegate!.getCamera()!
         
         result.x = (x - camera.xPos - 0.5)// / 700 * rect.width
         result.y = (y - camera.yPos - 0.5)// / 700 * rect.width
@@ -910,7 +922,7 @@ class Gizmo : MMWidget
         result.x = (x - rect.x)// * 700 / rect.width
         result.y = (y - rect.y)// * 700 / rect.width
         
-        let camera = object!.maxDelegate!.getCamera()!
+        let camera = rootObject!.maxDelegate!.getCamera()!
 
         // --- Center
         result.x -= rect.width / 2 - camera.xPos
@@ -923,7 +935,7 @@ class Gizmo : MMWidget
     /// Returns true if the timeline is currently recording
     func isRecording() -> Bool
     {
-        let timeline = object!.maxDelegate!.getTimeline()!
+        let timeline = rootObject!.maxDelegate!.getTimeline()!
 
         return timeline.isRecording
     }
@@ -931,9 +943,9 @@ class Gizmo : MMWidget
     /// Get transformed properties
     func getTransformedProperties(_ shape: Shape) -> [String:Float]
     {
-        let timeline = object!.maxDelegate!.getTimeline()!
+        let timeline = rootObject!.maxDelegate!.getTimeline()!
         
-        let transformed = timeline.transformProperties(sequence: object!.currentSequence!, uuid: shape.uuid, properties:shape.properties)
+        let transformed = timeline.transformProperties(sequence: rootObject!.currentSequence!, uuid: shape.uuid, properties:shape.properties)
         return transformed
     }
     
@@ -965,10 +977,19 @@ class Gizmo : MMWidget
     func getCurrentGizmoAttributes() -> [String:Float]
     {
         var attributes : [String:Float] = [:]
+        
+        // Transform Object Properties
+        let objectProperties : [String:Float]
+        if object!.currentSequence != nil {
+            let timeline = rootObject!.maxDelegate!.getTimeline()!
+            objectProperties = timeline.transformProperties(sequence: object!.currentSequence!, uuid: object!.uuid, properties: object!.properties)
+        } else {
+            objectProperties = object!.properties
+        }
 
-        attributes["posX"] = object!.properties["posX"]
-        attributes["posY"] = -object!.properties["posY"]!
-        attributes["rotate"] = object!.properties["rotate"]
+        attributes["posX"] = objectProperties["posX"]!
+        attributes["posY"] = -objectProperties["posY"]!
+        attributes["rotate"] = objectProperties["rotate"]!
 
         var sizeMinX : Float = 10000
         var sizeMinY : Float = 10000
@@ -1085,10 +1106,10 @@ class Gizmo : MMWidget
         let minScreen = convertToScreenSpace(x: sizeMinX, y: sizeMinY)
         let maxScreen = convertToScreenSpace(x: sizeMaxX, y: sizeMaxY)
         
-        attributes["sizeMinX"] = minScreen.x
-        attributes["sizeMinY"] = minScreen.y
-        attributes["sizeMaxX"] = maxScreen.x
-        attributes["sizeMaxY"] = maxScreen.y
+        attributes["sizeMinX"] = minScreen.x + objectProperties["posX"]!
+        attributes["sizeMinY"] = minScreen.y - objectProperties["posY"]!
+        attributes["sizeMaxX"] = maxScreen.x + objectProperties["posX"]!
+        attributes["sizeMaxY"] = maxScreen.y - objectProperties["posY"]!
 
         return attributes
     }
@@ -1118,6 +1139,6 @@ class GizmoNode : Node
         for shape in selectedShapes {
             gizmo!.processGizmoProperties(properties, shape: shape)
         }
-         gizmo!.object!.maxDelegate!.update(false)
+         gizmo!.rootObject!.maxDelegate!.update(false)
     }
 }

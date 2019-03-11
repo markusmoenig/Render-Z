@@ -275,10 +275,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
             let editorRegion = app.editorRegion!
 
-            app.nodeGraph.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera)
+            app.nodeGraph.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera, frame: timeline.currentFrame)
             update()
             shapeListChanged = true
-            app.gizmo.setObject(currentObject)
+            app.gizmo.setObject(selObject, rootObject: currentObject)
         }
     }
     
@@ -356,7 +356,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         selObject!.selectedShapes = []
         selObjectActive = true
         shapeListChanged = true
-        app.gizmo.setObject(selObject!, context: .ObjectEditor)
+        app.gizmo.setObject(selObject!, rootObject: currentObject!, context: .ObjectEditor)
     }
     
     /// Switches the mode of the timeline (Open / Closed)
@@ -392,7 +392,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func update(_ hard: Bool = false)
     {
         if hard {
-            app.gizmo.setObject(currentObject)
+            app.gizmo.setObject(selObject, rootObject: currentObject)
             currentObject!.instance = app.nodeGraph.builder.buildObjects(objects: [currentObject!], camera: camera)
         } else {
             let region = app.editorRegion!
@@ -441,7 +441,7 @@ class ShapeScrollArea: MMScrollArea
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
         shapeAtMouse = delegate.shapeSelector.selectAt(mouseDownPos.x,mouseDownPos.y)
-        delegate.app.gizmo.setObject(delegate.currentObject)
+        delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject)
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {

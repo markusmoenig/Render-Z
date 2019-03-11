@@ -395,9 +395,17 @@ class Builder
         
         func parseObject(_ object: Object)
         {
-            parentPosX += object.properties["posX"]!
-            parentPosY += object.properties["posY"]!
-            parentRotate += object.properties["rotate"]!
+            // Transform Object Properties
+            let objectProperties : [String:Float]
+            if object.currentSequence != nil {
+                objectProperties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: object.uuid, properties: object.properties, frame: frame)
+            } else {
+                objectProperties = object.properties
+            }
+            
+            parentPosX += objectProperties["posX"]!
+            parentPosY += objectProperties["posY"]!
+            parentRotate += objectProperties["rotate"]!
             
             for shape in object.shapes {
                 
@@ -435,7 +443,7 @@ class Builder
                 let minSize : Float = min(properties[shape.widthProperty]!,properties[shape.heightProperty]!)
                 
                 instance.data![offset + index * itemSize+11] = properties["rounding"]! * minSize
-                instance.data![offset + index * itemSize+12] = properties["annular"]! * minSize
+                instance.data![offset + index * itemSize+12] = properties["annular"]! * minSize / 1.9
                 instance.data![offset + index * itemSize+13] = properties["smoothBoolean"]! * minSize
                 
                 index += 1
@@ -445,9 +453,9 @@ class Builder
                 parseObject(childObject)
             }
             
-            parentPosX -= object.properties["posX"]!
-            parentPosY -= object.properties["posY"]!
-            parentRotate -= object.properties["rotate"]!
+            parentPosX -= objectProperties["posX"]!
+            parentPosY -= objectProperties["posY"]!
+            parentRotate -= objectProperties["rotate"]!
         }
         
         for object in instance.objects {
@@ -466,7 +474,7 @@ class Builder
     }
     
     ///
-    func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera)
+    func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera, frame: Int = 0)
     {
         var source =
         """
@@ -533,13 +541,32 @@ class Builder
             float newDist;
         """
         
-        for (objectIndex, object) in instance.objects.enumerated() {
+        var parentPosX : Float = 0
+        var parentPosY : Float = 0
+        var parentRotate : Float = 0
+        
+        var objectIndex : Int = 0
+        
+        func parseObject(_ object: Object)
+        {
+            // Transform Object Properties
+            let objectProperties : [String:Float]
+            if object.currentSequence != nil {
+                objectProperties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: object.uuid, properties: object.properties, frame: frame)
+            } else {
+                objectProperties = object.properties
+            }
+            
+            parentPosX += objectProperties["posX"]!
+            parentPosY += objectProperties["posY"]!
+            parentRotate += objectProperties["rotate"]!
+            
             for (shapeIndex, shape) in object.shapes.enumerated() {
                 
                 let transformed = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid:shape.uuid, properties:shape.properties)
-                let posX : Float = transformed["posX"]!
-                let posY : Float = transformed["posY"]!
-                let rotate : Float = transformed["rotate"]! * Float.pi / 180
+                let posX : Float = parentPosX + transformed["posX"]!
+                let posY : Float = parentPosY + transformed["posY"]!
+                let rotate : Float = (parentRotate + transformed["rotate"]!) * Float.pi / 180
                 
                 source += "uv = translate( tuv, float2( \(posX), \(posY) ) );\n"
                 if rotate != 0.0 {
@@ -570,7 +597,7 @@ class Builder
                 
                 // --- Annular
                 if transformed["annular"]! != 0 {
-                    source += "newDist = abs(newDist) - \(transformed["annular"]!*minSize);\n"
+                    source += "newDist = abs(newDist) - \(transformed["annular"]!*minSize / 1.9);\n"
                 }
 
                 // --- Inverse
@@ -584,6 +611,19 @@ class Builder
                     source += "dist = mergeSmooth( dist, float4( newDist, \(0), \(objectIndex), \(shapeIndex) ), \(transformed["smoothBoolean"]!*minSize) );"
                 }
             }
+            
+            objectIndex += 1
+            for childObject in object.childObjects {
+                parseObject(childObject)
+            }
+            
+            parentPosX -= objectProperties["posX"]!
+            parentPosY -= objectProperties["posY"]!
+            parentRotate -= objectProperties["rotate"]!
+        }
+        
+        for object in instance.objects {
+            parseObject(object)
         }
         
         source +=
