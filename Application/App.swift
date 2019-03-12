@@ -117,6 +117,10 @@ class App
         if let jsonData = json.data(using: .utf8) {
             if let graph =  try? JSONDecoder().decode(NodeGraph.self, from: jsonData) {
                 
+                if nodeGraph.maximizedNode != nil {
+                    nodeGraph.maximizedNode!.maxDelegate!.deactivate()
+                }
+
                 nodeGraph.deactivate()
                 
                 nodeGraph = graph

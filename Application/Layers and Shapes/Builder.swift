@@ -178,6 +178,7 @@ class Builder
         var parentPosX : Float = 0
         var parentPosY : Float = 0
         var parentRotate : Float = 0
+        
         func parseObject(_ object: Object)
         {
             parentPosX += object.properties["posX"]!
@@ -298,6 +299,9 @@ class Builder
         }
         
         for object in objects {
+            parentPosX = 0
+            parentPosY = 0
+            parentRotate = 0
             parseObject(object)
         }
         
@@ -392,13 +396,14 @@ class Builder
         var parentPosY : Float = 0
         var parentRotate : Float = 0
         let itemSize : Int = 14
+        var rootObject : Object!
         
         func parseObject(_ object: Object)
         {
             // Transform Object Properties
             let objectProperties : [String:Float]
-            if object.currentSequence != nil {
-                objectProperties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: object.uuid, properties: object.properties, frame: frame)
+            if rootObject.currentSequence != nil {
+                objectProperties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: object.uuid, properties: object.properties, frame: frame)
             } else {
                 objectProperties = object.properties
             }
@@ -410,8 +415,8 @@ class Builder
             for shape in object.shapes {
                 
                 let properties : [String:Float]
-                if object.currentSequence != nil {
-                    properties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: frame)
+                if rootObject.currentSequence != nil {
+                    properties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: frame)
                 } else {
                     properties = shape.properties
                 }
@@ -459,6 +464,10 @@ class Builder
         }
         
         for object in instance.objects {
+            rootObject = object
+            parentPosX = 0
+            parentPosY = 0
+            parentRotate = 0
             parseObject(object)
         }
         
@@ -474,7 +483,7 @@ class Builder
     }
     
     ///
-    func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera, frame: Int = 0)
+    func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera, frame: Int = 0) -> Object?
     {
         var source =
         """
@@ -546,13 +555,18 @@ class Builder
         var parentRotate : Float = 0
         
         var objectIndex : Int = 0
+        var rootObject : Object!
+        
+        var objectList : [Int:Object] = [:]
         
         func parseObject(_ object: Object)
         {
+            objectList[objectIndex] = object
+            
             // Transform Object Properties
             let objectProperties : [String:Float]
-            if object.currentSequence != nil {
-                objectProperties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: object.uuid, properties: object.properties, frame: frame)
+            if rootObject.currentSequence != nil {
+                objectProperties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: object.uuid, properties: object.properties, frame: frame)
             } else {
                 objectProperties = object.properties
             }
@@ -563,7 +577,7 @@ class Builder
             
             for (shapeIndex, shape) in object.shapes.enumerated() {
                 
-                let transformed = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid:shape.uuid, properties:shape.properties)
+                let transformed = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: frame)
                 let posX : Float = parentPosX + transformed["posX"]!
                 let posY : Float = parentPosY + transformed["posY"]!
                 let rotate : Float = (parentRotate + transformed["rotate"]!) * Float.pi / 180
@@ -623,6 +637,10 @@ class Builder
         }
         
         for object in instance.objects {
+            rootObject = object
+            parentPosX = 0
+            parentPosY = 0
+            parentRotate = 0
             parseObject(object)
         }
         
@@ -640,11 +658,11 @@ class Builder
         compute!.runBuffer(state, outBuffer: outBuffer)
         
         let result = outBuffer.contents().load(as: float4.self)
-//                print( result )
+        print( result )
         
         if result.x < 0 {
             let objectId : Int = Int(result.z)
-            let object = instance.objects[objectId]
+            let object = objectList[objectId]!
             
             let shapeId : Int = Int(result.w)
             let shape = object.shapes[shapeId]
@@ -654,12 +672,16 @@ class Builder
             } else if !object.selectedShapes.contains(shape.uuid) {
                 object.selectedShapes.append( shape.uuid )
             }
+            return object
         } else {
             if !multiSelect {
-                let object = instance.objects[0]
+                let objectId : Int = Int(result.z)
+                let object = objectList[objectId]!
                 object.selectedShapes = []
+                return object
             }
         }
+        return nil
     }
     
     /// Creates the global code for all shapes in this layer

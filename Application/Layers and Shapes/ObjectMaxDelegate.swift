@@ -272,13 +272,17 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     {
         app.gizmo.mouseDown(event)
         
-        if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
+        if (app.gizmo.hoverState == .Inactive || selObject!.selectedShapes.count == 0) && currentObject!.instance != nil {
             let editorRegion = app.editorRegion!
 
-            app.nodeGraph.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera, frame: timeline.currentFrame)
+            let object = app.nodeGraph.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera, frame: timeline.currentFrame)
             update()
             shapeListChanged = true
+            if object != nil && object !== selObject {
+                selObject = object
+            }
             app.gizmo.setObject(selObject, rootObject: currentObject)
+            app.gizmo.mouseDown(event)
         }
     }
     
@@ -394,11 +398,11 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         if hard {
             app.gizmo.setObject(selObject, rootObject: currentObject)
             currentObject!.instance = app.nodeGraph.builder.buildObjects(objects: [currentObject!], camera: camera)
-        } else {
-            let region = app.editorRegion!
-            if currentObject!.instance != nil {
-                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, frame: timeline.currentFrame)
-            }
+        }
+        
+        let region = app.editorRegion!
+        if currentObject!.instance != nil {
+            app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentObject!.instance!, camera: camera, frame: timeline.currentFrame)
         }
     }
     
@@ -531,7 +535,7 @@ class ObjectListWidget : MMWidget
         
         var y : Float = 10
         
-        func drawRow(objects: [Object])
+        func drawRow(objects: [Object], text: String? = nil)
         {
             let count : Float = Float(objects.count)
             var x : Float = (rect.width - (count * objectSize.x + (count-1) *  objectMargin.x)) / 2
@@ -552,12 +556,17 @@ class ObjectListWidget : MMWidget
                 
                 let borderSize : Float = 2
                 
-                mmView.drawBox.draw( x: rect.x + x, y: rect.y + y, width: objectSize.x, height: objectSize.y, round: 6, borderSize: borderSize,  fillColor : fillColor, borderColor: float4( 1 ) )
+                mmView.drawBox.draw( x: rect.x + x + 1, y: rect.y + y, width: objectSize.x, height: objectSize.y, round: 6, borderSize: borderSize,  fillColor : fillColor, borderColor: float4( 1 ) )
+                
+                if text != nil {
+                    mmView.drawText.drawTextCentered(mmView.openSans, text: text!, x: rect.x + x, y: rect.y + y, width: objectSize.x, height: objectSize.y, scale: 0.3, color: float4(0,0,0,1))
+                }
+                
                 x += objectMargin.x
             }
         }
         
-        drawRow(objects: [delegate.currentObject!])
+        drawRow(objects: [delegate.currentObject!], text: "Root")
         if delegate.currentObject!.childObjects.count > 0 {
             y += objectSize.y + 10
             drawRow(objects: delegate.currentObject!.childObjects)
@@ -585,7 +594,6 @@ class ObjectWidget : MMWidget
         // --- Object Menu
         let objectMenuItems = [
             MMMenuItem( text: "Add Child Object", cb: {
-                print("add child")
                 let object = delegate.selObject!
                 getStringDialog(view: view, title: "Add Child Object", message: "Object name", defaultValue: "New Object", cb: { (name) -> Void in
                     let child = Object()
@@ -593,6 +601,8 @@ class ObjectWidget : MMWidget
                     child.label?.setText(name)
                     child.maxDelegate = delegate.currentObject!.maxDelegate
                     object.childObjects.append(child)
+                    delegate.selObject = child
+                    delegate.shapeListChanged = true
                 } )
             } ),
             MMMenuItem( text: "Rename Object", cb: {
