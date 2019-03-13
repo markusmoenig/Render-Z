@@ -196,3 +196,75 @@ class Object : Node
         }
     }
 }
+
+/// A tree item
+class ObjectTreeItem
+{
+    var object          : Object
+    
+    var childItems      : [ObjectTreeItem]
+    var parentItem      : ObjectTreeItem?
+    
+    var rect            : MMRect = MMRect()
+    
+    init(_ obj: Object, parent: ObjectTreeItem?)
+    {
+        object = obj
+        parentItem = parent
+        childItems = []
+        
+        for child in obj.childObjects {
+            let item = ObjectTreeItem(child, parent: self)
+            childItems.append(item)
+        }
+    }
+}
+
+/// Builds an object tree for the given root object
+class ObjectTree : ObjectTreeItem
+{
+    var flat            : [ObjectTreeItem]
+    var rows            : [[ObjectTreeItem]]
+    
+    init(_ root: Object)
+    {
+        flat = []
+        rows = []
+        super.init(root, parent: nil)
+        
+        // --- Build Flat Hierarchy
+        flat.append(self as ObjectTreeItem)
+        
+        func parseItem(_ item: ObjectTreeItem)
+        {
+            flat.append(item)
+            for childItem in item.childItems {
+                parseItem(childItem)
+            }
+        }
+        
+        for item in childItems {
+            parseItem(item)
+        }
+        
+        // --- Build Row Hierarchy
+        func parseRow(_ items:[ObjectTreeItem]) -> [ObjectTreeItem]
+        {
+            var row : [ObjectTreeItem] = []
+            for item in items {
+                for child in item.childItems {
+                    row.append(child)
+                }
+            }
+            return row
+        }
+        rows.append([self as ObjectTreeItem])
+        //        rows.append(childItems)
+        
+        var row = parseRow([self as ObjectTreeItem])
+        while row.count > 0 {
+            rows.append(row)
+            row = parseRow(row)
+        }
+    }
+}

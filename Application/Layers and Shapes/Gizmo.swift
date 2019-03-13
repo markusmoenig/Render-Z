@@ -145,6 +145,9 @@ class Gizmo : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        // If shape editor has no shape, set to inactive
+        if object!.selectedShapes.count == 0 && context == .ShapeEditor { hoverState = .Inactive; return }
+        
 //        #if os(iOS) || os(watchOS) || os(tvOS)
         if mode == .Normal {
             updateNormalHoverState(editorRect: rect, event: event)
@@ -263,7 +266,9 @@ class Gizmo : MMWidget
             mmView.unlockFramerate()
         }
         mmView.mouseTrackWidget = nil
-        hoverState = .Inactive
+        if hoverState != .CenterMove {
+            hoverState = .Inactive
+        }
         dragState = .Inactive
     }
     

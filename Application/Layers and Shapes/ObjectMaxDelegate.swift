@@ -66,7 +66,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         app.gizmo.setObject(currentObject)
         
         selObject = currentObject
-        
+        selObjectActive = false
+
         // Top Region
         if shapesButton == nil {
             shapesButton = MMButtonWidget( app.mmView, text: "Shapes" )
@@ -112,6 +113,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             objectWidget = ObjectWidget(app.mmView, app: app, delegate:self)
             shapeListWidget = ShapeListScrollArea(app.mmView, app: app, delegate: self)
             shapeList = ShapeList(app.mmView)
+        } else {
+            updateObjectHierarchy(true)
         }
         app.rightRegion!.rect.width = 300
 
@@ -272,17 +275,24 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     {
         app.gizmo.mouseDown(event)
         
-        if (app.gizmo.hoverState == .Inactive || selObject!.selectedShapes.count == 0) && currentObject!.instance != nil {
+        if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
             let editorRegion = app.editorRegion!
 
             let object = app.nodeGraph.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera, frame: timeline.currentFrame)
             update()
             shapeListChanged = true
-            if object != nil && object !== selObject {
+            if object != nil {
                 selObject = object
+                if selObject!.selectedShapes.count == 0 {
+                    selObjectActive = false
+                }
+            } else
+            if object == nil {
+                selObject = currentObject
+                selObjectActive = false
+                selObject!.selectedShapes = []
             }
             app.gizmo.setObject(selObject, rootObject: currentObject)
-            app.gizmo.mouseDown(event)
         }
     }
     
@@ -406,6 +416,14 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         }
     }
     
+    /// Updates the object hierarchy
+    func updateObjectHierarchy(_ hard: Bool = false)
+    {
+        objectWidget.objectListWidget.xOffset = 0
+        objectWidget.objectListWidget.yOffset = 0
+        objectWidget.objectListWidget.objectTree = ObjectTree(currentObject!)
+    }
+    
     /// Return the camera (used by Gizmo)
     override func getCamera() -> Camera?
     {
@@ -474,18 +492,44 @@ class ObjectListWidget : MMWidget
     var margin          : Float = 2
     var delegate        : ObjectMaxDelegate
     
-    var objectSize      : float2 = float2(40,30)
-    var objectMargin    : float2 = float2(20,20)
+    var objectSize      : float2 = float2(80,24)
+    var objectMargin    : float2 = float2(10,10)
     
+    var objectTree      : ObjectTree
+    
+    var xOffset         : Float = 0
+    var yOffset         : Float = 0
+    
+    var dispatched      : Bool = false
+
     init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
     {
         self.app = app
         self.delegate = delegate
+        objectTree = ObjectTree(delegate.currentObject!)
         super.init(view)
     }
     
+    override func mouseScrolled(_ event: MMMouseEvent)
+    {
+        xOffset -= event.deltaX!
+        yOffset -= event.deltaY!
+        
+        if !dispatched {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.mmView.unlockFramerate()
+                self.dispatched = false
+            }
+            dispatched = true
+        }
+        
+        if mmView.maxFramerateLocks == 0 {
+            mmView.lockFramerate()
+        }
+    }
+    
     override func mouseDown(_ event: MMMouseEvent) {
-        let selObject = getObjectAt(event.x - rect.x, event.y - rect.y)
+        let selObject = getObjectAt(event.x, event.y)
         if selObject != nil {
             delegate.setSelectedObject(selObject!)
         }
@@ -493,35 +537,10 @@ class ObjectListWidget : MMWidget
     
     func getObjectAt(_ xPos: Float, _ yPos: Float) -> Object?
     {
-        var y : Float = 10
-        
-        let objRect = MMRect()
-        
-        func testRow(objects: [Object]) -> Object?
-        {
-            let count : Float = Float(objects.count)
-            var x : Float = (rect.width - (count * objectSize.x + (count-1) *  objectMargin.x)) / 2
-            
-            for object in objects
-            {
-                objRect.x = x
-                objRect.y = y
-                objRect.width = objectSize.x
-                objRect.height = objectSize.y
-                if objRect.contains( xPos, yPos ) {
-                    return object
-                }
-                x += objectMargin.x
+        for item in objectTree.flat {
+            if item.rect.contains(xPos, yPos) {
+                return item.object
             }
-            return nil
-        }
-        
-        var result = testRow(objects: [delegate.currentObject!])
-        if ( result != nil ) { return result }
-        if delegate.currentObject!.childObjects.count > 0 {
-            y += objectSize.y + 10
-            result = testRow(objects: delegate.currentObject!.childObjects)
-            if ( result != nil ) { return result }
         }
         return nil
     }
@@ -529,22 +548,28 @@ class ObjectListWidget : MMWidget
     func draw(object: Object)
     {
         // Background
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
         //
         
-        var y : Float = 10
+        mmView.renderer.setClipRect(rect)
+        var y : Float = 5
         
-        func drawRow(objects: [Object], text: String? = nil)
+        func drawRow(items: [ObjectTreeItem])
         {
-            let count : Float = Float(objects.count)
+            let count : Float = Float(items.count)
             var x : Float = (rect.width - (count * objectSize.x + (count-1) *  objectMargin.x)) / 2
             
-            for object in objects
+            for item in items
             {
                 let fillColor : float4
-                    
-                if delegate.selObject!.uuid == object.uuid {
+                
+                item.rect.x = rect.x + x + xOffset
+                item.rect.y = rect.y + y + yOffset
+                item.rect.width = objectSize.x
+                item.rect.height = objectSize.y
+
+                if delegate.selObject!.uuid == item.object.uuid {
                     if delegate.selObjectActive {
                         fillColor = app.mmView.skin.Widget.selectionColor
                     } else {
@@ -556,21 +581,26 @@ class ObjectListWidget : MMWidget
                 
                 let borderSize : Float = 2
                 
-                mmView.drawBox.draw( x: rect.x + x + 1, y: rect.y + y, width: objectSize.x, height: objectSize.y, round: 6, borderSize: borderSize,  fillColor : fillColor, borderColor: float4( 1 ) )
+                mmView.drawBox.draw( x: item.rect.x + 1, y: item.rect.y, width: objectSize.x, height: objectSize.y, round: 6, borderSize: borderSize,  fillColor : fillColor, borderColor: float4( 1 ) )
                 
-                if text != nil {
-                    mmView.drawText.drawTextCentered(mmView.openSans, text: text!, x: rect.x + x, y: rect.y + y, width: objectSize.x, height: objectSize.y, scale: 0.3, color: float4(0,0,0,1))
+                mmView.drawText.drawTextCentered(mmView.openSans, text: item.parentItem != nil ? item.object.name : "Root", x: item.rect.x, y: item.rect.y, width: objectSize.x, height: objectSize.y, scale: 0.3, color: float4(0,0,0,1))
+                
+                if item.parentItem != nil {
+                    let pRect = item.parentItem!.rect
+                    let pX : Float = pRect.x + pRect.width / 2
+                    let pY : Float = pRect.y + pRect.height - 1
+                    
+                    mmView.drawLine.draw(sx: pX, sy: pY, ex: item.rect.x + item.rect.width / 2, ey: item.rect.y + 1, radius: 1, fillColor: float4(1))
                 }
-                
-                x += objectMargin.x
+                x += objectSize.x + objectMargin.x
             }
         }
         
-        drawRow(objects: [delegate.currentObject!], text: "Root")
-        if delegate.currentObject!.childObjects.count > 0 {
-            y += objectSize.y + 10
-            drawRow(objects: delegate.currentObject!.childObjects)
+        for row in objectTree.rows {
+            drawRow(items: row)
+            y += objectSize.y + objectMargin.y
         }
+        mmView.renderer.setClipRect()
     }
 }
 
@@ -603,6 +633,7 @@ class ObjectWidget : MMWidget
                     object.childObjects.append(child)
                     delegate.selObject = child
                     delegate.shapeListChanged = true
+                    delegate.updateObjectHierarchy()
                 } )
             } ),
             MMMenuItem( text: "Rename Object", cb: {

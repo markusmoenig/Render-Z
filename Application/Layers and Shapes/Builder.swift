@@ -658,7 +658,7 @@ class Builder
         compute!.runBuffer(state, outBuffer: outBuffer)
         
         let result = outBuffer.contents().load(as: float4.self)
-        print( result )
+//        print( result )
         
         if result.x < 0 {
             let objectId : Int = Int(result.z)
@@ -676,9 +676,11 @@ class Builder
         } else {
             if !multiSelect {
                 let objectId : Int = Int(result.z)
-                let object = objectList[objectId]!
-                object.selectedShapes = []
-                return object
+                if objectList[objectId] != nil {
+                    let object = objectList[objectId]!
+                    object.selectedShapes = []
+                    return object
+                }
             }
         }
         return nil
