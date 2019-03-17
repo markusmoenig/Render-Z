@@ -711,20 +711,35 @@ class ShapeListScrollArea: MMScrollArea
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
         
+        let oldSelection = delegate.selObject!.selectedShapes
+        
         let shapeList = delegate.shapeList!
         
         delegate.shapeListChanged = shapeList.selectAt(mouseDownPos.x,mouseDownPos.y, multiSelect: mmView.shiftIsDown)
         
         // --- Move up / down
-        if shapeList.hoverData[0] != -1 {
+        if shapeList.hoverState != .None {
             let object = delegate.currentObject
-            if shapeList.hoverUp && object!.shapes.count > 1 && shapeList.hoverIndex > 0 {
+            if shapeList.hoverState == .HoverUp && object!.shapes.count > 1 && shapeList.hoverIndex > 0 {
                 let shape = object!.shapes.remove(at: shapeList.hoverIndex)
                 object!.shapes.insert(shape, at: shapeList.hoverIndex - 1)
             } else
-                if !shapeList.hoverUp && object!.shapes.count > 1 && shapeList.hoverIndex < object!.shapes.count-1 {
+            if shapeList.hoverState == .HoverDown && object!.shapes.count > 1 && shapeList.hoverIndex < object!.shapes.count-1 {
                     let shape = object!.shapes.remove(at: shapeList.hoverIndex)
                     object!.shapes.insert(shape, at: shapeList.hoverIndex + 1)
+            } else
+            if shapeList.hoverState == .Close && shapeList.hoverIndex >= 0 && shapeList.hoverIndex < object!.shapes.count {
+                let shape = object!.shapes.remove(at: shapeList.hoverIndex)
+                if oldSelection.contains( shape.uuid ) {
+                    delegate.selObject!.selectedShapes = []
+                } else {
+                    delegate.selObject!.selectedShapes = oldSelection
+                }
+                delegate.shapeListChanged = true
+                delegate.app.gizmo.setObject(delegate.selObject!)
+                delegate.shapeList.hoverAt(event.x - rect.x, event.y - rect.y)
+                delegate.update(true)
+                return
             }
             
             shapeList.hoverData[0] = -1

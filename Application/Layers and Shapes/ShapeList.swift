@@ -10,6 +10,12 @@ import MetalKit
 
 class ShapeList
 {
+    enum HoverState {
+        case None, HoverUp, HoverDown, Close
+    }
+    
+    var hoverState      : HoverState = .None
+    
     var mmView          : MMView
     
     var compute         : MMCompute?
@@ -26,7 +32,6 @@ class ShapeList
     var hoverData       : [Float]
     var hoverBuffer     : MTLBuffer?
     var hoverIndex      : Int = -1
-    var hoverUp         : Bool = false
     
     init(_ view: MMView )
     {
@@ -190,13 +195,13 @@ class ShapeList
             // --- Up / Down Arrows
             
             // --- Up
-            source += "uv -= float2( 105., 0. );\n"
+            source += "uv -= float2( 50., 0. );\n" // 105
             source += "dist = sdLineScroller( uv, float2( 0, 6 ), float2( 10, -4), 2);\n"
             source += "dist = min( dist, sdLineScroller( uv, float2( 10, -4), float2( 20, 6), 2) );\n"
             if index == 0 || object.shapes.count < 2 {
                 source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
             } else {
-                source += "if (\(index*2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
+                source += "if (\(index*3) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
             }
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
@@ -207,7 +212,14 @@ class ShapeList
             if index == object.shapes.count - 1 || object.shapes.count < 2 {
                 source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
             } else {
-                source += "if (\(index*2+1) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"            }
+                source += "if (\(index*3+1) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"            }
+            source += "finalCol = mix( finalCol, col, col.a );\n"
+            
+            // --- Close Button
+            source += "uv -= float2( 65., 0. );\n"
+            source += "dist = sdLineScroller( uv, float2( -8, -8 ), float2( 8, 8), 2);\n"
+            source += "dist = min( dist, sdLineScroller( uv, float2( -8, 8 ), float2( 8, -8), 2) );\n"
+            source += "if (\(index*3+2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
             // ---
@@ -295,18 +307,24 @@ class ShapeList
         hoverIndex = Int(index)
         let oldIndex = hoverData[0]
         hoverData[0] = -1
+        hoverState = .None
         
         if currentObject != nil {
             if hoverIndex >= 0 && hoverIndex < currentObject!.shapes.count {
                 
-                if x >= 227 && x <= 255 {
-                    hoverData[0] = Float(hoverIndex*2)
-                    hoverUp = true
+                if x >= 172 && x <= 201 {
+                    hoverData[0] = Float(hoverIndex*3)
+                    hoverState = .HoverUp
                 } else
-                if x >= 262 && x <= 289 {
-                    hoverData[0] = Float(hoverIndex*2+1)
-                    hoverUp = false
+                if x >= 207 && x <= 235 {
+                    hoverData[0] = Float(hoverIndex*3+1)
+                    hoverState = .HoverDown
                 }
+            }
+            
+            if x >= 262 && x <= 291 {
+                hoverData[0] = Float(hoverIndex*3+2)
+                hoverState = .Close
             }
         }
         
