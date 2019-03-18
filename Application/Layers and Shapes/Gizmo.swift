@@ -382,6 +382,7 @@ class Gizmo : MMWidget
                         propName : value,
                         ]
                     processGizmoProperties(properties, shape: shape)
+                    print(properties)
                 }
             } else
             if dragState == .yAxisScale {
@@ -395,6 +396,8 @@ class Gizmo : MMWidget
                         propName : value,
                         ]
                     processGizmoProperties(properties, shape: shape)
+                    print(properties)
+
                 }
             } else
             if dragState == .Rotate {

@@ -20,11 +20,14 @@ class Shape : Codable
     
     var mode            : ShapeMode = .Merge
     
-    var globalCode      : String = ""
     var distanceCode    : String = ""
-    
+    var globalCode      : String = ""
+    var dynamicCode     : String? = nil
+
     var widthProperty   : String = ""
     var heightProperty  : String = ""
+    
+    var pointsVariable  : Bool = false
     
     var pointCount      : Int = 0
     var pointsScale     : Bool = false
@@ -35,10 +38,12 @@ class Shape : Codable
         case mode
         case properties
         case uuid
-        case globalCode
         case distanceCode
+        case globalCode
+        case dynamicCode
         case widthProperty
         case heightProperty
+        case pointsVariable
         case pointCount
         case pointsScale
         case supportsRounding
@@ -68,10 +73,12 @@ class Shape : Codable
         mode = try container.decode(ShapeMode.self, forKey: .mode)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         properties = try container.decode([String: Float].self, forKey: .properties)
-        globalCode = try container.decode(String.self, forKey: .globalCode)
         distanceCode = try container.decode(String.self, forKey: .distanceCode)
+        globalCode = try container.decode(String.self, forKey: .globalCode)
+        dynamicCode = try container.decode(String.self, forKey: .dynamicCode)
         widthProperty = try container.decode(String.self, forKey: .widthProperty)
         heightProperty = try container.decode(String.self, forKey: .heightProperty)
+        pointsVariable = try container.decode(Bool.self, forKey: .pointsVariable)
         pointCount = try container.decode(Int.self, forKey: .pointCount)
         pointsScale = try container.decode(Bool.self, forKey: .pointsScale)
         supportsRounding = try container.decode(Bool.self, forKey: .supportsRounding)
@@ -85,16 +92,19 @@ class Shape : Codable
         try container.encode(mode, forKey: .mode)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(properties, forKey: .properties)
-        try container.encode(globalCode, forKey: .globalCode)
         try container.encode(distanceCode, forKey: .distanceCode)
+        try container.encode(globalCode, forKey: .globalCode)
+        try container.encode(dynamicCode, forKey: .dynamicCode)
         try container.encode(widthProperty, forKey: .widthProperty)
         try container.encode(heightProperty, forKey: .heightProperty)
+        try container.encode(pointsVariable, forKey: .pointsVariable)
         try container.encode(pointCount, forKey: .pointCount)
         try container.encode(pointsScale, forKey: .pointsScale)
         try container.encode(supportsRounding, forKey: .supportsRounding)
     }
     
-    func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil, pointIndex: Int? = nil ) -> String
+    /// Creates the distance code for the shape, optionally using the supplied transformed properties or insertig the metal code for accessing the shape data structure
+    func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil, pointIndex: Int? = nil, shapeIndex: Int? = nil) -> String
     {
         var code = distanceCode
         let props = transProperties != nil ? transProperties : properties
@@ -132,13 +142,39 @@ class Shape : Codable
                 let coord = name.index(name.endIndex, offsetBy: -1)
                 
                 code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->points[\(pointIndex! + Int(String(name[index]))!)].\(name[coord])")
-                print( code )
             } else {
                 code = code.replacingOccurrences(of: "__" + name + "__", with: String(value))
             }
         }
         
+        if dynamicCode != nil && shapeIndex != nil {
+            // --- Handling of variable points for a shape
+            code = code.replacingOccurrences(of: "__shapeIndex__", with: String(shapeIndex!))
+            if pointsVariable {
+                code = code.replacingOccurrences(of: "__pointsVariable__", with: self.name + String(shapeIndex!))
+            }
+        }
+        
         return code
+    }
+    
+    ///
+    func createPointsVariableCode(shapeIndex: Int, transProperties: [String:Float]? = nil, pointIndex: Int? = nil) -> String
+    {
+        var result = ""
+        let props = transProperties != nil ? transProperties : properties
+        let varName = name+String(shapeIndex)
+
+        result += "float2 \(varName)[\(pointCount)];\n"
+        for i in 0..<pointCount {
+            if pointIndex == nil {
+                result += "\(varName)[\(i)].x = \(props!["point_\(i)_x"]!);\n"
+                result += "\(varName)[\(i)].y = \(props!["point_\(i)_y"]!);\n"
+            } else {
+                result += "\(varName)[\(i)] = layerData->points[\(pointIndex!+i)];\n"
+            }
+        }
+        return result
     }
     
     func getCurrentSize(_ transformed: [String:Float]) -> float2

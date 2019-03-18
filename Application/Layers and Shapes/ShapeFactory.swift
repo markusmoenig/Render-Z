@@ -13,14 +13,12 @@ struct ShapeDefinition
     var name            : String = ""
     var distanceCode    : String = ""
     var globalCode      : String = ""
+    var dynamicCode     : String? = nil
     var properties      : [String:Float] = [:]
     var widthProperty   : String = ""
     var heightProperty  : String = ""
     
     var pointsVariable  : Bool = false
-    var pointsMinCount  : Int = 0
-    var pointsMaxCount  : Int = 0
-
     var pointCount      : Int = 0
     var pointsScale     : Bool = false
 
@@ -120,6 +118,66 @@ class ShapeFactory
         def.heightProperty = "radius1"
         def.pointCount = 2
         shapes.append( def )
+    
+        // --- Polygon
+        def = ShapeDefinition()
+        def.name = "Polygon"
+        def.distanceCode = "(sdPolygon__shapeIndex__(__uv__, __pointsVariable__) - __lineWidth__)"
+        def.globalCode =
+        """
+        float sdPolygon_cross2d(float2 v0, float2 v1)
+        {
+            return v0.x*v1.y - v0.y*v1.x;
+        }
+        """
+        
+        def.dynamicCode =
+        """
+        float sdPolygon__shapeIndex__( float2 p, float2 poly[__pointCount__] )
+        {
+            // https://www.shadertoy.com/view/WdSGRd
+            const int N = __pointCount__;
+            float2 e[N];
+            float2 v[N];
+            float2 pq[N];
+            // data
+            for( int i=0; i<N; i++) {
+                int i2= int(fmod(float(i+1),float(N))); //i+1
+                e[i] = poly[i2] - poly[i];
+                v[i] = p - poly[i];
+                pq[i] = v[i] - e[i]*clamp( dot(v[i],e[i])/dot(e[i],e[i]), 0.0, 1.0 );
+            }
+        
+            float d = dot(pq[0], pq[0]);
+            for( int i=1; i<N; i++) {
+                d = min( d, dot(pq[i], pq[i]));
+            }
+        
+            int wn =0;
+            for( int i=0; i<N; i++) {
+                int i2= int(fmod(float(i+1),float(N)));
+                bool cond1= 0. <= v[i].y;
+                bool cond2= 0. > v[i2].y;
+                float val3= sdPolygon_cross2d(e[i],v[i]);
+                wn+= cond1 && cond2 && val3>0. ? 1 : 0;
+                wn-= !cond1 && !cond2 && val3<0. ? 1 : 0;
+            }
+            float s= wn == 0 ? 1. : -1.;
+            return sqrt(d) * s;
+        }
+        """
+        def.properties["lineWidth"] = 0
+        def.properties["point_0_x"] = 20
+        def.properties["point_0_y"] = -15
+        def.properties["point_1_x"] = -35
+        def.properties["point_1_y"] = 35
+        def.properties["point_2_x"] = 35
+        def.properties["point_2_y"] = 35
+        def.widthProperty = "lineWidth"
+        def.heightProperty = "lineWidth"
+        def.pointCount = 3
+        def.pointsVariable = true
+        shapes.append( def )
         
         // --- Bezier
         def = ShapeDefinition()
@@ -199,12 +257,11 @@ class ShapeFactory
         def.heightProperty = "lineWidth"
         def.pointCount = 3
         shapes.append( def )
-
         
         // --- Triangle
         def = ShapeDefinition()
         def.name = "Triangle"
-        def.distanceCode = "sdTriangle(__uv__, float2(__point_0_x__,__point_0_y__), float2(__point_1_x__,__point_1_y__), float2(__point_2_x__,__point_2_y__))"
+        def.distanceCode = "(sdTriangle(__uv__, float2(__point_0_x__,__point_0_y__), float2(__point_1_x__,__point_1_y__), float2(__point_2_x__,__point_2_y__))-__lineWidth__)"
         def.globalCode =
         """
         float sdTriangle( float2 p, float2 p0, float2 p1, float2 p2 )
@@ -224,18 +281,17 @@ class ShapeFactory
             return -sqrt(d.x)*sign(d.y);
         }
         """
-        def.properties["radius1"] = 80 // Used for rounding
-        def.properties["radius2"] = 80
+        def.properties["lineWidth"] = 0
         def.properties["point_0_x"] = 0
         def.properties["point_0_y"] = -35
         def.properties["point_1_x"] = -35
         def.properties["point_1_y"] = 35
         def.properties["point_2_x"] = 35
         def.properties["point_2_y"] = 35
-        def.widthProperty = "radius2"
-        def.heightProperty = "radius1"
+        def.widthProperty = "lineWidth"
+        def.heightProperty = "lineWidth"
         def.pointCount = 3
-        def.supportsRounding = true
+//        def.supportsRounding = true
         shapes.append( def )
         
         // --- Ellipse
@@ -287,8 +343,32 @@ class ShapeFactory
         def.widthProperty = "width"
         def.heightProperty = "height"
         shapes.append( def )
+        
+        // --- Cross
+        def = ShapeDefinition()
+        def.name = "Cross"
+        def.distanceCode = "sdCross(__uv__, float2(__width__,__height__), 0.0 )"
+        def.globalCode =
+        """
+        float sdCross( float2 p, float2 b, float r )
+        {
+            p = abs(p); p = (p.y>p.x) ? p.yx : p.xy;
+        
+            float2  q = p - b;
+            float k = max(q.y,q.x);
+            float2  w = (k>0.0) ? q : float2(b.y-p.x,-k);
+            return sign(k)*length(max(w,0.0)) + r;
+        }
+        """
+        def.properties["width"] = 35
+        def.properties["height"] = 15
+        def.widthProperty = "width"
+        def.heightProperty = "height"
+        def.supportsRounding = true
+        shapes.append( def )
     }
     
+    /// Create a shape
     func createShape(_ name: String, size: Float = 20) -> Shape
     {
         let shape = Shape()
@@ -306,15 +386,17 @@ class ShapeFactory
             shape.name = def.name
             shape.distanceCode = def.distanceCode
             shape.globalCode = def.globalCode
+            shape.dynamicCode = def.dynamicCode
             shape.properties = shape.properties.merging(def.properties) { (current, _) in current }
             shape.widthProperty = def.widthProperty
             shape.heightProperty = def.heightProperty
+            shape.pointsVariable = def.pointsVariable
             shape.pointCount = def.pointCount
             shape.pointsScale = def.pointsScale
             shape.supportsRounding = def.supportsRounding
 
             for (name,_) in shape.properties {
-                if (name == "radius" || name == "width" || name == "height") && shape.name != "Ellipse" {
+                if (name == "radius" || name == "width" || name == "height") && shape.name != "Ellipse" && shape.name != "Cross" {
                     shape.properties[name] = size
                 }
             }

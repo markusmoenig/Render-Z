@@ -157,7 +157,11 @@ class ShapeList
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
             source += "uv -= float2( -128., 0. );\n"
-            source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12)) + ";"
+            
+            if shape.pointsVariable {
+                source += shape.createPointsVariableCode(shapeIndex: index, transProperties: transformPropertySize(shape: shape, size: 12))
+            }
+            source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12), shapeIndex: index) + ";"
             
             if shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1 {
                 // Inverse
@@ -372,6 +376,15 @@ class ShapeList
             properties["point_1_y"] = size
             properties["point_2_x"] = size
             properties["point_2_y"] = size
+        } else
+        if shape.name == "Polygon" {
+            properties["lineWidth"] = 0
+            properties["point_0_x"] = size - size / 3
+            properties["point_0_y"] = -size/2
+            properties["point_1_x"] = -size
+            properties["point_1_y"] = size
+            properties["point_2_x"] = size
+            properties["point_2_y"] = size
         }
         
         /*
@@ -417,6 +430,7 @@ class ShapeList
     {
         var coll : [String] = []
         var result = ""
+        var shapeIndex : Int = 0
         
         for shape in object.shapes {
             
@@ -424,6 +438,15 @@ class ShapeList
                 result += shape.globalCode
                 coll.append( shape.name )
             }
+            
+            if shape.dynamicCode != nil {
+                var dyn = shape.dynamicCode!
+                dyn = dyn.replacingOccurrences(of: "__shapeIndex__", with: String(shapeIndex))
+                dyn = dyn.replacingOccurrences(of: "__pointCount__", with: String(shape.pointCount))
+                result += dyn
+            }
+            
+            shapeIndex += 1
         }
         
         return result

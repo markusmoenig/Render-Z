@@ -65,10 +65,10 @@ class ShapeSelector
         // ---
         
         self.width = width * zoom
-        height = spacing * 4
+        height = 0//spacing * 4
         let length : Int = shapes.count
         let lines : Float = Float((length / 2 + length % 2))
-        height += Float(lines * Float(unitSize) + lines * Float(20))
+        height += Float(lines * Float(unitSize) + lines * Float(20) + (lines) * spacing + spacing) 
 //        print( unitSize, height, length.truncatingRemainder(dividingBy: 2.0), length )
         
         height = height * zoom
@@ -100,6 +100,12 @@ class ShapeSelector
         
         for shape in shapes {
             source += shape.globalCode;
+            if shape.dynamicCode != nil {
+                var dyn = shape.dynamicCode!
+                dyn = dyn.replacingOccurrences(of: "__shapeIndex__", with: "0")
+                dyn = dyn.replacingOccurrences(of: "__pointCount__", with: String(shape.pointCount))
+                source += dyn
+            }
         }
         
         source +=
@@ -126,7 +132,11 @@ class ShapeSelector
             source += "uv = uvOrigin; uv.x += size.x / 2 - \(left); uv.y += size.y / 2 - \(top);\n"
             
             source += "uv /= \(zoom);\n"
-            source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+            
+            if shape.pointsVariable {
+                source += shape.createPointsVariableCode(shapeIndex: 0)
+            }
+            source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: 0) + ");"
             
             shapeRects.append( MMRect(left/zoom - unitSize / 2, top / zoom - unitSize / 2, unitSize, unitSize ) )
             
@@ -216,6 +226,12 @@ class ShapeSelector
         """
         
         source += shape.globalCode
+        if shape.dynamicCode != nil {
+            var dyn = shape.dynamicCode!
+            dyn = dyn.replacingOccurrences(of: "__shapeIndex__", with: "0")
+            dyn = dyn.replacingOccurrences(of: "__pointCount__", with: String(shape.pointCount))
+            source += dyn
+        }
         
         source +=
         """
@@ -229,7 +245,10 @@ class ShapeSelector
             float dist = 10000;
         """
         
-        source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
+        if shape.pointsVariable {
+            source += shape.createPointsVariableCode(shapeIndex: 0)
+        }
+        source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: 0) + ");"
         source +=
         """
             float4 fillColor = float4( 0.5, 0.5, 0.5, 1);

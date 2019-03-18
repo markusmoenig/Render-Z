@@ -170,7 +170,7 @@ class Builder
             uv *= layerData->fill.x;
             float2 tuv = uv, pAverage;
         
-            float dist = 1000, newDist;
+            float dist = 100000, newDist;
         """
         
         /// Parse objects and their shapes
@@ -218,7 +218,10 @@ class Builder
                         booleanCode = "intersect"
                 }
                 
-                source += "newDist = " + shape.createDistanceCode(uvName: "uv", layerIndex: index, pointIndex: pointIndex) + ";\n"
+                if shape.pointsVariable {
+                    source += shape.createPointsVariableCode(shapeIndex: index, pointIndex: pointIndex)
+                }
+                source += "newDist = " + shape.createDistanceCode(uvName: "uv", layerIndex: index, pointIndex: pointIndex, shapeIndex: index) + ";\n"
 
                 if shape.supportsRounding {
                     source += "newDist -= layerData->shapes[\(index)].rounding;\n"
@@ -526,6 +529,7 @@ class Builder
         var parentRotate : Float = 0
         
         var objectIndex : Int = 0
+        var totalShapeIndex : Int = 0
         var rootObject : Object!
         
         var objectList : [Int:Object] = [:]
@@ -571,7 +575,10 @@ class Builder
                     }
                 }
                 
-                source += "newDist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformed) + ";\n"
+                if shape.pointsVariable {
+                    source += shape.createPointsVariableCode(shapeIndex: totalShapeIndex)
+                }
+                source += "newDist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformed, shapeIndex: totalShapeIndex) + ";\n"
                 
                 let minSize : Float = min(transformed[shape.widthProperty]!,transformed[shape.heightProperty]!)
                 
@@ -594,6 +601,8 @@ class Builder
                 } else {
                     source += "dist = mergeSmooth( dist, float4( newDist, \(0), \(objectIndex), \(shapeIndex) ), \(transformed["smoothBoolean"]!*minSize) );"
                 }
+                
+                totalShapeIndex += 1
             }
             
             objectIndex += 1
@@ -661,6 +670,7 @@ class Builder
     {
         var coll : [String] = []
         var result = ""
+        var shapeIndex : Int = 0
         
         func parseObject(_ object: Object)
         {
@@ -669,6 +679,17 @@ class Builder
                     result += shape.globalCode
                     coll.append( shape.name )
                 }
+                
+                // --- Dynamic Code
+                
+                if shape.dynamicCode != nil {
+                    var dyn = shape.dynamicCode!
+                    dyn = dyn.replacingOccurrences(of: "__shapeIndex__", with: String(shapeIndex))
+                    dyn = dyn.replacingOccurrences(of: "__pointCount__", with: String(shape.pointCount))
+                    result += dyn
+                }
+                
+                shapeIndex += 1
             }
             
             for childObject in object.childObjects {

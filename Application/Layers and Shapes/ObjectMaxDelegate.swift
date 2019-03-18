@@ -460,7 +460,7 @@ class ShapeScrollArea: MMScrollArea
     
     override func mouseDown(_ event: MMMouseEvent) {
         mouseDownPos.x = event.x - rect.x
-        mouseDownPos.y = event.y - rect.y
+        mouseDownPos.y = event.y - rect.y - offsetY
         mouseIsDown = true
         shapeAtMouse = delegate.shapeSelector.selectAt(mouseDownPos.x,mouseDownPos.y)
         delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject)
@@ -758,11 +758,6 @@ class ShapeListScrollArea: MMScrollArea
                 delegate.shapeList.update()
             }
         }
-        //        if mouseIsDown && dragSource == nil {
-        //            dragSource = app.leftRegion!.shapeSelector.createDragSource(mouseDownPos.x,mouseDownPos.y)
-        //            dragSource?.sourceWidget = self
-        //            mmView.dragStarted(source: dragSource!)
-        //        }
     }
     
     override func mouseUp(_ event: MMMouseEvent) {
