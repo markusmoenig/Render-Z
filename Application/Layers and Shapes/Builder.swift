@@ -16,6 +16,9 @@ class BuilderInstance
     var data            : [Float]? = []
     var buffer          : MTLBuffer? = nil
     
+    // Offset to the point data array
+    var pointDataOffset : Int = 0
+    
     var texture         : MTLTexture? = nil
 }
 
@@ -52,7 +55,7 @@ class Builder
         var instance = BuilderInstance()
         
         instance.objects = objects
-        let shapeCount = getShapeCount(objects:objects)
+        let shapeAndPointCount = getShapeAndPointCount(objects:objects)
         
         var source =
         """
@@ -124,9 +127,6 @@ class Builder
         {
             float2      pos;
             float2      size;
-            float2      point0;
-            float2      point1;
-            float2      point2;
             float       rotate;
             float       rounding;
             float       annular;
@@ -138,7 +138,8 @@ class Builder
             float2      camera;
             float2      fill;
         
-            SHAPE_DATA  shape[\(max(shapeCount,1))];
+            SHAPE_DATA  shapes[\(max(shapeAndPointCount.0, 1))];
+            float2      points[\(max(shapeAndPointCount.1, 1))];
         } LAYER_DATA;
         
         """
@@ -167,7 +168,7 @@ class Builder
             uv = translate(uv, center - float2( layerData->camera.x, layerData->camera.y ) );
             uv.y = -uv.y;
             uv *= layerData->fill.x;
-            float2 tuv = uv;
+            float2 tuv = uv, pAverage;
         
             float dist = 1000, newDist;
         """
@@ -175,6 +176,7 @@ class Builder
         /// Parse objects and their shapes
         
         var index : Int = 0
+        var pointIndex : Int = 0
         var parentPosX : Float = 0
         var parentPosY : Float = 0
         var parentRotate : Float = 0
@@ -194,17 +196,18 @@ class Builder
                     properties = shape.properties
                 }
                 
-                source += "uv = translate( tuv, layerData->shape[\(index)].pos );"
-                if shape.pointCount < 2 {
-                    source += "if ( layerData->shape[\(index)].rotate != 0.0 ) uv = rotateCCW( uv, layerData->shape[\(index)].rotate );\n"
-                } else
-                    if shape.pointCount == 2 {
-                        source += "if ( layerData->shape[\(index)].rotate != 0.0 ) { uv = rotateCCW( uv - ( layerData->shape[\(index)].point0 + layerData->shape[\(index)].point1) / 2, layerData->shape[\(index)].rotate );\n"
-                        source += "uv += ( layerData->shape[\(index)].point0 + layerData->shape[\(index)].point1) / 2;}\n"
-                    } else
-                        if shape.pointCount == 3 {
-                            source += "if ( layerData->shape[\(index)].rotate != 0.0 ) { uv = rotateCCW( uv - ( layerData->shape[\(index)].point0 + layerData->shape[\(index)].point1 + + layerData->shape[\(index)].point2) / 3, layerData->shape[\(index)].rotate );\n"
-                            source += "uv += ( layerData->shape[\(index)].point0 + layerData->shape[\(index)].point1 + layerData->shape[\(index)].point2) / 3;}\n"
+                source += "uv = translate( tuv, layerData->shapes[\(index)].pos );"
+                if shape.pointCount == 0 {
+                    source += "if ( layerData->shapes[\(index)].rotate != 0.0 ) uv = rotateCCW( uv, layerData->shapes[\(index)].rotate );\n"
+                } else {
+                    source += "if ( layerData->shapes[\(index)].rotate != 0.0 ) {\n"
+                    source += "pAverage = float2(0);\n"
+                    source += "for (int i = \(pointIndex); i < \(pointIndex + shape.pointCount); ++i) \n"
+                    source += "pAverage += layerData->points[i];\n"
+                    source += "pAverage /= \(shape.pointCount);\n"
+                    source += "uv = rotateCCW( uv - pAverage, layerData->shapes[\(index)].rotate );\n"
+                    source += "uv += pAverage;\n"
+                    source += "}\n"
                 }
                 
                 var booleanCode = "merge"
@@ -215,14 +218,14 @@ class Builder
                         booleanCode = "intersect"
                 }
                 
-                source += "newDist = " + shape.createDistanceCode(uvName: "uv", layerIndex: index) + ";\n"
+                source += "newDist = " + shape.createDistanceCode(uvName: "uv", layerIndex: index, pointIndex: pointIndex) + ";\n"
 
                 if shape.supportsRounding {
-                    source += "newDist -= layerData->shape[\(index)].rounding;\n"
+                    source += "newDist -= layerData->shapes[\(index)].rounding;\n"
                 }
                 
                 // --- Annular
-                source += "if ( layerData->shape[\(index)].annular != 0.0 ) newDist = abs(newDist) - layerData->shape[\(index)].annular;\n"
+                source += "if ( layerData->shapes[\(index)].annular != 0.0 ) newDist = abs(newDist) - layerData->shapes[\(index)].annular;\n"
 
                 // --- Inverse
                 if shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1 {
@@ -230,13 +233,13 @@ class Builder
                 }
                 
                 if booleanCode != "subtract" {
-                    source += "if ( layerData->shape[\(index)].smoothBoolean == 0.0 )"
+                    source += "if ( layerData->shapes[\(index)].smoothBoolean == 0.0 )"
                     source += "  dist = \(booleanCode)( dist, newDist );"
-                    source += "  else dist = \(booleanCode)Smooth( dist, newDist, layerData->shape[\(index)].smoothBoolean );"
+                    source += "  else dist = \(booleanCode)Smooth( dist, newDist, layerData->shapes[\(index)].smoothBoolean );"
                 } else {
-                    source += "if ( layerData->shape[\(index)].smoothBoolean == 0.0 )"
+                    source += "if ( layerData->shapes[\(index)].smoothBoolean == 0.0 )"
                     source += "  dist = \(booleanCode)( dist, newDist );"
-                    source += "  else dist = \(booleanCode)Smooth( newDist, dist, layerData->shape[\(index)].smoothBoolean );"
+                    source += "  else dist = \(booleanCode)Smooth( newDist, dist, layerData->shapes[\(index)].smoothBoolean );"
                 }
 
                 let posX = properties["posX"]! + parentPosX
@@ -249,44 +252,13 @@ class Builder
                 instance.data!.append( posY )
                 instance.data!.append( sizeX! )
                 instance.data!.append( sizeY! )
-                if shape.pointCount == 0 {
-                    instance.data!.append( 0 )
-                    instance.data!.append( 0 )
-                    instance.data!.append( 0 )
-                    instance.data!.append( 0 )
-                    instance.data!.append( 0 )
-                    instance.data!.append( 0 )
-                } else
-                    if shape.pointCount == 1 {
-                        instance.data!.append( properties["point_0_x"]! )
-                        instance.data!.append( properties["point_0_y"]! )
-                        instance.data!.append( 0 )
-                        instance.data!.append( 0 )
-                        instance.data!.append( 0 )
-                        instance.data!.append( 0 )
-                    } else
-                        if shape.pointCount == 2 {
-                            instance.data!.append( properties["point_0_x"]! )
-                            instance.data!.append( properties["point_0_y"]! )
-                            instance.data!.append( properties["point_1_x"]! )
-                            instance.data!.append( properties["point_1_y"]! )
-                            instance.data!.append( 0 )
-                            instance.data!.append( 0 )
-                        } else
-                            if shape.pointCount == 3 {
-                                instance.data!.append( properties["point_0_x"]! )
-                                instance.data!.append( properties["point_0_y"]! )
-                                instance.data!.append( properties["point_1_x"]! )
-                                instance.data!.append( properties["point_1_y"]! )
-                                instance.data!.append( properties["point_2_x"]! )
-                                instance.data!.append( properties["point_2_y"]! )
-                }
                 instance.data!.append( rotate )
                 instance.data!.append( properties["rounding"]! )
                 instance.data!.append( properties["annular"]! )
                 instance.data!.append( properties["smoothBoolean"]! )
-                
+
                 index += 1
+                pointIndex += shape.pointCount
             }
             
             for childObject in object.childObjects {
@@ -303,6 +275,15 @@ class Builder
             parentPosY = 0
             parentRotate = 0
             parseObject(object)
+        }
+        
+        instance.pointDataOffset = instance.data!.count
+        
+        // Fill up the points
+        let pointCount = max(shapeAndPointCount.1,1)
+        for _ in 0..<pointCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
         }
         
         source +=
@@ -389,13 +370,14 @@ class Builder
         instance.data![2] = 1/camera.zoom
         let offset : Int = 4
         var index : Int = 0
+        var pointIndex : Int = 0
 
         // Update Shapes / Objects
         
         var parentPosX : Float = 0
         var parentPosY : Float = 0
         var parentRotate : Float = 0
-        let itemSize : Int = 14
+        let itemSize : Int = 8
         var rootObject : Object!
         
         func parseObject(_ object: Object)
@@ -425,33 +407,22 @@ class Builder
                 instance.data![offset + index * itemSize+1] = properties["posY"]! + parentPosY
                 instance.data![offset + index * itemSize+2] = properties[shape.widthProperty]!
                 instance.data![offset + index * itemSize+3] = properties[shape.heightProperty]!
-                if ( shape.pointCount == 1 ) {
-                    instance.data![offset + index * itemSize+4] = properties["point_0_x"]!
-                    instance.data![offset + index * itemSize+5] = properties["point_0_y"]!
-                } else
-                    if ( shape.pointCount == 2 ) {
-                        instance.data![offset + index * itemSize+4] = properties["point_0_x"]!
-                        instance.data![offset + index * itemSize+5] = properties["point_0_y"]!
-                        instance.data![offset + index * itemSize+6] = properties["point_1_x"]!
-                        instance.data![offset + index * itemSize+7] = properties["point_1_y"]!
-                    } else
-                        if ( shape.pointCount == 3 ) {
-                            instance.data![offset + index * itemSize+4] = properties["point_0_x"]!
-                            instance.data![offset + index * itemSize+5] = properties["point_0_y"]!
-                            instance.data![offset + index * itemSize+6] = properties["point_1_x"]!
-                            instance.data![offset + index * itemSize+7] = properties["point_1_y"]!
-                            instance.data![offset + index * itemSize+8] = properties["point_2_x"]!
-                            instance.data![offset + index * itemSize+9] = properties["point_2_y"]!
-                }
-                instance.data![offset + index * itemSize+10] = (properties["rotate"]!+parentRotate) * Float.pi / 180
+
+                instance.data![offset + index * itemSize+4] = (properties["rotate"]!+parentRotate) * Float.pi / 180
                 
                 let minSize : Float = min(properties[shape.widthProperty]!,properties[shape.heightProperty]!)
                 
-                instance.data![offset + index * itemSize+11] = properties["rounding"]! * minSize
-                instance.data![offset + index * itemSize+12] = properties["annular"]! * minSize / 1.9
-                instance.data![offset + index * itemSize+13] = properties["smoothBoolean"]! * minSize
+                instance.data![offset + index * itemSize+5] = properties["rounding"]! * minSize
+                instance.data![offset + index * itemSize+6] = properties["annular"]! * minSize / 1.9
+                instance.data![offset + index * itemSize+7] = properties["smoothBoolean"]! * minSize
+                
+                for i in 0..<shape.pointCount {
+                    instance.data![instance.pointDataOffset + (pointIndex+i) * 2] = properties["point_\(i)_x"]!
+                    instance.data![instance.pointDataOffset + (pointIndex+i) * 2 + 1] = properties["point_\(i)_y"]!
+                }
                 
                 index += 1
+                pointIndex += shape.pointCount
             }
             
             for childObject in object.childObjects {
@@ -584,20 +555,19 @@ class Builder
                 
                 source += "uv = translate( tuv, float2( \(posX), \(posY) ) );\n"
                 if rotate != 0.0 {
-                    if shape.pointCount < 2 {
+                    if shape.pointCount == 0 {
                         source += "uv = rotateCCW( uv, \(rotate) );\n"
-                    } else
-                        if shape.pointCount == 2 {
-                            let offX = (transformed["point_0_x"]! + transformed["point_1_x"]!) / 2
-                            let offY = (transformed["point_0_y"]! + transformed["point_1_y"]!) / 2
-                            source += "uv = rotateCCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
-                            source += "uv += float2( \(offX), \(offY) );\n"
-                        } else
-                            if shape.pointCount == 3 {
-                                let offX = (transformed["point_0_x"]! + transformed["point_1_x"]! + transformed["point_2_x"]!) / 3
-                                let offY = (transformed["point_0_y"]! + transformed["point_1_y"]! + transformed["point_2_y"]!) / 3
-                                source += "uv = rotateCCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
-                                source += "uv += float2( \(offX), \(offY) );\n"
+                    } else {
+                        var offX : Float = 0
+                        var offY : Float = 0
+                        for i in 0..<shape.pointCount {
+                            offX += transformed["point_\(i)_x"]!
+                            offY += transformed["point_\(i)_y"]!
+                        }
+                        offX /= Float(shape.pointCount)
+                        offY /= Float(shape.pointCount)
+                        source += "uv = rotateCCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
+                        source += "uv += float2( \(offX), \(offY) );\n"
                     }
                 }
                 
@@ -714,13 +684,15 @@ class Builder
     }
     
     /// Retuns the shape count for the given objects
-    func getShapeCount(objects: [Object]) -> Int {
+    func getShapeAndPointCount(objects: [Object]) -> (Int,Int) {
         var index : Int = 0
+        var pointIndex : Int = 0
         
         func parseObject(_ object: Object)
         {
-            for _ in object.shapes {
+            for shape in object.shapes {
                 index += 1
+                pointIndex += shape.pointCount
             }
             
             for childObject in object.childObjects {
@@ -732,6 +704,6 @@ class Builder
             parseObject(object)
         }
         
-        return index
+        return (index, pointIndex)
     }
 }

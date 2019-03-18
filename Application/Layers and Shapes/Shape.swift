@@ -94,7 +94,7 @@ class Shape : Codable
         try container.encode(supportsRounding, forKey: .supportsRounding)
     }
     
-    func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil ) -> String
+    func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil, pointIndex: Int? = nil ) -> String
     {
         var code = distanceCode
         let props = transProperties != nil ? transProperties : properties
@@ -103,19 +103,19 @@ class Shape : Codable
         
         for (name,value) in props! {
             if name == widthProperty && layerIndex != nil {
-                var widthCode = "layerData->shape[\(layerIndex!)].size.x"
+                var widthCode = "layerData->shapes[\(layerIndex!)].size.x"
                 if supportsRounding {
-                    widthCode += "- layerData->shape[\(layerIndex!)].rounding"
+                    widthCode += "- layerData->shapes[\(layerIndex!)].rounding"
                 }
-                widthCode += "- layerData->shape[\(layerIndex!)].annular"
+                widthCode += "- layerData->shapes[\(layerIndex!)].annular"
                 code = code.replacingOccurrences(of: "__" + name + "__", with: widthCode)
             } else
             if name == heightProperty && layerIndex != nil {
-                var heightCode = "layerData->shape[\(layerIndex!)].size.y"
+                var heightCode = "layerData->shapes[\(layerIndex!)].size.y"
                 if supportsRounding {
-                    heightCode += "- layerData->shape[\(layerIndex!)].rounding"
+                    heightCode += "- layerData->shapes[\(layerIndex!)].rounding"
                 }
-                heightCode += "- layerData->shape[\(layerIndex!)].annular"
+                heightCode += "- layerData->shapes[\(layerIndex!)].annular"
                 code = code.replacingOccurrences(of: "__" + name + "__", with: heightCode)
             } else
             if (name == widthProperty || name == heightProperty) && transProperties != nil {
@@ -127,19 +127,12 @@ class Shape : Codable
                 widthHeightCode += "- \(transProperties!["annular"]!*minSize)"
                 code = code.replacingOccurrences(of: "__" + name + "__", with: widthHeightCode)
             } else
-            if name.starts(with: "point_") && layerIndex != nil {
+            if name.starts(with: "point_") && pointIndex != nil {
                 let index = name.index(name.startIndex, offsetBy: 6)
                 let coord = name.index(name.endIndex, offsetBy: -1)
                 
-                if name[index] == "0" && pointCount > 0 {
-                    code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].point0.\(name[coord])")
-                } else
-                if name[index] == "1" && pointCount > 1 {
-                    code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].point1.\(name[coord])")
-                } else
-                if name[index] == "2" && pointCount > 2 {
-                    code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->shape[\(layerIndex!)].point2.\(name[coord])")
-                }
+                code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->points[\(pointIndex! + Int(String(name[index]))!)].\(name[coord])")
+                print( code )
             } else {
                 code = code.replacingOccurrences(of: "__" + name + "__", with: String(value))
             }

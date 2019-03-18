@@ -996,11 +996,11 @@ class Gizmo : MMWidget
         attributes["posY"] = -objectProperties["posY"]!
         attributes["rotate"] = objectProperties["rotate"]!
 
-        var sizeMinX : Float = 10000
-        var sizeMinY : Float = 10000
+        var sizeMinX : Float = 100000
+        var sizeMinY : Float = 100000
 
-        var sizeMaxX : Float = -10000
-        var sizeMaxY : Float = -10000
+        var sizeMaxX : Float = -100000
+        var sizeMaxY : Float = -100000
         
         let selectedShapeObjects = object!.getSelectedShapes()
         if !selectedShapeObjects.isEmpty {
@@ -1037,6 +1037,21 @@ class Gizmo : MMWidget
                     let width = transformed[shape.widthProperty]!
                     let height = transformed[shape.heightProperty]!
                     
+                    var minX : Float = 100000, minY : Float = 100000, maxX : Float = -100000, maxY : Float = -100000
+                    for i in 0..<shape.pointCount {
+                        minX = min( minX, posX + transformed["point_\(i)_x"]! - width )
+                        minY = min( minY, posY - transformed["point_\(i)_y"]! - height )
+                        maxX = max( maxX, posX + transformed["point_\(i)_x"]! + width )
+                        maxY = max( maxY, posY - transformed["point_\(i)_y"]! + height )
+                    }
+                    
+                    sizeMinX = minX
+                    sizeMinY = minY
+                    sizeMaxX = maxX
+                    sizeMaxY = maxY
+            
+                    
+                    /*
                     if shape.pointCount == 2 {
                         let minX = min( posX + transformed["point_0_x"]!, posX + transformed["point_1_x"]!) - width
                         if minX < sizeMinX {
@@ -1072,7 +1087,7 @@ class Gizmo : MMWidget
                         if maxY > sizeMaxY {
                             sizeMaxY = maxY
                         }
-                    }
+                    }*/
                 }
                 
                 // ---
@@ -1081,6 +1096,12 @@ class Gizmo : MMWidget
                 attributes["posY"]! += posY
                 attributes["rotate"]! += rotate
                 
+                for i in 0..<shape.pointCount {
+                    attributes["point_\(i)_x"] = transformed["point_\(i)_x"]
+                    attributes["point_\(i)_y"] = -transformed["point_\(i)_y"]!
+                }
+                
+                /*
                 if selectedShapeObjects.count == 1 {
                     if shape.pointCount == 1 {
                         attributes["point_0_x"] = transformed["point_0_x"]
@@ -1100,7 +1121,7 @@ class Gizmo : MMWidget
                         attributes["point_2_x"] = transformed["point_2_x"]
                         attributes["point_2_y"] = -transformed["point_2_y"]!
                     }
-                }
+                }*/
             }
             
             attributes["posX"]! /= Float(selectedShapeObjects.count)

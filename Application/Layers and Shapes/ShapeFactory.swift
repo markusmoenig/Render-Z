@@ -16,6 +16,11 @@ struct ShapeDefinition
     var properties      : [String:Float] = [:]
     var widthProperty   : String = ""
     var heightProperty  : String = ""
+    
+    var pointsVariable  : Bool = false
+    var pointsMinCount  : Int = 0
+    var pointsMaxCount  : Int = 0
+
     var pointCount      : Int = 0
     var pointsScale     : Bool = false
 
