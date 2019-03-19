@@ -537,22 +537,17 @@ class Gizmo : MMWidget
                     if shape.pointCount >= 2 {
                         var offX : Float = 0
                         var offY : Float = 0
-                        if shape.pointCount == 2 {
-                            offX = (attributes["point_0_x"]! + attributes["point_1_x"]!) / 2
-                            offY = (attributes["point_0_y"]! + attributes["point_1_y"]!) / 2
-                        } else
-                        if shape.pointCount == 3 {
-                            offX = (attributes["point_0_x"]! + attributes["point_1_x"]! + attributes["point_2_x"]!) / 3
-                            offY = (attributes["point_0_y"]! + attributes["point_1_y"]! + attributes["point_2_y"]!) / 3
+                        
+                        for i in 0..<shape.pointCount {
+                            offX += attributes["point_\(i)_x"]!
+                            offY += attributes["point_\(i)_y"]!
                         }
+                        offX /= Float(shape.pointCount)
+                        offY /= Float(shape.pointCount)
+                        
                         let pX = posX + offX
                         let pY = posY + offY
                         screenSpace = convertToScreenSpace(x: pX, y: pY )
-                    
-//                        attributes["sizeMinX"]! += offX
-//                        attributes["sizeMinY"]! += offY
-//                        attributes["sizeMaxX"]! += offX
-//                        attributes["sizeMaxY"]! += offY
                     }
                     
                     // --- Test if we have to hover highlight both scale axes
@@ -781,15 +776,19 @@ class Gizmo : MMWidget
         
         if selectedShapes.count == 1 {
             for shape in selectedShapes {
-                // --- Correct the gizmo position to be between the first two points
-                if shape.pointCount == 2 {
-                    posX += (attributes["point_0_x"]! + attributes["point_1_x"]!) / 2
-                    posY += (attributes["point_0_y"]! + attributes["point_1_y"]!) / 2
-                } else
-                if shape.pointCount == 3 {
-                    posX += (attributes["point_0_x"]! + attributes["point_1_x"]! + attributes["point_2_x"]!) / 3
-                    posY += (attributes["point_0_y"]! + attributes["point_1_y"]! + attributes["point_2_y"]!) / 3
+                
+                var offX : Float = 0
+                var offY : Float = 0
+
+                for i in 0..<shape.pointCount {
+                    offX += attributes["point_\(i)_x"]!
+                    offY += attributes["point_\(i)_y"]!
                 }
+                offX /= Float(shape.pointCount)
+                offY /= Float(shape.pointCount)
+                
+                posX += offX
+                posY += offY
             }
         }
         
@@ -1069,13 +1068,16 @@ class Gizmo : MMWidget
         var attributes : [String:Float] = [:]
         
         // Transform Object Properties
+        /*
         let objectProperties : [String:Float]
         if object!.currentSequence != nil {
             let timeline = rootObject!.maxDelegate!.getTimeline()!
             objectProperties = timeline.transformProperties(sequence: object!.currentSequence!, uuid: object!.uuid, properties: object!.properties)
         } else {
             objectProperties = object!.properties
-        }
+        }*/
+        
+        let objectProperties = transformTo(object!, timeline: rootObject!.maxDelegate!.getTimeline()!)
 
         attributes["posX"] = objectProperties["posX"]!
         attributes["posY"] = -objectProperties["posY"]!
@@ -1162,6 +1164,60 @@ class Gizmo : MMWidget
         attributes["sizeMaxY"] = maxScreen.y - objectProperties["posY"]!
 
         return attributes
+    }
+    
+    /// Transforms the object properties until the given object is reached
+    func transformTo(_ object: Object, timeline: MMTimeline) -> [String:Float]
+    {
+        let rootObject = self.rootObject!
+        var finished : Bool = false
+        
+        let objectProperties = timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: rootObject.uuid, properties: rootObject.properties)
+       
+        var parentPosX : Float = objectProperties["posX"]!
+        var parentPosY : Float = objectProperties["posY"]!
+        var parentRotate : Float = objectProperties["rotate"]!
+        
+        func parseItem(_ item: Object)
+        {
+            // Transform Object Properties
+            let objectProperties = timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: item.uuid, properties: item.properties)
+            
+            parentPosX += objectProperties["posX"]!
+            parentPosY += objectProperties["posY"]!
+            parentRotate += objectProperties["rotate"]!
+            
+            if item === object {
+                finished = true
+                return
+            }
+            
+            for childItem in item.childObjects {
+                if finished {
+                    return
+                }
+                parseItem(childItem)
+            }
+            
+            parentPosX -= objectProperties["posX"]!
+            parentPosY -= objectProperties["posY"]!
+            parentRotate -= objectProperties["rotate"]!
+        }
+        
+        for item in rootObject.childObjects {
+            if !finished {
+                parseItem(item)
+            }
+        }
+        
+        var properties : [String:Float] = [:]
+        properties["posX"] = parentPosX
+        properties["posY"] = parentPosY
+        properties["rotate"] = parentRotate
+        
+        //print( properties )
+        
+        return properties
     }
 }
 
