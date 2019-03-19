@@ -413,10 +413,10 @@ class Builder
 
                 instance.data![offset + index * itemSize+4] = (properties["rotate"]!+parentRotate) * Float.pi / 180
                 
-                let minSize : Float = min(properties[shape.widthProperty]!,properties[shape.heightProperty]!)
+                let minSize : Float = min(shape.properties["sizeX"]!,shape.properties["sizeY"]!)
                 
-                instance.data![offset + index * itemSize+5] = properties["rounding"]! * minSize
-                instance.data![offset + index * itemSize+6] = properties["annular"]! * minSize / 1.9
+                instance.data![offset + index * itemSize+5] = properties["rounding"]! * minSize / 2
+                instance.data![offset + index * itemSize+6] = properties["annular"]! * minSize / 3.5
                 instance.data![offset + index * itemSize+7] = properties["smoothBoolean"]! * minSize
                 
                 for i in 0..<shape.pointCount {
@@ -580,15 +580,15 @@ class Builder
                 }
                 source += "newDist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformed, shapeIndex: totalShapeIndex) + ";\n"
                 
-                let minSize : Float = min(transformed[shape.widthProperty]!,transformed[shape.heightProperty]!)
+                let minSize : Float = min(shape.properties["sizeX"]!,shape.properties["sizeY"]!)
                 
                 if shape.supportsRounding {
-                    source += "newDist -= \(transformed["rounding"]!*minSize);\n"
+                    source += "newDist -= \(transformed["rounding"]!*minSize/2);\n"
                 }
                 
                 // --- Annular
                 if transformed["annular"]! != 0 {
-                    source += "newDist = abs(newDist) - \(transformed["annular"]!*minSize / 1.9);\n"
+                    source += "newDist = abs(newDist) - \(transformed["annular"]!*minSize / 3.5);\n"
                 }
 
                 // --- Inverse

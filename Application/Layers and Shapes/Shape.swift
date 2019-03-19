@@ -32,7 +32,7 @@ class Shape : Codable
     var pointCount      : Int = 0
     var pointsScale     : Bool = false
     var supportsRounding: Bool = false
-
+    
     private enum CodingKeys: String, CodingKey {
         case name
         case mode
@@ -65,7 +65,6 @@ class Shape : Codable
         properties["annular"] = 0
     }
     
-
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -158,15 +157,17 @@ class Shape : Codable
         return code
     }
     
-    ///
-    func createPointsVariableCode(shapeIndex: Int, transProperties: [String:Float]? = nil, pointIndex: Int? = nil) -> String
+    /// Create the code for a shape with variable points
+    func createPointsVariableCode(shapeIndex: Int, transProperties: [String:Float]? = nil, pointIndex: Int? = nil, maxPoints: Int? = nil) -> String
     {
         var result = ""
         let props = transProperties != nil ? transProperties : properties
         let varName = name+String(shapeIndex)
 
-        result += "float2 \(varName)[\(pointCount)];\n"
-        for i in 0..<pointCount {
+        let points : Int = maxPoints != nil ? maxPoints! : pointCount
+        
+        result += "float2 \(varName)[\(points)];\n"
+        for i in 0..<points {
             if pointIndex == nil {
                 result += "\(varName)[\(i)].x = \(props!["point_\(i)_x"]!);\n"
                 result += "\(varName)[\(i)].y = \(props!["point_\(i)_y"]!);\n"
@@ -177,23 +178,34 @@ class Shape : Codable
         return result
     }
     
-    func getCurrentSize(_ transformed: [String:Float]) -> float2
+    /// Updates the untransformed size of the shape
+    func updateSize()
     {
-        var size : float2 =  float2()
-
-        size.x = transformed[widthProperty]! * 2
-        size.y = transformed[heightProperty]! * 2
+        var size = float2(0)
         
-        if pointCount >= 2 {
-            let x0 = abs( transformed["point_0_x"]! )
-            let y0 = abs( transformed["point_0_y"]! )
-            let x1 = abs( transformed["point_1_x"]! )
-            let y1 = abs( transformed["point_1_y"]! )
+        if pointCount == 0 {
+            size.x = properties[widthProperty]! * 2
+            size.y = properties[heightProperty]! * 2
+        } else {
             
-            size.x += max(x0, x1)
-            size.y += max(y0, y1)
+            let posX = properties["posX"]!
+            let posY = -properties["posY"]!
+            
+            let width = properties[widthProperty]!
+            let height = properties[heightProperty]!
+            
+            var minX : Float = 100000, minY : Float = 100000, maxX : Float = -100000, maxY : Float = -100000
+            for i in 0..<pointCount {
+                minX = min( minX, posX + properties["point_\(i)_x"]! - width )
+                minY = min( minY, posY - properties["point_\(i)_y"]! - height )
+                maxX = max( maxX, posX + properties["point_\(i)_x"]! + width )
+                maxY = max( maxY, posY - properties["point_\(i)_y"]! + height )
+            }
+            
+            size.x = maxX - minX
+            size.y = maxY - minY
         }
-        
-        return size
+        properties["sizeX"] = size.x
+        properties["sizeY"] = size.y
     }
 }

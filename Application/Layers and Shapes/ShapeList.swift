@@ -159,7 +159,7 @@ class ShapeList
             source += "uv -= float2( -128., 0. );\n"
             
             if shape.pointsVariable {
-                source += shape.createPointsVariableCode(shapeIndex: index, transProperties: transformPropertySize(shape: shape, size: 12))
+                source += shape.createPointsVariableCode(shapeIndex: index, transProperties: transformPropertySize(shape: shape, size: 12), maxPoints: 3)
             }
             source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12), shapeIndex: index) + ";"
             

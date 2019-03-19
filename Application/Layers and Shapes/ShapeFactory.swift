@@ -401,6 +401,7 @@ class ShapeFactory
                 }
             }
         }
+        shape.updateSize()
         
         return shape
     }

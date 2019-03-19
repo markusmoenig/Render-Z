@@ -25,6 +25,7 @@ class MMView : MMBaseView {
     var drawBox         : MMDrawBox!
     var drawBoxGradient : MMDrawBoxGradient!
     var drawBoxedMenu   : MMDrawBoxedMenu!
+    var drawBoxedShape  : MMDrawBoxedShape!
     var drawTexture     : MMDrawTexture!
     var drawText        : MMDrawText!
     var drawCustomState : MMDrawCustomState!
@@ -91,6 +92,7 @@ class MMView : MMBaseView {
         drawBox = MMDrawBox( renderer )
         drawBoxGradient = MMDrawBoxGradient( renderer )
         drawBoxedMenu = MMDrawBoxedMenu( renderer )
+        drawBoxedShape = MMDrawBoxedShape( renderer )
         drawTexture = MMDrawTexture( renderer )
         drawText = MMDrawText( renderer )
         drawCustomState = MMDrawCustomState( renderer )

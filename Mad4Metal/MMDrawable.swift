@@ -219,6 +219,56 @@ class MMDrawBoxedMenu : MMDrawable
     }
 }
 
+/// Draws a box with three lines inside representing a menu
+class MMDrawBoxedShape : MMDrawable
+{
+    let mmRenderer  : MMRenderer
+    var state       : MTLRenderPipelineState!
+    var minusState  : MTLRenderPipelineState!
+
+    enum Shape {
+        case Plus, Minus
+    }
+    
+    required init( _ renderer : MMRenderer )
+    {
+        var function = renderer.defaultLibrary.makeFunction( name: "m4mBoxedPlusDrawable" )
+        state = renderer.createNewPipelineState( function! )
+        function = renderer.defaultLibrary.makeFunction( name: "m4mBoxedMinusDrawable" )
+        minusState = renderer.createNewPipelineState( function! )
+        mmRenderer = renderer
+    }
+    
+    func draw( x: Float, y: Float, width: Float, height: Float, round: Float, borderSize: Float, fillColor: float4, borderColor: float4, shape: Shape )
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        let settings: [Float] = [
+            width * scaleFactor, height * scaleFactor,
+            round, borderSize * scaleFactor,
+            fillColor.x, fillColor.y, fillColor.z, fillColor.w,
+            borderColor.x, borderColor.y, borderColor.z, borderColor.w
+        ];
+        
+        let renderEncoder = mmRenderer.renderEncoder!
+        
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x - borderSize / 2, y - borderSize / 2, width + borderSize, height + borderSize, scale: scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        if shape == .Plus {
+            renderEncoder.setRenderPipelineState( state! )
+        } else
+        if shape == .Minus {
+            renderEncoder.setRenderPipelineState( minusState! )
+        }
+        
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+}
+
 /// Draws a texture
 class MMDrawTexture : MMDrawable
 {

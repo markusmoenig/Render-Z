@@ -17,7 +17,7 @@ class Gizmo : MMWidget
     }
     
     enum GizmoState : Float {
-        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked
+        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked, AddPoint, RemovePoint
     }
     
     enum GizmoContext : Float {
@@ -52,6 +52,10 @@ class Gizmo : MMWidget
 
     var gizmoUIMenuRect : MMRect = MMRect()
     var gizmoUIOpen     : Bool = false
+    
+    var gizmoPtPlusRect : MMRect = MMRect()
+    var gizmoPtMinusRect: MMRect = MMRect()
+    var gizmoPtLockRect : MMRect = MMRect()
     
     var hoverUIItem     : NodeUI?
 
@@ -165,12 +169,34 @@ class Gizmo : MMWidget
                 hoverUIItem!.mouseDown(event)
                 hoverState = .GizmoUIMouseLocked
             }
+            
+            // --- Point Controls
+            
+            if hoverState == .AddPoint {
+                let shape = object!.getSelectedShapes()[0]
+                let transformed = shape.properties//getTransformedProperties(shape)
+
+                let ptX = (transformed["point_0_x"]! + transformed["point_\(shape.pointCount-1)_x"]!) / 2
+                let ptY = (transformed["point_0_y"]! + transformed["point_\(shape.pointCount-1)_y"]!) / 2
+                
+                shape.properties["point_\(shape.pointCount)_x"] = ptX
+                shape.properties["point_\(shape.pointCount)_y"] = ptY
+                shape.pointCount += 1
+                
+                rootObject!.maxDelegate!.update(true)
+            } else
+            if hoverState == .RemovePoint {
+                let shape = object!.getSelectedShapes()[0]
+                if shape.pointCount > 3 {
+                    shape.pointCount -= 1
+                    rootObject!.maxDelegate!.update(true)
+                }
+            }
         } else {
             updatePointHoverState(editorRect: rect, event: event)
         }
 //        #endif
     
-        
         if hoverState == .Inactive && object != nil && context == .ShapeEditor {
             // --- Check if a point was clicked (including the center point for the normal gizmo)
             
@@ -259,6 +285,11 @@ class Gizmo : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        let selectedShapes = object!.getSelectedShapes()
+        for shape in selectedShapes {
+            shape.updateSize()
+        }
+
         if hoverState == .GizmoUIMouseLocked {
             hoverUIItem!.mouseUp(event)
         }
@@ -382,7 +413,6 @@ class Gizmo : MMWidget
                         propName : value,
                         ]
                     processGizmoProperties(properties, shape: shape)
-                    print(properties)
                 }
             } else
             if dragState == .yAxisScale {
@@ -396,8 +426,6 @@ class Gizmo : MMWidget
                         propName : value,
                         ]
                     processGizmoProperties(properties, shape: shape)
-                    print(properties)
-
                 }
             } else
             if dragState == .Rotate {
@@ -538,7 +566,7 @@ class Gizmo : MMWidget
             
             // --- Render Bound Box
             
-            let margin : Float = 50
+            let margin : Float = 70
             gizmoRect.x = attributes["sizeMinX"]! - margin
             gizmoRect.y = attributes["sizeMinY"]! - margin
             gizmoRect.width = attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2 * margin
@@ -546,6 +574,44 @@ class Gizmo : MMWidget
             
             mmView.drawBox.draw(x: gizmoRect.x, y: gizmoRect.y, width: gizmoRect.width, height: gizmoRect.height, round: 0, borderSize: 2, fillColor: float4(0), borderColor: float4(0.5, 0.5, 0.5, 1))
             
+            // --- Render Point Buttons
+            
+            if selectedShapes.count == 1 && selectedShapes[0].pointsVariable {
+                // + / - Buttons
+                
+                gizmoPtPlusRect.width = 30
+                gizmoPtPlusRect.height = 28
+                
+                gizmoPtPlusRect.x = gizmoRect.x + 5
+                gizmoPtPlusRect.y = gizmoRect.y + 6
+
+                let skin = mmView.skin.MenuWidget
+
+                var fColor : float4
+                if hoverState == .AddPoint {
+                    fColor = skin.button.hoverColor
+                } else {
+                    fColor = skin.button.color
+                }
+                
+                mmView.drawBoxedShape.draw(x: gizmoPtPlusRect.x, y: gizmoPtPlusRect.y, width: gizmoPtPlusRect.width, height: gizmoPtPlusRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(0), shape: .Plus)
+                
+                // -
+                gizmoPtMinusRect.width = 30
+                gizmoPtMinusRect.height = 28
+                
+                gizmoPtMinusRect.x = gizmoPtPlusRect.x + gizmoPtPlusRect.width + 1
+                gizmoPtMinusRect.y = gizmoRect.y + 6
+                
+                if hoverState == .RemovePoint {
+                    fColor = skin.button.hoverColor
+                } else {
+                    fColor = skin.button.color
+                }
+                
+                mmView.drawBoxedShape.draw(x: gizmoPtMinusRect.x, y: gizmoPtMinusRect.y, width: gizmoPtMinusRect.width, height: gizmoPtMinusRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(0), shape: .Minus)
+            }
+
             // --- Render Menu
             if gizmoNode.uiItems.count > 0 {
                 let skin = mmView.skin.MenuWidget
@@ -663,6 +729,9 @@ class Gizmo : MMWidget
         hoverState = .Inactive
         if object == nil { return }
         
+        let selectedShapes = object!.getSelectedShapes()
+
+        // --- UI
         if gizmoNode.uiItems.count > 0 {
             if gizmoUIMenuRect.contains(event.x, event.y) {
                 hoverState = .GizmoUIMenu
@@ -691,12 +760,25 @@ class Gizmo : MMWidget
                 }
             }
         }
+        
+        // --- Point Controls
 
+        if selectedShapes.count == 1 && selectedShapes[0].pointsVariable {
+            if gizmoPtPlusRect.contains(event.x, event.y) {
+                hoverState = .AddPoint
+                return
+            }
+            if gizmoPtMinusRect.contains(event.x, event.y) {
+                hoverState = .RemovePoint
+                return
+            }
+        }
+
+        // --- Core Gizmo
         let attributes = getCurrentGizmoAttributes()
         var posX : Float = attributes["posX"]!
         var posY : Float = attributes["posY"]!
         
-        let selectedShapes = object!.getSelectedShapes()
         if selectedShapes.count == 1 {
             for shape in selectedShapes {
                 // --- Correct the gizmo position to be between the first two points
@@ -1052,45 +1134,6 @@ class Gizmo : MMWidget
                     sizeMinY = minY
                     sizeMaxX = maxX
                     sizeMaxY = maxY
-            
-                    
-                    /*
-                    if shape.pointCount == 2 {
-                        let minX = min( posX + transformed["point_0_x"]!, posX + transformed["point_1_x"]!) - width
-                        if minX < sizeMinX {
-                            sizeMinX = minX
-                        }
-                        let minY = min( posY - transformed["point_0_y"]!, posY - transformed["point_1_y"]!) - height
-                        if minY < sizeMinY {
-                            sizeMinY = minY
-                        }
-                        let maxX = max( posX + transformed["point_0_x"]!, posX + transformed["point_1_x"]!) + width
-                        if maxX > sizeMaxX {
-                            sizeMaxX = maxX
-                        }
-                        let maxY = max( posY - transformed["point_0_y"]!, posY - transformed["point_1_y"]!) + height
-                        if maxY > sizeMaxY {
-                            sizeMaxY = maxY
-                        }
-                    } else
-                    if shape.pointCount == 3 {
-                        let minX = min( posX + transformed["point_0_x"]!, posX + transformed["point_1_x"]!, posX + transformed["point_2_x"]!) - width
-                        if minX < sizeMinX {
-                            sizeMinX = minX
-                        }
-                        let minY = min( posY - transformed["point_0_y"]!, posY - transformed["point_1_y"]!, posY - transformed["point_2_y"]!) - height
-                        if minY < sizeMinY {
-                            sizeMinY = minY
-                        }
-                        let maxX = max( posX + transformed["point_0_x"]!, posX + transformed["point_1_x"]!, posX + transformed["point_2_x"]!) + width
-                        if maxX > sizeMaxX {
-                            sizeMaxX = maxX
-                        }
-                        let maxY = max( posY - transformed["point_0_y"]!, posY - transformed["point_1_y"]!, posY - transformed["point_2_y"]!) + height
-                        if maxY > sizeMaxY {
-                            sizeMaxY = maxY
-                        }
-                    }*/
                 }
                 
                 // ---
@@ -1103,28 +1146,6 @@ class Gizmo : MMWidget
                     attributes["point_\(i)_x"] = transformed["point_\(i)_x"]
                     attributes["point_\(i)_y"] = -transformed["point_\(i)_y"]!
                 }
-                
-                /*
-                if selectedShapeObjects.count == 1 {
-                    if shape.pointCount == 1 {
-                        attributes["point_0_x"] = transformed["point_0_x"]
-                        attributes["point_0_y"] = -transformed["point_0_y"]!
-                    } else
-                    if shape.pointCount == 2 {
-                        attributes["point_0_x"] = transformed["point_0_x"]
-                        attributes["point_0_y"] = -transformed["point_0_y"]!
-                        attributes["point_1_x"] = transformed["point_1_x"]
-                        attributes["point_1_y"] = -transformed["point_1_y"]!
-                    } else
-                    if shape.pointCount == 3 {
-                        attributes["point_0_x"] = transformed["point_0_x"]
-                        attributes["point_0_y"] = -transformed["point_0_y"]!
-                        attributes["point_1_x"] = transformed["point_1_x"]
-                        attributes["point_1_y"] = -transformed["point_1_y"]!
-                        attributes["point_2_x"] = transformed["point_2_x"]
-                        attributes["point_2_y"] = -transformed["point_2_y"]!
-                    }
-                }*/
             }
             
             attributes["posX"]! /= Float(selectedShapeObjects.count)
