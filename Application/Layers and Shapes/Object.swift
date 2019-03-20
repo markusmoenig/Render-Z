@@ -19,6 +19,8 @@ class Object : Node
     
     var selectedShapes  : [UUID]
     
+    var pointConnections: [ObjectPointConnection] = []
+    
     /// The render instance for this object, used for preview
     var instance        : BuilderInstance?
     
@@ -31,6 +33,7 @@ class Object : Node
         case childObjects
         case selectedShapes
         case sequences
+        case pointConnections
     }
     
     override init()
@@ -84,6 +87,7 @@ class Object : Node
         childObjects = try container.decode([Object].self, forKey: .childObjects)
         selectedShapes = try container.decode([UUID].self, forKey: .selectedShapes)        
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
+        pointConnections = try container.decode([ObjectPointConnection].self, forKey: .pointConnections)
 
         if sequences.count > 0 {
             currentSequence = sequences[0]
@@ -105,6 +109,7 @@ class Object : Node
         try container.encode(childObjects, forKey: .childObjects)
         try container.encode(selectedShapes, forKey: .selectedShapes)
         try container.encode(sequences, forKey: .sequences)
+        try container.encode(pointConnections, forKey: .pointConnections)
 
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
@@ -170,6 +175,22 @@ class Object : Node
             }
         }
 
+        return result
+    }
+    
+    /// Returns the connections for the given point, 0 will contain the connection for which this point is the master (if any) and 1 will contain the connection for which this connection is the slave. A point can be the master of many points but can only be the slave of one.
+    func getPointConnections(shape: Shape, index: Int) -> (ObjectPointConnection?, ObjectPointConnection?)
+    {
+        var result : (ObjectPointConnection?, ObjectPointConnection?) = (nil,nil)
+        
+        for pt in pointConnections {
+            if pt.fromShape == shape.uuid && pt.fromIndex == index {
+                result.0 = pt
+            }
+            if pt.toShapes[shape.uuid] != nil && pt.toShapes[shape.uuid]! == index {
+                result.1 = pt
+            }
+        }
         return result
     }
     
@@ -266,5 +287,37 @@ class ObjectTree : ObjectTreeItem
             rows.append(row)
             row = parseRow(row)
         }
+    }
+}
+
+/// Stores a connection between two points in different shapes
+class ObjectPointConnection : Codable
+{
+    var fromShape   : UUID
+    var fromIndex   : Int
+    
+    var toShapes    : [UUID:Int] = [:]
+    
+    //var toShape     : UUID
+    //var toIndex     : Int
+    
+    // Builder can store values here for rendering speedup
+    var valueX      : Float = 0
+    var valueY      : Float = 0
+
+    private enum CodingKeys: String, CodingKey {
+        case fromShape
+        case fromIndex
+        case toShapes
+    }
+    
+    init(fromShape: UUID, fromIndex: Int, toShape: UUID, toIndex: Int)
+    {
+        self.fromShape = fromShape
+        self.fromIndex = fromIndex
+        //self.toShape = toShape
+        //self.toIndex = toIndex
+        
+        toShapes[toShape] = toIndex
     }
 }

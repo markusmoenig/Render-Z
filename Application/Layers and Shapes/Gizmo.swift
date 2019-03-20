@@ -213,6 +213,10 @@ class Gizmo : MMWidget
                     
                     for index in 0..<shape.pointCount {
                         
+                        // --- If the pt is being controlled by another pt it cannot be moved manually
+                        let ptConn = object!.getPointConnections(shape: shape, index: index)
+                        if ptConn.1 != nil { continue }
+                        
                         let pX = posX + attributes["point_\(index)_x"]!
                         let pY = posY + attributes["point_\(index)_y"]!
                         
@@ -300,7 +304,51 @@ class Gizmo : MMWidget
         if hoverState != .CenterMove {
             hoverState = .Inactive
         }
+    
         dragState = .Inactive
+
+        /// After dragging a point, check if it overlaps with any point in a previous shape
+        /// If yes, connect them
+        if mode == .Point {
+            //pointShape = shape
+            //pointIndex = index
+            let shapeTransformed = getTransformedProperties(pointShape!)
+            let x = shapeTransformed["posX"]! + pointShape!.properties["point_\(pointIndex)_x"]!
+            let y = shapeTransformed["posY"]! + pointShape!.properties["point_\(pointIndex)_y"]!
+            
+            for shape in object!.shapes {
+                if shape === pointShape { break }
+                let transformed = getTransformedProperties(shape)
+                
+                for i in 0..<shape.pointCount {
+                    let pX = transformed["posX"]! + shape.properties["point_\(i)_x"]!
+                    let pY = transformed["posY"]! + shape.properties["point_\(i)_y"]!
+                    
+                    if abs(x - pX) < 10 && abs(y - pY) < 10 {
+                        //let conn = ObjectPointConnection(fromShape: shape.uuid, fromIndex: i, toShape: pointShape!.uuid, toIndex: pointIndex)
+                        
+                        // Connections of the source point
+                        let sourceConnections = object!.getPointConnections(shape: shape, index: i)
+                        
+                        // Connections of the dest point
+                        let destConnections = object!.getPointConnections(shape: pointShape!, index: pointIndex)
+                        
+                        // Make sure that the dest point is not already a destination
+                        if destConnections.1 == nil {
+                            var conn : ObjectPointConnection? = sourceConnections.0
+                            
+                            if conn == nil {
+                                conn = ObjectPointConnection(fromShape: shape.uuid, fromIndex: i, toShape: pointShape!.uuid, toIndex: pointIndex)
+                                object!.pointConnections.append(conn!)
+                            }
+                            
+                            mode = .Normal
+                            break
+                        }
+                    }
+                }
+            }
+        }
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
@@ -529,12 +577,20 @@ class Gizmo : MMWidget
                             pFillColor = temp
                         }
                         #endif
+                        
+                        let ptConn = object!.getPointConnections(shape: shape, index: index)
+                        
+                        if ptConn.1 != nil {
+                            /// Point is linked to a previous point
+                            pFillColor = float4(0,0,0,1)
+                            pBorderColor = pFillColor
+                        }
 
                         mmView.drawSphere.draw(x: pointInScreen.x - radius, y: pointInScreen.y - radius, radius: radius, borderSize: 3, fillColor: pFillColor, borderColor: pBorderColor)
                     }
                     
                     // --- Correct the gizmo position to be between the points
-                    if shape.pointCount >= 2 {
+                    if shape.pointCount > 0 {
                         var offX : Float = 0
                         var offY : Float = 0
                         
@@ -694,6 +750,14 @@ class Gizmo : MMWidget
                     }
                     #endif
                     
+                    let ptConn = object!.getPointConnections(shape: shape, index: index).0
+                    
+                    if ptConn != nil {
+                        /// Point is linked to a previous point
+                        pFillColor = float4(0,0,0,1)
+                        pBorderColor = pFillColor
+                    }
+                    
                     mmView.drawSphere.draw(x: pointInScreen.x - radius, y: pointInScreen.y - radius, radius: radius, borderSize: 3, fillColor: pFillColor, borderColor: pBorderColor)
                 }
             }
@@ -776,19 +840,21 @@ class Gizmo : MMWidget
         
         if selectedShapes.count == 1 {
             for shape in selectedShapes {
-                
-                var offX : Float = 0
-                var offY : Float = 0
 
-                for i in 0..<shape.pointCount {
-                    offX += attributes["point_\(i)_x"]!
-                    offY += attributes["point_\(i)_y"]!
+                if shape.pointCount > 0 {
+                    var offX : Float = 0
+                    var offY : Float = 0
+
+                    for i in 0..<shape.pointCount {
+                        offX += attributes["point_\(i)_x"]!
+                        offY += attributes["point_\(i)_y"]!
+                    }
+                    offX /= Float(shape.pointCount)
+                    offY /= Float(shape.pointCount)
+                    
+                    posX += offX
+                    posY += offY
                 }
-                offX /= Float(shape.pointCount)
-                offY /= Float(shape.pointCount)
-                
-                posX += offX
-                posY += offY
             }
         }
         
@@ -800,7 +866,7 @@ class Gizmo : MMWidget
         gizmoRect.y = gizmoCenter.y - height / 2
         gizmoRect.width = width
         gizmoRect.height = height
-        
+
         if gizmoRect.contains( event.x, event.y ) {
         
             func sdTriangleIsosceles(_ uv : float2, q : float2) -> Float
@@ -1221,6 +1287,7 @@ class Gizmo : MMWidget
     }
 }
 
+/// Used to make the Gizmo act as a Node for the UI
 class GizmoNode : Node
 {
     var gizmo       : Gizmo?
@@ -1248,3 +1315,39 @@ class GizmoNode : Node
          gizmo!.rootObject!.maxDelegate!.update(false)
     }
 }
+/*
+/// Represents a shape point
+class GizmoShapePoints
+{
+    var shape       : Shape
+    var shapeIndex  : Int
+    var points      : [float2] = []
+    
+    init(shape: Shape, shapeIndex: Int)
+    {
+        self.shape = shape
+        self.shapeIndex = shapeIndex
+    }
+}
+
+class GizmoPointHelper
+{
+    var shapePoints : [GizmoShapePoints] = []
+    
+    init(_ object: Object, transProperties: [String:Float])
+    {
+        let posX = transProperties["posX"]!
+        let posY = transProperties["posY"]!
+        
+        for (index,shape) in object.shapes.enumerated() {
+            if shape.pointCount > 0 {
+                let shapePoints = GizmoShapePoints(shape: shape, shapeIndex: index)
+                
+                for i in 0..<shape.pointCount {
+                    let x : Float = posX + shape.prop
+                }
+            }
+        }
+    }
+}
+*/

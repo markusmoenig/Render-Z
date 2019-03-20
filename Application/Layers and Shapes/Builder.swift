@@ -420,8 +420,25 @@ class Builder
                 instance.data![offset + index * itemSize+7] = properties["smoothBoolean"]! * minSize
                 
                 for i in 0..<shape.pointCount {
-                    instance.data![instance.pointDataOffset + (pointIndex+i) * 2] = properties["point_\(i)_x"]!
-                    instance.data![instance.pointDataOffset + (pointIndex+i) * 2 + 1] = properties["point_\(i)_y"]!
+                    let ptConn = object.getPointConnections(shape: shape, index: i)
+
+                    if ptConn.1 == nil {
+                        // The point controls itself
+                        instance.data![instance.pointDataOffset + (pointIndex+i) * 2] = properties["point_\(i)_x"]!
+                        instance.data![instance.pointDataOffset + (pointIndex+i) * 2 + 1] = properties["point_\(i)_y"]!
+                    }
+                    
+                    if ptConn.0 != nil {
+                        // The point controls other point(s)
+                        ptConn.0!.valueX = properties["posX"]! + parentPosX + properties["point_\(i)_x"]!
+                        ptConn.0!.valueY = properties["posY"]! + parentPosY + properties["point_\(i)_y"]!
+                    }
+                    
+                    if ptConn.1 != nil {
+                        // The point is being controlled by another point
+                        instance.data![instance.pointDataOffset + (pointIndex+i) * 2] = ptConn.1!.valueX - properties["posX"]! - parentPosX
+                        instance.data![instance.pointDataOffset + (pointIndex+i) * 2 + 1] = ptConn.1!.valueY - properties["posY"]! - parentPosY
+                    }
                 }
                 
                 index += 1
