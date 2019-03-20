@@ -74,7 +74,7 @@ class Shape : Codable
         properties = try container.decode([String: Float].self, forKey: .properties)
         distanceCode = try container.decode(String.self, forKey: .distanceCode)
         globalCode = try container.decode(String.self, forKey: .globalCode)
-        dynamicCode = try container.decode(String.self, forKey: .dynamicCode)
+        dynamicCode = try container.decode(String?.self, forKey: .dynamicCode)
         widthProperty = try container.decode(String.self, forKey: .widthProperty)
         heightProperty = try container.decode(String.self, forKey: .heightProperty)
         pointsVariable = try container.decode(Bool.self, forKey: .pointsVariable)

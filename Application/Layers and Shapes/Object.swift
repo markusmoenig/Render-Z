@@ -194,6 +194,21 @@ class Object : Node
         return result
     }
     
+    /// Removes the given slave point connection
+    @discardableResult func removePointConnection(toShape: Shape, toIndex: Int) -> Bool
+    {
+        var success = false
+        
+        let conn = getPointConnections(shape: toShape, index: toIndex)
+        if conn.1 != nil {
+            let pt = conn.1!
+            
+            pt.toShapes.removeValue(forKey: toShape.uuid)
+            success = true
+        }
+        return success
+    }
+    
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
         let width : Float = 200
@@ -298,9 +313,6 @@ class ObjectPointConnection : Codable
     
     var toShapes    : [UUID:Int] = [:]
     
-    //var toShape     : UUID
-    //var toIndex     : Int
-    
     // Builder can store values here for rendering speedup
     var valueX      : Float = 0
     var valueY      : Float = 0
@@ -315,8 +327,6 @@ class ObjectPointConnection : Codable
     {
         self.fromShape = fromShape
         self.fromIndex = fromIndex
-        //self.toShape = toShape
-        //self.toIndex = toIndex
         
         toShapes[toShape] = toIndex
     }

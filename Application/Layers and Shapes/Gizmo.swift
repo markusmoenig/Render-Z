@@ -213,25 +213,27 @@ class Gizmo : MMWidget
                     
                     for index in 0..<shape.pointCount {
                         
-                        // --- If the pt is being controlled by another pt it cannot be moved manually
-                        let ptConn = object!.getPointConnections(shape: shape, index: index)
-                        if ptConn.1 != nil { continue }
-                        
                         let pX = posX + attributes["point_\(index)_x"]!
                         let pY = posY + attributes["point_\(index)_y"]!
                         
                         let pointInScreen = convertToScreenSpace(x: pX, y: pY)
                         
                         let radius : Float = 10
-                        #if os(OSX)
                         let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
                         if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
-                            pointShape = shape
-                            pointIndex = index
-                            mode = .Point
-                            hoverState = .CenterMove
+        
+                            let ptConn = object!.getPointConnections(shape: shape, index: index)
+                            if ptConn.1 != nil {
+                                // If point is a slave remove the connection
+                                object!.removePointConnection(toShape: shape, toIndex: index)
+                            } else {
+                                // If point controls himself enter point gizmo
+                                pointShape = shape
+                                pointIndex = index
+                                mode = .Point
+                                hoverState = .CenterMove
+                            }
                         }
-                        #endif
                     }
                 }
             }
@@ -340,6 +342,8 @@ class Gizmo : MMWidget
                             if conn == nil {
                                 conn = ObjectPointConnection(fromShape: shape.uuid, fromIndex: i, toShape: pointShape!.uuid, toIndex: pointIndex)
                                 object!.pointConnections.append(conn!)
+                            } else {
+                                conn!.toShapes[pointShape!.uuid] = pointIndex
                             }
                             
                             mode = .Normal
