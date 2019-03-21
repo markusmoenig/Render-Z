@@ -569,11 +569,29 @@ class Builder
             
             for (shapeIndex, shape) in object.shapes.enumerated() {
                 
-                let transformed = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: frame)
+                var transformed = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: frame)
                 let posX : Float = parentPosX + transformed["posX"]!
                 let posY : Float = parentPosY + transformed["posY"]!
                 let rotate : Float = (parentRotate + transformed["rotate"]!) * Float.pi / 180
                 
+                // --- Correct slave point positions
+                for i in 0..<shape.pointCount {
+                    let ptConn = object.getPointConnections(shape: shape, index: i)
+                    
+                    if ptConn.0 != nil {
+                        // The point controls other point(s)
+                        ptConn.0!.valueX = transformed["point_\(i)_x"]! + posX
+                        ptConn.0!.valueY = transformed["point_\(i)_y"]! + posY
+                    }
+                    
+                    if ptConn.1 != nil {
+                        // The point is being controlled by another point
+                        transformed["point_\(i)_x"] = ptConn.1!.valueX - posX
+                        transformed["point_\(i)_y"] = ptConn.1!.valueY - posY
+                    }
+                }
+                
+                // --- Rotate
                 source += "uv = translate( tuv, float2( \(posX), \(posY) ) );\n"
                 if rotate != 0.0 {
                     if shape.pointCount == 0 {

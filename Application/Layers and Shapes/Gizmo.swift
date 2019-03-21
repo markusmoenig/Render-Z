@@ -213,21 +213,33 @@ class Gizmo : MMWidget
                     
                     for index in 0..<shape.pointCount {
                         
-                        let pX = posX + attributes["point_\(index)_x"]!
-                        let pY = posY + attributes["point_\(index)_y"]!
+                        var pX = posX + attributes["point_\(index)_x"]!
+                        var pY = posY + attributes["point_\(index)_y"]!
+                        
+                        let ptConn = object!.getPointConnections(shape: shape, index: index)
+                        
+                        if ptConn.0 != nil {
+                            // The point controls other point(s)
+                            ptConn.0!.valueX = pX
+                            ptConn.0!.valueY = pY
+                        }
+                        
+                        if ptConn.1 != nil {
+                            // The point is being controlled by another point
+                            pX = ptConn.1!.valueX
+                            pY = -ptConn.1!.valueY
+                        }
                         
                         let pointInScreen = convertToScreenSpace(x: pX, y: pY)
                         
                         let radius : Float = 10
                         let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
                         if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
-        
-                            let ptConn = object!.getPointConnections(shape: shape, index: index)
                             if ptConn.1 != nil {
                                 // If point is a slave remove the connection
                                 object!.removePointConnection(toShape: shape, toIndex: index)
                             } else {
-                                // If point controls himself enter point gizmo
+                                // If point controls itself enter point gizmo
                                 pointShape = shape
                                 pointIndex = index
                                 mode = .Point
@@ -347,6 +359,7 @@ class Gizmo : MMWidget
                             }
                             
                             mode = .Normal
+                            rootObject!.maxDelegate!.update(false)
                             break
                         }
                     }
@@ -565,9 +578,23 @@ class Gizmo : MMWidget
                 for shape in selectedShapes {
                     for index in 0..<shape.pointCount {
                         
-                        let pX = posX + attributes["point_\(index)_x"]!
-                        let pY = posY + attributes["point_\(index)_y"]!
+                        var pX = posX + attributes["point_\(index)_x"]!
+                        var pY = posY + attributes["point_\(index)_y"]!
 
+                        let ptConn = object!.getPointConnections(shape: shape, index: index)
+                        
+                        if ptConn.0 != nil {
+                            // The point controls other point(s)
+                            ptConn.0!.valueX = pX
+                            ptConn.0!.valueY = pY
+                        }
+                        
+                        if ptConn.1 != nil {
+                            // The point is being controlled by another point
+                            pX = ptConn.1!.valueX
+                            pY = -ptConn.1!.valueY
+                        }
+                        
                         let pointInScreen = convertToScreenSpace(x: pX, y: pY)
 
                         var pFillColor = float4(1)
@@ -581,8 +608,6 @@ class Gizmo : MMWidget
                             pFillColor = temp
                         }
                         #endif
-                        
-                        let ptConn = object!.getPointConnections(shape: shape, index: index)
                         
                         if ptConn.1 != nil {
                             /// Point is linked to a previous point
@@ -737,8 +762,22 @@ class Gizmo : MMWidget
                         continue
                     }
                     
-                    let pX = posX + attributes["point_\(index)_x"]!
-                    let pY = posY + attributes["point_\(index)_y"]!
+                    let ptConn = object!.getPointConnections(shape: shape, index: index)
+                    
+                    var pX = posX + attributes["point_\(index)_x"]!
+                    var pY = posY + attributes["point_\(index)_y"]!
+                    
+                    if ptConn.0 != nil {
+                        // The point controls other point(s)
+                        ptConn.0!.valueX = pX
+                        ptConn.0!.valueY = pY
+                    }
+                    
+                    if ptConn.1 != nil {
+                        // The point is being controlled by another point
+                        pX = ptConn.1!.valueX
+                        pY = -ptConn.1!.valueY
+                    }
                     
                     let pointInScreen = convertToScreenSpace(x: pX, y: pY)
                     
@@ -754,9 +793,7 @@ class Gizmo : MMWidget
                     }
                     #endif
                     
-                    let ptConn = object!.getPointConnections(shape: shape, index: index).0
-                    
-                    if ptConn != nil {
+                    if ptConn.1 != nil {
                         /// Point is linked to a previous point
                         pFillColor = float4(0,0,0,1)
                         pBorderColor = pFillColor
