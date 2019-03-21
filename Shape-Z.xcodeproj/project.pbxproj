@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B46E95D2243339A0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
+		2B46E95E2243339B0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B4CC2272222260600A47812 /* Layer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2262222260600A47812 /* Layer.swift */; };
 		2B4CC2282222260600A47812 /* Layer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2262222260600A47812 /* Layer.swift */; };
 		2B4CC22A2222301300A47812 /* LayerMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */; };
@@ -119,6 +121,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2B46E95C224330050047A94A /* MMTabWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabWidget.swift; sourceTree = "<group>"; };
 		2B4CC2262222260600A47812 /* Layer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Layer.swift; sourceTree = "<group>"; };
 		2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerMaxDelegate.swift; sourceTree = "<group>"; };
 		2B4CC22C2226669000A47812 /* NodeUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeUI.swift; sourceTree = "<group>"; };
@@ -317,6 +320,7 @@
 				2BBF11B521EADB46001C94E9 /* MMUtils.swift */,
 				2BBF11B821EADB46001C94E9 /* MMFont.swift */,
 				2BBF11B921EADB46001C94E9 /* MMLabel.swift */,
+				2B46E95C224330050047A94A /* MMTabWidget.swift */,
 				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
 				2BA344AC22029FA4000BB2EB /* MMFragment.swift */,
 				2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */,
@@ -535,6 +539,7 @@
 				2BBF11C521EADB46001C94E9 /* MMRegion.swift in Sources */,
 				2BBF11CF21EADB46001C94E9 /* MMFont.swift in Sources */,
 				2BBF11F921F55D20001C94E9 /* Object.swift in Sources */,
+				2B46E95D2243339A0047A94A /* MMTabWidget.swift in Sources */,
 				2BBF11E721EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */,
 				2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
@@ -590,6 +595,7 @@
 				2BBF11C621EADB46001C94E9 /* MMRegion.swift in Sources */,
 				2BBF11D021EADB46001C94E9 /* MMFont.swift in Sources */,
 				2BBF11FA21F55D20001C94E9 /* Object.swift in Sources */,
+				2B46E95E2243339B0047A94A /* MMTabWidget.swift in Sources */,
 				2BBF11E821EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */,
 				2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */,

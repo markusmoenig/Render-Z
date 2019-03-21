@@ -34,6 +34,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     var textureWidget   : MMTextureWidget!
     var scrollArea      : ShapeScrollArea!
     var animating       : Bool = false
+    var materialsTab    : MMTabWidget!
     
     // Right Region
     var objectWidget    : ObjectWidget!
@@ -98,16 +99,26 @@ class ObjectMaxDelegate : NodeMaxDelegate {
 
         // Left Region
         if shapeSelector == nil {
+            // Shapes
             shapeSelector = ShapeSelector(app.mmView, width : 200)
             textureWidget = MMTextureWidget(app.mmView, texture: shapeSelector.fragment!.texture )
             textureWidget.zoom = 2
-            
             scrollArea = ShapeScrollArea(app.mmView, app: app, delegate:self)
+            
+            // Materials
+            materialsTab = MMTabWidget(app.mmView)
+            let materialsDecoSelector = MMWidget(app.mmView)
+            let materialsSelector = MMWidget(app.mmView)
+            materialsTab.addTab("Decorators", widget: materialsDecoSelector)
+            materialsTab.addTab("Materials", widget: materialsSelector)
         }
         
         shapesButton.addState( .Checked )
+        materialsButton.removeState( .Checked )
         app.leftRegion!.rect.width = 200
-        
+        leftRegionMode = .Closed
+        setLeftRegionMode(.Shapes)
+
         // Right Region
         if objectWidget == nil {
             objectWidget = ObjectWidget(app.mmView, app: app, delegate:self)
@@ -142,7 +153,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timelineButton.addState( .Checked )
         app.bottomRegion!.rect.height = 100
         
-        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
+        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
 
         update(true)
     }
@@ -150,7 +161,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func deactivate()
     {
         timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
+        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, materialsTab, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
+        materialsTab.deregister()
         
         currentObject!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
     }
@@ -198,7 +210,6 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 }
                 
                 if let texture = instance.texture {
-                    
                     app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
                 }
             }
@@ -219,7 +230,13 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             let leftRegion = app.leftRegion!
             if leftRegionMode != .Closed {
                 app.mmView.drawBox.draw( x: leftRegion.rect.x, y: leftRegion.rect.y, width: leftRegion.rect.width, height: leftRegion.rect.height, round: 0, borderSize: 0,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
-                scrollArea.build(widget: textureWidget, area: leftRegion.rect, xOffset:(leftRegion.rect.width - 200))
+                if leftRegionMode == .Shapes {
+                    scrollArea.build(widget: textureWidget, area: leftRegion.rect, xOffset:(leftRegion.rect.width - 200))
+                } else
+                if leftRegionMode == .Materials {
+                    materialsTab.rect.copy(leftRegion.rect)
+                    materialsTab.draw(xOffset: leftRegion.rect.width - 200)
+                }
             } else {
                 leftRegion.rect.width = 0
             }
@@ -338,6 +355,18 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     /// Controls the tab mode in the left region
     func setLeftRegionMode(_ mode: LeftRegionMode )
     {
+        if mode == .Closed {
+            app.mmView.deregisterWidgets( widgets: scrollArea, materialsTab)
+        } else
+        if mode == .Shapes {
+            app.mmView.deregisterWidgets( widgets: materialsTab)
+            app.mmView.registerWidgets( widgets: scrollArea)
+        } else
+        if mode == .Materials {
+            app.mmView.deregisterWidgets( widgets: scrollArea)
+            app.mmView.registerWidgets( widgets: materialsTab)
+        }
+        
         if animating { return }
         let leftRegion = app.leftRegion!
         if self.leftRegionMode == mode && leftRegionMode != .Closed {
