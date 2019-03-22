@@ -241,9 +241,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 if leftRegionMode == .Shapes {
                     shapeScrollArea.build(widget: shapeTexture, area: leftRegion.rect, xOffset:(leftRegion.rect.width - 200))
                 } else
-                if leftRegionMode == .Materials {
-                    
-                    decoScrollArea.xOffset = leftRegion.rect.width - 200
+                if leftRegionMode == .Materials {                    
                     materialsTab.rect.copy(leftRegion.rect)
                     materialsTab.draw(xOffset: leftRegion.rect.width - 200)
                 }
@@ -741,7 +739,7 @@ class ObjectWidget : MMWidget
         super.init(view)
     }
     
-    override func draw()
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
@@ -859,7 +857,7 @@ class ShapeListScrollArea: MMScrollArea
         dragSource = nil
     }
     
-    override func draw()
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height + 1, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
     }
@@ -943,7 +941,7 @@ class SequenceWidget : MMWidget
         return nil
     }
     
-    override func draw()
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         

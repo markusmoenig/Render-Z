@@ -231,13 +231,7 @@ class MMListWidget : MMWidget
         }
     }
     
-    override func draw()
-    {
-        scrollArea.rect.copy(rect)
-        scrollArea.build(widget:textureWidget, area: rect)
-    }
-    
-    func drawWithXOffset(xOffset: Float)
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         scrollArea.rect.copy(rect)
         scrollArea.build(widget:textureWidget, area: rect, xOffset: xOffset)

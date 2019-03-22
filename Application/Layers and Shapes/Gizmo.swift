@@ -303,9 +303,11 @@ class Gizmo : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        let selectedShapes = object!.getSelectedShapes()
-        for shape in selectedShapes {
-            shape.updateSize()
+        if object != nil && context == .ShapeEditor {
+            let selectedShapes = object!.getSelectedShapes()
+            for shape in selectedShapes {
+                shape.updateSize()
+            }
         }
 
         if hoverState == .GizmoUIMouseLocked {
@@ -545,7 +547,7 @@ class Gizmo : MMWidget
         }
     }
     
-    override func draw()
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         if object == nil { hoverState = .Inactive; return }
         let selectedShapes = object!.getSelectedShapes()

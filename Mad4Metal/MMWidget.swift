@@ -102,7 +102,7 @@ class MMWidget
     {
     }
     
-    func draw()
+    func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
     }
     
@@ -175,7 +175,7 @@ class MMButtonWidget : MMWidget
         }
     }
     
-    override func draw()
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         let fColor : float4
         if !isDisabled {
@@ -300,7 +300,7 @@ class MMMenuWidget : MMWidget
         }
     }
     
-    override func draw()
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         let fColor : vector_float4
         if states.contains(.Hover) {
@@ -365,7 +365,7 @@ class MMTextureWidget : MMWidget
         rect.height = Float(texture!.height)
     }
     
-    override func draw()
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         mmView.drawTexture.draw(texture!, x: rect.x, y: rect.y, zoom: zoom);
     }

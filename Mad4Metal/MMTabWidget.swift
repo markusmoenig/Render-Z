@@ -104,7 +104,7 @@ class MMTabWidget: MMWidget
             item.widget!.rect.y = rect.y + headerHeight
             item.widget!.rect.width = rect.width
             item.widget!.rect.height = rect.height - headerHeight
-            item.widget!.draw()
+            item.widget!.draw(xOffset: xOffset)
         }
     }
     

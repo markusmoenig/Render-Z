@@ -100,7 +100,7 @@ class NodeList : MMWidget
         return nil
     }
     
-    override func draw()
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
 
@@ -109,7 +109,7 @@ class NodeList : MMWidget
         listWidget.rect.width = rect.width
         listWidget.rect.height = rect.height
         
-        listWidget.drawWithXOffset(xOffset: app.leftRegion!.rect.width - 200)
+        listWidget.draw(xOffset: app.leftRegion!.rect.width - 200)
     }
     
     override func mouseDown(_ event: MMMouseEvent)

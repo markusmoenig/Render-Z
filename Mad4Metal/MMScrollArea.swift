@@ -21,8 +21,6 @@ class MMScrollArea : MMWidget
     var dispatched  : Bool
     var orientation : MMScrollAreaOrientation
     
-    var xOffset     : Float = 0
-    
     var widget      : MMWidget?
 
     init(_ view: MMView, orientation: MMScrollAreaOrientation, widget: MMWidget? = nil)
@@ -103,7 +101,7 @@ class MMScrollArea : MMWidget
         }
     }
     
-    override func draw()
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         if widget != nil {
             build(widget: widget!, area: rect, xOffset: xOffset)
