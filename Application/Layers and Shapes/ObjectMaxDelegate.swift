@@ -31,10 +31,13 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     var leftRegionMode  : LeftRegionMode = .Shapes
     
     var shapeSelector   : ShapeSelector!
-    var textureWidget   : MMTextureWidget!
-    var scrollArea      : ShapeScrollArea!
+    var shapeTexture    : MMTextureWidget!
+    var shapeScrollArea : ShapeScrollArea!
     var animating       : Bool = false
     var materialsTab    : MMTabWidget!
+    var materialSelector: MaterialSelector!
+    var decoTexture     : MMTextureWidget!
+    var decoScrollArea  : DecoScrollArea!
     
     // Right Region
     var objectWidget    : ObjectWidget!
@@ -101,16 +104,21 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         if shapeSelector == nil {
             // Shapes
             shapeSelector = ShapeSelector(app.mmView, width : 200)
-            textureWidget = MMTextureWidget(app.mmView, texture: shapeSelector.fragment!.texture )
-            textureWidget.zoom = 2
-            scrollArea = ShapeScrollArea(app.mmView, app: app, delegate:self)
+            shapeTexture = MMTextureWidget(app.mmView, texture: shapeSelector.fragment!.texture )
+            shapeTexture.zoom = 2
+            shapeScrollArea = ShapeScrollArea(app.mmView, app: app, delegate:self)
             
             // Materials
+            
+            materialSelector = MaterialSelector(app.mmView, width : 200)
+            decoTexture = MMTextureWidget(app.mmView, texture: materialSelector.fragment!.texture )
+            decoTexture.zoom = 2
+            decoScrollArea = DecoScrollArea(app.mmView, app: app, delegate:self)
+            
             materialsTab = MMTabWidget(app.mmView)
-            let materialsDecoSelector = MMWidget(app.mmView)
             let materialsSelector = MMWidget(app.mmView)
-            materialsTab.addTab("Decorators", widget: materialsDecoSelector)
-            materialsTab.addTab("Materials", widget: materialsSelector)
+            materialsTab.addTab("Decorators", widget: decoScrollArea)
+            materialsTab.addTab("Patterns", widget: materialsSelector)
         }
         
         shapesButton.addState( .Checked )
@@ -161,7 +169,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func deactivate()
     {
         timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, materialsTab, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
+        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
         materialsTab.deregister()
         
         currentObject!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
@@ -231,7 +239,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             if leftRegionMode != .Closed {
                 app.mmView.drawBox.draw( x: leftRegion.rect.x, y: leftRegion.rect.y, width: leftRegion.rect.width, height: leftRegion.rect.height, round: 0, borderSize: 0,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
                 if leftRegionMode == .Shapes {
-                    scrollArea.build(widget: textureWidget, area: leftRegion.rect, xOffset:(leftRegion.rect.width - 200))
+                    shapeScrollArea.build(widget: shapeTexture, area: leftRegion.rect, xOffset:(leftRegion.rect.width - 200))
                 } else
                 if leftRegionMode == .Materials {
                     materialsTab.rect.copy(leftRegion.rect)
@@ -356,14 +364,14 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     func setLeftRegionMode(_ mode: LeftRegionMode )
     {
         if mode == .Closed {
-            app.mmView.deregisterWidgets( widgets: scrollArea, materialsTab)
+            app.mmView.deregisterWidgets( widgets: shapeScrollArea, materialsTab)
         } else
         if mode == .Shapes {
             app.mmView.deregisterWidgets( widgets: materialsTab)
-            app.mmView.registerWidgets( widgets: scrollArea)
+            app.mmView.registerWidgets( widgets: shapeScrollArea)
         } else
         if mode == .Materials {
-            app.mmView.deregisterWidgets( widgets: scrollArea)
+            app.mmView.deregisterWidgets( widgets: shapeScrollArea)
             app.mmView.registerWidgets( widgets: materialsTab)
         }
         
@@ -466,7 +474,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     }
 }
 
-/// The scroll area for the shapes
+/// The scroll area for the shape selectors
 class ShapeScrollArea: MMScrollArea
 {
     var app                 : App
@@ -513,6 +521,55 @@ class ShapeScrollArea: MMScrollArea
         mouseIsDown = false
     }
 }
+
+/// The scroll area for the deco selectors
+class DecoScrollArea: MMScrollArea
+{
+    var app                 : App
+    var mouseDownPos        : float2
+    var mouseIsDown         : Bool = false
+    
+    var dragSource          : MaterialSelectorDrag? = nil
+    var shapeAtMouse        : Material?
+    
+    var delegate            : ObjectMaxDelegate!
+    
+    init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
+    {
+        self.app = app
+        self.delegate = delegate
+        
+        mouseDownPos = float2()
+        super.init(view, orientation:.Vertical)
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent) {
+        mouseDownPos.x = event.x - rect.x
+        mouseDownPos.y = event.y - rect.y - offsetY
+        mouseIsDown = true
+        shapeAtMouse = delegate.materialSelector.selectAt(mouseDownPos.x,mouseDownPos.y)
+        delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject)
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent) {
+        if mouseIsDown && dragSource == nil {
+            dragSource = delegate.materialSelector.createDragSource(mouseDownPos.x,mouseDownPos.y)
+            dragSource?.sourceWidget = self
+            mmView.dragStarted(source: dragSource!)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent) {
+        mouseIsDown = false
+    }
+    
+    override func dragTerminated() {
+        dragSource = nil
+        mmView.unlockFramerate()
+        mouseIsDown = false
+    }
+}
+
 
 /// Object List Widget
 class ObjectListWidget : MMWidget

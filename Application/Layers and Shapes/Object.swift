@@ -11,14 +11,16 @@ import MetalKit
 class Object : Node
 {
     var shapes          : [Shape]
+    var materials       : [Material]
     var childObjects    : [Object]
-
+    
     /// The timeline sequences for this object
     var sequences       : [MMTlSequence]
     var currentSequence : MMTlSequence? = nil
     
     var selectedShapes  : [UUID]
-    
+    var selectedDecorators: [UUID]
+
     var pointConnections: [ObjectPointConnection] = []
     
     /// The render instance for this object, used for preview
@@ -30,8 +32,10 @@ class Object : Node
     private enum CodingKeys: String, CodingKey {
         case type
         case shapes
+        case materials
         case childObjects
         case selectedShapes
+        case selectedDecorators
         case sequences
         case pointConnections
     }
@@ -39,8 +43,10 @@ class Object : Node
     override init()
     {
         shapes = []
+        materials = []
         childObjects = []
         selectedShapes = []
+        selectedDecorators = []
         sequences = []
         
         super.init()
@@ -59,9 +65,11 @@ class Object : Node
     init(instanceFor: Object, instanceUUID: UUID, instanceProperties: [String:Float])
     {
         self.shapes = instanceFor.shapes
+        self.materials = instanceFor.materials
         self.childObjects = instanceFor.childObjects
         self.sequences = instanceFor.sequences
         self.selectedShapes = []
+        self.selectedDecorators = []
         self.instanceOf = instanceFor.uuid
         
         super.init()
@@ -84,8 +92,10 @@ class Object : Node
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         shapes = try container.decode([Shape].self, forKey: .shapes)
+        materials = try container.decode([Material].self, forKey: .materials)
         childObjects = try container.decode([Object].self, forKey: .childObjects)
         selectedShapes = try container.decode([UUID].self, forKey: .selectedShapes)        
+        selectedDecorators = try container.decode([UUID].self, forKey: .selectedDecorators)
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
         pointConnections = try container.decode([ObjectPointConnection].self, forKey: .pointConnections)
 
@@ -106,6 +116,7 @@ class Object : Node
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(type, forKey: .type)
         try container.encode(shapes, forKey: .shapes)
+        try container.encode(materials, forKey: .materials)
         try container.encode(childObjects, forKey: .childObjects)
         try container.encode(selectedShapes, forKey: .selectedShapes)
         try container.encode(sequences, forKey: .sequences)
