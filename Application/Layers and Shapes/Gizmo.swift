@@ -1280,8 +1280,13 @@ class Gizmo : MMWidget
     {
         let rootObject = self.rootObject!
         var finished : Bool = false
-        
-        let objectProperties = timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: rootObject.uuid, properties: rootObject.properties)
+
+        let objectProperties : [String:Float]
+        if rootObject.currentSequence != nil {
+            objectProperties = timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: rootObject.uuid, properties: rootObject.properties)
+        } else {
+            objectProperties = object.properties
+        }
        
         var parentPosX : Float = objectProperties["posX"]!
         var parentPosY : Float = objectProperties["posY"]!
