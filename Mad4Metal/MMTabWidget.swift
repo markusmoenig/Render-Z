@@ -70,14 +70,14 @@ class MMTabWidget: MMWidget
         let headerHeight : Float = 25
         if items.count == 0 { return }
         
-        let itemWidth = rect.width / Float(items.count)
+        let itemWidth = (rect.width - xOffset) / Float(items.count)
         
         var xOff : Float = 0
         for item in items {
             
             item.rect.x = rect.x + xOff + xOffset
             item.rect.y = rect.y
-            item.rect.width = itemWidth + xOffset
+            item.rect.width = itemWidth// + xOffset
             item.rect.height = headerHeight
 
             let fColor : float4
@@ -100,15 +100,24 @@ class MMTabWidget: MMWidget
         }
         
         if let item = currentTab {
-            item.widget!.rect.x = rect.x + xOff + xOffset
+            item.widget!.rect.x = rect.x
             item.widget!.rect.y = rect.y + headerHeight
             item.widget!.rect.width = rect.width
-            item.widget!.rect.height = rect.width - headerHeight
+            item.widget!.rect.height = rect.height - headerHeight
+            item.widget!.draw()
+        }
+    }
+    
+    /// Registers the current widget (if any)
+    func registerWidget()
+    {
+        if currentTab != nil {
+            mmView.registerWidget(currentTab!.widget!)
         }
     }
     
     /// Deregisters the current widget (if any)
-    func deregister()
+    func deregisterWidget()
     {
         if currentTab != nil {
             mmView.deregisterWidget(currentTab!.widget!)

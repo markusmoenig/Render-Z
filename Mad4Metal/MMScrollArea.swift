@@ -20,14 +20,19 @@ class MMScrollArea : MMWidget
     
     var dispatched  : Bool
     var orientation : MMScrollAreaOrientation
+    
+    var xOffset     : Float = 0
+    
+    var widget      : MMWidget?
 
-    init(_ view: MMView, orientation: MMScrollAreaOrientation)
+    init(_ view: MMView, orientation: MMScrollAreaOrientation, widget: MMWidget? = nil)
     {
         offsetX = 0
         offsetY = 0
         offsetZ = 0
         dispatched = false
         self.orientation = orientation
+        self.widget = widget
         super.init(view)
         
         name = "MMScrollArea"
@@ -95,6 +100,13 @@ class MMScrollArea : MMWidget
         
         if mmView.maxFramerateLocks == 0 {
             mmView.lockFramerate()
+        }
+    }
+    
+    override func draw()
+    {
+        if widget != nil {
+            build(widget: widget!, area: rect, xOffset: xOffset)
         }
     }
 }

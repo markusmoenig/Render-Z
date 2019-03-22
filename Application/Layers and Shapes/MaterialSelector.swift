@@ -115,10 +115,11 @@ class MaterialSelector
                 float2 size = float2( \(width), \(height) );
                 float2 uvOrigin = in.textureCoordinate * size - size / 2;
                 uvOrigin.y = 1 - uvOrigin.y;
-                float2 uv;
+                float2 uv, d;
         
                 MATERIAL_DATA materials[1];
                 float dist = 10000;
+                float4 col = float4(0);
         
         """
 
@@ -133,7 +134,21 @@ class MaterialSelector
             
             source += "uv /= \(zoom);\n"
             
-            source += "dist = merge( dist, " + material.createCode(uvName: "uv", shapeIndex: 0) + ");"
+            source += "d = abs(uv) - float2(\(unitSize/2));\n"
+            source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
+            
+            source += material.createCode(uvName: "uv", shapeIndex: 0) + ";\n"
+//            source += "dist = merge( dist, " + material.createCode(uvName: "uv", shapeIndex: 0) + ");"
+            
+            source +=
+            """
+            
+            float4 fillColor = materials[0].baseColor;
+            //float4 color = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
+            
+            col = mix( col, fillColor, fillMask( dist ) );
+
+            """
             
             materialRects.append( MMRect(left/zoom - unitSize / 2, top / zoom - unitSize / 2, unitSize, unitSize ) )
             
@@ -148,17 +163,17 @@ class MaterialSelector
         
         source +=
         """
-                float4 fillColor = float4( 0.5, 0.5, 0.5, 1);
-                float4 borderColor = float4( 1 );
+                //float4 fillColor = materials[0].baseColor;
+                //float4 borderColor = float4( 1 );
         
-                float4 col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
-                col = mix( col, borderColor, borderMask( dist, 2 ) );
+                //float4 col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
+                //col = mix( col, borderColor, borderMask( dist, 2 ) );
                 return col;
             }
         """
         
         let library = fragment!.createLibraryFromSource(source: source)
-        let fragmentState = fragment!.createState(library: library, name: "shapeBuilder")
+        let fragmentState = fragment!.createState(library: library, name: "materialBuilder")
         
         if fragment!.width != width || fragment!.height != height {
             fragment!.allocateTexture(width: width, height: height)

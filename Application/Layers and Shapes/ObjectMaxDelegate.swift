@@ -170,7 +170,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     {
         timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
-        materialsTab.deregister()
+        materialsTab.deregisterWidget()
         
         currentObject!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
     }
@@ -242,6 +242,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                     shapeScrollArea.build(widget: shapeTexture, area: leftRegion.rect, xOffset:(leftRegion.rect.width - 200))
                 } else
                 if leftRegionMode == .Materials {
+                    
+                    decoScrollArea.xOffset = leftRegion.rect.width - 200
                     materialsTab.rect.copy(leftRegion.rect)
                     materialsTab.draw(xOffset: leftRegion.rect.width - 200)
                 }
@@ -365,14 +367,17 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     {
         if mode == .Closed {
             app.mmView.deregisterWidgets( widgets: shapeScrollArea, materialsTab)
+            materialsTab.deregisterWidget()
         } else
         if mode == .Shapes {
             app.mmView.deregisterWidgets( widgets: materialsTab)
+            materialsTab.deregisterWidget()
             app.mmView.registerWidgets( widgets: shapeScrollArea)
         } else
         if mode == .Materials {
             app.mmView.deregisterWidgets( widgets: shapeScrollArea)
             app.mmView.registerWidgets( widgets: materialsTab)
+            materialsTab.registerWidget()
         }
         
         if animating { return }
@@ -540,7 +545,7 @@ class DecoScrollArea: MMScrollArea
         self.delegate = delegate
         
         mouseDownPos = float2()
-        super.init(view, orientation:.Vertical)
+        super.init(view, orientation:.Vertical, widget: delegate.decoTexture)
     }
     
     override func mouseDown(_ event: MMMouseEvent) {
