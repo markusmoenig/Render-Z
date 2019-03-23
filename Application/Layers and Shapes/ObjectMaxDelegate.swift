@@ -29,7 +29,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     // Left Region
     var leftRegionMode  : LeftRegionMode = .Shapes
-    
+    var activeRegionMode: LeftRegionMode = .Shapes
+
     var shapeSelector   : ShapeSelector!
     var shapeTexture    : MMTextureWidget!
     var shapeScrollArea : ShapeScrollArea!
@@ -45,6 +46,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     var shapeList       : ShapeList!
     var shapeListChanged: Bool = true
     
+    var materialListWidget : MaterialListScrollArea!
+    var materialList    : MaterialList!
+    var materialListChanged: Bool = true
+
     // Bottom Region
     var bottomRegionMode: BottomRegionMode = .Open
     
@@ -120,18 +125,15 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             materialsTab.addTab("Decorators", widget: decoScrollArea)
             materialsTab.addTab("Patterns", widget: materialsSelector)
         }
-        
-        shapesButton.addState( .Checked )
-        materialsButton.removeState( .Checked )
-        app.leftRegion!.rect.width = 200
-        leftRegionMode = .Closed
-        setLeftRegionMode(.Shapes)
 
         // Right Region
         if objectWidget == nil {
             objectWidget = ObjectWidget(app.mmView, app: app, delegate:self)
             shapeListWidget = ShapeListScrollArea(app.mmView, app: app, delegate: self)
             shapeList = ShapeList(app.mmView)
+            
+            materialListWidget = MaterialListScrollArea(app.mmView, app: app, delegate: self)
+            materialList = MaterialList(app.mmView)
         } else {
             updateObjectHierarchy(true)
         }
@@ -161,15 +163,22 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timelineButton.addState( .Checked )
         app.bottomRegion!.rect.height = 100
         
-        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
+        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
 
+        // Set Default Layout
+        shapesButton.addState( .Checked )
+        materialsButton.removeState( .Checked )
+        app.leftRegion!.rect.width = 200
+        leftRegionMode = .Closed
+        setLeftRegionMode(.Shapes)
+        
         update(true)
     }
     
     override func deactivate()
     {
         timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
+        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
         materialsTab.deregisterWidget()
         
         currentObject!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
@@ -179,6 +188,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func setChanged()
     {
         shapeListChanged = true
+        materialListChanged = true
     }
     
     /// Draw the background pattern
@@ -221,8 +231,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                     app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
                 }
             }
-             
-            app.gizmo.draw()
+            
+            if activeRegionMode == .Shapes {
+                app.gizmo.draw()
+            }
             app.changed = false
         } else
         if region.type == .Top {
@@ -241,7 +253,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 if leftRegionMode == .Shapes {
                     shapeScrollArea.build(widget: shapeTexture, area: leftRegion.rect, xOffset:(leftRegion.rect.width - 200))
                 } else
-                if leftRegionMode == .Materials {                    
+                if leftRegionMode == .Materials {
                     materialsTab.rect.copy(leftRegion.rect)
                     materialsTab.draw(xOffset: leftRegion.rect.width - 200)
                 }
@@ -261,21 +273,43 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             shapeListWidget.rect.width = rightRegion.rect.width
             shapeListWidget.rect.height = rightRegion.rect.height * 2/3
             
-            rightRegion.layoutV(startX: rightRegion.rect.x, startY: rightRegion.rect.y, spacing: 0, widgets: objectWidget, shapeListWidget)
+            materialListWidget.rect.width = rightRegion.rect.width
+            materialListWidget.rect.height = rightRegion.rect.height * 2/3
             
+            if activeRegionMode == .Shapes {
+                rightRegion.layoutV(startX: rightRegion.rect.x, startY: rightRegion.rect.y, spacing: 0, widgets: objectWidget, shapeListWidget)
+                shapeListWidget.draw()
+            } else {
+                rightRegion.layoutV(startX: rightRegion.rect.x, startY: rightRegion.rect.y, spacing: 0, widgets: objectWidget, materialListWidget)
+                materialListWidget.draw()
+            }
             objectWidget.draw()
-            shapeListWidget.draw()
-            
+
+            // Rebuild shape list
             if shapeListChanged {
                 shapeList.build( width: shapeListWidget.rect.width, object: selObject!)
-                
                 // Remove gizmo focus from the selected object if it has selected shapes
                 if selObject!.selectedShapes.count > 0 {
                     selObjectActive = false
                 }
                 shapeListChanged = false
             }
-            shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x, shapeListWidget.rect.y+1, shapeListWidget.rect.width, shapeListWidget.rect.height-2) )
+            
+            // Rebuild material list
+            if materialListChanged {
+                materialList.build( width: materialListWidget.rect.width, object: selObject!)
+                // Remove gizmo focus from the selected object if it has selected shapes
+                if selObject!.selectedMaterials.count > 0 {
+                    selObjectActive = false
+                }
+                materialListChanged = false
+            }
+            
+            if activeRegionMode == .Shapes {
+                shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x, shapeListWidget.rect.y+1, shapeListWidget.rect.width, shapeListWidget.rect.height-2) )
+            } else {
+                materialListWidget.build(widget: materialList.textureWidget, area: MMRect( materialListWidget.rect.x, materialListWidget.rect.y+1, materialListWidget.rect.width, materialListWidget.rect.height-2) )
+            }
         } else
         if region.type == .Bottom {
             region.rect.y = app.mmView.renderer.cHeight - region.rect.height
@@ -298,7 +332,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        app.gizmo.mouseDown(event)
+        if activeRegionMode == .Shapes {
+            app.gizmo.mouseDown(event)
+        }
         
         if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
             let editorRegion = app.editorRegion!
@@ -323,12 +359,16 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        app.gizmo.mouseUp(event)
+        if activeRegionMode == .Shapes {
+            app.gizmo.mouseUp(event)
+        }
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        app.gizmo.mouseMoved(event)
+        if activeRegionMode == .Shapes {
+            app.gizmo.mouseMoved(event)
+        }
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -368,14 +408,16 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             materialsTab.deregisterWidget()
         } else
         if mode == .Shapes {
-            app.mmView.deregisterWidgets( widgets: materialsTab)
+            app.mmView.deregisterWidgets( widgets: materialsTab, materialListWidget)
             materialsTab.deregisterWidget()
-            app.mmView.registerWidgets( widgets: shapeScrollArea)
+            app.mmView.registerWidgets( widgets: shapeScrollArea, shapeListWidget)
+            activeRegionMode = .Shapes
         } else
         if mode == .Materials {
-            app.mmView.deregisterWidgets( widgets: shapeScrollArea)
-            app.mmView.registerWidgets( widgets: materialsTab)
+            app.mmView.deregisterWidgets( widgets: shapeScrollArea, shapeListWidget)
+            app.mmView.registerWidgets( widgets: materialsTab, materialListWidget)
             materialsTab.registerWidget()
+            activeRegionMode = .Materials
         }
         
         if animating { return }
@@ -550,13 +592,13 @@ class DecoScrollArea: MMScrollArea
         mouseDownPos.x = event.x - rect.x
         mouseDownPos.y = event.y - rect.y - offsetY
         mouseIsDown = true
-        shapeAtMouse = delegate.materialSelector.selectAt(mouseDownPos.x,mouseDownPos.y)
+        shapeAtMouse = delegate.materialSelector.selectDecoAt(mouseDownPos.x,mouseDownPos.y)
         delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject)
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {
         if mouseIsDown && dragSource == nil {
-            dragSource = delegate.materialSelector.createDragSource(mouseDownPos.x,mouseDownPos.y)
+            dragSource = delegate.materialSelector.createDecoDragSource(mouseDownPos.x,mouseDownPos.y)
             dragSource?.sourceWidget = self
             mmView.dragStarted(source: dragSource!)
         }
@@ -845,6 +887,97 @@ class ShapeListScrollArea: MMScrollArea
         if !mouseIsDown {
             if delegate.shapeList.hoverAt(event.x - rect.x, event.y - rect.y) {
                 delegate.shapeList.update()
+            }
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent) {
+        mouseIsDown = false
+    }
+    
+    override func dragTerminated() {
+        dragSource = nil
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    {
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height + 1, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+    }
+}
+
+/// The scroll area for the material list in the right region
+class MaterialListScrollArea: MMScrollArea
+{
+    var app                 : App
+    var mouseDownPos        : float2
+    var mouseIsDown         : Bool = false
+    
+    var dragSource          : MaterialSelectorDrag? = nil
+    var shapeAtMouse        : Material?
+    
+    var delegate            : ObjectMaxDelegate!
+    
+    init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
+    {
+        self.app = app
+        self.delegate = delegate
+        
+        mouseDownPos = float2()
+        super.init(view, orientation:.Vertical)
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent) {
+        
+        mouseDownPos.x = event.x - rect.x
+        mouseDownPos.y = event.y - rect.y
+        mouseIsDown = true
+        
+        let oldSelection = delegate.selObject!.selectedMaterials
+        
+        let materialList = delegate.materialList!
+        
+        delegate.materialListChanged = delegate.materialList.selectAt(mouseDownPos.x,mouseDownPos.y, multiSelect: mmView.shiftIsDown)
+        
+        // --- Move up / down
+        if materialList.hoverState != .None {
+            let object = delegate.currentObject
+            if materialList.hoverState == .HoverUp && object!.materials.count > 1 && materialList.hoverIndex > 0 {
+                let material = object!.materials.remove(at: materialList.hoverIndex)
+                object!.materials.insert(material, at: materialList.hoverIndex - 1)
+            } else
+                if materialList.hoverState == .HoverDown && object!.materials.count > 1 && materialList.hoverIndex < object!.materials.count-1 {
+                    let material = object!.materials.remove(at: materialList.hoverIndex)
+                    object!.materials.insert(material, at: materialList.hoverIndex + 1)
+                } else
+                    if materialList.hoverState == .Close && materialList.hoverIndex >= 0 && materialList.hoverIndex < object!.materials.count
+                    {
+                        let material = object!.materials.remove(at: materialList.hoverIndex)
+                        if oldSelection.contains( material.uuid ) {
+                            delegate.selObject!.selectedMaterials = []
+                        } else {
+                            delegate.selObject!.selectedMaterials = oldSelection
+                        }
+                        delegate.materialListChanged = true
+                        delegate.app.gizmo.setObject(delegate.selObject!)
+                        delegate.materialList.hoverAt(event.x - rect.x, event.y - rect.y)
+                        delegate.update(true)
+                        return
+            }
+            
+            materialList.hoverData[0] = -1
+            materialList.hoverIndex = -1
+        }
+        // ---
+        
+        if delegate.materialListChanged {
+            delegate.update(true)
+        }
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent) {
+        if !mouseIsDown {
+            if delegate.materialList.hoverAt(event.x - rect.x, event.y - rect.y) {
+                delegate.materialList.update()
             }
         }
     }

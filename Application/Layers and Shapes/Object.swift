@@ -19,7 +19,7 @@ class Object : Node
     var currentSequence : MMTlSequence? = nil
     
     var selectedShapes  : [UUID]
-    var selectedDecorators: [UUID]
+    var selectedMaterials: [UUID]
 
     var pointConnections: [ObjectPointConnection] = []
     
@@ -35,7 +35,7 @@ class Object : Node
         case materials
         case childObjects
         case selectedShapes
-        case selectedDecorators
+        case selectedMaterials
         case sequences
         case pointConnections
     }
@@ -46,7 +46,7 @@ class Object : Node
         materials = []
         childObjects = []
         selectedShapes = []
-        selectedDecorators = []
+        selectedMaterials = []
         sequences = []
         
         super.init()
@@ -69,7 +69,7 @@ class Object : Node
         self.childObjects = instanceFor.childObjects
         self.sequences = instanceFor.sequences
         self.selectedShapes = []
-        self.selectedDecorators = []
+        self.selectedMaterials = []
         self.instanceOf = instanceFor.uuid
         
         super.init()
@@ -95,7 +95,7 @@ class Object : Node
         materials = try container.decode([Material].self, forKey: .materials)
         childObjects = try container.decode([Object].self, forKey: .childObjects)
         selectedShapes = try container.decode([UUID].self, forKey: .selectedShapes)        
-        selectedDecorators = try container.decode([UUID].self, forKey: .selectedDecorators)
+        selectedMaterials = try container.decode([UUID].self, forKey: .selectedMaterials)
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
         pointConnections = try container.decode([ObjectPointConnection].self, forKey: .pointConnections)
 
@@ -118,7 +118,7 @@ class Object : Node
         try container.encode(shapes, forKey: .shapes)
         try container.encode(materials, forKey: .materials)
         try container.encode(childObjects, forKey: .childObjects)
-        try container.encode(selectedShapes, forKey: .selectedShapes)
+        try container.encode(selectedMaterials, forKey: .selectedMaterials)
         try container.encode(sequences, forKey: .sequences)
         try container.encode(pointConnections, forKey: .pointConnections)
 

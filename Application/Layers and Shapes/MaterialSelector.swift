@@ -14,7 +14,7 @@ struct MaterialSelectorDrag : MMDragSource
     var sourceWidget    : MMWidget? = nil
     var previewWidget   : MMWidget? = nil
     var pWidgetOffset   : float2? = float2()
-    var shape           : Shape? = nil
+    var material        : Material? = nil
     var name            : String = ""
 }
 
@@ -210,8 +210,8 @@ class MaterialSelector
         return materialRects
     }
     
-    /// Creates a thumbnail for the given shape name
-    func createShapeThumbnail(_ shape: Shape) -> MTLTexture?
+    /// Creates a thumbnail for the given material
+    func createMaterialThumbnail(_ material: Material) -> MTLTexture?
     {
         let comp = MMCompute()
         comp.allocateTexture(width: unitSize, height: unitSize)
@@ -237,16 +237,14 @@ class MaterialSelector
                 //dist += 1.0;
                 return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
             }
+
+            typedef struct {
+                float4      baseColor;
+            } MATERIAL_DATA;
+
         """
         
-        source += shape.globalCode
-        if shape.dynamicCode != nil {
-            var dyn = shape.dynamicCode!
-            dyn = dyn.replacingOccurrences(of: "__shapeIndex__", with: "0")
-            dyn = dyn.replacingOccurrences(of: "__pointCount__", with: String(shape.pointCount))
-            source += dyn
-        }
-        
+        source += material.globalCode
         source +=
         """
         
@@ -256,21 +254,15 @@ class MaterialSelector
         uint2                           gid         [[thread_position_in_grid]])
         {
             float2 uv = float2( gid.x - outTexture.get_width() / 2., gid.y - outTexture.get_height() / 2. );
-            float dist = 10000;
+            MATERIAL_DATA materials[1];
+        
         """
         
-        if shape.pointsVariable {
-            source += shape.createPointsVariableCode(shapeIndex: 0)
-        }
-        source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: 0) + ");"
+        source += material.createCode(uvName: "uv", shapeIndex: 0) + ";\n"
         source +=
         """
-            float4 fillColor = float4( 0.5, 0.5, 0.5, 1);
-            float4 borderColor = float4( 1 );
         
-            float4 col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
-            col = mix( col, borderColor, borderMask( dist, 2 ) );
-        
+            float4 col = materials[0].baseColor;
             outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
         }
         """
@@ -285,37 +277,36 @@ class MaterialSelector
     }
     
     /// Selected the shape at the given relative mouse position
-    func selectAt(_ x: Float,_ y: Float) -> Material?
+    func selectDecoAt(_ x: Float,_ y: Float) -> Material?
     {
-        /*
-        for (index, rect) in shapeRects.enumerated() {
+        for (index, rect) in decoRects.enumerated() {
             if rect.contains( x, y ) {
-                selectedIndex = index
-                selectedShape = shapes[index]
-                return selectedShape
+                selectedDecoIndex = index
+                selectedDeco = decorators[index]
+                return selectedDeco
             }
-        }*/
+        }
         return nil
     }
     
     /// Create a drag item for the given position
-    func createDragSource(_ x: Float,_ y: Float) -> MaterialSelectorDrag
+    func createDecoDragSource(_ x: Float,_ y: Float) -> MaterialSelectorDrag
     {
         var drag = MaterialSelectorDrag()
-        /*
-        for (index, rect) in shapeRects.enumerated() {
+        
+        for (index, rect) in decoRects.enumerated() {
             if rect.contains( x, y ) {
-                drag.id = "ShapeSelectorItem"
-                drag.name = shapes[index].name
+                drag.id = "MaterialSelectorItem"
+                drag.name = decorators[index].name
                 drag.pWidgetOffset!.x = x - rect.x
                 drag.pWidgetOffset!.y = y - rect.y
-                drag.shape = shapeFactory.createShape(drag.name, size: unitSize / 2 - 2)
+                drag.material = materialFactory.createMaterial(drag.name, size: unitSize / 2 - 2)
 
-                let texture = createShapeThumbnail(drag.shape!)
+                let texture = createMaterialThumbnail(drag.material!)
                 drag.previewWidget = MMTextureWidget(mmView, texture: texture)
                 break
             }
-        }*/
+        }
         return drag
     }
     

@@ -23,6 +23,7 @@ class EditorWidget      : MMWidget
         super.init(view)
         
         dropTargets.append( "ShapeSelectorItem" )
+        dropTargets.append( "MaterialSelectorItem" )
         dropTargets.append( "NodeItem" )
         dropTargets.append( "AvailableObjectItem" )
     }
@@ -201,6 +202,42 @@ class EditorWidget      : MMWidget
             
             currentObject!.maxDelegate?.update(true)
         } else
+        if dragSource.id == "MaterialSelectorItem" {
+            // Object Editor, shape drag to editor
+            let drag = dragSource as! MaterialSelectorDrag
+            
+            let currentObject = app.nodeGraph.maximizedNode as? Object
+            let delegate = currentObject!.maxDelegate as! ObjectMaxDelegate
+            let selObject = delegate.selObject!
+            
+            selObject.materials.append(drag.material!)
+            selObject.selectedMaterials = [drag.material!.uuid]
+            app.setChanged()
+            
+            if let material = drag.material {
+                
+                var xOff : Float = 0
+                var yOff : Float = 0
+                
+                //let deltaX = drag.pWidgetOffset!.x
+                //let deltaY = drag.pWidgetOffset!.y
+                
+                // --- Transform coordinates
+                xOff = (event.x - rect.x + xOff)// * 700 / rect.width
+                yOff = (event.y - rect.y + yOff)// * 700 / rect.width
+                
+                // --- Center
+                xOff -= rect.width / 2 - currentObject!.maxDelegate!.getCamera()!.xPos
+                yOff += currentObject!.maxDelegate!.getCamera()!.yPos
+                yOff -= rect.width / 2 * rect.height / rect.width
+                
+                material.properties["posX"] = xOff
+                material.properties["posY"] = -yOff
+            }
+            currentObject!.maxDelegate?.update(true)
+        } else
+
+            
         if dragSource.id == "NodeItem"
         {
             // NodeGraph, node drag to editor

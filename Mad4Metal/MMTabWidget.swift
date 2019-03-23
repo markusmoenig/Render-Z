@@ -41,7 +41,6 @@ class MMTabWidget: MMWidget
         items.append(item)
         if currentTab == nil {
             currentTab = item
-            mmView.registerWidget(item.widget!)
         }
     }
     
@@ -106,6 +105,7 @@ class MMTabWidget: MMWidget
             item.widget!.rect.height = rect.height - headerHeight
             item.widget!.draw(xOffset: xOffset)
         }
+        rect.height = headerHeight
     }
     
     /// Registers the current widget (if any)
