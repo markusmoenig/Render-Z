@@ -76,8 +76,23 @@ class Material : Codable
         try container.encode(isDecorator, forKey: .isDecorator)
     }
     
+    /// Static function which returns the global MATERIAL_DATA definition
+    static func getMaterialStructCode() -> String
+    {
+        let code =
+        
+        """
+        
+        typedef struct {
+            float4      baseColor;
+        } MATERIAL_DATA;
+
+        """
+        return code
+    }
+    
     /// Creates the distance code for the shape, optionally using the supplied transformed properties or insertig the metal code for accessing the shape data structure
-    func createCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil, pointIndex: Int? = nil, shapeIndex: Int? = nil, materialIndex: Int? = nil) -> String
+    func createCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil, pointIndex: Int? = nil, shapeIndex: Int? = nil, materialIndex: Int? = nil, materialVariable: String = "&material") -> String
     {
         var code = self.code
         let props = transProperties != nil ? transProperties : properties
@@ -85,7 +100,7 @@ class Material : Codable
         code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
         
         if materialIndex == nil {
-            code = code.replacingOccurrences(of: "__material__", with: "&materials[0]")
+            code = code.replacingOccurrences(of: "__material__", with: materialVariable)
         }
         
         for (name,value) in props! {

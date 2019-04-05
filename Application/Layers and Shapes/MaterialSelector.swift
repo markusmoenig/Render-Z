@@ -96,12 +96,9 @@ class MaterialSelector
                 //dist += 1.0;
                 return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
             }
-
-            typedef struct {
-                float4      baseColor;
-            } MATERIAL_DATA;
-
         """
+        
+        source += Material.getMaterialStructCode()
         
         for mat in materials {
             source += mat.globalCode;
@@ -117,7 +114,7 @@ class MaterialSelector
                 uvOrigin.y = 1 - uvOrigin.y;
                 float2 uv, d;
         
-                MATERIAL_DATA materials[1];
+                MATERIAL_DATA material;
                 float dist = 10000;
                 float4 col = float4(0);
         
@@ -143,7 +140,7 @@ class MaterialSelector
             source +=
             """
             
-            float4 fillColor = materials[0].baseColor;
+            float4 fillColor = material.baseColor;
             //float4 color = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
             
             col = mix( col, fillColor, fillMask( dist ) );
@@ -163,7 +160,7 @@ class MaterialSelector
         
         source +=
         """
-                //float4 fillColor = materials[0].baseColor;
+                //float4 fillColor = material.baseColor;
                 //float4 borderColor = float4( 1 );
         
                 //float4 col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
@@ -237,13 +234,9 @@ class MaterialSelector
                 //dist += 1.0;
                 return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
             }
-
-            typedef struct {
-                float4      baseColor;
-            } MATERIAL_DATA;
-
         """
         
+        source += Material.getMaterialStructCode()
         source += material.globalCode
         source +=
         """
@@ -254,7 +247,7 @@ class MaterialSelector
         uint2                           gid         [[thread_position_in_grid]])
         {
             float2 uv = float2( gid.x - outTexture.get_width() / 2., gid.y - outTexture.get_height() / 2. );
-            MATERIAL_DATA materials[1];
+            MATERIAL_DATA material;
         
         """
         
@@ -262,7 +255,7 @@ class MaterialSelector
         source +=
         """
         
-            float4 col = materials[0].baseColor;
+            float4 col = material.baseColor;
             outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
         }
         """

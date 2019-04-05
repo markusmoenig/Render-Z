@@ -20,6 +20,11 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         case Closed, Open
     }
     
+    enum MaterialMode
+    {
+        case Body, Border
+    }
+    
     var app             : App!
     
     // Top Region
@@ -49,6 +54,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     var materialListWidget : MaterialListScrollArea!
     var materialList    : MaterialList!
     var materialListChanged: Bool = true
+    
+    var materialMode : MaterialMode = .Body
 
     // Bottom Region
     var bottomRegionMode: BottomRegionMode = .Open
@@ -306,9 +313,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             }
             
             if activeRegionMode == .Shapes {
-                shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x, shapeListWidget.rect.y+1, shapeListWidget.rect.width, shapeListWidget.rect.height-2) )
+                shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x, shapeListWidget.rect.y+1+30, shapeListWidget.rect.width, shapeListWidget.rect.height-2-30) )
             } else {
-                materialListWidget.build(widget: materialList.textureWidget, area: MMRect( materialListWidget.rect.x, materialListWidget.rect.y+1, materialListWidget.rect.width, materialListWidget.rect.height-2) )
+                materialListWidget.build(widget: materialList.textureWidget, area: MMRect( materialListWidget.rect.x, materialListWidget.rect.y+1+30, materialListWidget.rect.width, materialListWidget.rect.height-2-30) )
             }
         } else
         if region.type == .Bottom {
@@ -504,6 +511,36 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         objectWidget.objectListWidget.xOffset = 0
         objectWidget.objectListWidget.yOffset = 0
         objectWidget.objectListWidget.objectTree = ObjectTree(currentObject!)
+    }
+    
+    /// Returns the current material count for the current mode and object
+    func materialCount() -> Int
+    {
+        if materialMode == .Body {
+            return currentObject!.bodyMaterials.count
+        } else {
+            return currentObject!.borderMaterials.count
+        }
+    }
+    
+    /// Removes the material index from the given material mode
+    func removeMaterial(at: Int) -> Material
+    {
+        if materialMode == .Body {
+            return currentObject!.bodyMaterials.remove(at: at)
+        } else {
+            return currentObject!.borderMaterials.remove(at: at)
+        }
+    }
+    
+    /// Inset=rt the material at the index considering the given material mode
+    func insertMaterial(_ material: Material, at: Int)
+    {
+        if materialMode == .Body {
+            currentObject!.bodyMaterials.insert(material, at: at)
+        } else {
+            currentObject!.borderMaterials.insert(material, at: at)
+        }
     }
     
     /// Return the camera (used by Gizmo)
@@ -822,6 +859,7 @@ class ShapeListScrollArea: MMScrollArea
     var mouseDownPos        : float2
     var mouseIsDown         : Bool = false
     
+    var label               : MMTextLabel
     var dragSource          : ShapeSelectorDrag? = nil
     var shapeAtMouse        : Shape?
     
@@ -832,6 +870,8 @@ class ShapeListScrollArea: MMScrollArea
         self.app = app
         self.delegate = delegate
         
+        label = MMTextLabel(view, font: view.openSans, text:"Shapes", scale: 0.44 )
+
         mouseDownPos = float2()
         super.init(view, orientation:.Vertical)
     }
@@ -901,7 +941,11 @@ class ShapeListScrollArea: MMScrollArea
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height + 1, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        
+        label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+        
+        mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height + 1 - 30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
     }
 }
 
@@ -912,6 +956,7 @@ class MaterialListScrollArea: MMScrollArea
     var mouseDownPos        : float2
     var mouseIsDown         : Bool = false
     
+    var label               : MMTextLabel
     var dragSource          : MaterialSelectorDrag? = nil
     var shapeAtMouse        : Material?
     
@@ -923,6 +968,8 @@ class MaterialListScrollArea: MMScrollArea
         self.delegate = delegate
         
         mouseDownPos = float2()
+        label = MMTextLabel(view, font: view.openSans, text:"Materials", scale: 0.44 )
+
         super.init(view, orientation:.Vertical)
     }
     
@@ -940,18 +987,17 @@ class MaterialListScrollArea: MMScrollArea
         
         // --- Move up / down
         if materialList.hoverState != .None {
-            let object = delegate.currentObject
-            if materialList.hoverState == .HoverUp && object!.materials.count > 1 && materialList.hoverIndex > 0 {
-                let material = object!.materials.remove(at: materialList.hoverIndex)
-                object!.materials.insert(material, at: materialList.hoverIndex - 1)
+            if materialList.hoverState == .HoverUp && delegate.materialCount() > 1 && materialList.hoverIndex > 0 {
+                let material = delegate.removeMaterial(at: materialList.hoverIndex)
+                delegate.insertMaterial(material, at: materialList.hoverIndex - 1)
             } else
-                if materialList.hoverState == .HoverDown && object!.materials.count > 1 && materialList.hoverIndex < object!.materials.count-1 {
-                    let material = object!.materials.remove(at: materialList.hoverIndex)
-                    object!.materials.insert(material, at: materialList.hoverIndex + 1)
+                if materialList.hoverState == .HoverDown && delegate.materialCount() > 1 && materialList.hoverIndex < delegate.materialCount()-1 {
+                    let material = delegate.removeMaterial(at: materialList.hoverIndex)
+                    delegate.insertMaterial(material, at: materialList.hoverIndex + 1)
                 } else
-                    if materialList.hoverState == .Close && materialList.hoverIndex >= 0 && materialList.hoverIndex < object!.materials.count
+                    if materialList.hoverState == .Close && materialList.hoverIndex >= 0 && materialList.hoverIndex < delegate.materialCount()
                     {
-                        let material = object!.materials.remove(at: materialList.hoverIndex)
+                        let material = delegate.removeMaterial(at: materialList.hoverIndex)
                         if oldSelection.contains( material.uuid ) {
                             delegate.selObject!.selectedMaterials = []
                         } else {
@@ -992,7 +1038,11 @@ class MaterialListScrollArea: MMScrollArea
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height + 1, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        
+        label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+        
+        mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height + 1 - 30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
     }
 }
 

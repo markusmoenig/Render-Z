@@ -11,7 +11,8 @@ import MetalKit
 class Object : Node
 {
     var shapes          : [Shape]
-    var materials       : [Material]
+    var bodyMaterials   : [Material]
+    var borderMaterials : [Material]
     var childObjects    : [Object]
     
     /// The timeline sequences for this object
@@ -32,7 +33,8 @@ class Object : Node
     private enum CodingKeys: String, CodingKey {
         case type
         case shapes
-        case materials
+        case bodyMaterials
+        case borderMaterials
         case childObjects
         case selectedShapes
         case selectedMaterials
@@ -43,7 +45,8 @@ class Object : Node
     override init()
     {
         shapes = []
-        materials = []
+        bodyMaterials = []
+        borderMaterials = []
         childObjects = []
         selectedShapes = []
         selectedMaterials = []
@@ -65,7 +68,8 @@ class Object : Node
     init(instanceFor: Object, instanceUUID: UUID, instanceProperties: [String:Float])
     {
         self.shapes = instanceFor.shapes
-        self.materials = instanceFor.materials
+        self.bodyMaterials = instanceFor.bodyMaterials
+        self.borderMaterials = instanceFor.borderMaterials
         self.childObjects = instanceFor.childObjects
         self.sequences = instanceFor.sequences
         self.selectedShapes = []
@@ -92,7 +96,8 @@ class Object : Node
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         shapes = try container.decode([Shape].self, forKey: .shapes)
-        materials = try container.decode([Material].self, forKey: .materials)
+        bodyMaterials = try container.decode([Material].self, forKey: .bodyMaterials)
+        borderMaterials = try container.decode([Material].self, forKey: .borderMaterials)
         childObjects = try container.decode([Object].self, forKey: .childObjects)
         selectedShapes = try container.decode([UUID].self, forKey: .selectedShapes)        
         selectedMaterials = try container.decode([UUID].self, forKey: .selectedMaterials)
@@ -116,7 +121,8 @@ class Object : Node
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(type, forKey: .type)
         try container.encode(shapes, forKey: .shapes)
-        try container.encode(materials, forKey: .materials)
+        try container.encode(bodyMaterials, forKey: .bodyMaterials)
+        try container.encode(borderMaterials, forKey: .borderMaterials)
         try container.encode(childObjects, forKey: .childObjects)
         try container.encode(selectedMaterials, forKey: .selectedMaterials)
         try container.encode(sequences, forKey: .sequences)

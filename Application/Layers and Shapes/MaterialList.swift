@@ -59,7 +59,9 @@ class MaterialList
     /// Build the source
     func build(width: Float, object: Object)
     {
-        let count : Float = Float(object.materials.count)
+        let materials : [Material] = object.bodyMaterials
+        
+        let count : Float = Float(materials.count)
         height = count * unitSize + (count > 0 ? (count-1) * spacing : Float(0))
         if height == 0 {
             height = 1
@@ -144,7 +146,7 @@ class MaterialList
         let left : Float = width / 2
         var top : Float = unitSize / 2
         
-        for (index, material) in object.materials.enumerated() {
+        for (index, material) in materials.enumerated() {
 
             source += "uv = uvOrigin; uv.x += outTexture.get_width() / 2.0 - \(left) + borderSize/2; uv.y += outTexture.get_height() / 2.0 - \(top) + borderSize/2;\n"
             //source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
@@ -188,7 +190,7 @@ class MaterialList
             source += "uv -= float2( 50., 0. );\n" // 105
             source += "dist = sdLineScroller( uv, float2( 0, 6 ), float2( 10, -4), 2);\n"
             source += "dist = min( dist, sdLineScroller( uv, float2( 10, -4), float2( 20, 6), 2) );\n"
-            if index == 0 || object.materials.count < 2 {
+            if index == 0 || materials.count < 2 {
                 source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
             } else {
                 source += "if (\(index*3) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
@@ -199,7 +201,7 @@ class MaterialList
             source += "uv -= float2( 35., 0. );\n"
             source += "dist = sdLineScroller( uv, float2( 0, -4 ), float2( 10, 6), 2);\n"
             source += "dist = min( dist, sdLineScroller( uv, float2( 10, 6 ), float2( 20, -4), 2) );\n"
-            if index == object.materials.count - 1 || object.materials.count < 2 {
+            if index == materials.count - 1 || materials.count < 2 {
                 source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
             } else {
                 source += "if (\(index*3+1) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"            }
@@ -253,11 +255,13 @@ class MaterialList
         let selectedIndex = Int(index)
         var changed  = false
         
+        let materials : [Material] = currentObject!.bodyMaterials
+
         if currentObject != nil {
-            if selectedIndex >= 0 && selectedIndex < currentObject!.materials.count {
+            if selectedIndex >= 0 && selectedIndex < materials.count {
                 if !multiSelect {
                     
-                    let material = currentObject!.materials[selectedIndex]
+                    let material = materials[selectedIndex]
                     let sameMaterialSelected = currentObject!.selectedMaterials.count == 0 || (currentObject!.selectedMaterials.count > 0 && currentObject!.selectedMaterials[0] == material.uuid)
                     
                     currentObject!.selectedMaterials = [material.uuid]
@@ -265,8 +269,8 @@ class MaterialList
                     if sameMaterialSelected {
                     
                     }
-                } else if !currentObject!.selectedMaterials.contains( currentObject!.materials[selectedIndex].uuid ) {
-                    currentObject!.selectedMaterials.append( currentObject!.materials[selectedIndex].uuid )
+                } else if !currentObject!.selectedMaterials.contains( materials[selectedIndex].uuid ) {
+                    currentObject!.selectedMaterials.append( materials[selectedIndex].uuid )
                 }
                 changed = true
             }
@@ -283,8 +287,10 @@ class MaterialList
         hoverData[0] = -1
         hoverState = .None
         
+        let materials : [Material] = currentObject!.bodyMaterials
+
         if currentObject != nil {
-            if hoverIndex >= 0 && hoverIndex < currentObject!.materials.count {
+            if hoverIndex >= 0 && hoverIndex < materials.count {
                 
                 if x >= 172 && x <= 201 {
                     hoverData[0] = Float(hoverIndex*3)
@@ -309,16 +315,19 @@ class MaterialList
     {
         var coll : [String] = []
         var result = ""
-        var materialIndex : Int = 0
         
-        for material in object.materials {
-            
+        for material in object.bodyMaterials {
             if !coll.contains(material.name) {
                 result += material.globalCode
                 coll.append( material.name )
             }
-            
-            materialIndex += 1
+        }
+        
+        for material in object.borderMaterials {
+            if !coll.contains(material.name) {
+                result += material.globalCode
+                coll.append( material.name )
+            }
         }
         
         return result

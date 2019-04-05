@@ -144,6 +144,7 @@ class Builder
         
         """
         
+        source += Material.getMaterialStructCode()
         source += getGlobalCode(objects:objects)
         
         instance.data!.append( camera.xPos )
@@ -171,15 +172,22 @@ class Builder
             float2 tuv = uv, pAverage;
         
             float dist = 100000, newDist;
+            MATERIAL_DATA bodyMaterial; bodyMaterial.baseColor = float4(0.5, 0.5, 0.5, 1);
+            MATERIAL_DATA borderMaterial; borderMaterial.baseColor = float4(1);
+            int materialId = -1;
+        
         """
         
         /// Parse objects and their shapes
         
-        var index : Int = 0
+        var index : Int = 0 // shape index
+        var objectIndex : Int = 0 // object index
         var pointIndex : Int = 0
         var parentPosX : Float = 0
         var parentPosY : Float = 0
         var parentRotate : Float = 0
+        
+        var materialSource : String = ""
         
         func parseObject(_ object: Object)
         {
@@ -264,6 +272,18 @@ class Builder
                 pointIndex += shape.pointCount
             }
             
+            // --- Material Code
+            source += "if (dist < 0) materialId = \(objectIndex);\n"
+            materialSource += "if (materialId == \(objectIndex)) {\n"
+            for material in object.bodyMaterials {
+                materialSource += "  " + material.createCode(uvName: "uv", materialVariable: "&bodyMaterial") + ";\n"
+            }
+
+            materialSource += "}\n"
+            
+            //
+            objectIndex += 1
+            
             for childObject in object.childObjects {
                 parseObject(childObject)
             }
@@ -289,10 +309,13 @@ class Builder
             instance.data!.append( 0 )
         }
         
+        print( materialSource )
+        source += materialSource
+        
         source +=
         """
-            float4 fillColor = float4( 0.5, 0.5, 0.5, 1);
-            float4 borderColor = float4( 1 );
+            float4 fillColor = bodyMaterial.baseColor;
+            float4 borderColor = borderMaterial.baseColor;
         
             float4 col = float4(0);
         """
@@ -520,6 +543,7 @@ class Builder
 
         """
         
+        source += Material.getMaterialStructCode()
         source += getGlobalCode(objects:instance.objects)
         
         source +=
@@ -725,6 +749,20 @@ class Builder
                 }
                 
                 shapeIndex += 1
+            }
+            
+            // --- Global Material Code
+            for material in object.bodyMaterials {
+                if !coll.contains(material.name) {
+                    result += material.globalCode
+                    coll.append( material.name )
+                }
+            }
+            for material in object.borderMaterials {
+                if !coll.contains(material.name) {
+                    result += material.globalCode
+                    coll.append( material.name )
+                }
             }
             
             for childObject in object.childObjects {
