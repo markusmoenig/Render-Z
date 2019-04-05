@@ -304,11 +304,11 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             
             // Rebuild material list
             if materialListChanged {
-                materialList.build( width: materialListWidget.rect.width, object: selObject!)
+                materialList.build( width: materialListWidget.rect.width, object: selObject!, mode: materialMode)
                 // Remove gizmo focus from the selected object if it has selected shapes
-                if selObject!.selectedMaterials.count > 0 {
-                    selObjectActive = false
-                }
+                //if selObject!.selectedMaterials.count > 0 {
+                //    selObjectActive = false
+                //}
                 materialListChanged = false
             }
             
@@ -979,7 +979,7 @@ class MaterialListScrollArea: MMScrollArea
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
         
-        let oldSelection = delegate.selObject!.selectedMaterials
+        let oldSelection = delegate.materialMode == .Body ? delegate.selObject!.selectedBodyMaterials : delegate.selObject!.selectedBorderMaterials
         
         let materialList = delegate.materialList!
         
@@ -999,9 +999,17 @@ class MaterialListScrollArea: MMScrollArea
                     {
                         let material = delegate.removeMaterial(at: materialList.hoverIndex)
                         if oldSelection.contains( material.uuid ) {
-                            delegate.selObject!.selectedMaterials = []
+                            if delegate.materialMode == .Body {
+                                delegate.selObject!.selectedBodyMaterials = []
+                            } else {
+                                delegate.selObject!.selectedBorderMaterials = []
+                            }
                         } else {
-                            delegate.selObject!.selectedMaterials = oldSelection
+                            if delegate.materialMode == .Body {
+                                delegate.selObject!.selectedBodyMaterials = oldSelection
+                            } else {
+                                delegate.selObject!.selectedBorderMaterials = oldSelection
+                            }
                         }
                         delegate.materialListChanged = true
                         delegate.app.gizmo.setObject(delegate.selObject!)

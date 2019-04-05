@@ -210,8 +210,13 @@ class EditorWidget      : MMWidget
             let delegate = currentObject!.maxDelegate as! ObjectMaxDelegate
             let selObject = delegate.selObject!
             
-            selObject.bodyMaterials.append(drag.material!)
-            selObject.selectedMaterials = [drag.material!.uuid]
+            if delegate.materialMode == .Body {
+                selObject.bodyMaterials.append(drag.material!)
+                selObject.selectedBodyMaterials = [drag.material!.uuid]
+            } else {
+                selObject.borderMaterials.append(drag.material!)
+                selObject.selectedBorderMaterials = [drag.material!.uuid]
+            }
             app.setChanged()
             
             if let material = drag.material {

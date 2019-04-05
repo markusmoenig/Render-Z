@@ -20,7 +20,8 @@ class Object : Node
     var currentSequence : MMTlSequence? = nil
     
     var selectedShapes  : [UUID]
-    var selectedMaterials: [UUID]
+    var selectedBodyMaterials: [UUID]
+    var selectedBorderMaterials: [UUID]
 
     var pointConnections: [ObjectPointConnection] = []
     
@@ -37,7 +38,8 @@ class Object : Node
         case borderMaterials
         case childObjects
         case selectedShapes
-        case selectedMaterials
+        case selectedBodyMaterials
+        case selectedBorderMaterials
         case sequences
         case pointConnections
     }
@@ -49,7 +51,8 @@ class Object : Node
         borderMaterials = []
         childObjects = []
         selectedShapes = []
-        selectedMaterials = []
+        selectedBodyMaterials = []
+        selectedBorderMaterials = []
         sequences = []
         
         super.init()
@@ -73,7 +76,8 @@ class Object : Node
         self.childObjects = instanceFor.childObjects
         self.sequences = instanceFor.sequences
         self.selectedShapes = []
-        self.selectedMaterials = []
+        self.selectedBodyMaterials = []
+        self.selectedBorderMaterials = []
         self.instanceOf = instanceFor.uuid
         
         super.init()
@@ -100,7 +104,8 @@ class Object : Node
         borderMaterials = try container.decode([Material].self, forKey: .borderMaterials)
         childObjects = try container.decode([Object].self, forKey: .childObjects)
         selectedShapes = try container.decode([UUID].self, forKey: .selectedShapes)        
-        selectedMaterials = try container.decode([UUID].self, forKey: .selectedMaterials)
+        selectedBodyMaterials = try container.decode([UUID].self, forKey: .selectedBodyMaterials)
+        selectedBorderMaterials = try container.decode([UUID].self, forKey: .selectedBorderMaterials)
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
         pointConnections = try container.decode([ObjectPointConnection].self, forKey: .pointConnections)
 
@@ -124,7 +129,8 @@ class Object : Node
         try container.encode(bodyMaterials, forKey: .bodyMaterials)
         try container.encode(borderMaterials, forKey: .borderMaterials)
         try container.encode(childObjects, forKey: .childObjects)
-        try container.encode(selectedMaterials, forKey: .selectedMaterials)
+        try container.encode(selectedBodyMaterials, forKey: .selectedBodyMaterials)
+        try container.encode(selectedBorderMaterials, forKey: .selectedBorderMaterials)
         try container.encode(sequences, forKey: .sequences)
         try container.encode(pointConnections, forKey: .pointConnections)
 

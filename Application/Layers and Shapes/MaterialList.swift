@@ -28,6 +28,7 @@ class MaterialList
     var textureWidget   : MMTextureWidget
 
     var currentObject   : Object?
+    var currentMode     : ObjectMaxDelegate.MaterialMode = .Body
     
     var hoverData       : [Float]
     var hoverBuffer     : MTLBuffer?
@@ -57,10 +58,11 @@ class MaterialList
     }
     
     /// Build the source
-    func build(width: Float, object: Object)
+    func build(width: Float, object: Object, mode: ObjectMaxDelegate.MaterialMode)
     {
-        let materials : [Material] = object.bodyMaterials
-        
+        let materials : [Material] = mode == .Body ? object.bodyMaterials : object.borderMaterials
+        let selectedMaterials : [UUID] = mode == .Body ? object.selectedBodyMaterials : object.selectedBorderMaterials
+
         let count : Float = Float(materials.count)
         height = count * unitSize + (count > 0 ? (count-1) * spacing : Float(0))
         if height == 0 {
@@ -154,7 +156,7 @@ class MaterialList
             source += "d = abs( uv ) - float2( \((width)/2) - borderSize, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
 
-            if object.selectedMaterials.contains( material.uuid ) {
+            if selectedMaterials.contains( material.uuid ) {
                 source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
             } else {
                 source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
@@ -255,22 +257,32 @@ class MaterialList
         let selectedIndex = Int(index)
         var changed  = false
         
-        let materials : [Material] = currentObject!.bodyMaterials
-
+        let materials : [Material] = currentMode == .Body ? currentObject!.bodyMaterials : currentObject!.borderMaterials
+        let selectedMaterials : [UUID] = currentMode == .Body ? currentObject!.selectedBodyMaterials : currentObject!.selectedBorderMaterials
+        
         if currentObject != nil {
             if selectedIndex >= 0 && selectedIndex < materials.count {
                 if !multiSelect {
                     
                     let material = materials[selectedIndex]
-                    let sameMaterialSelected = currentObject!.selectedMaterials.count == 0 || (currentObject!.selectedMaterials.count > 0 && currentObject!.selectedMaterials[0] == material.uuid)
+                    let sameMaterialSelected = selectedMaterials.count == 0 || (selectedMaterials.count > 0 && selectedMaterials[0] == material.uuid)
                     
-                    currentObject!.selectedMaterials = [material.uuid]
+                    if currentMode == .Body {
+                        currentObject!.selectedBodyMaterials = [material.uuid]
+                    } else {
+                        currentObject!.selectedBorderMaterials = [material.uuid]
+                    }
 
                     if sameMaterialSelected {
                     
                     }
-                } else if !currentObject!.selectedMaterials.contains( materials[selectedIndex].uuid ) {
-                    currentObject!.selectedMaterials.append( materials[selectedIndex].uuid )
+                } else if !selectedMaterials.contains( materials[selectedIndex].uuid )
+                {
+                    if currentMode == .Body {
+                        currentObject!.selectedBodyMaterials.append( materials[selectedIndex].uuid )
+                    } else {
+                        currentObject!.selectedBorderMaterials.append( materials[selectedIndex].uuid )
+                    }
                 }
                 changed = true
             }
