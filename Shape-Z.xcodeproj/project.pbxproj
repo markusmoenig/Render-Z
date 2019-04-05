@@ -122,6 +122,8 @@
 		2BE67109221291D300B95241 /* Node.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67107221291D200B95241 /* Node.metal */; };
 		2BE6710B2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
 		2BE6710C2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
+		2BEA8C3722573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
+		2BEA8C3822573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
 		2BF5D361221D2B2400EAAA76 /* Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* Nodes.swift */; };
 		2BF5D362221D2B2400EAAA76 /* Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* Nodes.swift */; };
 		2BF5D3652220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
@@ -200,6 +202,7 @@
 		2BE6710422125D7D00B95241 /* NodeGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeGraph.swift; sourceTree = "<group>"; };
 		2BE67107221291D200B95241 /* Node.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Node.metal; sourceTree = "<group>"; };
 		2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectMaxDelegate.swift; sourceTree = "<group>"; };
+		2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatWidget.swift; sourceTree = "<group>"; };
 		2BF5D360221D2B2400EAAA76 /* Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nodes.swift; sourceTree = "<group>"; };
 		2BF5D363221E7E2D00EAAA76 /* Data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
 		2BF5D3642220D50D00EAAA76 /* Behavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Behavior.swift; sourceTree = "<group>"; };
@@ -332,6 +335,7 @@
 				2BBF11B521EADB46001C94E9 /* MMUtils.swift */,
 				2BBF11B821EADB46001C94E9 /* MMFont.swift */,
 				2BBF11B921EADB46001C94E9 /* MMLabel.swift */,
+				2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */,
 				2B46E95C224330050047A94A /* MMTabWidget.swift */,
 				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
 				2BA344AC22029FA4000BB2EB /* MMFragment.swift */,
@@ -540,6 +544,7 @@
 				2BBF120221F80B32001C94E9 /* Gizmo.metal in Sources */,
 				2BBF11CB21EADB46001C94E9 /* MMView.swift in Sources */,
 				2BBF11D721EADB46001C94E9 /* MMSkin.swift in Sources */,
+				2BEA8C3822573CE20010C204 /* MMFloatWidget.swift in Sources */,
 				2B4CC22D2226669000A47812 /* NodeUI.swift in Sources */,
 				2BBF11AA21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
 				2BBF11A021EAD46B001C94E9 /* TopRegion.swift in Sources */,
@@ -600,6 +605,7 @@
 				2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */,
 				2BBF11CC21EADB46001C94E9 /* MMView.swift in Sources */,
 				2BBF11D821EADB46001C94E9 /* MMSkin.swift in Sources */,
+				2BEA8C3722573CE20010C204 /* MMFloatWidget.swift in Sources */,
 				2B4CC22E2226669000A47812 /* NodeUI.swift in Sources */,
 				2BBF11AB21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
 				2BBF11A121EAD46B001C94E9 /* TopRegion.swift in Sources */,

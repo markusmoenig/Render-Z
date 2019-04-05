@@ -415,6 +415,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             materialsTab.deregisterWidget()
         } else
         if mode == .Shapes {
+            materialListWidget.deregisterWidgets()
             app.mmView.deregisterWidgets( widgets: materialsTab, materialListWidget)
             materialsTab.deregisterWidget()
             app.mmView.registerWidgets( widgets: shapeScrollArea, shapeListWidget)
@@ -423,6 +424,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         if mode == .Materials {
             app.mmView.deregisterWidgets( widgets: shapeScrollArea, shapeListWidget)
             app.mmView.registerWidgets( widgets: materialsTab, materialListWidget)
+            materialListWidget.registerWidgets()
             materialsTab.registerWidget()
             activeRegionMode = .Materials
         }
@@ -459,6 +461,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         selObject!.selectedShapes = []
         selObjectActive = true
         shapeListChanged = true
+        materialListWidget!.floatWidget.value = object.properties["border"]!
         app.gizmo.setObject(selObject!, rootObject: currentObject!, context: .ObjectEditor)
     }
     
@@ -962,6 +965,11 @@ class MaterialListScrollArea: MMScrollArea
     
     var delegate            : ObjectMaxDelegate!
     
+    var bodyButton          : MMButtonWidget!
+    var borderButton        : MMButtonWidget!
+    
+    var floatWidget         : MMFloatWidget!
+
     init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
     {
         self.app = app
@@ -970,7 +978,40 @@ class MaterialListScrollArea: MMScrollArea
         mouseDownPos = float2()
         label = MMTextLabel(view, font: view.openSans, text:"Materials", scale: 0.44 )
 
+        var borderlessSkin = MMSkinButton()
+        borderlessSkin.margin = MMMargin( 4, 4, 4, 4 )
+        borderlessSkin.borderSize = 0
+        borderlessSkin.height = 23
+        borderlessSkin.fontScale = 0.44
+        
+        bodyButton = MMButtonWidget(view, skinToUse: borderlessSkin, text: "Interior" )
+        bodyButton.addState(.Checked)
+        
+        borderButton = MMButtonWidget(view, skinToUse: borderlessSkin, text: "Border" )
+        floatWidget = MMFloatWidget(view, range: float2(0, 10), value: delegate.selObject!.properties["border"]!)
+        
         super.init(view, orientation:.Vertical)
+        
+        bodyButton.clicked = { (event) -> Void in
+            self.bodyButton.addState(.Checked)
+            self.borderButton.removeState(.Checked)
+            
+            self.delegate.materialMode = .Body
+            self.delegate.materialListChanged = true
+        }
+        
+        borderButton.clicked = { (event) -> Void in
+            self.borderButton.addState(.Checked)
+            self.bodyButton.removeState(.Checked)
+            
+            self.delegate.materialMode = .Border
+            self.delegate.materialListChanged = true
+        }
+        
+        floatWidget.changed = { (value) -> Void in
+            self.delegate.selObject!.properties["border"] = value
+            self.delegate.update()
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent) {
@@ -1044,13 +1085,41 @@ class MaterialListScrollArea: MMScrollArea
         dragSource = nil
     }
     
+    func registerWidgets()
+    {
+        mmView.registerWidgets(widgets: bodyButton, borderButton, floatWidget)
+    }
+    
+    func deregisterWidgets()
+    {
+        mmView.registerWidgets(widgets: bodyButton, borderButton, floatWidget)
+    }
+    
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        let height : Float = 30//delegate.materialMode == .Body ? 30 : 60
         
-        label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: height, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height + 1 - 30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        bodyButton.rect.x = rect.x + 10
+        bodyButton.rect.y = rect.y + 3
+        bodyButton.rect.width = 75
+        bodyButton.rect.height = 24
+        bodyButton.draw()
+        
+        borderButton.rect.copy( bodyButton.rect )
+        borderButton.rect.x += bodyButton.rect.width + 10
+        borderButton.rect.width = 70
+        borderButton.draw()
+
+        //label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+        
+        floatWidget.rect.copy( borderButton.rect )
+        floatWidget.rect.x += bodyButton.rect.width + 10
+        floatWidget.rect.width = 100
+        floatWidget.draw()
+        
+        mmView.drawBox.draw( x: rect.x, y: rect.y + height, width: rect.width, height: rect.height + 1 - height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
     }
 }
 
