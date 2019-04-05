@@ -744,12 +744,12 @@ class ObjectListWidget : MMWidget
                         fillColor = float4( 0.5, 0.5, 0.5, 1 )
                     }
                 } else {
-                    fillColor = float4(0)
+                    fillColor = float4(repeating: 0)
                 }
                 
                 let borderSize : Float = 2
                 
-                mmView.drawBox.draw( x: item.rect.x + 1, y: item.rect.y, width: objectSize.x, height: objectSize.y, round: 6, borderSize: borderSize,  fillColor : fillColor, borderColor: float4( 1 ) )
+                mmView.drawBox.draw( x: item.rect.x + 1, y: item.rect.y, width: objectSize.x, height: objectSize.y, round: 6, borderSize: borderSize,  fillColor : fillColor, borderColor: float4( repeating: 1 ) )
                 
                 mmView.drawText.drawTextCentered(mmView.openSans, text: item.parentItem != nil ? item.object.name : "Root", x: item.rect.x, y: item.rect.y, width: objectSize.x, height: objectSize.y, scale: 0.3, color: float4(0,0,0,1))
                 
@@ -758,7 +758,7 @@ class ObjectListWidget : MMWidget
                     let pX : Float = pRect.x + pRect.width / 2
                     let pY : Float = pRect.y + pRect.height - 1
                     
-                    mmView.drawLine.draw(sx: pX, sy: pY, ex: item.rect.x + item.rect.width / 2, ey: item.rect.y + 1, radius: 1, fillColor: float4(1))
+                    mmView.drawLine.draw(sx: pX, sy: pY, ex: item.rect.x + item.rect.width / 2, ey: item.rect.y + 1, radius: 1, fillColor: float4(repeating: 1))
                 }
                 x += objectSize.x + objectMargin.x
             }
@@ -1103,7 +1103,7 @@ class SequenceWidget : MMWidget
             var item = self.getCurrentItem()
 
             let object = self.delegate.currentObject!
-            object.sequences.remove(at: object.sequences.index(where: { $0.uuid == item!.uuid })!)
+            object.sequences.remove(at: object.sequences.firstIndex(where: { $0.uuid == item!.uuid })!)
             self.listWidget.selectedItems = [object.sequences[0].uuid]
         }
     }

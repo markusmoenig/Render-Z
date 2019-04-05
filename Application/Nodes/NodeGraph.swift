@@ -803,7 +803,7 @@ class NodeGraph : Codable
             case .Properties:
                 color = float3(0.62, 0.506, 0.165)
             case .Object:
-                color = float3(1)//float3(0.192, 0.573, 0.478)
+                color = float3(repeating: 1)//float3(0.192, 0.573, 0.478)
             case .Behavior:
                 color = float3(0.129, 0.216, 0.612)
             default:

@@ -67,7 +67,7 @@ class MMDrawBox : MMDrawable
         mmRenderer = renderer
     }
     
-    func draw( x: Float, y: Float, width: Float, height: Float, round: Float = 0, borderSize: Float = 0, fillColor: float4, borderColor: float4 = float4(0) )
+    func draw( x: Float, y: Float, width: Float, height: Float, round: Float = 0, borderSize: Float = 0, fillColor: float4, borderColor: float4 = float4(repeating: 0) )
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let settings: [Float] = [
@@ -104,7 +104,7 @@ class MMDrawLine : MMDrawable
         mmRenderer = renderer
     }
     
-    func draw( sx: Float, sy: Float, ex: Float, ey: Float, radius: Float = 2, borderSize: Float = 0, fillColor: float4, borderColor: float4 = float4(0) )
+    func draw( sx: Float, sy: Float, ex: Float, ey: Float, radius: Float = 2, borderSize: Float = 0, fillColor: float4, borderColor: float4 = float4(repeating: 0) )
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
     
@@ -482,7 +482,7 @@ class MMDrawText : MMDrawable
         return MMCharBuffer(vertexBuffer: vertexBuffer!, dataBuffer: textData)
     }
     
-    @discardableResult func drawText( _ font: MMFont, text: String, x: Float, y: Float, scale: Float = 1.0, color: float4 = float4(1), textBuffer: MMTextBuffer? = nil, fragment: MMFragment? = nil ) -> MMTextBuffer?
+    @discardableResult func drawText( _ font: MMFont, text: String, x: Float, y: Float, scale: Float = 1.0, color: float4 = float4(repeating: 1), textBuffer: MMTextBuffer? = nil, fragment: MMFragment? = nil ) -> MMTextBuffer?
     {
         if textBuffer != nil && textBuffer!.x == x && textBuffer!.y == y && textBuffer!.viewWidth == mmRenderer.width && textBuffer!.viewHeight == mmRenderer.height {
             let renderEncoder = mmRenderer.renderEncoder!
@@ -513,7 +513,7 @@ class MMDrawText : MMDrawable
         }
     }
     
-    @discardableResult func drawTextCentered( _ font: MMFont, text: String, x: Float, y: Float, width: Float, height: Float, scale: Float = 1.0, color: float4 = float4(1), textBuffer: MMTextBuffer? = nil, fragment: MMFragment? = nil ) -> MMTextBuffer?
+    @discardableResult func drawTextCentered( _ font: MMFont, text: String, x: Float, y: Float, width: Float, height: Float, scale: Float = 1.0, color: float4 = float4(repeating: 1), textBuffer: MMTextBuffer? = nil, fragment: MMFragment? = nil ) -> MMTextBuffer?
     {
         let rect = font.getTextRect(text: text, scale: scale)
 
@@ -522,7 +522,7 @@ class MMDrawText : MMDrawable
         return drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
     }
     
-    @discardableResult func drawTextCenteredY( _ font: MMFont, text: String, x: Float, y: Float, width: Float, height: Float, scale: Float = 1.0, color: float4 = float4(1), textBuffer: MMTextBuffer? = nil, fragment: MMFragment? = nil ) -> MMTextBuffer?
+    @discardableResult func drawTextCenteredY( _ font: MMFont, text: String, x: Float, y: Float, width: Float, height: Float, scale: Float = 1.0, color: float4 = float4(repeating: 1), textBuffer: MMTextBuffer? = nil, fragment: MMFragment? = nil ) -> MMTextBuffer?
     {
         let rect = font.getTextRect(text: text, scale: scale)
         

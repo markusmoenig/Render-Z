@@ -88,7 +88,7 @@ class MMTabWidget: MMWidget
             if item === currentTab {
                 fColor = skin.button.activeColor
             } else {
-                fColor = float4(0)
+                fColor = float4(repeating:0)
             }
             
             mmView.drawBox.draw( x: item.rect.x, y: rect.y, width: item.rect.width, height: item.rect.height, round: 8, borderSize: 1, fillColor : fColor, borderColor: float4( 0, 0, 0, 0 ) )

@@ -151,7 +151,7 @@ class NodeUIDropDown : NodeUI
             var itemY : Float = rect.y
             for (ind,item) in items.enumerated() {
                 
-                let textColor = Float(ind) == index ? float4(1) : skin.textColor
+                let textColor = Float(ind) == index ? float4(repeating: 1) : skin.textColor
                 mmView.drawText.drawTextCentered(mmView.openSans, text: item, x: x, y: itemY, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: textColor)
                 itemY += itemHeight
             }

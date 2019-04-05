@@ -115,7 +115,7 @@ class MMTimeline : MMWidget
     
     func draw(_ sequence: MMTlSequence, uuid: UUID)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor : float4(0.110, 0.110, 0.110, 1.000), borderColor: float4(0) )// mmView.skin.Widget.borderColor )
+        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor : float4(0.110, 0.110, 0.110, 1.000), borderColor: float4(repeating: 0) )// mmView.skin.Widget.borderColor )
         
         let skin = mmView.skin.TimelineWidget
         

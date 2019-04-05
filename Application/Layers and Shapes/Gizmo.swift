@@ -599,7 +599,7 @@ class Gizmo : MMWidget
                         
                         let pointInScreen = convertToScreenSpace(x: pX, y: pY)
 
-                        var pFillColor = float4(1)
+                        var pFillColor = float4(repeating: 1)
                         var pBorderColor = float4( 0, 0, 0, 1)
                         let radius : Float = 10
                         #if os(OSX)
@@ -654,7 +654,7 @@ class Gizmo : MMWidget
             gizmoRect.width = attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2 * margin
             gizmoRect.height = attributes["sizeMaxY"]! - attributes["sizeMinY"]! + 2 * margin
             
-            mmView.drawBox.draw(x: gizmoRect.x, y: gizmoRect.y, width: gizmoRect.width, height: gizmoRect.height, round: 0, borderSize: 2, fillColor: float4(0), borderColor: float4(0.5, 0.5, 0.5, 1))
+            mmView.drawBox.draw(x: gizmoRect.x, y: gizmoRect.y, width: gizmoRect.width, height: gizmoRect.height, round: 0, borderSize: 2, fillColor: float4(repeating: 0), borderColor: float4(0.5, 0.5, 0.5, 1))
             
             // --- Render Point Buttons
             
@@ -676,7 +676,7 @@ class Gizmo : MMWidget
                     fColor = skin.button.color
                 }
                 
-                mmView.drawBoxedShape.draw(x: gizmoPtPlusRect.x, y: gizmoPtPlusRect.y, width: gizmoPtPlusRect.width, height: gizmoPtPlusRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(0), shape: .Plus)
+                mmView.drawBoxedShape.draw(x: gizmoPtPlusRect.x, y: gizmoPtPlusRect.y, width: gizmoPtPlusRect.width, height: gizmoPtPlusRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(repeating: 0), shape: .Plus)
                 
                 // -
                 gizmoPtMinusRect.width = 30
@@ -691,7 +691,7 @@ class Gizmo : MMWidget
                     fColor = skin.button.color
                 }
                 
-                mmView.drawBoxedShape.draw(x: gizmoPtMinusRect.x, y: gizmoPtMinusRect.y, width: gizmoPtMinusRect.width, height: gizmoPtMinusRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(0), shape: .Minus)
+                mmView.drawBoxedShape.draw(x: gizmoPtMinusRect.x, y: gizmoPtMinusRect.y, width: gizmoPtMinusRect.width, height: gizmoPtMinusRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(repeating: 0), shape: .Minus)
             }
 
             // --- Render Menu
@@ -713,7 +713,7 @@ class Gizmo : MMWidget
                     fColor = skin.button.color
                 }
                 
-                mmView.drawBoxedMenu.draw(x: gizmoUIMenuRect.x, y: gizmoUIMenuRect.y, width: gizmoUIMenuRect.width, height: gizmoUIMenuRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(0)/*-skin.button.borderColor*/)
+                mmView.drawBoxedMenu.draw(x: gizmoUIMenuRect.x, y: gizmoUIMenuRect.y, width: gizmoUIMenuRect.width, height: gizmoUIMenuRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(repeating: 0)/*-skin.button.borderColor*/)
                 
                 if gizmoUIOpen {
                     // --- Draw the UI
@@ -783,7 +783,7 @@ class Gizmo : MMWidget
                     
                     let pointInScreen = convertToScreenSpace(x: pX, y: pY)
                     
-                    var pFillColor = float4(1)
+                    var pFillColor = float4(repeating: 1)
                     var pBorderColor = float4( 0, 0, 0, 1)
                     let radius : Float = 10
                     #if os(OSX)
@@ -949,7 +949,7 @@ class Gizmo : MMWidget
             // Right Arrow - Move
             uv -= float2(75,0);
             var d : float2 = simd_abs( uv ) - float2( 18, 3)
-            dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            dist = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0);
             uv = center - float2(110,0);
             uv = rotateCW(uv, angle: 1.5708 );
             dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,-20)))
@@ -962,11 +962,11 @@ class Gizmo : MMWidget
             // Right Arrow - Scale
             uv = center - float2(25,0);
             d = simd_abs( uv ) - float2( 25, 3)
-            dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            dist = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0);
             
             uv = center - float2(50,0.4);
             d = simd_abs( uv ) - float2( 8, 7)
-            dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
+            dist = min( dist, length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0) );
             
             if dist < 0 {
                 hoverState = .xAxisScale
@@ -976,7 +976,7 @@ class Gizmo : MMWidget
             // Up Arrow - Move
             uv = center + float2(0,75);
             d = simd_abs( uv ) - float2( 3, 18)
-            dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            dist = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0);
             uv = center + float2(0,110);
             dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,20)))
             
@@ -988,11 +988,11 @@ class Gizmo : MMWidget
             // Up Arrow - Scale
             uv = center + float2(0,25);
             d = simd_abs( uv ) - float2( 3, 25)
-            dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            dist = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0);
 
             uv = center + float2(0.4,50);
             d = simd_abs( uv ) - float2( 7, 8)
-            dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
+            dist = min( dist, length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0) );
             
             if dist < 0 {
                 hoverState = .yAxisScale
@@ -1069,7 +1069,7 @@ class Gizmo : MMWidget
             // Right Arrow - Move
             uv -= float2(50,0);
             var d : float2 = simd_abs( uv ) - float2( 50, 3)
-            dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            dist = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0);
             uv = center - float2(110,0);
             uv = rotateCW(uv, angle: 1.5708 );
             dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,-20)))
@@ -1082,7 +1082,7 @@ class Gizmo : MMWidget
             // Up Arrow - Move
             uv = center + float2(0,50);
             d = simd_abs( uv ) - float2( 3, 50)
-            dist = simd_length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            dist = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0);
             uv = center + float2(0,110);
             dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,20)))
             

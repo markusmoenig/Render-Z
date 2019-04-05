@@ -181,7 +181,7 @@ class Shape : Codable
     /// Updates the untransformed size of the shape
     func updateSize()
     {
-        var size = float2(0)
+        var size = float2(repeating: 0)
         
         if pointCount == 0 {
             size.x = properties[widthProperty]! * 2
