@@ -18,6 +18,8 @@ class BuilderInstance
     
     // Offset to the point data array
     var pointDataOffset : Int = 0
+    // Offset to the object data array
+    var objectDataOffset : Int = 0
     
     var texture         : MTLTexture? = nil
 }
@@ -135,11 +137,19 @@ class Builder
         
         typedef struct
         {
+            float       border;
+            float       fill1;
+            float2      fill2;
+        } OBJECT_DATA;
+        
+        typedef struct
+        {
             float2      camera;
             float2      fill;
         
             SHAPE_DATA  shapes[\(max(shapeAndPointCount.0, 1))];
             float2      points[\(max(shapeAndPointCount.1, 1))];
+            OBJECT_DATA objects[\(max(shapeAndPointCount.2, 1))];
         } LAYER_DATA;
         
         """
@@ -243,6 +253,8 @@ class Builder
                     source += "newDist = -newDist;\n"
                 }
                 
+                source += "if (newDist < dist) materialId = \(objectIndex);\n"
+                
                 if booleanCode != "subtract" {
                     source += "if ( layerData->shapes[\(index)].smoothBoolean == 0.0 )"
                     source += "  dist = \(booleanCode)( dist, newDist );"
@@ -273,15 +285,16 @@ class Builder
             }
             
             // --- Material Code
-            source += "if (dist < 0) materialId = \(objectIndex);\n"
+            //source += "if (dist < 0) materialId = \(objectIndex);\n"
             materialSource += "if (materialId == \(objectIndex)) {\n"
             for material in object.bodyMaterials {
                 materialSource += "  " + material.createCode(uvName: "uv", materialVariable: "&bodyMaterial") + ";\n"
             }
+            for material in object.borderMaterials {
+                materialSource += "  " + material.createCode(uvName: "uv", materialVariable: "&borderMaterial") + ";\n"
+            }
 
             materialSource += "}\n"
-            
-            //
             objectIndex += 1
             
             for childObject in object.childObjects {
@@ -305,6 +318,17 @@ class Builder
         // Fill up the points
         let pointCount = max(shapeAndPointCount.1,1)
         for _ in 0..<pointCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
+        instance.objectDataOffset = instance.data!.count
+        
+        // Fill up the objects
+        let objectCount = max(shapeAndPointCount.2,1)
+        for _ in 0..<objectCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
         }
@@ -348,7 +372,10 @@ class Builder
         """
         
             col = mix( col, fillColor, fillMask( dist ) * fillColor.w );
-            col = mix( col, borderColor, borderMask( dist, 2 ) );
+            if ( materialId >= 0 )
+            {
+                col = mix( col, borderColor, borderMask( dist, layerData->objects[materialId].border ) * borderColor.w );
+            }
         
         """
         
@@ -397,6 +424,7 @@ class Builder
         let offset : Int = 4
         var index : Int = 0
         var pointIndex : Int = 0
+        var objectIndex : Int = 0
 
         // Update Shapes / Objects
         
@@ -467,6 +495,10 @@ class Builder
                 index += 1
                 pointIndex += shape.pointCount
             }
+            
+            // --- Fill in Object Data
+            instance.data![instance.objectDataOffset + (objectIndex) * 4] = objectProperties["border"]!
+            objectIndex += 1
             
             for childObject in object.childObjects {
                 parseObject(childObject)
@@ -778,8 +810,9 @@ class Builder
     }
     
     /// Retuns the shape count for the given objects
-    func getShapeAndPointCount(objects: [Object]) -> (Int,Int) {
+    func getShapeAndPointCount(objects: [Object]) -> (Int,Int,Int) {
         var index : Int = 0
+        var objectIndex : Int = 0
         var pointIndex : Int = 0
         
         func parseObject(_ object: Object)
@@ -792,12 +825,14 @@ class Builder
             for childObject in object.childObjects {
                 parseObject(childObject)
             }
+            
+            objectIndex += 1
         }
         
         for object in objects {
             parseObject(object)
         }
         
-        return (index, pointIndex)
+        return (index, pointIndex, objectIndex)
     }
 }
