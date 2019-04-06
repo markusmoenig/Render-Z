@@ -1100,8 +1100,8 @@ class Gizmo : MMWidget
         
         let camera = rootObject!.maxDelegate!.getCamera()!
         
-        result.x = (x - camera.xPos - 0.5)// / 700 * rect.width
-        result.y = (y - camera.yPos - 0.5)// / 700 * rect.width
+        result.x = (x - camera.xPos + 0.5)// / 700 * rect.width
+        result.y = (y - camera.yPos + 0.5)// / 700 * rect.width
         
         result.x += rect.width/2
         result.y += rect.width/2 * rect.height / rect.width
