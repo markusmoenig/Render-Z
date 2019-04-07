@@ -289,3 +289,56 @@ fragment float4 m4mTextDrawable(RasterizerData in [[stage_in]],
     float w = clamp(d/fwidth(d) + 0.5, 0.0, 1.0);
     return float4( data->color.x, data->color.y, data->color.z, w * data->color.w );
 }
+
+
+#define M_PI 3.1415926535897932384626433832795
+
+float3 getHueColor(float2 pos)
+{
+    float theta = 3.0 + 3.0 * atan2(pos.x, pos.y) / M_PI;
+    
+//    float3 color = float3(0.0);
+    return clamp(abs(fmod(theta + float3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
+}
+
+// --- ColorWheel Drawable
+fragment float4 m4mColorWheelDrawable(RasterizerData in [[stage_in]],
+                               constant MM_COLORWHEEL *data [[ buffer(0) ]] )
+{
+    float2 uv = float2(2.0, -2.0) * (in.textureCoordinate * data->size - 0.5 * data->size) / data->size.y;
+
+    float l = length(uv);
+
+    l = 1.0 - abs((l - 0.875) * 8.0);
+    l = clamp(l * data->size.y * 0.0625, 0.0, 1.0);
+    
+    float4 col = float4(l * getHueColor(uv), l);
+    
+    if (l < 0.75)
+    {
+        uv = uv / 0.75;
+        
+        float2 mouse = float2(0.0, -1.0);
+        float3 pickedHueColor = getHueColor(mouse);
+
+        mouse = normalize(mouse);
+        
+        float sat = 1.5 - (dot(uv, mouse) + 0.5); // [0.0,1.5]
+        
+        if (sat < 1.5)
+        {
+            float h = sat / sqrt(3.0);
+            float2 om = cross(float3(mouse, 0.0), float3(0.0, 0.0, 1.0)).xy;
+
+            float lum = dot(uv, om);
+            
+            if (abs(lum) <= h)
+            {
+                l = clamp((h - abs(lum)) * data->size.y * 0.5, 0.0, 1.0) * clamp((1.5 - sat) / 1.5 * data->size.y * 0.5, 0.0, 1.0); // Fake antialiasing
+                col = float4(l * mix(pickedHueColor, float3(0.5 * (lum + h) / h), sat / 1.5), l);
+            }
+        }
+    }
+
+    return col;
+}

@@ -531,3 +531,37 @@ class MMDrawText : MMDrawable
         return drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
     }
 }
+
+/// Draws a Color Wheel
+class MMDrawColorWheel : MMDrawable
+{
+    let mmRenderer : MMRenderer
+    var state : MTLRenderPipelineState!
+    
+    required init( _ renderer : MMRenderer )
+    {
+        let function = renderer.defaultLibrary.makeFunction( name: "m4mColorWheelDrawable" )
+        state = renderer.createNewPipelineState( function! )
+        mmRenderer = renderer
+    }
+    
+    func draw( x: Float, y: Float, width: Float, height: Float )
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        let settings: [Float] = [
+            width * scaleFactor, height * scaleFactor,
+        ];
+                
+        let renderEncoder = mmRenderer.renderEncoder!
+        
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, width, height, scale: scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        renderEncoder.setRenderPipelineState( state! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+}

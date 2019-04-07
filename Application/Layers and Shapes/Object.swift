@@ -10,6 +10,10 @@ import MetalKit
 
 class Object : Node
 {
+    enum MaterialType {
+        case Body, Border
+    }
+    
     var shapes          : [Shape]
     var bodyMaterials   : [Material]
     var borderMaterials : [Material]
@@ -199,6 +203,28 @@ class Object : Node
             }
         }
 
+        return result
+    }
+    
+    /// Returns an array of the currently selected materials
+    func getSelectedMaterials(_ type: MaterialType) -> [Material]
+    {
+        var result : [Material] = []
+        
+        if type == .Body {
+            for material in bodyMaterials {
+                if selectedBodyMaterials.contains( material.uuid ) {
+                    result.append(material)
+                }
+            }
+        } else {
+            for material in borderMaterials {
+                if selectedBorderMaterials.contains( material.uuid ) {
+                    result.append(material)
+                }
+            }
+        }
+        
         return result
     }
     

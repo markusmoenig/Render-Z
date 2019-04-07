@@ -333,9 +333,7 @@ class Builder
             instance.data!.append( 0 )
         }
         
-        print( materialSource )
-        source += materialSource
-        
+        source += materialSource        
         source +=
         """
             float4 fillColor = bodyMaterial.baseColor;

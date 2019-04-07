@@ -28,7 +28,7 @@ class MaterialList
     var textureWidget   : MMTextureWidget
 
     var currentObject   : Object?
-    var currentMode     : ObjectMaxDelegate.MaterialMode = .Body
+    var currentType     : Object.MaterialType = .Body
     
     var hoverData       : [Float]
     var hoverBuffer     : MTLBuffer?
@@ -58,10 +58,10 @@ class MaterialList
     }
     
     /// Build the source
-    func build(width: Float, object: Object, mode: ObjectMaxDelegate.MaterialMode)
+    func build(width: Float, object: Object, type: Object.MaterialType)
     {
-        let materials : [Material] = mode == .Body ? object.bodyMaterials : object.borderMaterials
-        let selectedMaterials : [UUID] = mode == .Body ? object.selectedBodyMaterials : object.selectedBorderMaterials
+        let materials : [Material] = type == .Body ? object.bodyMaterials : object.borderMaterials
+        let selectedMaterials : [UUID] = type == .Body ? object.selectedBodyMaterials : object.selectedBorderMaterials
 
         let count : Float = Float(materials.count)
         height = count * unitSize + (count > 0 ? (count-1) * spacing : Float(0))
@@ -257,8 +257,8 @@ class MaterialList
         let selectedIndex = Int(index)
         var changed  = false
         
-        let materials : [Material] = currentMode == .Body ? currentObject!.bodyMaterials : currentObject!.borderMaterials
-        let selectedMaterials : [UUID] = currentMode == .Body ? currentObject!.selectedBodyMaterials : currentObject!.selectedBorderMaterials
+        let materials : [Material] = currentType == .Body ? currentObject!.bodyMaterials : currentObject!.borderMaterials
+        let selectedMaterials : [UUID] = currentType == .Body ? currentObject!.selectedBodyMaterials : currentObject!.selectedBorderMaterials
         
         if currentObject != nil {
             if selectedIndex >= 0 && selectedIndex < materials.count {
@@ -267,7 +267,7 @@ class MaterialList
                     let material = materials[selectedIndex]
                     let sameMaterialSelected = selectedMaterials.count == 0 || (selectedMaterials.count > 0 && selectedMaterials[0] == material.uuid)
                     
-                    if currentMode == .Body {
+                    if currentType == .Body {
                         currentObject!.selectedBodyMaterials = [material.uuid]
                     } else {
                         currentObject!.selectedBorderMaterials = [material.uuid]
@@ -278,7 +278,7 @@ class MaterialList
                     }
                 } else if !selectedMaterials.contains( materials[selectedIndex].uuid )
                 {
-                    if currentMode == .Body {
+                    if currentType == .Body {
                         currentObject!.selectedBodyMaterials.append( materials[selectedIndex].uuid )
                     } else {
                         currentObject!.selectedBorderMaterials.append( materials[selectedIndex].uuid )

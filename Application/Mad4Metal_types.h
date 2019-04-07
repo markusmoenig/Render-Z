@@ -80,4 +80,10 @@ typedef struct
     float4 color;
 } MM_TEXT;
 
+typedef struct
+{
+    float2 size;
+    
+} MM_COLORWHEEL;
+
 #endif /* Mad4Metal_types.h */

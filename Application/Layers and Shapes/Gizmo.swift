@@ -17,15 +17,16 @@ class Gizmo : MMWidget
     }
     
     enum GizmoState : Float {
-        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked, AddPoint, RemovePoint
+        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked, AddPoint, RemovePoint, ColorWidgetClosed, ColorWidgetOpened
     }
     
     enum GizmoContext : Float {
-        case ShapeEditor, ObjectEditor
+        case ShapeEditor, ObjectEditor, MaterialEditor
     }
     
     var mode            : GizmoMode = .Normal
     var context         : GizmoContext = .ShapeEditor
+    var materialType    : Object.MaterialType = .Body
 
     var hoverState      : GizmoState = .Inactive
     var dragState       : GizmoState = .Inactive
@@ -58,6 +59,9 @@ class Gizmo : MMWidget
     var gizmoPtLockRect : MMRect = MMRect()
     
     var hoverUIItem     : NodeUI?
+    
+    // --- MaterialEditor context
+    var colorWidget     : MMColorWidget!
 
     // --- For the point based gizmo
     
@@ -75,21 +79,26 @@ class Gizmo : MMWidget
         height = 260
         objects = []
         
+        colorWidget = MMColorWidget(view)
+        
         super.init(view)
 
         gizmoNode = GizmoNode(self)
     }
     
-    func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor)
+    func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor, materialType: Object.MaterialType = .Body)
     {
         self.object = object
         self.context = context
+        self.materialType = materialType
         
         if rootObject != nil {
             self.rootObject = rootObject
         } else {
             self.rootObject = object
         }
+        
+        colorWidget.removeState(.Opened)
         
         mode = .Normal
         if object != nil {
@@ -152,6 +161,27 @@ class Gizmo : MMWidget
         // If shape editor has no shape, set to inactive
         if object!.selectedShapes.count == 0 && context == .ShapeEditor { hoverState = .Inactive; return }
         
+        // --- ColorWidget
+        
+        if context == .MaterialEditor {
+            if colorWidget.states.contains(.Opened) {
+                if colorWidget.rect.contains(event.x, event.y) {
+                    colorWidget.mouseDown(event)
+                } else {
+                    colorWidget.setState(.Closed)
+                }
+                return
+            }
+        }
+        
+        if mode == .Normal && hoverState == .ColorWidgetClosed {
+            colorWidget.setState(.Opened)
+            return
+        } else
+        if mode == .Normal && hoverState == .ColorWidgetOpened {
+            return
+        }
+
 //        #if os(iOS) || os(watchOS) || os(tvOS)
         if mode == .Normal {
             updateNormalHoverState(editorRect: rect, event: event)
@@ -303,6 +333,13 @@ class Gizmo : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if context == .MaterialEditor && colorWidget.states.contains(.Opened) {
+            if colorWidget.rect.contains(event.x, event.y) {
+                colorWidget.mouseUp(event)
+            }
+            return
+        }
+        
         if object != nil && context == .ShapeEditor {
             let selectedShapes = object!.getSelectedShapes()
             for shape in selectedShapes {
@@ -374,6 +411,13 @@ class Gizmo : MMWidget
     {
         if hoverState == .GizmoUIMouseLocked {
             hoverUIItem!.mouseMoved(event)
+            return
+        }
+        
+        if context == .MaterialEditor && colorWidget.states.contains(.Opened) {
+            if colorWidget.rect.contains(event.x, event.y) {
+                colorWidget.mouseMoved(event)
+            }
             return
         }
         
@@ -551,7 +595,10 @@ class Gizmo : MMWidget
     {
         if object == nil { hoverState = .Inactive; return }
         let selectedShapes = object!.getSelectedShapes()
+        let selectedMaterials = object!.getSelectedMaterials(materialType)
+        
         if selectedShapes.count == 0 && context == .ShapeEditor { hoverState = .Inactive; return }
+        if selectedMaterials.count == 0 && context == .MaterialEditor { hoverState = .Inactive; return }
         
         let editorRect = rect
         
@@ -654,7 +701,9 @@ class Gizmo : MMWidget
             gizmoRect.width = attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2 * margin
             gizmoRect.height = attributes["sizeMaxY"]! - attributes["sizeMinY"]! + 2 * margin
             
-            mmView.drawBox.draw(x: gizmoRect.x, y: gizmoRect.y, width: gizmoRect.width, height: gizmoRect.height, round: 0, borderSize: 2, fillColor: float4(repeating: 0), borderColor: float4(0.5, 0.5, 0.5, 1))
+            if context == .ShapeEditor {
+                mmView.drawBox.draw(x: gizmoRect.x, y: gizmoRect.y, width: gizmoRect.width, height: gizmoRect.height, round: 0, borderSize: 2, fillColor: float4(repeating: 0), borderColor: float4(0.5, 0.5, 0.5, 1))
+            }
             
             // --- Render Point Buttons
             
@@ -694,6 +743,14 @@ class Gizmo : MMWidget
                 mmView.drawBoxedShape.draw(x: gizmoPtMinusRect.x, y: gizmoPtMinusRect.y, width: gizmoPtMinusRect.width, height: gizmoPtMinusRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(repeating: 0), shape: .Minus)
             }
 
+            // --- Material context: Color/Value in left corner
+            if context == .MaterialEditor {
+                colorWidget.rect.x = gizmoRect.x + 5
+                colorWidget.rect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
+
+                colorWidget.draw()
+            }
+            
             // --- Render Menu
             if gizmoNode.uiItems.count > 0 {
                 let skin = mmView.skin.MenuWidget
@@ -859,6 +916,21 @@ class Gizmo : MMWidget
                         return
                     }
                     uiItemY += uiItem.rect.height
+                }
+            }
+        }
+        
+        // --- Material ColorWidget
+        if context == .MaterialEditor {
+            if !colorWidget.states.contains(.Opened) {
+                if colorWidget.rect.contains(event.x, event.y) {
+                    hoverState = .ColorWidgetClosed
+                    return
+                }
+            } else {
+                if colorWidget.rect.contains(event.x, event.y) {
+                    hoverState = .ColorWidgetOpened
+                    return
                 }
             }
         }
@@ -1363,39 +1435,3 @@ class GizmoNode : Node
          gizmo!.rootObject!.maxDelegate!.update(false)
     }
 }
-/*
-/// Represents a shape point
-class GizmoShapePoints
-{
-    var shape       : Shape
-    var shapeIndex  : Int
-    var points      : [float2] = []
-    
-    init(shape: Shape, shapeIndex: Int)
-    {
-        self.shape = shape
-        self.shapeIndex = shapeIndex
-    }
-}
-
-class GizmoPointHelper
-{
-    var shapePoints : [GizmoShapePoints] = []
-    
-    init(_ object: Object, transProperties: [String:Float])
-    {
-        let posX = transProperties["posX"]!
-        let posY = transProperties["posY"]!
-        
-        for (index,shape) in object.shapes.enumerated() {
-            if shape.pointCount > 0 {
-                let shapePoints = GizmoShapePoints(shape: shape, shapeIndex: index)
-                
-                for i in 0..<shape.pointCount {
-                    let x : Float = posX + shape.prop
-                }
-            }
-        }
-    }
-}
-*/

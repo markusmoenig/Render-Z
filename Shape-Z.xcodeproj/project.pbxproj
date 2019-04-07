@@ -43,6 +43,8 @@
 		2BA344AB22015888000BB2EB /* timeline_play.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BA344A922015888000BB2EB /* timeline_play.tiff */; };
 		2BA344AD2202A0A0000BB2EB /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
 		2BA344AE2202A0AA000BB2EB /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
+		2BA6163C2259805800638794 /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
+		2BA6163D2259805800638794 /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
 		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
 		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
@@ -150,6 +152,7 @@
 		2BA344A522015419000BB2EB /* timeline_recording.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline_recording.tiff; sourceTree = "<group>"; };
 		2BA344A922015888000BB2EB /* timeline_play.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline_play.tiff; sourceTree = "<group>"; };
 		2BA344AC22029FA4000BB2EB /* MMFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFragment.swift; sourceTree = "<group>"; };
+		2BA6163B22597EF400638794 /* MMColorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMColorWidget.swift; sourceTree = "<group>"; };
 		2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -336,6 +339,7 @@
 				2BBF11B821EADB46001C94E9 /* MMFont.swift */,
 				2BBF11B921EADB46001C94E9 /* MMLabel.swift */,
 				2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */,
+				2BA6163B22597EF400638794 /* MMColorWidget.swift */,
 				2B46E95C224330050047A94A /* MMTabWidget.swift */,
 				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
 				2BA344AC22029FA4000BB2EB /* MMFragment.swift */,
@@ -552,6 +556,7 @@
 				2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */,
 				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2B46E966224481AC0047A94A /* MaterialSelector.swift in Sources */,
+				2BA6163C2259805800638794 /* MMColorWidget.swift in Sources */,
 				2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */,
 				2BBF11D521EADB46001C94E9 /* MMScrollArea.swift in Sources */,
 				2B46E9692245C1F00047A94A /* MaterialList.swift in Sources */,
@@ -613,6 +618,7 @@
 				2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */,
 				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2B46E967224481AC0047A94A /* MaterialSelector.swift in Sources */,
+				2BA6163D2259805800638794 /* MMColorWidget.swift in Sources */,
 				2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */,
 				2BBF11D621EADB46001C94E9 /* MMScrollArea.swift in Sources */,
 				2B46E96A2245C1F00047A94A /* MaterialList.swift in Sources */,

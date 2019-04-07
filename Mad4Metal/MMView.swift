@@ -30,6 +30,7 @@ class MMView : MMBaseView {
     var drawText        : MMDrawText!
     var drawCustomState : MMDrawCustomState!
     var drawLine        : MMDrawLine!
+    var drawColorWheel  : MMDrawColorWheel!
 
     // --- Fonts
     var openSans        : MMFont!
@@ -97,6 +98,7 @@ class MMView : MMBaseView {
         drawText = MMDrawText( renderer )
         drawCustomState = MMDrawCustomState( renderer )
         drawLine = MMDrawLine( renderer )
+        drawColorWheel = MMDrawColorWheel( renderer )
     }
     
     /// Build the user interface for this view. Called for each frame inside the renderer.

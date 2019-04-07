@@ -20,12 +20,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         case Closed, Open
     }
     
-    enum MaterialMode
-    {
-        case Body, Border
-    }
-    
     var app             : App!
+    var gizmoContext    : Gizmo.GizmoContext = .ShapeEditor
     
     // Top Region
     var shapesButton    : MMButtonWidget!
@@ -55,7 +51,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     var materialList    : MaterialList!
     var materialListChanged: Bool = true
     
-    var materialMode : MaterialMode = .Body
+    var materialType : Object.MaterialType = .Body
 
     // Bottom Region
     var bottomRegionMode: BottomRegionMode = .Open
@@ -239,9 +235,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 }
             }
             
-            if activeRegionMode == .Shapes {
+            //if activeRegionMode == .Shapes {
                 app.gizmo.draw()
-            }
+            //}
             app.changed = false
         } else
         if region.type == .Top {
@@ -304,7 +300,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             
             // Rebuild material list
             if materialListChanged {
-                materialList.build( width: materialListWidget.rect.width, object: selObject!, mode: materialMode)
+                materialList.build( width: materialListWidget.rect.width, object: selObject!, type: materialType)
                 // Remove gizmo focus from the selected object if it has selected shapes
                 //if selObject!.selectedMaterials.count > 0 {
                 //    selObjectActive = false
@@ -339,9 +335,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        if activeRegionMode == .Shapes {
-            app.gizmo.mouseDown(event)
-        }
+        app.gizmo.mouseDown(event)
         
         if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
             let editorRegion = app.editorRegion!
@@ -360,22 +354,18 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 selObjectActive = false
                 selObject!.selectedShapes = []
             }
-            app.gizmo.setObject(selObject, rootObject: currentObject)
+            app.gizmo.setObject(selObject, rootObject: currentObject, context: gizmoContext, materialType: materialType)
         }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        if activeRegionMode == .Shapes {
-            app.gizmo.mouseUp(event)
-        }
+        app.gizmo.mouseUp(event)
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if activeRegionMode == .Shapes {
-            app.gizmo.mouseMoved(event)
-        }
+        app.gizmo.mouseMoved(event)
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -420,6 +410,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             materialsTab.deregisterWidget()
             app.mmView.registerWidgets( widgets: shapeScrollArea, shapeListWidget)
             activeRegionMode = .Shapes
+            
+            gizmoContext = .ShapeEditor
+            app.gizmo.setObject(selObject, rootObject: currentObject, context: gizmoContext, materialType: materialType)
         } else
         if mode == .Materials {
             app.mmView.deregisterWidgets( widgets: shapeScrollArea, shapeListWidget)
@@ -427,6 +420,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             materialListWidget.registerWidgets()
             materialsTab.registerWidget()
             activeRegionMode = .Materials
+            
+            gizmoContext = .MaterialEditor
+            app.gizmo.setObject(selObject, rootObject: currentObject, context: gizmoContext, materialType: materialType)
         }
         
         if animating { return }
@@ -498,7 +494,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func update(_ hard: Bool = false)
     {
         if hard {
-            app.gizmo.setObject(selObject, rootObject: currentObject)
+            app.gizmo.setObject(selObject, rootObject: currentObject, context: gizmoContext, materialType: materialType)
             currentObject!.instance = app.nodeGraph.builder.buildObjects(objects: [currentObject!], camera: camera)
         }
         
@@ -519,7 +515,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     /// Returns the current material count for the current mode and object
     func materialCount() -> Int
     {
-        if materialMode == .Body {
+        if materialType == .Body {
             return currentObject!.bodyMaterials.count
         } else {
             return currentObject!.borderMaterials.count
@@ -529,7 +525,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     /// Removes the material index from the given material mode
     func removeMaterial(at: Int) -> Material
     {
-        if materialMode == .Body {
+        if materialType == .Body {
             return currentObject!.bodyMaterials.remove(at: at)
         } else {
             return currentObject!.borderMaterials.remove(at: at)
@@ -539,7 +535,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     /// Inset=rt the material at the index considering the given material mode
     func insertMaterial(_ material: Material, at: Int)
     {
-        if materialMode == .Body {
+        if materialType == .Body {
             currentObject!.bodyMaterials.insert(material, at: at)
         } else {
             currentObject!.borderMaterials.insert(material, at: at)
@@ -585,7 +581,7 @@ class ShapeScrollArea: MMScrollArea
         mouseDownPos.y = event.y - rect.y - offsetY
         mouseIsDown = true
         shapeAtMouse = delegate.shapeSelector.selectAt(mouseDownPos.x,mouseDownPos.y)
-        delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject)
+        delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject, context: delegate.gizmoContext, materialType: delegate.materialType)
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {
@@ -633,7 +629,7 @@ class DecoScrollArea: MMScrollArea
         mouseDownPos.y = event.y - rect.y - offsetY
         mouseIsDown = true
         shapeAtMouse = delegate.materialSelector.selectDecoAt(mouseDownPos.x,mouseDownPos.y)
-        delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject)
+        delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject, context: delegate.gizmoContext, materialType: delegate.materialType)
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {
@@ -910,7 +906,7 @@ class ShapeListScrollArea: MMScrollArea
                     delegate.selObject!.selectedShapes = oldSelection
                 }
                 delegate.shapeListChanged = true
-                delegate.app.gizmo.setObject(delegate.selObject!)
+                delegate.app.gizmo.setObject(delegate.selObject!, context: .ShapeEditor)
                 delegate.shapeList.hoverAt(event.x - rect.x, event.y - rect.y)
                 delegate.update(true)
                 return
@@ -996,16 +992,20 @@ class MaterialListScrollArea: MMScrollArea
             self.bodyButton.addState(.Checked)
             self.borderButton.removeState(.Checked)
             
-            self.delegate.materialMode = .Body
+            self.delegate.materialType = .Body
             self.delegate.materialListChanged = true
+            
+            delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
         }
         
         borderButton.clicked = { (event) -> Void in
             self.borderButton.addState(.Checked)
             self.bodyButton.removeState(.Checked)
             
-            self.delegate.materialMode = .Border
+            self.delegate.materialType = .Border
             self.delegate.materialListChanged = true
+            
+            delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
         }
         
         floatWidget.changed = { (value) -> Void in
@@ -1026,7 +1026,7 @@ class MaterialListScrollArea: MMScrollArea
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
         
-        let oldSelection = delegate.materialMode == .Body ? delegate.selObject!.selectedBodyMaterials : delegate.selObject!.selectedBorderMaterials
+        let oldSelection = delegate.materialType == .Body ? delegate.selObject!.selectedBodyMaterials : delegate.selObject!.selectedBorderMaterials
         
         let materialList = delegate.materialList!
         
@@ -1046,20 +1046,20 @@ class MaterialListScrollArea: MMScrollArea
                     {
                         let material = delegate.removeMaterial(at: materialList.hoverIndex)
                         if oldSelection.contains( material.uuid ) {
-                            if delegate.materialMode == .Body {
+                            if delegate.materialType == .Body {
                                 delegate.selObject!.selectedBodyMaterials = []
                             } else {
                                 delegate.selObject!.selectedBorderMaterials = []
                             }
                         } else {
-                            if delegate.materialMode == .Body {
+                            if delegate.materialType == .Body {
                                 delegate.selObject!.selectedBodyMaterials = oldSelection
                             } else {
                                 delegate.selObject!.selectedBorderMaterials = oldSelection
                             }
                         }
                         delegate.materialListChanged = true
-                        delegate.app.gizmo.setObject(delegate.selObject!)
+                        delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
                         delegate.materialList.hoverAt(event.x - rect.x, event.y - rect.y)
                         delegate.update(true)
                         return

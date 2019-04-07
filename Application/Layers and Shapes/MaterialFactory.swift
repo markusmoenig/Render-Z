@@ -32,12 +32,12 @@ class MaterialFactory
         let defaultSize : Float = 20
         var def : MaterialDefinition = MaterialDefinition()
         
-        // --- Color
-        def.name = "Color"
-        def.code = "staticColor(__uv__, __material__)"
+        // --- Static
+        def.name = "Static"
+        def.code = "staticMaterial(__uv__, __material__)"
         def.globalCode =
         """
-        void staticColor( float2 p, thread MATERIAL_DATA *material )
+        void staticMaterial( float2 p, thread MATERIAL_DATA *material )
         {
             material->baseColor = float4(1);
         }

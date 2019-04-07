@@ -1,5 +1,5 @@
 //
-//  MMNumber
+//  MMFloatWidget.swift
 //  Framework
 //
 //  Created by Markus Moenig on 04/5/19.
@@ -13,7 +13,7 @@ class MMFloatWidget : MMWidget
     var value       : Float
     var range       : float2!
     var mouseIsDown : Bool = false
-    
+
     var changed     : ((_ value: Float)->())?
 
     init(_ view: MMView, range: float2 = float2(0,1), value: Float = 0)
