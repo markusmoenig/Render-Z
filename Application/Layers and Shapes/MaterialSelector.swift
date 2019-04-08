@@ -117,6 +117,7 @@ class MaterialSelector
                 MATERIAL_DATA material;
                 float dist = 10000;
                 float4 col = float4(0);
+                float4 fillColor;
         
         """
 
@@ -134,13 +135,12 @@ class MaterialSelector
             source += "d = abs(uv) - float2(\(unitSize/2));\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
             
-            source += material.createCode(uvName: "uv", shapeIndex: 0) + ";\n"
-//            source += "dist = merge( dist, " + material.createCode(uvName: "uv", shapeIndex: 0) + ");"
+            source += "material.baseColor = " + material.createCode(uvName: "uv") + ";\n"
             
             source +=
             """
             
-            float4 fillColor = material.baseColor;
+            fillColor = material.baseColor;
             //float4 color = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
             
             col = mix( col, fillColor, fillMask( dist ) );
@@ -160,11 +160,6 @@ class MaterialSelector
         
         source +=
         """
-                //float4 fillColor = material.baseColor;
-                //float4 borderColor = float4( 1 );
-        
-                //float4 col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
-                //col = mix( col, borderColor, borderMask( dist, 2 ) );
                 return col;
             }
         """
@@ -251,7 +246,7 @@ class MaterialSelector
         
         """
         
-        source += material.createCode(uvName: "uv", shapeIndex: 0) + ";\n"
+        source += "material.baseColor = " + material.createCode(uvName: "uv") + ";\n"
         source +=
         """
         

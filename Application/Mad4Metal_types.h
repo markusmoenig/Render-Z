@@ -83,6 +83,7 @@ typedef struct
 typedef struct
 {
     float2 size;
+    float4 color;
     
 } MM_COLORWHEEL;
 

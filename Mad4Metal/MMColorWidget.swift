@@ -158,7 +158,7 @@ class MMColorWidget : MMWidget
         } else {
             mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 2, borderSize: 2, fillColor: float4(0.145, 0.145, 0.145, 1), borderColor: float4(0, 0, 0, 1))
             
-            mmView.drawColorWheel.draw(x: rect.x + 10, y: rect.y + 10, width: 150, height: 150)
+            mmView.drawColorWheel.draw(x: rect.x + 10, y: rect.y + 10, width: 150, height: 150, color: value)
             
             mmView.drawBox.draw(x: rect.x + rect.width - 60, y: rect.y + 10, width: 50, height: rect.height - 20, round: 2, borderSize: 2, fillColor: value, borderColor: float4(0, 0, 0, 1))
         }

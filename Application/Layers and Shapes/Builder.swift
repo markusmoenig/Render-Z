@@ -20,6 +20,8 @@ class BuilderInstance
     var pointDataOffset : Int = 0
     // Offset to the object data array
     var objectDataOffset : Int = 0
+    // Offset to the material data array
+    var materialDataOffset : Int = 0
     
     var texture         : MTLTexture? = nil
 }
@@ -150,6 +152,7 @@ class Builder
             SHAPE_DATA  shapes[\(max(shapeAndPointCount.0, 1))];
             float2      points[\(max(shapeAndPointCount.1, 1))];
             OBJECT_DATA objects[\(max(shapeAndPointCount.2, 1))];
+            float4      materialData[\(max(shapeAndPointCount.3, 1))];
         } LAYER_DATA;
         
         """
@@ -192,6 +195,7 @@ class Builder
         
         var index : Int = 0 // shape index
         var objectIndex : Int = 0 // object index
+        var materialDataIndex : Int = 0
         var pointIndex : Int = 0
         var parentPosX : Float = 0
         var parentPosY : Float = 0
@@ -288,10 +292,14 @@ class Builder
             //source += "if (dist < 0) materialId = \(objectIndex);\n"
             materialSource += "if (materialId == \(objectIndex)) {\n"
             for material in object.bodyMaterials {
-                materialSource += "  " + material.createCode(uvName: "uv", materialVariable: "&bodyMaterial") + ";\n"
+                let matProperty = "bodyMaterial.baseColor"
+                materialSource += "  " + matProperty + " = " + material.createCode(uvName: "uv", materialDataIndex: materialDataIndex) + ";\n"
+                materialDataIndex += 1
             }
             for material in object.borderMaterials {
-                materialSource += "  " + material.createCode(uvName: "uv", materialVariable: "&borderMaterial") + ";\n"
+                let matProperty = "borderMaterial.baseColor"
+                materialSource += "  " + matProperty + " = " + material.createCode(uvName: "uv", materialDataIndex: materialDataIndex) + ";\n"
+                materialDataIndex += 1
             }
 
             materialSource += "}\n"
@@ -327,6 +335,21 @@ class Builder
         // Fill up the objects
         let objectCount = max(shapeAndPointCount.2,1)
         for _ in 0..<objectCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
+        // Necessary alignment buffer
+        instance.data!.append( 0 )
+        instance.data!.append( 0 )
+        
+        instance.materialDataOffset = instance.data!.count
+
+        // Fill up the material data
+        let materialDataCount = max(shapeAndPointCount.3,1)
+        for _ in 0..<materialDataCount {
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
@@ -423,6 +446,7 @@ class Builder
         var index : Int = 0
         var pointIndex : Int = 0
         var objectIndex : Int = 0
+        var materialDataIndex : Int = 0
 
         // Update Shapes / Objects
         
@@ -497,6 +521,46 @@ class Builder
             // --- Fill in Object Data
             instance.data![instance.objectDataOffset + (objectIndex) * 4] = objectProperties["border"]!
             objectIndex += 1
+            
+            // --- Fill in Material Data
+            func fillInMaterialData(_ materials: [Material] )
+            {
+                for material in materials {
+                    let properties : [String:Float]
+                    if rootObject.currentSequence != nil {
+                        properties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: material.uuid, properties: material.properties, frame: frame)
+                    } else {
+                        properties = material.properties
+                    }
+                    
+                    //print(properties["value_x"]!, properties["value_y"]!, properties["value_z"]!,properties["value_w"]!)
+                    
+                    if material.pointCount == 0 {
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["value_x"]!
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["value_y"]!
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties["value_z"]!
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties["value_w"]!
+                        materialDataIndex += 1
+                    } else {
+                        for index in 0..<material.pointCount {
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["point_\(index)_x"]!
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["point_\(index)_y"]!
+                            materialDataIndex += 1
+                        }
+                        for index in 0..<material.pointCount {
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["pointvalue_\(index)_x"]!
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["pointvalue_\(index)_y"]!
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties["pointvalue_\(index)_z"]!
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties["pointvalue_\(index)_w"]!
+                            materialDataIndex += 1
+                        }
+                    }
+                }
+            }
+            fillInMaterialData(object.bodyMaterials)
+            fillInMaterialData(object.borderMaterials)
+
+            // --- End Material Data
             
             for childObject in object.childObjects {
                 parseObject(childObject)
@@ -808,16 +872,32 @@ class Builder
     }
     
     /// Retuns the shape count for the given objects
-    func getShapeAndPointCount(objects: [Object]) -> (Int,Int,Int) {
+    func getShapeAndPointCount(objects: [Object]) -> (Int,Int,Int,Int) {
         var index : Int = 0
         var objectIndex : Int = 0
         var pointIndex : Int = 0
+        var materialIndex : Int = 0
         
         func parseObject(_ object: Object)
         {
             for shape in object.shapes {
                 index += 1
                 pointIndex += shape.pointCount
+            }
+            
+            for material in object.bodyMaterials {
+                if material.pointCount == 0 {
+                    materialIndex += 1
+                } else {
+                    materialIndex += material.pointCount * 2
+                }
+            }
+            for material in object.borderMaterials {
+                if material.pointCount == 0 {
+                    materialIndex += 1
+                } else {
+                    materialIndex += material.pointCount * 2
+                }
             }
             
             for childObject in object.childObjects {
@@ -831,6 +911,6 @@ class Builder
             parseObject(object)
         }
         
-        return (index, pointIndex, objectIndex)
+        return (index, pointIndex, objectIndex, materialIndex)
     }
 }

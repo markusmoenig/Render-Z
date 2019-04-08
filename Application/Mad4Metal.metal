@@ -301,6 +301,37 @@ float3 getHueColor(float2 pos)
     return clamp(abs(fmod(theta + float3(0.0, 4.0, 2.0), 6.0) - 3.0) - 1.0, 0.0, 1.0);
 }
 
+float2 hsl2xy(float3 hsl)
+{
+    float h = hsl.r;
+    float s = hsl.g;
+    float l = hsl.b;
+    float theta = 0;
+    
+    if(h==0.0){
+        if(s==1.0){
+            theta = 4.0-l;
+        } else {
+            theta = 2.0+s;
+        }
+    }else if(h==1.0){
+        if(s==0.0){
+            theta = l;
+        } else {
+            theta = 6.0-s;
+        }
+    }else{
+        if(s==0.0){
+            theta = 2.0-h;
+        } else {
+            theta = 4.0+h;
+        }
+    }
+    
+    theta = M_PI/6 * theta;
+    return float2(cos(theta), sin(theta));
+}
+
 // --- ColorWheel Drawable
 fragment float4 m4mColorWheelDrawable(RasterizerData in [[stage_in]],
                                constant MM_COLORWHEEL *data [[ buffer(0) ]] )
@@ -318,7 +349,7 @@ fragment float4 m4mColorWheelDrawable(RasterizerData in [[stage_in]],
     {
         uv = uv / 0.75;
         
-        float2 mouse = float2(0.0, -1.0);
+        float2 mouse = hsl2xy(data->color.xyz);// float2(0.0, -1.0);
         float3 pickedHueColor = getHueColor(mouse);
 
         mouse = normalize(mouse);

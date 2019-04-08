@@ -92,25 +92,58 @@ class Material : Codable
     }
     
     /// Creates the distance code for the shape, optionally using the supplied transformed properties or insertig the metal code for accessing the shape data structure
-    func createCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil, pointIndex: Int? = nil, shapeIndex: Int? = nil, materialIndex: Int? = nil, materialVariable: String = "&material") -> String
+    func createCode( uvName: String, transProperties: [String:Float]? = nil, materialDataIndex: Int? = nil, pointIndex: Int? = nil) -> String
     {
         var code = self.code
         let props = transProperties != nil ? transProperties : properties
         
         code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
         
-        if materialIndex == nil {
-            code = code.replacingOccurrences(of: "__material__", with: materialVariable)
+        if pointCount == 0 {
+            if materialDataIndex == nil {
+                code = code.replacingOccurrences(of: "__value__", with: "float4(\(props!["value_x"]!), \(props!["value_y"]!), \(props!["value_z"]!), \(props!["value_w"]!) )")
+            } else {
+                let matDataCode = "layerData->materialData[\(materialDataIndex!)]"
+                code = code.replacingOccurrences(of: "__value__", with: matDataCode)
+            }
+        } else {
+            var materialIndex : Int = 0
+            if materialDataIndex != nil {
+                materialIndex  = materialDataIndex!
+            }
+
+            // Fill in point positions
+            for index in 0..<pointCount {
+                if materialDataIndex == nil {
+                    code = code.replacingOccurrences(of: "__point_\(index)__", with: "float2(\(props!["point_\(index)_x"]!), \(props!["point_\(index)_y"]!))")
+                } else {
+                    let matDataCode = "layerData->materialData[\(materialIndex)].xy"
+                    code = code.replacingOccurrences(of: "__point_\(index)__", with: matDataCode)
+                    materialIndex += 1
+                }
+            }
+            // Fill in point values
+            for index in 0..<pointCount {
+                if materialDataIndex == nil {
+                    code = code.replacingOccurrences(of: "__pointvalue_\(index)__", with: "float4(\(props!["pointvalue_\(index)_x"]!), \(props!["pointvalue_\(index)_y"]!), \(props!["pointvalue_\(index)_z"]!), \(props!["pointvalue_\(index)_w"]!))")
+                } else {
+                    let matDataCode = "layerData->materialData[\(materialIndex)]"
+                    code = code.replacingOccurrences(of: "__pointvalue_\(index)__", with: matDataCode)
+                    materialIndex += 1
+                }
+            }
         }
+        
+        print(code)
         
         for (name,value) in props! {
             
-            if name == widthProperty && layerIndex != nil {
-                let widthCode = "layerData->shapes[\(layerIndex!)].size.x"
+            if name == widthProperty && materialDataIndex != nil {
+                let widthCode = "layerData->shapes[\(materialDataIndex!)].size.x"
                 code = code.replacingOccurrences(of: "__" + name + "__", with: widthCode)
             } else
-            if name == heightProperty && layerIndex != nil {
-                let heightCode = "layerData->shapes[\(layerIndex!)].size.y"
+            if name == heightProperty && materialDataIndex != nil {
+                let heightCode = "layerData->shapes[\(materialDataIndex!)].size.y"
                 code = code.replacingOccurrences(of: "__" + name + "__", with: heightCode)
             } else
             if (name == widthProperty || name == heightProperty) && transProperties != nil {

@@ -545,11 +545,13 @@ class MMDrawColorWheel : MMDrawable
         mmRenderer = renderer
     }
     
-    func draw( x: Float, y: Float, width: Float, height: Float )
+    func draw( x: Float, y: Float, width: Float, height: Float, color: float4 )
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let settings: [Float] = [
             width * scaleFactor, height * scaleFactor,
+            0, 0,
+            color.x, color.y, color.z, color.w
         ];
                 
         let renderEncoder = mmRenderer.renderEncoder!

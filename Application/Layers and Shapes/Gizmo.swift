@@ -84,6 +84,22 @@ class Gizmo : MMWidget
         super.init(view)
 
         gizmoNode = GizmoNode(self)
+        
+        // --- Color change handling
+        colorWidget.changed = { (color) -> () in
+            if self.mode == .Normal {
+                let selectedMaterials = self.object!.getSelectedMaterials(self.materialType)
+                var props : [String:Float] = [:]
+                props["value_x"] = color.x
+                props["value_y"] = color.y
+                props["value_z"] = color.z
+                props["value_w"] = color.w
+                for material in selectedMaterials {
+                    self.processGizmoMaterialProperties(props, material: material)
+                }
+            }
+            self.rootObject!.maxDelegate!.update()
+        }
     }
     
     func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor, materialType: Object.MaterialType = .Body)
@@ -98,7 +114,19 @@ class Gizmo : MMWidget
             self.rootObject = object
         }
         
-        colorWidget.removeState(.Opened)
+        colorWidget.setState(.Closed)
+        if context == .MaterialEditor {
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+            if selectedMaterials.count > 0 {
+                let material = selectedMaterials[0]
+                if material.pointCount == 0{
+                    colorWidget.value.x = material.properties["value_x"]!
+                    colorWidget.value.y = material.properties["value_y"]!
+                    colorWidget.value.z = material.properties["value_z"]!
+                    colorWidget.value.w = material.properties["value_w"]!
+                }
+            }
+        }
         
         mode = .Normal
         if object != nil {
@@ -174,11 +202,9 @@ class Gizmo : MMWidget
             }
         }
         
+        //  Open Color Widget ?
         if mode == .Normal && hoverState == .ColorWidgetClosed {
             colorWidget.setState(.Opened)
-            return
-        } else
-        if mode == .Normal && hoverState == .ColorWidgetOpened {
             return
         }
 
@@ -313,7 +339,8 @@ class Gizmo : MMWidget
                     initialValues[object.uuid]!["posY"] = transformed["posY"]!
                     initialValues[object.uuid]!["rotate"] = transformed["rotate"]!
                 }
-            } else {
+            } else
+            if mode == .Point {
                 // Save the point position
                 let shape = pointShape!
                 
@@ -587,6 +614,20 @@ class Gizmo : MMWidget
         } else {
             let timeline = rootObject!.maxDelegate!.getTimeline()!
             let uuid = object.uuid
+            timeline.addKeyProperties(sequence: rootObject!.currentSequence!, uuid: uuid, properties: properties)
+        }
+    }
+    
+    /// Processes the new values for the properties of the given material, either as a keyframe or a global change
+    func processGizmoMaterialProperties(_ properties: [String:Float], material: Material)
+    {
+        if !isRecording() {
+            for(name, value) in properties {
+                material.properties[name] = value
+            }
+        } else {
+            let timeline = rootObject!.maxDelegate!.getTimeline()!
+            let uuid = material.uuid
             timeline.addKeyProperties(sequence: rootObject!.currentSequence!, uuid: uuid, properties: properties)
         }
     }

@@ -34,45 +34,58 @@ class MaterialFactory
         
         // --- Static
         def.name = "Static"
-        def.code = "staticMaterial(__uv__, __material__)"
+//        def.code = "staticMaterial(__uv__, __value__)"
+        def.code = "__value__"//"staticMaterial(__uv__, __value__)"
+        /*
         def.globalCode =
         """
-        void staticMaterial( float2 p, thread MATERIAL_DATA *material )
+        float4 staticMaterial( float2 p, float4 value )
         {
-            material->baseColor = float4(1);
+            return value;
         }
-        """
+        """*/
+        def.properties["value_x"] = 0.5
+        def.properties["value_y"] = 0.5
+        def.properties["value_z"] = 0.5
+        def.properties["value_w"] = 1
+
         def.properties["width"] = defaultSize
         def.properties["height"] = defaultSize
         def.widthProperty = "width"
         def.heightProperty = "height"
         materials.append( def )
         
-        /*
-        // --- Line
+        // --- Gradient
         def = MaterialDefinition()
         def.name = "Gradient"
-        def.code = "sdLine(__uv__, float2(__point_0_x__,__point_0_y__), float2(__point_1_x__,__point_1_y__), __lineWidth__)"
+        def.code = "gradientMaterial(__uv__, __point_0__, __point_1__, __pointvalue_0__, __pointvalue_1__)"
         def.globalCode =
         """
-        float sdLine( float2 uv, float2 pa, float2 pb, float r) {
-            float2 o = uv-pa;
-            float2 l = pb-pa;
-            float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
-            return -(r-distance(o,l*h));
+        float4 gradientMaterial( float2 uv, float2 p1, float2 p2, float4 v1, float4 v2) {
+            float s = clamp(dot(uv-p1,p2-p1)/dot(p2-p1,p2-p1),0.,1.);
+            return mix(v1, v2, s);
         }
 
         """
-        def.properties["lineWidth"] = 5
         def.properties["point_0_x"] = -35
         def.properties["point_0_y"] = -35
         def.properties["point_1_x"] = 35
         def.properties["point_1_y"] = 35
+        
+        def.properties["pointvalue_0_x"] = 0
+        def.properties["pointvalue_0_y"] = 0
+        def.properties["pointvalue_0_z"] = 0
+        def.properties["pointvalue_0_w"] = 1
+        
+        def.properties["pointvalue_1_x"] = 1
+        def.properties["pointvalue_1_y"] = 1
+        def.properties["pointvalue_1_z"] = 1
+        def.properties["pointvalue_1_w"] = 1
+        
         def.widthProperty = "lineWidth"
         def.heightProperty = "lineWidth"
         def.pointCount = 2
         materials.append( def )
-        */
     }
     
     /// Create a shape
