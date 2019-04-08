@@ -81,7 +81,9 @@ class MaterialFactory
         def.properties["pointvalue_1_y"] = 1
         def.properties["pointvalue_1_z"] = 1
         def.properties["pointvalue_1_w"] = 1
-        
+
+        def.properties["lineWidth"] = 1
+
         def.widthProperty = "lineWidth"
         def.heightProperty = "lineWidth"
         def.pointCount = 2
@@ -105,18 +107,11 @@ class MaterialFactory
             material.name = def.name
             material.code = def.code
             material.globalCode = def.globalCode
-            material.properties = def.properties.merging(def.properties) { (current, _) in current }
+            material.properties = material.properties.merging(def.properties) { (current, _) in current }
             material.widthProperty = def.widthProperty
             material.heightProperty = def.heightProperty
             material.pointCount = def.pointCount
             material.isDecorator = def.isDecorator
-
-            /*
-            for (name,_) in shape.properties {
-                if (name == "radius" || name == "width" || name == "height") && shape.name != "Ellipse" && shape.name != "Cross" {
-                    shape.properties[name] = size
-                }
-            }*/
         }
         
         return material

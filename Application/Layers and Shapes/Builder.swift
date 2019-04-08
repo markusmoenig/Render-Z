@@ -543,8 +543,8 @@ class Builder
                         materialDataIndex += 1
                     } else {
                         for index in 0..<material.pointCount {
-                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["point_\(index)_x"]!
-                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["point_\(index)_y"]!
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["point_\(index)_x"]! + properties["posX"]! + parentPosX
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["point_\(index)_y"]! + properties["posY"]! + parentPosY
                             materialDataIndex += 1
                         }
                         for index in 0..<material.pointCount {

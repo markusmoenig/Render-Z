@@ -66,6 +66,7 @@ class Gizmo : MMWidget
     // --- For the point based gizmo
     
     var pointShape      : Shape? = nil
+    var pointMaterial   : Material? = nil
     var pointIndex      : Int = 0
 
     override required init(_ view : MMView)
@@ -190,7 +191,6 @@ class Gizmo : MMWidget
         if object!.selectedShapes.count == 0 && context == .ShapeEditor { hoverState = .Inactive; return }
         
         // --- ColorWidget
-        
         if context == .MaterialEditor {
             if colorWidget.states.contains(.Opened) {
                 if colorWidget.rect.contains(event.x, event.y) {
@@ -253,9 +253,8 @@ class Gizmo : MMWidget
         }
 //        #endif
     
+        // --- Check if a point was clicked (including the center point for the normal gizmo)
         if hoverState == .Inactive && object != nil && context == .ShapeEditor {
-            // --- Check if a point was clicked (including the center point for the normal gizmo)
-            
             pointShape = nil
             
             let attributes = getCurrentGizmoAttributes()
@@ -305,6 +304,38 @@ class Gizmo : MMWidget
                     }
                 }
             }
+        } else
+        if hoverState == .Inactive && object != nil && context == .MaterialEditor {
+            pointMaterial = nil
+            
+            let attributes = getCurrentGizmoAttributes()
+            let posX : Float = attributes["posX"]!
+            let posY : Float = attributes["posY"]!
+            
+            // --- Points
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+            if selectedMaterials.count == 1 {
+                for material in selectedMaterials {
+                    
+                    for index in 0..<material.pointCount {
+                        
+                        let pX = posX + attributes["point_\(index)_x"]!
+                        let pY = posY + attributes["point_\(index)_y"]!
+                        
+                        let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+                        
+                        let radius : Float = 10
+                        let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                        if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
+                            // Enter point gizmo
+                            pointMaterial = material
+                            pointIndex = index
+                            mode = .Point
+                            hoverState = .CenterMove
+                        }
+                    }
+                }
+            }
         }
         
         // --- Gizmo Action
@@ -331,6 +362,19 @@ class Gizmo : MMWidget
                     initialValues[shape.uuid]![shape.heightProperty] = transformed[shape.heightProperty]!
                 }
             } else
+            if mode == .Normal && context == .MaterialEditor {
+                for material in object!.getSelectedMaterials(materialType) {
+                    let transformed = getTransformedProperties(material)
+                    
+                    initialValues[material.uuid] = [:]
+                    initialValues[material.uuid]!["posX"] = transformed["posX"]!
+                    initialValues[material.uuid]!["posY"] = transformed["posY"]!
+                    initialValues[material.uuid]!["rotate"] = transformed["rotate"]!
+                    
+                    initialValues[material.uuid]![material.widthProperty] = transformed[material.widthProperty]!
+                    initialValues[material.uuid]![material.heightProperty] = transformed[material.heightProperty]!
+                }
+            } else
             if mode == .Normal && context == .ObjectEditor {
                 for object in objects {
                     initialValues[object.uuid] = [:]
@@ -342,18 +386,32 @@ class Gizmo : MMWidget
             } else
             if mode == .Point {
                 // Save the point position
-                let shape = pointShape!
-                
-                let transformed = getTransformedProperties(shape)
-                
-                initialValues[shape.uuid] = [:]
-                initialValues[shape.uuid]!["posX"] = transformed["point_\(pointIndex)_x"]!
-                initialValues[shape.uuid]!["posY"] = transformed["point_\(pointIndex)_y"]!
+                if context == .ShapeEditor {
+                    let shape = pointShape!
+                    
+                    let transformed = getTransformedProperties(shape)
+                    
+                    initialValues[shape.uuid] = [:]
+                    initialValues[shape.uuid]!["posX"] = transformed["point_\(pointIndex)_x"]!
+                    initialValues[shape.uuid]!["posY"] = transformed["point_\(pointIndex)_y"]!
+                } else
+                if context == .MaterialEditor {
+                    let material = pointMaterial!
+                    
+                    let transformed = getTransformedProperties(material)
+                    
+                    initialValues[material.uuid] = [:]
+                    initialValues[material.uuid]!["posX"] = transformed["point_\(pointIndex)_x"]!
+                    initialValues[material.uuid]!["posY"] = transformed["point_\(pointIndex)_y"]!
+                }
             }
         }
         
         // --- If no point selected switch to normal mode
-        if mode == .Point && pointShape == nil {
+        if mode == .Point && pointShape == nil && context == .ShapeEditor {
+            mode = .Normal
+        } else
+        if mode == .Point && pointMaterial == nil && context == .MaterialEditor {
             mode = .Normal
         }
     }
@@ -389,7 +447,7 @@ class Gizmo : MMWidget
 
         /// After dragging a point, check if it overlaps with any point in a previous shape
         /// If yes, connect them
-        if mode == .Point {
+        if mode == .Point && context == .ShapeEditor {
             //pointShape = shape
             //pointIndex = index
             let shapeTransformed = getTransformedProperties(pointShape!)
@@ -441,6 +499,7 @@ class Gizmo : MMWidget
             return
         }
         
+        // ColorWidget
         if context == .MaterialEditor && colorWidget.states.contains(.Opened) {
             if colorWidget.rect.contains(event.x, event.y) {
                 colorWidget.mouseMoved(event)
@@ -457,6 +516,7 @@ class Gizmo : MMWidget
         } else {
             let pos = convertToSceneSpace(x: event.x, y: event.y)
             let selectedShapeObjects = object!.getSelectedShapes()
+            let selectedMaterialObjects = object!.getSelectedMaterials(materialType)
             rootObject!.maxDelegate!.update(false)
             
             if dragState == .CenterMove {
@@ -476,6 +536,24 @@ class Gizmo : MMWidget
                             "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
                             ]
                         processGizmoProperties(properties, shape: shape)
+                    }
+                } else
+                if context == .MaterialEditor {
+                    if mode == .Normal {
+                        for material in selectedMaterialObjects {
+                            let properties : [String:Float] = [
+                                "posX" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                                "posY" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                            ]
+                            processGizmoMaterialProperties(properties, material: material)
+                        }
+                    } else {
+                        let material = pointMaterial!
+                        let properties : [String:Float] = [
+                            "point_\(pointIndex)_x" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            "point_\(pointIndex)_y" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                        ]
+                        processGizmoMaterialProperties(properties, material: material)
                     }
                 } else
                 if context == .ObjectEditor {
@@ -662,8 +740,8 @@ class Gizmo : MMWidget
 
         let renderEncoder = mmRenderer.renderEncoder!
         if mode == .Normal {
-            // --- Points
-            if selectedShapes.count == 1 {
+            // --- Shape Points
+            if context == .ShapeEditor && selectedShapes.count == 1 {
                 // Points only get drawn when only one shape is selected
                 for shape in selectedShapes {
                     for index in 0..<shape.pointCount {
@@ -732,6 +810,57 @@ class Gizmo : MMWidget
                         }
                     }
                 }
+            } else
+            // --- Shape Points
+            if context == .MaterialEditor && selectedMaterials.count == 1 {
+                // Points only get drawn when only one material is selected
+                for material in selectedMaterials {
+                    for index in 0..<material.pointCount {
+                        
+                        let pX = posX + attributes["point_\(index)_x"]!
+                        let pY = posY + attributes["point_\(index)_y"]!
+                        
+                        let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+                        
+                        var pFillColor = float4(repeating: 1)
+                        var pBorderColor = float4( 0, 0, 0, 1)
+                        let radius : Float = 10
+                        #if os(OSX)
+                        let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                        if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
+                            let temp = pBorderColor
+                            pBorderColor = pFillColor
+                            pFillColor = temp
+                        }
+                        #endif
+                        
+                        mmView.drawSphere.draw(x: pointInScreen.x - radius, y: pointInScreen.y - radius, radius: radius, borderSize: 3, fillColor: pFillColor, borderColor: pBorderColor)
+                    }
+                    
+                    // --- Correct the gizmo position to be between the points
+                    if material.pointCount > 0 {
+                        var offX : Float = 0
+                        var offY : Float = 0
+                        
+                        for i in 0..<material.pointCount {
+                            offX += attributes["point_\(i)_x"]!
+                            offY += attributes["point_\(i)_y"]!
+                        }
+                        offX /= Float(material.pointCount)
+                        offY /= Float(material.pointCount)
+                        
+                        let pX = posX + offX
+                        let pY = posY + offY
+                        screenSpace = convertToScreenSpace(x: pX, y: pY )
+                    }
+                    
+                    // --- Test if we have to hover highlight both scale axes
+                    if selectedMaterials.count == 1 && (hoverState == .xAxisScale || hoverState == .yAxisScale) {
+                        if material.widthProperty == material.heightProperty {
+                            data[3] = 1
+                        }
+                    }
+                }
             }
             
             // --- Render Bound Box
@@ -785,10 +914,9 @@ class Gizmo : MMWidget
             }
 
             // --- Material context: Color/Value in left corner
-            if context == .MaterialEditor {
+            if context == .MaterialEditor && selectedMaterials.count == 1 && selectedMaterials[0].pointCount == 0 {
                 colorWidget.rect.x = gizmoRect.x + 5
                 colorWidget.rect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
-
                 colorWidget.draw()
             }
             
@@ -854,52 +982,84 @@ class Gizmo : MMWidget
             
             // --- Points
             
-            for shape in selectedShapes {
-                
-                for index in 0..<shape.pointCount {
+            if context == .ShapeEditor {
+                for shape in selectedShapes {
                     
-                    if shape === pointShape! && index == pointIndex {
-                        continue
+                    for index in 0..<shape.pointCount {
+                        
+                        if shape === pointShape! && index == pointIndex {
+                            continue
+                        }
+                        
+                        let ptConn = object!.getPointConnections(shape: shape, index: index)
+                        
+                        var pX = posX + attributes["point_\(index)_x"]!
+                        var pY = posY + attributes["point_\(index)_y"]!
+                        
+                        if ptConn.0 != nil {
+                            // The point controls other point(s)
+                            ptConn.0!.valueX = pX
+                            ptConn.0!.valueY = pY
+                        }
+                        
+                        if ptConn.1 != nil {
+                            // The point is being controlled by another point
+                            pX = ptConn.1!.valueX
+                            pY = -ptConn.1!.valueY
+                        }
+                        
+                        let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+                        
+                        var pFillColor = float4(repeating: 1)
+                        var pBorderColor = float4( 0, 0, 0, 1)
+                        let radius : Float = 10
+                        #if os(OSX)
+                        let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                        if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
+                            let temp = pBorderColor
+                            pBorderColor = pFillColor
+                            pFillColor = temp
+                        }
+                        #endif
+                        
+                        if ptConn.1 != nil {
+                            /// Point is linked to a previous point
+                            pFillColor = float4(0,0,0,1)
+                            pBorderColor = pFillColor
+                        }
+                        
+                        mmView.drawSphere.draw(x: pointInScreen.x - radius, y: pointInScreen.y - radius, radius: radius, borderSize: 3, fillColor: pFillColor, borderColor: pBorderColor)
                     }
+                }
+            } else
+            if context == .MaterialEditor {
+                for material in selectedMaterials {
                     
-                    let ptConn = object!.getPointConnections(shape: shape, index: index)
-                    
-                    var pX = posX + attributes["point_\(index)_x"]!
-                    var pY = posY + attributes["point_\(index)_y"]!
-                    
-                    if ptConn.0 != nil {
-                        // The point controls other point(s)
-                        ptConn.0!.valueX = pX
-                        ptConn.0!.valueY = pY
+                    for index in 0..<material.pointCount {
+                        
+                        if material === pointMaterial! && index == pointIndex {
+                            continue
+                        }
+                        
+                        let pX = posX + attributes["point_\(index)_x"]!
+                        let pY = posY + attributes["point_\(index)_y"]!
+                        
+                        let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+                        
+                        var pFillColor = float4(repeating: 1)
+                        var pBorderColor = float4( 0, 0, 0, 1)
+                        let radius : Float = 10
+                        #if os(OSX)
+                        let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                        if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
+                            let temp = pBorderColor
+                            pBorderColor = pFillColor
+                            pFillColor = temp
+                        }
+                        #endif
+                        
+                        mmView.drawSphere.draw(x: pointInScreen.x - radius, y: pointInScreen.y - radius, radius: radius, borderSize: 3, fillColor: pFillColor, borderColor: pBorderColor)
                     }
-                    
-                    if ptConn.1 != nil {
-                        // The point is being controlled by another point
-                        pX = ptConn.1!.valueX
-                        pY = -ptConn.1!.valueY
-                    }
-                    
-                    let pointInScreen = convertToScreenSpace(x: pX, y: pY)
-                    
-                    var pFillColor = float4(repeating: 1)
-                    var pBorderColor = float4( 0, 0, 0, 1)
-                    let radius : Float = 10
-                    #if os(OSX)
-                    let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
-                    if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
-                        let temp = pBorderColor
-                        pBorderColor = pFillColor
-                        pFillColor = temp
-                    }
-                    #endif
-                    
-                    if ptConn.1 != nil {
-                        /// Point is linked to a previous point
-                        pFillColor = float4(0,0,0,1)
-                        pBorderColor = pFillColor
-                    }
-                    
-                    mmView.drawSphere.draw(x: pointInScreen.x - radius, y: pointInScreen.y - radius, radius: radius, borderSize: 3, fillColor: pFillColor, borderColor: pBorderColor)
                 }
             }
             
@@ -918,6 +1078,17 @@ class Gizmo : MMWidget
             
             renderEncoder.setRenderPipelineState(pointState)
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            
+            // --- Material context: Color/Value in left corner
+            if context == .MaterialEditor {
+                colorWidget.rect.x = gizmoRect.x + 5
+                colorWidget.rect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
+                colorWidget.value.x = pointMaterial!.properties["pointvalue_\(pointIndex)_x"]!
+                colorWidget.value.y = pointMaterial!.properties["pointvalue_\(pointIndex)_y"]!
+                colorWidget.value.z = pointMaterial!.properties["pointvalue_\(pointIndex)_z"]!
+                colorWidget.value.w = pointMaterial!.properties["pointvalue_\(pointIndex)_w"]!
+                colorWidget.draw()
+            }
         }
         
         mmRenderer.setClipRect()
@@ -994,22 +1165,46 @@ class Gizmo : MMWidget
         var posX : Float = attributes["posX"]!
         var posY : Float = attributes["posY"]!
         
-        if selectedShapes.count == 1 {
-            for shape in selectedShapes {
+        if context == .ShapeEditor {
+            if selectedShapes.count == 1 {
+                for shape in selectedShapes {
 
-                if shape.pointCount > 0 {
-                    var offX : Float = 0
-                    var offY : Float = 0
+                    if shape.pointCount > 0 {
+                        var offX : Float = 0
+                        var offY : Float = 0
 
-                    for i in 0..<shape.pointCount {
-                        offX += attributes["point_\(i)_x"]!
-                        offY += attributes["point_\(i)_y"]!
+                        for i in 0..<shape.pointCount {
+                            offX += attributes["point_\(i)_x"]!
+                            offY += attributes["point_\(i)_y"]!
+                        }
+                        offX /= Float(shape.pointCount)
+                        offY /= Float(shape.pointCount)
+                        
+                        posX += offX
+                        posY += offY
                     }
-                    offX /= Float(shape.pointCount)
-                    offY /= Float(shape.pointCount)
+                }
+            }
+        } else
+        if context == .MaterialEditor {
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+            if selectedMaterials.count == 1 {
+                for material in selectedMaterials {
                     
-                    posX += offX
-                    posY += offY
+                    if material.pointCount > 0 {
+                        var offX : Float = 0
+                        var offY : Float = 0
+                        
+                        for i in 0..<material.pointCount {
+                            offX += attributes["point_\(i)_x"]!
+                            offY += attributes["point_\(i)_y"]!
+                        }
+                        offX /= Float(material.pointCount)
+                        offY /= Float(material.pointCount)
+                        
+                        posX += offX
+                        posY += offY
+                    }
                 }
             }
         }
@@ -1256,7 +1451,16 @@ class Gizmo : MMWidget
     {
         let timeline = rootObject!.maxDelegate!.getTimeline()!
         
-        let transformed = timeline.transformProperties(sequence: rootObject!.currentSequence!, uuid: shape.uuid, properties:shape.properties)
+        let transformed = timeline.transformProperties(sequence: rootObject!.currentSequence!, uuid: shape.uuid, properties: shape.properties)
+        return transformed
+    }
+    
+    /// Get transformed properties
+    func getTransformedProperties(_ material: Material) -> [String:Float]
+    {
+        let timeline = rootObject!.maxDelegate!.getTimeline()!
+        
+        let transformed = timeline.transformProperties(sequence: rootObject!.currentSequence!, uuid: material.uuid, properties: material.properties)
         return transformed
     }
     
@@ -1289,16 +1493,6 @@ class Gizmo : MMWidget
     {
         var attributes : [String:Float] = [:]
         
-        // Transform Object Properties
-        /*
-        let objectProperties : [String:Float]
-        if object!.currentSequence != nil {
-            let timeline = rootObject!.maxDelegate!.getTimeline()!
-            objectProperties = timeline.transformProperties(sequence: object!.currentSequence!, uuid: object!.uuid, properties: object!.properties)
-        } else {
-            objectProperties = object!.properties
-        }*/
-        
         let objectProperties = transformTo(object!, timeline: rootObject!.maxDelegate!.getTimeline()!)
 
         attributes["posX"] = objectProperties["posX"]!
@@ -1311,70 +1505,139 @@ class Gizmo : MMWidget
         var sizeMaxX : Float = -100000
         var sizeMaxY : Float = -100000
         
-        let selectedShapeObjects = object!.getSelectedShapes()
-        if !selectedShapeObjects.isEmpty {
-            
-            for shape in selectedShapeObjects {
+        if context == .ShapeEditor {
+            let selectedShapeObjects = object!.getSelectedShapes()
+            if !selectedShapeObjects.isEmpty {
                 
-                let transformed = getTransformedProperties(shape)
-                
-                let posX = transformed["posX"]!
-                let posY = -transformed["posY"]!
-                let rotate = transformed["rotate"]!
+                for shape in selectedShapeObjects {
+                    
+                    let transformed = getTransformedProperties(shape)
+                    
+                    let posX = transformed["posX"]!
+                    let posY = -transformed["posY"]!
+                    let rotate = transformed["rotate"]!
 
-                // --- Calc Bounding Rectangle
-                
-                if shape.pointCount == 0 {
-                    var size = float2()
+                    // --- Calc Bounding Rectangle
                     
-                    size.x = transformed[shape.widthProperty]! * 2
-                    size.y = transformed[shape.heightProperty]! * 2
+                    if shape.pointCount == 0 {
+                        var size = float2()
+                        
+                        size.x = transformed[shape.widthProperty]! * 2
+                        size.y = transformed[shape.heightProperty]! * 2
+                        
+                        if posX - size.x / 2 < sizeMinX {
+                            sizeMinX = posX - size.x / 2
+                        }
+                        if posY - size.y / 2 < sizeMinY {
+                            sizeMinY = posY - size.y / 2
+                        }
+                        if posX + size.x / 2 > sizeMaxX {
+                            sizeMaxX = posX + size.x / 2
+                        }
+                        if posY + size.y / 2 > sizeMaxY {
+                            sizeMaxY = posY + size.y / 2
+                        }
+                    } else {
+                        let width = transformed[shape.widthProperty]!
+                        let height = transformed[shape.heightProperty]!
+                        
+                        var minX : Float = 100000, minY : Float = 100000, maxX : Float = -100000, maxY : Float = -100000
+                        for i in 0..<shape.pointCount {
+                            minX = min( minX, posX + transformed["point_\(i)_x"]! - width )
+                            minY = min( minY, posY - transformed["point_\(i)_y"]! - height )
+                            maxX = max( maxX, posX + transformed["point_\(i)_x"]! + width )
+                            maxY = max( maxY, posY - transformed["point_\(i)_y"]! + height )
+                        }
+                        
+                        sizeMinX = minX
+                        sizeMinY = minY
+                        sizeMaxX = maxX
+                        sizeMaxY = maxY
+                    }
                     
-                    if posX - size.x / 2 < sizeMinX {
-                        sizeMinX = posX - size.x / 2
-                    }
-                    if posY - size.y / 2 < sizeMinY {
-                        sizeMinY = posY - size.y / 2
-                    }
-                    if posX + size.x / 2 > sizeMaxX {
-                        sizeMaxX = posX + size.x / 2
-                    }
-                    if posY + size.y / 2 > sizeMaxY {
-                        sizeMaxY = posY + size.y / 2
-                    }
-                } else {
-                    let width = transformed[shape.widthProperty]!
-                    let height = transformed[shape.heightProperty]!
+                    // ---
                     
-                    var minX : Float = 100000, minY : Float = 100000, maxX : Float = -100000, maxY : Float = -100000
+                    attributes["posX"]! += posX
+                    attributes["posY"]! += posY
+                    attributes["rotate"]! += rotate
+                    
                     for i in 0..<shape.pointCount {
-                        minX = min( minX, posX + transformed["point_\(i)_x"]! - width )
-                        minY = min( minY, posY - transformed["point_\(i)_y"]! - height )
-                        maxX = max( maxX, posX + transformed["point_\(i)_x"]! + width )
-                        maxY = max( maxY, posY - transformed["point_\(i)_y"]! + height )
+                        attributes["point_\(i)_x"] = transformed["point_\(i)_x"]
+                        attributes["point_\(i)_y"] = -transformed["point_\(i)_y"]!
+                    }
+                }
+                
+                attributes["posX"]! /= Float(selectedShapeObjects.count)
+                attributes["posY"]! /= Float(selectedShapeObjects.count)
+                attributes["rotate"]! /= Float(selectedShapeObjects.count)
+            }
+        } else
+        if context == .MaterialEditor {
+            let selectedMaterialObjects = object!.getSelectedMaterials(materialType)
+            if !selectedMaterialObjects.isEmpty {
+                
+                for material in selectedMaterialObjects {
+                
+                    let transformed = getTransformedProperties(material)
+                    
+                    let posX = transformed["posX"]!
+                    let posY = -transformed["posY"]!
+                    let rotate = transformed["rotate"]!
+                    
+                    // --- Calc Bounding Rectangle
+                    
+                    if material.pointCount == 0 {
+                        var size = float2()
+                        
+                        size.x = transformed[material.widthProperty]! * 2
+                        size.y = transformed[material.heightProperty]! * 2
+                        
+                        if posX - size.x / 2 < sizeMinX {
+                            sizeMinX = posX - size.x / 2
+                        }
+                        if posY - size.y / 2 < sizeMinY {
+                            sizeMinY = posY - size.y / 2
+                        }
+                        if posX + size.x / 2 > sizeMaxX {
+                            sizeMaxX = posX + size.x / 2
+                        }
+                        if posY + size.y / 2 > sizeMaxY {
+                            sizeMaxY = posY + size.y / 2
+                        }
+                    } else {
+                        let width = transformed[material.widthProperty]!
+                        let height = transformed[material.heightProperty]!
+                        
+                        var minX : Float = 100000, minY : Float = 100000, maxX : Float = -100000, maxY : Float = -100000
+                        for i in 0..<material.pointCount {
+                            minX = min( minX, posX + transformed["point_\(i)_x"]! - width )
+                            minY = min( minY, posY - transformed["point_\(i)_y"]! - height )
+                            maxX = max( maxX, posX + transformed["point_\(i)_x"]! + width )
+                            maxY = max( maxY, posY - transformed["point_\(i)_y"]! + height )
+                        }
+                        
+                        sizeMinX = minX
+                        sizeMinY = minY
+                        sizeMaxX = maxX
+                        sizeMaxY = maxY
                     }
                     
-                    sizeMinX = minX
-                    sizeMinY = minY
-                    sizeMaxX = maxX
-                    sizeMaxY = maxY
+                    // ---
+                    
+                    attributes["posX"]! += posX
+                    attributes["posY"]! += posY
+                    attributes["rotate"]! += rotate
+                    
+                    for i in 0..<material.pointCount {
+                        attributes["point_\(i)_x"] = transformed["point_\(i)_x"]
+                        attributes["point_\(i)_y"] = -transformed["point_\(i)_y"]!
+                    }
                 }
                 
-                // ---
-                
-                attributes["posX"]! += posX
-                attributes["posY"]! += posY
-                attributes["rotate"]! += rotate
-                
-                for i in 0..<shape.pointCount {
-                    attributes["point_\(i)_x"] = transformed["point_\(i)_x"]
-                    attributes["point_\(i)_y"] = -transformed["point_\(i)_y"]!
-                }
+                attributes["posX"]! /= Float(selectedMaterialObjects.count)
+                attributes["posY"]! /= Float(selectedMaterialObjects.count)
+                attributes["rotate"]! /= Float(selectedMaterialObjects.count)
             }
-            
-            attributes["posX"]! /= Float(selectedShapeObjects.count)
-            attributes["posY"]! /= Float(selectedShapeObjects.count)
-            attributes["rotate"]! /= Float(selectedShapeObjects.count)
         }
         
         let minScreen = convertToScreenSpace(x: sizeMinX, y: sizeMinY)
