@@ -188,10 +188,10 @@ class Builder
             float dist = 100000, newDist;
             MATERIAL_DATA bodyMaterial;
             bodyMaterial.baseColor = float4(0.5, 0.5, 0.5, 1);
-            bodyMaterial.roughness = 1;
+            clearMaterial( &bodyMaterial );
             MATERIAL_DATA borderMaterial;
             borderMaterial.baseColor = float4(1);
-            borderMaterial.roughness = 1;
+            clearMaterial( &borderMaterial );
             int materialId = -1;
         
         """
@@ -1273,7 +1273,8 @@ class Builder
         }
 
 
-        float3 bsdfEvaluate(const float3 wi, const float3 wo, const float3 X, const float3 Y, const SurfaceInteraction interaction, const MaterialInfo material) {
+        float3 bsdfEvaluate(const float3 wi, const float3 wo, const float3 X, const float3 Y, const SurfaceInteraction interaction, const MaterialInfo material)
+        {
             if( !sameHemiSphere(wo, wi, interaction.normal) )
                 return float3(0.);
             
@@ -1359,7 +1360,7 @@ class Builder
             return Ld;
         }
 
-        float4 calculatePixelColor(const float2 uv, const MaterialInfo material)
+        float4 calculatePixelColor(const float2 uv, MaterialInfo material)
         {
             float4 color = material.baseColor;//float4(1);
             
@@ -1382,10 +1383,13 @@ class Builder
             float3 f = float3(0.);
             float scatteringPdf = 0.;
 
+            //material.metallic = 0.2;
+            //material.roughness = 0.2;
+
             LightInfo light;
-            light.L = float3(2);
-            light.position = float3(0);//float3(0, 200, 0);
-            light.direction = normalize(float3(-1.,1.,1.));
+            light.L = float3(3.15);//float3(5.4);
+            light.position = float3(0, 0, 0);
+            light.direction = normalize(float3(0, 1, 0));//normalize(float3(-1.,1.,1.));
             light.radius = 0;
             light.type = LIGHT_TYPE_SUN;
             light.enabled = true;
@@ -1395,8 +1399,8 @@ class Builder
             L += Ld;
 
             // Add indirect diffuse light from an env map
-            float3 diffuseColor = (1.0 - material.metallic) * material.baseColor.rgb ;
-            L += diffuseColor * Irradiance_SphericalHarmonics(interaction.normal)/3.14;
+            //float3 diffuseColor = (1.0 - material.metallic) * material.baseColor.rgb ;
+            //L += diffuseColor * Irradiance_SphericalHarmonics(interaction.normal)/3.14;
 
             return float4(L, material.baseColor.w);
         }

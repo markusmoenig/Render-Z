@@ -151,7 +151,6 @@ class MaterialList
         for (index, material) in materials.enumerated() {
 
             source += "uv = uvOrigin; uv.x += outTexture.get_width() / 2.0 - \(left) + borderSize/2; uv.y += outTexture.get_height() / 2.0 - \(top) + borderSize/2;\n"
-            //source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
             
             source += "d = abs( uv ) - float2( \((width)/2) - borderSize, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
@@ -166,6 +165,8 @@ class MaterialList
             
             source += "uv -= float2( -128., 0. );\n"
             
+            source += "primitiveColor = " + material.createCode(uvName: "uv") + ";\n"
+
             source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
             
             source += "d = abs(uv)-float2(14,14);\n"

@@ -125,8 +125,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             
             materialsTab = MMTabWidget(app.mmView)
             let materialsSelector = MMWidget(app.mmView)
-            materialsTab.addTab("Decorators", widget: decoScrollArea)
-            materialsTab.addTab("Patterns", widget: materialsSelector)
+            materialsTab.addTab("Component", widget: decoScrollArea)
+            materialsTab.addTab("Compound", widget: materialsSelector)
         }
 
         // Right Region
@@ -365,6 +365,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        materialsTab.hoverTab = nil
         app.gizmo.mouseMoved(event)
     }
     
@@ -491,11 +492,15 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     }
     
     /// Updates the preview. hard does a rebuild, otherwise just a render
-    override func update(_ hard: Bool = false)
+    override func update(_ hard: Bool = false, updateLists: Bool = false)
     {
         if hard {
             app.gizmo.setObject(selObject, rootObject: currentObject, context: gizmoContext, materialType: materialType)
             currentObject!.instance = app.nodeGraph.builder.buildObjects(objects: [currentObject!], camera: camera)
+        }
+        
+        if updateLists {
+            materialListChanged = true
         }
         
         let region = app.editorRegion!

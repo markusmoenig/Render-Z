@@ -373,7 +373,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
     }
     
     /// Updates the preview. hard does a rebuild, otherwise just a render
-    override func update(_ hard: Bool = false)
+    override func update(_ hard: Bool = false, updateLists: Bool = false)
     {
         if hard {
             let objects = currentLayer!.createInstances(nodeGraph: app.nodeGraph)

@@ -285,7 +285,7 @@ class NodeMaxDelegate
     {
     }
     
-    func update(_ hard: Bool = false)
+    func update(_ hard: Bool = false, updateLists: Bool = false)
     {
     }
     

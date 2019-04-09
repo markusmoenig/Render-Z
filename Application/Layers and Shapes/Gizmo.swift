@@ -87,7 +87,7 @@ class Gizmo : MMWidget
         gizmoNode = GizmoNode(self)
         
         // --- Color change handling
-        colorWidget.changed = { (color) -> () in
+        colorWidget.changed = { (color, continuous) -> () in
             let selectedMaterials = self.object!.getSelectedMaterials(self.materialType)
             var props : [String:Float] = [:]
             
@@ -106,7 +106,7 @@ class Gizmo : MMWidget
             for material in selectedMaterials {
                 self.processGizmoMaterialProperties(props, material: material)
             }
-            self.rootObject!.maxDelegate!.update()
+            self.rootObject!.maxDelegate!.update(false, updateLists: !continuous)
         }
     }
     
@@ -437,6 +437,10 @@ class Gizmo : MMWidget
             for shape in selectedShapes {
                 shape.updateSize()
             }
+        }
+        
+        if object != nil && context == .MaterialEditor {
+            rootObject!.maxDelegate!.update(false, updateLists: true)
         }
 
         if hoverState == .GizmoUIMouseLocked {

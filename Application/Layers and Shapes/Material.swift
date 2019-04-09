@@ -97,6 +97,20 @@ class Material : Codable
             float   sheenTint;
         } MATERIAL_DATA;
 
+        void clearMaterial(thread MATERIAL_DATA *material)
+        {
+            material->subsurface = 0;
+            material->roughness = 1;
+            material->metallic = 0;
+            material->specular = 0;
+            material->specularTint = 0;
+            material->clearcoat = 0;
+            material->clearcoatGloss = 0;
+            material->anisotropic = 0;
+            material->sheen = 0;
+            material->sheenTint = 0;
+        }
+
         """
         return code
     }

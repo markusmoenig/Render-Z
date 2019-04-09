@@ -14,7 +14,7 @@ class MMColorWidget : MMWidget
     var value       : float4
     var mouseIsDown : Bool = false
     
-    var changed     : ((_ value: float4)->())?
+    var changed     : ((_ value: float4, _ continuous: Bool)->())?
 
     var compute     : MMCompute!
     var state       : MTLComputePipelineState!
@@ -103,7 +103,7 @@ class MMColorWidget : MMWidget
     {
         mouseIsDown = true
         
-        getColorAt(event)
+        getColorAt(event, true)
         
         mmView.lockFramerate()
         mmView.mouseTrackWidget = self
@@ -112,6 +112,9 @@ class MMColorWidget : MMWidget
     override func mouseUp(_ event: MMMouseEvent)
     {
         mouseIsDown = false
+        
+        getColorAt(event, false)
+
         mmView.unlockFramerate()
         mmView.mouseTrackWidget = nil
     }
@@ -119,11 +122,11 @@ class MMColorWidget : MMWidget
     override func mouseMoved(_ event: MMMouseEvent)
     {
         if mouseIsDown {
-            getColorAt(event)
+            getColorAt(event, true)
         }
     }
     
-    func getColorAt(_ event: MMMouseEvent)
+    func getColorAt(_ event: MMMouseEvent, _ continuous: Bool)
     {
         let x : Float = event.x - rect.x - 10
         let y : Float = event.y - rect.y - 10
@@ -146,7 +149,7 @@ class MMColorWidget : MMWidget
         if color.w == 1.0 {
             value = color
             if changed != nil {
-                changed!(value)
+                changed!(value, continuous)
             }
         }
     }
