@@ -354,7 +354,7 @@ class MMTimeline : MMWidget
                 let delta = nextValue! - prevValue!
                 
 //                value = prevValue! + ( delta / frameDur ) * frameOffset
-                value = delta != 0 ? prevValue! + delta * simd_smoothstep( prevValue!, nextValue!, prevValue! + ( delta / frameDur ) * frameOffset ) : 0;
+                value = delta != 0 ? prevValue! + delta * simd_smoothstep( prevValue!, nextValue!, prevValue! + ( delta / frameDur ) * frameOffset ) : prevValue!;
             }
             
             return value

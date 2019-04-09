@@ -159,7 +159,8 @@ class Builder
         
         source += Material.getMaterialStructCode()
         source += getGlobalCode(objects:objects)
-        
+        source += getRenderSourceCode();
+
         instance.data!.append( camera.xPos )
         instance.data!.append( camera.yPos )
         instance.data!.append( 1/camera.zoom )
@@ -185,8 +186,12 @@ class Builder
             float2 tuv = uv, pAverage;
         
             float dist = 100000, newDist;
-            MATERIAL_DATA bodyMaterial; bodyMaterial.baseColor = float4(0.5, 0.5, 0.5, 1);
-            MATERIAL_DATA borderMaterial; borderMaterial.baseColor = float4(1);
+            MATERIAL_DATA bodyMaterial;
+            bodyMaterial.baseColor = float4(0.5, 0.5, 0.5, 1);
+            bodyMaterial.roughness = 1;
+            MATERIAL_DATA borderMaterial;
+            borderMaterial.baseColor = float4(1);
+            borderMaterial.roughness = 1;
             int materialId = -1;
         
         """
@@ -218,17 +223,17 @@ class Builder
                     properties = shape.properties
                 }
                 
-                source += "uv = translate( tuv, layerData->shapes[\(index)].pos );"
+                source += "tuv = translate( uv, layerData->shapes[\(index)].pos );"
                 if shape.pointCount == 0 {
-                    source += "if ( layerData->shapes[\(index)].rotate != 0.0 ) uv = rotateCCW( uv, layerData->shapes[\(index)].rotate );\n"
+                    source += "if ( layerData->shapes[\(index)].rotate != 0.0 ) tuv = rotateCCW( tuv, layerData->shapes[\(index)].rotate );\n"
                 } else {
                     source += "if ( layerData->shapes[\(index)].rotate != 0.0 ) {\n"
                     source += "pAverage = float2(0);\n"
                     source += "for (int i = \(pointIndex); i < \(pointIndex + shape.pointCount); ++i) \n"
                     source += "pAverage += layerData->points[i];\n"
                     source += "pAverage /= \(shape.pointCount);\n"
-                    source += "uv = rotateCCW( uv - pAverage, layerData->shapes[\(index)].rotate );\n"
-                    source += "uv += pAverage;\n"
+                    source += "tuv = rotateCCW( tuv - pAverage, layerData->shapes[\(index)].rotate );\n"
+                    source += "tuv += pAverage;\n"
                     source += "}\n"
                 }
                 
@@ -243,7 +248,7 @@ class Builder
                 if shape.pointsVariable {
                     source += shape.createPointsVariableCode(shapeIndex: index, pointIndex: pointIndex)
                 }
-                source += "newDist = " + shape.createDistanceCode(uvName: "uv", layerIndex: index, pointIndex: pointIndex, shapeIndex: index) + ";\n"
+                source += "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: index, pointIndex: pointIndex, shapeIndex: index) + ";\n"
 
                 if shape.supportsRounding {
                     source += "newDist -= layerData->shapes[\(index)].rounding;\n"
@@ -294,12 +299,20 @@ class Builder
             for material in object.bodyMaterials {
                 let matProperty = "bodyMaterial.baseColor"
                 materialSource += "  " + matProperty + " = " + material.createCode(uvName: "uv", materialDataIndex: materialDataIndex) + ";\n"
-                materialDataIndex += 1
+                if material.pointCount == 0 {
+                    materialDataIndex += 1
+                } else {
+                    materialDataIndex += material.pointCount * 2
+                }
             }
             for material in object.borderMaterials {
                 let matProperty = "borderMaterial.baseColor"
                 materialSource += "  " + matProperty + " = " + material.createCode(uvName: "uv", materialDataIndex: materialDataIndex) + ";\n"
-                materialDataIndex += 1
+                if material.pointCount == 0 {
+                    materialDataIndex += 1
+                } else {
+                    materialDataIndex += material.pointCount * 2
+                }
             }
 
             materialSource += "}\n"
@@ -341,9 +354,11 @@ class Builder
             instance.data!.append( 0 )
         }
         
-        // Necessary alignment buffer
-        instance.data!.append( 0 )
-        instance.data!.append( 0 )
+        // Test if we need to align memory based on the pointCount
+        if (pointCount % 2) == 1 {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
         
         instance.materialDataOffset = instance.data!.count
 
@@ -359,8 +374,6 @@ class Builder
         source += materialSource        
         source +=
         """
-            float4 fillColor = bodyMaterial.baseColor;
-            float4 borderColor = borderMaterial.baseColor;
         
             float4 col = float4(0);
         """
@@ -392,11 +405,21 @@ class Builder
         source +=
         """
         
-            col = mix( col, fillColor, fillMask( dist ) * fillColor.w );
+            float fm = fillMask( dist ) * bodyMaterial.baseColor.w;
+            float bm = 0;
+            bodyMaterial.baseColor.w = fm;
+            //col = mix( col, fillColor, fillMask( dist ) * fillColor.w );
+        
             if ( materialId >= 0 )
             {
-                col = mix( col, borderColor, borderMask( dist, layerData->objects[materialId].border ) * borderColor.w );
+                bm = borderMask( dist, layerData->objects[materialId].border );
+                if ( bm > 0.0 ) {
+                    bodyMaterial.baseColor = mix( bodyMaterial.baseColor, borderMaterial.baseColor, bm * borderMaterial.baseColor.w );
+                }
+                //col = mix( col, borderColor, borderMask( dist, layerData->objects[materialId].border ) * borderColor.w );
             }
+        
+            if (fm != 0 || bm != 0) col = calculatePixelColor( fragCoord, bodyMaterial );
         
         """
         
@@ -418,7 +441,7 @@ class Builder
         }
         """
         
-//        print( source )
+        //print( source )
         
         instance.buffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
@@ -912,5 +935,474 @@ class Builder
         }
         
         return (index, pointIndex, objectIndex, materialIndex)
+    }
+    
+    func getRenderSourceCode() -> String
+    {
+        let code =
+        """
+
+        #define PI 3.14159265359
+        #define TWO_PI 6.28318
+
+        #define LIGHT_TYPE_SPHERE 0
+        #define LIGHT_TYPE_SUN    1
+
+        #define clearCoatBoost 1.
+
+        #define EPSILON 0.0001
+
+        #define MaterialInfo MATERIAL_DATA
+
+        struct LightInfo {
+            float3 L;
+            float3 position;
+            float3 direction;
+            float radius;
+            int type;
+            bool enabled;
+        };
+
+        struct SurfaceInteraction {
+            float3 incomingRayDir;
+            float3 point;
+            float3 normal;
+            float3 tangent;
+            float3 binormal;
+        };
+
+        float3 linearToGamma(float3 linearColor) {
+            return pow(linearColor, float3(0.4545));
+        }
+
+        float3 gammaToLinear(float3 gammaColor) {
+            return pow(gammaColor, float3(2.2));
+        }
+
+        #define HASHSCALE3 float3(.1031, .1030, .0973)
+        float2 hash21(const float p) {
+            float3 p3 = fract(float3(p) * HASHSCALE3);
+            p3 += dot(p3, p3.yzx + 19.19);
+            return fract(float2((p3.x + p3.y)*p3.z, (p3.x+p3.z)*p3.y));
+        }
+
+        #define HASHSCALE1 .1031
+        float hash12(const float2 p) {
+            float3 p3  = fract(float3(p.xyx) * HASHSCALE1);
+            p3 += dot(p3, p3.yzx + 19.19);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+
+        float random() {
+            float seed = 0;
+            return fract(sin(seed++)*43758.5453123);
+        }
+
+        float distanceSq(float3 v1, float3 v2) {
+            float3 d = v1 - v2;
+            return dot(d, d);
+        }
+
+        float pow2(float x) {
+            return x*x;
+        }
+
+        void createBasis(float3 normal, thread float3 *tangent, thread float3* binormal){
+            if (abs(normal.x) > abs(normal.y)) {
+                *tangent = normalize(float3(0., normal.z, -normal.y));
+            }
+            else {
+                *tangent = normalize(float3(-normal.z, 0., normal.x));
+            }
+            
+            *binormal = cross(normal, *tangent);
+        }
+
+        void directionOfAnisotropicity(float3 normal, thread float3 *tangent, thread float3 *binormal){
+            *tangent = cross(normal, float3(1.,0.,1.));
+            *binormal = normalize(cross(normal, *tangent));
+            *tangent = normalize(cross(normal, *binormal));
+        }
+
+        float3 sphericalDirection(float sinTheta, float cosTheta, float sinPhi, float cosPhi) {
+            return float3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+        }
+
+        float3 uniformSampleCone(float2 u12, float cosThetaMax, float3 xbasis, float3 ybasis, float3 zbasis) {
+            float cosTheta = (1. - u12.x) + u12.x * cosThetaMax;
+            float sinTheta = sqrt(1. - cosTheta * cosTheta);
+            float phi = u12.y * TWO_PI;
+            float3 samplev = sphericalDirection(sinTheta, cosTheta, sin(phi), cos(phi));
+            return samplev.x * xbasis + samplev.y * ybasis + samplev.z * zbasis;
+        }
+
+        bool sameHemiSphere(const float3 wo, const float3 wi, const float3 normal) {
+            return dot(wo, normal) * dot(wi, normal) > 0.0;
+        }
+
+        float2 concentricSampleDisk(const float2 u) {
+            float2 uOffset = 2. * u - float2(1., 1.);
+            
+            if (uOffset.x == 0. && uOffset.y == 0.) return float2(0., 0.);
+            
+            float theta, r;
+            if (abs(uOffset.x) > abs(uOffset.y)) {
+                r = uOffset.x;
+                theta = PI/4. * (uOffset.y / uOffset.x);
+            } else {
+                r = uOffset.y;
+                theta = PI/2. - PI/4. * (uOffset.x / uOffset.y);
+            }
+            return r * float2(cos(theta), sin(theta));
+        }
+
+        float3 cosineSampleHemisphere(const float2 u) {
+            float2 d = concentricSampleDisk(u);
+            float z = sqrt(max(EPSILON, 1. - d.x * d.x - d.y * d.y));
+            return float3(d.x, d.y, z);
+        }
+
+        float3 uniformSampleHemisphere(const float2 u) {
+            float z = u[0];
+            float r = sqrt(max(EPSILON, 1. - z * z));
+            float phi = 2. * PI * u[1];
+            return float3(r * cos(phi), r * sin(phi), z);
+        }
+
+        float visibilityTest(float3 ro, float3 rd) {
+            float softShadowValue = 1.;
+        //    SurfaceInteraction interaction;// = calcSoftshadow(ro, rd, 0.01, 3., 3, softShadowValue);
+            return softShadowValue;
+        }
+
+        float visibilityTestSun(float3 ro, float3 rd) {
+            float softShadowValue = 1.;
+        //    SurfaceInteraction interaction = calcSoftshadow(ro, rd, 0.01, 3., 0, softShadowValue);
+            return softShadowValue;//IS_SAME_MATERIAL(interaction.objId, 0.) ? 1. : 0.;
+        }
+
+        float powerHeuristic(float nf, float fPdf, float ng, float gPdf){
+            float f = nf * fPdf;
+            float g = ng * gPdf;
+            return (f*f)/(f*f + g*g);
+        }
+
+        float schlickWeight(float cosTheta) {
+            float m = clamp(1. - cosTheta, 0., 1.);
+            return (m * m) * (m * m) * m;
+        }
+
+        float GTR1(float NdotH, float a) {
+            if (a >= 1.) return 1./PI;
+            float a2 = a*a;
+            float t = 1. + (a2-1.)*NdotH*NdotH;
+            return (a2-1.) / (PI*log(a2)*t);
+        }
+
+        float GTR2(float NdotH, float a) {
+            float a2 = a*a;
+            float t = 1. + (a2-1.)*NdotH*NdotH;
+            return a2 / (PI * t*t);
+        }
+
+        float GTR2_aniso(float NdotH, float HdotX, float HdotY, float ax, float ay) {
+            return 1. / (PI * ax*ay * pow2( pow2(HdotX/ax) + pow2(HdotY/ay) + NdotH*NdotH ));
+        }
+
+        float smithG_GGX(float NdotV, float alphaG) {
+            float a = alphaG*alphaG;
+            float b = NdotV*NdotV;
+            return 1. / (abs(NdotV) + max(sqrt(a + b - a*b), EPSILON));
+        }
+
+        float smithG_GGX_aniso(float NdotV, float VdotX, float VdotY, float ax, float ay) {
+            return 1. / (NdotV + sqrt( pow2(VdotX*ax) + pow2(VdotY*ay) + pow2(NdotV) ));
+        }
+
+        float pdfLambertianReflection(const float3 wi, const float3 wo, const float3 normal) {
+            return sameHemiSphere(wo, wi, normal) ? abs(dot(normal, wi))/PI : 0.;
+        }
+
+        float pdfMicrofacet(const float3 wi, const float3 wo, const SurfaceInteraction interaction, const MaterialInfo material) {
+            if (!sameHemiSphere(wo, wi, interaction.normal)) return 0.;
+            float3 wh = normalize(wo + wi);
+            
+            float NdotH = dot(interaction.normal, wh);
+            float alpha2 = material.roughness * material.roughness;
+            alpha2 *= alpha2;
+            
+            float cos2Theta = NdotH * NdotH;
+            float denom = cos2Theta * ( alpha2 - 1.) + 1.;
+            if( denom == 0. ) return 0.;
+            float pdfDistribution = alpha2 * NdotH /(PI * denom * denom);
+            return pdfDistribution/(4. * dot(wo, wh));
+        }
+
+        float pdfMicrofacetAniso(const float3 wi, const float3 wo, const float3 X, const float3 Y, const SurfaceInteraction interaction, const MaterialInfo material) {
+            if (!sameHemiSphere(wo, wi, interaction.normal)) return 0.;
+            float3 wh = normalize(wo + wi);
+            
+            float aspect = sqrt(1.-material.anisotropic*.9);
+            float alphax = max(.001, pow2(material.roughness)/aspect);
+            float alphay = max(.001, pow2(material.roughness)*aspect);
+            
+            float alphax2 = alphax * alphax;
+            float alphay2 = alphax * alphay;
+            
+            float hDotX = dot(wh, X);
+            float hDotY = dot(wh, Y);
+            float NdotH = dot(interaction.normal, wh);
+            
+            float denom = hDotX * hDotX/alphax2 + hDotY * hDotY/alphay2 + NdotH * NdotH;
+            if( denom == 0. ) return 0.;
+            float pdfDistribution = NdotH /(PI * alphax * alphay * denom * denom);
+            return pdfDistribution/(4. * dot(wo, wh));
+        }
+
+        float pdfClearCoat(const float3 wi, const float3 wo, const SurfaceInteraction interaction, const MaterialInfo material) {
+            if (!sameHemiSphere(wo, wi, interaction.normal)) return 0.;
+            
+            float3 wh = wi + wo;
+            wh = normalize(wh);
+            
+            float NdotH = abs(dot(wh, interaction.normal));
+            float Dr = GTR1(NdotH, mix(.1,.001,material.clearcoatGloss));
+            return Dr * NdotH/ (4. * dot(wo, wh));
+        }
+
+        float3 disneyDiffuse(const float NdotL, const float NdotV, const float LdotH, const MaterialInfo material) {
+            
+            float FL = schlickWeight(NdotL), FV = schlickWeight(NdotV);
+            
+            float Fd90 = 0.5 + 2. * LdotH*LdotH * material.roughness;
+            float Fd = mix(1.0, Fd90, FL) * mix(1.0, Fd90, FV);
+            
+            return (1./PI) * Fd * material.baseColor.xyz;
+        }
+
+        float3 disneySubsurface(const float NdotL, const float NdotV, const float LdotH, const MaterialInfo material) {
+            
+            float FL = schlickWeight(NdotL), FV = schlickWeight(NdotV);
+            float Fss90 = LdotH*LdotH*material.roughness;
+            float Fss = mix(1.0, Fss90, FL) * mix(1.0, Fss90, FV);
+            float ss = 1.25 * (Fss * (1. / (NdotL + NdotV) - .5) + .5);
+            
+            return (1./PI) * ss * material.baseColor.xyz;
+        }
+
+        float3 disneyMicrofacetIsotropic(float NdotL, float NdotV, float NdotH, float LdotH, const MaterialInfo material) {
+            
+            float Cdlum = .3*material.baseColor.r + .6*material.baseColor.g + .1*material.baseColor.b; // luminance approx.
+            
+            float3 Ctint = Cdlum > 0. ? material.baseColor.xyz/Cdlum : float3(1.); // normalize lum. to isolate hue+sat
+            float3 Cspec0 = mix(material.specular *.08 * mix(float3(1.), Ctint, material.specularTint), material.baseColor.xyz, material.metallic);
+            
+            float a = max(.001, pow2(material.roughness));
+            float Ds = GTR2(NdotH, a);
+            float FH = schlickWeight(LdotH);
+            float3 Fs = mix(Cspec0, float3(1), FH);
+            float Gs;
+            Gs  = smithG_GGX(NdotL, a);
+            Gs *= smithG_GGX(NdotV, a);
+            
+            return Gs*Fs*Ds;
+        }
+
+        float3 disneyMicrofacetAnisotropic(float NdotL, float NdotV, float NdotH, float LdotH,
+                                         const float3 L, const float3 V,
+                                         const float3 H, const float3 X, const float3 Y,
+                                         const MaterialInfo material) {
+            
+            float Cdlum = .3*material.baseColor.r + .6*material.baseColor.g + .1*material.baseColor.b;
+            
+            float3 Ctint = Cdlum > 0. ? material.baseColor.xyz/Cdlum : float3(1.);
+            float3 Cspec0 = mix(material.specular *.08 * mix(float3(1.), Ctint, material.specularTint), material.baseColor.xyz, material.metallic);
+            
+            float aspect = sqrt(1.-material.anisotropic*.9);
+            float ax = max(.001, pow2(material.roughness)/aspect);
+            float ay = max(.001, pow2(material.roughness)*aspect);
+            float Ds = GTR2_aniso(NdotH, dot(H, X), dot(H, Y), ax, ay);
+            float FH = schlickWeight(LdotH);
+            float3 Fs = mix(Cspec0, float3(1), FH);
+            float Gs;
+            Gs  = smithG_GGX_aniso(NdotL, dot(L, X), dot(L, Y), ax, ay);
+            Gs *= smithG_GGX_aniso(NdotV, dot(V, X), dot(V, Y), ax, ay);
+            
+            return Gs*Fs*Ds;
+        }
+
+        float disneyClearCoat(float NdotL, float NdotV, float NdotH, float LdotH, const MaterialInfo material) {
+            float gloss = mix(.1,.001,material.clearcoatGloss);
+            float Dr = GTR1(abs(NdotH), gloss);
+            float FH = schlickWeight(LdotH);
+            float Fr = mix(.04, 1.0, FH);
+            float Gr = smithG_GGX(NdotL, .25) * smithG_GGX(NdotV, .25);
+            return clearCoatBoost * material.clearcoat * Fr * Gr * Dr;
+        }
+
+        float3 disneySheen(float LdotH, const MaterialInfo material) {
+            float FH = schlickWeight(LdotH);
+            float Cdlum = .3*material.baseColor.r + .6*material.baseColor.g  + .1*material.baseColor.b;
+            
+            float3 Ctint = Cdlum > 0. ? material.baseColor.xyz/Cdlum : float3(1.);
+            float3 Csheen = mix(float3(1.), Ctint, material.sheenTint);
+            //float3 Fsheen = FH * material.sheen * Csheen;
+            return FH * material.sheen * Csheen;
+        }
+
+        float3 lightSample( const LightInfo light, const SurfaceInteraction interaction, thread float3 *wi, thread float *lightPdf, float seed, const MaterialInfo material) {
+            float3 L = (light.position - interaction.point);
+            float3 V = -normalize(interaction.incomingRayDir);
+            float3 r = reflect(V, interaction.normal);
+            float3 centerToRay = dot( L, r ) * r - L;
+            float3 closestPoint = L + centerToRay * clamp( light.radius / length( centerToRay ), 0.0, 1.0 );
+            *wi = normalize(closestPoint);
+            
+            return light.L/dot(L, L);
+        }
+
+        float3 sampleSun(const LightInfo light, const SurfaceInteraction interaction, thread float3 *wi, thread float *lightPdf, float seed) {
+            *wi = light.direction;
+            return light.L;
+        }
+
+        float lightPdf(const float4 light, const SurfaceInteraction interaction) {
+            float sinThetaMax2 = light.w * light.w / distanceSq(light.xyz, interaction.point);
+            float cosThetaMax = sqrt(max(EPSILON, 1. - sinThetaMax2));
+            return 1. / (TWO_PI * (1. - cosThetaMax));
+        }
+
+
+        float3 bsdfEvaluate(const float3 wi, const float3 wo, const float3 X, const float3 Y, const SurfaceInteraction interaction, const MaterialInfo material) {
+            if( !sameHemiSphere(wo, wi, interaction.normal) )
+                return float3(0.);
+            
+            float NdotL = dot(interaction.normal, wo);
+            float NdotV = dot(interaction.normal, wi);
+            
+            if (NdotL < 0. || NdotV < 0.) return float3(0.);
+            
+            float3 H = normalize(wo+wi);
+            float NdotH = dot(interaction.normal,H);
+            float LdotH = dot(wo,H);
+            
+            float3 diffuse = disneyDiffuse(NdotL, NdotV, LdotH, material);
+            float3 subSurface = disneySubsurface(NdotL, NdotV, LdotH, material);
+            float3 glossy = disneyMicrofacetAnisotropic(NdotL, NdotV, NdotH, LdotH, wi, wo, H, X, Y, material);
+            float clearCoat = disneyClearCoat(NdotL, NdotV, NdotH, LdotH, material);
+            float3 sheen = disneySheen(LdotH, material);
+            
+            float3 f = ( mix(diffuse, subSurface, material.subsurface) + sheen ) * (1. - material.metallic);
+            f += glossy;
+            f += clearCoat;
+            //f = material.specular * Lr + (1.f - material.specular) * f;
+            return f;
+        }
+
+
+
+        float3 sampleLightType( const LightInfo light, const SurfaceInteraction interaction, thread float3 *wi, thread float *lightPdf, thread float *visibility, float seed, const MaterialInfo material)
+        {
+            if( !light.enabled ) return float3(0.);
+            
+            if( light.type == LIGHT_TYPE_SPHERE ) {
+                float3 L = lightSample(light, interaction, wi, lightPdf, seed, material);
+                float3 shadowRayDir =normalize(light.position - interaction.point);
+                *visibility = visibilityTest(interaction.point + shadowRayDir * .01, shadowRayDir);
+                return L;
+            }
+            else if( light.type == LIGHT_TYPE_SUN ) {
+                float3 L = sampleSun(light, interaction, wi, lightPdf, seed);
+                *visibility = visibilityTestSun(interaction.point + *wi * .01, *wi);
+                return L;
+            }
+            else {
+                return float3(0.);
+            }
+        }
+
+        // From https://www.shadertoy.com/view/XlKSDR
+
+        float3 Irradiance_SphericalHarmonics(const float3 n) {
+            // Irradiance from "Ditch River" IBL (http://www.hdrlabs.com/sibl/archive.html)
+            return max(
+                       float3( 0.754554516862612,  0.748542953903366,  0.790921515418539)
+                       + float3(0.3,  0.3,  0.3) * (n.y)
+                       + float3( 0.35,  0.36,  0.35) * (n.z)
+                       + float3(-0.2, -0.24, -0.24) * (n.x)
+                       , 0.0);
+        }
+
+        float2 PrefilteredDFG_Karis(float roughness, float NoV) {
+            // Karis 2014, "Physically Based Material on Mobile"
+            const float4 c0 = float4(-1.0, -0.0275, -0.572,  0.022);
+            const float4 c1 = float4( 1.0,  0.0425,  1.040, -0.040);
+            
+            float4 r = roughness * c0 + c1;
+            float a004 = min(r.x * r.x, exp2(-9.28 * NoV)) * r.x + r.y;
+            
+            return float2(-1.04, 1.04) * a004 + r.zw;
+        }
+
+        float3 calculateDirectLight(const LightInfo light, const SurfaceInteraction interaction, const MaterialInfo material, thread float3 *wi, thread float3 *f, thread float *scatteringPdf, float seed)
+        {
+            float3 wo = -interaction.incomingRayDir;
+            float3 Ld = float3(0.);
+            float lightPdf = 0., visibility = 1.;
+            
+            float3 Li = sampleLightType( light, interaction, wi, &lightPdf, &visibility, seed, material);
+            Li *= visibility;
+            
+            *f = bsdfEvaluate(*wi, wo, interaction.tangent, interaction.binormal, interaction, material) * abs(dot(*wi, interaction.normal));
+            Ld += Li * *f;
+            
+            return Ld;
+        }
+
+        float4 calculatePixelColor(const float2 uv, const MaterialInfo material)
+        {
+            float4 color = material.baseColor;//float4(1);
+            
+            float3 L = float3(0);
+            float3 beta = float3(1);
+            
+            float seed = hash12(uv);
+
+            SurfaceInteraction interaction;
+            interaction.normal = float3(0,1,0);
+            interaction.incomingRayDir = float3(0,-1,0);
+            interaction.point = float3(uv.x,0,uv.y);
+
+            float3 X = float3(0.), Y = float3(0.);
+            directionOfAnisotropicity(interaction.normal, &X, &Y);
+            interaction.tangent = X;
+            interaction.binormal = Y;
+
+            float3 wi;
+            float3 f = float3(0.);
+            float scatteringPdf = 0.;
+
+            LightInfo light;
+            light.L = float3(2);
+            light.position = float3(0);//float3(0, 200, 0);
+            light.direction = normalize(float3(-1.,1.,1.));
+            light.radius = 0;
+            light.type = LIGHT_TYPE_SUN;
+            light.enabled = true;
+
+            float3 Ld = beta * calculateDirectLight(light, interaction, material, &wi, &f, &scatteringPdf, seed);
+            //Ld += beta * calculateDirectLight(light, interaction, material, &wi, &f, &scatteringPdf, seed);
+            L += Ld;
+
+            // Add indirect diffuse light from an env map
+            float3 diffuseColor = (1.0 - material.metallic) * material.baseColor.rgb ;
+            L += diffuseColor * Irradiance_SphericalHarmonics(interaction.normal)/3.14;
+
+            return float4(L, material.baseColor.w);
+        }
+
+        """
+        
+        return code
     }
 }

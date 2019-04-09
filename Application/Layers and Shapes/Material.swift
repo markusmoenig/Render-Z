@@ -84,7 +84,17 @@ class Material : Codable
         """
         
         typedef struct {
-            float4      baseColor;
+            float4  baseColor;
+            float   subsurface;
+            float   roughness;
+            float   metallic;
+            float   specular;
+            float   specularTint;
+            float   clearcoat;
+            float   clearcoatGloss;
+            float   anisotropic;
+            float   sheen;
+            float   sheenTint;
         } MATERIAL_DATA;
 
         """
@@ -115,7 +125,7 @@ class Material : Codable
             // Fill in point positions
             for index in 0..<pointCount {
                 if materialDataIndex == nil {
-                    code = code.replacingOccurrences(of: "__point_\(index)__", with: "float2(\(props!["point_\(index)_x"]!), \(props!["point_\(index)_y"]!))")
+                    code = code.replacingOccurrences(of: "__point_\(index)__", with: "float2(\(props!["point_\(index)_x"]!), \(props!["point_\(index)_y"]!)) * float2(1,-1)")
                 } else {
                     let matDataCode = "layerData->materialData[\(materialIndex)].xy"
                     code = code.replacingOccurrences(of: "__point_\(index)__", with: matDataCode)
@@ -133,9 +143,8 @@ class Material : Codable
                 }
             }
         }
-        
-        print(code)
-        
+    
+        /*
         for (name,value) in props! {
             
             if name == widthProperty && materialDataIndex != nil {
@@ -159,7 +168,7 @@ class Material : Codable
             } else {
                 code = code.replacingOccurrences(of: "__" + name + "__", with: String(value))
             }
-        }
+        }*/
         
         return code
     }

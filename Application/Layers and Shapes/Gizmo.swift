@@ -88,16 +88,23 @@ class Gizmo : MMWidget
         
         // --- Color change handling
         colorWidget.changed = { (color) -> () in
+            let selectedMaterials = self.object!.getSelectedMaterials(self.materialType)
+            var props : [String:Float] = [:]
+            
             if self.mode == .Normal {
-                let selectedMaterials = self.object!.getSelectedMaterials(self.materialType)
-                var props : [String:Float] = [:]
                 props["value_x"] = color.x
                 props["value_y"] = color.y
                 props["value_z"] = color.z
                 props["value_w"] = color.w
-                for material in selectedMaterials {
-                    self.processGizmoMaterialProperties(props, material: material)
-                }
+            } else
+            if self.mode == .Point {
+                props["pointvalue_\(self.pointIndex)_x"] = color.x
+                props["pointvalue_\(self.pointIndex)_y"] = color.y
+                props["pointvalue_\(self.pointIndex)_z"] = color.z
+                props["pointvalue_\(self.pointIndex)_w"] = color.w
+            }
+            for material in selectedMaterials {
+                self.processGizmoMaterialProperties(props, material: material)
             }
             self.rootObject!.maxDelegate!.update()
         }
@@ -203,7 +210,7 @@ class Gizmo : MMWidget
         }
         
         //  Open Color Widget ?
-        if mode == .Normal && hoverState == .ColorWidgetClosed {
+        if hoverState == .ColorWidgetClosed {
             colorWidget.setState(.Opened)
             return
         }
@@ -1081,8 +1088,8 @@ class Gizmo : MMWidget
             
             // --- Material context: Color/Value in left corner
             if context == .MaterialEditor {
-                colorWidget.rect.x = gizmoRect.x + 5
-                colorWidget.rect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
+                colorWidget.rect.x = screenSpace.x - 55
+                colorWidget.rect.y = screenSpace.y + 22
                 colorWidget.value.x = pointMaterial!.properties["pointvalue_\(pointIndex)_x"]!
                 colorWidget.value.y = pointMaterial!.properties["pointvalue_\(pointIndex)_y"]!
                 colorWidget.value.z = pointMaterial!.properties["pointvalue_\(pointIndex)_z"]!
@@ -1324,13 +1331,28 @@ class Gizmo : MMWidget
     {
         hoverState = .Inactive
         if object == nil { return }
+    
+        // --- Material ColorWidget
+        if context == .MaterialEditor {
+            if !colorWidget.states.contains(.Opened) {
+                if colorWidget.rect.contains(event.x, event.y) {
+                    hoverState = .ColorWidgetClosed
+                    return
+                }
+            } else {
+                if colorWidget.rect.contains(event.x, event.y) {
+                    hoverState = .ColorWidgetOpened
+                    return
+                }
+            }
+        }
         
         let attributes = getCurrentGizmoAttributes()
         let posX : Float = attributes["posX"]! + attributes["point_\(pointIndex)_x"]!
         let posY : Float = attributes["posY"]! + attributes["point_\(pointIndex)_y"]!
         
         gizmoCenter = convertToScreenSpace(x: posX, y: posY)
-        
+    
         let gizmoRect : MMRect =  MMRect()
         
         gizmoRect.x = gizmoCenter.x - width / 2
