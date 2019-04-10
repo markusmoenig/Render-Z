@@ -82,15 +82,15 @@ class MMColorWidget : MMWidget
         let library = compute!.createLibraryFromSource(source: source)
         state = compute.createState(library: library, name: "colorWheel")
         
-        rect.width = 40
-        rect.height = 32
+        rect.width = 30
+        rect.height = 28
     }
     
     func setState(_ state: MMWidgetStates)
     {
         if state == .Closed {
-            rect.width = 40
-            rect.height = 32
+            rect.width = 30
+            rect.height = 28
             removeState(.Opened)
         } else {
             rect.width = 230

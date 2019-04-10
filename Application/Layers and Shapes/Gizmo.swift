@@ -9,7 +9,7 @@
 import MetalKit
 import simd
 
-/// Draws a sphere
+/// Gizmo used in all views
 class Gizmo : MMWidget
 {
     enum GizmoMode {
@@ -17,7 +17,7 @@ class Gizmo : MMWidget
     }
     
     enum GizmoState : Float {
-        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked, AddPoint, RemovePoint, ColorWidgetClosed, ColorWidgetOpened
+        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked, AddPoint, RemovePoint, ColorWidgetClosed, ColorWidgetOpened, FloatWidgetClosed, FloatWidgetOpened
     }
     
     enum GizmoContext : Float {
@@ -62,6 +62,7 @@ class Gizmo : MMWidget
     
     // --- MaterialEditor context
     var colorWidget     : MMColorWidget!
+    var floatWidget     : MMFloatPopUp!
 
     // --- For the point based gizmo
     
@@ -81,7 +82,8 @@ class Gizmo : MMWidget
         objects = []
         
         colorWidget = MMColorWidget(view)
-        
+        floatWidget = MMFloatPopUp(view)
+
         super.init(view)
 
         gizmoNode = GizmoNode(self)
@@ -108,6 +110,29 @@ class Gizmo : MMWidget
             }
             self.rootObject!.maxDelegate!.update(false, updateLists: !continuous)
         }
+        
+        // --- Float change handling
+        floatWidget.changed = { (value, continuous) -> () in
+            let selectedMaterials = self.object!.getSelectedMaterials(self.materialType)
+            var props : [String:Float] = [:]
+            
+            if self.mode == .Normal {
+                props["value_x"] = value
+                props["value_y"] = value
+                props["value_z"] = value
+                props["value_w"] = 1
+            } else
+                if self.mode == .Point {
+                    props["pointvalue_\(self.pointIndex)_x"] = value
+                    props["pointvalue_\(self.pointIndex)_y"] = value
+                    props["pointvalue_\(self.pointIndex)_z"] = value
+                    props["pointvalue_\(self.pointIndex)_w"] = 1
+            }
+            for material in selectedMaterials {
+                self.processGizmoMaterialProperties(props, material: material)
+            }
+            self.rootObject!.maxDelegate!.update(false, updateLists: !continuous)
+        }
     }
     
     func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor, materialType: Object.MaterialType = .Body)
@@ -127,11 +152,12 @@ class Gizmo : MMWidget
             let selectedMaterials = object!.getSelectedMaterials(materialType)
             if selectedMaterials.count > 0 {
                 let material = selectedMaterials[0]
-                if material.pointCount == 0{
+                if material.pointCount == 0 {
                     colorWidget.value.x = material.properties["value_x"]!
                     colorWidget.value.y = material.properties["value_y"]!
                     colorWidget.value.z = material.properties["value_z"]!
                     colorWidget.value.w = material.properties["value_w"]!
+                    floatWidget.value = material.properties["value_x"]!
                 }
             }
         }
@@ -189,6 +215,20 @@ class Gizmo : MMWidget
             // --
 
             gizmoNode.setupUI(mmView: mmView)
+        } else
+        if context == .MaterialEditor {
+            
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+            if selectedMaterials.count == 1 {
+                let material = selectedMaterials[0]
+                
+                gizmoNode.properties["channel"] = material.properties["channel"]
+                gizmoNode.uiItems.append(
+                    NodeUIDropDown(gizmoNode, variable: "channel", title: "Channel", items: ["Base Color", "Subsurface","Roughness", "Metallic", "Specular", "Specular Tint", "Clearcoat", "Clearc. Gloss", "Anisotropic", "Sheen", "Sheen Tint"], index: 0)
+                )
+            }
+            
+            gizmoNode.setupUI(mmView: mmView)
         }
     }
     
@@ -206,12 +246,24 @@ class Gizmo : MMWidget
                     colorWidget.setState(.Closed)
                 }
                 return
+            } else
+            if floatWidget.states.contains(.Opened) {
+                if floatWidget.rect.contains(event.x, event.y) {
+                    floatWidget.mouseDown(event)
+                } else {
+                    floatWidget.setState(.Closed)
+                }
+                return
             }
         }
         
-        //  Open Color Widget ?
+        //  Open Color or Float Widget ?
         if hoverState == .ColorWidgetClosed {
             colorWidget.setState(.Opened)
+            return
+        } else
+        if hoverState == .FloatWidgetClosed {
+            floatWidget.setState(.Opened)
             return
         }
 
@@ -430,6 +482,10 @@ class Gizmo : MMWidget
                 colorWidget.mouseUp(event)
             }
             return
+        } else
+        if context == .MaterialEditor && floatWidget.states.contains(.Opened) {
+            floatWidget.mouseUp(event)
+            return
         }
         
         if object != nil && context == .ShapeEditor {
@@ -439,6 +495,7 @@ class Gizmo : MMWidget
             }
         }
         
+        // Update the material list
         if object != nil && context == .MaterialEditor {
             rootObject!.maxDelegate!.update(false, updateLists: true)
         }
@@ -510,11 +567,15 @@ class Gizmo : MMWidget
             return
         }
         
-        // ColorWidget
+        // ColorWidget / FloatWidget
         if context == .MaterialEditor && colorWidget.states.contains(.Opened) {
             if colorWidget.rect.contains(event.x, event.y) {
                 colorWidget.mouseMoved(event)
             }
+            return
+        } else
+        if context == .MaterialEditor && floatWidget.states.contains(.Opened) {
+            floatWidget.mouseMoved(event)
             return
         }
         
@@ -925,10 +986,15 @@ class Gizmo : MMWidget
             }
 
             // --- Material context: Color/Value in left corner
-            if context == .MaterialEditor && selectedMaterials.count == 1 && selectedMaterials[0].pointCount == 0 {
+            if context == .MaterialEditor && selectedMaterials.count == 1 && selectedMaterials[0].properties["channel"]! == 0 && selectedMaterials[0].pointCount == 0 {
                 colorWidget.rect.x = gizmoRect.x + 5
                 colorWidget.rect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
-                colorWidget.draw()
+                mmView.delayedDraws.append(colorWidget)
+            } else
+            if context == .MaterialEditor && selectedMaterials.count == 1 && selectedMaterials[0].properties["channel"]! != 0 && selectedMaterials[0].pointCount == 0 {
+                floatWidget.rect.x = gizmoRect.x + 5
+                floatWidget.rect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
+                mmView.delayedDraws.append(floatWidget)
             }
             
             // --- Render Menu
@@ -1091,7 +1157,7 @@ class Gizmo : MMWidget
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             
             // --- Material context: Color/Value in left corner
-            if context == .MaterialEditor {
+            if context == .MaterialEditor && pointMaterial!.properties["channel"] == 0 {
                 colorWidget.rect.x = screenSpace.x - 55
                 colorWidget.rect.y = screenSpace.y + 22
                 colorWidget.value.x = pointMaterial!.properties["pointvalue_\(pointIndex)_x"]!
@@ -1099,6 +1165,12 @@ class Gizmo : MMWidget
                 colorWidget.value.z = pointMaterial!.properties["pointvalue_\(pointIndex)_z"]!
                 colorWidget.value.w = pointMaterial!.properties["pointvalue_\(pointIndex)_w"]!
                 colorWidget.draw()
+            } else
+            if context == .MaterialEditor && pointMaterial!.properties["channel"] != 0 {
+                floatWidget.rect.x = screenSpace.x - 55
+                floatWidget.rect.y = screenSpace.y + 22
+                floatWidget.value = pointMaterial!.properties["pointvalue_\(pointIndex)_x"]!
+                floatWidget.draw()
             }
         }
         
@@ -1145,15 +1217,33 @@ class Gizmo : MMWidget
         
         // --- Material ColorWidget
         if context == .MaterialEditor {
-            if !colorWidget.states.contains(.Opened) {
-                if colorWidget.rect.contains(event.x, event.y) {
-                    hoverState = .ColorWidgetClosed
-                    return
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+            if selectedMaterials.count > 0 && selectedMaterials[0].properties["channel"] == 0
+            {
+                if !colorWidget.states.contains(.Opened) {
+                    if colorWidget.rect.contains(event.x, event.y) {
+                        hoverState = .ColorWidgetClosed
+                        return
+                    }
+                } else {
+                    if colorWidget.rect.contains(event.x, event.y) {
+                        hoverState = .ColorWidgetOpened
+                        return
+                    }
                 }
-            } else {
-                if colorWidget.rect.contains(event.x, event.y) {
-                    hoverState = .ColorWidgetOpened
-                    return
+            } else
+            if selectedMaterials.count > 0 && selectedMaterials[0].properties["channel"] != 0
+            {
+                if !floatWidget.states.contains(.Opened) {
+                    if floatWidget.rect.contains(event.x, event.y) {
+                        hoverState = .FloatWidgetClosed
+                        return
+                    }
+                } else {
+                    if floatWidget.rect.contains(event.x, event.y) {
+                        hoverState = .FloatWidgetOpened
+                        return
+                    }
                 }
             }
         }
@@ -1338,15 +1428,34 @@ class Gizmo : MMWidget
     
         // --- Material ColorWidget
         if context == .MaterialEditor {
-            if !colorWidget.states.contains(.Opened) {
-                if colorWidget.rect.contains(event.x, event.y) {
-                    hoverState = .ColorWidgetClosed
-                    return
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+
+            if selectedMaterials.count > 0 && selectedMaterials[0].properties["channel"] == 0
+            {
+                if !colorWidget.states.contains(.Opened) {
+                    if colorWidget.rect.contains(event.x, event.y) {
+                        hoverState = .ColorWidgetClosed
+                        return
+                    }
+                } else {
+                    if colorWidget.rect.contains(event.x, event.y) {
+                        hoverState = .ColorWidgetOpened
+                        return
+                    }
                 }
-            } else {
-                if colorWidget.rect.contains(event.x, event.y) {
-                    hoverState = .ColorWidgetOpened
-                    return
+            } else
+            if selectedMaterials.count > 0 && selectedMaterials[0].properties["channel"] != 0
+            {
+                if !floatWidget.states.contains(.Opened) {
+                    if floatWidget.rect.contains(event.x, event.y) {
+                        hoverState = .FloatWidgetClosed
+                        return
+                    }
+                } else {
+                    if floatWidget.rect.contains(event.x, event.y) {
+                        hoverState = .FloatWidgetOpened
+                        return
+                    }
                 }
             }
         }
@@ -1757,11 +1866,24 @@ class GizmoNode : Node
     override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
     {
 //        print( "variableChanged", variable, oldValue, newValue, continuous)
-        let selectedShapes = gizmo!.object!.getSelectedShapes()
-        let properties : [String:Float] = [variable:newValue]
-        for shape in selectedShapes {
-            gizmo!.processGizmoProperties(properties, shape: shape)
+        
+        if gizmo!.context == .ShapeEditor
+        {
+            let selectedShapes = gizmo!.object!.getSelectedShapes()
+            let properties : [String:Float] = [variable:newValue]
+            for shape in selectedShapes {
+                gizmo!.processGizmoProperties(properties, shape: shape)
+            }
+            gizmo!.rootObject!.maxDelegate!.update(false)
+        } else
+        if gizmo!.context == .MaterialEditor
+        {
+            let selectedMaterials = gizmo!.object!.getSelectedMaterials(gizmo!.materialType)
+            let properties : [String:Float] = [variable:newValue]
+            for material in selectedMaterials {
+                gizmo!.processGizmoMaterialProperties(properties, material: material)
+            }
+            gizmo!.rootObject!.maxDelegate!.update(true, updateLists: true)
         }
-         gizmo!.rootObject!.maxDelegate!.update(false)
     }
 }

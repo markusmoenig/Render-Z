@@ -18,8 +18,8 @@ class MaterialList
     
     var mmView          : MMView
     
-    var compute         : MMCompute?
-    var state           : MTLComputePipelineState?
+    var fragment        : MMFragment?
+    var state           : MTLRenderPipelineState?
     
     var width, height   : Float
     var spacing         : Float
@@ -34,6 +34,8 @@ class MaterialList
     var hoverBuffer     : MTLBuffer?
     var hoverIndex      : Int = -1
     
+    var zoom            : Float = 2
+    
     init(_ view: MMView )
     {
         mmView = view
@@ -41,20 +43,20 @@ class MaterialList
         width = 0
         height = 0
         
-        compute = MMCompute()
-        compute!.allocateTexture(width: 10, height: 10)
-        
+        fragment = MMFragment(view)
+        fragment!.allocateTexture(width: 10, height: 10)
+
         spacing = 0
         unitSize = 40
         
         currentObject = nil
         
-        textureWidget = MMTextureWidget( view, texture: compute!.texture )
+        textureWidget = MMTextureWidget( view, texture: fragment!.texture )
         
         hoverData = [-1,0]
-        hoverBuffer = compute!.device.makeBuffer(bytes: hoverData, length: hoverData.count * MemoryLayout<Float>.stride, options: [])!
+        hoverBuffer = fragment!.device.makeBuffer(bytes: hoverData, length: hoverData.count * MemoryLayout<Float>.stride, options: [])!
 
-        // ---
+        textureWidget.zoom = zoom
     }
     
     /// Build the source
@@ -68,6 +70,8 @@ class MaterialList
         if height == 0 {
             height = 1
         }
+        
+        height *= zoom
         
         var source =
         """
@@ -114,14 +118,13 @@ class MaterialList
         
         source +=
         """
-
-        kernel void
-        materialListBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
-                         constant SHAPELIST_HOVER_DATA  *hoverData   [[ buffer(1) ]],
-                         uint2                           gid         [[thread_position_in_grid]])
+        
+        fragment float4 materialListBuilder(RasterizerData in [[stage_in]],
+                         constant SHAPELIST_HOVER_DATA *hoverData [[ buffer(2) ]])
         {
-            float2 uvOrigin = float2( gid.x - outTexture.get_width() / 2.,
-                                      gid.y - outTexture.get_height() / 2. );
+            float2 size = float2( \(width*zoom), \(height) );
+        
+            float2 uvOrigin = float2( in.textureCoordinate.x * size.x - size.x / 2., size.y - in.textureCoordinate.y * size.y - size.y / 2. );
             float2 uv;
 
             float dist = 10000;
@@ -145,12 +148,13 @@ class MaterialList
         
         """
 
-        let left : Float = width / 2
-        var top : Float = unitSize / 2
+        let left : Float = (width/2) * zoom
+        var top : Float = (unitSize / 2) * zoom
         
         for (index, material) in materials.enumerated() {
 
-            source += "uv = uvOrigin; uv.x += outTexture.get_width() / 2.0 - \(left) + borderSize/2; uv.y += outTexture.get_height() / 2.0 - \(top) + borderSize/2;\n"
+            source += "uv = uvOrigin; uv.x += size.x / 2.0 - \(left) + borderSize/2; uv.y += size.y / 2.0 - \(top) + borderSize/2;\n"
+            source += "uv /= \(zoom);\n"
             
             source += "d = abs( uv ) - float2( \((width)/2) - borderSize, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
@@ -222,33 +226,73 @@ class MaterialList
 //            source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
 //            source += "finalCol = mix( finalCol, col, col.a );\n"
             
-            top += unitSize + spacing
+            top += (unitSize + spacing) * zoom
         }
         
         source +=
         """
-        
-                outTexture.write(half4(finalCol.x, finalCol.y, finalCol.z, finalCol.w), gid);
+                return finalCol;
             }
         """
         
-        let library = compute!.createLibraryFromSource(source: source)
-        state = compute!.createState(library: library, name: "materialListBuilder")
+        let library = fragment!.createLibraryFromSource(source: source)
+        state = fragment!.createState(library: library, name: "materialListBuilder")
         
-        if compute!.width != width || compute!.height != height {
-            compute!.allocateTexture(width: width, height: height)
-            textureWidget.setTexture(compute!.texture)
+        if fragment!.width != width * zoom || fragment!.height != height {
+            fragment!.allocateTexture(width: width * zoom, height: height)
+            textureWidget.setTexture(fragment!.texture)
         }
         
         currentObject = object
-        
         update()
     }
     
     func update()
     {
-        memcpy(hoverBuffer?.contents(), hoverData, hoverData.count * MemoryLayout<Float>.stride)
-        compute!.run(state, inBuffer: hoverBuffer)
+        memcpy(hoverBuffer!.contents(), hoverData, hoverData.count * MemoryLayout<Float>.stride)
+        
+        if fragment!.encoderStart() {
+            
+            fragment!.encodeRun(state, inBuffer: hoverBuffer)
+
+            let materials : [Material] = currentType == .Body ? currentObject!.bodyMaterials : currentObject!.borderMaterials
+            
+            let left : Float = 22 * zoom
+            var top : Float = 5 * zoom
+            let fontScale : Float = 0.22
+            
+            var fontRect = MMRect()
+            
+            //            let item = items[0]
+            
+            for material in materials {
+                
+                let channel = material.properties["channel"]
+                var text = ""
+                switch channel
+                {
+                    case 0: text += "Base Color"
+                    case 1: text += "Subsurface"
+                    case 2: text += "Roughness"
+                    case 3: text += "Metallic"
+                    case 4: text += "Specular"
+                    case 5: text += "Spec. Tint"
+                    case 6: text += "Clearcoat"
+                    case 7: text += "Clearc. Gloss"
+                    case 8: text += "Anisotropic"
+                    case 9: text += "Sheen"
+                    case 10: text += "Sheen Tint"
+                    default: print("Wrong Channel")
+                }
+                
+                fontRect = mmView.openSans.getTextRect(text: text, scale: fontScale, rectToUse: fontRect)
+                mmView.drawText.drawText(mmView.openSans, text: text, x: left, y: top, scale: fontScale * zoom, color: float4(1, 1, 1, 1), fragment: fragment)
+                
+                top += (unitSize / 2) * zoom
+            }
+            
+            fragment!.encodeEnd()
+        }
     }
     
     /// Selected the material at the given relative mouse position

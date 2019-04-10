@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B128761225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
+		2B128762225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
 		2B46E95D2243339A0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B46E95E2243339B0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B46E960224367AF0047A94A /* Material.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95F224367AF0047A94A /* Material.swift */; };
@@ -45,8 +47,6 @@
 		2BA344AE2202A0AA000BB2EB /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
 		2BA6163C2259805800638794 /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
 		2BA6163D2259805800638794 /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
-		2BBF0F4C225C397B009950E3 /* Renderer.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF0F4B225C397A009950E3 /* Renderer.metal */; };
-		2BBF0F4D225C397B009950E3 /* Renderer.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF0F4B225C397A009950E3 /* Renderer.metal */; };
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
 		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
 		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
@@ -135,6 +135,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatPopUp.swift; sourceTree = "<group>"; };
 		2B46E95C224330050047A94A /* MMTabWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabWidget.swift; sourceTree = "<group>"; };
 		2B46E95F224367AF0047A94A /* Material.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Material.swift; sourceTree = "<group>"; };
 		2B46E962224466CC0047A94A /* MaterialFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialFactory.swift; sourceTree = "<group>"; };
@@ -343,6 +344,7 @@
 				2BBF11B821EADB46001C94E9 /* MMFont.swift */,
 				2BBF11B921EADB46001C94E9 /* MMLabel.swift */,
 				2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */,
+				2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */,
 				2BA6163B22597EF400638794 /* MMColorWidget.swift */,
 				2B46E95C224330050047A94A /* MMTabWidget.swift */,
 				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
@@ -547,7 +549,7 @@
 				2BBF11A221EAD46B001C94E9 /* LeftRegion.swift in Sources */,
 				2BBF11AC21EAD46B001C94E9 /* Mad4Metal.metal in Sources */,
 				2BE6710B2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */,
-				2BBF0F4C225C397B009950E3 /* Renderer.metal in Sources */,
+				2B128761225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */,
 				2BBF11EA21ED623F001C94E9 /* EditorWidget.swift in Sources */,
 				2B46E963224466CD0047A94A /* MaterialFactory.swift in Sources */,
 				2BBF120221F80B32001C94E9 /* Gizmo.metal in Sources */,
@@ -610,7 +612,7 @@
 				2BBF11A321EAD46B001C94E9 /* LeftRegion.swift in Sources */,
 				2BBF11AD21EAD46B001C94E9 /* Mad4Metal.metal in Sources */,
 				2BE6710C2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */,
-				2BBF0F4D225C397B009950E3 /* Renderer.metal in Sources */,
+				2B128762225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */,
 				2BBF11EB21ED623F001C94E9 /* EditorWidget.swift in Sources */,
 				2B46E964224466CD0047A94A /* MaterialFactory.swift in Sources */,
 				2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */,

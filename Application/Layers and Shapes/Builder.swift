@@ -294,11 +294,36 @@ class Builder
             }
             
             // --- Material Code
-            //source += "if (dist < 0) materialId = \(objectIndex);\n"
+            
+            func createMaterialCode(_ material: Material)
+            {
+                materialSource += "  bodyMaterial."
+                let channel = material.properties["channel"]
+                switch channel
+                {
+                    case 0: materialSource += "baseColor"
+                    case 1: materialSource += "subsurface"
+                    case 2: materialSource += "roughness"
+                    case 3: materialSource += "metallic"
+                    case 4: materialSource += "specular"
+                    case 5: materialSource += "specularTint"
+                    case 6: materialSource += "clearcoat"
+                    case 7: materialSource += "clearcoatGloss"
+                    case 8: materialSource += "anisotropic"
+                    case 9: materialSource += "sheen"
+                    case 10: materialSource += "sheenTint"
+                    default: print("Wrong Channel")
+                }
+                
+                materialSource += " = " + material.createCode(uvName: "uv", materialDataIndex: materialDataIndex) + "\(channel != 0 ? ".x" : "");\n"
+                print(materialSource)
+            }
+            
             materialSource += "if (materialId == \(objectIndex)) {\n"
             for material in object.bodyMaterials {
-                let matProperty = "bodyMaterial.baseColor"
-                materialSource += "  " + matProperty + " = " + material.createCode(uvName: "uv", materialDataIndex: materialDataIndex) + ";\n"
+                //let matProperty = "bodyMaterial.baseColor"
+                //materialSource += "  " + matProperty + " = " + material.createCode(uvName: "uv", materialDataIndex: materialDataIndex) + ";\n"
+                createMaterialCode(material)
                 if material.pointCount == 0 {
                     materialDataIndex += 1
                 } else {
@@ -1382,9 +1407,6 @@ class Builder
             float3 wi;
             float3 f = float3(0.);
             float scatteringPdf = 0.;
-
-            //material.metallic = 0.2;
-            //material.roughness = 0.2;
 
             LightInfo light;
             light.L = float3(3.15);//float3(5.4);

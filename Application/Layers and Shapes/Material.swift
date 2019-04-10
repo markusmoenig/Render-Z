@@ -45,6 +45,7 @@ class Material : Codable
         properties["posX"] = 0
         properties["posY"] = 0
         properties["rotate"] = 0
+        properties["channel"] = 0
     }
 
     required init(from decoder: Decoder) throws

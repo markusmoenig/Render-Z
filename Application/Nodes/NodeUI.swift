@@ -96,7 +96,7 @@ class NodeUIDropDown : NodeUI
     override func calcSize(mmView: MMView) {
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
 
-        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 80
+        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 120
         rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
     }
     
@@ -136,7 +136,7 @@ class NodeUIDropDown : NodeUI
         titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
         
         let x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
-        let width = 80 * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
+        let width = 120 * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
         itemHeight =  rect.height * scale
         
         let skin = mmView.skin.MenuWidget

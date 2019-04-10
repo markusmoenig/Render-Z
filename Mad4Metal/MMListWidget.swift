@@ -54,7 +54,6 @@ class MMListWidget : MMWidget
         
         super.init(view)
         zoom = 2
-//        unitSize *= zoom
         textureWidget.zoom = zoom
     }
     
@@ -209,7 +208,7 @@ class MMListWidget : MMWidget
         
         if fragment!.encoderStart() {
             
-            fragment!.encodeRun(state )//, inBuffer: hoverBuffer)
+            fragment!.encodeRun(state)//, inBuffer: hoverBuffer)
             
             let left : Float = 6 * zoom
             var top : Float = 4 * zoom
