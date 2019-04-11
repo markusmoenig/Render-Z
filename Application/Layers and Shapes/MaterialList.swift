@@ -169,7 +169,11 @@ class MaterialList
             
             source += "uv -= float2( -128., 0. );\n"
             
-            source += "primitiveColor = " + material.createCode(uvName: "uv") + ";\n"
+            if material.properties["channel"]! == 0 {
+                source += "primitiveColor = " + material.createCode(uvName: "uv") + ";\n"
+            } else {
+                source += "primitiveColor = float4( float3(" + material.createCode(uvName: "uv") + ".x), 1 );\n"
+            }
 
             source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
             
@@ -244,6 +248,8 @@ class MaterialList
         }
         
         currentObject = object
+        currentType = type
+        
         update()
     }
     
@@ -256,14 +262,12 @@ class MaterialList
             fragment!.encodeRun(state, inBuffer: hoverBuffer)
 
             let materials : [Material] = currentType == .Body ? currentObject!.bodyMaterials : currentObject!.borderMaterials
-            
+                        
             let left : Float = 22 * zoom
             var top : Float = 5 * zoom
             let fontScale : Float = 0.22
             
             var fontRect = MMRect()
-            
-            //            let item = items[0]
             
             for material in materials {
                 

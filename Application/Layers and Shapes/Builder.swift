@@ -330,7 +330,6 @@ class Builder
                 if limiterType == 0 {
                     // --- No Limiter
                     materialSource += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
-                    print( materialSource )
                 } else
                 if limiterType == 1 {
                     // --- Rectangle
