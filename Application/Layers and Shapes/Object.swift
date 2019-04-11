@@ -137,6 +137,7 @@ class Object : Node
         try container.encode(childObjects, forKey: .childObjects)
         try container.encode(selectedBodyMaterials, forKey: .selectedBodyMaterials)
         try container.encode(selectedBorderMaterials, forKey: .selectedBorderMaterials)
+        try container.encode(selectedShapes, forKey: .selectedShapes)
         try container.encode(sequences, forKey: .sequences)
         try container.encode(pointConnections, forKey: .pointConnections)
 

@@ -73,7 +73,6 @@ class App
         
         closeButton = MMButtonWidget(mmView, customState: state)
         // ---
-        
         /*
         let json = nodeGraph.encodeJSON()
         
@@ -81,9 +80,13 @@ class App
         {
             print( json )
 
-            if let graph =  try? JSONDecoder().decode(NodeGraph.self, from: jsonData) {
+            do {
+                if (try JSONDecoder().decode(NodeGraph.self, from: jsonData)) != nil {
                 print( "yes" )
-
+                }
+            }
+            catch {
+                print("Error is : \(error)")
             }
         }*/
         
