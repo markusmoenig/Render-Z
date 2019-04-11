@@ -226,6 +226,10 @@ class Gizmo : MMWidget
                 gizmoNode.uiItems.append(
                     NodeUIDropDown(gizmoNode, variable: "channel", title: "Channel", items: ["Base Color", "Subsurface","Roughness", "Metallic", "Specular", "Specular Tint", "Clearcoat", "Clearc. Gloss", "Anisotropic", "Sheen", "Sheen Tint"], index: 0)
                 )
+                gizmoNode.properties["limiterType"] = material.properties["limiterType"]
+                gizmoNode.uiItems.append(
+                    NodeUIDropDown(gizmoNode, variable: "limiterType", title: "Limiter", items: ["None", "Rectangle", "Sphere", "Border"], index: 0)
+                )
             }
             
             gizmoNode.setupUI(mmView: mmView)
@@ -655,6 +659,22 @@ class Gizmo : MMWidget
                         processGizmoProperties(properties, shape: shape)
                     }
                 } else
+                if context == .MaterialEditor {
+                    if mode == .Normal {
+                        for material in selectedMaterialObjects {
+                            let properties : [String:Float] = [
+                                "posX" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            ]
+                            processGizmoMaterialProperties(properties, material: material)
+                        }
+                    } else {
+                        let material = pointMaterial!
+                        let properties : [String:Float] = [
+                            "point_\(pointIndex)_x" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                        ]
+                        processGizmoMaterialProperties(properties, material: material)
+                    }
+                } else
                 if context == .ObjectEditor {
                     for object in objects {
                         let properties : [String:Float] = [
@@ -681,6 +701,22 @@ class Gizmo : MMWidget
                         processGizmoProperties(properties, shape: shape)
                     }
                 } else
+                if context == .MaterialEditor {
+                    if  mode == .Normal {
+                        for material in selectedMaterialObjects {
+                            let properties : [String:Float] = [
+                                "posY" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                            ]
+                            processGizmoMaterialProperties(properties, material: material)
+                        }
+                    } else {
+                        let material = pointMaterial!
+                        let properties : [String:Float] = [
+                            "point_\(pointIndex)_y" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                        ]
+                        processGizmoMaterialProperties(properties, material: material)
+                    }
+                } else
                 if context == .ObjectEditor {
                     for object in objects {
                         let properties : [String:Float] = [
@@ -691,29 +727,62 @@ class Gizmo : MMWidget
                 }
             } else
             if dragState == .xAxisScale {
-                for shape in selectedShapeObjects {
-                    let propName : String = shape.widthProperty
-                    var value = initialValues[shape.uuid]![propName]! + (pos.x - dragStartOffset!.x)
-                    if value < 0 {
-                        value = 0
+                if context == .ShapeEditor {
+                    for shape in selectedShapeObjects {
+                        let propName : String = shape.widthProperty
+                        var value = initialValues[shape.uuid]![propName]! + (pos.x - dragStartOffset!.x)
+                        if value < 0 {
+                            value = 0
+                        }
+                        let properties : [String:Float] = [
+                            propName : value,
+                            ]
+                        processGizmoProperties(properties, shape: shape)
                     }
-                    let properties : [String:Float] = [
-                        propName : value,
+                } else
+                if context == .MaterialEditor {
+                    for material in selectedMaterialObjects {
+                        let propName : String = material.widthProperty
+                        var value = initialValues[material.uuid]![propName]! + (pos.x - dragStartOffset!.x)
+                        if value < 0 {
+                            value = 0
+                        }
+                        let properties : [String:Float] = [
+                            propName : value,
                         ]
-                    processGizmoProperties(properties, shape: shape)
+                        processGizmoMaterialProperties(properties, material: material)
+                    }
                 }
             } else
             if dragState == .yAxisScale {
-                for shape in selectedShapeObjects {
-                    let propName : String = shape.heightProperty
-                    var value = initialValues[shape.uuid]![propName]! - (pos.y - dragStartOffset!.y)
-                    if value < 0 {
-                        value = 0
+                if context == .ShapeEditor {
+                    for shape in selectedShapeObjects {
+                        let propName : String = shape.heightProperty
+                        var value = initialValues[shape.uuid]![propName]! - (pos.y - dragStartOffset!.y)
+                        if value < 0 {
+                            value = 0
+                        }
+                        let properties : [String:Float] = [
+                            propName : value,
+                            ]
+                        processGizmoProperties(properties, shape: shape)
                     }
-                    let properties : [String:Float] = [
-                        propName : value,
+                } else
+                if context == .MaterialEditor {
+                    for material in selectedMaterialObjects {
+                        let propName : String = material.heightProperty
+                        var value = initialValues[material.uuid]![propName]! - (pos.y - dragStartOffset!.y)
+                        if value < 0 {
+                            value = 0
+                        }
+                        var properties : [String:Float] = [
+                            propName : value,
                         ]
-                    processGizmoProperties(properties, shape: shape)
+                        if material.properties["limiterType"]! >= 2 {
+                            properties[material.widthProperty] = material.properties[propName]
+                        }
+                        processGizmoMaterialProperties(properties, material: material)
+                    }
                 }
             } else
             if dragState == .Rotate {
@@ -725,6 +794,15 @@ class Gizmo : MMWidget
                             "rotate" : initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
                         ]
                         processGizmoProperties(properties, shape: shape)
+                    }
+                } else
+                if context == .MaterialEditor {
+                    for material in selectedMaterialObjects {
+                        let initialValue = initialValues[material.uuid]!["rotate"]!
+                        let properties : [String:Float] = [
+                            "rotate" : initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                        ]
+                        processGizmoMaterialProperties(properties, material: material)
                     }
                 } else
                 if context == .ObjectEditor {
@@ -928,7 +1006,7 @@ class Gizmo : MMWidget
                     
                     // --- Test if we have to hover highlight both scale axes
                     if selectedMaterials.count == 1 && (hoverState == .xAxisScale || hoverState == .yAxisScale) {
-                        if material.widthProperty == material.heightProperty {
+                        if material.widthProperty == material.heightProperty || material.properties["limiterType"]! >= 2 {
                             data[3] = 1
                         }
                     }
@@ -1721,11 +1799,12 @@ class Gizmo : MMWidget
                     
                     // --- Calc Bounding Rectangle
                     
+                    let defaultSize : Float = 20
                     if material.pointCount == 0 {
                         var size = float2()
                         
-                        size.x = transformed[material.widthProperty]! * 2
-                        size.y = transformed[material.heightProperty]! * 2
+                        size.x = defaultSize * 2//transformed[material.widthProperty]! * 2
+                        size.y = defaultSize * 2 //transformed[material.heightProperty]! * 2
                         
                         if posX - size.x / 2 < sizeMinX {
                             sizeMinX = posX - size.x / 2
@@ -1740,8 +1819,8 @@ class Gizmo : MMWidget
                             sizeMaxY = posY + size.y / 2
                         }
                     } else {
-                        let width = transformed[material.widthProperty]!
-                        let height = transformed[material.heightProperty]!
+                        let width = defaultSize//transformed[material.widthProperty]!
+                        let height = defaultSize//transformed[material.heightProperty]!
                         
                         var minX : Float = 100000, minY : Float = 100000, maxX : Float = -100000, maxY : Float = -100000
                         for i in 0..<material.pointCount {

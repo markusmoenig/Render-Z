@@ -29,24 +29,15 @@ class MaterialFactory
     {
         materials = []
 
-        let defaultSize : Float = 20
+        let defaultSize : Float = 40
         var def : MaterialDefinition = MaterialDefinition()
         
         // --- Static
         def.name = "Static"
-//        def.code = "staticMaterial(__uv__, __value__)"
-        def.code = "__value__"//"staticMaterial(__uv__, __value__)"
-        /*
-        def.globalCode =
-        """
-        float4 staticMaterial( float2 p, float4 value )
-        {
-            return value;
-        }
-        """*/
-        def.properties["value_x"] = 0.5
-        def.properties["value_y"] = 0.5
-        def.properties["value_z"] = 0.5
+        def.code = "__value__"
+        def.properties["value_x"] = 0.3
+        def.properties["value_y"] = 0.3
+        def.properties["value_z"] = 0.3
         def.properties["value_w"] = 1
 
         def.properties["width"] = defaultSize
@@ -82,11 +73,63 @@ class MaterialFactory
         def.properties["pointvalue_1_z"] = 1
         def.properties["pointvalue_1_w"] = 1
 
-        def.properties["lineWidth"] = 1
+        def.properties["width"] = defaultSize
+        def.properties["height"] = defaultSize
 
-        def.widthProperty = "lineWidth"
-        def.heightProperty = "lineWidth"
+        def.widthProperty = "width"
+        def.heightProperty = "height"
         def.pointCount = 2
+        materials.append( def )
+        
+        // --- Grid
+        def = MaterialDefinition()
+        def.name = "Grid"
+        def.globalCode =
+        """
+        float4 gridMaterial( float2 uv, float4 value) {
+            float2 vPixelsPerGridSquare = float2(20.0, 20.0);
+            float2 vScreenPixelCoordinate = uv;
+            float2 vGridSquareCoords = fract(vScreenPixelCoordinate / vPixelsPerGridSquare);
+            float2 vGridSquarePixelCoords = vGridSquareCoords * vPixelsPerGridSquare;
+            float2 vIsGridLine = step(vGridSquarePixelCoords, float2(1.0));
+        
+            float fIsGridLine = max(vIsGridLine.x, vIsGridLine.y);
+            return mix( float4(0), value, fIsGridLine);
+        }
+        """
+        def.code = "gridMaterial(__uv__, __value__)"
+        def.properties["value_x"] = 0.3
+        def.properties["value_y"] = 0.3
+        def.properties["value_z"] = 0.3
+        def.properties["value_w"] = 1
+        
+        def.properties["width"] = defaultSize
+        def.properties["height"] = defaultSize
+        def.widthProperty = "width"
+        def.heightProperty = "height"
+        materials.append( def )
+        
+        // --- Checker
+        def = MaterialDefinition()
+        def.name = "Checker"
+        def.globalCode =
+        """
+        float4 checkerMaterial( float2 uv, float4 value) {
+            float2 q = floor(uv/20.);
+            float4 col = mix( float4(0), value, abs(fmod(q.x+q.y, 2.0)) );
+            return col;
+        }
+        """
+        def.code = "checkerMaterial(__uv__, __value__)"
+        def.properties["value_x"] = 0.3
+        def.properties["value_y"] = 0.3
+        def.properties["value_z"] = 0.3
+        def.properties["value_w"] = 1
+        
+        def.properties["width"] = defaultSize
+        def.properties["height"] = defaultSize
+        def.widthProperty = "width"
+        def.heightProperty = "height"
         materials.append( def )
     }
     

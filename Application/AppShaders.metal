@@ -26,23 +26,14 @@ typedef struct
 fragment float4 moduloPattern(RasterizerData in [[stage_in]],
                                 constant MODULO_PATTERN *data [[ buffer(0) ]] )
 {
-    
-    float4 checkerColor1 = float4( 0.0, 0.0, 0.0, 1.0 );
-    float4 checkerColor2 = float4( 0.2, 0.2, 0.2, 1.0 );
+    const float4 checkerColor1 = float4( 0.0, 0.0, 0.0, 1.0 );
+    const float4 checkerColor2 = float4( 0.2, 0.2, 0.2, 1.0 );
     
     float2 uv = in.textureCoordinate * data->size;
     uv -= float2( data->size / 2 );
-
-    float4 col = checkerColor1;
     
-    float cWidth = 12.0;
-    float cHeight = 12.0;
-    
-    if ( fmod( floor( uv.x / cWidth ), 2.0 ) == 0.0 ) {
-        if ( fmod( floor( uv.y / cHeight ), 2.0 ) != 0.0 ) col=checkerColor2;
-    } else {
-        if ( fmod( floor( uv.y / cHeight ), 2.0 ) == 0.0 ) col=checkerColor2;
-    }
+    float2 q = floor(uv/12.);
+    float4 col = mix( checkerColor1, checkerColor2, abs(fmod(q.x+q.y, 2.0)) );
     
     return col;
 }

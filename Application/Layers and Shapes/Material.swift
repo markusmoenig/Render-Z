@@ -46,6 +46,7 @@ class Material : Codable
         properties["posY"] = 0
         properties["rotate"] = 0
         properties["channel"] = 0
+        properties["limiterType"] = 0
     }
 
     required init(from decoder: Decoder) throws
@@ -117,7 +118,7 @@ class Material : Codable
     }
     
     /// Creates the distance code for the shape, optionally using the supplied transformed properties or insertig the metal code for accessing the shape data structure
-    func createCode( uvName: String, transProperties: [String:Float]? = nil, materialDataIndex: Int? = nil, pointIndex: Int? = nil) -> String
+    func createCode( uvName: String, transProperties: [String:Float]? = nil, materialDataIndex: Int? = nil) -> String
     {
         var code = self.code
         let props = transProperties != nil ? transProperties : properties
@@ -158,32 +159,6 @@ class Material : Codable
                 }
             }
         }
-    
-        /*
-        for (name,value) in props! {
-            
-            if name == widthProperty && materialDataIndex != nil {
-                let widthCode = "layerData->shapes[\(materialDataIndex!)].size.x"
-                code = code.replacingOccurrences(of: "__" + name + "__", with: widthCode)
-            } else
-            if name == heightProperty && materialDataIndex != nil {
-                let heightCode = "layerData->shapes[\(materialDataIndex!)].size.y"
-                code = code.replacingOccurrences(of: "__" + name + "__", with: heightCode)
-            } else
-            if (name == widthProperty || name == heightProperty) && transProperties != nil {
-                let widthHeightCode = String(value)
-                let _ : Float = min(transProperties![widthProperty]!,transProperties![heightProperty]!)
-                code = code.replacingOccurrences(of: "__" + name + "__", with: widthHeightCode)
-            } else
-            if name.starts(with: "point_") && pointIndex != nil {
-                let index = name.index(name.startIndex, offsetBy: 6)
-                let coord = name.index(name.endIndex, offsetBy: -1)
-                
-                code = code.replacingOccurrences(of: "__" + name + "__", with: "layerData->points[\(pointIndex! + Int(String(name[index]))!)].\(name[coord])")
-            } else {
-                code = code.replacingOccurrences(of: "__" + name + "__", with: String(value))
-            }
-        }*/
         
         return code
     }

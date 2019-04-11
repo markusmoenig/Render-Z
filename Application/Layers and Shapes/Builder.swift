@@ -295,48 +295,76 @@ class Builder
             
             // --- Material Code
             
-            func createMaterialCode(_ material: Material)
+            func createMaterialCode(_ material: Material, _ materialName: String)
             {
-                materialSource += "  bodyMaterial."
+                var channelCode = materialName + "."
+                var materialProperty : String = ""
                 let channel = material.properties["channel"]
                 switch channel
                 {
-                    case 0: materialSource += "baseColor"
-                    case 1: materialSource += "subsurface"
-                    case 2: materialSource += "roughness"
-                    case 3: materialSource += "metallic"
-                    case 4: materialSource += "specular"
-                    case 5: materialSource += "specularTint"
-                    case 6: materialSource += "clearcoat"
-                    case 7: materialSource += "clearcoatGloss"
-                    case 8: materialSource += "anisotropic"
-                    case 9: materialSource += "sheen"
-                    case 10: materialSource += "sheenTint"
-                    default: print("Wrong Channel")
+                    case 0: materialProperty = "baseColor"
+                    case 1: materialProperty = "subsurface"
+                    case 2: materialProperty = "roughness"
+                    case 3: materialProperty = "metallic"
+                    case 4: materialProperty = "specular"
+                    case 5: materialProperty = "specularTint"
+                    case 6: materialProperty = "clearcoat"
+                    case 7: materialProperty = "clearcoatGloss"
+                    case 8: materialProperty = "anisotropic"
+                    case 9: materialProperty = "sheen"
+                    case 10: materialProperty = "sheenTint"
+                    default: print("Invalid Channel")
                 }
+                channelCode += materialProperty
+                let limiterType = material.properties["limiterType"]
+                let materialExt = channel == 0 ? "" : ".x"
+
+                // --- Translate material uv
+                materialSource += "tuv = translate( uv, layerData->materialData[\(materialDataIndex)].xy );"
                 
-                materialSource += " = " + material.createCode(uvName: "uv", materialDataIndex: materialDataIndex) + "\(channel != 0 ? ".x" : "");\n"
-                print(materialSource)
+                // --- Rotate material uv
+                materialSource += "if ( layerData->materialData[\(materialDataIndex+1)].x != 0.0 ) tuv = rotateCCW( tuv, layerData->materialData[\(materialDataIndex+1)].x );\n"
+                
+                materialSource += "value = " + material.createCode(uvName: "tuv", materialDataIndex: materialDataIndex+2) + ";\n"
+                
+                if limiterType == 0 {
+                    // --- No Limiter
+                    materialSource += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
+                    print( materialSource )
+                } else
+                if limiterType == 1 {
+                    // --- Rectangle
+                    materialSource += "  d = abs( tuv ) - layerData->materialData[\(materialDataIndex)].zw;\n"
+                    materialSource += "  limiterDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
+                    materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                } else
+                if limiterType == 2 {
+                    // --- Sphere
+                    materialSource += "  limiterDist = length( tuv ) - layerData->materialData[\(materialDataIndex)].z;\n"
+                    materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                } else
+                if limiterType == 3 {
+                    // --- Border
+                    materialSource += "  limiterDist = -dist - layerData->materialData[\(materialDataIndex)].z;\n"
+                    materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                }
             }
             
-            materialSource += "if (materialId == \(objectIndex)) {\n"
+            materialSource += "if (materialId == \(objectIndex)) { float2 d; float limiterDist; float4 value;\n"
             for material in object.bodyMaterials {
-                //let matProperty = "bodyMaterial.baseColor"
-                //materialSource += "  " + matProperty + " = " + material.createCode(uvName: "uv", materialDataIndex: materialDataIndex) + ";\n"
-                createMaterialCode(material)
+                createMaterialCode(material, "bodyMaterial")
                 if material.pointCount == 0 {
-                    materialDataIndex += 1
+                    materialDataIndex += 3
                 } else {
-                    materialDataIndex += material.pointCount * 2
+                    materialDataIndex += 2 + material.pointCount * 2
                 }
             }
             for material in object.borderMaterials {
-                let matProperty = "borderMaterial.baseColor"
-                materialSource += "  " + matProperty + " = " + material.createCode(uvName: "uv", materialDataIndex: materialDataIndex) + ";\n"
+                createMaterialCode(material, "borderMaterial")
                 if material.pointCount == 0 {
-                    materialDataIndex += 1
+                    materialDataIndex += 3
                 } else {
-                    materialDataIndex += material.pointCount * 2
+                    materialDataIndex += 2 + material.pointCount * 2
                 }
             }
 
@@ -433,15 +461,17 @@ class Builder
             float fm = fillMask( dist ) * bodyMaterial.baseColor.w;
             float bm = 0;
             bodyMaterial.baseColor.w = fm;
-            //col = mix( col, fillColor, fillMask( dist ) * fillColor.w );
         
             if ( materialId >= 0 )
             {
                 bm = borderMask( dist, layerData->objects[materialId].border );
                 if ( bm > 0.0 ) {
                     bodyMaterial.baseColor = mix( bodyMaterial.baseColor, borderMaterial.baseColor, bm * borderMaterial.baseColor.w );
+                    bodyMaterial.subsurface = mix( bodyMaterial.subsurface, borderMaterial.subsurface, bm );
+                    bodyMaterial.roughness = mix( bodyMaterial.roughness, borderMaterial.roughness, bm );
+                    bodyMaterial.metallic = mix( bodyMaterial.metallic, borderMaterial.metallic, bm );
+                    bodyMaterial.specular = mix( bodyMaterial.specular, borderMaterial.specular, bm );
                 }
-                //col = mix( col, borderColor, borderMask( dist, layerData->objects[materialId].border ) * borderColor.w );
             }
         
             if (fm != 0 || bm != 0) col = calculatePixelColor( fragCoord, bodyMaterial );
@@ -581,8 +611,17 @@ class Builder
                         properties = material.properties
                     }
                     
-                    //print(properties["value_x"]!, properties["value_y"]!, properties["value_z"]!,properties["value_w"]!)
-                    
+                    // pos + size
+                    instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["posX"]! + parentPosX
+                    instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["posY"]! + parentPosY
+                    instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties[material.widthProperty]!
+                    instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties[material.heightProperty]!
+                    materialDataIndex += 1
+                    // rotation, space for 3 more values
+                    instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = (properties["rotate"]!+parentRotate) * Float.pi / 180
+                    materialDataIndex += 1
+
+                    // --- values
                     if material.pointCount == 0 {
                         instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["value_x"]!
                         instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["value_y"]!
@@ -591,8 +630,8 @@ class Builder
                         materialDataIndex += 1
                     } else {
                         for index in 0..<material.pointCount {
-                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["point_\(index)_x"]! + properties["posX"]! + parentPosX
-                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["point_\(index)_y"]! + properties["posY"]! + parentPosY
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["point_\(index)_x"]!// + properties["posX"]! + parentPosX
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["point_\(index)_y"]!// + properties["posY"]! + parentPosY
                             materialDataIndex += 1
                         }
                         for index in 0..<material.pointCount {
@@ -935,16 +974,16 @@ class Builder
             
             for material in object.bodyMaterials {
                 if material.pointCount == 0 {
-                    materialIndex += 1
+                    materialIndex += 3 // value + 2 for pos, size, rotation
                 } else {
-                    materialIndex += material.pointCount * 2
+                    materialIndex += 2 + material.pointCount * 2
                 }
             }
             for material in object.borderMaterials {
                 if material.pointCount == 0 {
-                    materialIndex += 1
+                    materialIndex += 3
                 } else {
-                    materialIndex += material.pointCount * 2
+                    materialIndex += 2 + material.pointCount * 2
                 }
             }
             
