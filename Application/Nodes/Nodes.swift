@@ -131,11 +131,13 @@ class KeyDown : Node
     {
         playResult = .Failure
         
+        #if os(OSX)
         let index = nodeGraph.app!.mmView.keysDown.firstIndex{$0 == properties["keyCode"]!}
         
         if index != nil {
-            playResult = .Success
+                playResult = .Success
         }
+        #endif
         
         return playResult!
     }

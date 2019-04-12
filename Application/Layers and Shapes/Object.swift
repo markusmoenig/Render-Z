@@ -70,6 +70,8 @@ class Object : Node
         
         maxDelegate = ObjectMaxDelegate()
         minimumSize = Node.NodeWithPreviewSize
+        
+        subset = []
     }
 
     /// Creates an instance of the given object with the given instance properties

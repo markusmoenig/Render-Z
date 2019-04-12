@@ -78,7 +78,7 @@ class MMFont
             let bmChar = getItemForChar( c )
             if bmChar != nil {
                 rect.width += bmChar!.xadvance * scale;
-                rect.height = max( rect.height, bmChar!.height * scale )
+                rect.height = max( rect.height, (bmChar!.height /*- bmChar!.yoffset*/) * scale)
             }
         }
         

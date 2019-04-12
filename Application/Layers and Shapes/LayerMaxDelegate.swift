@@ -270,7 +270,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
     {
          #if os(iOS) || os(watchOS) || os(tvOS)
          // If there is a selected shape, don't scroll
-         if currentObject!.getCurrentShape() != nil {
+         if getCurrentObject()?.getCurrentShape() != nil {
             return
          }
          camera.xPos -= event.deltaX! * 2
@@ -279,7 +279,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
          camera.xPos += event.deltaX! * 2
          camera.yPos += event.deltaY! * 2
          #endif
-         
+
          update()
         
         if !dispatched {

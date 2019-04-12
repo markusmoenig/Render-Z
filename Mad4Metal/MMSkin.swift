@@ -30,6 +30,20 @@ struct MMSkinButton
     var borderColor:float4 = float4(0.4, 0.4, 0.4, 1.0 )
 }
 
+struct MMSkinScrollButton
+{
+    var margin :    MMMargin = MMMargin( 8, 8, 8, 8 )
+    var width :     Float = 40
+    var height :    Float = 40
+    var fontScale : Float = 0.5
+    var borderSize: Float = 1.5
+    var round:      Float = 6
+    var color :     float4 = float4(0.392, 0.392, 0.392, 0.0 )
+    var hoverColor: float4 = float4(1, 1, 1, 1.0 )
+    var activeColor:float4 = float4(0.5, 0.5, 0.5, 1.0)
+    var borderColor:float4 = float4(0.4, 0.4, 0.4, 1.0 )
+}
+
 struct MMSkinMenuButton
 {
     var margin          : MMMargin = MMMargin( 8, 8, 8, 8 )
@@ -73,4 +87,5 @@ struct MMSkin
     var IconButton : MMSkinButton = MMSkinButton()
     var MenuWidget : MMSkinMenuWidget = MMSkinMenuWidget()
     var TimelineWidget : MMSkinTimeline = MMSkinTimeline()
+    var ScrollButton : MMSkinScrollButton = MMSkinScrollButton()
 }

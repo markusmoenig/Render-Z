@@ -42,6 +42,8 @@ class Node : Codable
     var uiArea          : MMRect = MMRect()
     var uiMaxTitleSize  : float2 = float2()
 
+    var subset          : [UUID]? = nil
+    
     var playResult      : Result? = nil
 
     /// Static sizes

@@ -33,7 +33,10 @@ class NodeGraph : Codable
     var hoverNode       : Node?
     var playNode        : Node?
     var currentNode     : Node?
-    
+
+    var currentMaster   : Node? = nil
+    var currentMasterUUID: UUID? = nil
+
     var hoverUIItem     : NodeUI?
 
     var hoverTerminal   : (Terminal, Terminal.Connector, Float, Float)?
@@ -49,6 +52,8 @@ class NodeGraph : Codable
     var nodeHoverMode   : NodeHoverMode = .None
     var nodesButton     : MMButtonWidget!
     var playNodeButton  : MMButtonWidget!
+    
+    var typeScrollButton: MMScrollButton!
 
     var nodeList        : NodeList?
     var animating       : Bool = false
@@ -81,6 +86,7 @@ class NodeGraph : Codable
         case xOffset
         case yOffset
         case scale
+        case currentMasterUUID
     }
     
     required init()
@@ -93,7 +99,7 @@ class NodeGraph : Codable
         object.setupTerminals()
         
         nodes.append(object)
-        setCurrentNode(object)
+        setCurrentMaster(node: object)
     }
     
     required init(from decoder: Decoder) throws
@@ -103,6 +109,8 @@ class NodeGraph : Codable
         xOffset = try container.decode(Float.self, forKey: .xOffset)
         yOffset = try container.decode(Float.self, forKey: .yOffset)
         scale = try container.decode(Float.self, forKey: .scale)
+        currentMasterUUID = try container.decode(UUID?.self, forKey: .currentMasterUUID)
+        setCurrentMaster(uuid: currentMasterUUID)
     }
     
     func encode(to encoder: Encoder) throws
@@ -112,6 +120,7 @@ class NodeGraph : Codable
         try container.encode(xOffset, forKey: .xOffset)
         try container.encode(yOffset, forKey: .yOffset)
         try container.encode(scale, forKey: .scale)
+        try container.encode(currentMasterUUID, forKey: .currentMasterUUID)
     }
     
     /// Called when a new instance of the NodeGraph class was created, sets up all necessary dependencies.
@@ -135,6 +144,8 @@ class NodeGraph : Codable
             self.setLeftRegionMode(.Nodes)
         }
         nodesButton.addState(.Checked)
+        
+        typeScrollButton = MMScrollButton(app.mmView, items:["Objects", "Layers", "Scenes"])
         
         playNodeButton = MMButtonWidget( app.mmView, text: "Play Node" )
         playNodeButton.clicked = { (event) -> Void in
@@ -226,7 +237,11 @@ class NodeGraph : Codable
 //        #if !os(OSX)
         mouseMoved( event )
 //        #endif
-        
+
+        if nodeHoverMode != .None {
+            app?.mmView.mouseTrackWidget = app?.editorRegion?.widget
+        }
+
         if nodeHoverMode == .NodeUI {
             hoverUIItem!.mouseDown(event)
             nodeHoverMode = .NodeUIMouseLocked
@@ -250,8 +265,6 @@ class NodeGraph : Codable
         if let selectedNode = nodeAt(event.x, event.y) {
             setCurrentNode(selectedNode)
 
-
-            
 //            let offX = selectedNode.rect.x - event.x
             let offY = selectedNode.rect.y - event.y
             
@@ -271,7 +284,7 @@ class NodeGraph : Codable
                 nodeDragStartPos.y = selectedNode.yPos
                 nodeHoverMode = .Dragging
                 
-                app?.mmView.mouseTrackWidget = app?.editorRegion?.widget
+                //app?.mmView.mouseTrackWidget = app?.editorRegion?.widget
                 app?.mmView.lockFramerate()
             }
         }
@@ -337,14 +350,28 @@ class NodeGraph : Codable
             let y =  event.y - hoverNode!.rect.y
             
             if hoverNode!.maxDelegate != nil {
-                let iconSize : Float = 18 * scale
-                let xStart : Float = hoverNode!.rect.width - 41 * scale
-                let yStart : Float = 22 * scale
-            
-                if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
-                {
-                    nodeHoverMode = .Maximize
-                    return
+                if hoverNode !== currentMaster {
+
+                    let iconSize : Float = 18 * scale
+                    let xStart : Float = hoverNode!.rect.width - 41 * scale
+                    let yStart : Float = 22 * scale
+                    
+                    if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
+                    {
+                        nodeHoverMode = .Maximize
+                        return
+                    }
+                } else {
+                    // todo master toolbar hover
+                    let iconSize : Float = 18
+                    let xStart : Float = hoverNode!.rect.width - 41
+                    let yStart : Float = 22
+                    
+                    if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
+                    {
+                        nodeHoverMode = .Maximize
+                        return
+                    }
                 }
             }
             
@@ -354,25 +381,27 @@ class NodeGraph : Codable
                 return
             }
             
-            // --- Look for NodeUI item under the mouse
-            let uiItemX = hoverNode!.rect.x + (hoverNode!.rect.width - hoverNode!.uiArea.width*scale) / 2
-            var uiItemY = hoverNode!.rect.y + NodeGraph.bodyY * scale
-            let uiRect = MMRect()
-            let titleWidth : Float = (hoverNode!.uiMaxTitleSize.x + NodeUI.titleSpacing) * scale
-            for uiItem in hoverNode!.uiItems {
-                
-                uiRect.x = uiItemX + titleWidth
-                uiRect.y = uiItemY
-                uiRect.width = uiItem.rect.width * scale - titleWidth
-                uiRect.height = uiItem.rect.height * scale
+            if hoverNode !== currentMaster {
+                // --- Look for NodeUI item under the mouse, master has no UI
+                let uiItemX = hoverNode!.rect.x + (hoverNode!.rect.width - hoverNode!.uiArea.width*scale) / 2
+                var uiItemY = hoverNode!.rect.y + NodeGraph.bodyY * scale
+                let uiRect = MMRect()
+                let titleWidth : Float = (hoverNode!.uiMaxTitleSize.x + NodeUI.titleSpacing) * scale
+                for uiItem in hoverNode!.uiItems {
+                    
+                    uiRect.x = uiItemX + titleWidth
+                    uiRect.y = uiItemY
+                    uiRect.width = uiItem.rect.width * scale - titleWidth
+                    uiRect.height = uiItem.rect.height * scale
 
-                if uiRect.contains(event.x, event.y) {
-                    hoverUIItem = uiItem
-                    nodeHoverMode = .NodeUI
-                    hoverUIItem!.mouseMoved(event)
-                    return
+                    if uiRect.contains(event.x, event.y) {
+                        hoverUIItem = uiItem
+                        nodeHoverMode = .NodeUI
+                        hoverUIItem!.mouseMoved(event)
+                        return
+                    }
+                    uiItemY += uiItem.rect.height * scale
                 }
-                uiItemY += uiItem.rect.height * scale
             }
             
             // --- Check if mouse is over the preview area
@@ -380,11 +409,19 @@ class NodeGraph : Codable
             if let texture = hoverNode!.previewTexture {
                 
                 let rect = MMRect()
-            
-                rect.x = hoverNode!.rect.x + (hoverNode!.rect.width - 200*scale) / 2
-                rect.y = hoverNode!.rect.y + NodeGraph.bodyY * scale + hoverNode!.uiArea.height * scale
-                rect.width = Float(texture.width) * scale
-                rect.height = Float(texture.height) * scale
+                if hoverNode !== currentMaster {
+                    
+                    rect.x = hoverNode!.rect.x + (hoverNode!.rect.width - 200*scale) / 2
+                    rect.y = hoverNode!.rect.y + NodeGraph.bodyY * scale + hoverNode!.uiArea.height * scale
+                    rect.width = Float(texture.width) * scale
+                    rect.height = Float(texture.height) * scale
+                } else {
+                    // todo
+                    rect.x = hoverNode!.rect.x + (hoverNode!.rect.width - 200) / 2
+                    rect.y = hoverNode!.rect.y + NodeGraph.bodyY
+                    rect.width = Float(texture.width)
+                    rect.height = Float(texture.height)
+                }
             
                 if rect.contains(event.x, event.y) {
                     nodeHoverMode = .Preview
@@ -397,7 +434,7 @@ class NodeGraph : Codable
     ///
     func activate()
     {
-        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, playNodeButton)
+        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, playNodeButton, typeScrollButton)
         app!.leftRegion!.rect.width = 200
         nodeHoverMode = .None
     }
@@ -405,7 +442,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playNodeButton)
+        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playNodeButton, typeScrollButton)
     }
     
     /// Draws the given region
@@ -443,27 +480,36 @@ class NodeGraph : Codable
                 playNode!.updatePreview(nodeGraph: self)
             }
             
-            for node in nodes {
-                drawNode( node, region: region)
-            }
-            
-            // --- Ongoing Node connection attempt ?
-            if nodeHoverMode == .TerminalConnection {
+            if let masterNode = currentMaster {
+
+                for node in nodes {
+                    if masterNode.subset!.contains(node.uuid) {
+                        drawNode( node, region: region)
+                    }
+                }
                 
-                let color = getColorForTerminal(hoverTerminal!.0)
-                app!.mmView.drawLine.draw( sx: hoverTerminal!.2 - 2, sy: hoverTerminal!.3 - 2, ex: mousePos.x, ey: mousePos.y, radius: 2 * scale, fillColor : float4(color.x, color.y, color.z, 1) )
-            }
-            
-            // --- DrawConnections
-            for node in nodes {
-                for terminal in node.terminals {
+                // --- Ongoing Node connection attempt ?
+                if nodeHoverMode == .TerminalConnection {
                     
-                    if terminal.connector == .Right || terminal.connector == .Bottom {
-                        for connection in terminal.connections {
-                            drawConnection(connection)
+                    let color = getColorForTerminal(hoverTerminal!.0)
+                    app!.mmView.drawLine.draw( sx: hoverTerminal!.2 - 2, sy: hoverTerminal!.3 - 2, ex: mousePos.x, ey: mousePos.y, radius: 2 * scale, fillColor : float4(color.x, color.y, color.z, 1) )
+                }
+                
+                // --- DrawConnections
+                for node in nodes {
+                    if masterNode.subset!.contains(node.uuid) || node === masterNode {
+                        
+                        for terminal in node.terminals {
+                            
+                            if terminal.connector == .Right || terminal.connector == .Bottom {
+                                for connection in terminal.connections {
+                                    drawConnection(connection)
+                                }
+                            }
                         }
                     }
                 }
+                drawMasterNode( masterNode, region: region)
             }
             
             renderer.setClipRect()
@@ -475,6 +521,11 @@ class NodeGraph : Codable
         if region.type == .Top {
             region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: nodesButton)
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: playNodeButton)
+            
+            typeScrollButton.rect.x = 200
+            typeScrollButton.rect.y = nodesButton.rect.y
+            typeScrollButton.draw()
+
             nodesButton.draw()
             playNodeButton.draw()
         } else
@@ -512,7 +563,8 @@ class NodeGraph : Codable
         node.data.size.y = node.rect.height
         
         node.data.selected = selectedUUID.contains(node.uuid) ? 1 : 0
-        
+        node.data.borderRound = 4
+
         if playNode != nil && node.playResult != nil {
             if node.playResult! == .Success {
                 node.data.selected = 2
@@ -624,6 +676,128 @@ class NodeGraph : Codable
         }
     }
     
+    /// Draw the master node
+    func drawMasterNode(_ node: Node, region: MMRegion)
+    {
+        let renderer = app!.mmView.renderer!
+        let renderEncoder = renderer.renderEncoder!
+        let scaleFactor : Float = app!.mmView.scaleFactor
+        
+        node.rect.width = node.minimumSize.x
+        node.rect.height = node.minimumSize.y
+        
+        node.rect.x = region.rect.x + region.rect.width - node.rect.width + 11 + 10
+        node.rect.y = region.rect.y - 22
+        
+        let vertexBuffer = renderer.createVertexBuffer( MMRect( node.rect.x, node.rect.y, node.rect.width, node.rect.height, scale: scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        if node.label == nil {
+            node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name)
+        }
+        
+        // --- Fill the node data
+        
+        node.data.size.x = node.rect.width
+        node.data.size.y = node.rect.height
+        
+        node.data.selected = 0
+        node.data.borderRound = 16
+        
+        if playNode != nil && node.playResult != nil {
+            if node.playResult! == .Success {
+                node.data.selected = 2
+            } else
+                if node.playResult! == .Failure {
+                    node.data.selected = 3
+                } else {
+                    node.data.selected = 4
+            }
+        }
+        
+        node.data.hoverIndex = 0
+        if nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid {
+            node.data.hoverIndex = 1
+        }
+        
+        node.data.hasIcons1.x = node.maxDelegate != nil ? 1 : 0
+        node.data.hasIcons1.y = node.type == "Object" ? 1 : 0
+        
+        node.data.scale = 1
+        
+        var leftTerminalCount : Int = 0
+        var topTerminalCount : Int = 0
+        var rightTerminalCount : Int = 0
+        var bottomTerminalCount : Int = 0
+        
+        var color : float3 = float3()
+        var leftTerminalY : Float = NodeGraph.tOffY
+        for (index,terminal) in node.terminals.enumerated() {
+            color = getColorForTerminal(terminal)
+            if terminal.connector == .Left {
+                
+                if index == 0 {
+                    node.data.leftTerminals.0 = float4( color.x, color.y, color.z, leftTerminalY)
+                }
+                
+                leftTerminalCount += 1
+                leftTerminalY += NodeGraph.tSpacing * 2
+            }  else
+            if terminal.connector == .Top {
+                
+                node.data.topTerminal = float4( color.x, color.y, color.z, 3)
+                topTerminalCount += 1
+            } else
+            if terminal.connector == .Right {
+                
+                color = getColorForTerminal(terminal)
+                
+                node.data.rightTerminal = float4( color.x, color.y, color.z, NodeGraph.tOffY)
+                rightTerminalCount += 1
+            } else
+            if terminal.connector == .Bottom {
+                
+                node.data.bottomTerminal = float4( color.x, color.y, color.z, 10)
+                
+                bottomTerminalCount += 1
+            }
+        }
+        
+        node.data.leftTerminalCount = Float(leftTerminalCount)
+        node.data.topTerminalCount = Float(topTerminalCount)
+        node.data.rightTerminalCount = Float(rightTerminalCount)
+        node.data.bottomTerminalCount = Float(bottomTerminalCount)
+        
+        // --- Draw It
+        
+        if node.buffer == nil {
+            node.buffer = renderer.device.makeBuffer(length: MemoryLayout<NODE_DATA>.stride, options: [])!
+        }
+        
+        memcpy(node.buffer!.contents(), &node.data, MemoryLayout<NODE_DATA>.stride)
+        renderEncoder.setFragmentBuffer(node.buffer!, offset: 0, index: 0)
+        renderEncoder.setRenderPipelineState(drawNodeState!)
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        
+        // --- Label
+        
+        if let label = node.label {
+            if label.scale != 0.5 {
+                label.setText(node.name, scale: 0.5)
+            }
+            label.drawCentered(x: node.rect.x - (node.maxDelegate != nil ? 10 : 0), y: node.rect.y + 23, width: node.rect.width, height: label.rect.height)//19
+        }
+        
+        if nodeHoverMode == .NodeUIMouseLocked && node === hoverNode {
+            hoverUIItem!.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, scale: 1)
+        }
+        
+        // --- Preview
+        if let texture = node.previewTexture {
+            app!.mmView.drawTexture.draw(texture, x: node.rect.x + (node.rect.width - 200)/2, y: node.rect.y + NodeGraph.bodyY, zoom: 1)
+        }
+    }
+    
     /// Draws the given connection
     func drawConnection(_ conn: Connection)
     {
@@ -633,6 +807,8 @@ class NodeGraph : Codable
             var y : Float = 0
             let terminal = conn.terminal!
             let node = terminal.node!
+            
+            let scale = node === currentMaster ? 1 : self.scale
 
             var bottomCount : Float = 0
             for terminal in node.terminals {
@@ -704,9 +880,13 @@ class NodeGraph : Codable
     /// Returns the node (if any) at the given mouse coordinates
     func nodeAt(_ x: Float, _ y: Float) -> Node?
     {
-        for node in nodes {
-            if node.rect.contains( x, y ) {
-                return node
+        if let masterNode = currentMaster {
+            for node in nodes {
+                if masterNode.subset!.contains(node.uuid) || node === masterNode {
+                    if node.rect.contains( x, y ) {
+                        return node
+                    }
+                }
             }
         }
         return nil
@@ -715,6 +895,8 @@ class NodeGraph : Codable
     /// Returns the terminal and the terminal connector at the given mouse position for the given node (if any)
     func terminalAt(_ node: Node, _ x: Float, _ y: Float) -> (Terminal, Terminal.Connector, Float, Float)?
     {
+        let scale : Float = node === currentMaster ? 1 : self.scale
+        
         var lefTerminalY : Float = NodeGraph.tOffY * scale
         var rightTerminalY : Float = NodeGraph.tOffY * scale
         
@@ -827,25 +1009,6 @@ class NodeGraph : Codable
         return color
     }
     
-    /// Sets the current node
-    func setCurrentNode(_ node: Node?=nil)
-    {
-        if playNodeButton != nil {
-            playNodeButton.isDisabled = true
-        }
-
-        if node == nil {
-            selectedUUID = []
-            currentNode = nil
-        } else {
-            selectedUUID = [node!.uuid]
-            currentNode = node
-            if playNodeButton != nil && (node!.type == "Object" || node!.type == "Layer") {
-                playNodeButton.isDisabled = false
-            }
-        }
-    }
-    
     /// Decode a new nodegraph from JSON
     func decodeJSON(_ json: String) -> NodeGraph?
     {
@@ -867,6 +1030,46 @@ class NodeGraph : Codable
             return encodedObjectJsonString
         }
         return ""
+    }
+    
+    /// Sets the current node
+    func setCurrentNode(_ node: Node?=nil)
+    {
+        if playNodeButton != nil {
+            playNodeButton.isDisabled = true
+        }
+        
+        if node == nil {
+            selectedUUID = []
+            currentNode = nil
+        } else {
+            selectedUUID = [node!.uuid]
+            currentNode = node
+            if playNodeButton != nil && (node!.type == "Object" || node!.type == "Layer") {
+                playNodeButton.isDisabled = false
+            }
+        }
+    }
+    
+    /// Sets the current master node
+    func setCurrentMaster(node: Node?=nil, uuid: UUID?=nil)
+    {
+        currentMaster = nil
+        currentMasterUUID = nil
+        
+        if node != nil {
+            currentMaster = node!
+            currentMaster!.uuid = node!.uuid
+        } else
+        if uuid != nil {
+            for node in nodes {
+                if node.uuid == uuid {
+                    currentMaster = node
+                    currentMasterUUID = node.uuid
+                    break
+                }
+            }
+        }
     }
     
     /// Updates all nodes

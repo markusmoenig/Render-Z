@@ -73,7 +73,8 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     float4 color = float4( 0 ), finalColor = float4( 0 );
     float2 size = data->size;
     float scale = data->scale;
-    
+    const float borderRound = data->borderRound;
+
 //    const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
     float4 borderColor = float4(0.173, 0.173, 0.173, 1.000);
     const float4 selBorderColor = float4(0.820, 0.820, 0.820, 1.000);
@@ -82,7 +83,6 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     const float4 iconHoverColor = float4(1);
     
     const float borderSize = 4 * scale;
-    const float borderRound = 4;
     const float tRadius = 7 * scale;
     const float tDiam = 14 * scale;
     const float tSpacing = 25 * scale;

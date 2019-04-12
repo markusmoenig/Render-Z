@@ -84,15 +84,17 @@ class EditorWidget      : MMWidget
                     prevOffY += event.deltaY!
                 }
                 #else
-                app.nodeGraph.xOffset -= event.deltaX!
-                app.nodeGraph.yOffset -= event.deltaY!
+                prevOffX -= event.deltaX!
+                prevOffX -= event.deltaY!
                 #endif
                 
                 node.properties["prevOffX"] = prevOffX
                 node.properties["prevOffY"] = prevOffY
                 node.properties["prevScale"] = prevScale
                 node.updatePreview(nodeGraph: app.nodeGraph)
-            } else {
+            } else
+            if app.nodeGraph.nodeHoverMode == .None
+            {
                 // NodeGraph translation
                 #if os(OSX)
                 if mmView.commandIsDown && event.deltaY! != 0 {
@@ -103,8 +105,8 @@ class EditorWidget      : MMWidget
                     app.nodeGraph.yOffset -= event.deltaY!
                 }
                 #else
-                app.nodeGraph.xOffset -= event.deltaX!
-                app.nodeGraph.yOffset -= event.deltaY!
+                app.nodeGraph.xOffset += event.deltaX!
+                app.nodeGraph.yOffset += event.deltaY!
                 #endif
             }
             
@@ -265,8 +267,11 @@ class EditorWidget      : MMWidget
             node.setupUI(mmView: app.mmView)
             node.updatePreview(nodeGraph: app.nodeGraph, hard: true)
 
-            app.nodeGraph.nodes.append(node)
-            app.nodeGraph.setCurrentNode(node)
+            if app.nodeGraph.currentMaster != nil {
+                app.nodeGraph.nodes.append(node)
+                app.nodeGraph.currentMaster?.subset!.append(node.uuid)
+                app.nodeGraph.setCurrentNode(node)
+            }
         } else
         if dragSource.id == "AvailableObjectItem"
         {

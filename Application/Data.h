@@ -20,6 +20,7 @@ typedef struct
     float    selected;
     float    hoverIndex;
     float    scale;
+    float    borderRound;
     
     float4   hasIcons1;
     
