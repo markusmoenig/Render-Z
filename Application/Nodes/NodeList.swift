@@ -47,12 +47,13 @@ class NodeList : MMWidget
         
         listWidget = MMListWidget(view)
         
+        var item : NodeListItem
         // --- Object
-        var item = NodeListItem("Object")
-        item.createNode = {
-            return Object()
-        }
-        items.append(item)
+//        var item = NodeListItem("Object")
+//        item.createNode = {
+//            return Object()
+//        }
+//        items.append(item)
         // --- Object Physics
         item = NodeListItem("Object Physics")
         item.createNode = {
@@ -60,11 +61,11 @@ class NodeList : MMWidget
         }
         items.append(item)
         // --- Layer
-        item = NodeListItem("Layer")
-        item.createNode = {
-            return Layer()
-        }
-        items.append(item)
+//        item = NodeListItem("Layer")
+//        item.createNode = {
+//            return Layer()
+//        }
+//        items.append(item)
         // --- Behavior: Sequence
         item = NodeListItem("Sequence")
         item.createNode = {

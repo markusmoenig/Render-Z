@@ -353,12 +353,12 @@
 				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
 				2BA344AC22029FA4000BB2EB /* MMFragment.swift */,
 				2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */,
+				2B333D12226043FF0008A8CF /* MMScrollButton.swift */,
 				2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */,
 				2BBF11BC21EADB46001C94E9 /* MMSkin.swift */,
 				2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */,
 				2BA344A121FE8497000BB2EB /* MMTimeline.swift */,
 				2B639F19221A32CD00576542 /* MMFile.swift */,
-				2B333D12226043FF0008A8CF /* MMScrollButton.swift */,
 			);
 			path = Mad4Metal;
 			sourceTree = "<group>";

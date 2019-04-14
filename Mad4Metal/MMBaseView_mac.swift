@@ -100,6 +100,7 @@ class MMBaseView : MTKView
                 
         if hoverWidget != nil {
             hoverWidget!.removeState(.Hover)
+            hoverWidget!.mouseLeave(event)
         }
         
         hoverWidget = nil
@@ -111,6 +112,7 @@ class MMBaseView : MTKView
                 if widget.rect.contains( event.x, event.y ) {
                     hoverWidget = widget
                     hoverWidget!.addState(.Hover)
+                    hoverWidget!.mouseEnter(event)
                     hoverWidget!.mouseMoved(event)
                     break;
                 }

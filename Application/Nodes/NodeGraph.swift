@@ -16,7 +16,11 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Maximize, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview
+        case None, Maximize, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging
+    }
+    
+    enum ContentType : Int {
+        case Objects, Layers, Scenes
     }
     
     var nodes           : [Node] = []
@@ -36,6 +40,10 @@ class NodeGraph : Codable
 
     var currentMaster   : Node? = nil
     var currentMasterUUID: UUID? = nil
+    
+    var currentObjectUUID: UUID? = nil
+    var currentLayerUUID: UUID? = nil
+    var currentSceneUUID: UUID? = nil
 
     var hoverUIItem     : NodeUI?
 
@@ -51,9 +59,16 @@ class NodeGraph : Codable
 
     var nodeHoverMode   : NodeHoverMode = .None
     var nodesButton     : MMButtonWidget!
-    var playNodeButton  : MMButtonWidget!
     
+    var contentType     : ContentType = .Objects
     var typeScrollButton: MMScrollButton!
+    var contentScrollButton: MMScrollButton!
+    var currentContent  : [Node] = []
+    
+    var addButton       : MMButtonWidget!
+    var removeButton    : MMButtonWidget!
+    var editButton      : MMButtonWidget!
+    var playButton      : MMButtonWidget!
 
     var nodeList        : NodeList?
     var animating       : Bool = false
@@ -62,6 +77,8 @@ class NodeGraph : Codable
     var builder         : Builder!
     var physics         : Physics!
     var timeline        : MMTimeline!
+    
+    var previewSize     : float2 = float2(320, 200)
 
     // --- Icons
     
@@ -87,6 +104,7 @@ class NodeGraph : Codable
         case yOffset
         case scale
         case currentMasterUUID
+        case previewSize
     }
     
     required init()
@@ -110,6 +128,7 @@ class NodeGraph : Codable
         yOffset = try container.decode(Float.self, forKey: .yOffset)
         scale = try container.decode(Float.self, forKey: .scale)
         currentMasterUUID = try container.decode(UUID?.self, forKey: .currentMasterUUID)
+        previewSize = try container.decode(float2.self, forKey: .previewSize)
         setCurrentMaster(uuid: currentMasterUUID)
     }
     
@@ -121,6 +140,7 @@ class NodeGraph : Codable
         try container.encode(yOffset, forKey: .yOffset)
         try container.encode(scale, forKey: .scale)
         try container.encode(currentMasterUUID, forKey: .currentMasterUUID)
+        try container.encode(previewSize, forKey: .previewSize)
     }
     
     /// Called when a new instance of the NodeGraph class was created, sets up all necessary dependencies.
@@ -146,20 +166,87 @@ class NodeGraph : Codable
         nodesButton.addState(.Checked)
         
         typeScrollButton = MMScrollButton(app.mmView, items:["Objects", "Layers", "Scenes"])
+        typeScrollButton.changed = { (index)->() in
+            self.contentType = ContentType(rawValue: index)!
+            self.updateContent(self.contentType)
+            if self.currentContent.count > 0 {
+                self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
+            }
+        }
         
-        playNodeButton = MMButtonWidget( app.mmView, text: "Play Node" )
-        playNodeButton.clicked = { (event) -> Void in
+        contentScrollButton = MMScrollButton(app.mmView, items:[])
+        contentScrollButton.changed = { (index)->() in
+            let node = self.currentContent[index]
+            self.setCurrentMaster(node: node)
+            if self.currentContent.count > 0 {
+                node.updatePreview(nodeGraph: self, hard: false)
+            }
+        }
+        
+        addButton = MMButtonWidget(app.mmView, text: "Add" )
+        addButton.clicked = { (event) -> Void in
+            if self.contentType == .Objects {
+                getStringDialog(view: app.mmView, title: "Add Object", message: "Object name", defaultValue: "New Object", cb: { (name) -> Void in
+
+                    let object = Object()
+                    object.name = name
+                    object.sequences.append( MMTlSequence() )
+                    object.currentSequence = object.sequences[0]
+                    object.setupTerminals()
+                    
+                    self.nodes.append(object)
+                    self.setCurrentMaster(node: object)
+                    self.updateNodes()
+                    self.updateContent(self.contentType)
+                } )
+                self.addButton.removeState(.Checked)
+            } else
+            if self.contentType == .Layers {
+                getStringDialog(view: app.mmView, title: "Add Layer", message: "Layer name", defaultValue: "New Layer", cb: { (name) -> Void in
+                    
+                    let layer = Layer()
+                    layer.name = name
+                    
+                    self.nodes.append(layer)
+                    self.setCurrentMaster(node: layer)
+                    self.updateNodes()
+                    self.updateContent(self.contentType)
+                } )
+                self.addButton.removeState(.Checked)
+            }
+        }
+        
+        removeButton = MMButtonWidget(app.mmView, text: "Rem." )
+        removeButton.clicked = { (event) -> Void in
+            let node = self.currentContent[self.contentScrollButton.index]
+            let index  = self.nodes.firstIndex(where: { $0.uuid == node.uuid })!
+            self.nodes.remove(at: index)
+            self.updateContent(self.contentType)
+            
+            self.removeButton.removeState(.Checked)
+        }
+        
+        editButton = MMButtonWidget(app.mmView, text: "Edit" )
+        editButton.clicked = { (event) -> Void in
+            self.editButton.removeState(.Checked)
+            
+            self.maximizedNode = self.currentMaster!
+            self.deactivate()
+            self.maximizedNode!.maxDelegate!.activate(self.app!)
+        }
+
+        playButton = MMButtonWidget( app.mmView, text: "Play" )
+        playButton.clicked = { (event) -> Void in
             if self.playNode == nil {
-                self.playNode = self.currentNode
-                
-                let node = self.currentNode
+                self.playNode = self.currentMaster!
+                let node = self.playNode
                 
                 if node!.type == "Layer" {
                     let layer = node as! Layer
                     layer.setupExecution(nodeGraph: self)
                 }
                 
-                self.playNodeButton.addState(.Checked)
+                self.playButton.addState(.Checked)
                 app.mmView.lockFramerate()
             } else {
                 
@@ -170,7 +257,7 @@ class NodeGraph : Codable
                 
                 self.playNode!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
                 self.playNode = nil
-                self.playNodeButton.removeState(.Checked)
+                self.playButton.removeState(.Checked)
                 app.mmView.unlockFramerate()
             }
         }
@@ -185,8 +272,23 @@ class NodeGraph : Codable
 //        }
         
         updateNodes()
+        updateContent(.Objects)
     }
 
+    ///
+    func activate()
+    {
+        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, playButton, typeScrollButton, contentScrollButton, addButton, removeButton, editButton)
+        app!.leftRegion!.rect.width = 200
+        nodeHoverMode = .None
+    }
+    
+    ///
+    func deactivate()
+    {
+        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, typeScrollButton, contentScrollButton, addButton, removeButton, editButton)
+    }
+    
     /// Controls the tab mode in the left region
     func setLeftRegionMode(_ mode: LeftRegionMode )
     {
@@ -246,6 +348,16 @@ class NodeGraph : Codable
             hoverUIItem!.mouseDown(event)
             nodeHoverMode = .NodeUIMouseLocked
             setCurrentNode(hoverNode!)
+            return
+        }
+        
+        if nodeHoverMode == .MasterDrag {
+            dragStartPos.x = event.x
+            dragStartPos.y = event.y
+            
+            nodeDragStartPos.x = previewSize.x
+            nodeDragStartPos.y = previewSize.y
+            nodeHoverMode = .MasterDragging
             return
         }
         
@@ -312,6 +424,7 @@ class NodeGraph : Codable
             return
         }
         
+        // Drag Node
         if nodeHoverMode == .Dragging {
             
             hoverNode!.xPos = nodeDragStartPos.x + event.x - dragStartPos.x
@@ -320,7 +433,31 @@ class NodeGraph : Codable
             return
         }
         
+        // Resize Drag Master Node
+        if nodeHoverMode == .MasterDragging {
+            
+            previewSize.x = floor(nodeDragStartPos.x - (event.x - dragStartPos.x))
+            previewSize.y = floor(nodeDragStartPos.y + (event.y - dragStartPos.y))
+            
+            previewSize.x = max(previewSize.x, 20)
+            previewSize.y = max(previewSize.y, 20)
+            
+            previewSize.x = min(previewSize.x, app!.editorRegion!.rect.width - 50)
+            previewSize.y = min(previewSize.y, app!.editorRegion!.rect.height - 50)
+
+            currentMaster!.updatePreview(nodeGraph: self)
+            return
+        }
+        
         hoverNode = nodeAt(event.x, event.y)
+        
+        // Resizing the master node ?
+        if hoverNode === currentMaster {
+            if event.x > hoverNode!.rect.x + 5 && event.x < hoverNode!.rect.x + 35 && event.y < hoverNode!.rect.y + hoverNode!.rect.height - 5 && event.y > hoverNode!.rect.y + hoverNode!.rect.height - 35 {
+                nodeHoverMode = .MasterDrag
+                return
+            }
+        }
         
         if nodeHoverMode == .TerminalConnection {
             
@@ -431,20 +568,6 @@ class NodeGraph : Codable
         }
     }
     
-    ///
-    func activate()
-    {
-        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, playNodeButton, typeScrollButton)
-        app!.leftRegion!.rect.width = 200
-        nodeHoverMode = .None
-    }
-    
-    ///
-    func deactivate()
-    {
-        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playNodeButton, typeScrollButton)
-    }
-    
     /// Draws the given region
     func drawRegion(_ region: MMRegion)
     {
@@ -520,14 +643,34 @@ class NodeGraph : Codable
         } else
         if region.type == .Top {
             region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: nodesButton)
-            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: playNodeButton)
+            //region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: playButton)
             
             typeScrollButton.rect.x = 200
             typeScrollButton.rect.y = nodesButton.rect.y
             typeScrollButton.draw()
+            
+            contentScrollButton.rect.x = typeScrollButton.rect.x + typeScrollButton.rect.width + 15
+            contentScrollButton.rect.y = typeScrollButton.rect.y
+            contentScrollButton.draw()
+            
+            addButton.rect.x = contentScrollButton.rect.x + contentScrollButton.rect.width + 10
+            addButton.rect.y = contentScrollButton.rect.y
+            addButton.draw()
+            
+            removeButton.rect.x = addButton.rect.x + addButton.rect.width + 10
+            removeButton.rect.y = contentScrollButton.rect.y
+            removeButton.draw()
+            
+            editButton.rect.x = removeButton.rect.x + removeButton.rect.width + 10
+            editButton.rect.y = contentScrollButton.rect.y
+            editButton.draw()
+            
+            playButton.rect.x = editButton.rect.x + editButton.rect.width + 10
+            playButton.rect.y = contentScrollButton.rect.y
+            playButton.draw()
 
             nodesButton.draw()
-            playNodeButton.draw()
+            playButton.draw()
         } else
         if region.type == .Right {
             region.rect.width = 0
@@ -683,18 +826,14 @@ class NodeGraph : Codable
         let renderEncoder = renderer.renderEncoder!
         let scaleFactor : Float = app!.mmView.scaleFactor
         
-        node.rect.width = node.minimumSize.x
-        node.rect.height = node.minimumSize.y
+        node.rect.width = previewSize.x + 70
+        node.rect.height = previewSize.y + 64
         
         node.rect.x = region.rect.x + region.rect.width - node.rect.width + 11 + 10
         node.rect.y = region.rect.y - 22
         
         let vertexBuffer = renderer.createVertexBuffer( MMRect( node.rect.x, node.rect.y, node.rect.width, node.rect.height, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
-        if node.label == nil {
-            node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name)
-        }
         
         // --- Fill the node data
         
@@ -720,7 +859,7 @@ class NodeGraph : Codable
             node.data.hoverIndex = 1
         }
         
-        node.data.hasIcons1.x = node.maxDelegate != nil ? 1 : 0
+        node.data.hasIcons1.x = 0
         node.data.hasIcons1.y = node.type == "Object" ? 1 : 0
         
         node.data.scale = 1
@@ -779,23 +918,28 @@ class NodeGraph : Codable
         renderEncoder.setRenderPipelineState(drawNodeState!)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         
-        // --- Label
-        
-        if let label = node.label {
-            if label.scale != 0.5 {
-                label.setText(node.name, scale: 0.5)
-            }
-            label.drawCentered(x: node.rect.x - (node.maxDelegate != nil ? 10 : 0), y: node.rect.y + 23, width: node.rect.width, height: label.rect.height)//19
-        }
-        
-        if nodeHoverMode == .NodeUIMouseLocked && node === hoverNode {
-            hoverUIItem!.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, scale: 1)
-        }
-        
         // --- Preview
         if let texture = node.previewTexture {
-            app!.mmView.drawTexture.draw(texture, x: node.rect.x + (node.rect.width - 200)/2, y: node.rect.y + NodeGraph.bodyY, zoom: 1)
+            app!.mmView.drawTexture.draw(texture, x: node.rect.x + 34, y: node.rect.y + 34, zoom: 1)
         }
+        
+        // --- Node Drag Handles
+        
+        let dragColor = nodeHoverMode == .MasterDrag || nodeHoverMode == .MasterDragging ? float4(repeating:1) : float4(0.5, 0.5, 0.5, 1)
+        
+        var sX: Float = node.rect.x + 20
+        var sY: Float = node.rect.y + node.rect.height - 30
+        var eX: Float = node.rect.x + 30
+        var eY: Float = node.rect.y + node.rect.height - 20
+
+        app!.mmView.drawLine.draw(sx: sX, sy: sY, ex: eX, ey: eY, radius: 1.2, fillColor: dragColor)
+        
+        sX = node.rect.x + 18
+        sY = node.rect.y + node.rect.height - 23
+        eX = node.rect.x + 23
+        eY = node.rect.y + node.rect.height - 18
+        
+        app!.mmView.drawLine.draw(sx: sX, sy: sY, ex: eX, ey: eY, radius: 1.2, fillColor: dragColor)
     }
     
     /// Draws the given connection
@@ -1035,20 +1179,60 @@ class NodeGraph : Codable
     /// Sets the current node
     func setCurrentNode(_ node: Node?=nil)
     {
-        if playNodeButton != nil {
-            playNodeButton.isDisabled = true
-        }
-        
         if node == nil {
             selectedUUID = []
             currentNode = nil
         } else {
             selectedUUID = [node!.uuid]
             currentNode = node
-            if playNodeButton != nil && (node!.type == "Object" || node!.type == "Layer") {
-                playNodeButton.isDisabled = false
+        }
+    }
+    
+    /// Update the content type
+    func updateContent(_ type : ContentType)
+    {
+        var items : [String] = []
+        currentContent = []
+        var index : Int = 0
+        var currentFound : Bool = false
+        
+        for node in nodes {
+            if type == .Objects {
+                let object : Object? = node as? Object
+                if object != nil {
+                    if object!.uuid == currentObjectUUID {
+                        index = items.count
+                        currentFound = true
+                        if currentMasterUUID != currentObjectUUID {
+                            setCurrentMaster(node: node)
+                        }
+                    }
+                    items.append(node.name)
+                    currentContent.append(node)
+                }
+            } else
+            if type == .Layers {
+                let layer : Layer? = node as? Layer
+                if layer != nil {
+                    if layer!.uuid == currentLayerUUID {
+                        index = items.count
+                        currentFound = true
+                        if currentMasterUUID != currentLayerUUID {
+                            setCurrentMaster(node: node)
+                        }
+                    }
+                    items.append(node.name)
+                    currentContent.append(node)
+                }
             }
         }
+        if currentFound == false {
+            if currentContent.count > 0 {
+                setCurrentMaster(node: currentContent[0])
+            }
+        }
+        contentScrollButton.setItems(items, fixedWidth: 250)
+        contentScrollButton.index = index
     }
     
     /// Sets the current master node
@@ -1057,15 +1241,30 @@ class NodeGraph : Codable
         currentMaster = nil
         currentMasterUUID = nil
         
+        func setCurrentMasterUUID(_ uuid: UUID)
+        {
+            currentMasterUUID = uuid
+            if contentType == .Objects {
+                currentObjectUUID = uuid
+            } else
+            if contentType == .Layers {
+                currentLayerUUID = uuid
+            } else
+            if contentType == .Scenes {
+                currentSceneUUID = uuid
+            }
+        }
+        
         if node != nil {
             currentMaster = node!
-            currentMaster!.uuid = node!.uuid
+            setCurrentMasterUUID(node!.uuid)
         } else
         if uuid != nil {
             for node in nodes {
                 if node.uuid == uuid {
                     currentMaster = node
                     currentMasterUUID = node.uuid
+                    setCurrentMasterUUID(node.uuid)
                     break
                 }
             }

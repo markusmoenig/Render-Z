@@ -94,6 +94,14 @@ class MMWidget
     {
     }
     
+    func mouseEnter(_ event:MMMouseEvent)
+    {
+    }
+    
+    func mouseLeave(_ event:MMMouseEvent)
+    {
+    }
+    
     func keyDown(_ event: MMKeyEvent)
     {
     }

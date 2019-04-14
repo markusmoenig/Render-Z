@@ -46,6 +46,7 @@ class Object : Node
         case selectedBorderMaterials
         case sequences
         case pointConnections
+        case subset
     }
     
     override init()
@@ -94,6 +95,7 @@ class Object : Node
         self.type = instanceFor.type
         self.uuid = instanceUUID
         self.name = "Instance of " + instanceFor.name
+        self.subset = instanceFor.subset
 
         if properties["posX"] == nil {
             properties["posX"] = 0
@@ -116,7 +118,7 @@ class Object : Node
         selectedBorderMaterials = try container.decode([UUID].self, forKey: .selectedBorderMaterials)
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
         pointConnections = try container.decode([ObjectPointConnection].self, forKey: .pointConnections)
-
+        
         if sequences.count > 0 {
             currentSequence = sequences[0]
         }
@@ -265,11 +267,9 @@ class Object : Node
     
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
-        let width : Float = 200
-        let height : Float = 130
-
-        if previewTexture == nil {
-            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: width, height: height, output: true)
+        let size = nodeGraph.previewSize
+        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
+            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
         }
         
         let prevOffX = properties["prevOffX"]
@@ -282,7 +282,7 @@ class Object : Node
         }
         
         if instance != nil {
-            nodeGraph.builder.render(width: width, height: height, instance: instance!, camera: camera, outTexture: previewTexture)
+            nodeGraph.builder.render(width: size.x, height: size.y, instance: instance!, camera: camera, outTexture: previewTexture)
         }
     }
 }

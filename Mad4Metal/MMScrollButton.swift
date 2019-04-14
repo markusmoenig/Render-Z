@@ -40,6 +40,11 @@ class MMScrollButton : MMWidget
     var index       : Int = 0
     var animatingTo : Int = 0
     var animOffset  : Float = 0
+    
+    var changed : ((Int)->())? = nil
+    
+    static let spacer : Float = 70
+    static let halfSpacer : Float = 30
 
     init( _ view: MMView, skinToUse: MMSkinScrollButton? = nil, items: [String], index: Int = 0)
     {
@@ -55,7 +60,7 @@ class MMScrollButton : MMWidget
         setItems(items)
     }
     
-    func setItems(_ items: [String])
+    func setItems(_ items: [String], fixedWidth: Float? = nil)
     {
         self.items = []
         contentWidth = 0
@@ -71,7 +76,11 @@ class MMScrollButton : MMWidget
         }
         
         contentWidth += Float((items.count - 1 ) * 10) // Add margin
-        rect.width = maxItemWidth + 60
+        rect.width = maxItemWidth + MMScrollButton.spacer
+        if fixedWidth != nil {
+            rect.width = fixedWidth!
+            maxItemWidth = rect.width - MMScrollButton.spacer
+        }
     }
     
     override func _clicked(_ event:MMMouseEvent)
@@ -82,6 +91,11 @@ class MMScrollButton : MMWidget
         }
     }
     
+    override func mouseLeave(_ event:MMMouseEvent)
+    {
+        hoverMode = .None
+    }
+    
     override func mouseDown(_ event: MMMouseEvent)
     {
         mouseMoved(event)
@@ -90,32 +104,39 @@ class MMScrollButton : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        #if os(iOS) || os(watchOS) || os(tvOS)
+        hoverMode = .None
+        #endif
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
         hoverMode = .None
         
-        if rect.contains(event.x, event.y) && event.x <= rect.x + 25 {
-            hoverMode = .LeftArrow
-        }
-        
-        if rect.contains(event.x, event.y) && event.x >= rect.x + rect.width - 25 {
-            hoverMode = .RightArrow
+        if items.count > 1 {
+            if rect.contains(event.x, event.y) && event.x <= rect.x + 25 {
+                hoverMode = .LeftArrow
+            }
+            if rect.contains(event.x, event.y) && event.x >= rect.x + rect.width - 25 {
+                hoverMode = .RightArrow
+            }
         }
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
-        if animating == .No {
-            if event.deltaX! > 4 {
-                hoverMode = .RightArrow
-                startScrolling()
-            } else
-            if event.deltaX! < -4 {
-                hoverMode = .LeftArrow
-                startScrolling()
+        if items.count > 1 {
+            if animating == .No {
+                if event.deltaX! > 4 {
+                    hoverMode = .RightArrow
+                    startScrolling()
+                } else
+                if event.deltaX! < -4 {
+                    hoverMode = .LeftArrow
+                    startScrolling()
+                }
             }
+            hoverMode = .None
         }
     }
     
@@ -125,10 +146,13 @@ class MMScrollButton : MMWidget
             animatingTo = index == items.count - 1 ? 0 : index + 1
             animating = .Right
             animOffset = 0
-            mmView.startAnimate( startValue: 0, endValue: items[index].label!.rect.width + 20 - (maxItemWidth - items[animatingTo].label!.rect.width) / 2, duration: 300, cb: { (value,finished) in
+            mmView.startAnimate( startValue: 0, endValue: maxItemWidth + 20 - (maxItemWidth - items[animatingTo].label!.rect.width) / 2, duration: 300, cb: { (value,finished) in
                 if finished {
                     self.animating = .No
                     self.index = self.animatingTo
+                    if self.changed != nil {
+                        self.changed!(self.index)
+                    }
                 }
                 self.animOffset = value
             } )
@@ -137,10 +161,13 @@ class MMScrollButton : MMWidget
             animatingTo = index == 0 ? items.count - 1 : index - 1
             animating = .Left
             animOffset = 0
-            mmView.startAnimate( startValue: 0, endValue: items[index].label!.rect.width + 20 + (maxItemWidth - items[animatingTo].label!.rect.width) / 2, duration: 300, cb: { (value,finished) in
+            mmView.startAnimate( startValue: 0, endValue: maxItemWidth + 20 + (maxItemWidth - items[animatingTo].label!.rect.width) / 2, duration: 300, cb: { (value,finished) in
                 if finished {
                     self.animating = .No
                     self.index = self.animatingTo
+                    if self.changed != nil {
+                        self.changed!(self.index)
+                    }
                 }
                 self.animOffset = value
             } )
@@ -172,12 +199,14 @@ class MMScrollButton : MMWidget
        
         mmView.drawLine.draw(sx: right - skin.margin.right, sy: middleY, ex: right - oneHalf, ey: rect.y + rect.height - oneThird, radius: 1.5, fillColor: color)
         
+        if items.count == 0 { return }
+        
         let item = items[index]
         var label = item.label
         
-        mmView.renderer.setClipRect(MMRect(rect.x + 25, rect.y, rect.width-50, rect.height))
+        mmView.renderer.setClipRect(MMRect(rect.x + MMScrollButton.halfSpacer, rect.y, rect.width-MMScrollButton.halfSpacer*2, rect.height))
 
-        label!.rect.x = rect.x + skin.margin.left + 25 + (maxItemWidth - label!.rect.width) / 2
+        label!.rect.x = rect.x + skin.margin.left + MMScrollButton.halfSpacer + (maxItemWidth - label!.rect.width) / 2
         label!.rect.y = rect.y + 11
         
         if animating == .Right {
@@ -195,14 +224,14 @@ class MMScrollButton : MMWidget
         if animating == .Right {
             let animTolabel = items[animatingTo].label
             
-            animTolabel!.rect.x = rect.x + skin.margin.left + 25 + label!.rect.width + 20 - animOffset
+            animTolabel!.rect.x = rect.x + skin.margin.left + MMScrollButton.halfSpacer + maxItemWidth + 20 - animOffset
             animTolabel!.rect.y = label!.rect.y
             animTolabel!.draw()
         } else
         if animating == .Left {
             let animTolabel = items[animatingTo].label
             
-            animTolabel!.rect.x = rect.x + skin.margin.left + 25 - (label!.rect.width + 20) + animOffset
+            animTolabel!.rect.x = rect.x + skin.margin.left + MMScrollButton.halfSpacer - (maxItemWidth + 20) + animOffset
             animTolabel!.rect.y = label!.rect.y
             animTolabel!.draw()
         }

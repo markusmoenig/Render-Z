@@ -58,6 +58,7 @@ class Node : Codable
         case xPos
         case yPos
         case terminals
+        case subset
     }
     
     init()
@@ -75,6 +76,7 @@ class Node : Codable
         xPos = try container.decode(Float.self, forKey: .xPos)
         yPos = try container.decode(Float.self, forKey: .yPos)
         terminals = try container.decode([Terminal].self, forKey: .terminals)
+        subset = try container.decode([UUID]?.self, forKey: .subset)
 
         for terminal in terminals {
             terminal.node = self
@@ -92,6 +94,7 @@ class Node : Codable
         try container.encode(xPos, forKey: .xPos)
         try container.encode(yPos, forKey: .yPos)
         try container.encode(terminals, forKey: .terminals)
+        try container.encode(subset, forKey: .subset)
     }
     
     func onConnect(myTerminal: Terminal, toTerminal: Terminal)

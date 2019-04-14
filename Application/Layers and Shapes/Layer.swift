@@ -78,6 +78,8 @@ class Layer : Node
         
         maxDelegate = LayerMaxDelegate()
         minimumSize = Node.NodeWithPreviewSize
+        
+        subset = []
     }
     
     required init(from decoder: Decoder) throws
@@ -214,11 +216,9 @@ class Layer : Node
     
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
-        let width : Float = 200
-        let height : Float = 130
-        
-        if previewTexture == nil {
-            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: width, height: height, output: true)
+        let size = nodeGraph.previewSize
+        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
+            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
         }
         
         let prevOffX = properties["prevOffX"]
@@ -231,11 +231,11 @@ class Layer : Node
         }
         
         if physicsInstance != nil {
-            nodeGraph.physics.render(width: width, height: height, instance: physicsInstance!, camera: camera)
+            nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, camera: camera)
         }
         
         if builderInstance != nil {
-            nodeGraph.builder.render(width: width, height: height, instance: builderInstance!, camera: camera, outTexture: previewTexture)
+            nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture)
         }
     }
 }

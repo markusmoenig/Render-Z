@@ -477,6 +477,7 @@ class Builder
         
         """
         
+        /*
         if preview {
             // Preview border
             source +=
@@ -487,7 +488,7 @@ class Builder
             col = mix( col, float4(0,0,0,1), borderMask( borderDist, 2 ) );
             
             """
-        }
+        }*/
         
         source +=
         """
