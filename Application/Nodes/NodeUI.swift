@@ -14,7 +14,13 @@ class NodeUI
         case DropDown, KeyDown, Number
     }
     
+    enum Role {
+        case None, ObjectPicker, AnimationPicker
+    }
+    
     var brand       : Brand
+    var role        : Role = .None
+    
     var node        : Node
     var variable    : String
     var title       : String
@@ -77,6 +83,7 @@ class NodeUIDropDown : NodeUI
     var defaultValue: Float
     
     var itemHeight  : Float = 0
+    var minItemWidth: Float = 85
     
     init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0)
     {
@@ -95,8 +102,17 @@ class NodeUIDropDown : NodeUI
     
     override func calcSize(mmView: MMView) {
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
-
-        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 120
+        
+        minItemWidth = 85
+        let itemRect = MMRect()
+        for item in items {
+            mmView.openSans.getTextRect(text: item, scale: NodeUI.fontScale, rectToUse: itemRect)
+            if itemRect.width + 10 > minItemWidth {
+                minItemWidth = itemRect.width + 10
+            }
+        }
+        
+        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + minItemWidth
         rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
     }
     
@@ -136,7 +152,7 @@ class NodeUIDropDown : NodeUI
         titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
         
         let x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
-        let width = 120 * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
+        let width = minItemWidth * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
         itemHeight =  rect.height * scale
         
         let skin = mmView.skin.MenuWidget
@@ -144,7 +160,9 @@ class NodeUIDropDown : NodeUI
         if !open {
             mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
             
-            mmView.drawText.drawTextCentered(mmView.openSans, text: items[Int(index)], x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: skin.textColor)
+            if items.count > 0 {
+                mmView.drawText.drawTextCentered(mmView.openSans, text: items[Int(index)], x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: skin.textColor)
+            }
         } else {
             mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight * Float(items.count), round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
             
@@ -156,6 +174,16 @@ class NodeUIDropDown : NodeUI
                 itemY += itemHeight
             }
         }
+    }
+}
+
+/// Animation picker derived from NodeUIDropDown and with .AnimationPicker role
+class NodeUIAnimationPicker : NodeUIDropDown
+{
+    init(_ node: Node, variable: String, title: String)
+    {
+        super.init(node, variable: variable, title: title, items: [])
+        role = .AnimationPicker
     }
 }
 

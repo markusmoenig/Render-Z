@@ -54,6 +54,12 @@ class NodeList : MMWidget
 //            return Object()
 //        }
 //        items.append(item)
+        // --- Object Animation
+        item = NodeListItem("Object Animation")
+        item.createNode = {
+            return ObjectAnimation()
+        }
+        items.append(item)
         // --- Object Physics
         item = NodeListItem("Object Physics")
         item.createNode = {

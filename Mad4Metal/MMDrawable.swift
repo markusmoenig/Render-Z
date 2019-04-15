@@ -79,7 +79,7 @@ class MMDrawBox : MMDrawable
         
         let renderEncoder = mmRenderer.renderEncoder!
         
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x - borderSize / 2, y - borderSize / 2, width + borderSize, height + borderSize, scale: scaleFactor ) )
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect(x - borderSize, y - borderSize, width + 2*borderSize, height + 2*borderSize, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         
         let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!

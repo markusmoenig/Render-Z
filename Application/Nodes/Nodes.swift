@@ -76,6 +76,71 @@ class ObjectPhysics : Node
     }
 }
 
+class ObjectAnimation : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Object Animation"
+        type = "Object Animation"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIAnimationPicker(self, variable: "animation", title: "Animation")
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+        
+        type = "Animation Picker"
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Return Success if the selected key is currently down
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        
+        if let object = root.objectRoot {
+            let animPicker = uiItems[0] as! NodeUIAnimationPicker
+            object.currentSequence = object.sequences[Int(animPicker.index)]
+            print("AnimationPicker", Int(animPicker.index))
+            playResult = .Success
+        }
+        
+        return playResult!
+    }
+}
+
 class KeyDown : Node
 {
     override init()

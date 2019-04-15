@@ -118,6 +118,12 @@ class Node : Codable
     /// Setup the UI of the node
     func setupUI(mmView: MMView)
     {
+        computeUIArea(mmView: mmView)
+    }
+    
+    /// Recomputes the UI area of the node
+    func computeUIArea(mmView: MMView)
+    {
         uiArea.width = 0; uiArea.height = 0;
         uiMaxTitleSize.x = 0; uiMaxTitleSize.y = 0
         
@@ -337,6 +343,7 @@ enum NodeDiscriminator: String, CodingKey {
 enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
     case objectPhysics = "Object Physics"
+    case objectAnimation = "Object Animation"
     case sequence = "Sequence"
     case selector = "Selector"
     case layer = "Layer"
@@ -352,6 +359,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return Object.self
             case .objectPhysics:
                 return ObjectPhysics.self
+            case .objectAnimation:
+                return ObjectAnimation.self
             case .sequence:
                 return Sequence.self
             case .selector:

@@ -34,6 +34,10 @@ class Object : Node
     
     /// If this object is an instance, this uuid is the uuid of the original object
     var instanceOf      : UUID? = nil
+    
+    /// The instance of this object used for preview play in Object view
+    var playInstance    : Object? = nil
+    var playFrame       : Int = 0
         
     private enum CodingKeys: String, CodingKey {
         case type
@@ -161,10 +165,25 @@ class Object : Node
         ]
     }
     
+    /// Sets up the object instance for execution, only used in Object view play mode
+    func setupExecution(nodeGraph: NodeGraph)
+    {
+        //nodeGraph.app!.timeline.currentFrame = 0
+        playFrame = 0
+
+        playInstance = Object(instanceFor: self, instanceUUID: UUID(), instanceProperties: properties)
+        updatePreview(nodeGraph: nodeGraph, hard: true)
+    }
+    
     /// Execute all bevavior outputs
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         var result : Result = .Success
+        
+        //let timeline = nodeGraph.app!.timeline
+        
+        //timeline.transformProperties(sequence: playInstance!.currentSequence, uuid: uuid, properties: properties, frame: timeline.currentFrame) -> [String:Float]
+        
         for terminal in terminals {
             
             if terminal.connector == .Bottom {
@@ -278,11 +297,13 @@ class Object : Node
         let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
 
         if instance == nil || hard {
-            instance = nodeGraph.builder.buildObjects(objects: [self], camera: camera, preview: true)
+            instance = nodeGraph.builder.buildObjects(objects: playInstance != nil ? [self] : [self], camera: camera, preview: true)
         }
         
         if instance != nil {
-            nodeGraph.builder.render(width: size.x, height: size.y, instance: instance!, camera: camera, outTexture: previewTexture)
+            nodeGraph.builder.render(width: size.x, height: size.y, instance: instance!, camera: camera, outTexture: previewTexture, frame: playFrame)
+            playFrame += 1
+            print(playFrame)
         }
     }
 }

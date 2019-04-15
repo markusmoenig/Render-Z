@@ -216,7 +216,7 @@ class NodeGraph : Codable
             }
         }
         
-        removeButton = MMButtonWidget(app.mmView, text: "Rem." )
+        removeButton = MMButtonWidget(app.mmView, text: "Remove" )
         removeButton.clicked = { (event) -> Void in
             let node = self.currentContent[self.contentScrollButton.index]
             let index  = self.nodes.firstIndex(where: { $0.uuid == node.uuid })!
@@ -226,7 +226,13 @@ class NodeGraph : Codable
             self.removeButton.removeState(.Checked)
         }
         
-        editButton = MMButtonWidget(app.mmView, text: "Edit" )
+        var smallButtonSkin = MMSkinButton()
+        smallButtonSkin.margin = MMMargin( 4, 4, 4, 4 )
+        //smallButtonSkin.borderSize = 0
+        smallButtonSkin.height = 30
+        smallButtonSkin.fontScale = 0.4
+        
+        editButton = MMButtonWidget(app.mmView, skinToUse: smallButtonSkin, text: "Edit..." )
         editButton.clicked = { (event) -> Void in
             self.editButton.removeState(.Checked)
             
@@ -235,12 +241,16 @@ class NodeGraph : Codable
             self.maximizedNode!.maxDelegate!.activate(self.app!)
         }
 
-        playButton = MMButtonWidget( app.mmView, text: "Play" )
+        playButton = MMButtonWidget( app.mmView, skinToUse: smallButtonSkin, text: "Run Behavior Tree" )
         playButton.clicked = { (event) -> Void in
             if self.playNode == nil {
                 self.playNode = self.currentMaster!
                 let node = self.playNode
                 
+                if node!.type == "Object" {
+                    let object = node as! Object
+                    object.setupExecution(nodeGraph: self)
+                } else
                 if node!.type == "Layer" {
                     let layer = node as! Layer
                     layer.setupExecution(nodeGraph: self)
@@ -250,6 +260,12 @@ class NodeGraph : Codable
                 app.mmView.lockFramerate()
             } else {
                 
+                let node = self.playNode
+                
+                if node!.type == "Object" {
+                    let object = node as! Object
+                    object.playInstance = nil
+                } else
                 if self.playNode!.type == "Layer" {
                     let layer = self.playNode as! Layer
                     layer.physicsInstance = nil
@@ -278,7 +294,9 @@ class NodeGraph : Codable
     ///
     func activate()
     {
-        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, playButton, typeScrollButton, contentScrollButton, addButton, removeButton, editButton)
+        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, typeScrollButton, contentScrollButton, addButton, removeButton)
+        app?.mmView.widgets.insert(editButton, at: 0)
+        app?.mmView.widgets.insert(playButton, at: 0)
         app!.leftRegion!.rect.width = 200
         nodeHoverMode = .None
     }
@@ -439,8 +457,8 @@ class NodeGraph : Codable
             previewSize.x = floor(nodeDragStartPos.x - (event.x - dragStartPos.x))
             previewSize.y = floor(nodeDragStartPos.y + (event.y - dragStartPos.y))
             
-            previewSize.x = max(previewSize.x, 20)
-            previewSize.y = max(previewSize.y, 20)
+            previewSize.x = max(previewSize.x, 80)
+            previewSize.y = max(previewSize.y, 80)
             
             previewSize.x = min(previewSize.x, app!.editorRegion!.rect.width - 50)
             previewSize.y = min(previewSize.y, app!.editorRegion!.rect.height - 50)
@@ -660,7 +678,7 @@ class NodeGraph : Codable
             removeButton.rect.x = addButton.rect.x + addButton.rect.width + 10
             removeButton.rect.y = contentScrollButton.rect.y
             removeButton.draw()
-            
+            /*
             editButton.rect.x = removeButton.rect.x + removeButton.rect.width + 10
             editButton.rect.y = contentScrollButton.rect.y
             editButton.draw()
@@ -668,6 +686,7 @@ class NodeGraph : Codable
             playButton.rect.x = editButton.rect.x + editButton.rect.width + 10
             playButton.rect.y = contentScrollButton.rect.y
             playButton.draw()
+            */
 
             nodesButton.draw()
             playButton.draw()
@@ -690,7 +709,7 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + node.xPos + xOffset
         node.rect.y = region.rect.y + node.yPos + yOffset
 
-        node.rect.width = max(node.minimumSize.x, node.uiArea.width) * scale
+        node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
         node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
 
         let vertexBuffer = renderer.createVertexBuffer( MMRect( node.rect.x, node.rect.y, node.rect.width, node.rect.height, scale: scaleFactor ) )
@@ -827,7 +846,7 @@ class NodeGraph : Codable
         let scaleFactor : Float = app!.mmView.scaleFactor
         
         node.rect.width = previewSize.x + 70
-        node.rect.height = previewSize.y + 64
+        node.rect.height = previewSize.y + 64 + 25
         
         node.rect.x = region.rect.x + region.rect.width - node.rect.width + 11 + 10
         node.rect.y = region.rect.y - 22
@@ -920,8 +939,23 @@ class NodeGraph : Codable
         
         // --- Preview
         if let texture = node.previewTexture {
-            app!.mmView.drawTexture.draw(texture, x: node.rect.x + 34, y: node.rect.y + 34, zoom: 1)
+            let x : Float = node.rect.x + 34
+            let y : Float = node.rect.y + 34 + 25
+            app!.mmView.drawTexture.draw(texture, x: x, y: y, zoom: 1)
+            
+            // Preview Border
+            app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 0, borderSize: 3, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
         }
+        
+        // --- Buttons
+        
+        editButton.rect.x = node.rect.x + 35
+        editButton.rect.y = node.rect.y + 25
+        editButton.draw()
+        
+        playButton.rect.x = editButton.rect.x + editButton.rect.width + 10
+        playButton.rect.y = editButton.rect.y
+        playButton.draw()
         
         // --- Node Drag Handles
         
@@ -1271,8 +1305,8 @@ class NodeGraph : Codable
         }
     }
     
-    /// Updates all nodes
-    func updateNodes()
+    /// Hard updates the given node
+    func updateNode(_ node: Node, updatePreview: Bool = true)
     {
         /// Returns the terminal of the given UUID
         func getTerminalOfUUID(_ uuid: UUID) -> Terminal?
@@ -1287,22 +1321,83 @@ class NodeGraph : Codable
             return nil
         }
         
-        for node in nodes {
-            
-            if node.type == "Object" {
-                let object = node as! Object
-                object.instance = app!.nodeGraph.builder.buildObjects(objects: [object], camera: app!.camera)
+        if updatePreview && node.type == "Object" {
+            let object = node as! Object
+            object.instance = app!.nodeGraph.builder.buildObjects(objects: [object], camera: app!.camera)
+        }
+        
+        for terminal in node.terminals {
+            for conn in terminal.connections {
+                conn.toTerminal = getTerminalOfUUID(conn.toTerminalUUID)
             }
-            
-            for terminal in node.terminals {
-                for conn in terminal.connections {
-                    conn.toTerminal = getTerminalOfUUID(conn.toTerminalUUID)
+        }
+        
+        // Update the UI and special role items
+        node.setupUI(mmView: app!.mmView)
+        for item in node.uiItems {
+            if item.role == .AnimationPicker {
+                if let masterObject = getMasterForNode(node) as? Object {
+                    if let picker = item as? NodeUIAnimationPicker {
+                        picker.items = []
+                        for seq in masterObject.sequences {
+                            picker.items.append(seq.name)
+                            if picker.index < 0 && picker.index >= Float(picker.items.count) {
+                                picker.index = 0
+                                node.properties[item.variable] = picker.index
+                            }
+                        }
+                        node.computeUIArea(mmView: app!.mmView)
+                    }
                 }
             }
-            
-            node.setupUI(mmView: app!.mmView)
+        }
+        if updatePreview {
             node.updatePreview(nodeGraph: self, hard: true)
         }
+    }
+    
+    /// Hard updates all nodes
+    func updateNodes(updatePreviews: Bool = true)
+    {
+        for node in nodes {
+            updateNode(node, updatePreview: updatePreviews)
+        }
         maximizedNode = nil
+    }
+    
+    /// Hard updates all nodes belonging to this master node
+    func updateMasterNodes(_ masterNode: Node)
+    {
+        if let subset = masterNode.subset {
+            for clientNode in subset {
+                for node in nodes {
+                    if node.uuid == clientNode {
+                        updateNode(node, updatePreview: false)
+                        break
+                    }
+                }
+            }
+        }
+    }
+    
+    /// Returns the master node for the given client node
+    func getMasterForNode(_ clientNode: Node) -> Node?
+    {
+        var masterNode : Node? = nil
+        
+        for node in nodes {
+            if node.subset != nil {
+                if node === clientNode {
+                    masterNode = node
+                    break
+                }
+                if node.subset!.contains(clientNode.uuid) {
+                    masterNode = node
+                    break
+                }
+            }
+        }
+        
+        return masterNode
     }
 }

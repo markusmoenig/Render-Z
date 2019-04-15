@@ -176,7 +176,7 @@ class MMScrollButton : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width + 4, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : skin.color, borderColor: skin.borderColor )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width + 2, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : skin.color, borderColor: skin.borderColor )
         
         // Left Arrow
         

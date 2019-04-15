@@ -1167,6 +1167,7 @@ class SequenceWidget : MMWidget
         
         // ---
         
+        // Add Animation
         menuWidget.items[0].cb = {
             let object = self.delegate.currentObject!
             let seq = MMTlSequence()
@@ -1174,8 +1175,10 @@ class SequenceWidget : MMWidget
             object.sequences.append(seq)
             object.currentSequence = seq
             self.listWidget.selectedItems = [seq.uuid]
+            delegate.app!.nodeGraph.updateMasterNodes(object)
         }
         
+        // Rename Animation
         menuWidget.items[1].cb = {
             var item = self.getCurrentItem()
             if item != nil {
@@ -1185,6 +1188,7 @@ class SequenceWidget : MMWidget
             }
         }
         
+        // Remove Animation
         menuWidget.items[2].cb = {
             if self.items.count < 2 { return }
 
@@ -1193,6 +1197,7 @@ class SequenceWidget : MMWidget
             let object = self.delegate.currentObject!
             object.sequences.remove(at: object.sequences.firstIndex(where: { $0.uuid == item!.uuid })!)
             self.listWidget.selectedItems = [object.sequences[0].uuid]
+            delegate.app!.nodeGraph.updateMasterNodes(object)
         }
     }
     

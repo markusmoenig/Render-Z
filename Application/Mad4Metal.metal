@@ -101,7 +101,7 @@ fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],
                                constant MM_BOX *data [[ buffer(0) ]] )
 {
     float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0 );
-    uv -= float2( data->size / 2.0 + data->borderSize / 2.0 );
+    uv -= float2( data->size / 2.0 + data->borderSize );
 
     float2 d = abs( uv ) - data->size / 2 + data->round;
     float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - data->round;

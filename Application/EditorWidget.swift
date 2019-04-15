@@ -264,13 +264,12 @@ class EditorWidget      : MMWidget
                 object.currentSequence = object.sequences[0]
             }
             node.setupTerminals()
-            node.setupUI(mmView: app.mmView)
-            node.updatePreview(nodeGraph: app.nodeGraph, hard: true)
 
             if app.nodeGraph.currentMaster != nil {
                 app.nodeGraph.nodes.append(node)
                 app.nodeGraph.currentMaster?.subset!.append(node.uuid)
                 app.nodeGraph.setCurrentNode(node)
+                app.nodeGraph.updateNode(node)
             }
         } else
         if dragSource.id == "AvailableObjectItem"
