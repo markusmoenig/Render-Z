@@ -14,7 +14,7 @@ class ObjectPhysics : Node
     {
         super.init()
         
-        name = "Object Physics"
+        name = "Physics Properties"
         type = "Object Physics"
     }
     
@@ -82,7 +82,7 @@ class ObjectAnimation : Node
     {
         super.init()
         
-        name = "Object Animation"
+        name = "Animation"
         type = "Object Animation"
     }
     
@@ -100,7 +100,9 @@ class ObjectAnimation : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIAnimationPicker(self, variable: "animation", title: "Animation")
+            NodeUIAnimationPicker(self, variable: "animation", title: "Animation"),
+            NodeUIDropDown(self, variable: "animationMode", title: "Mode", items: ["Loop", "Inverse Loop", "Goto Start", "Goto End"], index: 0),
+            NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 5), value: 1)
         ]
         super.setupUI(mmView: mmView)
     }
@@ -132,8 +134,12 @@ class ObjectAnimation : Node
         
         if let object = root.objectRoot {
             let animPicker = uiItems[0] as! NodeUIAnimationPicker
+            let mode = uiItems[1] as! NodeUIDropDown
+            let scale = uiItems[2] as! NodeUINumber
+
             object.setSequence(index: Int(animPicker.index), timeline: nodeGraph.app!.timeline)
-            print("AnimationPicker", Int(animPicker.index))
+            object.setAnimationMode(Object.AnimationMode(rawValue: Int(mode.index))!, scale: scale.value)
+            print("AnimationPicker", Int(animPicker.index), Int(mode.index))
             playResult = .Success
         }
         

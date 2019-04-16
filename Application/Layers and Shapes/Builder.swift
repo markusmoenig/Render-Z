@@ -533,15 +533,14 @@ class Builder
         var parentRotate : Float = 0
         let itemSize : Int = 8
         var rootObject : Object!
-        var animObject : Object!
         var currentFrame : Int = frame
         
         func parseObject(_ object: Object)
         {
             // Transform Object Properties
             let objectProperties : [String:Float]
-            if animObject.currentSequence != nil {
-                objectProperties = nodeGraph.timeline.transformProperties(sequence: animObject.currentSequence!, uuid: animObject.uuid, properties: object.properties, frame: currentFrame)
+            if rootObject.currentSequence != nil {
+                objectProperties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: object.uuid, properties: object.properties, frame: currentFrame)
             } else {
                 objectProperties = object.properties
             }
@@ -553,8 +552,8 @@ class Builder
             for shape in object.shapes {
                 
                 let properties : [String:Float]
-                if animObject.currentSequence != nil {
-                    properties = nodeGraph.timeline.transformProperties(sequence: animObject.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: currentFrame)
+                if rootObject.currentSequence != nil {
+                    properties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: currentFrame)
                 } else {
                     properties = shape.properties
                 }
@@ -607,8 +606,8 @@ class Builder
             {
                 for material in materials {
                     let properties : [String:Float]
-                    if animObject.currentSequence != nil {
-                        properties = nodeGraph.timeline.transformProperties(sequence: animObject.currentSequence!, uuid: material.uuid, properties: material.properties, frame: frame)
+                    if rootObject.currentSequence != nil {
+                        properties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: material.uuid, properties: material.properties, frame: frame)
                     } else {
                         properties = material.properties
                     }
@@ -664,11 +663,9 @@ class Builder
             rootObject = object
             if object.instanceOf != nil {
                 //print("here", object.maxFrame, object.frame)
-                // If object is an instance, animation is controlled by the object itself
-                animObject = object
-                currentFrame = object.frame
+                // If object is an instance, frame is controlled by the object itself
+                currentFrame = Int(object.frame)
             } else {
-                animObject = object
                 currentFrame = frame
             }
             parentPosX = 0
@@ -676,9 +673,31 @@ class Builder
             parentRotate = 0
             parseObject(object)
             if object.instanceOf != nil {
-                object.frame += 1
-                if object.frame > object.maxFrame {
-                    object.frame = 0
+                let frames : Float = 1 * object.animationScale
+                
+                if object.animationMode == .Loop {
+                    object.frame += frames
+                    if object.frame > object.maxFrame {
+                        object.frame = 0
+                    }
+                } else
+                if object.animationMode == .InverseLoop {
+                    object.frame -= frames
+                    if object.frame < 0 {
+                        object.frame = object.maxFrame
+                    }
+                } else
+                if object.animationMode == .GotoStart {
+                    object.frame -= frames
+                    if object.frame < 0 {
+                        object.frame = 0
+                    }
+                } else
+                if object.animationMode == .GotoEnd {
+                    object.frame += frames
+                    if object.frame > object.maxFrame {
+                        object.frame = object.maxFrame
+                    }
                 }
             }
         }

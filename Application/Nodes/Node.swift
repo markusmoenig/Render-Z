@@ -13,7 +13,7 @@ import MetalKit
 class Node : Codable
 {
     enum Result {
-        case Success, Failure, Running
+        case Success, Failure, Running, Unused
     }
     
     var type            : String = ""

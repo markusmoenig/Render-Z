@@ -54,14 +54,8 @@ class NodeList : MMWidget
 //            return Object()
 //        }
 //        items.append(item)
-        // --- Object Animation
-        item = NodeListItem("Object Animation")
-        item.createNode = {
-            return ObjectAnimation()
-        }
-        items.append(item)
         // --- Object Physics
-        item = NodeListItem("Object Physics")
+        item = NodeListItem("Physics Properties")
         item.createNode = {
             return ObjectPhysics()
         }
@@ -76,6 +70,12 @@ class NodeList : MMWidget
         item = NodeListItem("Behavior Tree")
         item.createNode = {
             return BehaviorTree()
+        }
+        items.append(item)
+        // --- Object Animation
+        item = NodeListItem("Animation")
+        item.createNode = {
+            return ObjectAnimation()
         }
         items.append(item)
         // --- Behavior: Inverter

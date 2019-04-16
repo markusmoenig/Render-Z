@@ -14,17 +14,23 @@ class Object : Node
         case Body, Border
     }
     
+    enum AnimationMode : Int {
+        case Loop, InverseLoop, GotoStart, GotoEnd
+    }
+    
     var shapes          : [Shape]
     var bodyMaterials   : [Material]
     var borderMaterials : [Material]
     var childObjects    : [Object]
     
     /// The timeline sequences for this object
+    var animationMode   : AnimationMode = .Loop
     var sequences       : [MMTlSequence]
     var currentSequence : MMTlSequence? = nil
     /// Animation related, the current animation frame plus the max frame for the current sequence
-    var frame           : Int = 0
-    var maxFrame        : Int = 0
+    var frame           : Float = 0
+    var maxFrame        : Float = 0
+    var animationScale  : Float = 1
     
     var selectedShapes  : [UUID]
     var selectedBodyMaterials: [UUID]
@@ -163,12 +169,19 @@ class Object : Node
         ]
     }
     
-    ///
+    /// Sets the animation mode
+    func setAnimationMode(_ mode: AnimationMode, scale: Float = 1)
+    {
+        animationMode = mode
+        animationScale = scale
+    }
+    
+    /// Sets the current sequence
     func setSequence(index: Int = 0, sequence: MMTlSequence?=nil, timeline: MMTimeline)
     {
         let seq = sequence != nil ? sequence : sequences[index]
         currentSequence = seq
-        maxFrame = timeline.getMaxFrame(sequence: currentSequence!)
+        maxFrame = Float(timeline.getMaxFrame(sequence: currentSequence!))
     }
     
     /// Sets up the object instance for execution, only used in Object view play mode

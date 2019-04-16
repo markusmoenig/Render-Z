@@ -25,8 +25,16 @@ class BehaviorTree : Node
     override func setupTerminals()
     {
         terminals = [
-            Terminal(name: "Behavior", connector: .Bottom, brand: .Behavior, node: self),
+            Terminal(name: "Behavior", connector: .Bottom, brand: .Behavior, node: self)
         ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIDropDown(self, variable: "status", title: "Status", items: ["Enabled", "Disabled"], index: 0)
+        ]
+        super.setupUI(mmView: mmView)
     }
     
     required init(from decoder: Decoder) throws

@@ -616,12 +616,18 @@ class NodeGraph : Codable
             
             if playNode != nil {
                 
+                for node in nodes {
+                    node.playResult = .Unused
+                }
+                
                 func run(_ root: BehaviorTreeRoot) {
                     if let masterNode = currentMaster {
                         for node in nodes {
                             if masterNode.subset!.contains(node.uuid) {
                                 if node.type == "Behavior Tree" {
-                                    _ = node.execute(nodeGraph: self, root: root, parent: node)
+                                    if node.properties["status"] == 0 {
+                                        _ = node.execute(nodeGraph: self, root: root, parent: node)
+                                    }
                                 }
                             }
                         }
@@ -728,6 +734,7 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + node.xPos + xOffset
         node.rect.y = region.rect.y + node.yPos + yOffset
 
+        //print(node.minimumSize.x, node.uiArea.width)
         node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
         node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
 
@@ -752,7 +759,7 @@ class NodeGraph : Codable
             } else
             if node.playResult! == .Failure {
                 node.data.selected = 3
-            } else {
+            } else if node.playResult! == .Failure {
                 node.data.selected = 4
             }
         }
