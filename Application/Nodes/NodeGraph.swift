@@ -227,11 +227,10 @@ class NodeGraph : Codable
         }
         
         var smallButtonSkin = MMSkinButton()
-        smallButtonSkin.margin = MMMargin( 4, 4, 4, 4 )
-        //smallButtonSkin.borderSize = 0
         smallButtonSkin.height = 30
         smallButtonSkin.fontScale = 0.4
-        
+        smallButtonSkin.margin.left = 8
+
         editButton = MMButtonWidget(app.mmView, skinToUse: smallButtonSkin, text: "Edit..." )
         editButton.clicked = { (event) -> Void in
             self.editButton.removeState(.Checked)
@@ -241,7 +240,7 @@ class NodeGraph : Codable
             self.maximizedNode!.maxDelegate!.activate(self.app!)
         }
 
-        playButton = MMButtonWidget( app.mmView, skinToUse: smallButtonSkin, text: "Run Behavior Tree" )
+        playButton = MMButtonWidget( app.mmView, skinToUse: smallButtonSkin, text: "Run Behavior Trees" )
         playButton.clicked = { (event) -> Void in
             if self.playNode == nil {
                 self.playNode = self.currentMaster!
@@ -616,8 +615,28 @@ class NodeGraph : Codable
             // --- Draw Nodes
             
             if playNode != nil {
-                let btRoot = BehaviorTreeRoot(playNode!)
-                _ = playNode!.execute(nodeGraph: self, root: btRoot, parent: playNode!)
+                
+                func run(_ root: BehaviorTreeRoot) {
+                    if let masterNode = currentMaster {
+                        for node in nodes {
+                            if masterNode.subset!.contains(node.uuid) {
+                                if node.type == "Behavior Tree" {
+                                    _ = node.execute(nodeGraph: self, root: root, parent: node)
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                if playNode!.type == "Object" {
+                    var object = playNode! as! Object
+                    object = object.playInstance!
+                    let btRoot = BehaviorTreeRoot(object)
+                    run(btRoot)
+                } else {
+                    let btRoot = BehaviorTreeRoot(playNode!)
+                    run(btRoot)
+                }
                 playNode!.updatePreview(nodeGraph: self)
             }
             

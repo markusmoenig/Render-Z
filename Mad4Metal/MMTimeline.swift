@@ -291,6 +291,23 @@ class MMTimeline : MMWidget
 //        printSequence(sequence: sequence, uuid: uuid)
     }
     
+    /// Returns the max frame for the given sequence
+    func getMaxFrame(sequence: MMTlSequence) -> Int
+    {
+        var maxFrame : Int = 0
+        
+        for item in sequence.items
+        {
+            for(frame,_) in item.value {
+                if frame > maxFrame {
+                    maxFrame = frame
+                }
+            }
+        }
+        
+        return maxFrame
+    }
+    
     /// Transform the properties of the given object based on the keys in the sequence (using the current frame position of the timeline)
     func transformProperties(sequence: MMTlSequence, uuid: UUID, properties: [String:Float], frame: Int? = nil) -> [String:Float]
     {
@@ -372,6 +389,7 @@ class MMTimeline : MMWidget
     {
         if sequence.items[uuid] == nil {
             print( "No entry for \(uuid) in sequence" )
+            return
         }
         
         for(frame,key) in sequence.items[uuid]! {

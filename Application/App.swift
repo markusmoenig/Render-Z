@@ -118,6 +118,17 @@ class App
     {
 //        print( json )
         if let jsonData = json.data(using: .utf8) {
+            
+            /*
+            do {
+                if (try JSONDecoder().decode(NodeGraph.self, from: jsonData)) != nil {
+                    print( "yes" )
+                }
+            }
+            catch {
+                print("Error is : \(error)")
+            }*/
+            
             if let graph =  try? JSONDecoder().decode(NodeGraph.self, from: jsonData) {
                 
                 if nodeGraph.maximizedNode != nil {

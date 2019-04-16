@@ -533,13 +533,15 @@ class Builder
         var parentRotate : Float = 0
         let itemSize : Int = 8
         var rootObject : Object!
+        var animObject : Object!
+        var currentFrame : Int = frame
         
         func parseObject(_ object: Object)
         {
             // Transform Object Properties
             let objectProperties : [String:Float]
-            if rootObject.currentSequence != nil {
-                objectProperties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: object.uuid, properties: object.properties, frame: frame)
+            if animObject.currentSequence != nil {
+                objectProperties = nodeGraph.timeline.transformProperties(sequence: animObject.currentSequence!, uuid: animObject.uuid, properties: object.properties, frame: currentFrame)
             } else {
                 objectProperties = object.properties
             }
@@ -551,8 +553,8 @@ class Builder
             for shape in object.shapes {
                 
                 let properties : [String:Float]
-                if rootObject.currentSequence != nil {
-                    properties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: frame)
+                if animObject.currentSequence != nil {
+                    properties = nodeGraph.timeline.transformProperties(sequence: animObject.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: currentFrame)
                 } else {
                     properties = shape.properties
                 }
@@ -605,8 +607,8 @@ class Builder
             {
                 for material in materials {
                     let properties : [String:Float]
-                    if rootObject.currentSequence != nil {
-                        properties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: material.uuid, properties: material.properties, frame: frame)
+                    if animObject.currentSequence != nil {
+                        properties = nodeGraph.timeline.transformProperties(sequence: animObject.currentSequence!, uuid: material.uuid, properties: material.properties, frame: frame)
                     } else {
                         properties = material.properties
                     }
@@ -660,10 +662,25 @@ class Builder
         
         for object in instance.objects {
             rootObject = object
+            if object.instanceOf != nil {
+                //print("here", object.maxFrame, object.frame)
+                // If object is an instance, animation is controlled by the object itself
+                animObject = object
+                currentFrame = object.frame
+            } else {
+                animObject = object
+                currentFrame = frame
+            }
             parentPosX = 0
             parentPosY = 0
             parentRotate = 0
             parseObject(object)
+            if object.instanceOf != nil {
+                object.frame += 1
+                if object.frame > object.maxFrame {
+                    object.frame = 0
+                }
+            }
         }
         
         memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)

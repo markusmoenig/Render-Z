@@ -8,6 +8,66 @@
 
 import Foundation
 
+class BehaviorTree : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Behavior Tree"
+        type = "Behavior Tree"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "Behavior", connector: .Bottom, brand: .Behavior, node: self),
+        ]
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+        
+        type = "Behavior Tree"
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Execute the attached behavior nodes
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Success
+        for terminal in terminals {
+            
+            if terminal.connector == .Bottom {
+                for conn in terminal.connections {
+                    let toTerminal = conn.toTerminal!
+                    playResult = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}
+
+
 class Sequence : Node
 {
     override init()
@@ -135,6 +195,73 @@ class Selector : Node
                     playResult = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
                     if playResult == .Success {
                         return .Success
+                    }
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}
+
+class Inverter : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Inverter"
+        type = "Inverter"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self),
+            
+            Terminal(name: "Behavior", connector: .Bottom, brand: .Behavior, node: self)
+        ]
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+        
+        type = "Inverter"
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Return Success if all behavior outputs succeeded
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Success
+        for terminal in terminals {
+            
+            if terminal.connector == .Bottom {
+                for conn in terminal.connections {
+                    let toTerminal = conn.toTerminal!
+                    playResult = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
+                    if playResult == .Failure {
+                        playResult = .Success
+                    } else
+                    if playResult == .Success {
+                        playResult = .Failure
                     }
                 }
             }

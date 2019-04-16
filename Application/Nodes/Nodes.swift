@@ -113,7 +113,7 @@ class ObjectAnimation : Node
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
         
-        type = "Animation Picker"
+        type = "Object Animation"
     }
     
     override func encode(to encoder: Encoder) throws
@@ -132,7 +132,7 @@ class ObjectAnimation : Node
         
         if let object = root.objectRoot {
             let animPicker = uiItems[0] as! NodeUIAnimationPicker
-            object.currentSequence = object.sequences[Int(animPicker.index)]
+            object.setSequence(index: Int(animPicker.index), timeline: nodeGraph.app!.timeline)
             print("AnimationPicker", Int(animPicker.index))
             playResult = .Success
         }

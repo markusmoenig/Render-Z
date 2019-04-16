@@ -344,8 +344,10 @@ enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
     case objectPhysics = "Object Physics"
     case objectAnimation = "Object Animation"
+    case behaviorTree = "Behavior Tree"
     case sequence = "Sequence"
     case selector = "Selector"
+    case inverter = "Inverter"
     case layer = "Layer"
     case keyDown = "Key Down"
 
@@ -361,6 +363,10 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectPhysics.self
             case .objectAnimation:
                 return ObjectAnimation.self
+            case .behaviorTree:
+                return BehaviorTree.self
+            case .inverter:
+                return Inverter.self
             case .sequence:
                 return Sequence.self
             case .selector:

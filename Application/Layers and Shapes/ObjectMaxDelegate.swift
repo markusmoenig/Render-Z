@@ -160,7 +160,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
 
         sequenceWidget.listWidget.selectedItems = [currentObject!.sequences[0].uuid]
         sequenceWidget.listWidget.selectionChanged = { (items:[MMListWidgetItem]) -> Void in
-            self.currentObject!.currentSequence = items[0] as? MMTlSequence
+            self.currentObject!.setSequence(sequence: items[0] as? MMTlSequence, timeline: self.app!.timeline)
             self.update()
         }
         timelineButton.addState( .Checked )
@@ -1173,7 +1173,7 @@ class SequenceWidget : MMWidget
             let seq = MMTlSequence()
             seq.name = "New Animation"
             object.sequences.append(seq)
-            object.currentSequence = seq
+            object.setSequence(sequence:seq, timeline: delegate.app!.timeline)
             self.listWidget.selectedItems = [seq.uuid]
             delegate.app!.nodeGraph.updateMasterNodes(object)
         }
@@ -1184,6 +1184,7 @@ class SequenceWidget : MMWidget
             if item != nil {
                 getStringDialog(view: view, title: "Rename Animation", message: "New name", defaultValue: item!.name, cb: { (name) -> Void in
                     item!.name = name
+                    self.delegate.app!.nodeGraph.updateMasterNodes( self.delegate.currentObject!)
                 } )
             }
         }

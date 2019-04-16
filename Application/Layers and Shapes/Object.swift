@@ -22,6 +22,9 @@ class Object : Node
     /// The timeline sequences for this object
     var sequences       : [MMTlSequence]
     var currentSequence : MMTlSequence? = nil
+    /// Animation related, the current animation frame plus the max frame for the current sequence
+    var frame           : Int = 0
+    var maxFrame        : Int = 0
     
     var selectedShapes  : [UUID]
     var selectedBodyMaterials: [UUID]
@@ -33,12 +36,11 @@ class Object : Node
     var instance        : BuilderInstance?
     
     /// If this object is an instance, this uuid is the uuid of the original object
-    var instanceOf      : UUID? = nil
+    var instanceOf      : Object? = nil
     
     /// The instance of this object used for preview play in Object view
     var playInstance    : Object? = nil
-    var playFrame       : Int = 0
-        
+    
     private enum CodingKeys: String, CodingKey {
         case type
         case shapes
@@ -90,7 +92,7 @@ class Object : Node
         self.selectedShapes = []
         self.selectedBodyMaterials = []
         self.selectedBorderMaterials = []
-        self.instanceOf = instanceFor.uuid
+        self.instanceOf = instanceFor
         
         super.init()
 
@@ -158,18 +160,21 @@ class Object : Node
     {
         terminals = [
             Terminal(name: "Properties", connector: .Left, brand: .Properties, node: self),
-//            Terminal(name: "Out", connector: .Right, brand: .Object, node: self),
-            Terminal(name: "Behavior1", connector: .Bottom, brand: .Behavior, node: self),
-            Terminal(name: "Behavior2", connector: .Bottom, brand: .Behavior, node: self),
-            Terminal(name: "Behavior3", connector: .Bottom, brand: .Behavior, node: self)
         ]
+    }
+    
+    ///
+    func setSequence(index: Int = 0, sequence: MMTlSequence?=nil, timeline: MMTimeline)
+    {
+        let seq = sequence != nil ? sequence : sequences[index]
+        currentSequence = seq
+        maxFrame = timeline.getMaxFrame(sequence: currentSequence!)
     }
     
     /// Sets up the object instance for execution, only used in Object view play mode
     func setupExecution(nodeGraph: NodeGraph)
     {
-        //nodeGraph.app!.timeline.currentFrame = 0
-        playFrame = 0
+        frame = 0
 
         playInstance = Object(instanceFor: self, instanceUUID: UUID(), instanceProperties: properties)
         updatePreview(nodeGraph: nodeGraph, hard: true)
@@ -297,13 +302,11 @@ class Object : Node
         let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
 
         if instance == nil || hard {
-            instance = nodeGraph.builder.buildObjects(objects: playInstance != nil ? [self] : [self], camera: camera, preview: true)
+            instance = nodeGraph.builder.buildObjects(objects: playInstance != nil ? [playInstance!] : [self], camera: camera, preview: true)
         }
         
         if instance != nil {
-            nodeGraph.builder.render(width: size.x, height: size.y, instance: instance!, camera: camera, outTexture: previewTexture, frame: playFrame)
-            playFrame += 1
-            print(playFrame)
+            nodeGraph.builder.render(width: size.x, height: size.y, instance: instance!, camera: camera, outTexture: previewTexture)
         }
     }
 }

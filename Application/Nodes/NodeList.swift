@@ -72,6 +72,18 @@ class NodeList : MMWidget
 //            return Layer()
 //        }
 //        items.append(item)
+        // --- Behavior: Behavior Tree
+        item = NodeListItem("Behavior Tree")
+        item.createNode = {
+            return BehaviorTree()
+        }
+        items.append(item)
+        // --- Behavior: Inverter
+        item = NodeListItem("Inverter")
+        item.createNode = {
+            return Inverter()
+        }
+        items.append(item)
         // --- Behavior: Sequence
         item = NodeListItem("Sequence")
         item.createNode = {
