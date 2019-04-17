@@ -126,6 +126,7 @@ class Node : Codable
     {
         uiArea.width = 0; uiArea.height = 0;
         uiMaxTitleSize.x = 0; uiMaxTitleSize.y = 0
+        var maxRightSize : Float = 0
         
         for item in uiItems {
             item.calcSize(mmView: mmView)
@@ -134,9 +135,13 @@ class Node : Codable
             uiArea.height += item.rect.height
             uiMaxTitleSize.x = max(uiMaxTitleSize.x, item.titleLabel!.rect.width)
             uiMaxTitleSize.y = max(uiMaxTitleSize.y, item.titleLabel!.rect.height)
+            maxRightSize = max(maxRightSize, item.rect.width -  item.titleLabel!.rect.width)
         }
         uiMaxTitleSize.x += NodeUI.titleMargin.width()
         uiMaxTitleSize.y += NodeUI.titleMargin.height()
+        
+        uiArea.width = uiMaxTitleSize.x + maxRightSize
+        uiArea.height += 6
     }
     
     /// A UI Variable changed

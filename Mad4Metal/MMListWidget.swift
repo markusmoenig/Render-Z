@@ -12,6 +12,7 @@ protocol MMListWidgetItem
 {
     var name        : String {get set}
     var uuid        : UUID {get set}
+    var color       : float4?{get set}
 }
 
 class MMListWidget : MMWidget
@@ -34,9 +35,12 @@ class MMListWidget : MMWidget
     var selectedItems   : [UUID] = []
     var selectionChanged: ((_ item: [MMListWidgetItem])->())? = nil
     
+    var skin            : MMSkinWidget
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
+        skin = view.skin.Widget
         
         width = 0
         height = 0
@@ -151,9 +155,13 @@ class MMListWidget : MMWidget
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
             
             if selectedItems.contains( item.uuid ) {
-                source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
+                source += "col = float4( \(skin.selectionColor.x), \(skin.selectionColor.y), \(skin.selectionColor.z), fillMask( dist ) * \(skin.selectionColor.w) );\n"
             } else {
-                source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
+                if item.color != nil {
+                source += "col = float4( \(item.color!.x), \(item.color!.y), \(item.color!.z), fillMask( dist ) * \(item.color!.w) );\n"
+                } else {
+                    source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
+                }
             }
             source += "col = mix( col, borderColor, borderMask( dist, borderSize) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
@@ -382,7 +390,7 @@ class MMListWidget : MMWidget
         source += "d = abs( uv ) - float2( \((width)/2) - borderSize - 2, \(unitSize/2) - borderSize ) + float2( round );\n"
         source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
         
-        source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
+        source += "col = float4( \(skin.selectionColor.x), \(skin.selectionColor.y), \(skin.selectionColor.z), fillMask( dist ) * \(skin.selectionColor.w) );\n"
         
         source += "col = mix( col, borderColor, borderMask( dist, borderSize) );\n"
         source += "finalCol = mix( finalCol, col, col.a );\n"

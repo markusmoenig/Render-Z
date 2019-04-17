@@ -734,7 +734,7 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + node.xPos + xOffset
         node.rect.y = region.rect.y + node.yPos + yOffset
 
-        //print(node.minimumSize.x, node.uiArea.width)
+//        print(node.minimumSize.x, node.uiArea.width)
         node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
         node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
 
@@ -838,7 +838,7 @@ class NodeGraph : Codable
         }
         
         // --- UI
-        let uiItemX = node.rect.x + (node.rect.width - node.uiArea.width*scale) / 2 - 5 * scale
+        let uiItemX = node.rect.x + (node.rect.width - node.uiArea.width*scale) / 2 - 2.5 * scale
         var uiItemY = node.rect.y + NodeGraph.bodyY * scale
 
         for uiItem in node.uiItems {
@@ -851,7 +851,7 @@ class NodeGraph : Codable
             }
             
             uiItem.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, scale: scale)
-            uiItemY += uiItem.rect.height
+            uiItemY += uiItem.rect.height * scale
         }
         
         if nodeHoverMode == .NodeUIMouseLocked && node === hoverNode {

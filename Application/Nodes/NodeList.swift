@@ -12,6 +12,7 @@ class NodeListItem : MMListWidgetItem
 {
     var name         : String = ""
     var uuid         : UUID = UUID()
+    var color       : float4? = nil
     
     var createNode   : (() -> Node)? = nil
     
@@ -46,7 +47,11 @@ class NodeList : MMWidget
         self.app = app
         
         listWidget = MMListWidget(view)
+        listWidget.skin.selectionColor = float4(0.5,0.5,0.5,1)
         
+        let propertyColor = float4(0.62, 0.506, 0.165, 1)
+        let behaviorColor = float4(0.129, 0.216, 0.612, 1)
+
         var item : NodeListItem
         // --- Object
 //        var item = NodeListItem("Object")
@@ -56,6 +61,7 @@ class NodeList : MMWidget
 //        items.append(item)
         // --- Object Physics
         item = NodeListItem("Physics Properties")
+        item.color = propertyColor
         item.createNode = {
             return ObjectPhysics()
         }
@@ -71,36 +77,42 @@ class NodeList : MMWidget
         item.createNode = {
             return BehaviorTree()
         }
+        item.color = behaviorColor
         items.append(item)
         // --- Object Animation
         item = NodeListItem("Animation")
         item.createNode = {
             return ObjectAnimation()
         }
+        item.color = behaviorColor
         items.append(item)
         // --- Behavior: Inverter
         item = NodeListItem("Inverter")
         item.createNode = {
             return Inverter()
         }
+        item.color = behaviorColor
         items.append(item)
         // --- Behavior: Sequence
         item = NodeListItem("Sequence")
         item.createNode = {
             return Sequence()
         }
+        item.color = behaviorColor
         items.append(item)
         // --- Behavior: Selector
         item = NodeListItem("Selector")
         item.createNode = {
             return Selector()
         }
+        item.color = behaviorColor
         items.append(item)
         // --- Leave: Key Down
         item = NodeListItem("Key Down")
         item.createNode = {
             return KeyDown()
         }
+        item.color = behaviorColor
         items.append(item)
 
         // ---

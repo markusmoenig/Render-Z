@@ -27,6 +27,7 @@ class MMTlSequence : Codable, MMListWidgetItem
 {
     var uuid            : UUID = UUID()
     var name            : String = "Idle"
+    var color           : float4? = nil
 
     var items           : [UUID: [Int:MMTlKey]] = [:]
 }

@@ -531,6 +531,7 @@ class AvailableObjectListItem : MMListWidgetItem
 {
     var name         : String = ""
     var uuid         : UUID = UUID()
+    var color       : float4? = nil
 }
 
 struct AvailableObjectListItemDrag : MMDragSource
@@ -668,6 +669,7 @@ class ObjectListItem : MMListWidgetItem
 {
     var name         : String = ""
     var uuid         : UUID = UUID()
+    var color       : float4? = nil
 }
 
 class ObjectList : MMWidget
