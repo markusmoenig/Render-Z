@@ -43,6 +43,8 @@ class Node : Codable
     var uiMaxTitleSize  : float2 = float2()
 
     var subset          : [UUID]? = nil
+    var behaviorTrees   : [BehaviorTree]? = nil
+    var behaviorRoot    : BehaviorTreeRoot? = nil
     
     var playResult      : Result? = nil
 

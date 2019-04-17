@@ -196,20 +196,10 @@ class Object : Node
     /// Execute all bevavior outputs
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
-        var result : Result = .Success
+        let result : Result = .Success
         
-        //let timeline = nodeGraph.app!.timeline
-        
-        //timeline.transformProperties(sequence: playInstance!.currentSequence, uuid: uuid, properties: properties, frame: timeline.currentFrame) -> [String:Float]
-        
-        for terminal in terminals {
-            
-            if terminal.connector == .Bottom {
-                for conn in terminal.connections {
-                    let toTerminal = conn.toTerminal!
-                    result = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
-                }
-            }
+        for tree in behaviorTrees! {
+            _ = tree.execute(nodeGraph: nodeGraph, root: root, parent: self)
         }
         
         return result

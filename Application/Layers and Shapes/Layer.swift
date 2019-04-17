@@ -187,28 +187,10 @@ class Layer : Node
     /// Execute the layer
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
-        var result : Result = .Success
+        let result : Result = .Success
         
-        /*
-        for object in objectInstances {
-            
-            let instance = object.instance!
-            
-            let physicsMode = instance.properties["physicsMode"]
-            if physicsMode != nil && physicsMode! == 2 {
-                instance.properties["posY"]! += 0.3
-            }
-            print(instance.name, object.instance!.properties["posY"]!)
-        }*/
-        
-        /// Execute behavior outputs
-        for terminal in terminals {
-            if terminal.connector == .Bottom {
-                for conn in terminal.connections {
-                    let toTerminal = conn.toTerminal!
-                    result = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
-                }
-            }
+        for tree in behaviorTrees! {
+            _ = tree.execute(nodeGraph: nodeGraph, root: root, parent: self)
         }
         
         return result

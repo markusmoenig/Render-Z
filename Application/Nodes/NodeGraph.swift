@@ -35,8 +35,10 @@ class NodeGraph : Codable
     var app             : App?
     var maximizedNode   : Node?
     var hoverNode       : Node?
-    var playNode        : Node?
     var currentNode     : Node?
+    
+    var playNode        : Node? = nil
+    var playToExecute   : [Node] = []
 
     var currentMaster   : Node? = nil
     var currentMasterUUID: UUID? = nil
@@ -242,17 +244,32 @@ class NodeGraph : Codable
 
         playButton = MMButtonWidget( app.mmView, skinToUse: smallButtonSkin, text: "Run Behavior Trees" )
         playButton.clicked = { (event) -> Void in
+            
             if self.playNode == nil {
-                self.playNode = self.currentMaster!
-                let node = self.playNode
                 
+                // --- Start Playing
+                self.playToExecute = []
+                self.playNode = self.currentMaster!
+
+                let node = self.playNode
                 if node!.type == "Object" {
-                    let object = node as! Object
+                    var object = node as! Object
                     object.setupExecution(nodeGraph: self)
+                    object = object.playInstance!
+                    self.playToExecute.append(object)
                 } else
                 if node!.type == "Layer" {
                     let layer = node as! Layer
                     layer.setupExecution(nodeGraph: self)
+                    for inst in layer.objectInstances {
+                        self.playToExecute.append(inst.instance!)
+                    }
+                    self.playToExecute.append(layer)
+                }
+                
+                for exe in self.playToExecute {
+                    exe.behaviorRoot = BehaviorTreeRoot(exe)
+                    exe.behaviorTrees = self.getBehaviorTrees(for: exe)
                 }
                 
                 self.playButton.addState(.Checked)
@@ -272,6 +289,7 @@ class NodeGraph : Codable
                 
                 self.playNode!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
                 self.playNode = nil
+                self.playToExecute = []
                 self.playButton.removeState(.Checked)
                 app.mmView.unlockFramerate()
             }
@@ -620,28 +638,8 @@ class NodeGraph : Codable
                     node.playResult = .Unused
                 }
                 
-                func run(_ root: BehaviorTreeRoot) {
-                    if let masterNode = currentMaster {
-                        for node in nodes {
-                            if masterNode.subset!.contains(node.uuid) {
-                                if node.type == "Behavior Tree" {
-                                    if node.properties["status"] == 0 {
-                                        _ = node.execute(nodeGraph: self, root: root, parent: node)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                if playNode!.type == "Object" {
-                    var object = playNode! as! Object
-                    object = object.playInstance!
-                    let btRoot = BehaviorTreeRoot(object)
-                    run(btRoot)
-                } else {
-                    let btRoot = BehaviorTreeRoot(playNode!)
-                    run(btRoot)
+                for exe in playToExecute {
+                    _ = exe.execute(nodeGraph: self, root: exe.behaviorRoot!, parent: exe.behaviorRoot!.rootNode)
                 }
                 playNode!.updatePreview(nodeGraph: self)
             }
@@ -887,17 +885,6 @@ class NodeGraph : Codable
         
         node.data.selected = 0
         node.data.borderRound = 16
-        
-        if playNode != nil && node.playResult != nil {
-            if node.playResult! == .Success {
-                node.data.selected = 2
-            } else
-                if node.playResult! == .Failure {
-                    node.data.selected = 3
-                } else {
-                    node.data.selected = 4
-            }
-        }
         
         node.data.hoverIndex = 0
         if nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid {
@@ -1246,6 +1233,25 @@ class NodeGraph : Codable
             selectedUUID = [node!.uuid]
             currentNode = node
         }
+    }
+    
+    /// gets all behavior tree nodes for the given master node
+    func getBehaviorTrees(for masterNode:Node) -> [BehaviorTree]
+    {
+        if masterNode.subset == nil { return [] }
+        var trees : [BehaviorTree] = []
+        
+        for node in nodes {
+            if masterNode.subset!.contains(node.uuid) {
+                if let treeNode = node as? BehaviorTree {
+                    if node.properties["status"] == 0 {
+                        trees.append(treeNode)
+                    }
+                }
+            }
+        }
+        
+        return trees
     }
     
     /// Update the content type
