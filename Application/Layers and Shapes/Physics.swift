@@ -126,8 +126,8 @@ class Physics
         instance.data!.append( 1/camera.zoom )
         instance.data!.append( 0 )
         
-        source += getGlobalCode(objects:objects)
-        source += buildStaticObjectCode(objects:objects)
+        source += getGlobalCode(objects: objects)
+        source += buildStaticObjectCode(objects: objects)
 
         source +=
         """

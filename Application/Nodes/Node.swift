@@ -42,7 +42,10 @@ class Node : Codable
     var uiArea          : MMRect = MMRect()
     var uiMaxTitleSize  : float2 = float2()
 
+    // The subset of nodes for master nodes
     var subset          : [UUID]? = nil
+    
+    // Used only for master nodes during playback
     var behaviorTrees   : [BehaviorTree]? = nil
     var behaviorRoot    : BehaviorTreeRoot? = nil
     
