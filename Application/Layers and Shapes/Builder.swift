@@ -16,6 +16,8 @@ class BuilderInstance
     var data            : [Float]? = []
     var buffer          : MTLBuffer? = nil
     
+    // Offset of the header data
+    var headerOffset    : Int = 0
     // Offset to the point data array
     var pointDataOffset : Int = 0
     // Offset to the object data array
@@ -40,6 +42,8 @@ class BuildData
     var parentRotate        : Float = 0
     
     // --- Source
+    
+    var mainDataName        : String = "layerData->"
     var materialSource      : String = ""
     var source              : String = ""
     
@@ -77,179 +81,6 @@ class Builder
         compute = MMCompute()
     }
     
-    /// Recursively create the objects source code
-    func parseObject(_ object: Object, instance: BuilderInstance, buildData: BuildData, doMaterials: Bool = true)
-    {
-        buildData.parentPosX += object.properties["posX"]!
-        buildData.parentPosY += object.properties["posY"]!
-        buildData.parentRotate += object.properties["rotate"]!
-        
-        for shape in object.shapes {
-            
-            let properties : [String:Float]
-            if object.currentSequence != nil {
-                properties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
-            } else {
-                properties = shape.properties
-            }
-            
-            buildData.source += "tuv = translate( uv, layerData->shapes[\(buildData.shapeIndex)].pos );"
-            if shape.pointCount == 0 {
-                buildData.source += "if ( layerData->shapes[\(buildData.shapeIndex)].rotate != 0.0 ) tuv = rotateCCW( tuv, layerData->shapes[\(buildData.shapeIndex)].rotate );\n"
-            } else {
-                buildData.source += "if ( layerData->shapes[\(buildData.shapeIndex)].rotate != 0.0 ) {\n"
-                buildData.source += "pAverage = float2(0);\n"
-                buildData.source += "for (int i = \(buildData.pointIndex); i < \(buildData.pointIndex + shape.pointCount); ++i) \n"
-                buildData.source += "pAverage += layerData->points[i];\n"
-                buildData.source += "pAverage /= \(shape.pointCount);\n"
-                buildData.source += "tuv = rotateCCW( tuv - pAverage, layerData->shapes[\(buildData.shapeIndex)].rotate );\n"
-                buildData.source += "tuv += pAverage;\n"
-                buildData.source += "}\n"
-            }
-            
-            var booleanCode = "merge"
-            if shape.mode == .Subtract {
-                booleanCode = "subtract"
-            } else
-                if shape.mode == .Intersect {
-                    booleanCode = "intersect"
-            }
-            
-            if shape.pointsVariable {
-                buildData.source += shape.createPointsVariableCode(shapeIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex)
-            }
-            buildData.source += "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, shapeIndex: buildData.shapeIndex) + ";\n"
-            
-            if shape.supportsRounding {
-                buildData.source += "newDist -= layerData->shapes[\(buildData.shapeIndex)].rounding;\n"
-            }
-            
-            // --- Annular
-            buildData.source += "if ( layerData->shapes[\(buildData.shapeIndex)].annular != 0.0 ) newDist = abs(newDist) - layerData->shapes[\(buildData.shapeIndex)].annular;\n"
-            
-            // --- Inverse
-            if shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1 {
-                buildData.source += "newDist = -newDist;\n"
-            }
-            
-            buildData.source += "if (newDist < dist) materialId = \(buildData.objectIndex);\n"
-            
-            if booleanCode != "subtract" {
-                buildData.source += "if ( layerData->shapes[\(buildData.shapeIndex)].smoothBoolean == 0.0 )"
-                buildData.source += "  dist = \(booleanCode)( dist, newDist );"
-                buildData.source += "  else dist = \(booleanCode)Smooth( dist, newDist, layerData->shapes[\(buildData.shapeIndex)].smoothBoolean );"
-            } else {
-                buildData.source += "if ( layerData->shapes[\(buildData.shapeIndex)].smoothBoolean == 0.0 )"
-                buildData.source += "  dist = \(booleanCode)( dist, newDist );"
-                buildData.source += "  else dist = \(booleanCode)Smooth( newDist, dist, layerData->shapes[\(buildData.shapeIndex)].smoothBoolean );"
-            }
-            
-            let posX = properties["posX"]! + buildData.parentPosX
-            let posY = properties["posY"]! + buildData.parentPosY
-            let sizeX = properties[shape.widthProperty]
-            let sizeY = properties[shape.heightProperty]
-            let rotate = (properties["rotate"]!+buildData.parentRotate) * Float.pi / 180
-            
-            instance.data!.append( posX )
-            instance.data!.append( posY )
-            instance.data!.append( sizeX! )
-            instance.data!.append( sizeY! )
-            instance.data!.append( rotate )
-            instance.data!.append( properties["rounding"]! )
-            instance.data!.append( properties["annular"]! )
-            instance.data!.append( properties["smoothBoolean"]! )
-            
-            buildData.shapeIndex += 1
-            buildData.pointIndex += shape.pointCount
-        }
-        
-        // --- Material Code
-        
-        func createMaterialCode(_ material: Material, _ materialName: String)
-        {
-            var channelCode = materialName + "."
-            var materialProperty : String = ""
-            let channel = material.properties["channel"]
-            switch channel
-            {
-            case 0: materialProperty = "baseColor"
-            case 1: materialProperty = "subsurface"
-            case 2: materialProperty = "roughness"
-            case 3: materialProperty = "metallic"
-            case 4: materialProperty = "specular"
-            case 5: materialProperty = "specularTint"
-            case 6: materialProperty = "clearcoat"
-            case 7: materialProperty = "clearcoatGloss"
-            case 8: materialProperty = "anisotropic"
-            case 9: materialProperty = "sheen"
-            case 10: materialProperty = "sheenTint"
-            default: print("Invalid Channel")
-            }
-            channelCode += materialProperty
-            let limiterType = material.properties["limiterType"]
-            let materialExt = channel == 0 ? "" : ".x"
-            
-            // --- Translate material uv
-            buildData.materialSource += "tuv = translate( uv, layerData->materialData[\(buildData.materialDataIndex)].xy );"
-            
-            // --- Rotate material uv
-            buildData.materialSource += "if ( layerData->materialData[\(buildData.materialDataIndex+1)].x != 0.0 ) tuv = rotateCCW( tuv, layerData->materialData[\(buildData.materialDataIndex+1)].x );\n"
-            
-            buildData.materialSource += "value = " + material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+2) + ";\n"
-            
-            if limiterType == 0 {
-                // --- No Limiter
-                buildData.materialSource += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
-            } else
-                if limiterType == 1 {
-                    // --- Rectangle
-                    buildData.materialSource += "  d = abs( tuv ) - layerData->materialData[\(buildData.materialDataIndex)].zw;\n"
-                    buildData.materialSource += "  limiterDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
-                    buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
-                } else
-                    if limiterType == 2 {
-                        // --- Sphere
-                        buildData.materialSource += "  limiterDist = length( tuv ) - layerData->materialData[\(buildData.materialDataIndex)].z;\n"
-                        buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
-                    } else
-                        if limiterType == 3 {
-                            // --- Border
-                            buildData.materialSource += "  limiterDist = -dist - layerData->materialData[\(buildData.materialDataIndex)].z;\n"
-                            buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
-            }
-        }
-        
-        buildData.materialSource += "if (materialId == \(buildData.objectIndex)) { float2 d; float limiterDist; float4 value;\n"
-        for material in object.bodyMaterials {
-            createMaterialCode(material, "bodyMaterial")
-            if material.pointCount == 0 {
-                buildData.materialDataIndex += 3
-            } else {
-                buildData.materialDataIndex += 2 + material.pointCount * 2
-            }
-        }
-        for material in object.borderMaterials {
-            createMaterialCode(material, "borderMaterial")
-            if material.pointCount == 0 {
-                buildData.materialDataIndex += 3
-            } else {
-                buildData.materialDataIndex += 2 + material.pointCount * 2
-            }
-        }
-        
-        buildData.materialSource += "}\n"
-        buildData.objectIndex += 1
-        
-        for childObject in object.childObjects {
-            parseObject(childObject, instance: instance, buildData: buildData, doMaterials: doMaterials)
-        }
-        
-        buildData.parentPosX -= object.properties["posX"]!
-        buildData.parentPosY -= object.properties["posY"]!
-        buildData.parentRotate -= object.properties["rotate"]!
-    }
-
-    
     /// Build the state for the given objects
     func buildObjects(objects: [Object], camera: Camera, preview: Bool  = false) -> BuilderInstance
     {
@@ -259,88 +90,9 @@ class Builder
         instance.objects = objects
         computeMaxCounts(objects: objects, buildData: buildData)
         
-        buildData.source =
+        buildData.source += getCommonCode()
+        buildData.source +=
         """
-        #include <metal_stdlib>
-        #include <simd/simd.h>
-        using namespace metal;
-        
-        float merge(float d1, float d2)
-        {
-            return min(d1, d2);
-        }
-        
-        float mergeSmooth(float d1, float d2, float k) {
-            float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
-            return mix( d2, d1, h ) - k*h*(1.0-h);
-        }
-        
-        float subtract(float d1, float d2)
-        {
-            return max(d1, -d2);
-        }
-        
-        float subtractSmooth( float d1, float d2, float k )
-        {
-            float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
-            return mix( d2, -d1, h ) + k*h*(1.0-h);
-        }
-        
-        float intersect(float d1, float d2)
-        {
-            return max(d1, d2);
-        }
-        
-        float intersectSmooth( float d1, float d2, float k )
-        {
-            float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
-            return mix( d2, d1, h ) + k*h*(1.0-h);
-        }
-        
-        float fillMask(float dist)
-        {
-            return clamp(-dist, 0.0, 1.0);
-        }
-        
-        float borderMask(float dist, float width)
-        {
-            //dist += 1.0;
-            return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
-        }
-        
-        float2 translate(float2 p, float2 t)
-        {
-            return p - t;
-        }
-        
-        float2 rotateCW(float2 pos, float angle)
-        {
-            float ca = cos(angle), sa = sin(angle);
-            return pos * float2x2(ca, -sa, sa, ca);
-        }
-        
-        float2 rotateCCW (float2 pos, float angle)
-        {
-            float ca = cos(angle), sa = sin(angle);
-            return pos * float2x2(ca, sa, -sa, ca);
-        }
-        
-        typedef struct
-        {
-            float2      pos;
-            float2      size;
-            float       rotate;
-            float       rounding;
-            float       annular;
-            float       smoothBoolean;
-        } SHAPE_DATA;
-        
-        typedef struct
-        {
-            float       border;
-            float       fill1;
-            float2      fill2;
-        } OBJECT_DATA;
         
         typedef struct
         {
@@ -357,12 +109,14 @@ class Builder
         
         buildData.source += Material.getMaterialStructCode()
         buildData.source += getGlobalCode(objects:objects)
-        buildData.source += getRenderSourceCode();
+        buildData.source += getRenderCode();
 
         instance.data!.append( camera.xPos )
         instance.data!.append( camera.yPos )
         instance.data!.append( 1/camera.zoom )
         instance.data!.append( 0 )
+        
+        instance.headerOffset = instance.data!.count
         
         buildData.source +=
         """
@@ -391,21 +145,11 @@ class Builder
             borderMaterial.baseColor = float4(1);
             clearMaterial( &borderMaterial );
             int materialId = -1;
+            constant SHAPE_DATA *shape;
         
         """
         
         /// Parse objects and their shapes
-        /*
-        var index : Int = 0 // shape index
-        var objectIndex : Int = 0 // object index
-        var materialDataIndex : Int = 0
-        var pointIndex : Int = 0
-        var parentPosX : Float = 0
-        var parentPosY : Float = 0
-        var parentRotate : Float = 0
-        
-        var materialSource : String = ""
-        */
         
         for object in objects {
             buildData.parentPosX = 0
@@ -534,6 +278,193 @@ class Builder
         return instance
     }
     
+    /// Recursively create the objects source code
+    func parseObject(_ object: Object, instance: BuilderInstance, buildData: BuildData, physics: Bool = false)
+    {
+        buildData.parentPosX += object.properties["posX"]!
+        buildData.parentPosY += object.properties["posY"]!
+        buildData.parentRotate += object.properties["rotate"]!
+        
+        for shape in object.shapes {
+            
+            let properties : [String:Float]
+            if object.currentSequence != nil {
+                properties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
+            } else {
+                properties = shape.properties
+            }
+            
+            buildData.source += "shape = &\(buildData.mainDataName)shapes[\(buildData.shapeIndex)];\n"
+            
+            buildData.source += "tuv = translate( uv, shape->pos );"
+            if shape.pointCount == 0 {
+                buildData.source += "if ( shape->rotate != 0.0 ) tuv = rotateCCW( tuv, shape->rotate );\n"
+            } else {
+                buildData.source += "if ( shape->rotate != 0.0 ) {\n"
+                buildData.source += "pAverage = float2(0);\n"
+                buildData.source += "for (int i = \(buildData.pointIndex); i < \(buildData.pointIndex + shape.pointCount); ++i) \n"
+                buildData.source += "pAverage += \(buildData.mainDataName)points[i];\n"
+                buildData.source += "pAverage /= \(shape.pointCount);\n"
+                buildData.source += "tuv = rotateCCW( tuv - pAverage, shape->rotate );\n"
+                buildData.source += "tuv += pAverage;\n"
+                buildData.source += "}\n"
+            }
+            
+            var booleanCode = "merge"
+            if shape.mode == .Subtract {
+                booleanCode = "subtract"
+            } else
+                if shape.mode == .Intersect {
+                    booleanCode = "intersect"
+            }
+            
+            if shape.pointsVariable {
+                buildData.source += shape.createPointsVariableCode(shapeIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex)
+            }
+            buildData.source += "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, shapeIndex: buildData.shapeIndex, mainDataName: buildData.mainDataName) + ";\n"
+            
+            if shape.supportsRounding {
+                buildData.source += "newDist -= shape->rounding;\n"
+            }
+            
+            // --- Annular
+            buildData.source += "if ( shape->annular != 0.0 ) newDist = abs(newDist) - shape->annular;\n"
+            
+            // --- Inverse
+            if shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1 {
+                buildData.source += "newDist = -newDist;\n"
+            }
+            
+            buildData.source += "if (newDist < dist) materialId = \(buildData.objectIndex);\n"
+            
+            if booleanCode != "subtract" {
+                buildData.source += "if ( shape->smoothBoolean == 0.0 )"
+                buildData.source += "  dist = \(booleanCode)( dist, newDist );"
+                buildData.source += "  else dist = \(booleanCode)Smooth( dist, newDist, shape->smoothBoolean );"
+            } else {
+                buildData.source += "if ( shape->smoothBoolean == 0.0 )"
+                buildData.source += "  dist = \(booleanCode)( dist, newDist );"
+                buildData.source += "  else dist = \(booleanCode)Smooth( newDist, dist, shape->smoothBoolean );"
+            }
+            
+            let posX = properties["posX"]! + buildData.parentPosX
+            let posY = properties["posY"]! + buildData.parentPosY
+            let sizeX = properties[shape.widthProperty]
+            let sizeY = properties[shape.heightProperty]
+            let rotate = (properties["rotate"]!+buildData.parentRotate) * Float.pi / 180
+            
+            if !physics {
+                object.buildShapeOffset = instance.data!.count
+            } else {
+                object.physicShapeOffset = instance.data!.count
+            }
+            
+            instance.data!.append( posX )
+            instance.data!.append( posY )
+            instance.data!.append( sizeX! )
+            instance.data!.append( sizeY! )
+            instance.data!.append( rotate )
+            instance.data!.append( properties["rounding"]! )
+            instance.data!.append( properties["annular"]! )
+            instance.data!.append( properties["smoothBoolean"]! )
+            
+            buildData.shapeIndex += 1
+            
+            if !physics {
+                object.buildPointOffset = buildData.pointIndex
+            } else {
+                object.physicPointOffset = buildData.pointIndex
+            }
+            buildData.pointIndex += shape.pointCount
+        }
+        
+        if !physics {
+            // --- Material Code
+            func createMaterialCode(_ material: Material, _ materialName: String)
+            {
+                var channelCode = materialName + "."
+                var materialProperty : String = ""
+                let channel = material.properties["channel"]
+                switch channel
+                {
+                case 0: materialProperty = "baseColor"
+                case 1: materialProperty = "subsurface"
+                case 2: materialProperty = "roughness"
+                case 3: materialProperty = "metallic"
+                case 4: materialProperty = "specular"
+                case 5: materialProperty = "specularTint"
+                case 6: materialProperty = "clearcoat"
+                case 7: materialProperty = "clearcoatGloss"
+                case 8: materialProperty = "anisotropic"
+                case 9: materialProperty = "sheen"
+                case 10: materialProperty = "sheenTint"
+                default: print("Invalid Channel")
+                }
+                channelCode += materialProperty
+                let limiterType = material.properties["limiterType"]
+                let materialExt = channel == 0 ? "" : ".x"
+                
+                // --- Translate material uv
+                buildData.materialSource += "tuv = translate( uv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].xy );"
+                
+                // --- Rotate material uv
+                buildData.materialSource += "if ( \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x != 0.0 ) tuv = rotateCCW( tuv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x );\n"
+                
+                buildData.materialSource += "value = " + material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+2) + ";\n"
+                
+                if limiterType == 0 {
+                    // --- No Limiter
+                    buildData.materialSource += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
+                } else
+                    if limiterType == 1 {
+                        // --- Rectangle
+                        buildData.materialSource += "  d = abs( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].zw;\n"
+                        buildData.materialSource += "  limiterDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
+                        buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                    } else
+                        if limiterType == 2 {
+                            // --- Sphere
+                            buildData.materialSource += "  limiterDist = length( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
+                            buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                        } else
+                            if limiterType == 3 {
+                                // --- Border
+                                buildData.materialSource += "  limiterDist = -dist - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
+                                buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                }
+            }
+            
+            buildData.materialSource += "if (materialId == \(buildData.objectIndex)) { float2 d; float limiterDist; float4 value;\n"
+            for material in object.bodyMaterials {
+                createMaterialCode(material, "bodyMaterial")
+                if material.pointCount == 0 {
+                    buildData.materialDataIndex += 3
+                } else {
+                    buildData.materialDataIndex += 2 + material.pointCount * 2
+                }
+            }
+            for material in object.borderMaterials {
+                createMaterialCode(material, "borderMaterial")
+                if material.pointCount == 0 {
+                    buildData.materialDataIndex += 3
+                } else {
+                    buildData.materialDataIndex += 2 + material.pointCount * 2
+                }
+            }
+            
+            buildData.materialSource += "}\n"
+            buildData.objectIndex += 1
+        }
+        
+        for childObject in object.childObjects {
+            parseObject(childObject, instance: instance, buildData: buildData, physics: physics)
+        }
+        
+        buildData.parentPosX -= object.properties["posX"]!
+        buildData.parentPosY -= object.properties["posY"]!
+        buildData.parentRotate -= object.properties["rotate"]!
+    }
+    
     /// Render the layer
     @discardableResult func render(width:Float, height:Float, instance: BuilderInstance, camera: Camera, outTexture: MTLTexture? = nil, frame: Int = 0) -> MTLTexture
     {
@@ -548,7 +479,7 @@ class Builder
         instance.data![0] = camera.xPos
         instance.data![1] = camera.yPos
         instance.data![2] = 1/camera.zoom
-        let offset : Int = 4
+        let offset : Int = instance.headerOffset
         var index : Int = 0
         var pointIndex : Int = 0
         var objectIndex : Int = 0
@@ -1023,7 +954,7 @@ class Builder
     }
     
     /// Retuns the shape count for the given objects
-    func computeMaxCounts(objects: [Object], buildData: BuildData)  {
+    func computeMaxCounts(objects: [Object], buildData: BuildData, physics: Bool = false)  {
         var shapeIndex : Int = 0
         var objectIndex : Int = 0
         var pointIndex : Int = 0
@@ -1059,7 +990,15 @@ class Builder
         }
         
         for object in objects {
-            parseObject(object)
+            if !physics {
+                parseObject(object)
+            } else {
+                let physicsMode = object.properties["physicsMode"]
+                /// Dynamic and static objects only in physics mode
+                if physicsMode != nil && (physicsMode! == 1 /*|| physicsMode! == 2*/) {
+                    parseObject(object)
+                }
+            }
         }
         
         buildData.maxShapes = shapeIndex
@@ -1068,7 +1007,99 @@ class Builder
         buildData.maxMaterialData = materialIndex
     }
     
-    func getRenderSourceCode() -> String
+    /// Returns the common code for all shaders
+    func getCommonCode() -> String
+    {
+        let code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        float merge(float d1, float d2)
+        {
+            return min(d1, d2);
+        }
+        
+        float mergeSmooth(float d1, float d2, float k) {
+            float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+            return mix( d2, d1, h ) - k*h*(1.0-h);
+        }
+        
+        float subtract(float d1, float d2)
+        {
+            return max(d1, -d2);
+        }
+        
+        float subtractSmooth( float d1, float d2, float k )
+        {
+            float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
+            return mix( d2, -d1, h ) + k*h*(1.0-h);
+        }
+        
+        float intersect(float d1, float d2)
+        {
+            return max(d1, d2);
+        }
+        
+        float intersectSmooth( float d1, float d2, float k )
+        {
+            float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
+            return mix( d2, d1, h ) + k*h*(1.0-h);
+        }
+        
+        float fillMask(float dist)
+        {
+            return clamp(-dist, 0.0, 1.0);
+        }
+        
+        float borderMask(float dist, float width)
+        {
+            //dist += 1.0;
+            return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
+        }
+        
+        float2 translate(float2 p, float2 t)
+        {
+            return p - t;
+        }
+        
+        float2 rotateCW(float2 pos, float angle)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pos * float2x2(ca, -sa, sa, ca);
+        }
+        
+        float2 rotateCCW (float2 pos, float angle)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pos * float2x2(ca, sa, -sa, ca);
+        }
+        
+        typedef struct
+        {
+            float2      pos;
+            float2      size;
+            float       rotate;
+            float       rounding;
+            float       annular;
+            float       smoothBoolean;
+        } SHAPE_DATA;
+        
+        typedef struct
+        {
+            float       border;
+            float       fill1;
+            float2      fill2;
+        } OBJECT_DATA;
+
+        """
+        
+        return code
+    }
+    
+    /// Returns the PBR Disney Render Code
+    func getRenderCode() -> String
     {
         let code =
         """

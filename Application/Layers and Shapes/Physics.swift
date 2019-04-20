@@ -10,16 +10,14 @@ import Foundation
 
 import MetalKit
 
-class PhysicsInstance
+class PhysicsInstance : BuilderInstance
 {
-    var objects         : [Object] = []
     var dynamicObjects  : [Object] = []
     
-    var state           : MTLComputePipelineState? = nil
-    
-    var data            : [Float]? = []
     var inBuffer        : MTLBuffer? = nil
     var outBuffer       : MTLBuffer? = nil
+    
+    var physicsOffset   : Int = 0
 }
 
 class Physics
@@ -34,64 +32,24 @@ class Physics
     }
     
     /// Build the state for the given objects
-    func buildPhysics(objects: [Object], camera: Camera) -> PhysicsInstance?
+    func buildPhysics(objects: [Object], builder: Builder, camera: Camera) -> PhysicsInstance?
     {
         let instance = PhysicsInstance()
-        
+        let buildData = BuildData()
+        buildData.mainDataName = "physicsData->"
+
+        builder.computeMaxCounts(objects: objects, buildData: buildData, physics: true)
+
         instance.dynamicObjects = getDynamicObjects(objects: objects)
         let dynaCount = instance.dynamicObjects.count
         if dynaCount == 0 { return nil }
         
         instance.objects = objects
         
-        var source =
+        buildData.source += builder.getCommonCode()
+        buildData.source += builder.getGlobalCode(objects: objects)
+        buildData.source +=
         """
-        #include <metal_stdlib>
-        #include <simd/simd.h>
-        using namespace metal;
-        
-        float merge(float d1, float d2)
-        {
-            return min(d1, d2);
-        }
-        
-        float subtract(float d1, float d2)
-        {
-            return max(d1, -d2);
-        }
-        
-        float intersect(float d1, float d2)
-        {
-            return max(d1, d2);
-        }
-        
-        float fillMask(float dist)
-        {
-            return clamp(-dist, 0.0, 1.0);
-        }
-        
-        float borderMask(float dist, float width)
-        {
-            return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
-        }
-        
-        float2 translate(float2 p, float2 t)
-        {
-            return p - t;
-        }
-        
-        float2 rotateCW(float2 pos, float angle)
-        {
-            float ca = cos(angle), sa = sin(angle);
-            return pos * float2x2(ca, -sa, sa, ca);
-        }
-        
-        float2 rotateCCW (float2 pos, float angle)
-        {
-            float ca = cos(angle), sa = sin(angle);
-            return pos * float2x2(ca, sa, -sa, ca);
-        }
-        
         typedef struct
         {
             float2      pos;
@@ -105,6 +63,10 @@ class Physics
             float2      size;
             float2      objectCount;
             float4      camera;
+        
+            SHAPE_DATA  shapes[\(max(buildData.maxShapes, 1))];
+            float2      points[\(max(buildData.maxPoints, 1))];
+            OBJECT_DATA objects[\(max(buildData.maxObjects, 1))];
         
             DYN_OBJ_DATA  dynamicObjects[\(dynaCount)];
         } PHYSICS_DATA;
@@ -126,16 +88,78 @@ class Physics
         instance.data!.append( 1/camera.zoom )
         instance.data!.append( 0 )
         
-        source += getGlobalCode(objects: objects)
-        source += buildStaticObjectCode(objects: objects)
-
-        source +=
+        instance.headerOffset = instance.data!.count
+        
+        // --- Build static code
+        
+        buildData.source +=
         """
-        float2 normal(float2 uv) {
+        
+        float sdf( float2 uv, constant PHYSICS_DATA *physicsData )
+        {
+            float2 tuv = uv, pAverage;
+            float dist = 100000, newDist;
+
+            int materialId = -1;
+            constant SHAPE_DATA *shape;
+
+        """
+        
+        for object in objects {
+            let physicsMode = object.properties["physicsMode"]
+            if physicsMode != nil && physicsMode! == 1 {
+                builder.parseObject(object, instance: instance, buildData: buildData, physics: true)
+            }
+        }
+        
+        buildData.source +=
+        """
+        
+            return dist;
+        }
+        
+        """
+        
+        //print( buildData.source )
+        
+        // Fill up the data
+        instance.pointDataOffset = instance.data!.count
+        
+        // Fill up the points
+        let pointCount = max(buildData.maxPoints,1)
+        for _ in 0..<pointCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
+        instance.objectDataOffset = instance.data!.count
+        
+        // Fill up the objects
+        let objectCount = max(buildData.maxObjects,1)
+        for _ in 0..<objectCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
+        // Test if we need to align memory based on the pointCount
+        if (pointCount % 2) == 1 {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
+        instance.physicsOffset = instance.data!.count
+        
+        // ---
+
+        buildData.source +=
+        """
+        float2 normal(float2 uv, constant PHYSICS_DATA *physicsData) {
             float2 eps = float2( 0.0005, 0.0 );
             return normalize(
-                float2(sdf(uv+eps.xy) - sdf(uv-eps.xy),
-                sdf(uv+eps.yx) - sdf(uv-eps.yx)));
+                float2(sdf(uv+eps.xy, physicsData) - sdf(uv-eps.xy, physicsData),
+                sdf(uv+eps.yx, physicsData) - sdf(uv-eps.yx, physicsData)));
         }
         
         kernel void layerPhysics(constant PHYSICS_DATA *physicsData [[ buffer(1) ]],
@@ -158,7 +182,7 @@ class Physics
         instance.data!.append( 0 )
         instance.data!.append( 0 )
         
-        source +=
+        buildData.source +=
         """
             float dynaCount = physicsData->objectCount.x;
             for (uint i = 0; i < dynaCount; i += 1 )
@@ -172,9 +196,9 @@ class Physics
                 for(int i = 0; i < 16; i++)
                 {
                     // Collisions
-                    if ( sdf(pos) < radius )
+                    if ( sdf(pos, physicsData) < radius )
                     {
-                        velocity = length(velocity) * reflect(normalize(velocity), -normal(pos)) * 0.99;
+                        velocity = length(velocity) * reflect(normalize(velocity), -normal(pos, physicsData)) * 0.99;
                     } else
         
                     // Gravity
@@ -194,14 +218,14 @@ class Physics
         
         instance.outBuffer = compute!.device.makeBuffer(length: dynaCount * 4 * MemoryLayout<Float>.stride, options: [])!
         
-        let library = compute!.createLibraryFromSource(source: source)
+        let library = compute!.createLibraryFromSource(source: buildData.source)
         instance.state = compute!.createState(library: library, name: "layerPhysics")
         
         return instance
     }
     
     /// Render
-    func render(width:Float, height:Float, instance: PhysicsInstance, camera: Camera)
+    func render(width:Float, height:Float, instance: PhysicsInstance, builderInstance: BuilderInstance, camera: Camera)
     {
         instance.data![0] = width
         instance.data![1] = height
@@ -212,8 +236,30 @@ class Physics
         instance.data![5] = camera.yPos
         instance.data![6] = 1/camera.zoom
         instance.data![7] = 0
+        
+        func parseObject(_ object: Object)
+        {
+            for shape in object.shapes {
+                for index in 0..<8 {
+                    instance.data![object.physicShapeOffset+index] = builderInstance.data![object.buildShapeOffset+index]
+                }
+                
+                for index in 0..<shape.pointCount {
+                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 2] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 2]
+                        instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 2 + 1] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 2 + 1]
+                }
+            }
+            
+            for childObject in object.childObjects {
+                parseObject(childObject)
+            }
+        }
+        
+        for object in instance.objects {
+            parseObject(object)
+        }
 
-        var offset : Int = 8
+        var offset : Int = instance.physicsOffset
         for object in instance.dynamicObjects {
             instance.data![offset + 0] = object.properties["posX"]!
             instance.data![offset + 1] = object.properties["posY"]!
@@ -256,127 +302,5 @@ class Physics
         }
         
         return result
-    }
-    
-    /// Creates the global code for all shapes
-    func getGlobalCode(objects: [Object]) -> String
-    {
-        var coll : [String] = []
-        var result = ""
-        
-        for object in objects {
-            for shape in object.shapes {
-                
-                if !coll.contains(shape.name) {
-                    result += shape.globalCode
-                    coll.append( shape.name )
-                }
-            }
-        }
-        
-        return result
-    }
-    
-    /// Builds the sdf() function which returns the distance to the static physic objects
-    func buildStaticObjectCode(objects: [Object]) -> String
-    {
-        var source =
-        """
-        
-        float sdf( float2 uv )
-        {
-            float2 tuv = uv;
-            float dist = 1000;
-        
-        """
-        
-        var parentPosX : Float = 0
-        var parentPosY : Float = 0
-        var parentRotate : Float = 0
-        func parseObject(_ object: Object)
-        {
-            parentPosX += object.properties["posX"]!
-            parentPosY += object.properties["posY"]!
-            parentRotate += object.properties["rotate"]!
-            
-            for shape in object.shapes {
-                
-                let properties : [String:Float]
-                if object.currentSequence != nil {
-                    properties = nodeGraph.timeline.transformProperties(sequence: object.currentSequence!, uuid: shape.uuid, properties: shape.properties)
-                } else {
-                    properties = shape.properties
-                }
-                
-                let posX = properties["posX"]! + parentPosX
-                let posY = properties["posY"]! + parentPosY
-                //let sizeX = properties[shape.widthProperty]
-                //let sizeY = properties[shape.heightProperty]
-                let rotate = (properties["rotate"]!+parentRotate) * Float.pi / 180
-                
-                source += "uv = translate( tuv, float2( \(posX), \(posY) ) );"
-                
-                if shape.pointCount < 2 {
-                    source += "if ( \(rotate) != 0.0 ) uv = rotateCCW( uv, \(rotate) );\n"
-                } else
-                if shape.pointCount == 2 {
-                    let p0X = properties["point_0_x"]!
-                    let p0Y = properties["point_0_y"]!
-                    let p1X = properties["point_1_x"]!
-                    let p1Y = properties["point_1_y"]!
-
-                    source += "if ( \(rotate) != 0.0 ) { uv = rotateCCW( uv - ( float2( \(p0X), \(p0Y) ) + float2( \(p1X), \(p1Y) ) ) / 2, \(rotate) );\n"
-                    source += "uv += ( float2( \(p0X), \(p0Y) ) + float2( \(p1X), \(p1Y) )) / 2;}\n"
-                } else
-                if shape.pointCount == 3 {
-                    let p0X = properties["point_0_x"]!
-                    let p0Y = properties["point_0_y"]!
-                    let p1X = properties["point_1_x"]!
-                    let p1Y = properties["point_1_y"]!
-                    let p2X = properties["point_2_x"]!
-                    let p2Y = properties["point_2_y"]!
-                    
-                    source += "if ( \(rotate) != 0.0 ) { uv = rotateCCW( uv - ( float2( \(p0X), \(p0Y) ) + float2( \(p1X), \(p1Y) ) + float2( \(p2X), \(p2Y) ) ) / 3, \(rotate) );\n"
-                    source += "uv += ( float2( \(p0X), \(p0Y) ) + float2( \(p1X), \(p1Y) ) + float2( \(p2X), \(p2Y) ) ) / 3;}\n"
-                }
-                
-                var booleanCode = "merge"
-                if shape.mode == .Subtract {
-                    booleanCode = "subtract"
-                } else
-                    if shape.mode == .Intersect {
-                        booleanCode = "intersect"
-                }
-                
-                source += "dist = \(booleanCode)( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
-            }
-            
-            for childObject in object.childObjects {
-                parseObject(childObject)
-            }
-            
-            parentPosX -= object.properties["posX"]!
-            parentPosY -= object.properties["posY"]!
-            parentRotate -= object.properties["rotate"]!
-        }
-        
-        for object in objects {
-            let physicsMode = object.properties["physicsMode"]
-            if physicsMode != nil && physicsMode! == 1 {
-                parseObject(object)
-            }
-        }
-
-        source +=
-        """
-        
-            return dist;
-        }
-        
-        """
-        
-        //print( source )
-        
-        return source;
     }
 }

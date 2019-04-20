@@ -181,7 +181,7 @@ class Layer : Node
         executeProperties(nodeGraph)
         
         builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: maxDelegate!.getCamera()!, preview: true)
-        physicsInstance = nodeGraph.physics.buildPhysics(objects: objects, camera: maxDelegate!.getCamera()!)
+        physicsInstance = nodeGraph.physics.buildPhysics(objects: objects, builder: nodeGraph.builder, camera: maxDelegate!.getCamera()!)
     }
     
     /// Execute the layer
@@ -212,12 +212,12 @@ class Layer : Node
             builderInstance = nodeGraph.builder.buildObjects(objects: createInstances(nodeGraph: nodeGraph), camera: camera, preview: true)
         }
         
-        if physicsInstance != nil {
-            nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, camera: camera)
-        }
-        
         if builderInstance != nil {
             nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture)
+        }
+        
+        if physicsInstance != nil {
+            nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
         }
     }
 }
