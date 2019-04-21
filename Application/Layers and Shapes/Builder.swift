@@ -11,6 +11,8 @@ import MetalKit
 class BuilderInstance
 {
     var objects         : [Object] = []
+    var objectMap       : [Int:Object] = [:]
+    
     var state           : MTLComputePipelineState? = nil
     
     var data            : [Float]? = []
@@ -285,6 +287,13 @@ class Builder
         buildData.parentPosY += object.properties["posY"]!
         buildData.parentRotate += object.properties["rotate"]!
         
+        instance.objectMap[buildData.objectIndex] = object
+        
+        if physics {
+            // Init physics body
+            object.body = Body(object)
+        }
+        
         for shape in object.shapes {
             
             let properties : [String:Float]
@@ -453,9 +462,10 @@ class Builder
             }
             
             buildData.materialSource += "}\n"
-            buildData.objectIndex += 1
         }
-        
+
+        buildData.objectIndex += 1
+
         for childObject in object.childObjects {
             parseObject(childObject, instance: instance, buildData: buildData, physics: physics)
         }

@@ -25,6 +25,11 @@ class Physics
     var compute         : MMCompute?
     var nodeGraph       : NodeGraph
     
+    var accumulator     : Float = 0
+    
+    var lastTime        : Double = 0
+    var delta           : Float = 1 / 60
+    
     init(_ nodeGraph: NodeGraph)
     {
         self.nodeGraph = nodeGraph
@@ -95,7 +100,7 @@ class Physics
         buildData.source +=
         """
         
-        float sdf( float2 uv, constant PHYSICS_DATA *physicsData )
+        float2 sdf( float2 uv, constant PHYSICS_DATA *physicsData )
         {
             float2 tuv = uv, pAverage;
             float dist = 100000, newDist;
@@ -115,7 +120,7 @@ class Physics
         buildData.source +=
         """
         
-            return dist;
+            return float2(dist,materialId);
         }
         
         """
@@ -158,8 +163,8 @@ class Physics
         float2 normal(float2 uv, constant PHYSICS_DATA *physicsData) {
             float2 eps = float2( 0.0005, 0.0 );
             return normalize(
-                float2(sdf(uv+eps.xy, physicsData) - sdf(uv-eps.xy, physicsData),
-                sdf(uv+eps.yx, physicsData) - sdf(uv-eps.yx, physicsData)));
+                float2(sdf(uv+eps.xy, physicsData).x - sdf(uv-eps.xy, physicsData).x,
+                sdf(uv+eps.yx, physicsData).x - sdf(uv-eps.yx, physicsData).x));
         }
         
         kernel void layerPhysics(constant PHYSICS_DATA *physicsData [[ buffer(1) ]],
@@ -172,8 +177,8 @@ class Physics
          
             instance.data!.append( object.properties["posX"]! )
             instance.data!.append( object.properties["posY"]! )
-            instance.data!.append( object.properties["velocityX"]! )
-            instance.data!.append( object.properties["velocityY"]! )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
 
             instance.data!.append( 0 )
             instance.data!.append( 0 )
@@ -191,12 +196,13 @@ class Physics
                 float2 velocity =  physicsData->dynamicObjects[i].velocity;
                 float radius =  physicsData->dynamicObjects[i].radius;
 
-                float dt = 0.26 / 16;//float(SUB_STEPS);
+                /*
+                float dt = 0.26;// / 16;//float(SUB_STEPS);
         
-                for(int i = 0; i < 16; i++)
+                for(int i = 0; i < 1; i++)
                 {
                     // Collisions
-                    if ( sdf(pos, physicsData) < radius )
+                    if ( sdf(pos, physicsData) <= radius )
                     {
                         velocity = length(velocity) * reflect(normalize(velocity), -normal(pos, physicsData)) * 0.99;
                     } else
@@ -206,9 +212,16 @@ class Physics
         
                     // Add velocity
                     pos += velocity * dt * 100.0;
-                }
+                }*/
         
-                out[gid+i] = float4( pos.x, pos.y, velocity.x, velocity.y );
+                float2 hit = sdf(pos, physicsData);
+                float4 rc = float4( hit.y, 0, 0, 0 );
+
+                if ( hit.x < radius ) {
+                    rc.y = radius - hit.x;
+                    rc.zw = normal(pos, physicsData);
+                }
+                out[gid+i] = rc;//float4( pos.x, pos.y, velocity.x, velocity.y );
             }
         }
 
@@ -221,12 +234,16 @@ class Physics
         let library = compute!.createLibraryFromSource(source: buildData.source)
         instance.state = compute!.createState(library: library, name: "layerPhysics")
         
+        accumulator = 0
+        lastTime = getCurrentTime()
+
         return instance
     }
     
     /// Render
     func render(width:Float, height:Float, instance: PhysicsInstance, builderInstance: BuilderInstance, camera: Camera)
     {
+        // Update Buffer to update animation data
         instance.data![0] = width
         instance.data![1] = height
         instance.data![2] = Float(instance.dynamicObjects.count)
@@ -246,7 +263,7 @@ class Physics
                 
                 for index in 0..<shape.pointCount {
                     instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 2] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 2]
-                        instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 2 + 1] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 2 + 1]
+                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 2 + 1] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 2 + 1]
                 }
             }
             
@@ -258,20 +275,30 @@ class Physics
         for object in instance.objects {
             parseObject(object)
         }
-
+        
         var offset : Int = instance.physicsOffset
         for object in instance.dynamicObjects {
+            
+            if object.body == nil {
+                object.body = Body(object)
+            }
+            
             instance.data![offset + 0] = object.properties["posX"]!
             instance.data![offset + 1] = object.properties["posY"]!
-            instance.data![offset + 2] = object.properties["velocityX"]!
-            instance.data![offset + 3] = object.properties["velocityY"]!
+            instance.data![offset + 2] = object.body!.velocity.x
+            instance.data![offset + 3] = object.body!.velocity.y
             
             instance.data![offset + 4] = 40;//object.properties["radius"]!
-
+            
             offset += 6
         }
         
         memcpy(instance.inBuffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
+
+        // Step
+        
+        //accumulator += getDeltaTime()
+        //accumulator = simd_clamp( 0, 0.1, accumulator )
         
         compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer )
         
@@ -279,14 +306,39 @@ class Physics
         
         offset = 0
         for object in instance.dynamicObjects {
-            object.properties["posX"]  = result[offset]
-            object.properties["posY"]  = result[offset + 1]
-            object.properties["velocityX"]  = result[offset + 2]
-            object.properties["velocityY"]  = result[offset + 3]
             
-//            print( "dist", result[offset + 2] )
+            let id : Float = result[offset]
+            let penetration : Float = result[offset+1]
+
+            if ( penetration > 0 )
+            {
+                let normal = float2( result[offset + 2], result[offset + 3] )
+                
+                let manifold = Manifold(object.body!,instance.objectMap[Int(id)]!.body!)
+                manifold.penetrationDepth = penetration
+                manifold.normal = -normal
+                manifold.resolve()
+                manifold.positionalCorrection()
+            }
+            
+            object.body!.integrateForces(delta)
+            object.body!.integrateVelocity( delta )
+            
             offset += 4
         }
+        //accumulator -= delta
+    }
+    
+    func getCurrentTime()->Double {
+        return Double(Date().timeIntervalSince1970)
+    }
+    
+    func getDeltaTime() -> Float
+    {
+        let time = getCurrentTime()
+        let delta : Float = Float(time - lastTime)
+        lastTime = time
+        return delta
     }
     
     /// Creates the global code for all shapes
@@ -302,5 +354,135 @@ class Physics
         }
         
         return result
+    }
+}
+
+class Body
+{
+    var velocity            : float2
+    var force               : float2 = float2(0,0)
+    
+    var mass                : Float = 0
+    var invMass             : Float = 0
+    
+    var inertia             : Float = 1
+    var invInertia          : Float = 1
+    
+    var angularVelocity     : Float = 1
+    var torque              : Float = 0
+    
+    var staticFriction      : Float = 0.5
+    var dynamicFriction     : Float = 0.3
+
+    var restitution         : Float = 1
+    
+    var gravity             : float2 = float2(0, -10 * 5)
+    
+    var object              : Object
+    
+    init(_ object: Object)
+    {
+        self.object = object
+        velocity = float2(0,0)
+        
+        let physicsMode = object.properties["physicsMode"]
+        if physicsMode != nil && physicsMode! == 2 {
+            // Get mass for dynamic objects
+            mass = 1
+            invMass = 1
+        }
+    }
+    
+    func integrateForces(_ delta: Float)
+    {
+        velocity += (force * invMass + gravity) * (delta/2)
+    }
+    
+    func applyImpulse(_ impulse: float2)
+    {
+        velocity += invMass * impulse;
+    }
+    
+    func applyToPosition(_ value: float2)
+    {
+        object.properties["posX"] = object.properties["posX"]! + value.x * invMass
+        object.properties["posY"] = object.properties["posY"]! + value.y * invMass
+    }
+    
+    func integrateVelocity(_ delta: Float)
+    {
+        object.properties["posX"] = object.properties["posX"]! + velocity.x
+        object.properties["posY"] = object.properties["posY"]! + velocity.y
+    }
+}
+
+class Manifold
+{
+    var bodyA               : Body
+    var bodyB               : Body
+    
+    var penetrationDepth    : Float = 0
+    var normal              : float2 = float2()
+
+    var staticFriction      : Float
+    var dynamicFriction     : Float
+    var restitution         : Float
+
+    init(_ bodyA: Body, _ bodyB: Body)
+    {
+        self.bodyA = bodyA
+        self.bodyB = bodyB
+        
+        restitution = min(bodyA.restitution, bodyB.restitution)
+        staticFriction = sqrt(bodyA.staticFriction * bodyB.staticFriction)
+        dynamicFriction = sqrt(bodyA.dynamicFriction * bodyB.dynamicFriction)
+    }
+    
+    func resolve()
+    {
+        // Relative velocity
+//        let rv = -normal //+ Cross( B->angularVelocity, rb ) -
+//            - bodyA.velocity //- Cross( A->angularVelocity, ra );
+        
+        let rv : float2
+        
+//        if bodyB.object.name == "Instance of Frame" {
+            rv = bodyB.velocity - bodyA.velocity
+  //      } else {
+    //        rv = -normal - bodyA.velocity
+      //  }
+        
+        
+        // Relative velocity along the normal
+        let contactVel = simd_dot( rv, normal );
+        
+        // Do not resolve if velocities are separating
+        if contactVel > 0 { return }
+        
+        //real raCrossN = Cross( ra, normal );
+        //real rbCrossN = Cross( rb, normal );
+        //real invMassSum = A->im + B->im + Sqr( raCrossN ) * A->iI + Sqr( rbCrossN ) * B->iI;
+        
+        let invMassSum = bodyA.invMass + bodyB.invMass
+        
+        // Calculate impulse scalar
+        var j = -(1.0 + restitution) * contactVel
+        j /= invMassSum
+        //j /= (real)contact_count;
+        
+        // Apply impulse
+        let impulse : float2 = normal * j;
+        bodyA.applyImpulse( -impulse )//, ra );
+        bodyB.applyImpulse(  impulse )//, rb );
+    }
+    
+    func positionalCorrection()
+    {
+        let percent : Float = 0.2
+        let slop : Float = 0.01
+        
+        let correction = max( penetrationDepth - slop, 0.0 ) / (bodyA.invMass + bodyB.invMass) * normal * percent;
+        bodyA.applyToPosition(-correction)
+        bodyB.applyToPosition(correction)
     }
 }

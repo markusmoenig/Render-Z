@@ -37,6 +37,9 @@ class Object : Node
     var physicShapeOffset: Int = 0
     var physicPointOffset: Int = 0
 
+    /// Physics Body
+    var body            : Body? = nil
+    
     var selectedShapes  : [UUID]
     var selectedBodyMaterials: [UUID]
     var selectedBorderMaterials: [UUID]

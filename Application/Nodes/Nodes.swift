@@ -139,7 +139,7 @@ class ObjectAnimation : Node
 
             object.setSequence(index: Int(animPicker.index), timeline: nodeGraph.app!.timeline)
             object.setAnimationMode(Object.AnimationMode(rawValue: Int(mode.index))!, scale: scale.value)
-            print("AnimationPicker", Int(animPicker.index), Int(mode.index))
+            //print("AnimationPicker", Int(animPicker.index), Int(mode.index))
             playResult = .Success
         }
         
