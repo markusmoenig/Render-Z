@@ -16,23 +16,19 @@ class ObjectPhysics : Node
         
         name = "Physics Properties"
         type = "Object Physics"
+        brand = .Property
     }
     
     private enum CodingKeys: String, CodingKey {
         case type
     }
     
-    override func setupTerminals()
-    {
-        terminals = [
-            Terminal(name: "Properties", connector: .Right, brand: .Properties, node: self)
-        ]
-    }
-    
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1)
+            NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1),
+            NodeUINumber(self, variable: "physicsMass", title: "Mass", range: float2(0, 50), value: 1),
+            NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 1), value: 0.2)
         ]
         
         super.setupUI(mmView: mmView)
@@ -47,6 +43,7 @@ class ObjectPhysics : Node
         try super.init(from: superDecoder)
         
         type = "Object Physics"
+        brand = .Property
     }
     
     override func encode(to encoder: Encoder) throws
@@ -64,12 +61,9 @@ class ObjectPhysics : Node
         if let object = root.objectRoot {
             let value = properties["physicsMode"]!
             object.properties["physicsMode"] = value
-            
-            if value == 2 {
-                // Set velocity to 0 by default
-                object.properties["velocityX"] = 0
-                object.properties["velocityY"] = 0
-            }
+            object.properties["physicsMass"] = properties["physicsMass"]!
+            object.properties["physicsRestitution"] = properties["physicsRestitution"]!
+
             return .Success
         }
         return .Failure
@@ -146,71 +140,3 @@ class ObjectAnimation : Node
         return playResult!
     }
 }
-
-class KeyDown : Node
-{
-    override init()
-    {
-        super.init()
-        
-        name = "Key Down"
-        type = "Key Down"
-    }
-    
-    private enum CodingKeys: String, CodingKey {
-        case type
-    }
-    
-    override func setupTerminals()
-    {
-        terminals = [
-            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
-        ]
-    }
-    
-    override func setupUI(mmView: MMView)
-    {
-        uiItems = [
-            NodeUIKeyDown(self, variable: "keyCode", title: "Key")
-        ]
-        
-        super.setupUI(mmView: mmView)
-    }
-    
-    required init(from decoder: Decoder) throws
-    {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        //        test = try container.decode(Float.self, forKey: .test)
-        
-        let superDecoder = try container.superDecoder()
-        try super.init(from: superDecoder)
-        
-        type = "Key Down"
-    }
-    
-    override func encode(to encoder: Encoder) throws
-    {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(type, forKey: .type)
-        
-        let superdecoder = container.superEncoder()
-        try super.encode(to: superdecoder)
-    }
-    
-    /// Return Success if the selected key is currently down
-    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
-    {
-        playResult = .Failure
-        
-        #if os(OSX)
-        let index = nodeGraph.app!.mmView.keysDown.firstIndex{$0 == properties["keyCode"]!}
-        
-        if index != nil {
-                playResult = .Success
-        }
-        #endif
-        
-        return playResult!
-    }
-}
-

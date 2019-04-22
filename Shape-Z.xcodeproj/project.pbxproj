@@ -49,6 +49,14 @@
 		2BA344AE2202A0AA000BB2EB /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
 		2BA6163C2259805800638794 /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
 		2BA6163D2259805800638794 /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
+		2BAC26D5226D640300E20ADD /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D4226D640300E20ADD /* Game.swift */; };
+		2BAC26D6226D640300E20ADD /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D4226D640300E20ADD /* Game.swift */; };
+		2BAC26D8226D652F00E20ADD /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D7226D652E00E20ADD /* Scene.swift */; };
+		2BAC26D9226D652F00E20ADD /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D7226D652E00E20ADD /* Scene.swift */; };
+		2BAC26DB226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */; };
+		2BAC26DC226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */; };
+		2BAC26DE226D6B8F00E20ADD /* GameNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */; };
+		2BAC26DF226D6B8F00E20ADD /* GameNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */; };
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
 		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
 		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
@@ -130,8 +138,8 @@
 		2BE6710C2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
 		2BEA8C3722573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
 		2BEA8C3822573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
-		2BF5D361221D2B2400EAAA76 /* Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* Nodes.swift */; };
-		2BF5D362221D2B2400EAAA76 /* Nodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* Nodes.swift */; };
+		2BF5D361221D2B2400EAAA76 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
+		2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
 		2BF5D3652220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
 		2BF5D3662220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
 /* End PBXBuildFile section */
@@ -159,6 +167,10 @@
 		2BA344A922015888000BB2EB /* timeline_play.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline_play.tiff; sourceTree = "<group>"; };
 		2BA344AC22029FA4000BB2EB /* MMFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFragment.swift; sourceTree = "<group>"; };
 		2BA6163B22597EF400638794 /* MMColorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMColorWidget.swift; sourceTree = "<group>"; };
+		2BAC26D4226D640300E20ADD /* Game.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Game.swift; sourceTree = "<group>"; };
+		2BAC26D7226D652E00E20ADD /* Scene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scene.swift; sourceTree = "<group>"; };
+		2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorLeaves.swift; sourceTree = "<group>"; };
+		2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameNodes.swift; sourceTree = "<group>"; };
 		2BBF0F4B225C397A009950E3 /* Renderer.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Renderer.metal; sourceTree = "<group>"; };
 		2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -213,7 +225,7 @@
 		2BE67107221291D200B95241 /* Node.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Node.metal; sourceTree = "<group>"; };
 		2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectMaxDelegate.swift; sourceTree = "<group>"; };
 		2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatWidget.swift; sourceTree = "<group>"; };
-		2BF5D360221D2B2400EAAA76 /* Nodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Nodes.swift; sourceTree = "<group>"; };
+		2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectNodes.swift; sourceTree = "<group>"; };
 		2BF5D363221E7E2D00EAAA76 /* Data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
 		2BF5D3642220D50D00EAAA76 /* Behavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Behavior.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -381,6 +393,8 @@
 				2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */,
 				2B4CC2262222260600A47812 /* Layer.swift */,
 				2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */,
+				2BAC26D7226D652E00E20ADD /* Scene.swift */,
+				2BAC26D4226D640300E20ADD /* Game.swift */,
 				2BBF11E021EC1A92001C94E9 /* Shape.swift */,
 				2B46E95F224367AF0047A94A /* Material.swift */,
 				2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */,
@@ -400,8 +414,10 @@
 			children = (
 				2BE67101221259F500B95241 /* Node.swift */,
 				2B4CC22C2226669000A47812 /* NodeUI.swift */,
-				2BF5D360221D2B2400EAAA76 /* Nodes.swift */,
+				2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */,
+				2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */,
 				2BF5D3642220D50D00EAAA76 /* Behavior.swift */,
+				2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */,
 				2BE6710422125D7D00B95241 /* NodeGraph.swift */,
 				2BE67107221291D200B95241 /* Node.metal */,
 				2B639F16221791F500576542 /* NodeList.swift */,
@@ -567,6 +583,9 @@
 				2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */,
 				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2B46E966224481AC0047A94A /* MaterialSelector.swift in Sources */,
+				2BAC26DB226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */,
+				2BAC26D8226D652F00E20ADD /* Scene.swift in Sources */,
+				2BAC26D5226D640300E20ADD /* Game.swift in Sources */,
 				2BA6163C2259805800638794 /* MMColorWidget.swift in Sources */,
 				2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */,
 				2BBF11D521EADB46001C94E9 /* MMScrollArea.swift in Sources */,
@@ -584,13 +603,14 @@
 				2BBF11E721EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */,
 				2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
-				2BF5D361221D2B2400EAAA76 /* Nodes.swift in Sources */,
+				2BF5D361221D2B2400EAAA76 /* ObjectNodes.swift in Sources */,
 				2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */,
 				2B4CC22A2222301300A47812 /* LayerMaxDelegate.swift in Sources */,
 				2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */,
 				2B46E960224367AF0047A94A /* Material.swift in Sources */,
 				2BBF11D321EADB46001C94E9 /* MMCompute.swift in Sources */,
 				2BBF11C721EADB46001C94E9 /* MMDrawable.swift in Sources */,
+				2BAC26DE226D6B8F00E20ADD /* GameNodes.swift in Sources */,
 				2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */,
 				2B639F1A221A32CD00576542 /* MMFile.swift in Sources */,
 			);
@@ -631,6 +651,9 @@
 				2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */,
 				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2B46E967224481AC0047A94A /* MaterialSelector.swift in Sources */,
+				2BAC26DC226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */,
+				2BAC26D9226D652F00E20ADD /* Scene.swift in Sources */,
+				2BAC26D6226D640300E20ADD /* Game.swift in Sources */,
 				2BA6163D2259805800638794 /* MMColorWidget.swift in Sources */,
 				2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */,
 				2BBF11D621EADB46001C94E9 /* MMScrollArea.swift in Sources */,
@@ -648,13 +671,14 @@
 				2BBF11E821EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
 				2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */,
 				2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
-				2BF5D362221D2B2400EAAA76 /* Nodes.swift in Sources */,
+				2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */,
 				2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */,
 				2B4CC22B2222301300A47812 /* LayerMaxDelegate.swift in Sources */,
 				2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */,
 				2B46E961224367AF0047A94A /* Material.swift in Sources */,
 				2BBF11D421EADB46001C94E9 /* MMCompute.swift in Sources */,
 				2BBF11C821EADB46001C94E9 /* MMDrawable.swift in Sources */,
+				2BAC26DF226D6B8F00E20ADD /* GameNodes.swift in Sources */,
 				2BBF112F21EAD38E001C94E9 /* AppDelegate.swift in Sources */,
 				2B639F1B221A32CD00576542 /* MMFile.swift in Sources */,
 			);

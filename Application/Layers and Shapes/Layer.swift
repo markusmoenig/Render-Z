@@ -113,18 +113,6 @@ class Layer : Node
         try super.encode(to: superdecoder)
     }
     
-    /// Add the terminals
-    override func setupTerminals()
-    {
-        terminals = [
-            Terminal(name: "Properties", connector: .Left, brand: .Properties, node: self),
-//            Terminal(name: "Out", connector: .Right, brand: .Object, node: self),
-            Terminal(name: "Behavior1", connector: .Bottom, brand: .Behavior, node: self),
-            Terminal(name: "Behavior2", connector: .Bottom, brand: .Behavior, node: self),
-            Terminal(name: "Behavior3", connector: .Bottom, brand: .Behavior, node: self)
-        ]
-    }
-    
     /*
     /// Returns the current object which is the first object in the selectedObjects array
     func getCurrentObject() -> Object?

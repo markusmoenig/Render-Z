@@ -641,8 +641,9 @@ class Builder
             parentPosY = 0
             parentRotate = 0
             parseObject(object)
-            if object.instanceOf != nil {
+            if object.instanceOf != nil && object.maxFrame > 0 {
                 let frames : Float = 1 * object.animationScale
+                object.properties["isAnimating"] = 1
                 
                 if object.animationMode == .Loop {
                     object.frame += frames
@@ -660,12 +661,14 @@ class Builder
                     object.frame -= frames
                     if object.frame < 0 {
                         object.frame = 0
+                        object.properties["isAnimating"] = 0
                     }
                 } else
                 if object.animationMode == .GotoEnd {
                     object.frame += frames
                     if object.frame > object.maxFrame {
                         object.frame = object.maxFrame
+                        object.properties["isAnimating"] = 0
                     }
                 }
             }

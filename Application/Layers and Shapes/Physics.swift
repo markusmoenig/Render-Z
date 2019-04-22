@@ -305,6 +305,7 @@ class Physics
         let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 4)
         
         offset = 0
+        var manifolds : [Manifold] = []
         for object in instance.dynamicObjects {
             
             let id : Float = result[offset]
@@ -318,11 +319,15 @@ class Physics
                 manifold.penetrationDepth = penetration
                 manifold.normal = -normal
                 manifold.resolve()
-                manifold.positionalCorrection()
+                manifolds.append(manifold)
             }
             
             object.body!.integrateForces(delta)
             object.body!.integrateVelocity( delta )
+            
+            for manifold in manifolds {
+                manifold.positionalCorrection()
+            }
             
             offset += 4
         }
@@ -359,7 +364,7 @@ class Physics
 
 class Body
 {
-    var velocity            : float2
+    var velocity            : float2 = float2(0,0)
     var force               : float2 = float2(0,0)
     
     var mass                : Float = 0
@@ -383,13 +388,16 @@ class Body
     init(_ object: Object)
     {
         self.object = object
-        velocity = float2(0,0)
         
         let physicsMode = object.properties["physicsMode"]
         if physicsMode != nil && physicsMode! == 2 {
-            // Get mass for dynamic objects
-            mass = 1
-            invMass = 1
+            // Get parameters for dynamic objects
+            
+            mass = object.properties["physicsMass"]!
+            if mass != 0 {
+                invMass = 1 / mass
+            }
+            restitution = object.properties["physicsRestitution"]!
         }
     }
     
@@ -444,14 +452,14 @@ class Manifold
 //        let rv = -normal //+ Cross( B->angularVelocity, rb ) -
 //            - bodyA.velocity //- Cross( A->angularVelocity, ra );
         
-        let rv : float2
+        let rv : float2 = bodyB.velocity - bodyA.velocity
+
         
-//        if bodyB.object.name == "Instance of Frame" {
-            rv = bodyB.velocity - bodyA.velocity
-  //      } else {
-    //        rv = -normal - bodyA.velocity
-      //  }
-        
+        if bodyB.object.properties["isAnimating"] != nil &&  bodyB.object.properties["isAnimating"]! == 1 {
+//            rv = -normal - bodyA.velocity
+            restitution = 2.5
+            //bodyA.force = -normal * 5
+        }
         
         // Relative velocity along the normal
         let contactVel = simd_dot( rv, normal );
@@ -478,8 +486,8 @@ class Manifold
     
     func positionalCorrection()
     {
-        let percent : Float = 0.2
-        let slop : Float = 0.01
+        let slop : Float = 0.05
+        let percent : Float = 1 // 0.4
         
         let correction = max( penetrationDepth - slop, 0.0 ) / (bodyA.invMass + bodyB.invMass) * normal * percent;
         bodyA.applyToPosition(-correction)

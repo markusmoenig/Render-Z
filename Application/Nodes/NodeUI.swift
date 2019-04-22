@@ -336,13 +336,15 @@ class NodeUINumber : NodeUI
     var mouseIsDown : Bool = false
     var x           : Float = 0
     var width       : Float = 0
+    var int         : Bool = false
     
     init(_ node: Node, variable: String, title: String, range: float2 = float2(0,1), int: Bool = false, value: Float = 0)
     {
         self.value = value
         self.defaultValue = value
         self.range = range
-        
+        self.int = int
+
         if node.properties[variable] == nil {
             node.properties[variable] = value
         } else {
@@ -369,6 +371,10 @@ class NodeUINumber : NodeUI
         value = range.x + perPixel * (event.x - x)
         value = max( value, range.x)
         value = min( value, range.y)
+        
+        if int {
+            value = floor(value)
+        }
         
         if oldValue != value {
             node.variableChanged(variable: variable, oldValue: oldValue, newValue: value, continuous: true)
@@ -423,6 +429,6 @@ class NodeUINumber : NodeUI
         
         mmView.drawBox.draw( x: x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: skin.borderColor )
         
-        mmView.drawText.drawTextCentered(mmView.openSans, text: String(format: "%.02f", value), x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: skin.textColor)
+        mmView.drawText.drawTextCentered(mmView.openSans, text: int ? String(Int(value)) : String(format: "%.02f", value), x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: skin.textColor)
     }
 }

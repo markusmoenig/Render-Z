@@ -20,7 +20,7 @@ class NodeGraph : Codable
     }
     
     enum ContentType : Int {
-        case Objects, Layers, Scenes
+        case Objects, Layers, Scenes, Game
     }
     
     var nodes           : [Node] = []
@@ -117,8 +117,22 @@ class NodeGraph : Codable
         object.sequences.append( MMTlSequence() )
         object.currentSequence = object.sequences[0]
         object.setupTerminals()
-        
         nodes.append(object)
+        
+        /*
+        let layer = Layer()
+        layer.name = "New Layer"
+        nodes.append(layer)
+        
+        let scene = Layer()
+        scene.name = "New Scene"
+        nodes.append(scene)
+        */
+        
+        let game = Game()
+        game.name = "Game"
+        nodes.append(game)
+
         setCurrentMaster(node: object)
     }
     
@@ -167,13 +181,28 @@ class NodeGraph : Codable
         }
         nodesButton.addState(.Checked)
         
-        typeScrollButton = MMScrollButton(app.mmView, items:["Objects", "Layers", "Scenes"])
+        // Sets the states of the add/remove buttons
+        func setButtonStates()
+        {
+            if self.contentType == .Game {
+                self.addButton.isDisabled = true
+                self.removeButton.isDisabled = true
+            } else {
+                self.addButton.isDisabled = false
+                self.removeButton.isDisabled = currentContent.count == 0
+            }
+        }
+        
+        typeScrollButton = MMScrollButton(app.mmView, items:["Objects", "Layers", "Scenes", "Game"])
         typeScrollButton.changed = { (index)->() in
             self.contentType = ContentType(rawValue: index)!
             self.updateContent(self.contentType)
             if self.currentContent.count > 0 {
                 self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
             }
+            self.nodeList!.switchTo(NodeListItem.DisplayType(rawValue: index+1)!)
+
+            setButtonStates()
         }
         
         contentScrollButton = MMScrollButton(app.mmView, items:[])
@@ -216,6 +245,8 @@ class NodeGraph : Codable
                 } )
                 self.addButton.removeState(.Checked)
             }
+            
+            setButtonStates()
         }
         
         removeButton = MMButtonWidget(app.mmView, text: "Remove" )
@@ -226,6 +257,7 @@ class NodeGraph : Codable
             self.updateContent(self.contentType)
             
             self.removeButton.removeState(.Checked)
+            setButtonStates()
         }
         
         var smallButtonSkin = MMSkinButton()
@@ -242,7 +274,7 @@ class NodeGraph : Codable
             self.maximizedNode!.maxDelegate!.activate(self.app!)
         }
 
-        playButton = MMButtonWidget( app.mmView, skinToUse: smallButtonSkin, text: "Run Behavior Trees" )
+        playButton = MMButtonWidget( app.mmView, skinToUse: smallButtonSkin, text: "Run Behavior" )
         playButton.clicked = { (event) -> Void in
             
             if self.playNode == nil {
@@ -865,6 +897,8 @@ class NodeGraph : Codable
     /// Draw the master node
     func drawMasterNode(_ node: Node, region: MMRegion)
     {
+        if contentType == .Game { return }
+
         let renderer = app!.mmView.renderer!
         let renderEncoder = renderer.renderEncoder!
         let scaleFactor : Float = app!.mmView.scaleFactor
@@ -1254,6 +1288,23 @@ class NodeGraph : Codable
         return trees
     }
     
+    /// gets all property nodes for the given master node
+    func getPropertyNodes(for masterNode:Node) -> [Node]
+    {
+        if masterNode.subset == nil { return [] }
+        var props : [Node] = []
+        
+        for node in nodes {
+            if masterNode.subset!.contains(node.uuid) {
+                if node.brand == .Property {
+                    props.append(node)
+                }
+            }
+        }
+        
+        return props
+    }
+    
     /// Update the content type
     func updateContent(_ type : ContentType)
     {
@@ -1286,6 +1337,18 @@ class NodeGraph : Codable
                         if currentMasterUUID != currentLayerUUID {
                             setCurrentMaster(node: node)
                         }
+                    }
+                    items.append(node.name)
+                    currentContent.append(node)
+                }
+            } else
+            if type == .Game {
+                let game : Game? = node as? Game
+                if game != nil {
+                    if game!.uuid == currentLayerUUID {
+                        index = items.count
+                        currentFound = true
+                        setCurrentMaster(node: node)
                     }
                     items.append(node.name)
                     currentContent.append(node)

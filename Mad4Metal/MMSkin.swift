@@ -80,6 +80,14 @@ struct MMSkinTimeline
     var margin          : MMMargin = MMMargin( 8, 8, 8, 8 )
 }
 
+struct MMSkinNode
+{
+    var propertyColor   : float4 = float4(0.62, 0.506, 0.165, 1)
+    var behaviorColor   : float4 = float4(0.129, 0.216, 0.612, 1)
+    var functionColor   : float4 = float4(0.184, 0.431, 0.569, 1.000)
+    var selectionColor  : float4 = float4(0.224, 0.275, 0.361, 1.000)
+}
+
 struct MMSkin
 {
     var Widget : MMSkinWidget = MMSkinWidget()
@@ -88,4 +96,5 @@ struct MMSkin
     var MenuWidget : MMSkinMenuWidget = MMSkinMenuWidget()
     var TimelineWidget : MMSkinTimeline = MMSkinTimeline()
     var ScrollButton : MMSkinScrollButton = MMSkinScrollButton()
+    var Node : MMSkinNode = MMSkinNode()
 }

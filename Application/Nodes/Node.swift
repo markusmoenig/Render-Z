@@ -12,10 +12,15 @@ import MetalKit
 
 class Node : Codable
 {
+    enum Brand {
+        case Property, Behavior, Function
+    }
+
     enum Result {
         case Success, Failure, Running, Unused
     }
     
+    var brand           : Brand = .Behavior
     var type            : String = ""
     var properties      : [String: Float]
 
@@ -157,13 +162,10 @@ class Node : Codable
     /// Executes the connected properties
     func executeProperties(_ nodeGraph: NodeGraph)
     {
-        for terminal in terminals {
-            if terminal.connector == .Left && terminal.brand == .Properties {
-                for conn in terminal.connections {
-                    let propertyNode = conn.toTerminal!.node!
-                    _ = propertyNode.execute(nodeGraph: nodeGraph, root: BehaviorTreeRoot(self), parent: self)
-                }
-            }
+        let propertyNodes = nodeGraph.getPropertyNodes(for: self)
+        
+        for node in propertyNodes {
+            _ = node.execute(nodeGraph: nodeGraph, root: BehaviorTreeRoot(self), parent: self)
         }
     }
     
@@ -354,12 +356,15 @@ enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
     case objectPhysics = "Object Physics"
     case objectAnimation = "Object Animation"
+    case gamePlatformOSX = "Platform OSX"
     case behaviorTree = "Behavior Tree"
     case sequence = "Sequence"
     case selector = "Selector"
     case inverter = "Inverter"
     case layer = "Layer"
     case keyDown = "Key Down"
+    case scene = "Scene"
+    case game = "Game"
 
     static var discriminator: NodeDiscriminator = .type
     
@@ -373,6 +378,18 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectPhysics.self
             case .objectAnimation:
                 return ObjectAnimation.self
+            
+            case .layer:
+                return Layer.self
+            
+            case .scene:
+                return Scene.self
+            
+            case .game:
+                return Game.self
+            case .gamePlatformOSX:
+                return GamePlatformOSX.self
+            
             case .behaviorTree:
                 return BehaviorTree.self
             case .inverter:
@@ -381,12 +398,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return Sequence.self
             case .selector:
                 return Selector.self
-            case .layer:
-                return Layer.self
             case .keyDown:
                 return KeyDown.self
-//            case .scene:
-//                return Scene.self
         }
     }
 }

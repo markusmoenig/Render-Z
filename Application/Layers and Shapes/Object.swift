@@ -169,14 +169,6 @@ class Object : Node
         try super.encode(to: superdecoder)
     }
     
-    /// Add the terminals
-    override func setupTerminals()
-    {
-        terminals = [
-            Terminal(name: "Properties", connector: .Left, brand: .Properties, node: self),
-        ]
-    }
-    
     /// Sets the animation mode
     func setAnimationMode(_ mode: AnimationMode, scale: Float = 1)
     {

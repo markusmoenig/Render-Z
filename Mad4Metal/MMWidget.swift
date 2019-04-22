@@ -177,9 +177,11 @@ class MMButtonWidget : MMWidget
     
     override func _clicked(_ event:MMMouseEvent)
     {
-        addState( .Checked )
-        if super.clicked != nil {
-            super.clicked!(event)
+        if !isDisabled {
+            addState( .Checked )
+            if super.clicked != nil {
+                super.clicked!(event)
+            }
         }
     }
     
