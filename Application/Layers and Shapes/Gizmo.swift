@@ -1758,10 +1758,10 @@ class Gizmo : MMWidget
                         
                         var minX : Float = 100000, minY : Float = 100000, maxX : Float = -100000, maxY : Float = -100000
                         for i in 0..<shape.pointCount {
-                            minX = min( minX, posX + transformed["point_\(i)_x"]! - width )
-                            minY = min( minY, posY - transformed["point_\(i)_y"]! - height )
-                            maxX = max( maxX, posX + transformed["point_\(i)_x"]! + width )
-                            maxY = max( maxY, posY - transformed["point_\(i)_y"]! + height )
+                            minX = min( minX, posX + transformed["point_\(i)_x"]! * scale - width )
+                            minY = min( minY, posY - transformed["point_\(i)_y"]! * scale - height )
+                            maxX = max( maxX, posX + transformed["point_\(i)_x"]! * scale + width )
+                            maxY = max( maxY, posY - transformed["point_\(i)_y"]! * scale + height )
                         }
                         
                         sizeMinX = minX
@@ -1826,10 +1826,10 @@ class Gizmo : MMWidget
                         
                         var minX : Float = 100000, minY : Float = 100000, maxX : Float = -100000, maxY : Float = -100000
                         for i in 0..<material.pointCount {
-                            minX = min( minX, posX + transformed["point_\(i)_x"]! - width )
-                            minY = min( minY, posY - transformed["point_\(i)_y"]! - height )
-                            maxX = max( maxX, posX + transformed["point_\(i)_x"]! + width )
-                            maxY = max( maxY, posY - transformed["point_\(i)_y"]! + height )
+                            minX = min( minX, posX + transformed["point_\(i)_x"]! * scale - width )
+                            minY = min( minY, posY - transformed["point_\(i)_y"]! * scale - height )
+                            maxX = max( maxX, posX + transformed["point_\(i)_x"]! * scale + width )
+                            maxY = max( maxY, posY - transformed["point_\(i)_y"]! * scale + height )
                         }
                         
                         sizeMinX = minX

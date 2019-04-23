@@ -183,7 +183,8 @@ class LayerMaxDelegate : NodeMaxDelegate {
                     app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
                 }
             }
-             
+            
+            app.gizmo.scale = camera.zoom
             app.gizmo.draw()
             app.changed = false
             
@@ -268,19 +269,25 @@ class LayerMaxDelegate : NodeMaxDelegate {
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
-         #if os(iOS) || os(watchOS) || os(tvOS)
-         // If there is a selected shape, don't scroll
-         if getCurrentObject()?.getCurrentShape() != nil {
+        #if os(iOS) || os(watchOS) || os(tvOS)
+        // If there is a selected shape, don't scroll
+        if getCurrentObject()?.getCurrentShape() != nil {
             return
-         }
-         camera.xPos -= event.deltaX! * 2
-         camera.yPos -= event.deltaY! * 2
-         #elseif os(OSX)
-         camera.xPos += event.deltaX! * 2
-         camera.yPos += event.deltaY! * 2
-         #endif
+        }
+        camera.xPos -= event.deltaX! * 2
+        camera.yPos -= event.deltaY! * 2
+        #elseif os(OSX)
+        if app.mmView.commandIsDown && event.deltaY! != 0 {
+            camera.zoom += event.deltaY! * 0.003
+            camera.zoom = max(0.1, camera.zoom)
+            camera.zoom = min(1, camera.zoom)
+        } else {
+            camera.xPos += event.deltaX! * 2
+            camera.yPos += event.deltaY! * 2
+        }
+        #endif
 
-         update()
+        update()
         
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
