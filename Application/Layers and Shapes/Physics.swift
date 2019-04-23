@@ -61,6 +61,7 @@ class Physics
             float2      velocity;
             float       radius;
             float       fill;
+            float2      fill2;
         } DYN_OBJ_DATA;
         
         typedef struct
@@ -70,7 +71,7 @@ class Physics
             float4      camera;
         
             SHAPE_DATA  shapes[\(max(buildData.maxShapes, 1))];
-            float2      points[\(max(buildData.maxPoints, 1))];
+            float4      points[\(max(buildData.maxPoints, 1))];
             OBJECT_DATA objects[\(max(buildData.maxObjects, 1))];
         
             DYN_OBJ_DATA  dynamicObjects[\(dynaCount)];
@@ -103,9 +104,9 @@ class Physics
         float2 sdf( float2 uv, constant PHYSICS_DATA *physicsData )
         {
             float2 tuv = uv, pAverage;
-            float dist = 100000, newDist;
+            float dist = 100000, newDist, objectDistance = 100000;
 
-            int materialId = -1;
+            int materialId = -1, objectId = -1;
             constant SHAPE_DATA *shape;
 
         """
@@ -120,12 +121,10 @@ class Physics
         buildData.source +=
         """
         
-            return float2(dist,materialId);
+            return float2(dist,objectId);
         }
         
         """
-        
-        //print( buildData.source )
         
         // Fill up the data
         instance.pointDataOffset = instance.data!.count
@@ -133,6 +132,8 @@ class Physics
         // Fill up the points
         let pointCount = max(buildData.maxPoints,1)
         for _ in 0..<pointCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
         }
@@ -144,12 +145,6 @@ class Physics
         for _ in 0..<objectCount {
             instance.data!.append( 0 )
             instance.data!.append( 0 )
-            instance.data!.append( 0 )
-            instance.data!.append( 0 )
-        }
-        
-        // Test if we need to align memory based on the pointCount
-        if (pointCount % 2) == 1 {
             instance.data!.append( 0 )
             instance.data!.append( 0 )
         }
@@ -182,10 +177,9 @@ class Physics
 
             instance.data!.append( 0 )
             instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
         }
-        
-        instance.data!.append( 0 )
-        instance.data!.append( 0 )
         
         buildData.source +=
         """
@@ -194,25 +188,7 @@ class Physics
             {
                 float2 pos =  physicsData->dynamicObjects[i].pos;
                 float2 velocity =  physicsData->dynamicObjects[i].velocity;
-                float radius =  physicsData->dynamicObjects[i].radius;
-
-                /*
-                float dt = 0.26;// / 16;//float(SUB_STEPS);
-        
-                for(int i = 0; i < 1; i++)
-                {
-                    // Collisions
-                    if ( sdf(pos, physicsData) <= radius )
-                    {
-                        velocity = length(velocity) * reflect(normalize(velocity), -normal(pos, physicsData)) * 0.99;
-                    } else
-        
-                    // Gravity
-                    velocity.y -= 0.05 * dt;
-        
-                    // Add velocity
-                    pos += velocity * dt * 100.0;
-                }*/
+                float radius = physicsData->dynamicObjects[i].radius;
         
                 float2 hit = sdf(pos, physicsData);
                 float4 rc = float4( hit.y, 0, 0, 0 );
@@ -226,7 +202,7 @@ class Physics
         }
 
         """
-        
+                
         instance.inBuffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
         instance.outBuffer = compute!.device.makeBuffer(length: dynaCount * 4 * MemoryLayout<Float>.stride, options: [])!
@@ -257,13 +233,15 @@ class Physics
         func parseObject(_ object: Object)
         {
             for shape in object.shapes {
+                
+                //print( object.name, shape.name, builderInstance.data![object.buildShapeOffset+1])
                 for index in 0..<8 {
                     instance.data![object.physicShapeOffset+index] = builderInstance.data![object.buildShapeOffset+index]
                 }
-                
+        
                 for index in 0..<shape.pointCount {
-                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 2] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 2]
-                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 2 + 1] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 2 + 1]
+                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 4] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 4]
+                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 4 + 1] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 4 + 1]
                 }
             }
             
@@ -273,7 +251,10 @@ class Physics
         }
         
         for object in instance.objects {
-            parseObject(object)
+            let physicsMode = object.properties["physicsMode"]
+            if physicsMode != nil && physicsMode! == 1 {
+                parseObject(object)
+            }
         }
         
         var offset : Int = instance.physicsOffset
@@ -288,7 +269,7 @@ class Physics
             instance.data![offset + 2] = object.body!.velocity.x
             instance.data![offset + 3] = object.body!.velocity.y
             
-            instance.data![offset + 4] = 40;//object.properties["radius"]!
+            instance.data![offset + 4] = 20//object.properties["radius"]!
             
             offset += 6
         }
@@ -310,7 +291,9 @@ class Physics
             
             let id : Float = result[offset]
             let penetration : Float = result[offset+1]
-
+            
+            print( id, penetration, result[offset+2] )
+            
             if ( penetration > 0 )
             {
                 let normal = float2( result[offset + 2], result[offset + 3] )
@@ -323,11 +306,13 @@ class Physics
             }
             
             object.body!.integrateForces(delta)
-            object.body!.integrateVelocity( delta )
+            object.body!.integrateVelocity(delta)
             
             for manifold in manifolds {
                 manifold.positionalCorrection()
             }
+            
+            object.body!.force = float2(0,0)
             
             offset += 4
         }
@@ -398,6 +383,7 @@ class Body
                 invMass = 1 / mass
             }
             restitution = object.properties["physicsRestitution"]!
+            force.y = 3000
         }
     }
     

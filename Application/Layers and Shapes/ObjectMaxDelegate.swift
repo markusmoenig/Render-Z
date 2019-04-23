@@ -27,7 +27,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     var shapesButton    : MMButtonWidget!
     var materialsButton : MMButtonWidget!
     var timelineButton  : MMButtonWidget!
-    
+    var modeScrollButton: MMScrollButton!
+    var backScrollButton: MMScrollButton!
+
     // Left Region
     var leftRegionMode  : LeftRegionMode = .Shapes
     var activeRegionMode: LeftRegionMode = .Shapes
@@ -68,6 +70,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     /// The currently displayed object
     var selObject       : Object? = nil
     
+    // Platform nodes
+    var gamePlatformOSX  : GamePlatformOSX? = nil
+    var gamePlatformIPAD  : GamePlatformIPAD? = nil
+
     /// Gizmo works on the selected object, gets disabled when shape gets selected
     var selObjectActive : Bool = false
 
@@ -79,13 +85,23 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         
         selObject = currentObject
         selObjectActive = false
+        
+        gamePlatformOSX = app.nodeGraph.getNodeOfType("Platform OSX") as? GamePlatformOSX
+        gamePlatformIPAD = app.nodeGraph.getNodeOfType("Platform IPAD") as? GamePlatformIPAD
 
         // Top Region
         if shapesButton == nil {
             shapesButton = MMButtonWidget( app.mmView, text: "Shapes" )
             materialsButton = MMButtonWidget( app.mmView, text: "Materials" )
             timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
+            modeScrollButton = MMScrollButton(app.mmView, items:["Off", "Show Grid", "Show Game", "Show Object", "Show Layer"], index: 1)
+            backScrollButton = MMScrollButton(app.mmView, items:[])
         }
+        modeScrollButton.changed = { (index)->() in
+            
+            self.updateBackScrollerContent()
+        }
+        updateBackScrollerContent()
         shapesButton.clicked = { (event) -> Void in
             self.setLeftRegionMode(.Shapes)
             self.materialsButton.removeState(.Checked)
@@ -166,7 +182,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timelineButton.addState( .Checked )
         app.bottomRegion!.rect.height = 100
         
-        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
+        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, modeScrollButton, backScrollButton, app.closeButton)
 
         // Set Default Layout
         shapesButton.addState( .Checked )
@@ -181,7 +197,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func deactivate()
     {
         timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, app.closeButton)
+        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, modeScrollButton, backScrollButton, app.closeButton)
         materialsTab.deregisterWidget()
         
         currentObject!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
@@ -222,7 +238,62 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     {
         if region.type == .Editor {
             app.gizmo.rect.copy(region.rect)
-            drawPattern(region)
+            
+            if modeScrollButton.index == 1 {
+                // Grid
+                drawPattern(region)
+            } else {
+                app!.mmView.drawBox.draw( x: region.rect.x, y: region.rect.y, width: region.rect.width, height: region.rect.height, round: 0, borderSize: 0, fillColor : float4(0.098, 0.098, 0.098, 1.000), borderColor: float4(repeating:0) )
+            }
+            
+            if modeScrollButton.index == 2 {
+                // Game Screen Dimensions
+                
+                var width : Float = 0
+                var height : Float = 0
+                
+                if backScrollButton.index == 0 {
+                    // OSX
+                    if let platform = gamePlatformOSX {
+                        width = platform.properties["width"]! * camera.zoom
+                        height = platform.properties["height"]! * camera.zoom
+                    }
+                } else
+                if backScrollButton.index == 2 {
+                    // OSX
+                    if let platform = gamePlatformIPAD {
+                        let index = platform.properties["type"]
+                        let orient = platform.properties["orientation"]
+                        
+                        if index == 0 {
+                            width = 768; height = 1024
+                        }
+                        if index == 1 {
+                            width = 1536; height = 2048
+                        } else
+                        if index == 2 {
+                            width = 2048; height = 2732
+                        }
+
+                        if orient == 1 {
+                            let temp = height
+                            height = width
+                            width = temp
+                        }
+                        width = width * camera.zoom
+                        height = height * camera.zoom
+                    }
+                }
+                
+                if width != 0 && height != 0 {
+                    let x: Float = region.rect.x + region.rect.width / 2 - camera.xPos - width / 2
+                    let y: Float = region.rect.y + region.rect.height / 2 - camera.yPos - height / 2
+
+                    app.mmView.renderer!.setClipRect(region.rect)
+                    app.mmView.drawBox.draw( x: x, y: y, width: width, height: height, round: 0, borderSize: 2, fillColor : float4(0.161, 0.165, 0.188, 1.000), borderColor: float4(0.5, 0.5, 0.5, 1) )
+                    app.mmView.renderer.setClipRect()
+                }
+            }
             
             if let instance = currentObject!.instance {
             
@@ -235,15 +306,26 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 }
             }
             
-            //if activeRegionMode == .Shapes {
-                app.gizmo.draw()
-            //}
+            app.gizmo.scale = camera.zoom
+            app.gizmo.draw()
+            
             app.changed = false
         } else
         if region.type == .Top {
             region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: shapesButton, materialsButton )
+            
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton, app.closeButton)
             
+            modeScrollButton.rect.x = region.rect.x + 400
+            modeScrollButton.rect.y = 4 + 44
+            modeScrollButton.draw()
+            
+            if modeScrollButton.index > 1 {
+                backScrollButton.rect.x = modeScrollButton.rect.x + modeScrollButton.rect.width + 10
+                backScrollButton.rect.y = 4 + 44
+                backScrollButton.draw()
+            }
+
             shapesButton.draw()
             materialsButton.draw()
             timelineButton.draw()
@@ -371,19 +453,25 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
-         #if os(iOS) || os(watchOS) || os(tvOS)
-         // If there is a selected shape, don't scroll
-         if currentObject!.getCurrentShape() != nil {
+        #if os(iOS) || os(watchOS) || os(tvOS)
+        // If there is a selected shape, don't scroll
+        if currentObject!.getCurrentShape() != nil {
             return
-         }
-         camera.xPos -= event.deltaX! * 2
-         camera.yPos -= event.deltaY! * 2
-         #elseif os(OSX)
-         camera.xPos += event.deltaX! * 2
-         camera.yPos += event.deltaY! * 2
-         #endif
+        }
+        camera.xPos -= event.deltaX! * 2
+        camera.yPos -= event.deltaY! * 2
+        #elseif os(OSX)
+        if app.mmView.commandIsDown && event.deltaY! != 0 {
+            camera.zoom += event.deltaY! * 0.003
+            camera.zoom = max(0.1, camera.zoom)
+            camera.zoom = min(1, camera.zoom)
+        } else {
+            camera.xPos += event.deltaX! * 2
+            camera.yPos += event.deltaY! * 2
+        }
+        #endif
          
-         update()
+        update()
         
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -396,6 +484,19 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         if app.mmView.maxFramerateLocks == 0 {
             app.mmView.lockFramerate()
         }
+    }
+    
+    /// Update the content of the background scroller button
+    func updateBackScrollerContent()
+    {
+        var content : [String] = []
+        if modeScrollButton.index == 2 {
+            content.append("OSX Screen")
+            content.append("iPhone Screen")
+            content.append("iPad Screen")
+            content.append("tvOS Screen")
+        }
+        backScrollButton.setItems(content)
     }
     
     /// Controls the tab mode in the left region

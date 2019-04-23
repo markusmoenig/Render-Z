@@ -65,7 +65,7 @@ class MMScrollButton : MMWidget
         self.items = []
         contentWidth = 0
         maxItemWidth = 0
-
+        
         for text in items {
             let item = MMScrollButtonItem(mmView, text: text, skin: skin)
             

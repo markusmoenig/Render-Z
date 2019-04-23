@@ -69,6 +69,8 @@ class Gizmo : MMWidget
     var pointShape      : Shape? = nil
     var pointMaterial   : Material? = nil
     var pointIndex      : Int = 0
+    
+    var scale           : Float = 1
 
     override required init(_ view : MMView)
     {
@@ -600,16 +602,16 @@ class Gizmo : MMWidget
                     if mode == .Normal {
                         for shape in selectedShapeObjects {
                             let properties : [String:Float] = [
-                                "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                                "posY" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                                "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
+                                "posY" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
                             processGizmoProperties(properties, shape: shape)
                         }
                     } else {
                         let shape = pointShape!
                         let properties : [String:Float] = [
-                            "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                            "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                            "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
+                            "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
                         processGizmoProperties(properties, shape: shape)
                     }
@@ -618,16 +620,16 @@ class Gizmo : MMWidget
                     if mode == .Normal {
                         for material in selectedMaterialObjects {
                             let properties : [String:Float] = [
-                                "posX" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                                "posY" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                                "posX" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
+                                "posY" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
                             processGizmoMaterialProperties(properties, material: material)
                         }
                     } else {
                         let material = pointMaterial!
                         let properties : [String:Float] = [
-                            "point_\(pointIndex)_x" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                            "point_\(pointIndex)_y" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                            "point_\(pointIndex)_x" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
+                            "point_\(pointIndex)_y" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                         ]
                         processGizmoMaterialProperties(properties, material: material)
                     }
@@ -635,8 +637,8 @@ class Gizmo : MMWidget
                 if context == .ObjectEditor {
                     for object in objects {
                         let properties : [String:Float] = [
-                            "posX" : initialValues[object.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
-                            "posY" : initialValues[object.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                            "posX" : initialValues[object.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
+                            "posY" : initialValues[object.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
                         processGizmoObjectProperties(properties, object: object)
                     }
@@ -647,14 +649,14 @@ class Gizmo : MMWidget
                     if mode == .Normal {
                         for shape in selectedShapeObjects {
                             let properties : [String:Float] = [
-                                "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                                "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                                 ]
                             processGizmoProperties(properties, shape: shape)
                         }
                     } else {
                         let shape = pointShape!
                         let properties : [String:Float] = [
-                            "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            "point_\(pointIndex)_x" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                             ]
                         processGizmoProperties(properties, shape: shape)
                     }
@@ -663,14 +665,14 @@ class Gizmo : MMWidget
                     if mode == .Normal {
                         for material in selectedMaterialObjects {
                             let properties : [String:Float] = [
-                                "posX" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                                "posX" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                             ]
                             processGizmoMaterialProperties(properties, material: material)
                         }
                     } else {
                         let material = pointMaterial!
                         let properties : [String:Float] = [
-                            "point_\(pointIndex)_x" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            "point_\(pointIndex)_x" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                         ]
                         processGizmoMaterialProperties(properties, material: material)
                     }
@@ -678,7 +680,7 @@ class Gizmo : MMWidget
                 if context == .ObjectEditor {
                     for object in objects {
                         let properties : [String:Float] = [
-                            "posX" : initialValues[object.uuid]!["posX"]! + (pos.x - dragStartOffset!.x),
+                            "posX" : initialValues[object.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                             ]
                         processGizmoObjectProperties(properties, object: object)
                     }
@@ -689,14 +691,14 @@ class Gizmo : MMWidget
                     if  mode == .Normal {
                         for shape in selectedShapeObjects {
                             let properties : [String:Float] = [
-                                "posY" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                                "posY" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                                 ]
                             processGizmoProperties(properties, shape: shape)
                         }
                     } else {
                         let shape = pointShape!
                         let properties : [String:Float] = [
-                            "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                            "point_\(pointIndex)_y" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
                         processGizmoProperties(properties, shape: shape)
                     }
@@ -705,14 +707,14 @@ class Gizmo : MMWidget
                     if  mode == .Normal {
                         for material in selectedMaterialObjects {
                             let properties : [String:Float] = [
-                                "posY" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                                "posY" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
                             processGizmoMaterialProperties(properties, material: material)
                         }
                     } else {
                         let material = pointMaterial!
                         let properties : [String:Float] = [
-                            "point_\(pointIndex)_y" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                            "point_\(pointIndex)_y" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                         ]
                         processGizmoMaterialProperties(properties, material: material)
                     }
@@ -720,7 +722,7 @@ class Gizmo : MMWidget
                 if context == .ObjectEditor {
                     for object in objects {
                         let properties : [String:Float] = [
-                            "posY" : initialValues[object.uuid]!["posY"]! - (pos.y - dragStartOffset!.y),
+                            "posY" : initialValues[object.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
                         processGizmoObjectProperties(properties, object: object)
                     }
@@ -730,7 +732,7 @@ class Gizmo : MMWidget
                 if context == .ShapeEditor {
                     for shape in selectedShapeObjects {
                         let propName : String = shape.widthProperty
-                        var value = initialValues[shape.uuid]![propName]! + (pos.x - dragStartOffset!.x)
+                        var value = initialValues[shape.uuid]![propName]! + (pos.x - dragStartOffset!.x) / scale
                         if value < 0 {
                             value = 0
                         }
@@ -743,7 +745,7 @@ class Gizmo : MMWidget
                 if context == .MaterialEditor {
                     for material in selectedMaterialObjects {
                         let propName : String = material.widthProperty
-                        var value = initialValues[material.uuid]![propName]! + (pos.x - dragStartOffset!.x)
+                        var value = initialValues[material.uuid]![propName]! + (pos.x - dragStartOffset!.x) / scale
                         if value < 0 {
                             value = 0
                         }
@@ -758,7 +760,7 @@ class Gizmo : MMWidget
                 if context == .ShapeEditor {
                     for shape in selectedShapeObjects {
                         let propName : String = shape.heightProperty
-                        var value = initialValues[shape.uuid]![propName]! - (pos.y - dragStartOffset!.y)
+                        var value = initialValues[shape.uuid]![propName]! - (pos.y - dragStartOffset!.y) / scale
                         if value < 0 {
                             value = 0
                         }
@@ -771,7 +773,7 @@ class Gizmo : MMWidget
                 if context == .MaterialEditor {
                     for material in selectedMaterialObjects {
                         let propName : String = material.heightProperty
-                        var value = initialValues[material.uuid]![propName]! - (pos.y - dragStartOffset!.y)
+                        var value = initialValues[material.uuid]![propName]! - (pos.y - dragStartOffset!.y) / scale
                         if value < 0 {
                             value = 0
                         }
@@ -1708,8 +1710,8 @@ class Gizmo : MMWidget
         
         let objectProperties = transformTo(object!, timeline: rootObject!.maxDelegate!.getTimeline()!)
 
-        attributes["posX"] = objectProperties["posX"]!
-        attributes["posY"] = -objectProperties["posY"]!
+        attributes["posX"] = objectProperties["posX"]! * scale
+        attributes["posY"] = -objectProperties["posY"]! * scale
         attributes["rotate"] = objectProperties["rotate"]!
 
         var sizeMinX : Float = 100000
@@ -1726,8 +1728,8 @@ class Gizmo : MMWidget
                     
                     let transformed = getTransformedProperties(shape)
                     
-                    let posX = transformed["posX"]!
-                    let posY = -transformed["posY"]!
+                    let posX = transformed["posX"]! * scale
+                    let posY = -transformed["posY"]! * scale
                     let rotate = transformed["rotate"]!
 
                     // --- Calc Bounding Rectangle
@@ -1735,8 +1737,8 @@ class Gizmo : MMWidget
                     if shape.pointCount == 0 {
                         var size = float2()
                         
-                        size.x = transformed[shape.widthProperty]! * 2
-                        size.y = transformed[shape.heightProperty]! * 2
+                        size.x = transformed[shape.widthProperty]! * 2 * scale
+                        size.y = transformed[shape.heightProperty]! * 2 * scale
                         
                         if posX - size.x / 2 < sizeMinX {
                             sizeMinX = posX - size.x / 2
@@ -1775,8 +1777,8 @@ class Gizmo : MMWidget
                     attributes["rotate"]! += rotate
                     
                     for i in 0..<shape.pointCount {
-                        attributes["point_\(i)_x"] = transformed["point_\(i)_x"]
-                        attributes["point_\(i)_y"] = -transformed["point_\(i)_y"]!
+                        attributes["point_\(i)_x"] = transformed["point_\(i)_x"]! * scale
+                        attributes["point_\(i)_y"] = -transformed["point_\(i)_y"]! * scale
                     }
                 }
                 
@@ -1793,8 +1795,8 @@ class Gizmo : MMWidget
                 
                     let transformed = getTransformedProperties(material)
                     
-                    let posX = transformed["posX"]!
-                    let posY = -transformed["posY"]!
+                    let posX = transformed["posX"]! * scale
+                    let posY = -transformed["posY"]! * scale
                     let rotate = transformed["rotate"]!
                     
                     // --- Calc Bounding Rectangle
@@ -1843,8 +1845,8 @@ class Gizmo : MMWidget
                     attributes["rotate"]! += rotate
                     
                     for i in 0..<material.pointCount {
-                        attributes["point_\(i)_x"] = transformed["point_\(i)_x"]
-                        attributes["point_\(i)_y"] = -transformed["point_\(i)_y"]!
+                        attributes["point_\(i)_x"] = transformed["point_\(i)_x"]! * scale
+                        attributes["point_\(i)_y"] = -transformed["point_\(i)_y"]! * scale
                     }
                 }
                 

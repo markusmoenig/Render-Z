@@ -63,7 +63,7 @@ class ObjectPhysics : Node
             object.properties["physicsMode"] = value
             object.properties["physicsMass"] = properties["physicsMass"]!
             object.properties["physicsRestitution"] = properties["physicsRestitution"]!
-
+            
             return .Success
         }
         return .Failure

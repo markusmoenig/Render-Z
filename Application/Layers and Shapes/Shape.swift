@@ -172,7 +172,7 @@ class Shape : Codable
                 result += "\(varName)[\(i)].x = \(props!["point_\(i)_x"]!);\n"
                 result += "\(varName)[\(i)].y = \(props!["point_\(i)_y"]!);\n"
             } else {
-                result += "\(varName)[\(i)] = layerData->points[\(pointIndex!+i)];\n"
+                result += "\(varName)[\(i)] = layerData->points[\(pointIndex!+i)].xy;\n"
             }
         }
         return result

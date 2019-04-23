@@ -72,7 +72,12 @@ class NodeList : MMWidget
             return GamePlatformOSX()
         }
         addNodeItem(item, type: .Property, displayType: .Game)
-        
+        // --- Game Platform IPAD
+        item = NodeListItem("Platform: iPAD")
+        item.createNode = {
+            return GamePlatformIPAD()
+        }
+        addNodeItem(item, type: .Property, displayType: .Game)
         
         // --- Object Animation
         item = NodeListItem("Animation")

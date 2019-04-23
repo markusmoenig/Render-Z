@@ -112,36 +112,7 @@ class Layer : Node
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
     }
-    
-    /*
-    /// Returns the current object which is the first object in the selectedObjects array
-    func getCurrentObject() -> Object?
-    {
-        if selectedObjects.isEmpty { return nil }
-        
-        for object in objectRefs {
-            if object.uuid == selectedObjects[0] {
-                return object
-            }
-        }
-        
-        return nil
-    }
-    
-    /// Returns an array of the currently selected objects
-    func getSelectedObjects() -> [Shape]
-    {
-        var result : [Object] = []
-        
-        for object in objectRefs {
-            if selectedObjects.contains( object.uuid ) {
-                result.append(object)
-            }
-        }
 
-        return result
-    }*/
-    
     /// Creates the object instances contained in this layer
     @discardableResult func createInstances(nodeGraph: NodeGraph) -> [Object]
     {

@@ -722,17 +722,19 @@ class NodeGraph : Codable
             typeScrollButton.rect.y = nodesButton.rect.y
             typeScrollButton.draw()
             
-            contentScrollButton.rect.x = typeScrollButton.rect.x + typeScrollButton.rect.width + 15
-            contentScrollButton.rect.y = typeScrollButton.rect.y
-            contentScrollButton.draw()
+            if contentType != .Game {
+                contentScrollButton.rect.x = typeScrollButton.rect.x + typeScrollButton.rect.width + 15
+                contentScrollButton.rect.y = typeScrollButton.rect.y
+                contentScrollButton.draw()
             
-            addButton.rect.x = contentScrollButton.rect.x + contentScrollButton.rect.width + 10
-            addButton.rect.y = contentScrollButton.rect.y
-            addButton.draw()
-            
-            removeButton.rect.x = addButton.rect.x + addButton.rect.width + 10
-            removeButton.rect.y = contentScrollButton.rect.y
-            removeButton.draw()
+                addButton.rect.x = contentScrollButton.rect.x + contentScrollButton.rect.width + 10
+                addButton.rect.y = contentScrollButton.rect.y
+                addButton.draw()
+                
+                removeButton.rect.x = addButton.rect.x + addButton.rect.width + 10
+                removeButton.rect.y = contentScrollButton.rect.y
+                removeButton.draw()
+            }
             /*
             editButton.rect.x = removeButton.rect.x + removeButton.rect.width + 10
             editButton.rect.y = contentScrollButton.rect.y
@@ -1288,7 +1290,7 @@ class NodeGraph : Codable
         return trees
     }
     
-    /// gets all property nodes for the given master node
+    /// Gets all property nodes for the given master node
     func getPropertyNodes(for masterNode:Node) -> [Node]
     {
         if masterNode.subset == nil { return [] }
@@ -1303,6 +1305,17 @@ class NodeGraph : Codable
         }
         
         return props
+    }
+    
+    /// Gets the first node of the given type
+    func getNodeOfType(_ type: String) -> Node?
+    {
+        for node in nodes {
+            if node.type == type {
+                return node
+            }
+        }
+        return nil
     }
     
     /// Update the content type

@@ -102,7 +102,7 @@ class Builder
             float2      fill;
         
             SHAPE_DATA  shapes[\(max(buildData.maxShapes, 1))];
-            float2      points[\(max(buildData.maxPoints, 1))];
+            float4      points[\(max(buildData.maxPoints, 1))];
             OBJECT_DATA objects[\(max(buildData.maxObjects, 1))];
             float4      materialData[\(max(buildData.maxMaterialData, 1))];
         } LAYER_DATA;
@@ -139,14 +139,14 @@ class Builder
             uv *= layerData->fill.x;
             float2 tuv = uv, pAverage;
         
-            float dist = 100000, newDist;
+            float dist = 100000, newDist, objectDistance = 100000;
             MATERIAL_DATA bodyMaterial;
             bodyMaterial.baseColor = float4(0.5, 0.5, 0.5, 1);
             clearMaterial( &bodyMaterial );
             MATERIAL_DATA borderMaterial;
             borderMaterial.baseColor = float4(1);
             clearMaterial( &borderMaterial );
-            int materialId = -1;
+            int materialId = -1, objectId  = -1;
             constant SHAPE_DATA *shape;
         
         """
@@ -167,6 +167,8 @@ class Builder
         for _ in 0..<pointCount {
             instance.data!.append( 0 )
             instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
         }
         
         instance.objectDataOffset = instance.data!.count
@@ -176,12 +178,6 @@ class Builder
         for _ in 0..<objectCount {
             instance.data!.append( 0 )
             instance.data!.append( 0 )
-            instance.data!.append( 0 )
-            instance.data!.append( 0 )
-        }
-        
-        // Test if we need to align memory based on the pointCount
-        if (pointCount % 2) == 1 {
             instance.data!.append( 0 )
             instance.data!.append( 0 )
         }
@@ -312,7 +308,7 @@ class Builder
                 buildData.source += "if ( shape->rotate != 0.0 ) {\n"
                 buildData.source += "pAverage = float2(0);\n"
                 buildData.source += "for (int i = \(buildData.pointIndex); i < \(buildData.pointIndex + shape.pointCount); ++i) \n"
-                buildData.source += "pAverage += \(buildData.mainDataName)points[i];\n"
+                buildData.source += "pAverage += \(buildData.mainDataName)points[i].xy;\n"
                 buildData.source += "pAverage /= \(shape.pointCount);\n"
                 buildData.source += "tuv = rotateCCW( tuv - pAverage, shape->rotate );\n"
                 buildData.source += "tuv += pAverage;\n"
@@ -344,16 +340,24 @@ class Builder
                 buildData.source += "newDist = -newDist;\n"
             }
             
-            buildData.source += "if (newDist < dist) materialId = \(buildData.objectIndex);\n"
+            // --- Apply the material id to the closest shape regardless of boolean mode
+            if !physics {
+                buildData.source += "if (newDist < dist) materialId = \(buildData.objectIndex);\n"
+            }
             
             if booleanCode != "subtract" {
                 buildData.source += "if ( shape->smoothBoolean == 0.0 )"
                 buildData.source += "  dist = \(booleanCode)( dist, newDist );"
-                buildData.source += "  else dist = \(booleanCode)Smooth( dist, newDist, shape->smoothBoolean );"
+                buildData.source += "  else dist = \(booleanCode)Smooth( dist, newDist, shape->smoothBoolean );\n"
             } else {
                 buildData.source += "if ( shape->smoothBoolean == 0.0 )"
                 buildData.source += "  dist = \(booleanCode)( dist, newDist );"
-                buildData.source += "  else dist = \(booleanCode)Smooth( newDist, dist, shape->smoothBoolean );"
+                buildData.source += "  else dist = \(booleanCode)Smooth( newDist, dist, shape->smoothBoolean );\n"
+            }
+            
+            // --- Apply the object id
+            if physics {
+                buildData.source += "if (dist < objectDistance) { objectId = \(buildData.objectIndex); objectDistance = dist; }\n"
             }
             
             let posX = properties["posX"]! + buildData.parentPosX
@@ -545,8 +549,8 @@ class Builder
 
                     if ptConn.1 == nil {
                         // The point controls itself
-                        instance.data![instance.pointDataOffset + (pointIndex+i) * 2] = properties["point_\(i)_x"]!
-                        instance.data![instance.pointDataOffset + (pointIndex+i) * 2 + 1] = properties["point_\(i)_y"]!
+                        instance.data![instance.pointDataOffset + (pointIndex+i) * 4] = properties["point_\(i)_x"]!
+                        instance.data![instance.pointDataOffset + (pointIndex+i) * 4 + 1] = properties["point_\(i)_y"]!
                     }
                     
                     if ptConn.0 != nil {
@@ -557,8 +561,8 @@ class Builder
                     
                     if ptConn.1 != nil {
                         // The point is being controlled by another point
-                        instance.data![instance.pointDataOffset + (pointIndex+i) * 2] = ptConn.1!.valueX - properties["posX"]! - parentPosX
-                        instance.data![instance.pointDataOffset + (pointIndex+i) * 2 + 1] = ptConn.1!.valueY - properties["posY"]! - parentPosY
+                        instance.data![instance.pointDataOffset + (pointIndex+i) * 4] = ptConn.1!.valueX - properties["posX"]! - parentPosX
+                        instance.data![instance.pointDataOffset + (pointIndex+i) * 4 + 1] = ptConn.1!.valueY - properties["posY"]! - parentPosY
                     }
                 }
                 
@@ -748,6 +752,7 @@ class Builder
             float2 center = float2(\(width/2), \(height/2) );
             uv = translate(uv, center - float2( \(camera.xPos), \(camera.yPos) ) );
             uv.y = -uv.y;
+            uv /= \(camera.zoom);
             float2 tuv = uv;
         
             float4 dist = float4(1000, -1, -1, -1);
