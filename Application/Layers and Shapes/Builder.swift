@@ -350,14 +350,10 @@ class Builder
                 buildData.source += "  dist = \(booleanCode)( dist, newDist );"
                 buildData.source += "  else dist = \(booleanCode)Smooth( dist, newDist, shape->smoothBoolean );\n"
             } else {
+                
                 buildData.source += "if ( shape->smoothBoolean == 0.0 )"
                 buildData.source += "  dist = \(booleanCode)( dist, newDist );"
                 buildData.source += "  else dist = \(booleanCode)Smooth( newDist, dist, shape->smoothBoolean );\n"
-            }
-            
-            // --- Apply the object id
-            if physics {
-                buildData.source += "if (dist < objectDistance) { objectId = \(buildData.objectIndex); objectDistance = dist; }\n"
             }
             
             let posX = properties["posX"]! + buildData.parentPosX
@@ -367,9 +363,9 @@ class Builder
             let rotate = (properties["rotate"]!+buildData.parentRotate) * Float.pi / 180
             
             if !physics {
-                object.buildShapeOffset = instance.data!.count
+                shape.buildShapeOffset = instance.data!.count
             } else {
-                object.physicShapeOffset = instance.data!.count
+                shape.physicShapeOffset = instance.data!.count
             }
             
             instance.data!.append( posX )
@@ -391,6 +387,11 @@ class Builder
             buildData.pointIndex += shape.pointCount
         }
         
+        // --- Apply the physics object id
+        if physics {
+            buildData.source += "if (dist < objectDistance) { objectId = \(buildData.objectIndex); objectDistance = dist; }\n"
+        }
+    
         if !physics && buildMaterials {
             // --- Material Code
             func createMaterialCode(_ material: Material, _ materialName: String)

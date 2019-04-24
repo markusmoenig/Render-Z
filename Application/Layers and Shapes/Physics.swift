@@ -58,10 +58,8 @@ class Physics
         typedef struct
         {
             float2      pos;
-            float2      velocity;
             float       radius;
             float       fill;
-            float2      fill2;
         } DYN_OBJ_DATA;
         
         typedef struct
@@ -121,7 +119,7 @@ class Physics
         buildData.source +=
         """
         
-            return float2(dist,objectId);
+            return float2(objectDistance,objectId);
         }
         
         """
@@ -168,13 +166,7 @@ class Physics
         {
         """
         
-        for object in instance.dynamicObjects {
-         
-            instance.data!.append( object.properties["posX"]! )
-            instance.data!.append( object.properties["posY"]! )
-            instance.data!.append( 0 )
-            instance.data!.append( 0 )
-
+        for _ in instance.dynamicObjects {
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
@@ -187,7 +179,6 @@ class Physics
             for (uint i = 0; i < dynaCount; i += 1 )
             {
                 float2 pos =  physicsData->dynamicObjects[i].pos;
-                float2 velocity =  physicsData->dynamicObjects[i].velocity;
                 float radius = physicsData->dynamicObjects[i].radius;
         
                 float2 hit = sdf(pos, physicsData);
@@ -234,9 +225,9 @@ class Physics
         {
             for shape in object.shapes {
                 
-                //print( object.name, shape.name, builderInstance.data![object.buildShapeOffset+1])
                 for index in 0..<8 {
-                    instance.data![object.physicShapeOffset+index] = builderInstance.data![object.buildShapeOffset+index]
+                    //print(shapeIndex, index, shape.physicShapeOffset+index, builderInstance.data![shape.buildShapeOffset+index] )
+                    instance.data![shape.physicShapeOffset+index] = builderInstance.data![shape.buildShapeOffset+index]
                 }
         
                 for index in 0..<shape.pointCount {
@@ -268,9 +259,9 @@ class Physics
             var xOff : Float = 0
             var yOff : Float = 0
 
-            // --- Get the disk radius
+            // --- Get the disk parameters
             if object.disks != nil && object.disks!.count > 0 {
-                print("instance disk", object.disks![0].z)
+                //print("instance disk", object.disks![0].z)
                 xOff = object.disks![0].x
                 yOff = object.disks![0].y
                 radius = object.disks![0].z
@@ -278,12 +269,9 @@ class Physics
             
             instance.data![offset + 0] = object.properties["posX"]! + xOff
             instance.data![offset + 1] = object.properties["posY"]! + yOff
-            //instance.data![offset + 2] = object.body!.velocity.x
-            //instance.data![offset + 3] = object.body!.velocity.y
+            instance.data![offset + 2] = radius
             
-            instance.data![offset + 4] = radius
-            
-            offset += 6
+            offset += 4
         }
         
         memcpy(instance.inBuffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
@@ -304,9 +292,9 @@ class Physics
             let id : Float = result[offset]
             let penetration : Float = result[offset+1]
             
-            print( id, penetration, result[offset+2] )
+//            print( id, penetration, result[offset+2] )
             
-            if ( penetration > 0 )
+            if ( penetration > 0.0 )
             {
                 let normal = float2( result[offset + 2], result[offset + 3] )
                 

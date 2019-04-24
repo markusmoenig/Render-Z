@@ -31,15 +31,13 @@ class Object : Node
     var frame           : Float = 0
     var maxFrame        : Float = 0
     var animationScale  : Float = 1
-    
-    var buildShapeOffset: Int = 0
-    var buildPointOffset: Int = 0
-    var physicShapeOffset: Int = 0
-    var physicPointOffset: Int = 0
 
     /// Physics Body
     var body            : Body? = nil
     var disks           : [float4]? = nil
+    
+    var buildPointOffset: Int = 0
+    var physicPointOffset: Int = 0
     
     var selectedShapes  : [UUID]
     var selectedBodyMaterials: [UUID]
