@@ -29,6 +29,11 @@ class MMBaseView : MTKView
     // --- Key States
     var shiftIsDown     : Bool = false
 
+    func update()
+    {
+        setNeedsDisplay()
+    }
+    
     func platformInit()
     {
         scaleFactor = Float(UIScreen.main.scale)

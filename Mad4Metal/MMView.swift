@@ -43,11 +43,9 @@ class MMView : MMBaseView {
     
     // --- Widget References
     var widgetIdCounter : Int!
-    
-    var defaultFramerate = 10
-    var maxFramerate = 60
 
-    var maxFramerateLocks : Int = 0
+    var maxFramerateLocks: Int = 0
+    var maxHardLocks    : Int = 0
     
     // --- Drawing
     
@@ -74,7 +72,8 @@ class MMView : MMBaseView {
             return
         }
         
-        preferredFramesPerSecond = defaultFramerate
+        enableSetNeedsDisplay = true
+        isPaused = true
         
         renderer = tempRenderer
         textureLoader = MTKTextureLoader( device: defaultDevice )
@@ -241,20 +240,28 @@ class MMView : MMBaseView {
     }
 
     /// Increases the counter which locks the framerate at the max
-    func lockFramerate()
+    func lockFramerate(_ hard: Bool = false)
     {
         maxFramerateLocks += 1
-        preferredFramesPerSecond = maxFramerate
+        isPaused = false
+        if hard {
+            maxHardLocks += 1
+            print("hard locked")
+        }
         print( "max framerate" )
     }
     
     /// Decreases the counter which locks the framerate and sets it back to the default rate when <= 0
-    func unlockFramerate()
+    func unlockFramerate(_ hard: Bool = false)
     {
         maxFramerateLocks -= 1
-        if maxFramerateLocks <= 0 {
-            preferredFramesPerSecond = defaultFramerate
+        if hard {
+            maxHardLocks -= 1
+        }
+        if maxFramerateLocks <= 0 && maxHardLocks <= 0 {
+            isPaused = true
             maxFramerateLocks = 0
+            maxHardLocks = 0
             print( "framerate back to default" )
         }
     }

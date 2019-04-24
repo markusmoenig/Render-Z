@@ -244,12 +244,6 @@ class MMListWidget : MMWidget
         scrollArea.build(widget:textureWidget, area: rect, xOffset: xOffset)
     }
     
-    func update()
-    {
-//        memcpy(hoverBuffer?.contents(), hoverData, hoverData.count * MemoryLayout<Float>.stride)
-//        fragment!.run(state, inBuffer: hoverBuffer)
-    }
-    
     /// Selected the shape at the given relative mouse position
     @discardableResult func selectAt(_ x: Float,_ y: Float, items: [MMListWidgetItem], multiSelect: Bool = false) -> Bool
     {

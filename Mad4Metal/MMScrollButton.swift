@@ -94,6 +94,7 @@ class MMScrollButton : MMWidget
     override func mouseLeave(_ event:MMMouseEvent)
     {
         hoverMode = .None
+        update()
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -106,11 +107,13 @@ class MMScrollButton : MMWidget
     {
         #if os(iOS) || os(watchOS) || os(tvOS)
         hoverMode = .None
+        update()
         #endif
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        let oldHoverMode = hoverMode
         hoverMode = .None
         
         if items.count > 1 {
@@ -120,6 +123,9 @@ class MMScrollButton : MMWidget
             if rect.contains(event.x, event.y) && event.x >= rect.x + rect.width - 25 {
                 hoverMode = .RightArrow
             }
+        }
+        if oldHoverMode != hoverMode {
+            update()
         }
     }
     

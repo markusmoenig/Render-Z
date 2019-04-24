@@ -78,6 +78,11 @@ class MMWidget
         id = view.getWidgetId()
     }
     
+    func update()
+    {
+        mmView.update()
+    }
+    
     func mouseDown(_ event: MMMouseEvent)
     {
     }
@@ -127,16 +132,19 @@ class MMWidget
         if clicked != nil {
             clicked!(event)
         }
+        mmView.update()
     }
     
     func addState(_ state: MMWidgetStates)
     {
         states.append( state )
+        mmView.update()
     }
     
     func removeState(_ state: MMWidgetStates)
     {
         states.removeAll(where: { $0 == state })
+        mmView.update()
     }
     
     static func == (lhs: MMWidget, rhs: MMWidget) -> Bool {

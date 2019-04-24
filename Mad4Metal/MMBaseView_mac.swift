@@ -31,6 +31,12 @@ class MMBaseView : MTKView
     
     var keysDown        : [Float] = []
 
+    func update()
+    {
+        let rect : NSRect = NSRect()
+        setNeedsDisplay(rect)
+    }
+    
     func platformInit()
     {
         scaleFactor = Float(NSScreen.main!.backingScaleFactor)
@@ -97,11 +103,13 @@ class MMBaseView : MTKView
         
         mousePos.x = event.x
         mousePos.y = event.y
+        
+        let oldHoverWidget = hoverWidget
                 
-        if hoverWidget != nil {
-            hoverWidget!.removeState(.Hover)
-            hoverWidget!.mouseLeave(event)
-        }
+//        if hoverWidget != nil {
+//            hoverWidget!.removeState(.Hover)
+//            hoverWidget!.mouseLeave(event)
+//        }
         
         hoverWidget = nil
         
@@ -111,11 +119,20 @@ class MMBaseView : MTKView
             for widget in widgets {
                 if widget.rect.contains( event.x, event.y ) {
                     hoverWidget = widget
-                    hoverWidget!.addState(.Hover)
-                    hoverWidget!.mouseEnter(event)
+                    if hoverWidget !== oldHoverWidget {
+                        hoverWidget!.addState(.Hover)
+                        hoverWidget!.mouseEnter(event)
+                    }
                     hoverWidget!.mouseMoved(event)
                     break;
                 }
+            }
+        }
+        
+        if oldHoverWidget !== hoverWidget {
+            if oldHoverWidget != nil {
+                oldHoverWidget!.removeState(.Hover)
+                oldHoverWidget!.mouseLeave(event)
             }
         }
     }

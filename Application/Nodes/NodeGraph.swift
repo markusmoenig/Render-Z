@@ -33,6 +33,7 @@ class NodeGraph : Codable
     var drawPatternState: MTLRenderPipelineState?
 
     var app             : App?
+    var mmView          : MMView!
     var maximizedNode   : Node?
     var hoverNode       : Node?
     var currentNode     : Node?
@@ -164,6 +165,7 @@ class NodeGraph : Codable
     func setup(app: App)
     {
         self.app = app
+        mmView = app.mmView
         
         timeline = MMTimeline(app.mmView)
         builder = Builder(self)
@@ -307,7 +309,7 @@ class NodeGraph : Codable
                 }
                 
                 self.playButton.addState(.Checked)
-                app.mmView.lockFramerate()
+                app.mmView.lockFramerate(true)
             } else {
                 
                 let node = self.playNode
@@ -325,7 +327,7 @@ class NodeGraph : Codable
                 self.playNode = nil
                 self.playToExecute = []
                 self.playButton.removeState(.Checked)
-                app.mmView.unlockFramerate()
+                app.mmView.unlockFramerate(true)
             }
         }
         
@@ -488,6 +490,8 @@ class NodeGraph : Codable
     
     func mouseMoved(_ event: MMMouseEvent)
     {
+        let oldNodeHoverMode = nodeHoverMode
+        
         if nodeHoverMode == .NodeUIMouseLocked {
             hoverUIItem!.mouseMoved(event)
             return
@@ -498,7 +502,7 @@ class NodeGraph : Codable
             
             hoverNode!.xPos = nodeDragStartPos.x + event.x - dragStartPos.x
             hoverNode!.yPos = nodeDragStartPos.y + event.y - dragStartPos.y
-            
+            mmView.update()
             return
         }
         
@@ -515,6 +519,7 @@ class NodeGraph : Codable
             previewSize.y = min(previewSize.y, app!.editorRegion!.rect.height - 50)
 
             currentMaster!.updatePreview(nodeGraph: self)
+            mmView.update()
             return
         }
         
@@ -524,6 +529,7 @@ class NodeGraph : Codable
         if hoverNode === currentMaster {
             if event.x > hoverNode!.rect.x + 5 && event.x < hoverNode!.rect.x + 35 && event.y < hoverNode!.rect.y + hoverNode!.rect.height - 5 && event.y > hoverNode!.rect.y + hoverNode!.rect.height - 35 {
                 nodeHoverMode = .MasterDrag
+                mmView.update()
                 return
             }
         }
@@ -545,7 +551,7 @@ class NodeGraph : Codable
                     }
                 }
             }
-
+            mmView.update()
             return
         }
         
@@ -565,17 +571,7 @@ class NodeGraph : Codable
                     if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
                     {
                         nodeHoverMode = .Maximize
-                        return
-                    }
-                } else {
-                    // todo master toolbar hover
-                    let iconSize : Float = 18
-                    let xStart : Float = hoverNode!.rect.width - 41
-                    let yStart : Float = 22
-                    
-                    if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
-                    {
-                        nodeHoverMode = .Maximize
+                        mmView.update()
                         return
                     }
                 }
@@ -584,6 +580,7 @@ class NodeGraph : Codable
             if let terminalTuple = terminalAt(hoverNode!, event.x, event.y) {
                 nodeHoverMode = .Terminal
                 hoverTerminal = terminalTuple
+                mmView.update()
                 return
             }
             
@@ -604,6 +601,7 @@ class NodeGraph : Codable
                         hoverUIItem = uiItem
                         nodeHoverMode = .NodeUI
                         hoverUIItem!.mouseMoved(event)
+                        mmView.update()
                         return
                     }
                     uiItemY += uiItem.rect.height * scale
@@ -631,9 +629,13 @@ class NodeGraph : Codable
             
                 if rect.contains(event.x, event.y) {
                     nodeHoverMode = .Preview
+                    mmView.update()
                     return
                 }
             }
+        }
+        if oldNodeHoverMode != nodeHoverMode {
+            mmView.update()
         }
     }
     
