@@ -39,6 +39,7 @@ class Object : Node
 
     /// Physics Body
     var body            : Body? = nil
+    var disks           : [float4]? = nil
     
     var selectedShapes  : [UUID]
     var selectedBodyMaterials: [UUID]
@@ -116,6 +117,7 @@ class Object : Node
         self.uuid = instanceUUID
         self.name = "Instance of " + instanceFor.name
         self.subset = instanceFor.subset
+        self.disks = instanceFor.disks
 
         if properties["posX"] == nil {
             properties["posX"] = 0

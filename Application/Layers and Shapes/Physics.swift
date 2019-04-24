@@ -202,7 +202,7 @@ class Physics
         }
 
         """
-                
+        
         instance.inBuffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
         instance.outBuffer = compute!.device.makeBuffer(length: dynaCount * 4 * MemoryLayout<Float>.stride, options: [])!
@@ -264,12 +264,24 @@ class Physics
                 object.body = Body(object)
             }
             
-            instance.data![offset + 0] = object.properties["posX"]!
-            instance.data![offset + 1] = object.properties["posY"]!
-            instance.data![offset + 2] = object.body!.velocity.x
-            instance.data![offset + 3] = object.body!.velocity.y
+            var radius : Float = 1
+            var xOff : Float = 0
+            var yOff : Float = 0
+
+            // --- Get the disk radius
+            if object.disks != nil && object.disks!.count > 0 {
+                print("instance disk", object.disks![0].z)
+                xOff = object.disks![0].x
+                yOff = object.disks![0].y
+                radius = object.disks![0].z
+            }
             
-            instance.data![offset + 4] = 20//object.properties["radius"]!
+            instance.data![offset + 0] = object.properties["posX"]! + xOff
+            instance.data![offset + 1] = object.properties["posY"]! + yOff
+            //instance.data![offset + 2] = object.body!.velocity.x
+            //instance.data![offset + 3] = object.body!.velocity.y
+            
+            instance.data![offset + 4] = radius
             
             offset += 6
         }

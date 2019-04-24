@@ -277,7 +277,7 @@ class Builder
     }
     
     /// Recursively create the objects source code
-    func parseObject(_ object: Object, instance: BuilderInstance, buildData: BuildData, physics: Bool = false)
+    func parseObject(_ object: Object, instance: BuilderInstance, buildData: BuildData, physics: Bool = false, buildMaterials: Bool = true)
     {
         buildData.parentPosX += object.properties["posX"]!
         buildData.parentPosY += object.properties["posY"]!
@@ -391,7 +391,7 @@ class Builder
             buildData.pointIndex += shape.pointCount
         }
         
-        if !physics {
+        if !physics && buildMaterials {
             // --- Material Code
             func createMaterialCode(_ material: Material, _ materialName: String)
             {
@@ -400,18 +400,18 @@ class Builder
                 let channel = material.properties["channel"]
                 switch channel
                 {
-                case 0: materialProperty = "baseColor"
-                case 1: materialProperty = "subsurface"
-                case 2: materialProperty = "roughness"
-                case 3: materialProperty = "metallic"
-                case 4: materialProperty = "specular"
-                case 5: materialProperty = "specularTint"
-                case 6: materialProperty = "clearcoat"
-                case 7: materialProperty = "clearcoatGloss"
-                case 8: materialProperty = "anisotropic"
-                case 9: materialProperty = "sheen"
-                case 10: materialProperty = "sheenTint"
-                default: print("Invalid Channel")
+                    case 0: materialProperty = "baseColor"
+                    case 1: materialProperty = "subsurface"
+                    case 2: materialProperty = "roughness"
+                    case 3: materialProperty = "metallic"
+                    case 4: materialProperty = "specular"
+                    case 5: materialProperty = "specularTint"
+                    case 6: materialProperty = "clearcoat"
+                    case 7: materialProperty = "clearcoatGloss"
+                    case 8: materialProperty = "anisotropic"
+                    case 9: materialProperty = "sheen"
+                    case 10: materialProperty = "sheenTint"
+                    default: print("Invalid Channel")
                 }
                 channelCode += materialProperty
                 let limiterType = material.properties["limiterType"]
@@ -429,21 +429,21 @@ class Builder
                     // --- No Limiter
                     buildData.materialSource += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
                 } else
-                    if limiterType == 1 {
-                        // --- Rectangle
-                        buildData.materialSource += "  d = abs( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].zw;\n"
-                        buildData.materialSource += "  limiterDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
-                        buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
-                    } else
-                        if limiterType == 2 {
-                            // --- Sphere
-                            buildData.materialSource += "  limiterDist = length( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
-                            buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
-                        } else
-                            if limiterType == 3 {
-                                // --- Border
-                                buildData.materialSource += "  limiterDist = -dist - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
-                                buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                if limiterType == 1 {
+                    // --- Rectangle
+                    buildData.materialSource += "  d = abs( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].zw;\n"
+                    buildData.materialSource += "  limiterDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
+                    buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                } else
+                if limiterType == 2 {
+                    // --- Sphere
+                    buildData.materialSource += "  limiterDist = length( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
+                    buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                } else
+                if limiterType == 3 {
+                    // --- Border
+                    buildData.materialSource += "  limiterDist = -dist - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
+                    buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
                 }
             }
             
@@ -493,12 +493,29 @@ class Builder
         instance.data![0] = camera.xPos
         instance.data![1] = camera.yPos
         instance.data![2] = 1/camera.zoom
+        
+        updateInstanceData(instance: instance, camera: camera, frame: frame)
+        
+        memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
+        
+        if outTexture == nil {
+            compute!.run( instance.state, inBuffer: instance.buffer )
+            return compute!.texture
+        } else {
+            compute!.run( instance.state, outTexture: outTexture, inBuffer: instance.buffer )
+            return outTexture!
+        }
+    }
+    
+    /// Update the instance data of the builder instance for the given frame
+    func updateInstanceData(instance: BuilderInstance, camera: Camera, doMaterials: Bool = true, frame: Int = 0)
+    {
         let offset : Int = instance.headerOffset
         var index : Int = 0
         var pointIndex : Int = 0
         var objectIndex : Int = 0
         var materialDataIndex : Int = 0
-
+        
         // Update Shapes / Objects
         
         var parentPosX : Float = 0
@@ -535,7 +552,7 @@ class Builder
                 instance.data![offset + index * itemSize+1] = properties["posY"]! + parentPosY
                 instance.data![offset + index * itemSize+2] = properties[shape.widthProperty]!
                 instance.data![offset + index * itemSize+3] = properties[shape.heightProperty]!
-
+                
                 instance.data![offset + index * itemSize+4] = (properties["rotate"]!+parentRotate) * Float.pi / 180
                 
                 let minSize : Float = min(shape.properties["sizeX"]!,shape.properties["sizeY"]!)
@@ -546,7 +563,7 @@ class Builder
                 
                 for i in 0..<shape.pointCount {
                     let ptConn = object.getPointConnections(shape: shape, index: i)
-
+                    
                     if ptConn.1 == nil {
                         // The point controls itself
                         instance.data![instance.pointDataOffset + (pointIndex+i) * 4] = properties["point_\(i)_x"]!
@@ -574,54 +591,54 @@ class Builder
             instance.data![instance.objectDataOffset + (objectIndex) * 4] = objectProperties["border"]!
             objectIndex += 1
             
-            // --- Fill in Material Data
-            func fillInMaterialData(_ materials: [Material] )
-            {
-                for material in materials {
-                    let properties : [String:Float]
-                    if rootObject.currentSequence != nil {
-                        properties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: material.uuid, properties: material.properties, frame: frame)
-                    } else {
-                        properties = material.properties
-                    }
-                    
-                    // pos + size
-                    instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["posX"]! + parentPosX
-                    instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["posY"]! + parentPosY
-                    instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties[material.widthProperty]!
-                    instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties[material.heightProperty]!
-                    materialDataIndex += 1
-                    // rotation, space for 3 more values
-                    instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = (properties["rotate"]!+parentRotate) * Float.pi / 180
-                    materialDataIndex += 1
-
-                    // --- values
-                    if material.pointCount == 0 {
-                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["value_x"]!
-                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["value_y"]!
-                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties["value_z"]!
-                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties["value_w"]!
-                        materialDataIndex += 1
-                    } else {
-                        for index in 0..<material.pointCount {
-                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["point_\(index)_x"]!// + properties["posX"]! + parentPosX
-                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["point_\(index)_y"]!// + properties["posY"]! + parentPosY
-                            materialDataIndex += 1
+            if instance.materialDataOffset != 0 {
+                // --- Fill in Material Data
+                func fillInMaterialData(_ materials: [Material] )
+                {
+                    for material in materials {
+                        let properties : [String:Float]
+                        if rootObject.currentSequence != nil {
+                            properties = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: material.uuid, properties: material.properties, frame: frame)
+                        } else {
+                            properties = material.properties
                         }
-                        for index in 0..<material.pointCount {
-                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["pointvalue_\(index)_x"]!
-                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["pointvalue_\(index)_y"]!
-                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties["pointvalue_\(index)_z"]!
-                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties["pointvalue_\(index)_w"]!
+                        
+                        // pos + size
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["posX"]! + parentPosX
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["posY"]! + parentPosY
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties[material.widthProperty]!
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties[material.heightProperty]!
+                        materialDataIndex += 1
+                        // rotation, space for 3 more values
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = (properties["rotate"]!+parentRotate) * Float.pi / 180
+                        materialDataIndex += 1
+                        
+                        // --- values
+                        if material.pointCount == 0 {
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["value_x"]!
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["value_y"]!
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties["value_z"]!
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties["value_w"]!
                             materialDataIndex += 1
+                        } else {
+                            for index in 0..<material.pointCount {
+                                instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["point_\(index)_x"]!// + properties["posX"]! + parentPosX
+                                instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["point_\(index)_y"]!// + properties["posY"]! + parentPosY
+                                materialDataIndex += 1
+                            }
+                            for index in 0..<material.pointCount {
+                                instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["pointvalue_\(index)_x"]!
+                                instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["pointvalue_\(index)_y"]!
+                                instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties["pointvalue_\(index)_z"]!
+                                instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties["pointvalue_\(index)_w"]!
+                                materialDataIndex += 1
+                            }
                         }
                     }
                 }
+                fillInMaterialData(object.bodyMaterials)
+                fillInMaterialData(object.borderMaterials)
             }
-            fillInMaterialData(object.bodyMaterials)
-            fillInMaterialData(object.borderMaterials)
-
-            // --- End Material Data
             
             for childObject in object.childObjects {
                 parseObject(childObject)
@@ -677,19 +694,9 @@ class Builder
                 }
             }
         }
-        
-        memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
-        
-        if outTexture == nil {
-            compute!.run( instance.state, inBuffer: instance.buffer )
-            return compute!.texture
-        } else {
-            compute!.run( instance.state, outTexture: outTexture, inBuffer: instance.buffer )
-            return outTexture!
-        }
     }
     
-    ///
+    /// Builds a shader for object / shape selection
     func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera, frame: Int = 0) -> Object?
     {
         var source =

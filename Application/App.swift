@@ -24,7 +24,7 @@ class App
     let gizmo           : Gizmo
     let closeButton     : MMButtonWidget!
     
-    let compute         : MMCompute = MMCompute()
+    //let compute         : MMCompute = MMCompute()
     
     let camera          : Camera!
     let timeline        : MMTimeline!

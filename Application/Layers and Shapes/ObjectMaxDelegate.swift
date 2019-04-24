@@ -196,6 +196,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func deactivate()
     {
+        app!.nodeGraph.diskBuilder.getDisksFor(currentObject!, builder: app!.nodeGraph.builder)
+        
         timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, modeScrollButton, backScrollButton, app.closeButton)
         materialsTab.deregisterWidget()

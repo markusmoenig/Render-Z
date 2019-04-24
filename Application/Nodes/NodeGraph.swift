@@ -79,7 +79,8 @@ class NodeGraph : Codable
     var builder         : Builder!
     var physics         : Physics!
     var timeline        : MMTimeline!
-    
+    var diskBuilder     : DiskBuilder!
+
     var previewSize     : float2 = float2(320, 200)
 
     // --- Icons
@@ -167,6 +168,7 @@ class NodeGraph : Codable
         timeline = MMTimeline(app.mmView)
         builder = Builder(self)
         physics = Physics(self)
+        diskBuilder = DiskBuilder(self)
 
         let renderer = app.mmView.renderer!
         
