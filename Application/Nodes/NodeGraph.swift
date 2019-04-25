@@ -411,7 +411,7 @@ class NodeGraph : Codable
         mouseMoved( event )
 //        #endif
 
-        if nodeHoverMode != .None {
+        if nodeHoverMode != .None && nodeHoverMode != .Preview {
             app?.mmView.mouseTrackWidget = app?.editorRegion?.widget
         }
         
@@ -459,7 +459,7 @@ class NodeGraph : Codable
                 return
             }
             
-            if offY < 26 {
+            if offY < 26 && selectedNode !== currentMaster {
                 dragStartPos.x = event.x
                 dragStartPos.y = event.y
                 

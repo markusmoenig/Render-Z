@@ -65,9 +65,8 @@ class EditorWidget      : MMWidget
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
-    {
+    {        
         if app.nodeGraph.maximizedNode == nil {
-            
             if app.nodeGraph.hoverNode != nil && app.nodeGraph.nodeHoverMode == .Preview {
                 // Node preview translation
                 let node = app.nodeGraph.hoverNode!
@@ -85,7 +84,7 @@ class EditorWidget      : MMWidget
                 }
                 #else
                 prevOffX -= event.deltaX!
-                prevOffX -= event.deltaY!
+                prevOffY -= event.deltaY!
                 #endif
                 
                 node.properties["prevOffX"] = prevOffX

@@ -34,8 +34,9 @@ class DiskBuilder
     func getDisksFor(_ object: Object, builder: Builder)
     {
         let camera = Camera()
-        let instance = buildShader(objects: [object], camera: camera, maxDisks: 10)
-        render(width: 800, height: 600, instance: instance!, camera: camera)
+        if let instance = buildShader(objects: [object], camera: camera, maxDisks: 10) {
+            render(width: 800, height: 600, instance: instance, camera: camera)
+        }
     }
     
     /// Build the state for the given objects
@@ -48,7 +49,8 @@ class DiskBuilder
         instance.maxDisks = maxDisks
         buildData.mainDataName = "diskBuilderData->"
 
-        builder.computeMaxCounts(objects: objects, buildData: buildData, physics: true)
+        builder.computeMaxCounts(objects: objects, buildData: buildData, physics: false)
+        if buildData.maxShapes == 0 { return nil }
         
         instance.objects = objects
         

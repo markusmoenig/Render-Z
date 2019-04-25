@@ -242,36 +242,6 @@ class Gizmo : MMWidget
     {
         // If shape editor has no shape, set to inactive
         if object!.selectedShapes.count == 0 && context == .ShapeEditor { hoverState = .Inactive; return }
-        
-        // --- ColorWidget
-        if context == .MaterialEditor {
-            if colorWidget.states.contains(.Opened) {
-                if colorWidget.rect.contains(event.x, event.y) {
-                    colorWidget.mouseDown(event)
-                } else {
-                    colorWidget.setState(.Closed)
-                }
-                return
-            } else
-            if floatWidget.states.contains(.Opened) {
-                if floatWidget.rect.contains(event.x, event.y) {
-                    floatWidget.mouseDown(event)
-                } else {
-                    floatWidget.setState(.Closed)
-                }
-                return
-            }
-        }
-        
-        //  Open Color or Float Widget ?
-        if hoverState == .ColorWidgetClosed {
-            colorWidget.setState(.Opened)
-            return
-        } else
-        if hoverState == .FloatWidgetClosed {
-            floatWidget.setState(.Opened)
-            return
-        }
 
 //        #if os(iOS) || os(watchOS) || os(tvOS)
         if mode == .Normal {
@@ -401,6 +371,36 @@ class Gizmo : MMWidget
                     }
                 }
             }
+        }
+        
+        // --- ColorWidget
+        if context == .MaterialEditor {
+            if colorWidget.states.contains(.Opened) {
+                if colorWidget.rect.contains(event.x, event.y) {
+                    colorWidget.mouseDown(event)
+                } else {
+                    colorWidget.setState(.Closed)
+                }
+                return
+            } else
+                if floatWidget.states.contains(.Opened) {
+                    if floatWidget.rect.contains(event.x, event.y) {
+                        floatWidget.mouseDown(event)
+                    } else {
+                        floatWidget.setState(.Closed)
+                    }
+                    return
+            }
+        }
+        
+        //  Open Color or Float Widget ?
+        if hoverState == .ColorWidgetClosed {
+            colorWidget.setState(.Opened)
+            return
+        } else
+            if hoverState == .FloatWidgetClosed {
+                floatWidget.setState(.Opened)
+                return
         }
         
         // --- Gizmo Action
@@ -564,6 +564,7 @@ class Gizmo : MMWidget
                 }
             }
         }
+        update()
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
@@ -586,10 +587,14 @@ class Gizmo : MMWidget
         }
         
         if dragState == .Inactive {
+            let oldHoverState = hoverState
             if mode == .Normal {
                 updateNormalHoverState(editorRect: rect, event: event)
             } else {
                 updatePointHoverState(editorRect: rect, event: event)
+            }
+            if oldHoverState != hoverState {
+                update()
             }
         } else {
             let pos = convertToSceneSpace(x: event.x, y: event.y)
