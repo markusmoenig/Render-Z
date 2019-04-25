@@ -18,6 +18,8 @@ class NodeUI
         case None, ObjectPicker, AnimationPicker
     }
     
+    var mmView      : MMView!
+    
     var brand       : Brand
     var role        : Role = .None
     
@@ -65,6 +67,7 @@ class NodeUI
     
     func calcSize(mmView: MMView)
     {
+        self.mmView = mmView
         rect.width = 100
         rect.height = 20
     }
@@ -101,6 +104,7 @@ class NodeUIDropDown : NodeUI
     }
     
     override func calcSize(mmView: MMView) {
+        self.mmView = mmView
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
         
         minItemWidth = 85
@@ -127,6 +131,7 @@ class NodeUIDropDown : NodeUI
             let oldValue = node.properties[variable]!
             node.properties[variable] = index
             node.variableChanged(variable: variable, oldValue: oldValue, newValue: index)
+            mmView.update()
         }
         open = false
     }
@@ -138,6 +143,7 @@ class NodeUIDropDown : NodeUI
             let index = Float(Int(y / itemHeight))
             if index >= 0 && index < Float(items.count) {
                 self.index = index
+                mmView.update()
             }
         }
     }
@@ -282,6 +288,7 @@ class NodeUIKeyDown : NodeUI
     }
     
     override func calcSize(mmView: MMView) {
+        self.mmView = mmView
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
         
         rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 120
@@ -305,6 +312,7 @@ class NodeUIKeyDown : NodeUI
         
         if oldValue != keyCode {
             node.variableChanged(variable: variable, oldValue: oldValue, newValue: keyCode)
+            mmView.update()
         }
     }
     
@@ -355,6 +363,7 @@ class NodeUINumber : NodeUI
     }
     
     override func calcSize(mmView: MMView) {
+        self.mmView = mmView
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
         
         rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 120
@@ -378,6 +387,7 @@ class NodeUINumber : NodeUI
         
         if oldValue != value {
             node.variableChanged(variable: variable, oldValue: oldValue, newValue: value, continuous: true)
+            mmView.update()
         }
     }
     
@@ -388,6 +398,7 @@ class NodeUINumber : NodeUI
         
         if oldValue != value {
             node.variableChanged(variable: variable, oldValue: oldValue, newValue: value)
+            mmView.update()
         }
         mouseIsDown = false
     }

@@ -414,7 +414,7 @@ class NodeGraph : Codable
         if nodeHoverMode != .None {
             app?.mmView.mouseTrackWidget = app?.editorRegion?.widget
         }
-
+        
         if nodeHoverMode == .NodeUI {
             hoverUIItem!.mouseDown(event)
             nodeHoverMode = .NodeUIMouseLocked
@@ -594,7 +594,7 @@ class NodeGraph : Codable
                     
                     uiRect.x = uiItemX + titleWidth
                     uiRect.y = uiItemY
-                    uiRect.width = uiItem.rect.width * scale - titleWidth
+                    uiRect.width = uiItem.rect.width * scale - uiItem.titleLabel!.rect.width - NodeUI.titleMargin.width() - NodeUI.titleSpacing
                     uiRect.height = uiItem.rect.height * scale
 
                     if uiRect.contains(event.x, event.y) {

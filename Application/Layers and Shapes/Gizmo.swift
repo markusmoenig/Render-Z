@@ -1281,7 +1281,7 @@ class Gizmo : MMWidget
                     
                     uiRect.x = uiItemX + titleWidth
                     uiRect.y = uiItemY
-                    uiRect.width = uiItem.rect.width - titleWidth
+                    uiRect.width = uiItem.rect.width * scale - uiItem.titleLabel!.rect.width - NodeUI.titleMargin.width() - NodeUI.titleSpacing
                     uiRect.height = uiItem.rect.height
                     
                     if uiRect.contains(event.x, event.y) {
