@@ -1070,6 +1070,9 @@ class Gizmo : MMWidget
                 mmView.drawBoxedShape.draw(x: gizmoPtMinusRect.x, y: gizmoPtMinusRect.y, width: gizmoPtMinusRect.width, height: gizmoPtMinusRect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor: fColor, borderColor: float4(repeating: 0), shape: .Minus)
             }
 
+            gizmoUIMenuRect.width = 30
+            gizmoUIMenuRect.height = 28
+            
             // --- Material context: Color/Value in left corner
             if context == .MaterialEditor && selectedMaterials.count == 1 && selectedMaterials[0].properties["channel"]! == 0 && selectedMaterials[0].pointCount == 0 {
                 colorWidget.rect.x = gizmoRect.x + 5
@@ -1085,9 +1088,6 @@ class Gizmo : MMWidget
             // --- Render Menu
             if gizmoNode.uiItems.count > 0 {
                 let skin = mmView.skin.MenuWidget
-                
-                gizmoUIMenuRect.width = 30
-                gizmoUIMenuRect.height = 28
                 
                 gizmoUIMenuRect.x = gizmoRect.x + gizmoRect.width - gizmoUIMenuRect.width - 5
                 gizmoUIMenuRect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
