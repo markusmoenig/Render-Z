@@ -39,13 +39,20 @@ class Physics
     /// Build the state for the given objects
     func buildPhysics(objects: [Object], builder: Builder, camera: Camera) -> PhysicsInstance?
     {
+        // Build the disks for dynamic objects
+        let dynamicObjects = getDynamicObjects(objects: objects)
+        //for object in dynamicObjects {
+            //nodeGraph.diskBuilder.getDisksFor(object, builder: nodeGraph.builder)
+        //}
+        // ---
+        
         let instance = PhysicsInstance()
         let buildData = BuildData()
         buildData.mainDataName = "physicsData->"
 
         builder.computeMaxCounts(objects: objects, buildData: buildData, physics: true)
-
-        instance.dynamicObjects = getDynamicObjects(objects: objects)
+        instance.dynamicObjects = dynamicObjects
+        
         let dynaCount = instance.dynamicObjects.count
         if dynaCount == 0 { return nil }
         
@@ -111,8 +118,10 @@ class Physics
         
         for object in objects {
             let physicsMode = object.properties["physicsMode"]
-            if physicsMode != nil && physicsMode! == 1 {
-                builder.parseObject(object, instance: instance, buildData: buildData, physics: true)
+            if physicsMode != nil {
+                if physicsMode! == 1 {
+                    builder.parseObject(object, instance: instance, buildData: buildData, physics: true)
+                }
             }
         }
         
@@ -243,8 +252,10 @@ class Physics
         
         for object in instance.objects {
             let physicsMode = object.properties["physicsMode"]
-            if physicsMode != nil && physicsMode! == 1 {
-                parseObject(object)
+            if physicsMode != nil {
+                if physicsMode! == 1 {
+                    parseObject(object)
+                }
             }
         }
         

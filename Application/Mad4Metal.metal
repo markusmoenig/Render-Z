@@ -332,6 +332,19 @@ float2 hsl2xy(float3 hsl)
     return float2(cos(theta), sin(theta));
 }
 
+float3 rgb2hsl( float3 col )
+{
+    const float eps = 0.0000001;
+
+    float minc = min( col.r, min(col.g, col.b) );
+    float maxc = max( col.r, max(col.g, col.b) );
+    float3  mask = step(col.grr,col.rgb) * step(col.bbg,col.rgb);
+    float3 h = mask * (float3(0.0,2.0,4.0) + (col.gbr-col.brg)/(maxc-minc + eps)) / 6.0;
+    return float3( fract( 1.0 + h.x + h.y + h.z ),              // H
+                (maxc-minc)/(1.0-abs(minc+maxc-1.0) + eps),  // S
+                (minc+maxc)*0.5 );                           // L
+}
+
 // --- ColorWheel Drawable
 fragment float4 m4mColorWheelDrawable(RasterizerData in [[stage_in]],
                                constant MM_COLORWHEEL *data [[ buffer(0) ]] )
@@ -349,7 +362,12 @@ fragment float4 m4mColorWheelDrawable(RasterizerData in [[stage_in]],
     {
         uv = uv / 0.75;
         
-        float2 mouse = hsl2xy(data->color.xyz);// float2(0.0, -1.0);
+        float3 inhsl = data->color.xyz;//rgb2hsl(data->color.xyz);
+        inhsl.x /= 360;
+
+        float angle = ((inhsl.x * 360) - 180) * M_PI / 180;
+        float2 mouse = float2( sin(angle), cos(angle) );
+
         float3 pickedHueColor = getHueColor(mouse);
 
         mouse = normalize(mouse);
@@ -369,6 +387,8 @@ fragment float4 m4mColorWheelDrawable(RasterizerData in [[stage_in]],
                 col = float4(l * mix(pickedHueColor, float3(0.5 * (lum + h) / h), sat / 1.5), l);
             }
         }
+        
+        //col.xyz = pickedHueColor;
     }
 
     return col;

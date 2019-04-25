@@ -83,3 +83,88 @@ class MMMargin
         return top + bottom
     }
 }
+
+/// RGB to HSL
+func toHSL(_ r: Float, _ g: Float, _ b: Float) -> (Float, Float, Float)
+{
+    let _max : Float = max(r, g, b)
+    let _min : Float = min(r, g, b)
+    
+    let v : Float = (_max + _min) / 2
+    var h : Float = v
+    var s : Float = v
+    let l : Float = v
+    
+    if (_max == _min)
+    {
+        h = 0.0
+        s = 0.0
+    }
+    else
+    {
+        let d = _max - _min
+        
+        s = l > 0.5 ? d / (2 - _max - _min) : d / (_max + _min)
+        
+        if (_max == r)
+        {
+            h = (g - b) / d + (g < b ? 6 : 0)
+        }
+        else
+        if (_max == g) {
+            h = (b - r) / d + 2
+        }
+        else
+        if (_max == b) {
+            h = (r - g) / d + 4
+        }
+        
+        h /= 6
+    }
+
+    return (h,s,l)
+}
+
+/// HSL to RGB
+func toRGB(_ h: Float, _ s: Float, _ l: Float) -> (Float, Float, Float)
+{
+    func hueAngle(_ hueIn: Float, _ x: Float, _ y: Float) -> Float
+    {
+        var hue: Float = hueIn
+        
+        if hue < 0.0 {
+            hue += 1
+        } else
+        if hue > 1.0 {
+            hue -= 1
+        }
+        
+        if hue < 1 / 6 { return x + (y - x) * 6 * hue }
+        if hue < 1 / 2 { return y }
+        if hue < 2 / 3 { return x + (y - x) * ((2 / 3) - hue) * 6 }
+        
+        return x
+    }
+    
+    var r : Float
+    var g : Float
+    var b : Float
+
+    if (s == 0.0) {
+        r = l
+        g = l
+        b = l
+    } else
+    {
+        let y : Float = l < 0.5 ? l * (1 + s) : l + s - l * s
+        let x : Float = 2 * l - y
+        
+        let hue = h / 360
+        
+        r = hueAngle(hue + 1 / 3, x, y);
+        g = hueAngle(hue        , x, y);
+        b = hueAngle(hue - 1 / 3, x, y);
+    }
+    
+    return (r,g,b)
+}
