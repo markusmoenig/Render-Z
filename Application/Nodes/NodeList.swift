@@ -60,6 +60,12 @@ class NodeList : MMWidget
 
         var item : NodeListItem
 
+        // --- Object Profile
+        item = NodeListItem("3D Profile")
+        item.createNode = {
+            return ObjectProfile()
+        }
+        addNodeItem(item, type: .Property, displayType: .Object)
         // --- Object Physics
         item = NodeListItem("Physics Properties")
         item.createNode = {

@@ -230,8 +230,8 @@ class MMColorWidget : MMWidget
         let x : Float = event.x - rect.x - 10
         let y : Float = event.y - rect.y - 10
         
-        if x < 0 || x > 150 { return }
-        if y < 0 || y > 150 { return }
+        //if x < 0 || x > 150 { return }
+        //if y < 0 || y > 150 { return }
         
         let hsv = toHSL(value.x, value.y, value.z)
         

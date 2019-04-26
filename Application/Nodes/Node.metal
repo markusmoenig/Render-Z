@@ -225,7 +225,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     if ( data->hasIcons1.x == 1 )
     {
         uv = uvCopy;
-        uv -= float2( size.x - 41 * scale + 16 * scale, size.y - borderSize - 22 * scale );
+        uv -= float2( size.x - (41+20) * scale + 16 * scale, size.y - borderSize - 27 * scale );
         
         d = abs( uv ) - float2(6,5) * scale;
         dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 2 * scale;
@@ -238,18 +238,35 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
     }
     
-    /*
     if ( data->hasIcons1.y == 1 )
     {
         uv = uvCopy;
-        uv -= float2( 30 * scale, 22 * scale);
+        uv -= float2( size.x - (38) * scale + 16 * scale, size.y - borderSize - 25 * scale );
+
+        float diam = 7 * scale;
+        float2 sp = float2(-diam, -diam);
+        float2 ep = float2(diam, diam);
+        float width = 1.5 * scale;
+
+        float2 o = uv - sp;
+        float2 l = ep - sp;
         
-        uv = nodeRotateCW( uv, -1.5707963268 );
-        dist = nodeTriangleIsosceles( uv, float2( 10, 16) * scale);
+        float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
+        float dist = -(width-distance(o,l*h));
+        
+        sp = float2(-diam, diam);
+        ep = float2(diam, -diam);
+        
+        o = uv - sp;
+        l = ep - sp;
+        
+        h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
+        float newDist = -(width-distance(o,l*h));
+        dist = min(dist, newDist);
         
         color = data->hoverIndex == 2 ? iconHoverColor : iconColor;
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
-    }*/
+     }
 
 //    finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
 //    color = float4(0.212, 0.208, 0.208, 1.000);

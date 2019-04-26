@@ -16,7 +16,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Maximize, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging
+        case None, Maximize, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, Close
     }
     
     enum ContentType : Int {
@@ -456,6 +456,13 @@ class NodeGraph : Codable
                 deactivate()
                 maximizedNode!.maxDelegate!.activate(app!)
                 nodeHoverMode = .None
+                app?.mmView.mouseTrackWidget = nil
+                return
+            }
+            if nodeHoverMode == .Close {
+                deleteNode(selectedNode)
+                nodeHoverMode = .None
+                hoverNode = nil
                 return
             }
             
@@ -561,16 +568,34 @@ class NodeGraph : Codable
             let x = event.x - hoverNode!.rect.x
             let y =  event.y - hoverNode!.rect.y
             
+            // Maximize
             if hoverNode!.maxDelegate != nil {
                 if hoverNode !== currentMaster {
 
                     let iconSize : Float = 18 * scale
-                    let xStart : Float = hoverNode!.rect.width - 41 * scale
-                    let yStart : Float = 22 * scale
+                    let xStart : Float = hoverNode!.rect.width - 61 * scale
+                    let yStart : Float = 27 * scale
                     
                     if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
                     {
                         nodeHoverMode = .Maximize
+                        mmView.update()
+                        return
+                    }
+                }
+            }
+            
+            // Close
+            if true {
+                if hoverNode !== currentMaster {
+                    
+                    let iconSize : Float = 18 * scale
+                    let xStart : Float = hoverNode!.rect.width - 38 * scale
+                    let yStart : Float = 27 * scale
+                    
+                    if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
+                    {
+                        nodeHoverMode = .Close
                         mmView.update()
                         return
                     }
@@ -770,16 +795,23 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + node.xPos + xOffset
         node.rect.y = region.rect.y + node.yPos + yOffset
 
-//        print(node.minimumSize.x, node.uiArea.width)
         node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
         node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
+        
+        if node.label == nil {
+            node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name, scale: 0.5 * scale)
+        }
+        
+        let iconWidth : Float = node.maxDelegate == nil ? 20 : 40
+        
+        if let label = node.label {
+            if label.rect.width + (40+iconWidth) * scale > node.rect.width {
+                node.rect.width = label.rect.width + (40+iconWidth) * scale
+            }
+        }
 
         let vertexBuffer = renderer.createVertexBuffer( MMRect( node.rect.x, node.rect.y, node.rect.width, node.rect.height, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
-        if node.label == nil {
-            node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name)
-        }
         
         // --- Fill the node data
         
@@ -803,10 +835,13 @@ class NodeGraph : Codable
         node.data.hoverIndex = 0
         if nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid {
             node.data.hoverIndex = 1
+        } else
+        if nodeHoverMode == .Close && node.uuid == hoverNode!.uuid {
+            node.data.hoverIndex = 2
         }
         
         node.data.hasIcons1.x = node.maxDelegate != nil ? 1 : 0
-        node.data.hasIcons1.y = node.type == "Object" ? 1 : 0
+        node.data.hasIcons1.y = 1
 
         node.data.scale = scale
         
@@ -865,12 +900,14 @@ class NodeGraph : Codable
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         
         // --- Label
-        
         if let label = node.label {
             if label.scale != 0.5 * scale {
                 label.setText(node.name, scale: 0.5 * scale)
             }
-            label.drawCentered(x: node.rect.x - (node.maxDelegate != nil ? 10 : 0), y: node.rect.y + 23 * scale, width: node.rect.width, height: label.rect.height)//19
+            //label.rect.x = node.rect.x + 20 * scale
+            //label.rect.y = node.rect.y + 23 * scale
+            //label.draw()
+            label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 23 * scale, width: node.rect.width - (iconWidth+20) * scale, height: label.rect.height)
         }
         
         // --- UI
@@ -882,7 +919,7 @@ class NodeGraph : Codable
             uiItem.rect.y = uiItemY
             
             if nodeHoverMode == .NodeUIMouseLocked && node === hoverNode && uiItem === hoverUIItem! {
-                uiItemY += uiItem.rect.height
+                uiItemY += uiItem.rect.height * scale
                 continue
             }
             
@@ -932,7 +969,7 @@ class NodeGraph : Codable
         }
         
         node.data.hasIcons1.x = 0
-        node.data.hasIcons1.y = node.type == "Object" ? 1 : 0
+        node.data.hasIcons1.y = 0
         
         node.data.scale = 1
         
@@ -1511,5 +1548,23 @@ class NodeGraph : Codable
         }
         
         return masterNode
+    }
+    
+    /// Deletes the given node
+    func deleteNode(_ node: Node)
+    {
+        // Remove connections
+        for t in node.terminals {
+            for conn in t.connections {
+                disconnectConnection(conn)
+            }
+        }
+        // Remove node from master subset
+        if let master = currentMaster {
+            master.subset!.remove(at: master.subset!.firstIndex(where: { $0 == node.uuid })!)
+        }
+        // Remove from nodes
+        nodes.remove(at: nodes.firstIndex(where: { $0.uuid == node.uuid })!)
+        mmView.update()
     }
 }

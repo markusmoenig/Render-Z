@@ -104,18 +104,17 @@ class MMBaseView : MTKView
         mousePos.x = event.x
         mousePos.y = event.y
         
-        let oldHoverWidget = hoverWidget
-                
 //        if hoverWidget != nil {
 //            hoverWidget!.removeState(.Hover)
 //            hoverWidget!.mouseLeave(event)
 //        }
         
-        hoverWidget = nil
-        
         if mouseTrackWidget != nil {
             mouseTrackWidget!.mouseMoved(event)
         } else {
+            let oldHoverWidget = hoverWidget
+            hoverWidget = nil
+
             for widget in widgets {
                 if widget.rect.contains( event.x, event.y ) {
                     hoverWidget = widget
@@ -127,12 +126,12 @@ class MMBaseView : MTKView
                     break;
                 }
             }
-        }
-        
-        if oldHoverWidget !== hoverWidget {
-            if oldHoverWidget != nil {
-                oldHoverWidget!.removeState(.Hover)
-                oldHoverWidget!.mouseLeave(event)
+            
+            if oldHoverWidget !== hoverWidget {
+                if oldHoverWidget != nil {
+                    oldHoverWidget!.removeState(.Hover)
+                    oldHoverWidget!.mouseLeave(event)
+                }
             }
         }
     }
