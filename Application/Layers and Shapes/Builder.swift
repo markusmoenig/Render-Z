@@ -123,34 +123,16 @@ class Builder
         buildData.source +=
         """
         
-        kernel void
-        layerBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
-        constant LAYER_DATA            *layerData   [[ buffer(1) ]],
-        texture2d<half, access::read>   inTexture   [[texture(2)]],
-        uint2                           gid         [[thread_position_in_grid]])
+        float4 sdf( float2 uv, constant LAYER_DATA *layerData )
         {
-            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-            float2 fragCoord = float2( gid.x, gid.y );
-            float2 uv = fragCoord;
-        
-            float2 center = size / 2;
-            uv = translate(uv, center - float2( layerData->camera.x, layerData->camera.y ) );
-            uv.y = -uv.y;
-            uv *= layerData->fill.x;
             float2 tuv = uv, pAverage;
         
             float dist = 100000, newDist, objectDistance = 100000;
-            MATERIAL_DATA bodyMaterial;
-            bodyMaterial.baseColor = float4(0.5, 0.5, 0.5, 1);
-            clearMaterial( &bodyMaterial );
-            MATERIAL_DATA borderMaterial;
-            borderMaterial.baseColor = float4(1);
-            clearMaterial( &borderMaterial );
             int materialId = -1, objectId  = -1;
             constant SHAPE_DATA *shape;
         
         """
-        
+
         /// Parse objects and their shapes
         
         for object in objects {
@@ -193,6 +175,59 @@ class Builder
             instance.data!.append( 0 )
         }
         
+        buildData.source +=
+        """
+        
+            return float4(dist, objectId, materialId, 0);
+        }
+        
+        float profile( float dist )
+        {
+            dist = abs(dist);//dist;//sin(dist / 20) + 20;//abs(dist);
+            return dist;
+        }
+        
+        float3 calculateNormal(float2 uv, float dist, constant LAYER_DATA *layerData)
+        {
+            float p = 0.0005;//min(.3, .0005+.00005 * distance*distance);
+            float3 nor      = float3(0.0,            profile(dist), 0.0);
+            float3 v2        = nor-float3(p,        profile(sdf(uv+float2(p,0.0), layerData).x), 0.0);
+            float3 v3        = nor-float3(0.0,        profile(sdf(uv+float2(0.0,-p), layerData).x), -p);
+            nor = cross(v2, v3);
+            return normalize(nor);
+        }
+        
+        kernel void
+        layerBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
+            constant LAYER_DATA            *layerData   [[ buffer(1) ]],
+            texture2d<half, access::read>   inTexture   [[texture(2)]],
+            uint2                           gid         [[thread_position_in_grid]])
+        {
+            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            float2 fragCoord = float2( gid.x, gid.y );
+            float2 uv = fragCoord;
+            
+            float2 center = size / 2;
+            uv = translate(uv, center - float2( layerData->camera.x, layerData->camera.y ) );
+            uv.y = -uv.y;
+            uv *= layerData->fill.x;
+
+            float4 rc = sdf( uv, layerData );
+        
+            MATERIAL_DATA bodyMaterial;
+            bodyMaterial.baseColor = float4(0.5, 0.5, 0.5, 1);
+            clearMaterial( &bodyMaterial );
+            MATERIAL_DATA borderMaterial;
+            borderMaterial.baseColor = float4(1);
+            clearMaterial( &borderMaterial );
+        
+            float dist = rc.x;
+            int objectId = (int) rc.y;
+            int materialId = (int) rc.z;
+            float2 tuv = uv;
+            
+        """
+        
         buildData.source += buildData.materialSource
         buildData.source +=
         """
@@ -230,6 +265,10 @@ class Builder
             float fm = fillMask( dist ) * bodyMaterial.baseColor.w;
             float bm = 0;
             bodyMaterial.baseColor.w = fm;
+            float3 normal = float3(0,1,0);
+        
+            //if ( dist <= 0 )
+            //    normal = calculateNormal( uv, dist, layerData );
         
             if ( materialId >= 0 )
             {
@@ -243,7 +282,7 @@ class Builder
                 }
             }
         
-            if (fm != 0 || bm != 0) col = calculatePixelColor( fragCoord, bodyMaterial );
+            if (fm != 0 || bm != 0) col = calculatePixelColor( fragCoord, bodyMaterial, normal );
         
         """
         
@@ -1548,7 +1587,7 @@ class Builder
             return Ld;
         }
 
-        float4 calculatePixelColor(const float2 uv, MaterialInfo material)
+        float4 calculatePixelColor(const float2 uv, MaterialInfo material, float3 normal)
         {
             float4 color = material.baseColor;//float4(1);
             
@@ -1558,7 +1597,7 @@ class Builder
             float seed = hash12(uv);
 
             SurfaceInteraction interaction;
-            interaction.normal = float3(0,1,0);
+            interaction.normal = normal;
             interaction.incomingRayDir = float3(0,-1,0);
             interaction.point = float3(uv.x,0,uv.y);
 
@@ -1573,14 +1612,22 @@ class Builder
 
             LightInfo light;
             light.L = float3(3.15);//float3(5.4);
-            light.position = float3(0, 0, 0);
-            light.direction = normalize(float3(0, 1, 0));//normalize(float3(-1.,1.,1.));
+            light.position = float3(10, -100, 0);
+            light.direction = normalize(float3(0, 0, 0)-light.position);//normalize(float3(0,1,0));//normalize(float3(-1.,1.,1.));
             light.radius = 0;
             light.type = LIGHT_TYPE_SUN;
             light.enabled = true;
 
+            
+            LightInfo light2;
+            light2.L = float3(3.15 * 10);//float3(5.4);
+            light2.position = float3(0, -20, 0);
+            light2.radius = 30;
+            light2.type = LIGHT_TYPE_SPHERE;
+            light2.enabled = true;
+
             float3 Ld = beta * calculateDirectLight(light, interaction, material, &wi, &f, &scatteringPdf, seed);
-            //Ld += beta * calculateDirectLight(light, interaction, material, &wi, &f, &scatteringPdf, seed);
+            //Ld += beta * calculateDirectLight(light2, interaction, material, &wi, &f, &scatteringPdf, seed);
             L += Ld;
 
             // Add indirect diffuse light from an env map
