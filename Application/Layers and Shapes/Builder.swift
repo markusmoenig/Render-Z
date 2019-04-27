@@ -26,6 +26,8 @@ class BuilderInstance
     var objectDataOffset : Int = 0
     // Offset to the material data array
     var materialDataOffset : Int = 0
+    // Offset to the profile data / points
+    var profileDataOffset : Int = 0
     
     var texture         : MTLTexture? = nil
 }
@@ -37,7 +39,8 @@ class BuildData
     var objectIndex         : Int = 0
     var materialDataIndex   : Int = 0
     var pointIndex          : Int = 0
-    
+    var profileIndex        : Int = 0
+
     // --- Hierarchy
     var parentPosX          : Float = 0
     var parentPosY          : Float = 0
@@ -50,10 +53,11 @@ class BuildData
     var source              : String = ""
     
     // Maximum values
-    var maxShapes           : Int = 0 // shape index
-    var maxPoints           : Int = 0 // shape index
-    var maxObjects          : Int = 0 // shape index
-    var maxMaterialData     : Int = 0 // shape index
+    var maxShapes           : Int = 0
+    var maxPoints           : Int = 0
+    var maxObjects          : Int = 0
+    var maxMaterialData     : Int = 0
+    var maxProfileData      : Int = 0
 }
 
 class Camera
@@ -105,6 +109,7 @@ class Builder
             float4      points[\(max(buildData.maxPoints, 1))];
             OBJECT_DATA objects[\(max(buildData.maxObjects, 1))];
             float4      materialData[\(max(buildData.maxMaterialData, 1))];
+            float4      profileData[\(max(buildData.maxProfileData, 1))];
         } LAYER_DATA;
         
         """
@@ -175,24 +180,62 @@ class Builder
             instance.data!.append( 0 )
         }
         
+        instance.profileDataOffset = instance.data!.count
+        
+        // Fill up the profile data
+        let profileDataCount = max(buildData.maxProfileData,1)
+        for _ in 0..<profileDataCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
         buildData.source +=
         """
         
             return float4(dist, objectId, materialId, 0);
         }
         
-        float profile( float dist )
+        float profile( float dist, constant float4 *profileData, int profileIndex)
         {
-            dist = abs(dist);//dist;//sin(dist / 20) + 20;//abs(dist);
-            return dist;
+            dist = abs(dist);
+            int index = profileIndex;
+            float value = 0;
+        
+            bool finished = false;
+            while( !finished )
+            {
+                constant float4 *pt1 = &profileData[index];
+                constant float4 *pt2 = &profileData[index+1];
+        
+                if (pt1->x <= dist && pt2->x >= dist) {
+                    //value = mix( pt1->y, pt2->y, dist - pt2->x );
+        
+                    //var y=originY + radius * Math.sin( pt + offset );
+                    //var pt=Math.atan2(p.y - originY, p.x - originX );
+
+                    float pt = atan2(pt2->y - pt1->y, pt2->x - pt1->x);
+                    value = pt1->y + (pt2->x - pt1->x) / 2 *sin(pt + (dist - pt1->x) / ((pt2->x - pt1->x) ) );
+
+        
+                } else {
+                    value = pt2->y;
+                }
+        
+                if ( pt2->z == -1 ) finished = true;
+                index += 2;
+            }
+        
+            return value;
         }
         
-        float3 calculateNormal(float2 uv, float dist, constant LAYER_DATA *layerData)
+        float3 calculateNormal(float2 uv, float dist, constant LAYER_DATA *layerData, int profileIndex)
         {
             float p = 0.0005;//min(.3, .0005+.00005 * distance*distance);
-            float3 nor      = float3(0.0,            profile(dist), 0.0);
-            float3 v2        = nor-float3(p,        profile(sdf(uv+float2(p,0.0), layerData).x), 0.0);
-            float3 v3        = nor-float3(0.0,        profile(sdf(uv+float2(0.0,-p), layerData).x), -p);
+            float3 nor      = float3(0.0,            profile(dist, layerData->profileData, profileIndex), 0.0);
+            float3 v2        = nor-float3(p,        profile(sdf(uv+float2(p,0.0), layerData).x, layerData->profileData, profileIndex), 0.0);
+            float3 v3        = nor-float3(0.0,        profile(sdf(uv+float2(0.0,-p), layerData).x, layerData->profileData, profileIndex), -p);
             nor = cross(v2, v3);
             return normalize(nor);
         }
@@ -221,6 +264,8 @@ class Builder
             borderMaterial.baseColor = float4(1);
             clearMaterial( &borderMaterial );
         
+            float3 normal = float3(0,1,0);
+
             float dist = rc.x;
             int objectId = (int) rc.y;
             int materialId = (int) rc.z;
@@ -265,10 +310,6 @@ class Builder
             float fm = fillMask( dist ) * bodyMaterial.baseColor.w;
             float bm = 0;
             bodyMaterial.baseColor.w = fm;
-            float3 normal = float3(0,1,0);
-        
-            //if ( dist <= 0 )
-            //    normal = calculateNormal( uv, dist, layerData );
         
             if ( materialId >= 0 )
             {
@@ -427,9 +468,9 @@ class Builder
         }
         
         // --- Apply the physics object id
-        if physics {
+//        if physics {
             buildData.source += "if (dist < objectDistance) { objectId = \(buildData.objectIndex); objectDistance = dist; }\n"
-        }
+//        }
     
         if !physics && buildMaterials {
             // --- Material Code
@@ -486,6 +527,16 @@ class Builder
                     buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
                 }
             }
+            
+            // Insert normal calculation code for the profile data
+            if object.profile != nil {
+                buildData.materialSource += "if (dist <= 0 && objectId == \(buildData.objectIndex)) { \n"
+                buildData.materialSource += "normal = calculateNormal( uv, dist, layerData, \(buildData.profileIndex));"
+                buildData.materialSource += "}\n"
+                buildData.profileIndex += object.profile!.count
+            }
+            
+            ///
             
             buildData.materialSource += "if (materialId == \(buildData.objectIndex)) { float2 d; float limiterDist; float4 value;\n"
             for material in object.bodyMaterials {
@@ -555,7 +606,8 @@ class Builder
         var pointIndex : Int = 0
         var objectIndex : Int = 0
         var materialDataIndex : Int = 0
-        
+        var profileDataIndex : Int = 0
+
         // Update Shapes / Objects
         
         var parentPosX : Float = 0
@@ -678,6 +730,18 @@ class Builder
                 }
                 fillInMaterialData(object.bodyMaterials)
                 fillInMaterialData(object.borderMaterials)
+                
+                // --- Fill in the profile data
+                
+                if object.profile != nil {
+                    for index in 0..<object.profile!.count {
+                        instance.data![instance.profileDataOffset + (profileDataIndex) * 4] = object.profile![index].x
+                        instance.data![instance.profileDataOffset + (profileDataIndex) * 4 + 1] = object.profile![index].y
+                        instance.data![instance.profileDataOffset + (profileDataIndex) * 4 + 2] = object.profile![index].z
+                        instance.data![instance.profileDataOffset + (profileDataIndex) * 4 + 3] = object.profile![index].w
+                        profileDataIndex += 1
+                    }
+                }
             }
             
             for childObject in object.childObjects {
@@ -1024,12 +1088,17 @@ class Builder
         var objectIndex : Int = 0
         var pointIndex : Int = 0
         var materialIndex : Int = 0
-        
+        var profileIndex : Int = 0
+
         func parseObject(_ object: Object)
         {
             for shape in object.shapes {
                 shapeIndex += 1
                 pointIndex += shape.pointCount
+            }
+            
+            if object.profile != nil {
+                profileIndex += object.profile!.count
             }
             
             for material in object.bodyMaterials {
@@ -1070,6 +1139,7 @@ class Builder
         buildData.maxPoints = pointIndex
         buildData.maxObjects = objectIndex
         buildData.maxMaterialData = materialIndex
+        buildData.maxProfileData = profileIndex
     }
     
     /// Returns the common code for all shaders
@@ -1611,7 +1681,7 @@ class Builder
             float scatteringPdf = 0.;
 
             LightInfo light;
-            light.L = float3(3.15);//float3(5.4);
+            light.L = float3(3.15);//float3(5.4);3.15
             light.position = float3(10, -100, 0);
             light.direction = normalize(float3(0, 0, 0)-light.position);//normalize(float3(0,1,0));//normalize(float3(-1.,1.,1.));
             light.radius = 0;
@@ -1634,7 +1704,7 @@ class Builder
             //float3 diffuseColor = (1.0 - material.metallic) * material.baseColor.rgb ;
             //L += diffuseColor * Irradiance_SphericalHarmonics(interaction.normal)/3.14;
 
-            return float4(L, material.baseColor.w);
+            return float4(/*pow(clamp(0, 1, L), 0.4545),*/L, material.baseColor.w);
         }
 
         """

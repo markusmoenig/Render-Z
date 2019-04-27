@@ -32,10 +32,14 @@ class Object : Node
     var maxFrame        : Float = 0
     var animationScale  : Float = 1
 
-    /// Physics Body
+    // Physics Body
     var body            : Body? = nil
     var disks           : [float4]? = nil
     
+    // Profile points (if any)
+    var profile         : [float4]? = nil
+    
+    // Buil
     var buildPointOffset: Int = 0
     var physicPointOffset: Int = 0
     
@@ -45,7 +49,7 @@ class Object : Node
 
     var pointConnections: [ObjectPointConnection] = []
     
-    /// The render instance for this object, used for preview
+    // The render instance for this object, used for preview
     var instance        : BuilderInstance?
     
     /// If this object is an instance, this uuid is the uuid of the original object

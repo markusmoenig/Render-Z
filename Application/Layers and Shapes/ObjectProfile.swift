@@ -20,9 +20,15 @@ class ObjectProfile : Node
         
         type = "Object Profile"
         name = "3D Profile"
+        brand = .Property
         
         maxDelegate = ObjectProfileMaxDelegate()
         minimumSize = Node.NodeWithPreviewSize
+        
+        properties["edgeHeight"] = 0
+        properties["borderHeight"] = 0
+        properties["centerHeight"] = 0
+        properties["centerAt"] = 200
     }
     
     required init(from decoder: Decoder) throws
@@ -35,6 +41,7 @@ class ObjectProfile : Node
         type = "Object Profile"
         maxDelegate = ObjectProfileMaxDelegate()
         minimumSize = Node.NodeWithPreviewSize
+        brand = .Property
     }
     
     override func encode(to encoder: Encoder) throws
@@ -46,12 +53,42 @@ class ObjectProfile : Node
         try super.encode(to: superdecoder)
     }
     
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIDropDown(self, variable: "status", title: "Status", items: ["Enabled", "Disabled"], index: 0)
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    /// Apply the control points to the objects profile array
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Success
+        
+        if properties["status"] != nil && properties["status"]! == 0 {
+            if let object = root.objectRoot {
+                object.profile = []
+                
+                let edge = float4(0, properties["edgeHeight"]!, 0, 0)
+                
+                let center = float4(properties["centerAt"]!, properties["centerHeight"]!, -1, -1)
+                object.profile!.append(edge)
+                object.profile!.append(center)
+                
+                //print(center.x, center.y)
+            }
+        }
+        return playResult!
+    }
+    
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
+        /*
         let size = nodeGraph.previewSize
         if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
             previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
-        }
+        }*/
         /*
         let prevOffX = properties["prevOffX"]
         let prevOffY = properties["prevOffY"]
