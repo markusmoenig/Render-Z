@@ -18,19 +18,28 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
         case None, Dragging
     }
     
+    enum SegmentType : Int {
+        case Linear, Smoothstep, Bezier, Circle
+    }
+    
     var app             : App!
     var mmView          : MMView!
     
     var selPointType    : PointType = .None
-    var selPointOff     : Int = 0
-    
+    var selPointIndex   : Int = 0
+    var selControl      : Bool = false
+
     var hoverPointType  : PointType = .None
-    var hoverPointOff   : Int = 0
+    var hoverPointIndex : Int = 0
+    var hoverControl    : Bool = false
     
     var mouseMode       : MouseMode = .None
 
     // Top Region
-    var objectsButton   : MMButtonWidget!
+    var addButton       : MMButtonWidget!
+    var removeButton    : MMButtonWidget!
+
+    var pointTypeButton : MMScrollButton!
     
     var textureWidget   : MMTextureWidget!
     var animating       : Bool = false
@@ -44,15 +53,23 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     var dispatched      : Bool = false
     
     var scale           : Float = 4
+    var scaleX          : Float = 4
+    
     var left            : Float = 0
     var bottom          : Float = 0
     var right           : Float = 0
     
     var startDrag       : float2 = float2()
     var startPoint      : float2 = float2()
+    var xLimits         : float2 = float2()
+    
+    var lockCenterAt    : Bool = false
     
     var previewTexture  : MTLTexture? = nil
     var builderInstance : BuilderInstance? = nil
+    
+    var centerLabel     : MMTextLabel!
+    var edgeLabel       : MMTextLabel!
 
     override func activate(_ app: App)
     {
@@ -67,13 +84,78 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
         app.rightRegion!.rect.width = 0
         app.bottomRegion!.rect.width = 0
         app.editorRegion!.rect.width = app.mmView.renderer.cWidth - 1
+        
+        centerLabel = MMTextLabel(mmView, font: mmView.openSans, text: "Center")
+        edgeLabel = MMTextLabel(mmView, font: mmView.openSans, text: "Edge")
 
         // Top Region
-        if objectsButton == nil {
-            objectsButton = MMButtonWidget( app.mmView, text: "Objects" )
-        }
-        objectsButton.clicked = { (event) -> Void in
-         //   self.setLeftRegionMode(.Objects)
+        if addButton == nil {
+            addButton = MMButtonWidget( app.mmView, text: "Add Point" )
+            addButton.clicked = { (event) -> Void in
+                let count : Int = Int(self.profile.properties["pointCount"]!)
+                var x: Float = 40 / self.scaleX
+
+                if self.selPointType == .Control && count > 0 {
+                    x = self.profile.properties["point_\(self.selPointIndex)_At"]! + 40 / self.scaleX
+                }
+                
+                self.profile.properties["point_\(count)_At"] = x
+                self.profile.properties["point_\(count)_Height"] = 20
+                self.profile.properties["point_\(count)_Type"] = 0
+                self.profile.properties["pointCount"] = Float(count + 1)
+                self.selPointType = .Control
+                self.selPointIndex = count
+                self.pointTypeButton.index = 0
+                self.update(true)
+                self.mmView.update()
+            }
+            
+            removeButton = MMButtonWidget( app.mmView, text: "Remove" )
+            removeButton.clicked = { (event) -> Void in
+                if self.selPointType != .Control { return }
+                
+                let count : Int = Int(self.profile.properties["pointCount"]!)
+                
+                for index in self.selPointIndex..<count-1 {
+                    self.profile.properties["point_\(index)_At"] = self.profile.properties["point_\(index+1)_At"]!
+                    self.profile.properties["point_\(index)_Height"] = self.profile.properties["point_\(index+1)_Height"]!
+                    self.profile.properties["point_\(index)_Type"] = self.profile.properties["point_\(index+1)_Type"]!
+                }
+                self.profile.properties["pointCount"] = Float(count - 1)
+                if count-1 > 0 {
+                    self.selPointType = .Control
+                    self.selPointIndex = max(0, self.selPointIndex-1)
+                } else {
+                    self.selPointType = .Edge
+                    self.removeButton.isDisabled = true
+                }
+                self.update(true)
+                self.mmView.update()
+            }
+            pointTypeButton = MMScrollButton(app.mmView, items:["Linear", "Smoothened", "Bezier Spline", "Circle"], index: 0)
+            pointTypeButton.changed = { (index)->() in
+                let segmentType = SegmentType(rawValue: index)
+
+                if self.selPointType == .Edge {
+                    self.profile.properties["edgeType"] = Float(index)
+                    
+                    if segmentType == .Bezier {
+                        self.profile.properties["edgeControlAt"] = self.profile.properties["centerAt"]! / 2
+                        self.profile.properties["edgeControlHeight"] = 50
+                    }
+                    self.update()
+                    self.mmView.update()
+                } else
+                if self.selPointType == .Control {
+                    self.profile.properties["point_\(self.selPointIndex)_Type"] = Float(index)
+                    if segmentType == .Bezier {
+                        self.profile.properties["point_\(self.selPointIndex)_ControlAt"] = self.profile.properties["centerAt"]! / 2
+                        self.profile.properties["point_\(self.selPointIndex)_ControlHeight"] = 50
+                    }
+                    self.update()
+                    self.mmView.update()
+                }
+            }
         }
         
         app.closeButton.clicked = { (event) -> Void in
@@ -90,7 +172,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             patternState = app.mmView.renderer!.createNewPipelineState( function! )
         }
 
-        app.mmView.registerWidgets( widgets: objectsButton, app.closeButton)
+        app.mmView.registerWidgets( widgets: addButton, removeButton, pointTypeButton, app.closeButton)
         
         if profile.properties["prevOffX"] != nil {
              camera.xPos = profile.properties["prevOffX"]!
@@ -102,12 +184,26 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             camera.zoom = profile.properties["prevScale"]!
         }
         
+        app.nodeGraph.diskBuilder.getDisksFor(masterObject, builder: app.nodeGraph.builder)
+        if masterObject.disks != nil && masterObject.disks!.count > 0 {
+            let maxDist : Float = masterObject.disks![0].z
+            profile.properties["centerAt"] = maxDist
+            lockCenterAt = true
+        } else {
+            scaleX = 4
+        }
+        
+        selPointType = .Edge
+        addButton.isDisabled = false
+        removeButton.isDisabled = true
+        pointTypeButton.isDisabled = false
         update(true)
+        
     }
     
     override func deactivate()
     {
-        app.mmView.deregisterWidgets( widgets: objectsButton, app.closeButton)
+        app.mmView.deregisterWidgets( widgets: addButton, removeButton, pointTypeButton, app.closeButton)
         profile.updatePreview(nodeGraph: app.nodeGraph)
     }
     
@@ -153,10 +249,12 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             app.changed = false
         } else
         if region.type == .Top {
-            region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: objectsButton )
+            region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: addButton, removeButton, pointTypeButton )
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: app.closeButton)
             
-            objectsButton.draw()
+            addButton.draw()
+            removeButton.draw()
+            pointTypeButton.draw()
             app.closeButton.draw()
         } else
         if region.type == .Left {
@@ -169,32 +267,179 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     
     func drawGraph(_ region: MMRegion)
     {
-        left = region.rect.x + 20
+        left = region.rect.x + 40
         bottom = region.rect.y + region.rect.height - 40
         right = region.rect.x + region.rect.width - 40
+        
+        if lockCenterAt {
+            scaleX = (region.rect.width - 80) / (profile.properties["centerAt"]!)
+        }
         
         let lineColor = float4(0.5, 0.5, 0.5, 1)
         
         mmView.drawLine.draw(sx: left, sy: bottom, ex: right, ey: bottom, radius: 1, fillColor: lineColor)
         
-        // --- Draw Edge Marker
-        drawPoint(right, bottom - profile.properties["edgeHeight"]! * scale, isSelected: selPointType == .Edge, hasHover: hoverPointType == .Edge)
+        centerLabel.drawCentered(x: region.rect.x + 40, y: bottom + 10, width: centerLabel.rect.width, height: centerLabel.rect.height)
+        edgeLabel.drawCentered(x: region.rect.x + region.rect.width - 40 - edgeLabel.rect.width, y: bottom + 10, width: centerLabel.rect.width, height: centerLabel.rect.height)
         
-        // --- Draw Border Marker
-        //let borderSize = masterObject.properties["border"]!
-        //if borderSize > 0 {
-        //    drawPoint(right - borderSize * scale, bottom - profile.properties["borderHeight"]!)
-        //}
+        // --- Draw Graph
+        
+        func drawSegment(startAt: Float, startHeight: Float, endAt: Float, endHeight: Float, type: SegmentType, controlAt: Float = 0, controlHeight: Float = 0)
+        {
+            
+            let sX = right - startAt * scaleX, sY = bottom - startHeight * scale
+            let eX = right - endAt * scaleX, eY = bottom - endHeight * scale
+            
+            if type == .Linear {
+                // Lines
+                mmView.drawLine.draw(sx: sX, sy: sY, ex: eX, ey: eY, radius: 1, fillColor: lineColor)
+            } else
+            if type == .Smoothstep {
+                // Smoothstep
+                
+                let sXI : Int = Int(startAt*scaleX)
+                let eXI : Int = Int(endAt*scaleX)
+               
+                var lastX : Float = -1
+                var lastY : Float = -1
+                    
+                for xI in sXI..<eXI {
+                    let x : Float = Float(xI) - Float(sXI)
+                    let y : Float = simd_mix( sY, eY, simd_smoothstep(0, 1, x / (endAt-startAt)/scaleX ))
+                    
+                    if lastX != -1 {
+                        mmView.drawLine.draw(sx: lastX, sy: lastY, ex: sX - x, ey: y, radius: 1, fillColor: lineColor)
+                    }
+                    
+                    lastX = sX - x
+                    lastY = y
+                }
+            } else
+            if type == .Bezier {
+                // Quadratic Bezier
+                
+                var lastX : Float = -1
+                var lastY : Float = -1
+                
+                let cX = right - controlAt * scaleX
+                let cY = bottom - controlHeight * scale
+                
+                for t : Float in stride(from: 0, to: 1, by: 0.01) {
+                    
+                    let x : Float = (1 - t) * (1 - t) * sX + 2 * (1 - t) * t * cX + t * t * eX;
+                    let y : Float = (1 - t) * (1 - t) * sY + 2 * (1 - t) * t * cY + t * t * eY;
+                    
+                    if lastX != -1 {
+                        mmView.drawLine.draw(sx: lastX, sy: lastY, ex: x, ey: y, radius: 1, fillColor: lineColor)
+                    }
+                    
+                    lastX = x
+                    lastY = y
+                }
+            } else
+            if type == .Circle {
+                // Circle
+                
+                let sXI : Int = Int(startAt*scaleX)
+                let eXI : Int = Int(endAt*scaleX)
+                
+                var lastX : Float = -1
+                var lastY : Float = -1
+                
+                //let deltaX : Float = (endAt - startAt) * scaleX
+                //let deltaY : Float = (endHeight - startHeight) * scale
+                
+                //let distance : Float = sqrt(deltaX * deltaX + deltaY * deltaY)
+                let pt : Float = atan2(endHeight - startHeight, endAt - startAt )
+                
+                /*
+                if ( p.x < np.x ) originX=p.x + (np.x-p.x)/2;
+                else originX=p.x - (p.x -np.x)/2;
+                
+                if ( p.y < np.y ) originY=p.y + (np.y-p.y)/2;
+                else originY=p.y + (np.y -p.y)/2;*/
+                
+                //let originY : Float = sY + (eY - sY) / 2
+                
+                for xI in sXI..<eXI {
+                    let x : Float = Float(xI) - Float(sXI)
+                    let d = x / (endAt-startAt)/scaleX
+
+                    let y : Float = sY - /*distance/2*/ ((endAt-startAt)*scaleX) / 2 * sin( pt + d * Float.pi/2 )
+//                    let y : Float = simd_mix( sY, eY, sin(d*Float.pi/2))
+                    
+                    if lastX != -1 {
+                        mmView.drawLine.draw(sx: lastX, sy: lastY, ex: sX - x, ey: y, radius: 1, fillColor: lineColor)
+                    }
+                    
+                    lastX = sX - x
+                    lastY = y
+                }
+            }
+        }
+        
+        let pointCount = Int(profile.properties["pointCount"]!)
+        if pointCount > 0 {
+            
+            var type : SegmentType = SegmentType(rawValue: Int(profile.properties["edgeType"]!))!
+            var controlAt : Float = type == .Bezier ? profile.properties["edgeControlAt"]! : 0
+            var controlHeight : Float = type == .Bezier ? profile.properties["edgeControlHeight"]! : 0
+            
+            drawSegment(startAt: 0, startHeight: profile.properties["edgeHeight"]!, endAt: profile.properties["point_0_At"]!, endHeight: profile.properties["point_0_Height"]!, type: type, controlAt: controlAt, controlHeight: controlHeight)
+            
+            for index in 1..<pointCount {
+                let type : SegmentType = SegmentType(rawValue: Int(profile.properties["point_\(index-1)_Type"]!))!
+                let controlAt : Float = type == .Bezier ? profile.properties["point_\(index-1)_ControlAt"]! : 0
+                let controlHeight : Float = type == .Bezier ? profile.properties["point_\(index-1)_ControlHeight"]! : 0
+                
+                drawSegment(startAt: profile.properties["point_\(index-1)_At"]!, startHeight: profile.properties["point_\(index-1)_Height"]!, endAt: profile.properties["point_\(index)_At"]!, endHeight: profile.properties["point_\(index)_Height"]!, type: type, controlAt: controlAt, controlHeight: controlHeight)
+            }
+            
+            type = SegmentType(rawValue: Int(profile.properties["point_\(pointCount-1)_Type"]!))!
+            controlAt = type == .Bezier ? profile.properties["point_\(pointCount-1)_ControlAt"]! : 0
+            controlHeight = type == .Bezier ? profile.properties["point_\(pointCount-1)_ControlHeight"]! : 0
+            
+            drawSegment(startAt: profile.properties["point_\(pointCount-1)_At"]!, startHeight: profile.properties["point_\(pointCount-1)_Height"]!, endAt: profile.properties["centerAt"]!, endHeight: profile.properties["centerHeight"]!, type: type, controlAt: controlAt, controlHeight: controlHeight)
+            
+        } else {
+            let type : SegmentType = SegmentType(rawValue: Int(profile.properties["edgeType"]!))!
+            let controlAt : Float = type == .Bezier ? profile.properties["edgeControlAt"]! : 0
+            let controlHeight : Float = type == .Bezier ? profile.properties["edgeControlHeight"]! : 0
+            drawSegment(startAt: 0, startHeight: profile.properties["edgeHeight"]!, endAt: profile.properties["centerAt"]!, endHeight: profile.properties["centerHeight"]!, type: type, controlAt: controlAt, controlHeight: controlHeight)
+        }
+        
+        // --- Draw Edge Marker
+        
+        var type : SegmentType
+        
+        drawPoint(right, bottom - profile.properties["edgeHeight"]! * scale, isSelected: selPointType == .Edge && !selControl, hasHover: hoverPointType == .Edge && !hoverControl)
+        type = SegmentType(rawValue: Int(profile.properties["edgeType"]!))!
+        if type == .Bezier && selPointType == .Edge {
+            drawPoint(right - profile.properties["edgeControlAt"]! * scaleX, bottom - profile.properties["edgeControlHeight"]! * scale, isSelected: selPointType == .Edge && selControl, hasHover: hoverPointType == .Edge && hoverControl, control: true)
+        }
+        
+        // --- Draw Control Points
+        for index in 0..<pointCount {
+            drawPoint(right - profile.properties["point_\(index)_At"]! * scaleX, bottom - profile.properties["point_\(index)_Height"]! * scale, isSelected: selPointType == .Control && selPointIndex == index && !selControl, hasHover: hoverPointType == .Control && hoverPointIndex == index && !hoverControl, control: false)
+            type = SegmentType(rawValue: Int(profile.properties["point_\(index)_Type"]!))!
+            if type == .Bezier && selPointType == .Control && selPointIndex == index {
+                drawPoint(right - profile.properties["point_\(index)_ControlAt"]! * scaleX, bottom - profile.properties["point_\(index)_ControlHeight"]! * scale, isSelected: selPointType == .Control && selPointIndex == index && selControl, hasHover: hoverPointType == .Control && hoverPointIndex == index && hoverControl, control: true)
+            }
+        }
 
         // --- Draw Center Marker
-        drawPoint(right - profile.properties["centerAt"]! * scale, bottom - profile.properties["centerHeight"]! * scale, isSelected: selPointType == .Center, hasHover: hoverPointType == .Center)
+        drawPoint( right - profile.properties["centerAt"]! * scaleX, bottom - profile.properties["centerHeight"]! * scale, isSelected: selPointType == .Center, hasHover: hoverPointType == .Center)
     }
     
-    func drawPoint(_ x: Float,_ y : Float, isSelected: Bool = false, hasHover: Bool = false)
+    func drawPoint(_ x: Float,_ y : Float, isSelected: Bool = false, hasHover: Bool = false, control: Bool = false)
     {
         var pFillColor = float4(repeating: 1)
         var pBorderColor = float4( 0, 0, 0, 1)
         let radius : Float = 10
+        
+        if control {
+            pFillColor = float4(0.898, 0.694, 0.157, 1.000)
+        }
 
         if isSelected {
             let temp = pBorderColor
@@ -211,16 +456,55 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     override func mouseDown(_ event: MMMouseEvent)
     {
         selPointType = hoverPointType
+        selPointIndex = hoverPointIndex
+        selControl = hoverControl
         mouseMode = .Dragging
         startDrag.x = event.x; startDrag.y = event.y
         if selPointType == .Edge {
-            startPoint.y = profile.properties["edgeHeight"]!
+            if !selControl {
+                startPoint.y = profile.properties["edgeHeight"]!
+            } else {
+                startPoint.x = profile.properties["edgeControlAt"]!
+                startPoint.y = profile.properties["edgeControlHeight"]!
+            }
+            pointTypeButton.index = Int(profile.properties["edgeType"]!)
+            addButton.isDisabled = false
+            removeButton.isDisabled = true
+            pointTypeButton.isDisabled = false
         } else
         if selPointType == .Center {
             startPoint.x = profile.properties["centerAt"]!
             startPoint.y = profile.properties["centerHeight"]!
+            removeButton.isDisabled = true
+            addButton.isDisabled = true
+            pointTypeButton.isDisabled = true
+        } else
+        if selPointType == .Control {
+            if !selControl {
+                startPoint.x = profile.properties["point_\(selPointIndex)_At"]!
+                startPoint.y = profile.properties["point_\(selPointIndex)_Height"]!
+                pointTypeButton.index = Int(profile.properties["point_\(selPointIndex)_Type"]!)
+
+                // Compute x movements limits
+                let pointCount = Int(profile.properties["pointCount"]!)
+                if selPointIndex == 0 {
+                    xLimits.y = 0
+                } else {
+                    xLimits.y = profile.properties["point_\(selPointIndex-1)_At"]!
+                }
+                if selPointIndex == pointCount - 1 {
+                    xLimits.x = profile.properties["centerAt"]!
+                } else {
+                    xLimits.x = profile.properties["point_\(selPointIndex+1)_At"]!
+                }
+            } else {
+                startPoint.x = profile.properties["point_\(selPointIndex)_ControlAt"]!
+                startPoint.y = profile.properties["point_\(selPointIndex)_ControlHeight"]!
+            }
+            removeButton.isDisabled = false
+            addButton.isDisabled = false
+            pointTypeButton.isDisabled = false
         }
-        
         mmView.mouseTrackWidget = app.editorRegion!.widget
     }
     
@@ -233,14 +517,31 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if mouseMode == .Dragging && (selPointType == .Center || selPointType == .Edge )
-        {
-            if selPointType == .Edge {
+        if mouseMode == .Dragging && selPointType != .None {
+            if selPointType == .Edge && selControl == false {
                 profile.properties["edgeHeight"] = min( 100, max(0, startPoint.y - (event.y - startDrag.y) / scale))
-            }
+            } else
+            if selPointType == .Edge && selControl == true {
+                profile.properties["edgeControlAt"] = max(0, startPoint.x - (event.x - startDrag.x) / scaleX)
+                profile.properties["edgeControlHeight"] = min( 100, max(0, startPoint.y - (event.y - startDrag.y) / scale))
+            } else
             if selPointType == .Center {
-                profile.properties["centerAt"]! = max(0, startPoint.x - (event.x - startDrag.x) / scale)
+                //if !lockCenterAt {
+                //    profile.properties["centerAt"]! = max(0, startPoint.x - (event.x - startDrag.x) / scaleX)
+                //}
                 profile.properties["centerHeight"]! = min( 100, max(0, startPoint.y - (event.y - startDrag.y) / scale))
+            } else
+            if selPointType == .Control {
+                if !selControl {
+                    var x : Float = max(0, startPoint.x - (event.x - startDrag.x) / scaleX)
+                    x = min(x, xLimits.x)
+                    x = max(x, xLimits.y)
+                    profile.properties["point_\(selPointIndex)_At"]! = x
+                    profile.properties["point_\(selPointIndex)_Height"]! = min( 100, max(0, startPoint.y - (event.y - startDrag.y) / scale))
+                } else {
+                    profile.properties["point_\(selPointIndex)_ControlAt"]! = startPoint.x - (event.x - startDrag.x) / scaleX
+                    profile.properties["point_\(selPointIndex)_ControlHeight"]! = startPoint.y - (event.y - startDrag.y) / scale
+                }
             }
             mmView.update()
             update()
@@ -249,25 +550,60 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             let radius : Float = 10
             let halfRadius = radius / 2
             
-            let oldHoverPointType = hoverPointType
+            let oldHoverPointType = hoverPointType, oldHoverPointIndex = hoverPointIndex
             hoverPointType = .None
+            let oldHoverControl = hoverControl
             
             // --- Check for Edge / Center Hover
         
             var pY : Float = bottom - profile.properties["edgeHeight"]!*scale
+            var pX : Float
             if event.x >= right - halfRadius && event.x <= right + halfRadius && event.y >= pY - halfRadius && event.y <= pY + halfRadius {
                 hoverPointType = .Edge
+                hoverControl = false
             }
-            
-            let pX : Float = right - profile.properties["centerAt"]! * scale
+            var type : SegmentType = SegmentType(rawValue: Int(profile.properties["edgeType"]!))!
+            if type == .Bezier {
+                pX = right - profile.properties["edgeControlAt"]! * scaleX
+                pY = bottom - profile.properties["edgeControlHeight"]!*scale
+                if event.x >= pX - halfRadius && event.x <= pX + halfRadius && event.y >= pY - halfRadius && event.y <= pY + halfRadius {
+                    hoverPointType = .Edge
+                    hoverControl = true
+                }
+            }
+
+            pX = right - profile.properties["centerAt"]! * scaleX
             pY = bottom - profile.properties["centerHeight"]! * scale
             if event.x >= pX - halfRadius && event.x <= pX + halfRadius && event.y >= pY - halfRadius && event.y <= pY + halfRadius {
                 hoverPointType = .Center
             }
             
+            let pointCount = Int(profile.properties["pointCount"]!)
+
+            // --- Check Control Points
+            for index in 0..<pointCount {
+                pX = right - profile.properties["point_\(index)_At"]! * scaleX
+                pY = bottom - profile.properties["point_\(index)_Height"]! * scale
+                if event.x >= pX - halfRadius && event.x <= pX + halfRadius && event.y >= pY - halfRadius && event.y <= pY + halfRadius {
+                    hoverPointType = .Control
+                    hoverPointIndex = index
+                    hoverControl = false
+                }
+                type = SegmentType(rawValue: Int(profile.properties["point_\(index)_Type"]!))!
+                if type == .Bezier {
+                    pX = right - profile.properties["point_\(index)_ControlAt"]! * scaleX
+                    pY = bottom - profile.properties["point_\(index)_ControlHeight"]! * scale
+                    if event.x >= pX - halfRadius && event.x <= pX + halfRadius && event.y >= pY - halfRadius && event.y <= pY + halfRadius {
+                        hoverPointType = .Control
+                        hoverPointIndex = index
+                        hoverControl = true
+                    }
+                }
+            }
+            
             //drawPoint(right, bottom - profile.properties["edgeHeight"]!)
 
-            if oldHoverPointType != hoverPointType {
+            if oldHoverPointType != hoverPointType || oldHoverPointIndex != hoverPointIndex || oldHoverControl != hoverControl {
                 mmView.update()
             }
         }

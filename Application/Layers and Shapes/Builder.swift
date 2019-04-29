@@ -207,24 +207,47 @@ class Builder
             while( !finished )
             {
                 constant float4 *pt1 = &profileData[index];
-                constant float4 *pt2 = &profileData[index+1];
-        
-                if (pt1->x <= dist && pt2->x >= dist) {
-                    //value = mix( pt1->y, pt2->y, dist - pt2->x );
-        
-                    //var y=originY + radius * Math.sin( pt + offset );
-                    //var pt=Math.atan2(p.y - originY, p.x - originX );
-
-                    float pt = atan2(pt2->y - pt1->y, pt2->x - pt1->x);
-                    value = pt1->y + (pt2->x - pt1->x) / 2 *sin(pt + (dist - pt1->x) / ((pt2->x - pt1->x) ) );
-
-        
+                if ( pt1->z == -1 ) {
+                    finished = true;
                 } else {
-                    value = pt2->y;
+
+                    constant float4 *pt2 = &profileData[index+1];
+        
+                    if (pt1->x <= dist && pt2->x >= dist) {
+                        if ( pt1->z == 0 ) {
+                            value = mix( pt1->y, pt2->y, clamp( dist / (pt2->x - pt1->x), 0, 1 ) );
+                        } else
+                        if ( pt1->z == 1 ) {
+                            value = mix( pt1->y, pt2->y, smoothstep(0, 1, dist / (pt2->x - pt1->x) ) );
+                        } else
+                        if ( pt1->z == 2 ) {
+                            float d = dist / (pt2->x - pt1->x);
+                            value = mix( pt1->y, pt2->y, sqrt(1.-(1.-d)*(1.-d)) );
+                        } else
+                        if ( pt1->z == 3 ) {
+                            float d = dist / (pt2->x - pt1->x);
+                            float pt = atan2(pt2->y - pt1->y, pt2->x - pt1->x);
+                            float dX = pt2->x - pt1->x;
+                            float dY = pt2->y - pt1->y;
+                            float distance = sqrt(dX * dX + dY * dY);
+
+                            value = pt1->y + /*(pt2->x - pt1->x)*/distance / 2 * sin(pt + d * PI/2);
+        
+                        }
+        
+                        //var y=originY + radius * Math.sin( pt + offset );
+                        //var pt=Math.atan2(p.y - originY, p.x - originX );
+
+                        //float pt = atan2(pt2->y - pt1->y, pt2->x - pt1->x);
+                        //value = pt1->y + (pt2->x - pt1->x) / 2 *sin(pt + (dist - pt1->x) / ((pt2->x - pt1->x) ) );
+
+                        finished = true;
+                    } else {
+                        value = pt2->y;
+                    }
                 }
         
-                if ( pt2->z == -1 ) finished = true;
-                index += 2;
+                index += 1;
             }
         
             return value;
@@ -1704,7 +1727,7 @@ class Builder
             //float3 diffuseColor = (1.0 - material.metallic) * material.baseColor.rgb ;
             //L += diffuseColor * Irradiance_SphericalHarmonics(interaction.normal)/3.14;
 
-            return float4(/*pow(clamp(0, 1, L), 0.4545),*/L, material.baseColor.w);
+            return float4(clamp(L, 0, 10)/*pow(clamp(0, 1), 0.4545),*/, material.baseColor.w);
         }
 
         """

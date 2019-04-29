@@ -26,9 +26,12 @@ class ObjectProfile : Node
         minimumSize = Node.NodeWithPreviewSize
         
         properties["edgeHeight"] = 0
+        properties["edgeType"] = 0
         properties["borderHeight"] = 0
         properties["centerHeight"] = 0
         properties["centerAt"] = 200
+        
+        properties["pointCount"] = 0
     }
     
     required init(from decoder: Decoder) throws
@@ -70,10 +73,15 @@ class ObjectProfile : Node
             if let object = root.objectRoot {
                 object.profile = []
                 
-                let edge = float4(0, properties["edgeHeight"]!, 0, 0)
-                
-                let center = float4(properties["centerAt"]!, properties["centerHeight"]!, -1, -1)
+                let edge = float4(0, properties["edgeHeight"]!, properties["edgeType"]!, 0)
                 object.profile!.append(edge)
+
+                let pointCount = Int(properties["pointCount"]!)
+                for index in 0..<pointCount {
+                    let control = float4(properties["point_\(index)_At"]!, properties["point_\(index)_Height"]!, properties["point_\(index)_Type"]!, 0)
+                    object.profile!.append(control)
+                }
+                let center = float4(properties["centerAt"]!, properties["centerHeight"]!, -1, -1)
                 object.profile!.append(center)
                 
                 //print(center.x, center.y)
