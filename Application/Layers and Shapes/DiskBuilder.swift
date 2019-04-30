@@ -54,6 +54,7 @@ class DiskBuilder
         
         instance.objects = objects
         
+        buildData.source += Material.getMaterialStructCode()
         buildData.source += builder.getCommonCode()
         buildData.source += builder.getGlobalCode(objects: objects)
         buildData.source +=
@@ -193,7 +194,7 @@ class DiskBuilder
         }
 
         """
-        
+
         instance.inBuffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
         instance.outBuffer = compute!.device.makeBuffer(length: maxDisks * 4 * MemoryLayout<Float>.stride, options: [])!

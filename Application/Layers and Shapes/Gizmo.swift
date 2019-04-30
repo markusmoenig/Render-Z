@@ -224,14 +224,16 @@ class Gizmo : MMWidget
             if selectedMaterials.count == 1 {
                 let material = selectedMaterials[0]
                 
-                gizmoNode.properties["channel"] = material.properties["channel"]
-                gizmoNode.uiItems.append(
-                    NodeUIDropDown(gizmoNode, variable: "channel", title: "Channel", items: ["Base Color", "Subsurface","Roughness", "Metallic", "Specular", "Specular Tint", "Clearcoat", "Clearc. Gloss", "Anisotropic", "Sheen", "Sheen Tint"], index: 0)
-                )
-                gizmoNode.properties["limiterType"] = material.properties["limiterType"]
-                gizmoNode.uiItems.append(
-                    NodeUIDropDown(gizmoNode, variable: "limiterType", title: "Limiter", items: ["None", "Rectangle", "Sphere", "Border"], index: 0)
-                )
+                if !material.isCompound {
+                    gizmoNode.properties["channel"] = material.properties["channel"]
+                    gizmoNode.uiItems.append(
+                        NodeUIDropDown(gizmoNode, variable: "channel", title: "Channel", items: ["Base Color", "Subsurface","Roughness", "Metallic", "Specular", "Specular Tint", "Clearcoat", "Clearc. Gloss", "Anisotropic", "Sheen", "Sheen Tint"], index: 0)
+                    )
+                    gizmoNode.properties["limiterType"] = material.properties["limiterType"]
+                    gizmoNode.uiItems.append(
+                        NodeUIDropDown(gizmoNode, variable: "limiterType", title: "Limiter", items: ["None", "Rectangle", "Sphere", "Border"], index: 0)
+                    )
+                }
             }
             
             gizmoNode.setupUI(mmView: mmView)

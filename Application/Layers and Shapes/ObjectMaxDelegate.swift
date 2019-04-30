@@ -39,9 +39,13 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     var shapeScrollArea : ShapeScrollArea!
     var animating       : Bool = false
     var materialsTab    : MMTabWidget!
-    var materialSelector: MaterialSelector!
-    var decoTexture     : MMTextureWidget!
-    var decoScrollArea  : DecoScrollArea!
+    
+    var componentSelector   : MaterialSelector!
+    var componentTexture    : MMTextureWidget!
+    var componentScrollArea : ComponentScrollArea!
+    var compoundSelector    : MaterialSelector!
+    var compoundTexture     : MMTextureWidget!
+    var compoundScrollArea  : CompoundScrollArea!
     
     // Right Region
     var objectWidget    : ObjectWidget!
@@ -134,15 +138,19 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             
             // Materials
             
-            materialSelector = MaterialSelector(app.mmView, width : 200)
-            decoTexture = MMTextureWidget(app.mmView, texture: materialSelector.fragment!.texture )
-            decoTexture.zoom = 2
-            decoScrollArea = DecoScrollArea(app.mmView, app: app, delegate:self)
+            componentSelector = MaterialSelector(app.mmView, width : 200, brand: .Components, materialFactory: app.materialFactory)
+            componentTexture = MMTextureWidget(app.mmView, texture: componentSelector.fragment!.texture )
+            componentTexture.zoom = 2
+            componentScrollArea = ComponentScrollArea(app.mmView, app: app, delegate:self)
+            
+            compoundSelector = MaterialSelector(app.mmView, width : 200, brand: .Compounds, materialFactory: app.materialFactory)
+            compoundTexture = MMTextureWidget(app.mmView, texture: compoundSelector.fragment!.texture )
+            compoundTexture.zoom = 2
+            compoundScrollArea = CompoundScrollArea(app.mmView, app: app, delegate:self)
             
             materialsTab = MMTabWidget(app.mmView)
-            let materialsSelector = MMWidget(app.mmView)
-            materialsTab.addTab("Component", widget: decoScrollArea)
-            materialsTab.addTab("Compound", widget: materialsSelector)
+            materialsTab.addTab("Component", widget: componentScrollArea)
+            materialsTab.addTab("Compound", widget: compoundScrollArea)
         }
 
         // Right Region
@@ -711,8 +719,8 @@ class ShapeScrollArea: MMScrollArea
     }
 }
 
-/// The scroll area for the deco selectors
-class DecoScrollArea: MMScrollArea
+/// The scroll area for the component selectors
+class ComponentScrollArea: MMScrollArea
 {
     var app                 : App
     var mouseDownPos        : float2
@@ -729,20 +737,21 @@ class DecoScrollArea: MMScrollArea
         self.delegate = delegate
         
         mouseDownPos = float2()
-        super.init(view, orientation:.Vertical, widget: delegate.decoTexture)
+        super.init(view, orientation:.Vertical, widget: delegate.componentTexture)
     }
     
     override func mouseDown(_ event: MMMouseEvent) {
         mouseDownPos.x = event.x - rect.x
         mouseDownPos.y = event.y - rect.y - offsetY
         mouseIsDown = true
-        shapeAtMouse = delegate.materialSelector.selectDecoAt(mouseDownPos.x,mouseDownPos.y)
+        shapeAtMouse = delegate.componentSelector.selectMaterialAt(mouseDownPos.x,mouseDownPos.y)
         delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject, context: delegate.gizmoContext, materialType: delegate.materialType)
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {
+        delegate.materialsTab.mouseMoved(event)
         if mouseIsDown && dragSource == nil {
-            dragSource = delegate.materialSelector.createDecoDragSource(mouseDownPos.x,mouseDownPos.y)
+            dragSource = delegate.componentSelector.createMaterialDragSource(mouseDownPos.x,mouseDownPos.y)
             dragSource?.sourceWidget = self
             mmView.dragStarted(source: dragSource!)
         }
@@ -759,6 +768,54 @@ class DecoScrollArea: MMScrollArea
     }
 }
 
+/// The scroll area for the compound selectors
+class CompoundScrollArea: MMScrollArea
+{
+    var app                 : App
+    var mouseDownPos        : float2
+    var mouseIsDown         : Bool = false
+    
+    var dragSource          : MaterialSelectorDrag? = nil
+    var shapeAtMouse        : Material?
+    
+    var delegate            : ObjectMaxDelegate!
+    
+    init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
+    {
+        self.app = app
+        self.delegate = delegate
+        
+        mouseDownPos = float2()
+        super.init(view, orientation:.Vertical, widget: delegate.compoundTexture)
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent) {
+        mouseDownPos.x = event.x - rect.x
+        mouseDownPos.y = event.y - rect.y - offsetY
+        mouseIsDown = true
+        shapeAtMouse = delegate.compoundSelector.selectMaterialAt(mouseDownPos.x,mouseDownPos.y)
+        delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject, context: delegate.gizmoContext, materialType: delegate.materialType)
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent) {
+        delegate.materialsTab.mouseMoved(event)
+        if mouseIsDown && dragSource == nil {
+            dragSource = delegate.compoundSelector.createMaterialDragSource(mouseDownPos.x,mouseDownPos.y)
+            dragSource?.sourceWidget = self
+            mmView.dragStarted(source: dragSource!)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent) {
+        mouseIsDown = false
+    }
+    
+    override func dragTerminated() {
+        dragSource = nil
+        mmView.unlockFramerate()
+        mouseIsDown = false
+    }
+}
 
 /// Object List Widget
 class ObjectListWidget : MMWidget

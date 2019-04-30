@@ -243,9 +243,12 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             app.editorRegion!.rect.width = app.mmView.renderer.cWidth - 1
             //drawPattern(region)
             
+            mmView.renderer.setClipRect(region.rect)
             app!.mmView.drawBox.draw( x: region.rect.x, y: region.rect.y, width: region.rect.width, height: region.rect.height, round: 0, borderSize: 0, fillColor : float4(0.098, 0.098, 0.098, 1.000), borderColor: float4(repeating:0) )
             mmView.drawTexture.draw(previewTexture!, x: region.rect.x, y: region.rect.y)
             drawGraph(region)
+            mmView.renderer.setClipRect()
+            
             app.changed = false
         } else
         if region.type == .Top {
@@ -318,6 +321,60 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             if type == .Bezier {
                 // Quadratic Bezier
                 
+                let sXI : Int = Int(startAt*scaleX)
+                let eXI : Int = Int(endAt*scaleX)
+                
+                var lastX : Float = -1
+                var lastY : Float = -1
+                
+                for xI in sXI..<eXI {
+                    let x : Float = Float(xI) - Float(sXI)
+                    //let y : Float = simd_mix( sY, eY, simd_smoothstep(0, 1, x / (endAt-startAt)/scaleX ))
+                    
+                    let cx = controlAt
+                    let cy = bottom - controlHeight * scale
+                    
+                    let ax : Float = startAt
+                    let bx : Float = endAt
+                    
+//                    let temp1 : Float  = (ax - bx) + sqrt(abs(bx * bx - ax * cx))
+//                    let temp2 : Float  = ax * (ax - 2 * bx + cx)
+//                    let t : Float = temp1 / temp2;
+                    
+                    let a : Float = ax - 2 * bx + cx
+                    let b : Float = 2 * (bx - ax)
+                    let c : Float = ax - x
+                    
+//                    -b ± √(b^2 - 4ac)
+//                    (2)  x = -----------------
+//                    2a
+                    
+                    let q : Float = b * b - 4 * a * c
+                    let temp11 : Float
+                        
+                    if q >= 0 {
+                        temp11 = -b + sqrt(q)
+                    } else {
+                        temp11 = -b - sqrt(abs(q))
+                    }
+                    let temp2 : Float = 2 * a
+
+                    let t : Float = temp11 / temp2
+
+                    //let x : Float = (1 - t) * (1 - t) * sX + 2 * (1 - t) * t * cX + t * t * eX;
+                    let y : Float = bottom - ((1 - t) * (1 - t) * startHeight + 2 * (1 - t) * t * controlHeight + t * t * endHeight) * scale
+                    
+                    //print(temp11, temp2, x, t, y)
+                    
+                    if lastX != -1 {
+                        mmView.drawLine.draw(sx: lastX, sy: lastY, ex: sX - x * scaleX, ey: y, radius: 1, fillColor: lineColor)
+                    }
+                    
+                    lastX = sX - x * scaleX
+                    lastY = y
+                }
+                
+                /*
                 var lastX : Float = -1
                 var lastY : Float = -1
                 
@@ -335,38 +392,46 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
                     
                     lastX = x
                     lastY = y
-                }
+                }*/
             } else
             if type == .Circle {
                 // Circle
+                
+                /* code for circle
+                 
+                 var lastX : Float = -1
+                 var lastY : Float = -1
+                 
+                 let pt : Float = atan2(endHeight - startHeight, endAt - startAt )// * 180 / Float.pi
+
+                 for t : Float in stride(from: 0, to: Float.pi, by: 0.01) {
+                 
+                 let x : Float = ((endAt - startAt) * scaleX) / 2 + (((endAt - startAt) * scaleX) / 2 * cos( pt + t ))
+                 let y : Float = /*simd_mix( sY, eY, d)*/ bottom - (((endAt - startAt) * scaleX) / 2 * sin( pt + t ))
+                 
+                 if lastX != -1 {
+                    mmView.drawLine.draw(sx: lastX, sy: lastY, ex: sX - x, ey: y, radius: 1, fillColor: lineColor)
+                 }
+                 
+                 lastX = sX - x
+                 lastY = y
+                 }
+ 
+                */
                 
                 let sXI : Int = Int(startAt*scaleX)
                 let eXI : Int = Int(endAt*scaleX)
                 
                 var lastX : Float = -1
                 var lastY : Float = -1
-                
-                //let deltaX : Float = (endAt - startAt) * scaleX
-                //let deltaY : Float = (endHeight - startHeight) * scale
-                
-                //let distance : Float = sqrt(deltaX * deltaX + deltaY * deltaY)
-                let pt : Float = atan2(endHeight - startHeight, endAt - startAt )
-                
-                /*
-                if ( p.x < np.x ) originX=p.x + (np.x-p.x)/2;
-                else originX=p.x - (p.x -np.x)/2;
-                
-                if ( p.y < np.y ) originY=p.y + (np.y-p.y)/2;
-                else originY=p.y + (np.y -p.y)/2;*/
-                
-                //let originY : Float = sY + (eY - sY) / 2
-                
-                for xI in sXI..<eXI {
-                    let x : Float = Float(xI) - Float(sXI)
-                    let d = x / (endAt-startAt)/scaleX
 
-                    let y : Float = sY - /*distance/2*/ ((endAt-startAt)*scaleX) / 2 * sin( pt + d * Float.pi/2 )
-//                    let y : Float = simd_mix( sY, eY, sin(d*Float.pi/2))
+                for xI in sXI...eXI {
+                    let x : Float = Float(xI) - Float(sXI)
+
+                    let radius : Float = ((endAt - startAt) * scaleX) / 2
+                    
+                    let xM : Float = x - ((endAt - startAt) / 2) * scaleX
+                    let y : Float = bottom - ( (sqrt(radius * radius - xM * xM)) )
                     
                     if lastX != -1 {
                         mmView.drawLine.draw(sx: lastX, sy: lastY, ex: sX - x, ey: y, radius: 1, fillColor: lineColor)

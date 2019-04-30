@@ -21,7 +21,7 @@ class Material : Codable
     var heightProperty  : String = ""
     
     var pointCount      : Int = 0
-    var isDecorator     : Bool = false
+    var isCompound      : Bool = false
     
     private enum CodingKeys: String, CodingKey {
         case name
@@ -32,7 +32,7 @@ class Material : Codable
         case widthProperty
         case heightProperty
         case pointCount
-        case isDecorator
+        case isCompound
     }
     
     required init()
@@ -60,7 +60,7 @@ class Material : Codable
         widthProperty = try container.decode(String.self, forKey: .widthProperty)
         heightProperty = try container.decode(String.self, forKey: .heightProperty)
         pointCount = try container.decode(Int.self, forKey: .pointCount)
-        isDecorator = try container.decode(Bool.self, forKey: .isDecorator)
+        isCompound = try container.decode(Bool.self, forKey: .isCompound)
     }
     
     func encode(to encoder: Encoder) throws
@@ -75,7 +75,7 @@ class Material : Codable
         try container.encode(widthProperty, forKey: .widthProperty)
         try container.encode(heightProperty, forKey: .heightProperty)
         try container.encode(pointCount, forKey: .pointCount)
-        try container.encode(isDecorator, forKey: .isDecorator)
+        try container.encode(isCompound, forKey: .isCompound)
     }
     
     /// Static function which returns the global MATERIAL_DATA definition
@@ -117,14 +117,15 @@ class Material : Codable
         return code
     }
     
-    /// Creates the distance code for the shape, optionally using the supplied transformed properties or insertig the metal code for accessing the shape data structure
-    func createCode( uvName: String, transProperties: [String:Float]? = nil, materialDataIndex: Int? = nil) -> String
+    /// Creates the material code for the object
+    func createCode( uvName: String, transProperties: [String:Float]? = nil, materialDataIndex: Int? = nil, materialName: String = "") -> String
     {
         var code = self.code
         let props = transProperties != nil ? transProperties : properties
         
         code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
-        
+        code = code.replacingOccurrences(of: "__material__", with: ("&" + materialName))
+
         if pointCount == 0 {
             if materialDataIndex == nil {
                 code = code.replacingOccurrences(of: "__value__", with: "float4(\(props!["value_x"]!), \(props!["value_y"]!), \(props!["value_z"]!), \(props!["value_w"]!) )")

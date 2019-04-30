@@ -210,10 +210,11 @@ class Builder
                 if ( pt1->z == -1 ) {
                     finished = true;
                 } else {
-
-                    constant float4 *pt2 = &profileData[index+1];
         
+                    constant float4 *pt2 = &profileData[index+2];
+
                     if (pt1->x <= dist && pt2->x >= dist) {
+        
                         if ( pt1->z == 0 ) {
                             value = mix( pt1->y, pt2->y, clamp( dist / (pt2->x - pt1->x), 0, 1 ) );
                         } else
@@ -221,18 +222,43 @@ class Builder
                             value = mix( pt1->y, pt2->y, smoothstep(0, 1, dist / (pt2->x - pt1->x) ) );
                         } else
                         if ( pt1->z == 2 ) {
-                            float d = dist / (pt2->x - pt1->x);
-                            value = mix( pt1->y, pt2->y, sqrt(1.-(1.-d)*(1.-d)) );
+                            constant float4 *cp = &profileData[index+1];
+
+                            float t = dist / (pt2->x - pt1->x);
+        
+                          //  ax-bx ± √(bx2 - axcx)
+                          //= ----------------------
+                          //  ax(ax-2bx+cx)
+        
+                            float ax = pt1->x;
+                            float bx = cp->x;
+                            float cx = pt2->x;
+        
+                            float temp1 = (ax - bx) + sqrt(bx * bx - ax * cx);
+                            float temp2 = ax * (ax - 2 * bx + cx);
+                            t = temp1 / temp2;
+                            //t /= (pt2->x - pt1->x);
+        
+                            //float x = (1 - t) * (1 - t) * pt1->x + 2 * (1 - t) * t * cp->x + t * t * pt2->x;
+                            float y = (1 - t) * (1 - t) * pt1->y + 2 * (1 - t) * t * cp->y + t * t * pt2->y;
+
+                            value = y /  (pt2->x - pt1->x);
+
                         } else
                         if ( pt1->z == 3 ) {
-                            float d = dist / (pt2->x - pt1->x);
-                            float pt = atan2(pt2->y - pt1->y, pt2->x - pt1->x);
-                            float dX = pt2->x - pt1->x;
-                            float dY = pt2->y - pt1->y;
-                            float distance = sqrt(dX * dX + dY * dY);
+                            //float d = dist / (pt2->x - pt1->x);
+                            //float pt = atan2(pt2->y - pt1->y, pt2->x - pt1->x) * PI / 180;
+                            //float dX = pt2->x - pt1->x;
+                            //float dY = pt2->y - pt1->y;
+                            //float distance = sqrt(dX * dX + dY * dY);
 
-                            value = pt1->y + /*(pt2->x - pt1->x)*/distance / 2 * sin(pt + d * PI/2);
+                            //value = pt1->y + (pt2->x - pt1->x)/*distance*/ / 2 * sin(pt + d * PI/2);
         
+                            float x = dist;// - pt1->x;
+                            float r = (pt2->x - pt1->x);
+                            float center = (pt2->x + pt1->x);
+                            float xM = x - center;
+                            value = sqrt( r * r - xM * xM );
                         }
         
                         //var y=originY + radius * Math.sin( pt + offset );
@@ -247,7 +273,7 @@ class Builder
                     }
                 }
         
-                index += 1;
+                index += 2;
             }
         
             return value;
@@ -527,27 +553,31 @@ class Builder
                 // --- Rotate material uv
                 buildData.materialSource += "if ( \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x != 0.0 ) tuv = rotateCCW( tuv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x );\n"
                 
-                buildData.materialSource += "value = " + material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+2) + ";\n"
-                
-                if limiterType == 0 {
-                    // --- No Limiter
-                    buildData.materialSource += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
-                } else
-                if limiterType == 1 {
-                    // --- Rectangle
-                    buildData.materialSource += "  d = abs( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].zw;\n"
-                    buildData.materialSource += "  limiterDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
-                    buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
-                } else
-                if limiterType == 2 {
-                    // --- Sphere
-                    buildData.materialSource += "  limiterDist = length( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
-                    buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
-                } else
-                if limiterType == 3 {
-                    // --- Border
-                    buildData.materialSource += "  limiterDist = -dist - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
-                    buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                if !material.isCompound {
+                    buildData.materialSource += "value = " + material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+2) + ";\n"
+                    
+                    if limiterType == 0 {
+                        // --- No Limiter
+                        buildData.materialSource += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
+                    } else
+                    if limiterType == 1 {
+                        // --- Rectangle
+                        buildData.materialSource += "  d = abs( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].zw;\n"
+                        buildData.materialSource += "  limiterDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
+                        buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                    } else
+                    if limiterType == 2 {
+                        // --- Sphere
+                        buildData.materialSource += "  limiterDist = length( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
+                        buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                    } else
+                    if limiterType == 3 {
+                        // --- Border
+                        buildData.materialSource += "  limiterDist = -dist - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
+                        buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                    }
+                } else {
+                    buildData.materialSource += material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+2, materialName: materialName) + ";\n"
                 }
             }
             

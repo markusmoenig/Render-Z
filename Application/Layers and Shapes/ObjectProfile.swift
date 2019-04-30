@@ -75,16 +75,37 @@ class ObjectProfile : Node
                 
                 let edge = float4(0, properties["edgeHeight"]!, properties["edgeType"]!, 0)
                 object.profile!.append(edge)
+                
+                let type = ObjectProfileMaxDelegate.SegmentType(rawValue: Int(properties["edgeType"]!))!
+                if type == .Bezier {
+                    let bezier = float4(properties["edgeControlAt"]!, properties["edgeControlHeight"]!, 0, 0)
+                    object.profile!.append(bezier)
+                } else {
+                    object.profile!.append(float4())
+                }
 
                 let pointCount = Int(properties["pointCount"]!)
                 for index in 0..<pointCount {
                     let control = float4(properties["point_\(index)_At"]!, properties["point_\(index)_Height"]!, properties["point_\(index)_Type"]!, 0)
                     object.profile!.append(control)
+                    
+                    let type = ObjectProfileMaxDelegate.SegmentType(rawValue: Int(properties["point_\(index)_Type"]!))!
+                    if type == .Bezier {
+                        let bezier = float4(properties["point_\(index)_ControlAt"]!, properties["point_\(index)_ControlHeight"]!, 0, 0)
+                        object.profile!.append(bezier)
+                    } else {
+                        object.profile!.append(float4())
+                    }
                 }
                 let center = float4(properties["centerAt"]!, properties["centerHeight"]!, -1, -1)
                 object.profile!.append(center)
-                
-                //print(center.x, center.y)
+
+                //
+                if let pts = object.profile {
+                    for pt in pts {
+                        print( pt.x, pt.y, pt.z )
+                    }
+                }
             }
         }
         return playResult!

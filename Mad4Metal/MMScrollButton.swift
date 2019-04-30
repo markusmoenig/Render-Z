@@ -99,6 +99,9 @@ class MMScrollButton : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if isDisabled {
+            return
+        }
         mouseMoved(event)
         startScrolling()
     }
@@ -113,6 +116,9 @@ class MMScrollButton : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        if isDisabled {
+            return
+        }
         let oldHoverMode = hoverMode
         hoverMode = .None
         

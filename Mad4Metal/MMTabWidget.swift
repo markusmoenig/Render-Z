@@ -45,12 +45,17 @@ class MMTabWidget: MMWidget
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {
+        let oldHoverTab : MMTabItem? = hoverTab
         hoverTab = nil
         for item in items {
             if item.rect.contains(event.x, event.y) {
                 hoverTab = item
                 break
             }
+        }
+        
+        if oldHoverTab !== hoverTab {
+            mmView.update()
         }
     }
     

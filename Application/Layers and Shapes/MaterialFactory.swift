@@ -18,7 +18,7 @@ struct MaterialDefinition
     var heightProperty  : String = ""
     
     var pointCount      : Int = 0
-    var isDecorator     : Bool = false
+    var isCompound      : Bool = false
 }
 
 class MaterialFactory
@@ -131,6 +131,34 @@ class MaterialFactory
         def.widthProperty = "width"
         def.heightProperty = "height"
         materials.append( def )
+        
+        
+        // --- Compounds
+        
+        // --- Gold
+        def = MaterialDefinition()
+        def.name = "Gold"
+        def.globalCode =
+        """
+        void goldMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material) {
+            material->baseColor = value;
+            material->metallic = 1.;
+            material->roughness = 0.53;
+            material->specular = 0.3;
+        }
+        """
+        def.code = "goldMaterial(__uv__, __value__, __material__)"
+        def.properties["value_x"] = 1.0
+        def.properties["value_y"] = 0.71
+        def.properties["value_z"] = 0.29
+        def.properties["value_w"] = 1
+        
+        def.properties["width"] = defaultSize
+        def.properties["height"] = defaultSize
+        def.widthProperty = "width"
+        def.heightProperty = "height"
+        def.isCompound = true
+        materials.append( def )
     }
     
     /// Create a shape
@@ -154,7 +182,7 @@ class MaterialFactory
             material.widthProperty = def.widthProperty
             material.heightProperty = def.heightProperty
             material.pointCount = def.pointCount
-            material.isDecorator = def.isDecorator
+            material.isCompound = def.isCompound
         }
         
         return material

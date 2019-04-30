@@ -1,5 +1,5 @@
 //
-//  ShapeSelector.swift
+//  MaterialSelector.swift
 //  Shape-Z
 //
 //  Created by Markus Moenig on 14/1/19.
@@ -20,11 +20,17 @@ struct MaterialSelectorDrag : MMDragSource
 
 class MaterialSelector
 {
+    enum Brand {
+        case Components, Compounds
+    }
+    
     var mmView          : MMView
-    var decorators      : [Material]
+    
+    var brand           : Brand
+    var materials       : [Material]
     var materialFactory : MaterialFactory
     
-    var decoRects       : [MMRect]
+    var materialRects   : [MMRect]
 
     var fragment        : MMFragment?
     
@@ -32,47 +38,52 @@ class MaterialSelector
     var spacing         : Float
     var unitSize        : Float
     
-    var selectedDecoIndex : Int
-    var selectedDeco    : Material!
+    var selMaterialIndex: Int = 0
+    var selMaterial     : Material!
     
     var zoom            : Float = 2
     
-    init(_ view: MMView, width: Float )
+    init(_ view: MMView, width: Float, brand: Brand, materialFactory: MaterialFactory )
     {
         mmView = view
+        self.brand = brand
+        self.materialFactory = materialFactory
         
-        decorators = []
-        materialFactory = MaterialFactory()
+        materials = []
         
-        decoRects = []
+        materialRects = []
         fragment = MMFragment(view)
 
         spacing = 10
         unitSize = (width - spacing * 3) / 2
-        
-        selectedDecoIndex = 0
         
         // --- Decorators
 
         for matDef in materialFactory.materials {
             let mat = materialFactory.createMaterial(matDef.name, size: unitSize / 2 - 2)
             if matDef.name == "Color" {
-                selectedDeco = mat
+                //selComponentIndex = mat
             }
-            decorators.append( mat )
+            
+            if brand == .Components && mat.isCompound == false {
+                materials.append( mat )
+            } else
+            if brand == .Compounds && mat.isCompound == true {
+                materials.append( mat )
+            }
         }
         
         // ---
         
         self.width = width * zoom
         height = 0//spacing * 4
-        let length : Int = decorators.count
+        let length : Int = materials.count
         let lines : Float = Float((length / 2 + length % 2))
         height += Float(lines * Float(unitSize) + lines * Float(20) + (lines) * spacing + spacing) 
 //        print( unitSize, height, length.truncatingRemainder(dividingBy: 2.0), length )
         
         height = height * zoom
-        decoRects = build(materials: decorators)
+        materialRects = build(materials: materials)
     }
     
     /// Build the source
@@ -135,7 +146,11 @@ class MaterialSelector
             source += "d = abs(uv) - float2(\(unitSize/2));\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
             
-            source += "material.baseColor = " + material.createCode(uvName: "uv") + ";\n"
+            if !material.isCompound {
+                source += "material.baseColor = " + material.createCode(uvName: "uv") + ";\n"
+            } else {
+                source += material.createCode(uvName: "uv", materialName: "material") + ";\n"
+            }
             
             source +=
             """
@@ -246,7 +261,11 @@ class MaterialSelector
         
         """
         
-        source += "material.baseColor = " + material.createCode(uvName: "uv") + ";\n"
+        if !material.isCompound {
+            source += "material.baseColor = " + material.createCode(uvName: "uv") + ";\n"
+        } else {
+            source += material.createCode(uvName: "uv", materialName: "material") + ";\n"
+        }
         source +=
         """
         
@@ -265,27 +284,27 @@ class MaterialSelector
     }
     
     /// Selected the shape at the given relative mouse position
-    func selectDecoAt(_ x: Float,_ y: Float) -> Material?
+    func selectMaterialAt(_ x: Float,_ y: Float) -> Material?
     {
-        for (index, rect) in decoRects.enumerated() {
+        for (index, rect) in materialRects.enumerated() {
             if rect.contains( x, y ) {
-                selectedDecoIndex = index
-                selectedDeco = decorators[index]
-                return selectedDeco
+                selMaterialIndex = index
+                selMaterial = materials[index]
+                return selMaterial
             }
         }
         return nil
     }
     
     /// Create a drag item for the given position
-    func createDecoDragSource(_ x: Float,_ y: Float) -> MaterialSelectorDrag
+    func createMaterialDragSource(_ x: Float,_ y: Float) -> MaterialSelectorDrag
     {
         var drag = MaterialSelectorDrag()
         
-        for (index, rect) in decoRects.enumerated() {
+        for (index, rect) in materialRects.enumerated() {
             if rect.contains( x, y ) {
                 drag.id = "MaterialSelectorItem"
-                drag.name = decorators[index].name
+                drag.name = materials[index].name
                 drag.pWidgetOffset!.x = x - rect.x
                 drag.pWidgetOffset!.y = y - rect.y
                 drag.material = materialFactory.createMaterial(drag.name, size: unitSize / 2 - 2)
@@ -301,6 +320,6 @@ class MaterialSelector
     /// Create an instance of the currently selected shape
     func createSelected() -> Material
     {
-        return materialFactory.createMaterial(selectedDeco.name)
+        return materialFactory.createMaterial(selMaterial.name)
     }
 }

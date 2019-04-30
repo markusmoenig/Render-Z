@@ -108,12 +108,9 @@ class MaterialList
             float      fill;
         } SHAPELIST_HOVER_DATA;
 
-        typedef struct {
-            float4      baseColor;
-        } MATERIAL_DATA;
-
         """
-        
+    
+        source += Material.getMaterialStructCode()
         source += getGlobalCode(object: object)
         
         source +=
@@ -146,6 +143,8 @@ class MaterialList
 
             float4 finalCol = float4( 0 ), col = float4( 0 );
         
+            MATERIAL_DATA material;
+        
         """
 
         let left : Float = (width/2) * zoom
@@ -169,10 +168,15 @@ class MaterialList
             
             source += "uv -= float2( -128., 0. );\n"
             
-            if material.properties["channel"]! == 0 {
-                source += "primitiveColor = " + material.createCode(uvName: "uv") + ";\n"
+            if !material.isCompound {
+                if material.properties["channel"]! == 0 {
+                    source += "primitiveColor = " + material.createCode(uvName: "uv") + ";\n"
+                } else {
+                    source += "primitiveColor = float4( float3(" + material.createCode(uvName: "uv") + ".x), 1 );\n"
+                }
             } else {
-                source += "primitiveColor = float4( float3(" + material.createCode(uvName: "uv") + ".x), 1 );\n"
+                source += material.createCode(uvName: "uv", materialName: "material") + ";\n"
+                source += "primitiveColor = material.baseColor;\n"
             }
 
             source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
@@ -271,22 +275,26 @@ class MaterialList
             
             for material in materials {
                 
-                let channel = material.properties["channel"]
                 var text = ""
-                switch channel
-                {
-                    case 0: text += "Base Color"
-                    case 1: text += "Subsurface"
-                    case 2: text += "Roughness"
-                    case 3: text += "Metallic"
-                    case 4: text += "Specular"
-                    case 5: text += "Spec. Tint"
-                    case 6: text += "Clearcoat"
-                    case 7: text += "Clearc. Gloss"
-                    case 8: text += "Anisotropic"
-                    case 9: text += "Sheen"
-                    case 10: text += "Sheen Tint"
-                    default: print("Wrong Channel")
+                if !material.isCompound {
+                    let channel = material.properties["channel"]
+                    switch channel
+                    {
+                        case 0: text += "Base Color"
+                        case 1: text += "Subsurface"
+                        case 2: text += "Roughness"
+                        case 3: text += "Metallic"
+                        case 4: text += "Specular"
+                        case 5: text += "Spec. Tint"
+                        case 6: text += "Clearcoat"
+                        case 7: text += "Clearc. Gloss"
+                        case 8: text += "Anisotropic"
+                        case 9: text += "Sheen"
+                        case 10: text += "Sheen Tint"
+                        default: print("Wrong Channel")
+                    }
+                } else {
+                    text = material.name
                 }
                 
                 fontRect = mmView.openSans.getTextRect(text: text, scale: fontScale, rectToUse: fontRect)
