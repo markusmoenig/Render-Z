@@ -101,11 +101,12 @@ class ObjectProfile : Node
                 object.profile!.append(center)
 
                 //
+                /*
                 if let pts = object.profile {
                     for pt in pts {
                         print( pt.x, pt.y, pt.z )
                     }
-                }
+                }*/
             }
         }
         return playResult!

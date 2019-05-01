@@ -307,6 +307,8 @@ class Object : Node
         let prevOffY = properties["prevOffY"]
         let prevScale = properties["prevScale"]
         let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
+        
+        executeProperties(nodeGraph)
 
         if instance == nil || hard {
             instance = nodeGraph.builder.buildObjects(objects: playInstance != nil ? [playInstance!] : [self], camera: camera, preview: true)

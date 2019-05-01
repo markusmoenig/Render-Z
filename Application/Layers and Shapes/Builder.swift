@@ -216,12 +216,15 @@ class Builder
                     if (pt1->x <= dist && pt2->x >= dist) {
         
                         if ( pt1->z == 0 ) {
+                            // Linear
                             value = mix( pt1->y, pt2->y, clamp( dist / (pt2->x - pt1->x), 0, 1 ) );
                         } else
-                        if ( pt1->z == 1 ) {
+                        if ( pt1->z == 3 ) {
+                            // Smoothstep
                             value = mix( pt1->y, pt2->y, smoothstep(0, 1, dist / (pt2->x - pt1->x) ) );
                         } else
                         if ( pt1->z == 2 ) {
+                            // Bezier
                             constant float4 *cp = &profileData[index+1];
 
                             float t = dist / (pt2->x - pt1->x);
@@ -245,20 +248,14 @@ class Builder
                             value = y /  (pt2->x - pt1->x);
 
                         } else
-                        if ( pt1->z == 3 ) {
-                            //float d = dist / (pt2->x - pt1->x);
-                            //float pt = atan2(pt2->y - pt1->y, pt2->x - pt1->x) * PI / 180;
-                            //float dX = pt2->x - pt1->x;
-                            //float dY = pt2->y - pt1->y;
-                            //float distance = sqrt(dX * dX + dY * dY);
-
-                            //value = pt1->y + (pt2->x - pt1->x)/*distance*/ / 2 * sin(pt + d * PI/2);
+                        if ( pt1->z == 1 ) {
+                            // Circle
         
                             float x = dist;// - pt1->x;
                             float r = (pt2->x - pt1->x);
                             float center = (pt2->x + pt1->x);
                             float xM = x - center;
-                            value = sqrt( r * r - xM * xM );
+                            value = mix( pt1->y, pt2->y, clamp( dist / (pt2->x - pt1->x), 0, 1 ) ) + sqrt( r * r - xM * xM );
                         }
         
                         //var y=originY + radius * Math.sin( pt + offset );
@@ -627,7 +624,7 @@ class Builder
     @discardableResult func render(width:Float, height:Float, instance: BuilderInstance, camera: Camera, outTexture: MTLTexture? = nil, frame: Int = 0) -> MTLTexture
     {
         if outTexture == nil {
-            if compute!.width != width || compute!.height != height {
+            if compute!.texture == nil || compute!.width != width || compute!.height != height {
                 compute!.allocateTexture(width: width, height: height)
             }
         }
@@ -1712,7 +1709,7 @@ class Builder
 
         float4 calculatePixelColor(const float2 uv, MaterialInfo material, float3 normal)
         {
-            float4 color = material.baseColor;//float4(1);
+            material.baseColor = float4(pow(material.baseColor.xyz, 2.2),material.baseColor.w);//float4(1);
             
             float3 L = float3(0);
             float3 beta = float3(1);
@@ -1734,7 +1731,7 @@ class Builder
             float scatteringPdf = 0.;
 
             LightInfo light;
-            light.L = float3(3.15);//float3(5.4);3.15
+            light.L = float3(3.15);//float3(1.38);//float3(3.15);
             light.position = float3(10, -100, 0);
             light.direction = normalize(float3(0, 0, 0)-light.position);//normalize(float3(0,1,0));//normalize(float3(-1.,1.,1.));
             light.radius = 0;
@@ -1757,7 +1754,7 @@ class Builder
             //float3 diffuseColor = (1.0 - material.metallic) * material.baseColor.rgb ;
             //L += diffuseColor * Irradiance_SphericalHarmonics(interaction.normal)/3.14;
 
-            return float4(clamp(L, 0, 10)/*pow(clamp(0, 1), 0.4545),*/, material.baseColor.w);
+            return float4(clamp(pow(L, 0.4545), 0, 1), material.baseColor.w);
         }
 
         """

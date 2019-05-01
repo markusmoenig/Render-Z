@@ -19,7 +19,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     }
     
     enum SegmentType : Int {
-        case Linear, Smoothstep, Bezier, Circle
+        case Linear, Circle, Bezier, Smoothstep, SmoothMaximum
     }
     
     var app             : App!
@@ -132,7 +132,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
                 self.update(true)
                 self.mmView.update()
             }
-            pointTypeButton = MMScrollButton(app.mmView, items:["Linear", "Smoothened", "Bezier Spline", "Circle"], index: 0)
+            pointTypeButton = MMScrollButton(app.mmView, items:["Linear", "Circle", "Bezier Spline", "Smooth Min/Max"], index: 0)
             pointTypeButton.changed = { (index)->() in
                 let segmentType = SegmentType(rawValue: index)
 
@@ -198,13 +198,12 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
         removeButton.isDisabled = true
         pointTypeButton.isDisabled = false
         update(true)
-        
     }
     
     override func deactivate()
     {
         app.mmView.deregisterWidgets( widgets: addButton, removeButton, pointTypeButton, app.closeButton)
-        profile.updatePreview(nodeGraph: app.nodeGraph)
+        masterObject.updatePreview(nodeGraph: app.nodeGraph, hard: true)
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -318,6 +317,39 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
                     lastY = y
                 }
             } else
+            if type == .SmoothMaximum {
+                // Smooth Maximum
+
+                let sXI : Int = Int(startAt*scaleX)
+                let eXI : Int = Int(endAt*scaleX)
+                
+                var lastX : Float = -1
+                var lastY : Float = -1
+                
+                func smax(_ a: Float,_ b: Float,_ s : Float ) -> Float
+                {
+                    let h : Float = simd_clamp(0.5 + 0.5*(a - b)/s, 0.0, 1.0)
+                    return simd_mix(b, a, h) + h*(1.0 - h)*s
+                }
+                
+                func smin0(_ a: Float,_ b: Float,_ k: Float) -> Float
+                {
+                    let h : Float = simd_clamp( 0.5 + 0.5*(b-a)/k, 0.0, 1.0 );
+                    return simd_mix( b, a, h ) - k*h*(1.0-h);
+                }
+                
+                for xI in sXI..<eXI {
+                    let x : Float = Float(xI) - Float(sXI)
+                    let y : Float = simd_mix( sY, eY, smax(x / (endAt-startAt)/scaleX, 0, 1))
+                    
+                    if lastX != -1 {
+                        mmView.drawLine.draw(sx: lastX, sy: lastY, ex: sX - x, ey: y, radius: 1, fillColor: lineColor)
+                    }
+                    
+                    lastX = sX - x
+                    lastY = y
+                }
+            } else
             if type == .Bezier {
                 // Quadratic Bezier
                 
@@ -332,7 +364,6 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
                     //let y : Float = simd_mix( sY, eY, simd_smoothstep(0, 1, x / (endAt-startAt)/scaleX ))
                     
                     let cx = controlAt
-                    let cy = bottom - controlHeight * scale
                     
                     let ax : Float = startAt
                     let bx : Float = endAt
@@ -431,7 +462,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
                     let radius : Float = ((endAt - startAt) * scaleX) / 2
                     
                     let xM : Float = x - ((endAt - startAt) / 2) * scaleX
-                    let y : Float = bottom - ( (sqrt(radius * radius - xM * xM)) )
+                    let y : Float = simd_mix( sY, eY, x / (endAt-startAt)/scaleX) - ( (sqrt(radius * radius - xM * xM)) )
                     
                     if lastX != -1 {
                         mmView.drawLine.draw(sx: lastX, sy: lastY, ex: sX - x, ey: y, radius: 1, fillColor: lineColor)
@@ -713,9 +744,12 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     override func update(_ hard: Bool = false, updateLists: Bool = false)
     {
         let size = float2(app.editorRegion!.rect.width, app!.editorRegion!.rect.height)
+        /*
+         var recompile : Bool = hard
         if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
-            previewTexture = app.nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
-        }
+            previewTexture = app.nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: false)
+            recompile = true
+        }*/
         
         _ = profile.execute(nodeGraph: app.nodeGraph, root: BehaviorTreeRoot(masterObject), parent: masterObject)
         
@@ -724,7 +758,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
         }
         
         if builderInstance != nil {
-            app.nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture)
+            previewTexture = app.nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera)//, outTexture: previewTexture)
         }
     }
 }
