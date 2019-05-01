@@ -36,6 +36,8 @@ class Shape : Codable
     // Build data offsets to be able to reuse data
     var buildShapeOffset: Int = 0
     var physicShapeOffset: Int = 0
+    // Build data table for custom property names
+    var customProperties: [String] = []
     
     private enum CodingKeys: String, CodingKey {
         case name
@@ -115,6 +117,16 @@ class Shape : Codable
         code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
         
         for (name,value) in props! {
+            if name.starts(with: "custom_") && layerIndex != nil {
+                // Custom properties
+                let table : [String] = ["x", "y", "z", "w"]
+                var customCode = "\(mainDataName)shapes[\(layerIndex!)].customProperties."
+                let index = customProperties.firstIndex(of: name)
+                if index != nil {
+                    customCode += table[index!]
+                    code = code.replacingOccurrences(of: "__" + name + "__", with: customCode)
+                }
+            } else
             if name == widthProperty && layerIndex != nil {
                 var widthCode = "\(mainDataName)shapes[\(layerIndex!)].size.x"
                 if supportsRounding {

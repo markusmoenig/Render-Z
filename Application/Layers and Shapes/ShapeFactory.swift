@@ -366,6 +366,84 @@ class ShapeFactory
         def.heightProperty = "height"
         def.supportsRounding = true
         shapes.append( def )
+        
+        // --- Spring
+        def = ShapeDefinition()
+        def.name = "Spring"
+        def.distanceCode = "sdSpring(__uv__, float2(__radius__,__radius__), __custom_stretch__, __custom_spires__, __custom_ratio__, __custom_thickness__ )"
+        def.globalCode =
+        """
+        float sdSpring( float2 uv, float2 size, float stretch, float spires, float ratio, float thickness )
+        {
+            float2 U = uv / size;
+            U = U.yx;
+        
+            float L = stretch,                   // sprint length
+            n = spires,                   // number of spires
+            r = ratio,                    // spring radius
+            w = thickness;                   // wire radius
+            const int N = 8;                     // number of iterations
+            const float PI = 3.14159265359;
+        
+            #define f(x)  ( r * sin(k*(x)) ) // spring equation
+            #define df(x) ( x0-(x) + r*k*cos(k*(x))* ( y0 -r*sin(k*(x)) ) )
+
+            #define d(x)  length( float2(x0,y0) - float2( x, f(x) ) ) // distance
+        
+            float x0 = U.x, y0 = U.y, x=x0, k = 2.*PI*n/L, d;
+
+            x = clamp( x0, -L/2., L/2.);
+            float  h = .5, // set to 0 for f(x) = cos()
+            xm = ( floor(x*k/PI +h) -h ) *PI/k, // monotonous sin() branch
+            xM = (  ceil(x*k/PI +h) -h ) *PI/k; // = range with only one dist extrema
+            // ends and beyond requires special care
+            xm = max(xm,-L/2.);
+            xM = min(xM, L/2.);
+            float ym = df(xm), yM = df(xM), y;   // v sign: hack to avoid the extra extrema
+            if ( xm ==-L/2. && ym < 0. ) xm=xM, ym= 1., xM+=PI/k, yM=df(xM);
+            if ( xM == L/2. && yM > 0. ) xM=xm, yM=-1., xm-=PI/k, ym=df(xm);
+            // special case when x is exactly above an extrema
+            //if ( yM > 0. ) xM -= .01*PI/k, yM = 1.;  // should be df
+            if ( ym < 0. ) xm -= .01*PI/k, ym = 1.;  //-> 1st useless, 2nd = any positive
+            // bisection to find distance extrema (i.e. zero of derivative df() )
+            for (int i=0; i<N; i++) {
+            x = (xm+xM)/2.; y = df(x);
+            if ( sign(y)==sign(ym)) xm = x, ym = y;
+            else                xM = x, yM = y;
+            }
+        
+            d = d(x);                                   // dist to sine
+            d = min( d, d( L/2.) );                     // dist to ends
+            d = min( d, d(-L/2.) );
+            d -= w;                                     // thickness
+        
+            return d * size.y;
+        }
+        """
+        def.properties["radius"] = defaultSize
+        def.widthProperty = "radius"
+        def.heightProperty = "radius"
+        def.properties["custom_stretch"] = 1.6
+        def.properties["stretch_min"] = 0
+        def.properties["stretch_max"] = 5
+        def.properties["stretch_int"] = 0
+        
+        def.properties["custom_spires"] = 5
+        def.properties["spires_min"] = 1
+        def.properties["spires_max"] = 30
+        def.properties["spires_int"] = 1
+        
+        def.properties["custom_ratio"] = 0.3
+        def.properties["ratio_min"] = 0
+        def.properties["ratio_max"] = 1
+        def.properties["ratio_int"] = 0
+        
+        def.properties["custom_thickness"] = 0.05
+        def.properties["thickness_min"] = 0
+        def.properties["thickness_max"] = 1
+        def.properties["thickness_int"] = 0
+        
+        shapes.append( def )
     }
     
     /// Create a shape

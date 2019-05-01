@@ -84,6 +84,16 @@ class MMMargin
     }
 }
 
+extension String {
+    func capitalizingFirstLetter() -> String {
+        return prefix(1).uppercased() + self.lowercased().dropFirst()
+    }
+    
+    mutating func capitalizeFirstLetter() {
+        self = self.capitalizingFirstLetter()
+    }
+}
+
 /// RGB to HSL
 func toHSL(_ r: Float, _ g: Float, _ b: Float) -> (Float, Float, Float)
 {

@@ -452,7 +452,17 @@ class Builder
             if shape.pointsVariable {
                 buildData.source += shape.createPointsVariableCode(shapeIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex)
             }
-            buildData.source += "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, shapeIndex: buildData.shapeIndex, mainDataName: buildData.mainDataName) + ";\n"
+            
+            // --- Setup the custom properties table
+            shape.customProperties = []
+            for (key, _) in shape.properties {
+                if key.starts(with: "custom_") {
+                    shape.customProperties.append(key)
+                }
+            }
+            
+            let distanceCode = "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, shapeIndex: buildData.shapeIndex, mainDataName: buildData.mainDataName) + ";\n"
+            buildData.source += distanceCode
             
             if shape.supportsRounding {
                 buildData.source += "newDist -= shape->rounding;\n"
@@ -502,6 +512,12 @@ class Builder
             instance.data!.append( properties["rounding"]! )
             instance.data!.append( properties["annular"]! )
             instance.data!.append( properties["smoothBoolean"]! )
+            // Custom data
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            // --
             
             buildData.shapeIndex += 1
             
@@ -663,7 +679,7 @@ class Builder
         var parentPosX : Float = 0
         var parentPosY : Float = 0
         var parentRotate : Float = 0
-        let itemSize : Int = 8
+        let itemSize : Int = 12
         var rootObject : Object!
         var currentFrame : Int = frame
         
@@ -703,6 +719,14 @@ class Builder
                 instance.data![offset + index * itemSize+6] = properties["annular"]! * minSize / 3.5
                 instance.data![offset + index * itemSize+7] = properties["smoothBoolean"]! * minSize
                 
+                // --- Custom shape properties
+                for (customIndex,value) in shape.customProperties.enumerated() {
+                    if customIndex > 3 {
+                        break
+                    }
+                    instance.data![offset + index * itemSize + 8 + customIndex] = properties[value]!
+                }
+
                 for i in 0..<shape.pointCount {
                     let ptConn = object.getPointConnections(shape: shape, index: i)
                     
@@ -1269,6 +1293,7 @@ class Builder
             float       rounding;
             float       annular;
             float       smoothBoolean;
+            float4      customProperties;
         } SHAPE_DATA;
         
         typedef struct

@@ -214,6 +214,25 @@ class Gizmo : MMWidget
             gizmoNode.uiItems.append(
                 NodeUINumber(gizmoNode, variable: "annular", title: "Annular", range: float2(0, 1), value: 0.0)
             )
+            
+            if selectedShapes.count == 1 {
+                let shape = selectedShapes[0]
+                var customs : [NodeUI] = []
+                for (key, value) in shape.properties {
+                    if key.starts(with: "custom_") {
+                        let cKey = String(key.dropFirst(7))
+                        let title = cKey.capitalizingFirstLetter()
+                        customs.append(
+                            NodeUINumber(gizmoNode, variable: key, title: title, range: float2(shape.properties[cKey + "_min"]!, shape.properties[cKey + "_max"]!), int: shape.properties[cKey + "_int"]! == 0 ? false : true, value: value)
+                        )
+                    }
+                }
+                let sorted = customs.sorted(by: { $0.title.lowercased() < $1.title.lowercased() })
+                for item in sorted {
+                    gizmoNode.uiItems.append( item )
+                }
+            }
+            
             // --
 
             gizmoNode.setupUI(mmView: mmView)
