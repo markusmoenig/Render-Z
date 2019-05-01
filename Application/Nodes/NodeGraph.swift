@@ -16,7 +16,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Maximize, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, Close
+        case None, Maximize, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, Close, MasterNode
     }
     
     enum ContentType : Int {
@@ -585,7 +585,7 @@ class NodeGraph : Codable
                 }
             }
             
-            // Close
+            // Node Close
             if true {
                 if hoverNode !== currentMaster {
                     
@@ -651,6 +651,8 @@ class NodeGraph : Codable
                     
                     rect.width = previewSize.x
                     rect.height = previewSize.y
+                    
+                    nodeHoverMode = .MasterNode
                 }
             
                 if rect.contains(event.x, event.y) {

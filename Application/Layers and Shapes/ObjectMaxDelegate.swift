@@ -1149,7 +1149,7 @@ class MaterialListScrollArea: MMScrollArea
         bodyButton.addState(.Checked)
         
         borderButton = MMButtonWidget(view, skinToUse: borderlessSkin, text: "Border" )
-        floatWidget = MMFloatWidget(view, range: float2(0, 10), value: delegate.selObject!.properties["border"]!)
+        floatWidget = MMFloatWidget(view, range: float2(0, 20), int: true, value: delegate.selObject!.properties["border"]!)
         
         super.init(view, orientation:.Vertical)
         
@@ -1286,8 +1286,8 @@ class MaterialListScrollArea: MMScrollArea
         //label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
         
         floatWidget.rect.copy( borderButton.rect )
-        floatWidget.rect.x += bodyButton.rect.width + 10
-        floatWidget.rect.width = 100
+        floatWidget.rect.x += bodyButton.rect.width
+        floatWidget.rect.width = 120
         floatWidget.draw()
         
         mmView.drawBox.draw( x: rect.x, y: rect.y + height, width: rect.width, height: rect.height + 1 - height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )

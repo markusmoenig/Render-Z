@@ -13,13 +13,15 @@ class MMFloatWidget : MMWidget
     var value       : Float
     var range       : float2!
     var mouseIsDown : Bool = false
+    var int         : Bool = false
 
     var changed     : ((_ value: Float)->())?
 
-    init(_ view: MMView, range: float2 = float2(0,1), value: Float = 0)
+    init(_ view: MMView, range: float2 = float2(0,1), int: Bool = false, value: Float = 0)
     {
         self.range = range
         self.value = value
+        self.int = int
         super.init(view)
         
         name = "MMFloatWidget"
@@ -35,6 +37,10 @@ class MMFloatWidget : MMWidget
         value = range.x + perPixel * (event.x - rect.x)
         value = max( value, range.x)
         value = min( value, range.y)
+        
+        if int {
+            value = floor(value)
+        }
         
         if changed != nil && oldValue != value {
             changed!(value)
@@ -63,6 +69,10 @@ class MMFloatWidget : MMWidget
             value = max( value, range.x)
             value = min( value, range.y)
             
+            if int {
+                value = floor(value)
+            }
+            
             if changed != nil && oldValue != value {
                 changed!(value)
             }
@@ -81,7 +91,7 @@ class MMFloatWidget : MMWidget
         
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: skin.borderColor )
         
-        mmView.drawText.drawTextCentered(mmView.openSans, text: String(format: "%.02f", value), x: rect.x, y: rect.y, width: rect.width, height: itemHeight, scale: 0.44, color: skin.textColor)
+        mmView.drawText.drawTextCentered(mmView.openSans, text: int ? String(Int(value)) : String(format: "%.02f", value), x: rect.x, y: rect.y, width: rect.width, height: itemHeight, scale: 0.44, color: skin.textColor)
     }
 }
 
