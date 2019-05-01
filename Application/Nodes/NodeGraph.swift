@@ -937,6 +937,13 @@ class NodeGraph : Codable
         // --- Preview
         if let texture = node.previewTexture {
             app!.mmView.drawTexture.draw(texture, x: node.rect.x + (node.rect.width - 200*scale)/2, y: node.rect.y + NodeGraph.bodyY * scale + node.uiArea.height * scale, zoom: 1/scale)
+        } else {
+            let rect : MMRect = MMRect( node.rect.x + (node.rect.width - 200*scale)/2, node.rect.y + NodeGraph.bodyY * scale + node.uiArea.height * scale, 200 * scale, 140 * scale)
+            
+            node.livePreview(nodeGraph: self, rect: rect)
+            
+            // Preview Border
+            app!.mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 3, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
         }
     }
     

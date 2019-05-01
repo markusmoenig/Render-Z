@@ -109,18 +109,21 @@ class ObjectProfile : Node
         return playResult!
     }
     
-    override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
+    override func livePreview(nodeGraph: NodeGraph, rect: MMRect)
     {
-        /*
-        let size = nodeGraph.previewSize
-        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
-            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
-        }*/
-        /*
-        let prevOffX = properties["prevOffX"]
-        let prevOffY = properties["prevOffY"]
-        let prevScale = properties["prevScale"]
-        let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
-        */
+        let delegate = maxDelegate as! ObjectProfileMaxDelegate
+        
+        delegate.app = nodeGraph.app
+        delegate.drawPattern(rect)
+        
+        delegate.scale = 1
+        delegate.scaleX = 0.7
+        delegate.lockCenterAt = true
+        
+        delegate.profile = self
+        
+        nodeGraph.mmView.renderer.setClipRect(rect)
+        delegate.drawGraph(rect, nodePreview: true)
+        nodeGraph.mmView.renderer.setClipRect()
     }
 }

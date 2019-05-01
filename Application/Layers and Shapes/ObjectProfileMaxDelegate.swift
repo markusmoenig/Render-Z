@@ -90,6 +90,9 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             profile.properties["pointCount"] = 0
         }
         
+        scale = 4
+        scaleX = 4
+        
         app.topRegion!.rect.width = 0
         app.leftRegion!.rect.width = 0
         app.rightRegion!.rect.width = 0
@@ -178,10 +181,6 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
         }
 
         // Editor Region
-        if patternState == nil {
-            let function = app.mmView.renderer!.defaultLibrary.makeFunction( name: "moduloPattern" )
-            patternState = app.mmView.renderer!.createNewPipelineState( function! )
-        }
 
         app.mmView.registerWidgets( widgets: addButton, removeButton, pointTypeButton, app.closeButton)
         
@@ -202,6 +201,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             lockCenterAt = true
         } else {
             scaleX = 4
+            lockCenterAt = false
         }
         
         selPointType = .Edge
@@ -224,18 +224,23 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     }
     
     /// Draw the background pattern
-    func drawPattern(_ region: MMRegion)
+    func drawPattern(_ rect: MMRect)
     {
         let mmRenderer = app.mmView.renderer!
     
+        if patternState == nil {
+            let function = app.mmView.renderer!.defaultLibrary.makeFunction( name: "moduloPattern" )
+            patternState = app.mmView.renderer!.createNewPipelineState( function! )
+        }
+        
         let scaleFactor : Float = app.mmView.scaleFactor
         let settings: [Float] = [
-            region.rect.width, region.rect.height,
-            ];
+            rect.width, rect.height,
+        ];
         
         let renderEncoder = mmRenderer.renderEncoder!
         
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( region.rect.x, region.rect.y, region.rect.width, region.rect.height, scale: scaleFactor ) )
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( rect.x, rect.y, rect.width, rect.height, scale: scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         
         let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
@@ -256,7 +261,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             mmView.renderer.setClipRect(region.rect)
             app!.mmView.drawBox.draw( x: region.rect.x, y: region.rect.y, width: region.rect.width, height: region.rect.height, round: 0, borderSize: 0, fillColor : float4(0.098, 0.098, 0.098, 1.000), borderColor: float4(repeating:0) )
             mmView.drawTexture.draw(previewTexture!, x: region.rect.x, y: region.rect.y)
-            drawGraph(region)
+            drawGraph(region.rect)
             mmView.renderer.setClipRect()
             
             app.changed = false
@@ -278,22 +283,29 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
         }
     }
     
-    func drawGraph(_ region: MMRegion)
+    func drawGraph(_ rect: MMRect, nodePreview: Bool = false)
     {
-        left = region.rect.x + 40
-        bottom = region.rect.y + region.rect.height - 40
-        right = region.rect.x + region.rect.width - 40
+        if profile.properties["edgeHeight"] == nil {
+            return
+        }
+        
+        let margin : Float = !nodePreview ? 40 : 10
+        left = rect.x + margin
+        bottom = rect.y + rect.height - margin
+        right = rect.x + rect.width - margin
         
         if lockCenterAt {
-            scaleX = (region.rect.width - 80) / (profile.properties["centerAt"]!)
+            scaleX = (rect.width - 2*margin) / (profile.properties["centerAt"]!)
         }
         
         let lineColor = float4(0.5, 0.5, 0.5, 1)
         
         mmView.drawLine.draw(sx: left, sy: bottom, ex: right, ey: bottom, radius: 1, fillColor: lineColor)
         
-        centerLabel.drawCentered(x: region.rect.x + 40, y: bottom + 10, width: centerLabel.rect.width, height: centerLabel.rect.height)
-        edgeLabel.drawCentered(x: region.rect.x + region.rect.width - 40 - edgeLabel.rect.width, y: bottom + 10, width: centerLabel.rect.width, height: centerLabel.rect.height)
+        if !nodePreview {
+            centerLabel.drawCentered(x: rect.x + 40, y: bottom + 10, width: centerLabel.rect.width, height: centerLabel.rect.height)
+            edgeLabel.drawCentered(x: rect.x + rect.width - 40 - edgeLabel.rect.width, y: bottom + 10, width: centerLabel.rect.width, height: centerLabel.rect.height)
+        }
         
         // --- Draw Graph
         
@@ -515,27 +527,28 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             drawSegment(startAt: 0, startHeight: profile.properties["edgeHeight"]!, endAt: profile.properties["centerAt"]!, endHeight: profile.properties["centerHeight"]!, type: type, controlAt: controlAt, controlHeight: controlHeight)
         }
         
-        // --- Draw Edge Marker
-        
-        var type : SegmentType
-        
-        drawPoint(right, bottom - profile.properties["edgeHeight"]! * scale, isSelected: selPointType == .Edge && !selControl, hasHover: hoverPointType == .Edge && !hoverControl)
-        type = SegmentType(rawValue: Int(profile.properties["edgeType"]!))!
-        if type == .Bezier && selPointType == .Edge {
-            drawPoint(right - profile.properties["edgeControlAt"]! * scaleX, bottom - profile.properties["edgeControlHeight"]! * scale, isSelected: selPointType == .Edge && selControl, hasHover: hoverPointType == .Edge && hoverControl, control: true)
-        }
-        
-        // --- Draw Control Points
-        for index in 0..<pointCount {
-            drawPoint(right - profile.properties["point_\(index)_At"]! * scaleX, bottom - profile.properties["point_\(index)_Height"]! * scale, isSelected: selPointType == .Control && selPointIndex == index && !selControl, hasHover: hoverPointType == .Control && hoverPointIndex == index && !hoverControl, control: false)
-            type = SegmentType(rawValue: Int(profile.properties["point_\(index)_Type"]!))!
-            if type == .Bezier && selPointType == .Control && selPointIndex == index {
-                drawPoint(right - profile.properties["point_\(index)_ControlAt"]! * scaleX, bottom - profile.properties["point_\(index)_ControlHeight"]! * scale, isSelected: selPointType == .Control && selPointIndex == index && selControl, hasHover: hoverPointType == .Control && hoverPointIndex == index && hoverControl, control: true)
+        if !nodePreview {
+            // --- Draw Edge Marker
+            var type : SegmentType
+            
+            drawPoint(right, bottom - profile.properties["edgeHeight"]! * scale, isSelected: selPointType == .Edge && !selControl, hasHover: hoverPointType == .Edge && !hoverControl)
+            type = SegmentType(rawValue: Int(profile.properties["edgeType"]!))!
+            if type == .Bezier && selPointType == .Edge {
+                drawPoint(right - profile.properties["edgeControlAt"]! * scaleX, bottom - profile.properties["edgeControlHeight"]! * scale, isSelected: selPointType == .Edge && selControl, hasHover: hoverPointType == .Edge && hoverControl, control: true)
             }
-        }
+            
+            // --- Draw Control Points
+            for index in 0..<pointCount {
+                drawPoint(right - profile.properties["point_\(index)_At"]! * scaleX, bottom - profile.properties["point_\(index)_Height"]! * scale, isSelected: selPointType == .Control && selPointIndex == index && !selControl, hasHover: hoverPointType == .Control && hoverPointIndex == index && !hoverControl, control: false)
+                type = SegmentType(rawValue: Int(profile.properties["point_\(index)_Type"]!))!
+                if type == .Bezier && selPointType == .Control && selPointIndex == index {
+                    drawPoint(right - profile.properties["point_\(index)_ControlAt"]! * scaleX, bottom - profile.properties["point_\(index)_ControlHeight"]! * scale, isSelected: selPointType == .Control && selPointIndex == index && selControl, hasHover: hoverPointType == .Control && hoverPointIndex == index && hoverControl, control: true)
+                }
+            }
 
-        // --- Draw Center Marker
-        drawPoint( right - profile.properties["centerAt"]! * scaleX, bottom - profile.properties["centerHeight"]! * scale, isSelected: selPointType == .Center, hasHover: hoverPointType == .Center)
+            // --- Draw Center Marker
+            drawPoint( right - profile.properties["centerAt"]! * scaleX, bottom - profile.properties["centerHeight"]! * scale, isSelected: selPointType == .Center, hasHover: hoverPointType == .Center)
+        }
     }
     
     func drawPoint(_ x: Float,_ y : Float, isSelected: Bool = false, hasHover: Bool = false, control: Bool = false)

@@ -173,6 +173,11 @@ class Node : Codable
     func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
     }
+    
+    /// Create a live preview if supported
+    func livePreview(nodeGraph: NodeGraph, rect: MMRect)
+    {
+    }
 }
 
 /// Terminal class, connects nodes

@@ -118,12 +118,13 @@ class MMCompute {
             computeEncoder.setTexture(texture, index: 2)
         }
         
-        if outTexture != nil || tWidth != width || tHeight != height {
+        //if outTexture != nil || tWidth != width || tHeight != height {
             calculateThreadGroups(state!, computeEncoder, texture, store: outTexture == nil)
-        } else {
+        //} else {
+        /*
             computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
             computeEncoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
-        }
+        }*/
         computeEncoder.endEncoding()
         commandBuffer.commit()
     }
