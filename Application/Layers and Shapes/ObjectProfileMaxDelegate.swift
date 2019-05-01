@@ -79,6 +79,17 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
         profile = (app.nodeGraph.maximizedNode as! ObjectProfile)
         masterObject = (app.nodeGraph.currentMaster as! Object)
         
+        // Default values
+        if profile.properties["edgeHeight"] == nil {
+            profile.properties["edgeHeight"] = 0
+            profile.properties["edgeType"] = 0
+            profile.properties["borderHeight"] = 0
+            profile.properties["centerHeight"] = 0
+            profile.properties["centerAt"] = 200
+            
+            profile.properties["pointCount"] = 0
+        }
+        
         app.topRegion!.rect.width = 0
         app.leftRegion!.rect.width = 0
         app.rightRegion!.rect.width = 0

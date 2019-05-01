@@ -24,14 +24,6 @@ class ObjectProfile : Node
         
         maxDelegate = ObjectProfileMaxDelegate()
         minimumSize = Node.NodeWithPreviewSize
-        
-        properties["edgeHeight"] = 0
-        properties["edgeType"] = 0
-        properties["borderHeight"] = 0
-        properties["centerHeight"] = 0
-        properties["centerAt"] = 200
-        
-        properties["pointCount"] = 0
     }
     
     required init(from decoder: Decoder) throws
@@ -68,6 +60,11 @@ class ObjectProfile : Node
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Success
+        
+        // Profile was not yet initialized
+        if properties["edgeHeight"] == nil {
+            return .Failure
+        }
         
         if properties["status"] != nil && properties["status"]! == 0 {
             if let object = root.objectRoot {

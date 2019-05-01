@@ -18,8 +18,11 @@ class MMCompute {
     var texture                 : MTLTexture!
     var width, height           : Float
     
-    var threadgroupSize         : MTLSize!
-    var threadgroupCount        : MTLSize!
+    var tWidth, tHeight         : Float
+    
+    var threadsPerThreadgroup   : MTLSize!
+    var threadsPerGrid          : MTLSize!
+    var threadgroupsPerGrid     : MTLSize!
     
     init()
     {
@@ -29,6 +32,9 @@ class MMCompute {
         
         width = 0
         height = 0
+        
+        tWidth = -1
+        tHeight = -1
     }
     
     /// Creates a state from an optional library and the function name
@@ -87,12 +93,6 @@ class MMCompute {
             self.texture = texture
         }
         
-        threadgroupSize = MTLSize(width: Int(width), height: Int(height), depth: 1)
-        
-        let tWidth = 1;//( inputTexture!.width + threadgroupSize.width -  1) / threadgroupSize.width
-        let tHeight = 1;//( inputTexture!.height + threadgroupSize.height - 1) / threadgroupSize.height;
-        threadgroupCount = MTLSize(width: tWidth, height: tHeight, depth: 1)
-        
         self.width = width
         self.height = height
         
@@ -106,8 +106,9 @@ class MMCompute {
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
         
         computeEncoder.setComputePipelineState( state! )
-//        computeEncoder.setTexture( inputTexture, index: 0 )
-        computeEncoder.setTexture( outTexture != nil ? outTexture : texture, index: 0 )
+        
+        let texture = outTexture != nil ? outTexture! : self.texture!
+        computeEncoder.setTexture( texture, index: 0 )
         
         if let buffer = inBuffer {
             computeEncoder.setBuffer(buffer, offset: 0, index: 1)
@@ -117,9 +118,13 @@ class MMCompute {
             computeEncoder.setTexture(texture, index: 2)
         }
         
-        computeEncoder.dispatchThreadgroups( threadgroupSize, threadsPerThreadgroup: threadgroupCount )
+        if outTexture != nil || tWidth != width || tHeight != height {
+            calculateThreadGroups(state!, computeEncoder, texture, store: outTexture == nil)
+        } else {
+            computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+            computeEncoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+        }
         computeEncoder.endEncoding()
-        
         commandBuffer.commit()
     }
 
@@ -130,7 +135,6 @@ class MMCompute {
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
         
         computeEncoder.setComputePipelineState( state! )
-//        computeEncoder.setTexture( inputTexture, index: 0 )
         computeEncoder.setBuffer(outBuffer, offset: 0, index: 0)
 
         if let buffer = inBuffer {
@@ -144,5 +148,30 @@ class MMCompute {
         
         commandBuffer.commit()
         commandBuffer.waitUntilCompleted()
+    }
+    
+    // Compute the threads and thread groups for the given state and texture
+    func calculateThreadGroups(_ state: MTLComputePipelineState, _ encoder: MTLComputeCommandEncoder, _ texture: MTLTexture, store: Bool = false)
+    {
+        let w = state.threadExecutionWidth
+        let h = state.maxTotalThreadsPerThreadgroup / w
+        let threadsPerThreadgroup = MTLSizeMake(w, h, 1)
+        
+        let threadsPerGrid = MTLSize(width: texture.width, height: texture.height, depth: 1)
+        
+        encoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+
+        let threadgroupsPerGrid = MTLSize(width: (texture.width + w - 1) / w, height: (texture.height + h - 1) / h, depth: 1)
+        
+        encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+        
+        if store {
+            self.threadsPerThreadgroup = threadsPerThreadgroup
+            self.threadsPerGrid = threadsPerGrid
+            self.threadgroupsPerGrid = threadgroupsPerGrid
+            
+            tWidth = Float(texture.width)
+            tHeight = Float(texture.height)
+        }
     }
 }

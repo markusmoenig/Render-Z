@@ -645,11 +645,12 @@ class NodeGraph : Codable
                     rect.width = Float(texture.width) * scale
                     rect.height = Float(texture.height) * scale
                 } else {
-                    // todo
-                    rect.x = hoverNode!.rect.x + (hoverNode!.rect.width - 200) / 2
-                    rect.y = hoverNode!.rect.y + NodeGraph.bodyY
-                    rect.width = Float(texture.width)
-                    rect.height = Float(texture.height)
+                    // master
+                    rect.x = hoverNode!.rect.x + 34
+                    rect.y = hoverNode!.rect.y + 34 + 25
+                    
+                    rect.width = previewSize.x
+                    rect.height = previewSize.y
                 }
             
                 if rect.contains(event.x, event.y) {
