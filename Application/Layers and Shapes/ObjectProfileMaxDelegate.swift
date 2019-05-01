@@ -551,12 +551,14 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        mouseMoved(event)
+        
         selPointType = hoverPointType
         selPointIndex = hoverPointIndex
         selControl = hoverControl
-        mouseMode = .Dragging
         startDrag.x = event.x; startDrag.y = event.y
         if selPointType == .Edge {
+            mouseMode = .Dragging
             if !selControl {
                 startPoint.y = profile.properties["edgeHeight"]!
             } else {
@@ -569,6 +571,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             pointTypeButton.isDisabled = false
         } else
         if selPointType == .Center {
+            mouseMode = .Dragging
             startPoint.x = profile.properties["centerAt"]!
             startPoint.y = profile.properties["centerHeight"]!
             removeButton.isDisabled = true
@@ -576,6 +579,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             pointTypeButton.isDisabled = true
         } else
         if selPointType == .Control {
+            mouseMode = .Dragging
             if !selControl {
                 startPoint.x = profile.properties["point_\(selPointIndex)_At"]!
                 startPoint.y = profile.properties["point_\(selPointIndex)_Height"]!
@@ -601,7 +605,9 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             addButton.isDisabled = false
             pointTypeButton.isDisabled = false
         }
-        mmView.mouseTrackWidget = app.editorRegion!.widget
+        if mouseMode == .Dragging {
+            mmView.mouseTrackWidget = app.editorRegion!.widget
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)

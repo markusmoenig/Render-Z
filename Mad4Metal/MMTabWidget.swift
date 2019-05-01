@@ -60,6 +60,7 @@ class MMTabWidget: MMWidget
     }
     
     override func mouseDown(_ event: MMMouseEvent) {
+        mouseMoved(event)
         if hoverTab != nil {
             if currentTab != nil {
                 mmView.deregisterWidget(currentTab!.widget!)
