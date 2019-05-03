@@ -119,7 +119,7 @@ class MMCompute {
         }
         
         //if outTexture != nil || tWidth != width || tHeight != height {
-            calculateThreadGroups(state!, computeEncoder, texture, store: outTexture == nil)
+            calculateThreadGroups(state!, computeEncoder, texture.width, texture.height, store: outTexture == nil)
         //} else {
         /*
             computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
@@ -130,7 +130,7 @@ class MMCompute {
     }
 
     /// Run the given state
-    func runBuffer(_ state: MTLComputePipelineState?, outBuffer: MTLBuffer, inBuffer: MTLBuffer? = nil )
+    func runBuffer(_ state: MTLComputePipelineState?, outBuffer: MTLBuffer, inBuffer: MTLBuffer? = nil, size: float2? = nil )
     {
         let commandBuffer = commandQueue!.makeCommandBuffer()!
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
@@ -142,9 +142,13 @@ class MMCompute {
             computeEncoder.setBuffer(buffer, offset: 0, index: 1)
         }
         
-        let numThreadgroups = MTLSize(width: 1, height: 1, depth: 1)
-        let threadsPerThreadgroup = MTLSize(width: 1, height: 1, depth: 1)
-        computeEncoder.dispatchThreadgroups(numThreadgroups, threadsPerThreadgroup: threadsPerThreadgroup)
+        if size != nil {
+            calculateThreadGroups(state!, computeEncoder, Int(size!.x), Int(size!.y), limitThreads: true)
+        } else {
+            let numThreadgroups = MTLSize(width: 1, height: 1, depth: 1)
+            let threadsPerThreadgroup = MTLSize(width: 1, height: 1, depth: 1)
+            computeEncoder.dispatchThreadgroups(numThreadgroups, threadsPerThreadgroup: threadsPerThreadgroup)
+        }
         computeEncoder.endEncoding()
         
         commandBuffer.commit()
@@ -152,20 +156,21 @@ class MMCompute {
     }
     
     // Compute the threads and thread groups for the given state and texture
-    func calculateThreadGroups(_ state: MTLComputePipelineState, _ encoder: MTLComputeCommandEncoder, _ texture: MTLTexture, store: Bool = false)
+    func calculateThreadGroups(_ state: MTLComputePipelineState, _ encoder: MTLComputeCommandEncoder,_ width: Int,_ height: Int, store: Bool = false, limitThreads: Bool = false)
     {
-        let w = state.threadExecutionWidth
-        let h = state.maxTotalThreadsPerThreadgroup / w
+        let w = limitThreads ? 1 : state.threadExecutionWidth
+        let h = limitThreads ? 1 : state.maxTotalThreadsPerThreadgroup / w
         let threadsPerThreadgroup = MTLSizeMake(w, h, 1)
         
-        let threadsPerGrid = MTLSize(width: texture.width, height: texture.height, depth: 1)
+        let threadsPerGrid = MTLSize(width: width, height: height, depth: 1)
         
         encoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
 
-        let threadgroupsPerGrid = MTLSize(width: (texture.width + w - 1) / w, height: (texture.height + h - 1) / h, depth: 1)
-        
+        let threadgroupsPerGrid = MTLSize(width: (width + w - 1) / w, height: (height + h - 1) / h, depth: 1)
+                
         encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
         
+        /*
         if store {
             self.threadsPerThreadgroup = threadsPerThreadgroup
             self.threadsPerGrid = threadsPerGrid
@@ -173,6 +178,6 @@ class MMCompute {
             
             tWidth = Float(texture.width)
             tHeight = Float(texture.height)
-        }
+        }*/
     }
 }

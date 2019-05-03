@@ -121,6 +121,9 @@ class ObjectProfile : Node
         delegate.lockCenterAt = true
         
         delegate.profile = self
+        if delegate.mmView == nil {
+            delegate.mmView = nodeGraph.mmView!
+        }
         
         nodeGraph.mmView.renderer.setClipRect(rect)
         delegate.drawGraph(rect, nodePreview: true)

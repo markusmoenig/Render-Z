@@ -32,9 +32,10 @@ class Object : Node
     var maxFrame        : Float = 0
     var animationScale  : Float = 1
 
+    var disks           : [Disk] = []
+    
     // Physics Body
     var body            : Body? = nil
-    var disks           : [float4]? = nil
     
     // Profile points (if any)
     var profile         : [float4]? = nil
@@ -70,6 +71,7 @@ class Object : Node
         case sequences
         case pointConnections
         case subset
+        case disks
     }
     
     override init()
@@ -142,7 +144,8 @@ class Object : Node
         selectedBorderMaterials = try container.decode([UUID].self, forKey: .selectedBorderMaterials)
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
         pointConnections = try container.decode([ObjectPointConnection].self, forKey: .pointConnections)
-        
+        disks = try container.decode([Disk].self, forKey: .disks)
+
         if sequences.count > 0 {
             currentSequence = sequences[0]
         }
@@ -168,6 +171,7 @@ class Object : Node
         try container.encode(selectedShapes, forKey: .selectedShapes)
         try container.encode(sequences, forKey: .sequences)
         try container.encode(pointConnections, forKey: .pointConnections)
+        try container.encode(disks, forKey: .disks)
 
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
@@ -416,5 +420,26 @@ class ObjectPointConnection : Codable
         self.fromIndex = fromIndex
         
         toShapes[toShape] = toIndex
+    }
+}
+
+/// Stores a disk which make up the body of an object for physics and shading
+class Disk : Codable
+{
+    var xPos            : Float
+    var yPos            : Float
+    var distance        : Float
+    
+    private enum CodingKeys: String, CodingKey {
+        case xPos
+        case yPos
+        case distance
+    }
+    
+    init(_ xPos: Float,_ yPos: Float,_ distance: Float)
+    {
+        self.xPos = xPos
+        self.yPos = yPos
+        self.distance = distance
     }
 }

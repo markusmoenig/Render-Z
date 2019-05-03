@@ -204,13 +204,13 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func deactivate()
     {
-        app!.nodeGraph.diskBuilder.getDisksFor(currentObject!, builder: app!.nodeGraph.builder)
+        app!.nodeGraph.diskBuilder.getDisksFor(currentObject!, builder: app!.nodeGraph.builder, async: {
+            self.currentObject!.updatePreview(nodeGraph: self.app.nodeGraph, hard: true)
+        })
         
         timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, modeScrollButton, backScrollButton, app.closeButton)
         materialsTab.deregisterWidget()
-        
-        currentObject!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -1042,6 +1042,8 @@ class ShapeListScrollArea: MMScrollArea
     
     override func mouseDown(_ event: MMMouseEvent) {
         
+        mouseMoved(event)
+
         mouseDownPos.x = event.x - rect.x
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
@@ -1074,6 +1076,7 @@ class ShapeListScrollArea: MMScrollArea
                 delegate.app.gizmo.setObject(delegate.selObject!, context: .ShapeEditor)
                 delegate.shapeList.hoverAt(event.x - rect.x, event.y - rect.y)
                 delegate.update(true)
+                mmView.update()
                 return
             }
             
@@ -1091,6 +1094,7 @@ class ShapeListScrollArea: MMScrollArea
         if !mouseIsDown {
             if delegate.shapeList.hoverAt(event.x - rect.x, event.y - rect.y) {
                 delegate.shapeList.update()
+                mmView.update()
             }
         }
     }
@@ -1187,6 +1191,8 @@ class MaterialListScrollArea: MMScrollArea
     
     override func mouseDown(_ event: MMMouseEvent) {
         
+        mouseMoved(event)
+        
         mouseDownPos.x = event.x - rect.x
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
@@ -1244,6 +1250,7 @@ class MaterialListScrollArea: MMScrollArea
         if !mouseIsDown {
             if delegate.materialList.hoverAt(event.x - rect.x, event.y - rect.y) {
                 delegate.materialList.update()
+                mmView.update()
             }
         }
     }

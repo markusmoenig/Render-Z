@@ -31,11 +31,23 @@ class DiskBuilder
         compute = MMCompute()
     }
     
-    func getDisksFor(_ object: Object, builder: Builder)
+    func getDisksFor(_ object: Object, builder: Builder, async: (()->())? = nil)
+    {
+        if async == nil {
+            executeDisks(object, builder: builder)
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.executeDisks(object, builder: builder)
+                async!()
+            }
+        }
+    }
+    
+    func executeDisks(_ object: Object, builder: Builder)
     {
         let camera = Camera()
         if let instance = buildShader(objects: [object], camera: camera, maxDisks: 10) {
-            render(width: 800, height: 600, instance: instance, camera: camera)
+            render(width: 800, height: 800, instance: instance, camera: camera)
         }
     }
     
@@ -145,59 +157,32 @@ class DiskBuilder
         buildData.source +=
         """
         kernel void diskBuilder(constant DISK_BUILDER_DATA *diskBuilderData [[ buffer(1) ]],
-                                        device float4  *out [[ buffer(0) ]],
-                                                  uint  gid [[thread_position_in_grid]])
+                                        device float *out [[ buffer(0) ]],
+                                                uint2 id [[ thread_position_in_grid ]],
+                                                uint tid [[ thread_index_in_threadgroup ]],
+                                                uint2 bid [[ threadgroup_position_in_grid ]],
+                                                uint2 blockDim [[ threads_per_threadgroup ]])
+
         {
         """
         
         buildData.source +=
         """
-            /*
-            float dynaCount = physicsData->objectCount.x;
-            for (uint i = 0; i < dynaCount; i += 1 )
-            {
-                float2 pos =  physicsData->dynamicObjects[i].pos;
-                float2 velocity =  physicsData->dynamicObjects[i].velocity;
-                float radius = physicsData->dynamicObjects[i].radius;
-        
-                float2 hit = sdf(pos, physicsData);
-                float4 rc = float4( hit.y, 0, 0, 0 );
-
-                if ( hit.x < radius ) {
-                    rc.y = radius - hit.x;
-                    rc.zw = normal(pos, physicsData);
-                }
-                out[gid+i] = rc;//float4( pos.x, pos.y, velocity.x, velocity.y );
-            }*/
-            //out[gid+0] = float4(23.4, 1, 2, 3);
         
             float width = diskBuilderData->size.x;
             float height = diskBuilderData->size.y;
-            int maxDisks = (int) diskBuilderData->maxDisks.x;
-
-            float maxDist = 100000;
-            float2 offset = float2(0,0);
+            //int maxDisks = (int) diskBuilderData->maxDisks.x;
         
-            for(float h = -height/2; h < height/2; h+= 1)
-            {
-                for(float w = -width/2; w < width/2; w += 1)
-                {
-                    float dist = sdf(float2(w,h), diskBuilderData);
-        
-                    if ( dist < maxDist ) {
-                        maxDist = dist;
-                        offset = float2(w,h);
-                    }
-                }
-            }
-            out[gid] = float4(offset, abs(maxDist), 0);
+            uint2 i = bid * blockDim + tid;
+            float dist = sdf(float2(i) - float2(width,height)/2, diskBuilderData);
+            out[i.y * 800 + i.x] = dist;
         }
 
         """
 
         instance.inBuffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
-        instance.outBuffer = compute!.device.makeBuffer(length: maxDisks * 4 * MemoryLayout<Float>.stride, options: [])!
+        instance.outBuffer = compute!.device.makeBuffer(length: 800 * 800 * MemoryLayout<Float>.stride, options: [])!
         
         let library = compute!.createLibraryFromSource(source: buildData.source)
         instance.state = compute!.createState(library: library, name: "diskBuilder")
@@ -225,16 +210,28 @@ class DiskBuilder
 
         memcpy(instance.inBuffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
         
-        compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer )
+        compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer, size: float2(800, 800) )
         
-        let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 4)
+        let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 800*800)
         
         let object = instance.objects[0]
         object.disks = []
         
-        if ( result[2] >= 1 ) {
-            print(result[0], result[1], result[2])
-            object.disks!.append(float4(result[0], result[1], result[2], result[3]))
+        var smallest : Float = 10000
+        var x : Int = 0
+        var y : Int = 0
+        for h in 0..<800 {
+            for w in 0..<800 {
+                let off = h * 800 + w
+                if result[off] < smallest {
+                    smallest = result[off]
+                    x = w
+                    y = h
+                }
+            }
         }
+        
+        print( smallest, x, y )
+        object.disks.append(Disk(Float(x) - width/2, Float(y) - height/2, abs(smallest)))
     }
 }

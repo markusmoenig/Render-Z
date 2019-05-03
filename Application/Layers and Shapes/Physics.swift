@@ -271,11 +271,11 @@ class Physics
             var yOff : Float = 0
 
             // --- Get the disk parameters
-            if object.disks != nil && object.disks!.count > 0 {
+            if object.disks.count > 0 {
                 //print("instance disk", object.disks![0].z)
-                xOff = object.disks![0].x
-                yOff = object.disks![0].y
-                radius = object.disks![0].z
+                xOff = object.disks[0].xPos
+                yOff = object.disks[0].yPos
+                radius = object.disks[0].distance
             }
             
             instance.data![offset + 0] = object.properties["posX"]! + xOff

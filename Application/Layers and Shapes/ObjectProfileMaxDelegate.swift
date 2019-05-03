@@ -194,9 +194,8 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
             camera.zoom = profile.properties["prevScale"]!
         }
         
-        app.nodeGraph.diskBuilder.getDisksFor(masterObject, builder: app.nodeGraph.builder)
-        if masterObject.disks != nil && masterObject.disks!.count > 0 {
-            let maxDist : Float = masterObject.disks![0].z
+        if masterObject.disks.count > 0 {
+            let maxDist : Float = masterObject.disks[0].distance
             profile.properties["centerAt"] = maxDist
             lockCenterAt = true
         } else {
@@ -294,8 +293,10 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
         bottom = rect.y + rect.height - margin
         right = rect.x + rect.width - margin
         
-        if lockCenterAt {
+        if lockCenterAt && profile.properties["centerAt"]! != 0 {
             scaleX = (rect.width - 2*margin) / (profile.properties["centerAt"]!)
+        } else {
+            scaleX = 4
         }
         
         let lineColor = float4(0.5, 0.5, 0.5, 1)

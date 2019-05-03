@@ -138,3 +138,4 @@ cubeGradient(texture2d<half, access::write> outTexture  [[texture(0)]],
 
     outTexture.write(half4(col.x, col.y, col.z,fillMask( dist ) ), gid);
 }
+
