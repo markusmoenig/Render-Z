@@ -205,6 +205,11 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func deactivate()
     {
         app!.nodeGraph.diskBuilder.getDisksFor(currentObject!, builder: app!.nodeGraph.builder, async: {
+            let disks = self.currentObject!.disks
+            if disks.count > 0 {
+                self.currentObject!.properties["prevOffX"] = disks[0].xPos
+                self.currentObject!.properties["prevOffY"] = -disks[0].yPos
+            }
             self.currentObject!.updatePreview(nodeGraph: self.app.nodeGraph, hard: true)
         })
         

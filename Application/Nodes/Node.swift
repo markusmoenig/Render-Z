@@ -35,6 +35,8 @@ class Node : Codable
     var maxDelegate     : NodeMaxDelegate?
     
     var label           : MMTextLabel?
+    var menu            : MMMenuWidget?
+    
     var data            : NODE_DATA = NODE_DATA()
     var buffer          : MTLBuffer? = nil
     
@@ -360,7 +362,7 @@ enum NodeDiscriminator: String, CodingKey {
 enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
     case objectPhysics = "Object Physics"
-    case objectProfile = "Object Profile"
+    case objectProfile = "3D Profile"
     case objectAnimation = "Object Animation"
     case gamePlatformOSX = "Platform OSX"
     case gamePlatformIPAD = "Platform IPAD"

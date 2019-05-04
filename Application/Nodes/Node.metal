@@ -79,8 +79,8 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     float4 borderColor = float4(0.173, 0.173, 0.173, 1.000);
     const float4 selBorderColor = float4(0.820, 0.820, 0.820, 1.000);
 //    const float4 centerColor = float4(0.702, 0.702, 0.702, 1.000);
-    const float4 iconColor = float4(0.5, 0.5, 0.5, 1);
-    const float4 iconHoverColor = float4(1);
+    //const float4 iconColor = float4(0.5, 0.5, 0.5, 1);
+    //const float4 iconHoverColor = float4(1);
     
     const float borderSize = 4 * scale;
     const float tRadius = 7 * scale;
@@ -221,6 +221,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     
     color = float4(0.118, 0.118, 0.118, 1.000);
     
+    /*
     // Maximize Icon
     if ( data->hasIcons1.x == 1 )
     {
@@ -236,8 +237,9 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         
         color = data->hoverIndex == 1 ? iconHoverColor : iconColor;
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
-    }
+    }*/
     
+    /* CLose symbol, dont use anymore
     if ( data->hasIcons1.y == 1 )
     {
         uv = uvCopy;
@@ -266,7 +268,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         
         color = data->hoverIndex == 2 ? iconHoverColor : iconColor;
         finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
-     }
+     }*/
 
 //    finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
 //    color = float4(0.212, 0.208, 0.208, 1.000);

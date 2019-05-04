@@ -321,6 +321,8 @@ class Object : Node
         if instance != nil {
             nodeGraph.builder.render(width: size.x, height: size.y, instance: instance!, camera: camera, outTexture: previewTexture)
         }
+        
+        nodeGraph.mmView.update()
     }
 }
 

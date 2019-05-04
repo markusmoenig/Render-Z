@@ -123,7 +123,38 @@ class MMRenderer : NSObject, MTKViewDelegate {
     func setClipRect(_ rect: MMRect? = nil )
     {
         if rect != nil {
-            currentRenderEncoder?.setScissorRect( MTLScissorRect(x:Int(rect!.x * mmView.scaleFactor), y:Int(rect!.y * mmView.scaleFactor), width:Int(rect!.width * mmView.scaleFactor), height:Int(rect!.height * mmView.scaleFactor ) ) )
+            
+            let x : Int = Int(rect!.x * mmView.scaleFactor)
+            let y : Int = Int(rect!.y * mmView.scaleFactor)
+            
+            var width : Int = Int(rect!.width * mmView.scaleFactor)
+            var height : Int = Int(rect!.height * mmView.scaleFactor )
+            
+            if x + width < Int(self.width) {
+                return;
+            }
+            
+            if x > Int(self.width) {
+                return;
+            }
+            
+            if y + height < 0 {
+                return
+            }
+            
+            if y > Int(self.height) {
+                return;
+            }
+            
+            if x + width > Int(self.width) {
+                width -= x + width - Int(self.width)
+            }
+            
+            if y + height > Int(self.height) {
+                height -= y + height - Int(self.height)
+            }
+            
+            currentRenderEncoder?.setScissorRect( MTLScissorRect(x: x, y: y, width: width, height: height ) )
         } else {
             currentRenderEncoder?.setScissorRect( MTLScissorRect(x:0, y:0, width:Int(viewportSize.x), height:Int(viewportSize.y) ) )
         }

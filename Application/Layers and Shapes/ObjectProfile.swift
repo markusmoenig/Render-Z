@@ -18,7 +18,7 @@ class ObjectProfile : Node
     {
         super.init()
         
-        type = "Object Profile"
+        type = "3D Profile"
         name = "3D Profile"
         brand = .Property
         
@@ -33,7 +33,7 @@ class ObjectProfile : Node
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
         
-        type = "Object Profile"
+        type = "3D Profile"
         maxDelegate = ObjectProfileMaxDelegate()
         minimumSize = Node.NodeWithPreviewSize
         brand = .Property

@@ -16,7 +16,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Maximize, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, Close, MasterNode
+        case None, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, MasterNode, MenuHover, MenuOpen
     }
     
     enum ContentType : Int {
@@ -81,6 +81,8 @@ class NodeGraph : Codable
     var physics         : Physics!
     var timeline        : MMTimeline!
     var diskBuilder     : DiskBuilder!
+
+    var nodeMenu        : MMMenuWidget!
 
     var previewSize     : float2 = float2(320, 200)
 
@@ -408,11 +410,25 @@ class NodeGraph : Codable
         setCurrentNode()
                 
 //        #if !os(OSX)
-        mouseMoved( event )
+        if nodeHoverMode != .MenuOpen {
+            mouseMoved( event )
+        }
 //        #endif
 
         if nodeHoverMode != .None && nodeHoverMode != .Preview {
             app?.mmView.mouseTrackWidget = app?.editorRegion?.widget
+        }
+        
+        if nodeHoverMode == .MenuHover {
+            if let menu = hoverNode!.menu {
+                menu.mouseDown(event)
+                if menu.states.contains(.Opened) {
+                    nodeHoverMode = .MenuOpen
+                    menu.removeState(.Hover)
+                }
+            }
+            setCurrentNode(hoverNode!)
+            return
         }
         
         if nodeHoverMode == .NodeUI {
@@ -451,21 +467,6 @@ class NodeGraph : Codable
 //            let offX = selectedNode.rect.x - event.x
             let offY = selectedNode.rect.y - event.y
             
-            if nodeHoverMode == .Maximize {
-                maximizedNode = selectedNode
-                deactivate()
-                maximizedNode!.maxDelegate!.activate(app!)
-                nodeHoverMode = .None
-                app?.mmView.mouseTrackWidget = nil
-                return
-            }
-            if nodeHoverMode == .Close {
-                deleteNode(selectedNode)
-                nodeHoverMode = .None
-                hoverNode = nil
-                return
-            }
-            
             if offY < 26 && selectedNode !== currentMaster {
                 dragStartPos.x = event.x
                 dragStartPos.y = event.y
@@ -482,6 +483,12 @@ class NodeGraph : Codable
     
     func mouseUp(_ event: MMMouseEvent)
     {
+        if nodeHoverMode == .MenuOpen {
+            hoverNode!.menu!.mouseUp(event)
+            nodeHoverMode = .None
+            return
+        }
+        
         if nodeHoverMode == .NodeUIMouseLocked {
             hoverUIItem!.mouseUp(event)
         }
@@ -498,6 +505,22 @@ class NodeGraph : Codable
     func mouseMoved(_ event: MMMouseEvent)
     {
         let oldNodeHoverMode = nodeHoverMode
+        
+        if nodeHoverMode == .MenuOpen {
+            hoverNode!.menu!.mouseMoved(event)
+            return
+        }
+        
+        if nodeHoverMode == .MenuHover {
+            if let menu = hoverNode!.menu {
+                if !menu.rect.contains(event.x, event.y) {
+                    menu.removeState(.Hover)
+                    nodeHoverMode = .None
+                    mmView.update()
+                }
+            }
+            return
+        }
         
         if nodeHoverMode == .NodeUIMouseLocked {
             hoverUIItem!.mouseMoved(event)
@@ -565,40 +588,18 @@ class NodeGraph : Codable
         nodeHoverMode = .None
         
         if hoverNode != nil {
-            let x = event.x - hoverNode!.rect.x
-            let y =  event.y - hoverNode!.rect.y
-            
-            // Maximize
-            if hoverNode!.maxDelegate != nil {
-                if hoverNode !== currentMaster {
-
-                    let iconSize : Float = 18 * scale
-                    let xStart : Float = hoverNode!.rect.width - 61 * scale
-                    let yStart : Float = 27 * scale
-                    
-                    if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
-                    {
-                        nodeHoverMode = .Maximize
-                        mmView.update()
-                        return
+    
+            // Check if menu hover
+            if let menu = hoverNode!.menu {
+                if menu.rect.contains(event.x, event.y)
+                {
+                    nodeHoverMode = .MenuHover
+                    if !menu.states.contains(.Hover) {
+                        menu.addState(.Hover)
                     }
-                }
-            }
-            
-            // Node Close
-            if true {
-                if hoverNode !== currentMaster {
-                    
-                    let iconSize : Float = 18 * scale
-                    let xStart : Float = hoverNode!.rect.width - 38 * scale
-                    let yStart : Float = 27 * scale
-                    
-                    if x > xStart && x < xStart + iconSize && y > yStart && y < yStart + iconSize
-                    {
-                        nodeHoverMode = .Close
-                        mmView.update()
-                        return
-                    }
+                    menu.mouseMoved(event)
+                    mmView.update()
+                    return
                 }
             }
             
@@ -836,15 +837,7 @@ class NodeGraph : Codable
         }
         
         node.data.hoverIndex = 0
-        if nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid {
-            node.data.hoverIndex = 1
-        } else
-        if nodeHoverMode == .Close && node.uuid == hoverNode!.uuid {
-            node.data.hoverIndex = 2
-        }
-        
-        node.data.hasIcons1.x = node.maxDelegate != nil ? 1 : 0
-        node.data.hasIcons1.y = 1
+        node.data.hasIcons1.x = 0
 
         node.data.scale = scale
         
@@ -948,6 +941,18 @@ class NodeGraph : Codable
         if nodeHoverMode == .NodeUIMouseLocked && node === hoverNode {
             hoverUIItem!.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, scale: scale)
         }
+        
+        // Node Menu
+        
+        if node.menu == nil {
+            createNodeMenu(node)
+        }
+        
+        node.menu!.rect.x = node.rect.x + node.rect.width - 48 * scale
+        node.menu!.rect.y = node.rect.y + 18 * scale
+        node.menu!.rect.width = 30 * scale
+        node.menu!.rect.height = 28 * scale
+        node.menu!.draw()
     }
     
     /// Draw the master node
@@ -977,9 +982,6 @@ class NodeGraph : Codable
         node.data.borderRound = 16
         
         node.data.hoverIndex = 0
-        if nodeHoverMode == .Maximize && node.uuid == hoverNode!.uuid {
-            node.data.hoverIndex = 1
-        }
         
         node.data.hasIcons1.x = 0
         node.data.hasIcons1.y = 0
@@ -1579,5 +1581,39 @@ class NodeGraph : Codable
         // Remove from nodes
         nodes.remove(at: nodes.firstIndex(where: { $0.uuid == node.uuid })!)
         mmView.update()
+    }
+    
+    func createNodeMenu(_ node: Node)
+    {
+        var items : [MMMenuItem] = []
+        
+        if node.maxDelegate != nil {
+            let editNodeItem =  MMMenuItem( text: "Edit " + node.type, cb: {
+                self.maximizedNode = node
+                self.deactivate()
+                self.maximizedNode!.maxDelegate!.activate(self.app!)
+                self.nodeHoverMode = .None
+                self.app?.mmView.mouseTrackWidget = nil
+            } )
+            items.append(editNodeItem)
+        }
+        
+        let renameNodeItem =  MMMenuItem( text: "Rename", cb: {
+            getStringDialog(view: self.mmView, title: "Rename Node", message: "Node name", defaultValue: node.name, cb: { (name) -> Void in
+                node.name = name
+                node.label = nil
+                self.mmView.update()
+            } )
+        } )
+        items.append(renameNodeItem)
+            
+        let deleteNodeItem =  MMMenuItem( text: "Delete", cb: {
+            self.deleteNode(node)
+            self.nodeHoverMode = .None
+            self.hoverNode = nil
+        } )
+        items.append(deleteNodeItem)
+        
+        node.menu = MMMenuWidget(mmView, items: items)
     }
 }

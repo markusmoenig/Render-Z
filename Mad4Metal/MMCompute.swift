@@ -162,9 +162,8 @@ class MMCompute {
         let h = limitThreads ? 1 : state.maxTotalThreadsPerThreadgroup / w
         let threadsPerThreadgroup = MTLSizeMake(w, h, 1)
         
-        let threadsPerGrid = MTLSize(width: width, height: height, depth: 1)
-        
-        encoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+        //let threadsPerGrid = MTLSize(width: width, height: height, depth: 1)
+        //encoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
 
         let threadgroupsPerGrid = MTLSize(width: (width + w - 1) / w, height: (height + h - 1) / h, depth: 1)
                 

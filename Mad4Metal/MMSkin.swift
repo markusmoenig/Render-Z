@@ -62,7 +62,7 @@ struct MMSkinMenuWidget
 {
     var button          : MMSkinMenuButton = MMSkinMenuButton()
     
-    var margin          : MMMargin = MMMargin( 8, 8, 8, 8 )
+    var margin          : MMMargin = MMMargin( 5, 4, 5, 4 )
 
     var fontScale       : Float = 0.35
     var borderSize      : Float = 1.5
