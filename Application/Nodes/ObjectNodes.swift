@@ -78,6 +78,8 @@ class ObjectAnimation : Node
         
         name = "Animation"
         type = "Object Animation"
+        
+        uiConnections.append(UINodeConnection(.Animation))
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -94,8 +96,10 @@ class ObjectAnimation : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIAnimationPicker(self, variable: "animation", title: "Animation"),
-            NodeUIDropDown(self, variable: "animationMode", title: "Mode", items: ["Loop", "Inverse Loop", "Goto Start", "Goto End"], index: 0),
+            NodeUIMasterPicker(self, variable: "master", title: "Object", connection:  uiConnections[0]),
+            NodeUIAnimationPicker(self, variable: "animation", title: "Animation", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "mode", title: "Mode", items: ["Loop", "Inverse Loop", "Goto Start", "Goto End"], index: 0),
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 5), value: 1)
         ]
         super.setupUI(mmView: mmView)
@@ -121,19 +125,19 @@ class ObjectAnimation : Node
         try super.encode(to: superdecoder)
     }
     
-    /// Return Success if the selected key is currently down
+    /// Execute the given animation
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
         
         if let object = root.objectRoot {
-            let animPicker = uiItems[0] as! NodeUIAnimationPicker
-            let mode = uiItems[1] as! NodeUIDropDown
-            let scale = uiItems[2] as! NodeUINumber
-
-            object.setSequence(index: Int(animPicker.index), timeline: nodeGraph.app!.timeline)
-            object.setAnimationMode(Object.AnimationMode(rawValue: Int(mode.index))!, scale: scale.value)
-            //print("AnimationPicker", Int(animPicker.index), Int(mode.index))
+            let mode = properties["mode"]!
+            let scale = properties["scale"]!
+            
+            if uiConnections[0].target != nil {
+                object.setSequence(sequence: (uiConnections[0].target as! MMTlSequence), timeline: nodeGraph.app!.timeline)
+                object.setAnimationMode(Object.AnimationMode(rawValue: Int(mode))!, scale: scale)
+            }
             playResult = .Success
         }
         

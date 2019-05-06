@@ -11,11 +11,11 @@ import Foundation
 class NodeUI
 {
     enum Brand {
-        case DropDown, KeyDown, Number
+        case Separator, DropDown, KeyDown, Number
     }
     
     enum Role {
-        case None, ObjectPicker, AnimationPicker
+        case None, MasterPicker, AnimationPicker, ValueVariablePicker
     }
     
     var mmView      : MMView!
@@ -43,6 +43,10 @@ class NodeUI
         self.brand = brand
         self.variable = variable
         self.title = title
+    }
+    
+    func internal_changed()
+    {
     }
     
     func keyDown(_ event: MMKeyEvent)
@@ -74,6 +78,27 @@ class NodeUI
     
     func draw(mmView: MMView, maxTitleSize: float2, scale: Float)
     {
+    }
+}
+
+/// Separator Class
+class NodeUISeparator : NodeUI
+{
+    var defaultValue: Float
+    
+    init(_ node: Node, variable: String, title: String, value: Float = 5)
+    {
+        self.defaultValue = value
+        super.init(node, brand: .Separator, variable: variable, title: title)
+    }
+    
+    override func calcSize(mmView: MMView) {
+        self.mmView = mmView
+        
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale)
+        
+        rect.width = 0
+        rect.height = defaultValue
     }
 }
 
@@ -143,6 +168,7 @@ class NodeUIDropDown : NodeUI
             let index = Float(Int(y / itemHeight))
             if index >= 0 && index < Float(items.count) {
                 self.index = index
+                internal_changed()
                 mmView.update()
             }
         }
@@ -163,7 +189,7 @@ class NodeUIDropDown : NodeUI
         
         let skin = mmView.skin.MenuWidget
         
-        if !open {
+        if !open || items.count == 0 {
             mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
             
             if items.count > 0 {
@@ -184,12 +210,73 @@ class NodeUIDropDown : NodeUI
 }
 
 /// Animation picker derived from NodeUIDropDown and with .AnimationPicker role
+class NodeUIMasterPicker : NodeUIDropDown
+{
+    var uiConnection        : UINodeConnection
+    var uuids               : [UUID] = []
+    
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        uiConnection = connection
+        super.init(node, variable: variable, title: title, items: [])
+        uiConnection.uiMasterPicker = self
+        role = .MasterPicker
+    }
+    
+    override func internal_changed()
+    {
+        uiConnection.connectedMaster = uuids[Int(index)]
+        uiConnection.masterNode = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedMaster!)
+    }
+}
+
+/// Animation picker derived from NodeUIDropDown and with .AnimationPicker role
 class NodeUIAnimationPicker : NodeUIDropDown
 {
-    init(_ node: Node, variable: String, title: String)
+    var uiConnection        : UINodeConnection
+    var uuids               : [UUID] = []
+    
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
     {
+        uiConnection = connection
         super.init(node, variable: variable, title: title, items: [])
+        uiConnection.uiPicker = self
         role = .AnimationPicker
+    }
+    
+    override func internal_changed()
+    {
+        uiConnection.connectedTo = uuids[Int(index)]
+        uiConnection.target = nil
+        if let object = uiConnection.masterNode as? Object {
+            for seq in object.sequences {
+                if seq.uuid == uiConnection.connectedTo {
+                    uiConnection.target = seq
+                    break;
+                }
+            }
+        }
+    }
+}
+
+/// Value Variable picker derived from NodeUIDropDown and with .AnimationPicker role
+class NodeUIValueVariablePicker : NodeUIDropDown
+{
+    var uiConnection        : UINodeConnection
+    var uuids               : [UUID] = []
+    
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        uiConnection = connection
+        super.init(node, variable: variable, title: title, items: [])
+        uiConnection.uiPicker = self
+        role = .ValueVariablePicker
+    }
+    
+    override func internal_changed()
+    {
+        uiConnection.connectedTo = uuids[Int(index)]
+        uiConnection.target = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedTo!)
     }
 }
 

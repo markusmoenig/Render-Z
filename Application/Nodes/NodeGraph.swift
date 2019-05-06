@@ -325,6 +325,11 @@ class NodeGraph : Codable
                     layer.physicsInstance = nil
                 }
                 
+                let subs = self.getNodesOfMaster(for: node!)
+                for s in subs {
+                    s.finishExecution()
+                }
+                
                 self.playNode!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
                 self.playNode = nil
                 self.playToExecute = []
@@ -768,15 +773,6 @@ class NodeGraph : Codable
                 removeButton.rect.y = contentScrollButton.rect.y
                 removeButton.draw()
             }
-            /*
-            editButton.rect.x = removeButton.rect.x + removeButton.rect.width + 10
-            editButton.rect.y = contentScrollButton.rect.y
-            editButton.draw()
-            
-            playButton.rect.x = editButton.rect.x + editButton.rect.width + 10
-            playButton.rect.y = contentScrollButton.rect.y
-            playButton.draw()
-            */
 
             nodesButton.draw()
             playButton.draw()
@@ -900,10 +896,7 @@ class NodeGraph : Codable
             if label.scale != 0.5 * scale {
                 label.setText(node.name, scale: 0.5 * scale)
             }
-            //label.rect.x = node.rect.x + 20 * scale
-            //label.rect.y = node.rect.y + 23 * scale
-            //label.draw()
-            label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 23 * scale, width: node.rect.width - (iconWidth+20) * scale, height: label.rect.height)
+            label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 22 * scale, width: node.rect.width - 50 * scale, height: label.rect.height)
         }
         
         // --- UI
@@ -1363,6 +1356,21 @@ class NodeGraph : Codable
         return props
     }
     
+    /// Gets all nodes for the given master node
+    func getNodesOfMaster(for masterNode:Node) -> [Node]
+    {
+        if masterNode.subset == nil { return [] }
+        var nodeList : [Node] = []
+        
+        for node in nodes {
+            if masterNode.subset!.contains(node.uuid) {
+                nodeList.append(node)
+            }
+        }
+        
+        return nodeList
+    }
+    
     /// Gets the first node of the given type
     func getNodeOfType(_ type: String) -> Node?
     {
@@ -1498,23 +1506,167 @@ class NodeGraph : Codable
         
         // Update the UI and special role items
         node.setupUI(mmView: app!.mmView)
+        
+        // Init the uiConnectors
+        for conn in node.uiConnections {
+            conn.nodeGraph = self
+        }
+        
         for item in node.uiItems {
-            if item.role == .AnimationPicker {
+            
+            // Fill up an master picker with self + all global masters
+            if item.role == .MasterPicker {
                 if let masterObject = getMasterForNode(node) as? Object {
-                    if let picker = item as? NodeUIAnimationPicker {
-                        picker.items = []
-                        for seq in masterObject.sequences {
-                            picker.items.append(seq.name)
-                            if picker.index < 0 && picker.index >= Float(picker.items.count) {
-                                picker.index = 0
-                                node.properties[item.variable] = picker.index
+                    
+                    if let picker = item as? NodeUIMasterPicker {
+                        
+                        let conn = picker.uiConnection
+                        let type = conn.connectionType
+                        picker.items = [masterObject.name + " (Self)"]
+                        picker.uuids = [masterObject.uuid]
+                        
+                        if type == .Animation {
+                            // Animation: Only pick other Objects as Layers etc dont have animations
+                            for n in nodes {
+                                if n.subset != nil && n.uuid != masterObject.uuid && (n as? Object) != nil {
+                                    picker.items.append(n.name)
+                                    picker.uuids.append(n.uuid)
+                                }
+                            }
+                        } else
+                        if type == .ValueVariable {
+                            // Value Variable. Pick every master which has a value variable
+                            for n in nodes {
+                                if n.subset != nil && n.uuid != masterObject.uuid {
+                                    let subs = getNodesOfMaster(for: masterObject)
+                                    for s in subs {
+                                        if s.type == "Value Variable" {
+                                            picker.items.append(n.name)
+                                            picker.uuids.append(n.uuid)
+                                            break
+                                        }
+                                    }
+                                }
                             }
                         }
+                        
+                        if conn.connectedMaster != nil {
+                            // --- Find the connection
+                            var found : Bool = false
+                            for (index, uuid) in picker.uuids.enumerated() {
+                                if uuid == conn.connectedMaster {
+                                    picker.index = Float(index)
+                                    conn.masterNode = getNodeForUUID(uuid)
+                                    found = true
+                                    break
+                                }
+                            }
+                            if !found {
+                                // If not found set the connectedMaster to nil
+                                conn.connectedMaster = nil
+                                conn.masterNode = nil
+                            }
+                        }
+                        
+                        if conn.connectedMaster == nil {
+                            // Not connected, connect to first element(self)
+                            conn.connectedMaster = masterObject.uuid
+                            conn.masterNode = masterObject
+                            picker.index = 0
+                        }
+                        
                         node.computeUIArea(mmView: app!.mmView)
                     }
                 }
             }
+            
+            // Animation picker, show the animations of the selected object
+            if item.role == .AnimationPicker {
+                if let picker = item as? NodeUIAnimationPicker {
+                    
+                    let conn = picker.uiConnection
+                    let object = conn.masterNode as! Object
+                    
+                    picker.items = []
+                    picker.uuids = []
+                    
+                    for seq in object.sequences {
+                        picker.items.append(seq.name)
+                        picker.uuids.append(seq.uuid)
+                    }
+                    
+                    if conn.connectedTo != nil {
+                        // --- Find the connection
+                        var found : Bool = false
+                        for (index, seq) in object.sequences.enumerated() {
+                            if seq.uuid == conn.connectedTo {
+                                picker.index = Float(index)
+                                conn.target = seq
+                                found = true
+                                break
+                            }
+                        }
+                        if !found {
+                            // If not found set the connection to nil
+                            conn.connectedTo = nil
+                            conn.target = nil
+                        }
+                    }
+                    
+                    if conn.connectedTo == nil && object.sequences.count > 0 {
+                        // Not connected, connect to first element(self)
+                        conn.connectedTo = object.sequences[0].uuid
+                        conn.target = object.sequences[0]
+                        picker.index = 0
+                    }
+                    
+                    node.computeUIArea(mmView: app!.mmView)
+                }
+            }
+            
+            // ValueVariable picker, show the value variables of the master
+            if item.role == .ValueVariablePicker {
+                if let picker = item as? NodeUIValueVariablePicker {
+                    
+                    let conn = picker.uiConnection
+                    let object = conn.masterNode as! Object
+                    
+                    picker.items = []
+                    picker.uuids = []
+                    
+                    conn.target = nil
+                    let subs = getNodesOfMaster(for: object)
+                    var index : Int = 0
+                    var first : Node? = nil
+                    for s in subs {
+                        if s.type == "Value Variable" {
+                            if first == nil {
+                                first = s
+                            }
+                            picker.items.append(s.name)
+                            picker.uuids.append(s.uuid)
+                            if conn.connectedTo == s.uuid {
+                                conn.target = s
+                                picker.index = Float(index)
+                            }
+                            index += 1
+                        }
+                    }
+                    
+                    if conn.target == nil && picker.items.count > 0 {
+                        // Not connected, connect to first node
+                        conn.connectedTo = first?.uuid
+                        conn.target = first
+                        picker.index = 0
+                    } else {
+                        conn.connectedTo = nil
+                    }
+                    
+                    node.computeUIArea(mmView: app!.mmView)
+                }
+            }
         }
+        
         if updatePreview {
             node.updatePreview(nodeGraph: self, hard: true)
         }
@@ -1565,6 +1717,18 @@ class NodeGraph : Codable
         return masterNode
     }
     
+    /// Get the node for the given uuid
+    func getNodeForUUID(_ uuid: UUID) -> Node?
+    {
+        for node in nodes {
+            if node.uuid == uuid {
+                return node
+            }
+        }
+        
+        return nil
+    }
+    
     /// Deletes the given node
     func deleteNode(_ node: Node)
     {
@@ -1611,6 +1775,7 @@ class NodeGraph : Codable
             self.deleteNode(node)
             self.nodeHoverMode = .None
             self.hoverNode = nil
+            self.updateNodes()
         } )
         items.append(deleteNodeItem)
         

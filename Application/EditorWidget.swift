@@ -268,7 +268,8 @@ class EditorWidget      : MMWidget
                 app.nodeGraph.nodes.append(node)
                 app.nodeGraph.currentMaster?.subset!.append(node.uuid)
                 app.nodeGraph.setCurrentNode(node)
-                app.nodeGraph.updateNode(node)
+//                app.nodeGraph.updateNode(node)
+                app.nodeGraph.updateMasterNodes(app.nodeGraph.currentMaster!)
             }
         } else
         if dragSource.id == "AvailableObjectItem"

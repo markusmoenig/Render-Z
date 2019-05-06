@@ -13,7 +13,7 @@ import MetalKit
 class Node : Codable
 {
     enum Brand {
-        case Property, Behavior, Function
+        case Property, Behavior, Function, Arithmetic
     }
 
     enum Result {
@@ -43,7 +43,9 @@ class Node : Codable
     var previewTexture  : MTLTexture?
     
     var terminals       : [Terminal] = []
+    
     var uiItems         : [NodeUI] = []
+    var uiConnections   : [UINodeConnection] = []
 
     var minimumSize     : float2 = float2()
     var uiArea          : MMRect = MMRect()
@@ -71,6 +73,7 @@ class Node : Codable
         case yPos
         case terminals
         case subset
+        case uiConnections
     }
     
     init()
@@ -89,6 +92,7 @@ class Node : Codable
         yPos = try container.decode(Float.self, forKey: .yPos)
         terminals = try container.decode([Terminal].self, forKey: .terminals)
         subset = try container.decode([UUID]?.self, forKey: .subset)
+        uiConnections = try container.decode([UINodeConnection].self, forKey: .uiConnections)
 
         for terminal in terminals {
             terminal.node = self
@@ -107,6 +111,7 @@ class Node : Codable
         try container.encode(yPos, forKey: .yPos)
         try container.encode(terminals, forKey: .terminals)
         try container.encode(subset, forKey: .subset)
+        try container.encode(uiConnections, forKey: .uiConnections)
     }
     
     func onConnect(myTerminal: Terminal, toTerminal: Terminal)
@@ -120,6 +125,10 @@ class Node : Codable
     func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         return .Failure
+    }
+    
+    func finishExecution()
+    {
     }
     
     /// Sets up the node terminals
@@ -179,6 +188,56 @@ class Node : Codable
     /// Create a live preview if supported
     func livePreview(nodeGraph: NodeGraph, rect: MMRect)
     {
+    }
+}
+
+/// Connects UI items to nodes of other objects, layers, etc
+
+class UINodeConnection: Codable
+{
+    enum ConnectionType: Int, Codable {
+        case Animation, ValueVariable
+    }
+    
+    var connectionType      : ConnectionType = .ValueVariable
+    
+    var connectedMaster     : UUID? = nil
+    var connectedTo         : UUID? = nil
+    
+    var masterNode          : Node? = nil
+    var target              : Any? = nil
+    var nodeGraph           : NodeGraph? = nil
+    
+    var uiMasterPicker      : NodeUIMasterPicker? = nil
+    var uiPicker            : NodeUIDropDown? = nil
+    
+    private enum CodingKeys: String, CodingKey {
+        case connectionType
+        case connectedMaster
+        case connectedTo
+    }
+    
+    init(_ connectionType: ConnectionType)
+    {
+        self.connectionType = connectionType
+        self.connectedMaster = nil
+        self.connectedTo = nil
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        connectionType = try container.decode(ConnectionType.self, forKey: .connectionType)
+        connectedMaster = try container.decode(UUID?.self, forKey: .connectedMaster)
+        connectedTo = try container.decode(UUID?.self, forKey: .connectedTo)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(connectionType, forKey: .connectionType)
+        try container.encode(connectedMaster, forKey: .connectedMaster)
+        try container.encode(connectedTo, forKey: .connectedTo)
     }
 }
 
@@ -374,6 +433,8 @@ enum NodeFamily: String, NodeClassFamily {
     case keyDown = "Key Down"
     case scene = "Scene"
     case game = "Game"
+    case valueVariable = "Value Variable"
+    case addValueVariable = "Add Value Variable"
 
     static var discriminator: NodeDiscriminator = .type
     
@@ -413,6 +474,11 @@ enum NodeFamily: String, NodeClassFamily {
                 return Selector.self
             case .keyDown:
                 return KeyDown.self
+            
+            case .valueVariable:
+                return ValueVariable.self
+            case .addValueVariable:
+                return AddValueVariable.self
         }
     }
 }

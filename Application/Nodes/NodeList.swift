@@ -85,6 +85,13 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Property, displayType: .Game)
         
+        // --- Variable Value
+        item = NodeListItem("Variable: Value")
+        item.createNode = {
+            return ValueVariable()
+        }
+        addNodeItem(item, type: .Property, displayType: .All)
+        
         // --- Object Animation
         item = NodeListItem("Animation")
         item.createNode = {
@@ -124,6 +131,13 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
 
+        // --- Arithmetic
+        item = NodeListItem("Add Value")
+        item.createNode = {
+            return AddValueVariable()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
         // ---
         switchTo(.Object)
     }
@@ -139,6 +153,9 @@ class NodeList : MMWidget
         } else
         if type == .Function {
             item.color = mmView.skin.Node.functionColor
+        } else
+        if type == .Arithmetic {
+            item.color = mmView.skin.Node.arithmeticColor
         }
         item.displayType = displayType
         items.append(item)

@@ -978,6 +978,8 @@ class ObjectWidget : MMWidget
                 getStringDialog(view: view, title: "Rename Object", message: "Enter new name", defaultValue: object.name, cb: { (name) -> Void in
                     object.name = name
                     object.label?.setText(name)
+                    delegate.app!.nodeGraph.updateMasterNodes(object)
+                    delegate.app!.nodeGraph.updateContent(.Objects)
                 } )
             } ),
             MMMenuItem( text: "Delete Object", cb: {print("delete child") } )
