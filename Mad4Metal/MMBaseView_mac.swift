@@ -215,3 +215,29 @@ func getStringDialog(view: MMView, title: String, message: String, defaultValue:
         }
     })
 }
+
+func getNumberDialog(view: MMView, title: String, message: String, defaultValue: Float, cb: @escaping (Float)->())
+{
+    let msg = NSAlert()
+    msg.addButton(withTitle: "OK")      // 1st button
+    msg.addButton(withTitle: "Cancel")  // 2nd button
+    msg.messageText = title
+    msg.informativeText = message
+    
+    let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+    txt.doubleValue = Double(defaultValue)
+    
+    msg.window.initialFirstResponder = txt
+    msg.accessoryView = txt
+    //    let response: NSApplication.ModalResponse = msg.runModal()
+    
+    //    if (response == NSApplication.ModalResponse.alertFirstButtonReturn) {
+    //        cb( txt.stringValue )
+    //    }
+    
+    msg.beginSheetModal(for: view.window!, completionHandler: { (modalResponse) -> Void in
+        if modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn {
+            cb(Float(txt.doubleValue))
+        }
+    })
+}

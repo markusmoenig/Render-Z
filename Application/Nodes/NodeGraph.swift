@@ -511,6 +511,10 @@ class NodeGraph : Codable
     {
         let oldNodeHoverMode = nodeHoverMode
         
+        if hoverUIItem != nil {
+            hoverUIItem!.mouseLeave()
+        }
+        
         if nodeHoverMode == .MenuOpen {
             hoverNode!.menu!.mouseMoved(event)
             return

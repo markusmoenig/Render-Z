@@ -15,7 +15,7 @@ class NodeUI
     }
     
     enum Role {
-        case None, MasterPicker, AnimationPicker, ValueVariablePicker
+        case None, MasterPicker, AnimationPicker, ValueVariablePicker, MinValue, MaxValue
     }
     
     var mmView      : MMView!
@@ -66,6 +66,10 @@ class NodeUI
     }
     
     func mouseMoved(_ event: MMMouseEvent)
+    {
+    }
+    
+    func mouseLeave()
     {
     }
     
@@ -432,6 +436,8 @@ class NodeUINumber : NodeUI
     var x           : Float = 0
     var width       : Float = 0
     var int         : Bool = false
+    var pickerSize  : Float = 20
+    var pickerHover : Bool = false
     
     init(_ node: Node, variable: String, title: String, range: float2 = float2(0,1), int: Bool = false, value: Float = 0)
     {
@@ -459,6 +465,16 @@ class NodeUINumber : NodeUI
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if pickerHover {
+            getNumberDialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, cb: { (value) -> Void in
+                self.value = max( value, self.range.x)
+                self.value = min( self.value, self.range.y)
+                self.checkSpecialRoles()
+                self.mmView.update()
+            } )
+            return
+        }
+        
         mouseIsDown = true
 
         let oldValue = value
@@ -472,9 +488,27 @@ class NodeUINumber : NodeUI
             value = floor(value)
         }
         
+        checkSpecialRoles()
+        
         if oldValue != value {
             node.variableChanged(variable: variable, oldValue: oldValue, newValue: value, continuous: true)
             mmView.update()
+        }
+    }
+    
+    func checkSpecialRoles()
+    {
+        if role == .MinValue {
+            if let number = node.uiItems[0] as? NodeUINumber {
+                number.range.x = min( value, number.range.y - 1)
+                value = number.range.x
+            }
+        } else
+        if role == .MaxValue {
+            if let number = node.uiItems[0] as? NodeUINumber {
+                number.range.y = max( value, number.range.x + 1)
+                value = number.range.y
+            }
         }
     }
     
@@ -482,7 +516,8 @@ class NodeUINumber : NodeUI
     {
         let oldValue = node.properties[variable]!
         node.properties[variable] = value
-        
+        pickerHover = false
+
         if oldValue != value {
             node.variableChanged(variable: variable, oldValue: oldValue, newValue: value)
             mmView.update()
@@ -494,6 +529,11 @@ class NodeUINumber : NodeUI
     {
         if mouseIsDown {
             mouseDown(event)
+        } else {
+            pickerHover = false
+            if event.x > rect.x + rect.width - pickerSize {
+                pickerHover = true
+            }
         }
         /*
         if open {
@@ -503,6 +543,10 @@ class NodeUINumber : NodeUI
                 self.index = index
             }
         }*/
+    }
+    
+    override func mouseLeave() {
+        pickerHover = false
     }
     
     override func draw(mmView: MMView, maxTitleSize: float2, scale: Float)
@@ -515,13 +559,17 @@ class NodeUINumber : NodeUI
         titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
         
         x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
-        width = 120 * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
+        width = (120 - pickerSize - 1) * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
         
         let itemHeight =  rect.height * scale
         
         let skin = mmView.skin.MenuWidget
         
         mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
+        
+        mmView.drawBox.draw( x: x + width + 1, y: rect.y, width: pickerSize, height: itemHeight, round: 0, borderSize: 1, fillColor: !pickerHover ? skin.color : float4(repeating:1), borderColor: skin.borderColor )
+        
+        mmView.drawSphere.draw( x: x + width + pickerSize / 2 - 1, y: rect.y + rect.height / 2 - 2, radius: 3, borderSize: 0, fillColor: float4(0,0,0,1), borderColor: float4(repeating:0) )
         
         let offset = (width / (range.y - range.x)) * (value - range.x)
         

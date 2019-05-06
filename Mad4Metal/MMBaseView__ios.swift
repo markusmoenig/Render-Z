@@ -238,3 +238,29 @@ func getStringDialog(view: MMView, title: String, message: String, defaultValue:
         topController.present(alert, animated: true, completion: nil)
     }
 }
+
+func getNumberDialog(view: MMView, title: String, message: String, defaultValue: Float, cb: @escaping (Float)->())
+{
+    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+    
+    alert.addTextField(configurationHandler: { (textField) -> Void in
+        textField.text = String(defaultValue)
+        textField.keyboardType = UIKeyboardType.numberPad
+    })
+    
+    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak alert] (action) -> Void in
+        let textField = alert!.textFields![0] as UITextField
+        let number : Float? = Float(textField.text!)
+        if number != nil {
+            cb( number! )
+        }
+    }))
+    
+    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+        while let presentedViewController = topController.presentedViewController {
+            topController = presentedViewController
+        }
+        
+        topController.present(alert, animated: true, completion: nil)
+    }
+}
