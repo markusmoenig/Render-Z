@@ -15,7 +15,7 @@ class NodeUI
     }
     
     enum Role {
-        case None, MasterPicker, AnimationPicker, ValueVariablePicker
+        case None, MasterPicker, AnimationPicker, ValueVariablePicker, DirectionVariablePicker
     }
     
     var mmView      : MMView!
@@ -270,7 +270,7 @@ class NodeUIAnimationPicker : NodeUIDropDown
     }
 }
 
-/// Value Variable picker derived from NodeUIDropDown and with .AnimationPicker role
+/// Value Variable picker derived from NodeUIDropDown and with .ValueVariablePicker role
 class NodeUIValueVariablePicker : NodeUIDropDown
 {
     var uiConnection        : UINodeConnection
@@ -282,6 +282,27 @@ class NodeUIValueVariablePicker : NodeUIDropDown
         super.init(node, variable: variable, title: title, items: [])
         uiConnection.uiPicker = self
         role = .ValueVariablePicker
+    }
+    
+    override func internal_changed()
+    {
+        uiConnection.connectedTo = uuids[Int(index)]
+        uiConnection.target = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedTo!)
+    }
+}
+
+/// Direction Variable picker derived from NodeUIDropDown and with .DirectionVariablePicker role
+class NodeUIDirectionVariablePicker : NodeUIDropDown
+{
+    var uiConnection        : UINodeConnection
+    var uuids               : [UUID] = []
+    
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        uiConnection = connection
+        super.init(node, variable: variable, title: title, items: [])
+        uiConnection.uiPicker = self
+        role = .DirectionVariablePicker
     }
     
     override func internal_changed()
@@ -473,11 +494,15 @@ class NodeUINumber : NodeUI
     {
         getNumberDialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, cb: { (value) -> Void in
             if self.range != nil {
+                let oldValue = self.value
                 self.value = max( value, self.range!.x)
                 self.value = min( self.value, self.range!.y)
+                self.node.variableChanged(variable: self.variable, oldValue: oldValue, newValue: self.value, continuous: false)
             } else {
+                self.node.variableChanged(variable: self.variable, oldValue: self.value, newValue: value, continuous: false)
                 self.value = value
             }
+            self.node.properties[self.variable] = self.value
             self.titleHover = false
             self.mmView.update()
         } )

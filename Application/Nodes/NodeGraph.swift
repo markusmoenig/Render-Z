@@ -927,7 +927,7 @@ class NodeGraph : Codable
             if label.scale != 0.5 * scale {
                 label.setText(node.name, scale: 0.5 * scale)
             }
-            label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 22 * scale, width: node.rect.width - 50 * scale, height: label.rect.height)
+            label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 23 * scale, width: node.rect.width - 50 * scale, height: label.rect.height)
         }
         
         // --- UI
@@ -1553,10 +1553,11 @@ class NodeGraph : Codable
                         
                         let conn = picker.uiConnection
                         let type = conn.connectionType
-                        picker.items = [masterObject.name + " (Self)"]
+                        //picker.items = [masterObject.name + " (Self)"]
+                        picker.items = ["Self"]
                         picker.uuids = [masterObject.uuid]
                         
-                        if type == .Animation {
+                        if type == .Object || type == .Animation {
                             // Animation: Only pick other Objects as Layers etc dont have animations
                             for n in nodes {
                                 if n.subset != nil && n.uuid != masterObject.uuid && (n as? Object) != nil {
@@ -1572,6 +1573,21 @@ class NodeGraph : Codable
                                     let subs = getNodesOfMaster(for: masterObject)
                                     for s in subs {
                                         if s.type == "Value Variable" {
+                                            picker.items.append(n.name)
+                                            picker.uuids.append(n.uuid)
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                        } else
+                        if type == .DirectionVariable {
+                            // Direction Variable. Pick every master which has a direction variable
+                            for n in nodes {
+                                if n.subset != nil && n.uuid != masterObject.uuid {
+                                    let subs = getNodesOfMaster(for: masterObject)
+                                    for s in subs {
+                                        if s.type == "Direction Variable" {
                                             picker.items.append(n.name)
                                             picker.uuids.append(n.uuid)
                                             break
@@ -1696,6 +1712,48 @@ class NodeGraph : Codable
                     node.computeUIArea(mmView: app!.mmView)
                 }
             }
+            
+            // DirectionVariable picker, show the direction variables of the master
+            if item.role == .DirectionVariablePicker {
+                if let picker = item as? NodeUIDirectionVariablePicker {
+                    
+                    let conn = picker.uiConnection
+                    let object = conn.masterNode as! Object
+                    
+                    picker.items = []
+                    picker.uuids = []
+                    
+                    conn.target = nil
+                    let subs = getNodesOfMaster(for: object)
+                    var index : Int = 0
+                    var first : Node? = nil
+                    for s in subs {
+                        if s.type == "Direction Variable" {
+                            if first == nil {
+                                first = s
+                            }
+                            picker.items.append(s.name)
+                            picker.uuids.append(s.uuid)
+                            if conn.connectedTo == s.uuid {
+                                conn.target = s
+                                picker.index = Float(index)
+                            }
+                            index += 1
+                        }
+                    }
+                    
+                    if conn.target == nil && picker.items.count > 0 {
+                        // Not connected, connect to first node
+                        conn.connectedTo = first?.uuid
+                        conn.target = first
+                        picker.index = 0
+                    } else {
+                        conn.connectedTo = nil
+                    }
+                    
+                    node.computeUIArea(mmView: app!.mmView)
+                }
+            }
         }
         
         if updatePreview {
@@ -1760,6 +1818,26 @@ class NodeGraph : Codable
         return nil
     }
     
+    /// Returns the instances of the given object
+    func getInstancesOf(_ uuid: UUID) -> [Object]
+    {
+        var instances : [Object] = []
+        
+        for node in nodes {
+            if let layer = node as? Layer {
+                for inst in layer.objectInstances {
+                    if inst.objectUUID == uuid {
+                        if inst.instance != nil {
+                            instances.append(inst.instance!)
+                        }
+                    }
+                }
+            }
+        }
+        
+        return instances
+    }
+    
     /// Deletes the given node
     func deleteNode(_ node: Node)
     {
@@ -1797,6 +1875,7 @@ class NodeGraph : Codable
             getStringDialog(view: self.mmView, title: "Rename Node", message: "Node name", defaultValue: node.name, cb: { (name) -> Void in
                 node.name = name
                 node.label = nil
+                self.updateMasterNodes(self.currentMaster!)
                 self.mmView.update()
             } )
         } )

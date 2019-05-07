@@ -86,6 +86,13 @@ class NodeList : MMWidget
         addNodeItem(item, type: .Property, displayType: .Game)
         
         // --- Variable Value
+        item = NodeListItem("Variable: Direction")
+        item.createNode = {
+            return DirectionVariable()
+        }
+        addNodeItem(item, type: .Property, displayType: .All)
+        
+        // --- Variable Value
         item = NodeListItem("Variable: Value")
         item.createNode = {
             return ValueVariable()
@@ -96,6 +103,12 @@ class NodeList : MMWidget
         item = NodeListItem("Animation")
         item.createNode = {
             return ObjectAnimation()
+        }
+        addNodeItem(item, type: .Function, displayType: .Object)
+        // --- Object Apply Force
+        item = NodeListItem("Apply Force")
+        item.createNode = {
+            return ObjectApplyForce()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
         

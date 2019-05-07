@@ -124,7 +124,7 @@ class Node : Codable
     
     func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
-        return .Failure
+        return .Success
     }
     
     func finishExecution()
@@ -196,7 +196,7 @@ class Node : Codable
 class UINodeConnection: Codable
 {
     enum ConnectionType: Int, Codable {
-        case Animation, ValueVariable
+        case Object, Animation, ValueVariable, DirectionVariable
     }
     
     var connectionType      : ConnectionType = .ValueVariable
@@ -423,6 +423,7 @@ enum NodeFamily: String, NodeClassFamily {
     case objectPhysics = "Object Physics"
     case objectProfile = "3D Profile"
     case objectAnimation = "Object Animation"
+    case objectApplyForce = "Object Apply Force"
     case gamePlatformOSX = "Platform OSX"
     case gamePlatformIPAD = "Platform IPAD"
     case behaviorTree = "Behavior Tree"
@@ -434,6 +435,7 @@ enum NodeFamily: String, NodeClassFamily {
     case scene = "Scene"
     case game = "Game"
     case valueVariable = "Value Variable"
+    case directionVariable = "Direction Variable"
     case addValueVariable = "Add Value Variable"
 
     static var discriminator: NodeDiscriminator = .type
@@ -450,6 +452,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectProfile.self
             case .objectAnimation:
                 return ObjectAnimation.self
+            case .objectApplyForce:
+                return ObjectApplyForce.self
             
             case .layer:
                 return Layer.self
@@ -477,6 +481,8 @@ enum NodeFamily: String, NodeClassFamily {
             
             case .valueVariable:
                 return ValueVariable.self
+            case .directionVariable:
+                return DirectionVariable.self
             case .addValueVariable:
                 return AddValueVariable.self
         }

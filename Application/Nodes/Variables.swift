@@ -17,6 +17,8 @@ class ValueVariable : Node
         name = "Value"
         type = "Value Variable"
         brand = .Property
+        
+        properties["defaultValue"] = 0
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -25,8 +27,10 @@ class ValueVariable : Node
     
     override func setupUI(mmView: MMView)
     {
+        print( "init", properties["defaultValue"] )
+
         uiItems = [
-            NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 0),
+            NodeUINumber(self, variable: "value", title: "Value", range: nil, value: properties["defaultValue"]!),
             NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1),
             NodeUISeparator(self, variable:"", title: "")
         ]
@@ -55,6 +59,71 @@ class ValueVariable : Node
         try super.encode(to: superdecoder)
     }
     
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
+    {
+        if variable == "value" {
+            let number = uiItems[0] as! NodeUINumber
+            number.defaultValue = newValue
+            properties["defaultValue"] = newValue
+        }
+    }
+    
+    /// Restore default value
+    override func finishExecution() {
+        let number = uiItems[0] as! NodeUINumber
+        properties["value"] = number.defaultValue
+        number.value = number.defaultValue
+    }
+}
+
+class DirectionVariable : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Direction"
+        type = "Direction Variable"
+        brand = .Property
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUINumber(self, variable: "angle", title: "Angle", range: float2(0,359), value: 0),
+            NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1),
+            NodeUISeparator(self, variable:"", title: "")
+        ]
+        
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+        
+        type = "Direction Variable"
+        brand = .Property
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
     /// Execute Object physic properties
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
     {
@@ -64,7 +133,7 @@ class ValueVariable : Node
     /// Restore default value
     override func finishExecution() {
         let number = uiItems[0] as! NodeUINumber
-        properties["value"] = number.defaultValue
+        properties["angle"] = number.defaultValue
         number.value = number.defaultValue
     }
 }
@@ -96,7 +165,7 @@ class AddValueVariable : Node
     {
         uiItems = [
             NodeUIMasterPicker(self, variable: "master", title: "Class", connection:  uiConnections[0]),
-            NodeUIValueVariablePicker(self, variable: "node", title: "Node", connection:  uiConnections[0]),
+            NodeUIValueVariablePicker(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1),
             NodeUINumber(self, variable: "max", title: "Max", range: nil, value: 100)

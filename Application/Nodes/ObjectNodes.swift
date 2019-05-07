@@ -144,3 +144,109 @@ class ObjectAnimation : Node
         return playResult!
     }
 }
+
+/// Applies physical force to an object
+class ObjectApplyForce : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Apply Force"
+        type = "Object Apply Force"
+        
+        uiConnections.append(UINodeConnection(.Object))
+        uiConnections.append(UINodeConnection(.ValueVariable))
+        uiConnections.append(UINodeConnection(.DirectionVariable))
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIMasterPicker(self, variable: "master", title: "Apply To", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            
+            NodeUIMasterPicker(self, variable: "master", title: "Power of Force", connection:  uiConnections[1]),
+            NodeUIValueVariablePicker(self, variable: "power", title: "Variable", connection:  uiConnections[1]),
+            NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 10), value: 1),
+            NodeUISeparator(self, variable:"", title: ""),
+            
+            NodeUIMasterPicker(self, variable: "master", title: "Direction of Force", connection:  uiConnections[2]),
+            NodeUIDirectionVariablePicker(self, variable: "direction", title: "Variable", connection:  uiConnections[2]),
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+        
+        type = "Object Apply Force"
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Execute the given animation
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        
+        if root.objectRoot != nil {
+            let scale = properties["scale"]!
+            
+            var power : Float = 0
+            var dir : float2 = float2(0,0)
+            
+            if let powerVariable = uiConnections[1].target as? ValueVariable {
+//                let number = powerVariable.uiItems[0] as? NodeUINumber
+                power = powerVariable.properties["value"]! * scale
+            }
+            
+            if let dirVariable = uiConnections[2].target as? DirectionVariable {
+                let angle = dirVariable.properties["angle"]!
+                dir.y = cos(angle)
+                dir.x = sin(angle)
+            }
+            
+            print( power, dir.x, dir.y )
+            
+            if let targetMaster = uiConnections[0].masterNode {
+                let instances = nodeGraph.getInstancesOf(targetMaster.uuid)
+
+                print(instances, instances.count)
+                for instance in instances {
+                    if let body = instance.body {
+                        body.force.y = dir.y * power * 1000
+                        print( body.force.y )
+                    }
+                }
+            }
+            
+            playResult = .Success
+        }
+        
+        return playResult!
+    }
+}
