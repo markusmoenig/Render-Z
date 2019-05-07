@@ -49,6 +49,7 @@ class NodeGraph : Codable
     var currentSceneUUID: UUID? = nil
 
     var hoverUIItem     : NodeUI?
+    var hoverUITitle    : NodeUI?
 
     var hoverTerminal   : (Terminal, Terminal.Connector, Float, Float)?
     var connectTerminal : (Terminal, Terminal.Connector, Float, Float)?
@@ -413,6 +414,10 @@ class NodeGraph : Codable
     func mouseDown(_ event: MMMouseEvent)
     {
         setCurrentNode()
+        
+        if hoverUITitle != nil {
+            hoverUITitle?.titleClicked()
+        }
                 
 //        #if !os(OSX)
         if nodeHoverMode != .MenuOpen {
@@ -511,9 +516,17 @@ class NodeGraph : Codable
     {
         let oldNodeHoverMode = nodeHoverMode
         
+        // Disengage hover types for the ui items
         if hoverUIItem != nil {
             hoverUIItem!.mouseLeave()
         }
+        
+        if hoverUITitle != nil {
+            hoverUITitle?.titleHover = false
+            hoverUITitle = nil
+            mmView.update()
+        }
+        //
         
         if nodeHoverMode == .MenuOpen {
             hoverNode!.menu!.mouseMoved(event)
@@ -626,6 +639,20 @@ class NodeGraph : Codable
                 let uiRect = MMRect()
                 let titleWidth : Float = (hoverNode!.uiMaxTitleSize.x + NodeUI.titleSpacing) * scale
                 for uiItem in hoverNode!.uiItems {
+                    
+                    if uiItem.supportsTitleHover {
+                        uiRect.x = uiItemX
+                        uiRect.y = uiItemY
+                        uiRect.width = titleWidth - NodeUI.titleSpacing * scale
+                        uiRect.height = uiItem.rect.height * scale
+                        
+                        if uiRect.contains(event.x, event.y) {
+                            uiItem.titleHover = true
+                            hoverUITitle = uiItem
+                            mmView.update()
+                            return
+                        }
+                    }
                     
                     uiRect.x = uiItemX + titleWidth
                     uiRect.y = uiItemY

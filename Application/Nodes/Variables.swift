@@ -26,15 +26,10 @@ class ValueVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUINumber(self, variable: "value", title: "Value", range: float2(0, 100), value: 0),
+            NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 0),
             NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1),
-            NodeUISeparator(self, variable:"", title: ""),
-            NodeUINumber(self, variable: "min", title: "Min", range: float2(-1000, 1000), value: 0),
-            NodeUINumber(self, variable: "max", title: "Max", range: float2(-1000, 1000), value: 100)
+            NodeUISeparator(self, variable:"", title: "")
         ]
-        
-        uiItems[3].role = .MinValue
-        uiItems[4].role = .MaxValue
 
         super.setupUI(mmView: mmView)
     }
@@ -103,7 +98,8 @@ class AddValueVariable : Node
             NodeUIMasterPicker(self, variable: "master", title: "Class", connection:  uiConnections[0]),
             NodeUIValueVariablePicker(self, variable: "node", title: "Node", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUINumber(self, variable: "value", title: "Value", range: float2(-1000, 1000), value: 1)
+            NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1),
+            NodeUINumber(self, variable: "max", title: "Max", range: nil, value: 100)
         ]
         super.setupUI(mmView: mmView)
     }
@@ -134,12 +130,12 @@ class AddValueVariable : Node
         if let target = uiConnections[0].target as? ValueVariable {
             let number = target.uiItems[0] as? NodeUINumber
             
-            number?.range.x = target.properties["min"]!
-            number?.range.y = target.properties["max"]!
+            //number?.range.x = target.properties["min"]!
+            //number?.range.y = target.properties["max"]!
 
             var value : Float = target.properties["value"]! + properties["value"]!
-            value = max( value, target.properties["min"]! )
-            value = min( value, target.properties["max"]! )
+            //value = max( value, target.properties["min"]! )
+            value = min( value, properties["max"]! )
 
             target.properties["value"] = value
             number?.value = value

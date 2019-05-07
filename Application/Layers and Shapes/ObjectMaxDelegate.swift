@@ -433,6 +433,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func mouseDown(_ event: MMMouseEvent)
     {
         app.gizmo.mouseDown(event)
+        if app.gizmo.hoverUITitle != nil {
+            return
+        }
         
         if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
             let editorRegion = app.editorRegion!

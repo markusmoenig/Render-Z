@@ -15,7 +15,7 @@ class NodeUI
     }
     
     enum Role {
-        case None, MasterPicker, AnimationPicker, ValueVariablePicker, MinValue, MaxValue
+        case None, MasterPicker, AnimationPicker, ValueVariablePicker
     }
     
     var mmView      : MMView!
@@ -30,6 +30,9 @@ class NodeUI
     var rect        : MMRect = MMRect()
     var titleLabel  : MMTextLabel? = nil
     
+    var supportsTitleHover: Bool = false
+    var titleHover  : Bool = false
+
     // --- Statics
     
     static let fontName = "Open Sans"
@@ -43,6 +46,10 @@ class NodeUI
         self.brand = brand
         self.variable = variable
         self.title = title
+    }
+    
+    func titleClicked()
+    {
     }
     
     func internal_changed()
@@ -430,16 +437,14 @@ class NodeUIKeyDown : NodeUI
 class NodeUINumber : NodeUI
 {
     var value       : Float
-    var range       : float2
+    var range       : float2?
     var defaultValue: Float
     var mouseIsDown : Bool = false
     var x           : Float = 0
     var width       : Float = 0
     var int         : Bool = false
-    var pickerSize  : Float = 20
-    var pickerHover : Bool = false
     
-    init(_ node: Node, variable: String, title: String, range: float2 = float2(0,1), int: Bool = false, value: Float = 0)
+    init(_ node: Node, variable: String, title: String, range: float2? = float2(0,1), int: Bool = false, value: Float = 0)
     {
         self.value = value
         self.defaultValue = value
@@ -453,6 +458,7 @@ class NodeUINumber : NodeUI
         }
         
         super.init(node, brand: .Number, variable: variable, title: title)
+        supportsTitleHover = true
     }
     
     override func calcSize(mmView: MMView) {
@@ -463,51 +469,40 @@ class NodeUINumber : NodeUI
         rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
     }
     
-    override func mouseDown(_ event: MMMouseEvent)
+    override func titleClicked()
     {
-        if pickerHover {
-            getNumberDialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, cb: { (value) -> Void in
-                self.value = max( value, self.range.x)
-                self.value = min( self.value, self.range.y)
-                self.checkSpecialRoles()
-                self.mmView.update()
-            } )
-            return
-        }
-        
-        mouseIsDown = true
-
-        let oldValue = value
-        let perPixel = (range.y - range.x) / width
-
-        value = range.x + perPixel * (event.x - x)
-        value = max( value, range.x)
-        value = min( value, range.y)
-        
-        if int {
-            value = floor(value)
-        }
-        
-        checkSpecialRoles()
-        
-        if oldValue != value {
-            node.variableChanged(variable: variable, oldValue: oldValue, newValue: value, continuous: true)
-            mmView.update()
-        }
+        getNumberDialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, cb: { (value) -> Void in
+            if self.range != nil {
+                self.value = max( value, self.range!.x)
+                self.value = min( self.value, self.range!.y)
+            } else {
+                self.value = value
+            }
+            self.titleHover = false
+            self.mmView.update()
+        } )
+        return
     }
     
-    func checkSpecialRoles()
+    override func mouseDown(_ event: MMMouseEvent)
     {
-        if role == .MinValue {
-            if let number = node.uiItems[0] as? NodeUINumber {
-                number.range.x = min( value, number.range.y - 1)
-                value = number.range.x
+        mouseIsDown = true
+
+        if range != nil {
+            let oldValue = value
+            let perPixel = (range!.y - range!.x) / width
+
+            value = range!.x + perPixel * (event.x - x)
+            value = max( value, range!.x)
+            value = min( value, range!.y)
+            
+            if int {
+                value = floor(value)
             }
-        } else
-        if role == .MaxValue {
-            if let number = node.uiItems[0] as? NodeUINumber {
-                number.range.y = max( value, number.range.x + 1)
-                value = number.range.y
+            
+            if oldValue != value {
+                node.variableChanged(variable: variable, oldValue: oldValue, newValue: value, continuous: true)
+                mmView.update()
             }
         }
     }
@@ -516,7 +511,6 @@ class NodeUINumber : NodeUI
     {
         let oldValue = node.properties[variable]!
         node.properties[variable] = value
-        pickerHover = false
 
         if oldValue != value {
             node.variableChanged(variable: variable, oldValue: oldValue, newValue: value)
@@ -529,51 +523,38 @@ class NodeUINumber : NodeUI
     {
         if mouseIsDown {
             mouseDown(event)
-        } else {
-            pickerHover = false
-            if event.x > rect.x + rect.width - pickerSize {
-                pickerHover = true
-            }
         }
-        /*
-        if open {
-            let y = event.y - rect.y
-            let index = Float(Int(y / itemHeight))
-            if index >= 0 && index < Float(items.count) {
-                self.index = index
-            }
-        }*/
     }
     
     override func mouseLeave() {
-        pickerHover = false
     }
     
     override func draw(mmView: MMView, maxTitleSize: float2, scale: Float)
     {
-        //        mmView.drawBox.draw( x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale, round: 0, borderSize: 1 * scale, fillColor : float4(0), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
-        
         if titleLabel!.scale != NodeUI.fontScale * scale {
             titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
         }
-        titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
-        
-        x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
-        width = (120 - pickerSize - 1) * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
-        
-        let itemHeight =  rect.height * scale
         
         let skin = mmView.skin.MenuWidget
         
+        if titleHover {
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: maxTitleSize.x * scale + NodeUI.titleSpacing * scale, height: maxTitleSize.y * scale, round: 4, borderSize: 1, fillColor : float4(0.5, 0.5, 0.5, 1), borderColor: float4(repeating:0) )
+        }
+        
+        titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
+        
+        x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
+        width = 120 * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
+        
+        let itemHeight =  rect.height * scale
+        
         mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
         
-        mmView.drawBox.draw( x: x + width + 1, y: rect.y, width: pickerSize, height: itemHeight, round: 0, borderSize: 1, fillColor: !pickerHover ? skin.color : float4(repeating:1), borderColor: skin.borderColor )
-        
-        mmView.drawSphere.draw( x: x + width + pickerSize / 2 - 1, y: rect.y + rect.height / 2 - 2, radius: 3, borderSize: 0, fillColor: float4(0,0,0,1), borderColor: float4(repeating:0) )
-        
-        let offset = (width / (range.y - range.x)) * (value - range.x)
-        
-        mmView.drawBox.draw( x: x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: skin.borderColor )
+        if range != nil {
+            let offset = (width / (range!.y - range!.x)) * (value - range!.x)
+            
+            mmView.drawBox.draw( x: x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: skin.borderColor )
+        }
         
         mmView.drawText.drawTextCentered(mmView.openSans, text: int ? String(Int(value)) : String(format: "%.02f", value), x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: skin.textColor)
     }

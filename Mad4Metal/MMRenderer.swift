@@ -130,10 +130,10 @@ class MMRenderer : NSObject, MTKViewDelegate {
             var width : Int = Int(rect!.width * mmView.scaleFactor)
             var height : Int = Int(rect!.height * mmView.scaleFactor )
             
-            if x + width < Int(self.width) {
+            if x + width < 0 {
                 return;
             }
-            
+        
             if x > Int(self.width) {
                 return;
             }

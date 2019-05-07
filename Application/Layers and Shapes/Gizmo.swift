@@ -59,6 +59,7 @@ class Gizmo : MMWidget
     var gizmoPtLockRect : MMRect = MMRect()
     
     var hoverUIItem     : NodeUI?
+    var hoverUITitle    : NodeUI?
     
     // --- MaterialEditor context
     var colorWidget     : MMColorWidget!
@@ -261,6 +262,11 @@ class Gizmo : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if hoverUITitle != nil {
+            hoverUITitle?.titleClicked()
+            return
+        }
+        
         // If shape editor has no shape, set to inactive
         if object!.selectedShapes.count == 0 && context == .ShapeEditor { hoverState = .Inactive; return }
 
@@ -593,6 +599,16 @@ class Gizmo : MMWidget
         if hoverState == .GizmoUIMouseLocked {
             hoverUIItem!.mouseMoved(event)
             return
+        }
+
+        if hoverUIItem != nil {
+            hoverUIItem!.mouseLeave()
+        }
+        
+        if hoverUITitle != nil {
+            hoverUITitle?.titleHover = false
+            hoverUITitle = nil
+            mmView.update()
         }
         
         // ColorWidget / FloatWidget
@@ -1305,6 +1321,20 @@ class Gizmo : MMWidget
                 let titleWidth : Float = (gizmoNode.uiMaxTitleSize.x + NodeUI.titleSpacing)
                 for uiItem in gizmoNode.uiItems {
                     
+                    if uiItem.supportsTitleHover {
+                        uiRect.x = uiItemX
+                        uiRect.y = uiItemY
+                        uiRect.width = titleWidth - NodeUI.titleSpacing * scale
+                        uiRect.height = uiItem.rect.height * scale
+                        
+                        if uiRect.contains(event.x, event.y) {
+                            uiItem.titleHover = true
+                            hoverUITitle = uiItem
+                            mmView.update()
+                            return
+                        }
+                    }
+
                     uiRect.x = uiItemX + titleWidth
                     uiRect.y = uiItemY
                     uiRect.width = uiItem.rect.width * scale - uiItem.titleLabel!.rect.width - NodeUI.titleMargin.width() - NodeUI.titleSpacing
