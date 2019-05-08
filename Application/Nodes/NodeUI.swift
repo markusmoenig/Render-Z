@@ -32,6 +32,8 @@ class NodeUI
     
     var supportsTitleHover: Bool = false
     var titleHover  : Bool = false
+    
+    var linkedTo    : NodeUI? = nil
 
     // --- Statics
     
@@ -87,7 +89,7 @@ class NodeUI
         rect.height = 20
     }
     
-    func draw(mmView: MMView, maxTitleSize: float2, scale: Float)
+    func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
     {
     }
 }
@@ -185,7 +187,7 @@ class NodeUIDropDown : NodeUI
         }
     }
     
-    override func draw(mmView: MMView, maxTitleSize: float2, scale: Float)
+    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
     {
 //        mmView.drawBox.draw( x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale, round: 0, borderSize: 1 * scale, fillColor : float4(0), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
         
@@ -435,7 +437,7 @@ class NodeUIKeyDown : NodeUI
         }
     }
     
-    override func draw(mmView: MMView, maxTitleSize: float2, scale: Float)
+    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
     {
         if titleLabel!.scale != NodeUI.fontScale * scale {
             titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
@@ -504,6 +506,7 @@ class NodeUINumber : NodeUI
             }
             self.node.properties[self.variable] = self.value
             self.titleHover = false
+            self.updateLinked()
             self.mmView.update()
         } )
         return
@@ -527,6 +530,7 @@ class NodeUINumber : NodeUI
             
             if oldValue != value {
                 node.variableChanged(variable: variable, oldValue: oldValue, newValue: value, continuous: true)
+                updateLinked()
                 mmView.update()
             }
         }
@@ -536,9 +540,10 @@ class NodeUINumber : NodeUI
     {
         let oldValue = node.properties[variable]!
         node.properties[variable] = value
-
+        
         if oldValue != value {
             node.variableChanged(variable: variable, oldValue: oldValue, newValue: value)
+            updateLinked()
             mmView.update()
         }
         mouseIsDown = false
@@ -554,7 +559,15 @@ class NodeUINumber : NodeUI
     override func mouseLeave() {
     }
     
-    override func draw(mmView: MMView, maxTitleSize: float2, scale: Float)
+    func updateLinked()
+    {
+        if let linked = linkedTo as? NodeUIAngle {
+            linked.value = value
+            node.properties[linked.variable] = value
+        }
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
     {
         if titleLabel!.scale != NodeUI.fontScale * scale {
             titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
@@ -582,5 +595,109 @@ class NodeUINumber : NodeUI
         }
         
         mmView.drawText.drawTextCentered(mmView.openSans, text: int ? String(Int(value)) : String(format: "%.02f", value), x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: skin.textColor)
+    }
+}
+
+/// Angle class
+class NodeUIAngle : NodeUI
+{
+    var value       : Float
+    var defaultValue: Float
+    var mouseIsDown : Bool = false
+    var x           : Float = 0
+    var width       : Float = 0
+    
+    init(_ node: Node, variable: String, title: String, value: Float = 0)
+    {
+        self.value = value
+        self.defaultValue = value
+        
+        if node.properties[variable] == nil {
+            node.properties[variable] = value
+        } else {
+            self.value = node.properties[variable]!
+        }
+        
+        super.init(node, brand: .Number, variable: variable, title: title)
+    }
+    
+    override func calcSize(mmView: MMView) {
+        self.mmView = mmView
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
+        
+        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 40
+        rect.height = 40
+    }
+
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        mouseIsDown = true
+        
+        /*
+        if oldValue != value {
+            node.variableChanged(variable: variable, oldValue: oldValue, newValue: value, continuous: true)
+            mmView.update()*/
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        /*
+        let oldValue = node.properties[variable]!
+        node.properties[variable] = value
+        
+        if oldValue != value {
+            node.variableChanged(variable: variable, oldValue: oldValue, newValue: value)
+            mmView.update()
+        }
+        */
+        mouseIsDown = false
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+    }
+    
+    override func mouseLeave() {
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    {
+        if titleLabel!.scale != NodeUI.fontScale * scale {
+            titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
+        }
+        
+        let skin = mmView.skin.MenuWidget
+        
+        titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
+        
+        x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale + (maxWidth - 40) * scale / 2
+        width = 40 * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
+        
+        let itemHeight =  rect.height * scale
+        
+        //mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
+        
+        let length : Float = 17
+        
+        let x0: Float = x + length * scale
+        let y0: Float = rect.y + itemHeight / 2
+        
+        for i:Float in stride(from: 0, to: 360, by: 20) {
+            
+            let cosValue : Float = cos(i * Float.pi / 180)
+            let sinValue : Float = sin(i * Float.pi / 180)
+            
+            let x1: Float = x0 + cosValue * (length-5) * scale
+            let y1: Float = y0 + sinValue * (length-5) * scale
+            let x2: Float = x0 + cosValue * length * scale
+            let y2: Float = y0 + sinValue * length * scale
+            
+            mmView.drawLine.draw(sx: x1, sy: y1, ex: x2, ey: y2, radius: 1, fillColor: skin.color)
+        }
+        
+        let x1: Float = x0 + cos(value * Float.pi / 180) * length * scale
+        let y1: Float = y0 + sin(value * Float.pi / 180) * length * scale
+        
+        mmView.drawLine.draw(sx: x0, sy: y0, ex: x1, ey: y1, radius: 1, fillColor: float4(repeating: 1))
     }
 }

@@ -943,7 +943,7 @@ class NodeGraph : Codable
                 continue
             }
             
-            uiItem.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, scale: scale)
+            uiItem.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, maxWidth: node.uiMaxWidth, scale: scale)
             uiItemY += uiItem.rect.height * scale
         }
         
@@ -963,7 +963,7 @@ class NodeGraph : Codable
         
         // Draw active UI item
         if nodeHoverMode == .NodeUIMouseLocked && node === hoverNode {
-            hoverUIItem!.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, scale: scale)
+            hoverUIItem!.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, maxWidth: node.uiMaxWidth, scale: scale)
         }
         
         // Node Menu

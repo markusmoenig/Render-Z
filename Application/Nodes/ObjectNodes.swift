@@ -226,8 +226,9 @@ class ObjectApplyForce : Node
             
             if let dirVariable = uiConnections[2].target as? DirectionVariable {
                 let angle = dirVariable.properties["angle"]!
-                dir.y = cos(angle)
-                dir.x = sin(angle)
+                //print("angle", angle)
+                dir.x = cos((360-angle) * Float.pi/180)
+                dir.y = sin((360-angle) * Float.pi/180)
             }
             
             print( power, dir.x, dir.y )
@@ -237,6 +238,7 @@ class ObjectApplyForce : Node
 
                     print(instance.name)
                     if let body = instance.body {
+                        body.force.x = dir.x * power * 1000
                         body.force.y = dir.y * power * 1000
                         print( body.force.y )
                     }

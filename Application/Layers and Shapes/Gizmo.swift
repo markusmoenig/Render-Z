@@ -1154,12 +1154,12 @@ class Gizmo : MMWidget
                             continue
                         }
                         
-                        uiItem.draw(mmView: mmView, maxTitleSize: gizmoNode.uiMaxTitleSize, scale: 1)
+                        uiItem.draw(mmView: mmView, maxTitleSize: gizmoNode.uiMaxTitleSize, maxWidth: gizmoNode.uiMaxWidth, scale: 1)
                         uiItemY += uiItem.rect.height
                     }
                     
                     if hoverState == .GizmoUIMouseLocked {
-                        hoverUIItem!.draw(mmView: mmView, maxTitleSize: gizmoNode.uiMaxTitleSize, scale: 1)
+                        hoverUIItem!.draw(mmView: mmView, maxTitleSize: gizmoNode.uiMaxTitleSize, maxWidth: gizmoNode.uiMaxWidth, scale: 1)
                     }
                 }
             }

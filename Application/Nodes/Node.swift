@@ -50,6 +50,7 @@ class Node : Codable
     var minimumSize     : float2 = float2()
     var uiArea          : MMRect = MMRect()
     var uiMaxTitleSize  : float2 = float2()
+    var uiMaxWidth      : Float = 0
 
     // The subset of nodes for master nodes
     var subset          : [UUID]? = nil
@@ -147,7 +148,7 @@ class Node : Codable
     {
         uiArea.width = 0; uiArea.height = 0;
         uiMaxTitleSize.x = 0; uiMaxTitleSize.y = 0
-        var maxRightSize : Float = 0
+        uiMaxWidth = 0
         
         for item in uiItems {
             item.calcSize(mmView: mmView)
@@ -156,13 +157,15 @@ class Node : Codable
             uiArea.height += item.rect.height
             uiMaxTitleSize.x = max(uiMaxTitleSize.x, item.titleLabel!.rect.width)
             uiMaxTitleSize.y = max(uiMaxTitleSize.y, item.titleLabel!.rect.height)
-            maxRightSize = max(maxRightSize, item.rect.width -  item.titleLabel!.rect.width)
+            uiMaxWidth = max(uiMaxWidth, item.rect.width -  item.titleLabel!.rect.width)
         }
         uiMaxTitleSize.x += NodeUI.titleMargin.width()
         uiMaxTitleSize.y += NodeUI.titleMargin.height()
         
-        uiArea.width = uiMaxTitleSize.x + maxRightSize
+        uiArea.width = uiMaxTitleSize.x + uiMaxWidth
         uiArea.height += 6
+        
+        uiMaxWidth -= NodeUI.titleMargin.width() + NodeUI.titleSpacing
     }
     
     /// A UI Variable changed

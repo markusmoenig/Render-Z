@@ -27,8 +27,6 @@ class ValueVariable : Node
     
     override func setupUI(mmView: MMView)
     {
-        print( "init", properties["defaultValue"] )
-
         uiItems = [
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: properties["defaultValue"]!),
             NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1),
@@ -95,10 +93,14 @@ class DirectionVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUINumber(self, variable: "angle", title: "Angle", range: float2(0,359), value: 0),
-            NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1),
-            NodeUISeparator(self, variable:"", title: "")
+            NodeUIAngle(self, variable: "orientation", title: "", value: 0),
+            NodeUINumber(self, variable: "angle", title: "Angle", range: float2(0,360), value: 0),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1)
         ]
+        
+        uiItems[1].linkedTo = uiItems[0]
+        uiItems[0].linkedTo = uiItems[1]
         
         super.setupUI(mmView: mmView)
     }
@@ -132,9 +134,10 @@ class DirectionVariable : Node
     
     /// Restore default value
     override func finishExecution() {
-        let number = uiItems[0] as! NodeUINumber
+        let number = uiItems[1] as! NodeUINumber
         properties["angle"] = number.defaultValue
         number.value = number.defaultValue
+        number.updateLinked()
     }
 }
 
@@ -197,7 +200,7 @@ class AddValueVariable : Node
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         if let target = uiConnections[0].target as? ValueVariable {
-            let number = target.uiItems[0] as? NodeUINumber
+            let number = target.uiItems[1] as? NodeUINumber
             
             //number?.range.x = target.properties["min"]!
             //number?.range.y = target.properties["max"]!
@@ -208,6 +211,7 @@ class AddValueVariable : Node
 
             target.properties["value"] = value
             number?.value = value
+            number?.updateLinked()
         }
         
         return .Success
