@@ -282,7 +282,7 @@ class EditorWidget      : MMWidget
             if node.type == "Object" {
                 let currentLayer = app.nodeGraph.maximizedNode as? Layer
                 if currentLayer != nil {
-                    let instance = ObjectInstance(objectUUID: node.uuid, properties: [:])
+                    let instance = ObjectInstance(name: node.name + " Instance", objectUUID: node.uuid, properties: [:])
                     currentLayer!.objectInstances.append(instance)
                     
                     let layerDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! LayerMaxDelegate

@@ -204,7 +204,7 @@ class NodeGraph : Codable
         typeScrollButton.changed = { (index)->() in
             self.contentType = ContentType(rawValue: index)!
             self.updateContent(self.contentType)
-            if self.currentContent.count > 0 {
+            if self.currentMaster != nil && self.currentContent.count > 0 {
                 self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
             }
             self.nodeList!.switchTo(NodeListItem.DisplayType(rawValue: index+1)!)
@@ -578,7 +578,7 @@ class NodeGraph : Codable
         hoverNode = nodeAt(event.x, event.y)
         
         // Resizing the master node ?
-        if hoverNode === currentMaster {
+        if currentMaster != nil && hoverNode === currentMaster {
             if event.x > hoverNode!.rect.x + 5 && event.x < hoverNode!.rect.x + 35 && event.y < hoverNode!.rect.y + hoverNode!.rect.height - 5 && event.y > hoverNode!.rect.y + hoverNode!.rect.height - 35 {
                 nodeHoverMode = .MasterDrag
                 mmView.update()
@@ -1423,37 +1423,30 @@ class NodeGraph : Codable
         
         for node in nodes {
             if type == .Objects {
-                let object : Object? = node as? Object
-                if object != nil {
-                    if object!.uuid == currentObjectUUID {
+                if let object = node as? Object {
+                    if object.uuid == currentObjectUUID {
                         index = items.count
                         currentFound = true
-                        if currentMasterUUID != currentObjectUUID {
-                            setCurrentMaster(node: node)
-                        }
+                        setCurrentMaster(node: node)
                     }
                     items.append(node.name)
                     currentContent.append(node)
                 }
             } else
             if type == .Layers {
-                let layer : Layer? = node as? Layer
-                if layer != nil {
-                    if layer!.uuid == currentLayerUUID {
+                if let layer = node as? Layer {
+                    if layer.uuid == currentLayerUUID {
                         index = items.count
                         currentFound = true
-                        if currentMasterUUID != currentLayerUUID {
-                            setCurrentMaster(node: node)
-                        }
+                        setCurrentMaster(node: node)
                     }
                     items.append(node.name)
                     currentContent.append(node)
                 }
             } else
             if type == .Game {
-                let game : Game? = node as? Game
-                if game != nil {
-                    if game!.uuid == currentLayerUUID {
+                if let game = node as? Game {
+                    if game.uuid == currentLayerUUID {
                         index = items.count
                         currentFound = true
                         setCurrentMaster(node: node)
@@ -1466,6 +1459,8 @@ class NodeGraph : Codable
         if currentFound == false {
             if currentContent.count > 0 {
                 setCurrentMaster(node: currentContent[0])
+            } else {
+                currentMaster = nil
             }
         }
         contentScrollButton.setItems(items, fixedWidth: 250)
@@ -1505,6 +1500,11 @@ class NodeGraph : Codable
                     break
                 }
             }
+        }
+        
+        // Update the nodes for the new master
+        if currentMaster != nil {
+            updateMasterNodes(currentMaster!)
         }
     }
     
@@ -1553,9 +1553,11 @@ class NodeGraph : Codable
                         
                         let conn = picker.uiConnection
                         let type = conn.connectionType
-                        //picker.items = [masterObject.name + " (Self)"]
-                        picker.items = ["Self"]
-                        picker.uuids = [masterObject.uuid]
+                        
+                        if type != .ObjectInstance {
+                            picker.items = ["Self"]
+                            picker.uuids = [masterObject.uuid]
+                        }
                         
                         if type == .Object || type == .Animation {
                             // Animation: Only pick other Objects as Layers etc dont have animations
@@ -1563,6 +1565,17 @@ class NodeGraph : Codable
                                 if n.subset != nil && n.uuid != masterObject.uuid && (n as? Object) != nil {
                                     picker.items.append(n.name)
                                     picker.uuids.append(n.uuid)
+                                }
+                            }
+                        } else
+                        if type == .ObjectInstance {
+                            // ObjectInstance: Only pick object instances in layers
+                            for n in nodes {
+                                if let layer = n as? Layer {
+                                    for inst in layer.objectInstances {
+                                        picker.items.append(layer.name + ": " + inst.name)
+                                        picker.uuids.append(inst.uuid)
+                                    }
                                 }
                             }
                         } else
@@ -1597,31 +1610,42 @@ class NodeGraph : Codable
                             }
                         }
                         
-                        if conn.connectedMaster != nil {
-                            // --- Find the connection
-                            var found : Bool = false
+                        if type != .ObjectInstance {
+                            // Assign masterNode and picker index
+                            if conn.connectedMaster != nil {
+                                // --- Find the connection
+                                var found : Bool = false
+                                for (index, uuid) in picker.uuids.enumerated() {
+                                    if uuid == conn.connectedMaster {
+                                        picker.index = Float(index)
+                                        conn.masterNode = getNodeForUUID(uuid)
+                                        found = true
+                                        break
+                                    }
+                                }
+                                if !found {
+                                    // If not found set the connectedMaster to nil
+                                    conn.connectedMaster = nil
+                                    conn.masterNode = nil
+                                }
+                            }
+                            
+                            if conn.connectedMaster == nil {
+                                // Not connected, connect to first element(self)
+                                conn.connectedMaster = masterObject.uuid
+                                conn.masterNode = masterObject
+                                picker.index = 0
+                            }
+                        } else {
+                            // For object instances only assign picker index as instance is created live during execution
+                            conn.masterNode = nil
                             for (index, uuid) in picker.uuids.enumerated() {
                                 if uuid == conn.connectedMaster {
                                     picker.index = Float(index)
-                                    conn.masterNode = getNodeForUUID(uuid)
-                                    found = true
                                     break
                                 }
                             }
-                            if !found {
-                                // If not found set the connectedMaster to nil
-                                conn.connectedMaster = nil
-                                conn.masterNode = nil
-                            }
                         }
-                        
-                        if conn.connectedMaster == nil {
-                            // Not connected, connect to first element(self)
-                            conn.connectedMaster = masterObject.uuid
-                            conn.masterNode = masterObject
-                            picker.index = 0
-                        }
-                        
                         node.computeUIArea(mmView: app!.mmView)
                     }
                 }
@@ -1836,6 +1860,22 @@ class NodeGraph : Codable
         }
         
         return instances
+    }
+    
+    /// Return the instance with the given UUID
+    func getInstance(_ uuid: UUID) -> Object?
+    {
+        for node in nodes {
+            if let layer = node as? Layer {
+                for inst in layer.objectInstances {
+                    if inst.uuid == uuid {
+                        return inst.instance
+                    }
+                }
+            }
+        }
+        
+        return nil
     }
     
     /// Deletes the given node

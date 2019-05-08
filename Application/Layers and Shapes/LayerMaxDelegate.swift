@@ -708,7 +708,7 @@ class ObjectList : MMWidget
                 if node.uuid == instance.objectUUID {
                     
                     let item = ObjectListItem()
-                    item.name = node.name + " Instance"
+                    item.name = instance.name
                     item.uuid = instance.uuid
                     items.append(item)
                 }

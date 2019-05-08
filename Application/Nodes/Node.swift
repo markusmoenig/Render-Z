@@ -196,7 +196,7 @@ class Node : Codable
 class UINodeConnection: Codable
 {
     enum ConnectionType: Int, Codable {
-        case Object, Animation, ValueVariable, DirectionVariable
+        case Object, ObjectInstance, Animation, ValueVariable, DirectionVariable
     }
     
     var connectionType      : ConnectionType = .ValueVariable

@@ -155,7 +155,7 @@ class ObjectApplyForce : Node
         name = "Apply Force"
         type = "Object Apply Force"
         
-        uiConnections.append(UINodeConnection(.Object))
+        uiConnections.append(UINodeConnection(.ObjectInstance))
         uiConnections.append(UINodeConnection(.ValueVariable))
         uiConnections.append(UINodeConnection(.DirectionVariable))
     }
@@ -232,11 +232,10 @@ class ObjectApplyForce : Node
             
             print( power, dir.x, dir.y )
             
-            if let targetMaster = uiConnections[0].masterNode {
-                let instances = nodeGraph.getInstancesOf(targetMaster.uuid)
+            if uiConnections[0].connectedMaster != nil {
+                if let instance = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
 
-                print(instances, instances.count)
-                for instance in instances {
+                    print(instance.name)
                     if let body = instance.body {
                         body.force.y = dir.y * power * 1000
                         print( body.force.y )

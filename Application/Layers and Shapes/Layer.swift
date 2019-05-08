@@ -10,19 +10,22 @@ import MetalKit
 
 class ObjectInstance : Codable
 {
+    var name         : String
     var uuid         : UUID
     var objectUUID   : UUID
     var properties   : [String:Float]
     var instance     : Object? = nil
     
     private enum CodingKeys: String, CodingKey {
+        case name
         case uuid
         case objectUUID
         case properties
     }
     
-    init( objectUUID: UUID, properties: [String:Float])
+    init(name: String, objectUUID: UUID, properties: [String:Float])
     {
+        self.name = name
         uuid = UUID()
         self.objectUUID = objectUUID
         self.properties = properties
@@ -31,6 +34,7 @@ class ObjectInstance : Codable
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         objectUUID = try container.decode(UUID.self, forKey: .objectUUID)
         properties = try container.decode([String:Float].self, forKey: .properties)
@@ -39,6 +43,7 @@ class ObjectInstance : Codable
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(objectUUID, forKey: .objectUUID)
         try container.encode(properties, forKey: .properties)
