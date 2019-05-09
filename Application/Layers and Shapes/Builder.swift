@@ -60,7 +60,7 @@ class BuildData
     var maxProfileData      : Int = 0
 }
 
-class Camera
+class Camera : Codable
 {
     var xPos            : Float = 0
     var yPos            : Float = 0

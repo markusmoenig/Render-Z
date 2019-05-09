@@ -92,21 +92,23 @@ class EditorWidget      : MMWidget
                 node.properties["prevScale"] = prevScale
                 node.updatePreview(nodeGraph: app.nodeGraph)
             } else
-            if app.nodeGraph.nodeHoverMode == .None
+            if app.nodeGraph.nodeHoverMode == .None && app.nodeGraph.currentMaster != nil
             {
                 // NodeGraph translation
-                #if os(OSX)
-                if mmView.commandIsDown && event.deltaY! != 0 {
-                    app.nodeGraph.scale += event.deltaY! * 0.003
-                    app.nodeGraph.scale = max(0.2, app.nodeGraph.scale)
-                } else {
-                    app.nodeGraph.xOffset -= event.deltaX!
-                    app.nodeGraph.yOffset -= event.deltaY!
+                if let camera = app.nodeGraph.currentMaster!.camera {
+                    #if os(OSX)
+                    if mmView.commandIsDown && event.deltaY! != 0 {
+                        camera.zoom += event.deltaY! * 0.003
+                        camera.zoom = max(0.2, camera.zoom)
+                    } else {
+                        camera.xPos -= event.deltaX!
+                        camera.yPos -= event.deltaY!
+                    }
+                    #else
+                    camera.xPos += event.deltaX!
+                    camera.yPos += event.deltaY!
+                    #endif
                 }
-                #else
-                app.nodeGraph.xOffset += event.deltaX!
-                app.nodeGraph.yOffset += event.deltaY!
-                #endif
             }
             
             if !dispatched {
@@ -251,25 +253,30 @@ class EditorWidget      : MMWidget
             let drag = dragSource as! NodeListDrag
             let node = drag.node!
             
-            node.xPos = event.x - rect.x - app.nodeGraph.xOffset - drag.pWidgetOffset!.x
-            node.yPos = event.y - rect.y - app.nodeGraph.yOffset - drag.pWidgetOffset!.y
-
-            if node.type == "Object" {
-                let object = node as! Object
-                
-                node.name = "New " + node.type
-
-                object.sequences.append( MMTlSequence() )
-                object.currentSequence = object.sequences[0]
-            }
-            node.setupTerminals()
-
             if app.nodeGraph.currentMaster != nil {
-                app.nodeGraph.nodes.append(node)
-                app.nodeGraph.currentMaster?.subset!.append(node.uuid)
-                app.nodeGraph.setCurrentNode(node)
-//                app.nodeGraph.updateNode(node)
-                app.nodeGraph.updateMasterNodes(app.nodeGraph.currentMaster!)
+                if let camera = app.nodeGraph.currentMaster!.camera {
+
+                    node.xPos = event.x - rect.x - camera.xPos - drag.pWidgetOffset!.x
+                    node.yPos = event.y - rect.y - camera.yPos - drag.pWidgetOffset!.y
+
+                    if node.type == "Object" {
+                        let object = node as! Object
+                        
+                        node.name = "New " + node.type
+
+                        object.sequences.append( MMTlSequence() )
+                        object.currentSequence = object.sequences[0]
+                    }
+                    node.setupTerminals()
+
+                    if app.nodeGraph.currentMaster != nil {
+                        app.nodeGraph.nodes.append(node)
+                        app.nodeGraph.currentMaster?.subset!.append(node.uuid)
+                        app.nodeGraph.setCurrentNode(node)
+        //                app.nodeGraph.updateNode(node)
+                        app.nodeGraph.updateMasterNodes(app.nodeGraph.currentMaster!)
+                    }
+                }
             }
         } else
         if dragSource.id == "AvailableObjectItem"

@@ -52,8 +52,9 @@ class Node : Codable
     var uiMaxTitleSize  : float2 = float2()
     var uiMaxWidth      : Float = 0
 
-    // The subset of nodes for master nodes
+    // The subset of nodes and camera for master nodes
     var subset          : [UUID]? = nil
+    var camera          : Camera? = nil
     
     // Used only for master nodes during playback
     var behaviorTrees   : [BehaviorTree]? = nil
@@ -75,6 +76,7 @@ class Node : Codable
         case terminals
         case subset
         case uiConnections
+        case camera
     }
     
     init()
@@ -94,6 +96,7 @@ class Node : Codable
         terminals = try container.decode([Terminal].self, forKey: .terminals)
         subset = try container.decode([UUID]?.self, forKey: .subset)
         uiConnections = try container.decode([UINodeConnection].self, forKey: .uiConnections)
+        camera = try container.decodeIfPresent(Camera.self, forKey: .camera)
 
         for terminal in terminals {
             terminal.node = self
@@ -113,6 +116,7 @@ class Node : Codable
         try container.encode(terminals, forKey: .terminals)
         try container.encode(subset, forKey: .subset)
         try container.encode(uiConnections, forKey: .uiConnections)
+        try container.encode(camera, forKey: .camera)
     }
     
     func onConnect(myTerminal: Terminal, toTerminal: Terminal)

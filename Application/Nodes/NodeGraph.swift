@@ -24,10 +24,6 @@ class NodeGraph : Codable
     }
     
     var nodes           : [Node] = []
-    
-    var xOffset         : Float = 0
-    var yOffset         : Float = 0
-    var scale           : Float = 1
 
     var drawNodeState   : MTLRenderPipelineState?
     var drawPatternState: MTLRenderPipelineState?
@@ -107,9 +103,6 @@ class NodeGraph : Codable
     
     private enum CodingKeys: String, CodingKey {
         case nodes
-        case xOffset
-        case yOffset
-        case scale
         case currentMasterUUID
         case previewSize
     }
@@ -145,9 +138,6 @@ class NodeGraph : Codable
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         nodes = try container.decode([Node].self, ofFamily: NodeFamily.self, forKey: .nodes)
-        xOffset = try container.decode(Float.self, forKey: .xOffset)
-        yOffset = try container.decode(Float.self, forKey: .yOffset)
-        scale = try container.decode(Float.self, forKey: .scale)
         currentMasterUUID = try container.decode(UUID?.self, forKey: .currentMasterUUID)
         previewSize = try container.decode(float2.self, forKey: .previewSize)
         setCurrentMaster(uuid: currentMasterUUID)
@@ -157,9 +147,6 @@ class NodeGraph : Codable
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(nodes, forKey: .nodes)
-        try container.encode(xOffset, forKey: .xOffset)
-        try container.encode(yOffset, forKey: .yOffset)
-        try container.encode(scale, forKey: .scale)
         try container.encode(currentMasterUUID, forKey: .currentMasterUUID)
         try container.encode(previewSize, forKey: .previewSize)
     }
@@ -514,6 +501,8 @@ class NodeGraph : Codable
     
     func mouseMoved(_ event: MMMouseEvent)
     {
+        let scale : Float = currentMaster!.camera!.zoom
+
         let oldNodeHoverMode = nodeHoverMode
         
         // Disengage hover types for the ui items
@@ -755,7 +744,8 @@ class NodeGraph : Codable
                 
                 // --- Ongoing Node connection attempt ?
                 if nodeHoverMode == .TerminalConnection {
-                    
+                    let scale : Float = currentMaster!.camera!.zoom
+
                     let color = getColorForTerminal(hoverTerminal!.0)
                     app!.mmView.drawLine.draw( sx: hoverTerminal!.2 - 2, sy: hoverTerminal!.3 - 2, ex: mousePos.x, ey: mousePos.y, radius: 2 * scale, fillColor : float4(color.x, color.y, color.z, 1) )
                 }
@@ -822,9 +812,10 @@ class NodeGraph : Codable
         let renderer = app!.mmView.renderer!
         let renderEncoder = renderer.renderEncoder!
         let scaleFactor : Float = app!.mmView.scaleFactor
+        let scale : Float = currentMaster!.camera!.zoom
 
-        node.rect.x = region.rect.x + node.xPos + xOffset
-        node.rect.y = region.rect.y + node.yPos + yOffset
+        node.rect.x = region.rect.x + node.xPos + currentMaster!.camera!.xPos
+        node.rect.y = region.rect.y + node.yPos + currentMaster!.camera!.yPos
 
         node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
         node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
@@ -1108,6 +1099,8 @@ class NodeGraph : Codable
     /// Draws the given connection
     func drawConnection(_ conn: Connection)
     {
+        let scale : Float = currentMaster!.camera!.zoom
+
         func getPointForConnection(_ conn:Connection) -> (Float, Float)
         {
             var x : Float = 0
@@ -1115,8 +1108,6 @@ class NodeGraph : Codable
             let terminal = conn.terminal!
             let node = terminal.node!
             
-            let scale = node === currentMaster ? 1 : self.scale
-
             var bottomCount : Float = 0
             for terminal in node.terminals {
                 if terminal.connector == .Bottom {
@@ -1202,8 +1193,8 @@ class NodeGraph : Codable
     /// Returns the terminal and the terminal connector at the given mouse position for the given node (if any)
     func terminalAt(_ node: Node, _ x: Float, _ y: Float) -> (Terminal, Terminal.Connector, Float, Float)?
     {
-        let scale : Float = node === currentMaster ? 1 : self.scale
-        
+        let scale : Float = currentMaster!.camera!.zoom
+
         var lefTerminalY : Float = NodeGraph.tOffY * scale
         var rightTerminalY : Float = NodeGraph.tOffY * scale
         
@@ -1505,6 +1496,9 @@ class NodeGraph : Codable
         // Update the nodes for the new master
         if currentMaster != nil && app != nil {
             updateMasterNodes(currentMaster!)
+            if currentMaster!.camera == nil {
+                currentMaster!.camera = Camera()
+            }
         }
     }
     
