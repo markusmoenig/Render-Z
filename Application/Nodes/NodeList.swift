@@ -151,6 +151,12 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
+        item = NodeListItem("Reset Value")
+        item.createNode = {
+            return ResetValueVariable()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
         // ---
         switchTo(.Object)
     }

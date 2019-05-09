@@ -127,8 +127,8 @@ class Object : Node
             properties["posX"] = 0
             properties["posY"] = 0
             properties["rotate"] = 0
-            properties["border"] = 2
         }
+        properties["border"] = instanceFor.properties["border"]
         minimumSize = Node.NodeWithPreviewSize
     }
     

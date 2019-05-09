@@ -135,6 +135,31 @@ class MaterialFactory
         
         // --- Compounds
         
+        // --- Aluminium
+        def = MaterialDefinition()
+        def.name = "Alu"
+        def.globalCode =
+        """
+        void aluminiumMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material) {
+        material->baseColor = value;
+        material->metallic = 1.;
+        material->roughness = 0.53;
+        material->specular = 0.3;
+        }
+        """
+        def.code = "aluminiumMaterial(__uv__, __value__, __material__)"
+        def.properties["value_x"] = 0.91
+        def.properties["value_y"] = 0.92
+        def.properties["value_z"] = 0.92
+        def.properties["value_w"] = 1
+        
+        def.properties["width"] = defaultSize
+        def.properties["height"] = defaultSize
+        def.widthProperty = "width"
+        def.heightProperty = "height"
+        def.isCompound = true
+        materials.append( def )
+        
         // --- Gold
         def = MaterialDefinition()
         def.name = "Gold"
@@ -151,6 +176,56 @@ class MaterialFactory
         def.properties["value_x"] = 1.0
         def.properties["value_y"] = 0.71
         def.properties["value_z"] = 0.29
+        def.properties["value_w"] = 1
+        
+        def.properties["width"] = defaultSize
+        def.properties["height"] = defaultSize
+        def.widthProperty = "width"
+        def.heightProperty = "height"
+        def.isCompound = true
+        materials.append( def )
+        
+        // --- Iron
+        def = MaterialDefinition()
+        def.name = "Iron"
+        def.globalCode =
+        """
+        void ironMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material) {
+            material->baseColor = value;
+            material->metallic = 1.;
+            material->roughness = 0.53;
+            material->specular = 0.3;
+        }
+        """
+        def.code = "ironMaterial(__uv__, __value__, __material__)"
+        def.properties["value_x"] = 0.56
+        def.properties["value_y"] = 0.57
+        def.properties["value_z"] = 0.58
+        def.properties["value_w"] = 1
+        
+        def.properties["width"] = defaultSize
+        def.properties["height"] = defaultSize
+        def.widthProperty = "width"
+        def.heightProperty = "height"
+        def.isCompound = true
+        materials.append( def )
+        
+        // --- Silver
+        def = MaterialDefinition()
+        def.name = "Silver"
+        def.globalCode =
+        """
+        void silverMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material) {
+            material->baseColor = value;
+            material->metallic = 1.;
+            material->roughness = 0.53;
+            material->specular = 0.3;
+        }
+        """
+        def.code = "silverMaterial(__uv__, __value__, __material__)"
+        def.properties["value_x"] = 0.91
+        def.properties["value_y"] = 0.92
+        def.properties["value_z"] = 0.92
         def.properties["value_w"] = 1
         
         def.properties["width"] = defaultSize

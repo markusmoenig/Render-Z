@@ -100,7 +100,7 @@ class ObjectAnimation : Node
             NodeUIAnimationPicker(self, variable: "animation", title: "Animation", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIDropDown(self, variable: "mode", title: "Mode", items: ["Loop", "Inverse Loop", "Goto Start", "Goto End"], index: 0),
-            NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 5), value: 1)
+            NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 20), value: 1)
         ]
         super.setupUI(mmView: mmView)
     }
@@ -179,7 +179,7 @@ class ObjectApplyForce : Node
             
             NodeUIMasterPicker(self, variable: "master", title: "Power of Force", connection:  uiConnections[1]),
             NodeUIValueVariablePicker(self, variable: "power", title: "Variable", connection:  uiConnections[1]),
-            NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 10), value: 1),
+            NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
             NodeUISeparator(self, variable:"", title: ""),
             
             NodeUIMasterPicker(self, variable: "master", title: "Direction of Force", connection:  uiConnections[2]),
@@ -231,16 +231,15 @@ class ObjectApplyForce : Node
                 dir.y = sin((360-angle) * Float.pi/180)
             }
             
-            print( power, dir.x, dir.y )
+            //print( power, dir.x, dir.y )
             
             if uiConnections[0].connectedMaster != nil {
                 if let instance = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
 
-                    print(instance.name)
                     if let body = instance.body {
-                        body.force.x = dir.x * power * 1000
-                        body.force.y = dir.y * power * 1000
-                        print( body.force.y )
+                        body.force.x = dir.x * power * scale
+                        body.force.y = dir.y * power * scale
+                        //print( body.force.x, body.force.y )
                     }
                 }
             }

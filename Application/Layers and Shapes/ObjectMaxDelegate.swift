@@ -207,8 +207,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         app!.nodeGraph.diskBuilder.getDisksFor(currentObject!, builder: app!.nodeGraph.builder, async: {
             let disks = self.currentObject!.disks
             if disks.count > 0 {
-                self.currentObject!.properties["prevOffX"] = disks[0].xPos
-                self.currentObject!.properties["prevOffY"] = -disks[0].yPos
+                //self.currentObject!.properties["prevOffX"] = disks[0].xPos
+                //self.currentObject!.properties["prevOffY"] = -disks[0].yPos
             }
             self.currentObject!.updatePreview(nodeGraph: self.app.nodeGraph, hard: true)
         })
@@ -216,6 +216,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, modeScrollButton, backScrollButton, app.closeButton)
         materialsTab.deregisterWidget()
+        materialListWidget.deregisterWidgets()
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -258,6 +259,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 // Grid
                 drawPattern(region)
             } else {
+                // Empty Background
                 app!.mmView.drawBox.draw( x: region.rect.x, y: region.rect.y, width: region.rect.width, height: region.rect.height, round: 0, borderSize: 0, fillColor : float4(0.098, 0.098, 0.098, 1.000), borderColor: float4(repeating:0) )
             }
             
@@ -1280,7 +1282,7 @@ class MaterialListScrollArea: MMScrollArea
     
     func deregisterWidgets()
     {
-        mmView.registerWidgets(widgets: bodyButton, borderButton, floatWidget)
+        mmView.deregisterWidgets(widgets: bodyButton, borderButton, floatWidget)
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)

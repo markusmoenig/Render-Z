@@ -1104,7 +1104,7 @@ class Builder
     }
     
     /// Creates the global code for all shapes in this layer
-    func getGlobalCode(objects: [Object]) -> String
+    func getGlobalCode(objects: [Object], includeMaterials: Bool = true) -> String
     {
         var coll : [String] = []
         var result = ""
@@ -1130,17 +1130,19 @@ class Builder
                 shapeIndex += 1
             }
             
-            // --- Global Material Code
-            for material in object.bodyMaterials {
-                if !coll.contains(material.name) {
-                    result += material.globalCode
-                    coll.append( material.name )
+            if includeMaterials {
+                // --- Global Material Code
+                for material in object.bodyMaterials {
+                    if !coll.contains(material.name) {
+                        result += material.globalCode
+                        coll.append( material.name )
+                    }
                 }
-            }
-            for material in object.borderMaterials {
-                if !coll.contains(material.name) {
-                    result += material.globalCode
-                    coll.append( material.name )
+                for material in object.borderMaterials {
+                    if !coll.contains(material.name) {
+                        result += material.globalCode
+                        coll.append( material.name )
+                    }
                 }
             }
             

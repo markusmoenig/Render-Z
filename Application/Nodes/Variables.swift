@@ -32,6 +32,9 @@ class ValueVariable : Node
             NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1),
             NodeUISeparator(self, variable:"", title: "")
         ]
+        
+        let number = uiItems[0] as! NodeUINumber
+        number.defaultValue = properties["defaultValue"]!
 
         super.setupUI(mmView: mmView)
     }
@@ -102,6 +105,9 @@ class DirectionVariable : Node
         uiItems[1].linkedTo = uiItems[0]
         uiItems[0].linkedTo = uiItems[1]
         
+        let number = uiItems[1] as! NodeUINumber
+        number.defaultValue = properties["defaultValue"]!
+        
         super.setupUI(mmView: mmView)
     }
     
@@ -112,7 +118,7 @@ class DirectionVariable : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
+
         type = "Direction Variable"
         brand = .Property
     }
@@ -132,12 +138,92 @@ class DirectionVariable : Node
         return .Success
     }
     
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
+    {
+        if variable == "angle" {
+            let number = uiItems[1] as! NodeUINumber
+            number.defaultValue = newValue
+            properties["defaultValue"] = newValue
+        }
+    }
+    
     /// Restore default value
     override func finishExecution() {
         let number = uiItems[1] as! NodeUINumber
         properties["angle"] = number.defaultValue
         number.value = number.defaultValue
         number.updateLinked()
+    }
+}
+
+class ResetValueVariable : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Reset Value"
+        type = "Reset Value Variable"
+        
+        uiConnections.append(UINodeConnection(.ValueVariable))
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIMasterPicker(self, variable: "master", title: "Class", connection:  uiConnections[0]),
+            NodeUIValueVariablePicker(self, variable: "node", title: "Variable", connection:  uiConnections[0])
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+        
+        type = "Reset Value Variable"
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Reset the value variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let target = uiConnections[0].target as? ValueVariable {
+            let number = target.uiItems[0] as? NodeUINumber
+            
+            target.properties["value"] = number!.defaultValue
+            number?.value = number!.defaultValue
+            number?.updateLinked()
+            
+            playResult = .Success
+        }
+        
+        return playResult!
     }
 }
 
@@ -196,24 +282,23 @@ class AddValueVariable : Node
         try super.encode(to: superdecoder)
     }
     
-    /// Execute the given animation
+    /// Add value to variable
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
+        playResult = .Failure
         if let target = uiConnections[0].target as? ValueVariable {
-            let number = target.uiItems[1] as? NodeUINumber
-            
-            //number?.range.x = target.properties["min"]!
-            //number?.range.y = target.properties["max"]!
+            let number = target.uiItems[0] as? NodeUINumber
 
             var value : Float = target.properties["value"]! + properties["value"]!
-            //value = max( value, target.properties["min"]! )
             value = min( value, properties["max"]! )
-
+            
             target.properties["value"] = value
             number?.value = value
             number?.updateLinked()
+            
+            playResult = .Success
         }
         
-        return .Success
+        return playResult!
     }
 }

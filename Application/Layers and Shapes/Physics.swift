@@ -59,7 +59,8 @@ class Physics
         instance.objects = objects
         
         buildData.source += builder.getCommonCode()
-        buildData.source += builder.getGlobalCode(objects: objects)
+        buildData.source += builder.getGlobalCode(objects: objects, includeMaterials: false)
+        //buildData.source += Material.getMaterialStructCode()
         buildData.source +=
         """
         typedef struct
@@ -202,7 +203,7 @@ class Physics
         }
 
         """
-        
+
         instance.inBuffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
         instance.outBuffer = compute!.device.makeBuffer(length: dynaCount * 4 * MemoryLayout<Float>.stride, options: [])!
@@ -451,12 +452,12 @@ class Manifold
         
         let rv : float2 = bodyB.velocity - bodyA.velocity
 
-        
+        /*
         if bodyB.object.properties["isAnimating"] != nil &&  bodyB.object.properties["isAnimating"]! == 1 {
 //            rv = -normal - bodyA.velocity
             restitution = 2.5
             //bodyA.force = -normal * 5
-        }
+        }*/
         
         // Relative velocity along the normal
         let contactVel = simd_dot( rv, normal );

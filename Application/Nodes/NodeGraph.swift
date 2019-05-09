@@ -325,10 +325,10 @@ class NodeGraph : Codable
                     let layer = self.playNode as! Layer
                     layer.physicsInstance = nil
                 }
-                
-                let subs = self.getNodesOfMaster(for: node!)
-                for s in subs {
-                    s.finishExecution()
+
+                // Send finish to all nodes
+                for node in self.nodes {
+                    node.finishExecution()
                 }
                 
                 self.playNode!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
@@ -1503,7 +1503,7 @@ class NodeGraph : Codable
         }
         
         // Update the nodes for the new master
-        if currentMaster != nil {
+        if currentMaster != nil && app != nil {
             updateMasterNodes(currentMaster!)
         }
     }
@@ -1534,7 +1534,7 @@ class NodeGraph : Codable
                 conn.toTerminal = getTerminalOfUUID(conn.toTerminalUUID)
             }
         }
-        
+
         // Update the UI and special role items
         node.setupUI(mmView: app!.mmView)
         

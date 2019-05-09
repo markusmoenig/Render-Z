@@ -399,9 +399,12 @@ class NodeUIKeyDown : NodeUI
             node.properties[variable] = keyCode
         } else {
             keyCode = node.properties[variable]!
-            let desc = keyCodes[UInt16(keyCode)]
-            if desc != nil {
-                keyText = desc!
+            let code = UInt16(exactly:keyCode)
+            if code != nil {
+                let desc = keyCodes[code!]
+                if desc != nil {
+                    keyText = desc!
+                }
             }
         }
         
