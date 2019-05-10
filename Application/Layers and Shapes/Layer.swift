@@ -160,6 +160,13 @@ class Layer : Node
         return result
     }
     
+    // Deallocate all object instances
+    override func finishExecution() {
+        for inst in objectInstances {
+            inst.instance = nil
+        }
+    }
+    
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
         let size = nodeGraph.previewSize

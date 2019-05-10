@@ -9,8 +9,8 @@
 import MetalKit
 import simd
 
-/// A timeline key consisting property values at the given frame
-struct MMTlKey : Codable
+/// A timeline key consisting of property values at the given frame
+class MMTlKey : Codable
 {
     /// The animated value of the given object, i.e. it's properties
     var values          : [String: Float] = [:]
@@ -36,18 +36,24 @@ class MMTlSequence : Codable, MMListWidgetItem
 class MMTimeline : MMWidget
 {
     enum MMTimelineMode {
-        case Unused, Scrubbing
+        case Unused, Scrubbing, ScrubbingKey
     }
     
     var mode                    : MMTimelineMode
     
     var recordButton            : MMButtonWidget
     var playButton              : MMButtonWidget
+    var deleteButton              : MMButtonWidget
 
     var isRecording             : Bool = false
     var isPlaying               : Bool = false
 
     var changedCB               : ((Int)->())?
+    
+    var currentSequence         : MMTlSequence? = nil
+    var currentKey              : MMTlKey? = nil
+    var keyScrubPos             : Int = 0
+    var keyScrubUUID            : UUID = UUID()
     
     // --- Timeline attributes
     
@@ -72,9 +78,11 @@ class MMTimeline : MMWidget
         
         view.registerIcon("timeline_recording")
         view.registerIcon("timeline_play")
+        view.registerIcon("timeline_delete")
 
         recordButton = MMButtonWidget(view, iconName: "timeline_recording")
         playButton = MMButtonWidget(view, iconName: "timeline_play")
+        deleteButton = MMButtonWidget(view, iconName: "timeline_delete")
 
         super.init(view)
 
@@ -102,137 +110,55 @@ class MMTimeline : MMWidget
                 self.isRecording = true
             }
         }
+        
+        deleteButton.clicked = { (event) in
+            var dict = self.currentSequence!.items[self.keyScrubUUID]
+            if let _ = dict!.removeValue(forKey: self.keyScrubPos) {
+                self.currentKey = nil
+                self.currentSequence!.items[self.keyScrubUUID] = dict
+                self.changedCB?(self.currentFrame)
+                self.mmView.update()
+            }
+        }
     }
     
     func activate()
     {
-        mmView.registerWidgets(widgets: recordButton, playButton)
+        mmView.registerWidgets(widgets: recordButton, playButton, deleteButton)
     }
     
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: recordButton, playButton)
-    }
-    
-    func draw(_ sequence: MMTlSequence, uuid: UUID)
-    {
-        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor : float4(0.110, 0.110, 0.110, 1.000), borderColor: float4(repeating: 0) )// mmView.skin.Widget.borderColor )
-        
-        let skin = mmView.skin.TimelineWidget
-        
-        if isPlaying {
-            currentFrame += 1
-            if currentFrame >= totalFrames {
-                currentFrame = 0
-            }
-            changedCB?(currentFrame)
-        }
-        
-        // --- Initialization
-        
-        var x = rect.x + skin.margin.left
-        let y = rect.y + skin.margin.top
-        
-        tlRect.x = x
-        tlRect.y = y
-        tlRect.width = rect.width - skin.margin.right - 8
-        tlRect.height = 40
-        
-        mmView.drawBox.draw( x: x - 4, y: y - 4, width: tlRect.width + 8, height: tlRect.height, round: 4, borderSize: 2, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : float4(0.133, 0.133, 0.133, 1.000) )
-        
-        pixelsPerFrame =  tlRect.width / Float(totalFrames)
-        visibleFrames = (tlRect.width - 7 - 2) / pixelsPerFrame
-        
-        let ratio = Float(totalFrames) / visibleFrames;
-        let startFrame = barStartX / pixelsPerFrame * ratio
-        visibleStartFrame = startFrame
-        
-        var frames : Int = Int(visibleStartFrame)
-        
-        var textEveryXFrames : Int = 10;
-        if pixelsPerFrame < 2.4  { textEveryXFrames = 50 }
-        if pixelsPerFrame < 1.0 { textEveryXFrames = 100 }
-        if pixelsPerFrame < 0.4 { textEveryXFrames = 500 }
-        if pixelsPerFrame < 0.1 { textEveryXFrames = 1000 }
-        if pixelsPerFrame < 0.04 { textEveryXFrames = 10000 }
-        
-        //
-        
-        let right = rect.right() - skin.margin.right - 2
-        
-        let item = sequence.items[uuid]
-//        print( "draw", uuid)
-//        print( item )
-        
-        mmView.renderer.setClipRect( MMRect(tlRect.x, rect.y, tlRect.width, rect.height ) )
-        
-        while x < right {
-            
-            if ( frames % textEveryXFrames ) == 0 {
-                // --- Long line with text
-                
-                mmView.drawBox.draw( x: x, y: y + 20, width: 2, height: 11, round: 0, fillColor : mmView.skin.Widget.borderColor )
-                
-                mmView.drawText.drawText(mmView.openSans, text: String(frames), x: x, y: y + 3, scale: 0.32)
-            } else
-            {
-                if (frames % (textEveryXFrames/10*2)) == 0 {
-                    // --- Short line with no text
-                    
-                    mmView.drawBox.draw( x: x, y: y + 25, width: 2, height: 6, round: 0, fillColor : mmView.skin.Widget.borderColor )
-                }
-            }
-            
-            x += pixelsPerFrame
-            frames += 1
-        }
-        
-        func drawMarker(x: Float, color: float4, frame: String? = nil)
-        {
-            let height : Float = 31
-            mmView.drawBox.draw( x: x, y: y + 1, width: 5, height: height, fillColor : color)
-            
-            if frame != nil {
-                mmView.drawBox.draw( x: x + 4.5, y: y + 0.5, width: Float(frame!.count * 10) + 5, height: 18, borderSize: 1.5, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : color)
-                mmView.drawText.drawText(mmView.openSans, text: frame!, x: x + 7, y: y + 3, scale: 0.32)
-
-            } else {
-                mmView.drawBox.draw( x: x + 3, y: y + 1, width: 10, height: 18, fillColor : color)
-            }
-        }
-        
-        // --- Keys
-        for(_,dict) in sequence.items {
-            for(frame,_) in dict {
-                let keyX = tlRect.x + Float(frame) * pixelsPerFrame
-                drawMarker( x: keyX, color : float4(0.137, 0.620, 0.784, 1.000) )
-            }
-        }
-        
-        // --- Marker
-        let markerX = tlRect.x + Float(currentFrame) * pixelsPerFrame
-        drawMarker( x: markerX, color : float4(0.675, 0.788, 0.184, 1.000), frame: String(currentFrame) )
-        
-        mmView.renderer.setClipRect()
-        
-        // Buttons
-        
-        recordButton.rect.x = tlRect.x
-        recordButton.rect.y = tlRect.y + 40
-        recordButton.draw()
-        
-        playButton.rect.x = tlRect.x + 60
-        playButton.rect.y = tlRect.y + 40
-        playButton.draw()
+        mmView.deregisterWidgets(widgets: recordButton, playButton, deleteButton)
     }
     
     override func mouseDown(_ event: MMMouseEvent)
     {
         if tlRect.contains(event.x, event.y) {
+            
+            currentKey = nil
+
+            // --- Check if user clicked on a keyframe
+            if let sequence = currentSequence {
+                for(uuid,dict) in sequence.items {
+                    for(frame,key) in dict {
+                        let keyX = tlRect.x + Float(frame) * pixelsPerFrame
+                        if event.x >= keyX && event.x <= keyX + 12 {
+                            currentKey = key
+                            mode = .ScrubbingKey
+                            keyScrubPos = frame
+                            keyScrubUUID = uuid
+                            return
+                        }
+                    }
+                }
+            }
+            
             let frame = frameAt(event.x,event.y)
             if frame != currentFrame && frame >= 0 && frame < totalFrames {
                 currentFrame = frame
                 changedCB?(currentFrame)
+                mmView.update()
             }
             mode = .Scrubbing
         }
@@ -250,6 +176,21 @@ class MMTimeline : MMWidget
             if frame != currentFrame && frame >= 0 && frame < totalFrames {
                 currentFrame = frame
                 changedCB?(currentFrame)
+                mmView.update()
+            }
+        } else
+        if mode == .ScrubbingKey {
+            let frame = frameAt(event.x,event.y)
+            
+            if frame != keyScrubPos {
+                var dict = currentSequence!.items[keyScrubUUID]
+                if let entry = dict!.removeValue(forKey: keyScrubPos) {
+                    dict![frame] = entry
+                    keyScrubPos = frame
+                    changedCB?(currentFrame)
+                    mmView.update()
+                }
+                currentSequence!.items[keyScrubUUID] = dict
             }
         }
     }
@@ -396,5 +337,124 @@ class MMTimeline : MMWidget
         for(frame,key) in sequence.items[uuid]! {
             print( "Key at \(frame): \(key)" )
         }
+    }
+    
+    func draw(_ sequence: MMTlSequence, uuid: UUID)
+    {
+        currentSequence = sequence
+        
+        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor : float4(0.110, 0.110, 0.110, 1.000), borderColor: float4(repeating: 0) )// mmView.skin.Widget.borderColor )
+        
+        let skin = mmView.skin.TimelineWidget
+        
+        if isPlaying {
+            currentFrame += 1
+            if currentFrame >= totalFrames {
+                currentFrame = 0
+            }
+            changedCB?(currentFrame)
+        }
+        
+        // --- Initialization
+        
+        var x = rect.x + skin.margin.left
+        let y = rect.y + skin.margin.top
+        
+        tlRect.x = x
+        tlRect.y = y
+        tlRect.width = rect.width - skin.margin.right - 8
+        tlRect.height = 40
+        
+        mmView.drawBox.draw( x: x - 4, y: y - 4, width: tlRect.width + 8, height: tlRect.height, round: 4, borderSize: 2, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : float4(0.133, 0.133, 0.133, 1.000) )
+        
+        pixelsPerFrame =  tlRect.width / Float(totalFrames)
+        visibleFrames = (tlRect.width - 7 - 2) / pixelsPerFrame
+        
+        let ratio = Float(totalFrames) / visibleFrames;
+        let startFrame = barStartX / pixelsPerFrame * ratio
+        visibleStartFrame = startFrame
+        
+        var frames : Int = Int(visibleStartFrame)
+        
+        var textEveryXFrames : Int = 10;
+        if pixelsPerFrame < 2.4  { textEveryXFrames = 50 }
+        if pixelsPerFrame < 1.0 { textEveryXFrames = 100 }
+        if pixelsPerFrame < 0.4 { textEveryXFrames = 500 }
+        if pixelsPerFrame < 0.1 { textEveryXFrames = 1000 }
+        if pixelsPerFrame < 0.04 { textEveryXFrames = 10000 }
+        
+        //
+        
+        let right = rect.right() - skin.margin.right - 2
+        
+        let item = sequence.items[uuid]
+        //        print( "draw", uuid)
+        //        print( item )
+        
+        mmView.renderer.setClipRect( MMRect(tlRect.x, rect.y, tlRect.width, rect.height ) )
+        
+        while x < right {
+            
+            if ( frames % textEveryXFrames ) == 0 {
+                // --- Long line with text
+                
+                mmView.drawBox.draw( x: x, y: y + 20, width: 2, height: 11, round: 0, fillColor : mmView.skin.Widget.borderColor )
+                
+                mmView.drawText.drawText(mmView.openSans, text: String(frames), x: x, y: y + 3, scale: 0.32)
+            } else
+            {
+                if (frames % (textEveryXFrames/10*2)) == 0 {
+                    // --- Short line with no text
+                    
+                    mmView.drawBox.draw( x: x, y: y + 25, width: 2, height: 6, round: 0, fillColor : mmView.skin.Widget.borderColor )
+                }
+            }
+            
+            x += pixelsPerFrame
+            frames += 1
+        }
+        
+        func drawMarker(x: Float, color: float4, frame: String? = nil)
+        {
+            let height : Float = 31
+            mmView.drawBox.draw( x: x, y: y + 1, width: 5, height: height, fillColor : color)
+            
+            if frame != nil {
+                mmView.drawBox.draw( x: x + 4.5, y: y + 1, width: Float(frame!.count * 10) + 5, height: 18, borderSize: 1.5, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : color)
+                mmView.drawText.drawText(mmView.openSans, text: frame!, x: x + 7, y: y + 3, scale: 0.32)
+                
+            } else {
+                mmView.drawBox.draw( x: x + 3, y: y + 1, width: 10, height: 18, fillColor : color)
+            }
+        }
+        
+        // --- Keys
+        for(_,dict) in sequence.items {
+            for(frame,key) in dict {
+                let keyX = tlRect.x + Float(frame) * pixelsPerFrame
+                drawMarker( x: keyX, color : float4(0.137, 0.620, 0.784, 1.000), frame: key === currentKey ? String(frame) : nil )
+            }
+        }
+        
+        // --- Marker
+        let markerX = tlRect.x + Float(currentFrame) * pixelsPerFrame
+        drawMarker( x: markerX, color : float4(0.675, 0.788, 0.184, 1.000), frame: currentKey === nil ? String(currentFrame) : nil )
+        
+        mmView.renderer.setClipRect()
+        
+        // Buttons
+        
+        recordButton.rect.x = tlRect.x
+        recordButton.rect.y = tlRect.y + 40
+        recordButton.draw()
+        
+        playButton.rect.x = tlRect.x + 50
+        playButton.rect.y = tlRect.y + 40
+        playButton.draw()
+        
+        deleteButton.isDisabled = currentKey == nil
+        deleteButton.rect.x = tlRect.x + 100
+        deleteButton.rect.y = tlRect.y + 40
+        deleteButton.draw()
     }
 }

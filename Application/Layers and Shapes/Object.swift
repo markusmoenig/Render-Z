@@ -122,6 +122,7 @@ class Object : Node
         self.name = "Instance of " + instanceFor.name
         self.subset = instanceFor.subset
         self.disks = instanceFor.disks
+        self.profile = instanceFor.profile
 
         if properties["posX"] == nil {
             properties["posX"] = 0

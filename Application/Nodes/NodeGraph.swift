@@ -796,7 +796,6 @@ class NodeGraph : Codable
             }
 
             nodesButton.draw()
-            playButton.draw()
         } else
         if region.type == .Right {
             region.rect.width = 0
