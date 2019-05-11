@@ -210,6 +210,7 @@ class NodeGraph : Codable
         
         addButton = MMButtonWidget(app.mmView, text: "Add" )
         addButton.clicked = { (event) -> Void in
+            
             if self.contentType == .Objects {
                 getStringDialog(view: app.mmView, title: "Add Object", message: "Object name", defaultValue: "New Object", cb: { (name) -> Void in
 
@@ -1904,6 +1905,13 @@ class NodeGraph : Codable
             items.append(editNodeItem)
         }
         
+        if node.helpUrl != nil {
+            let helpNodeItem =  MMMenuItem( text: "Help for " + node.type, cb: {
+                showHelp(node.helpUrl)
+            } )
+            items.append(helpNodeItem)
+        }
+
         let renameNodeItem =  MMMenuItem( text: "Rename", cb: {
             getStringDialog(view: self.mmView, title: "Rename Node", message: "Node name", defaultValue: node.name, cb: { (name) -> Void in
                 node.name = name

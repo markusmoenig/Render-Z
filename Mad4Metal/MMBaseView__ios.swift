@@ -264,3 +264,12 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
         topController.present(alert, animated: true, completion: nil)
     }
 }
+
+/// Open help in browser
+func showHelp(_ urlString: String? = nil)
+{
+    if urlString == nil { return }
+    
+    guard let url = URL(string: urlString!) else { return }
+    UIApplication.shared.open(url)
+}

@@ -241,3 +241,17 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
         }
     })
 }
+
+/// Show help window
+func showHelp(_ urlString: String? = nil)
+{
+    if urlString == nil { return }
+    
+    let appDelegate = (NSApplication.shared.delegate as! AppDelegate)
+    
+    appDelegate.helpWindowController.showWindow(appDelegate)
+    appDelegate.helpWindowController.window!.makeKeyAndOrderFront(appDelegate)
+    
+    let request = URLRequest(url:URL(string: urlString!)!)
+    appDelegate.webView.load(request)
+}

@@ -61,6 +61,7 @@ class Node : Codable
     var behaviorRoot    : BehaviorTreeRoot? = nil
     
     var playResult      : Result? = nil
+    var helpUrl         : String? = nil
 
     /// Static sizes
     static var NodeWithPreviewSize : float2 = float2(260,220)

@@ -7,11 +7,15 @@
 //
 
 import Cocoa
+import WebKit
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     weak var app: App!
+    
+    var helpWindowController: NSWindowController!
+    var webView             : WKWebView!
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
@@ -23,8 +27,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let window = app.mmView.window!
         window.representedURL = app.mmFile.url()
         window.title = app.mmFile.name
+        
+        let mainStoryboard = NSStoryboard.init(name: "Main", bundle: nil)
+        helpWindowController = (mainStoryboard.instantiateController(withIdentifier: "HelpWindow") as! NSWindowController)
     }
-
+    
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
@@ -125,6 +132,5 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // If we got here, it is time to quit.
         return .terminateNow
     }
-
 }
 

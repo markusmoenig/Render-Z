@@ -20,47 +20,37 @@ class ViewController: NSViewController {
         app = App( mmView )
         
         (NSApplication.shared.delegate as! AppDelegate).app = app
-        
-/*
-        
-        let myDocumentUrl = self.containerUrl//?
-//            .appendingPathComponent("testing")
-//            .appendingPathExtension("shape-z")
-        
-        var string = "Lots of data"
-        do {
-//            try string.write(to: myDocumentUrl!, atomically: true, encoding: .utf8)
-            
-//            let test = try String(contentsOf: myDocumentUrl!)
-//            print( test )
-            
-            let contents = try FileManager.default.contentsOfDirectory(at: myDocumentUrl!,
-                                                            includingPropertiesForKeys: nil,
-                                                            options: [.skipsHiddenFiles])
-//            print( contents )
-            
-            var isDir : ObjCBool = false
-            for file in contents {
-//                print( file )
-//                let attr = try FileManager.default.attributesOfItem(atPath:file.path)
-//                print( file.lastPathComponent )
-                
-                let dd = try FileManager.default.fileExists(atPath: file.path, isDirectory:&isDir)
-                print( file.lastPathComponent, file.path, isDir )
-
-//                try FileManager.default.removeItem(at: file.absoluteURL)
-
-            }
-
-        } catch {
-            print(error.localizedDescription)
-        }*/
-
     }
-
+    
     override var representedObject: Any? {
         didSet {
         // Update the view, if already loaded.
+        }
+    }
+}
+
+import WebKit
+
+
+class HelpViewController: NSViewController, WKUIDelegate {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        let helpView = view.subviews[0] as? WKWebView
+        if helpView != nil {
+            let appDelegate = (NSApplication.shared.delegate as! AppDelegate)
+            appDelegate.webView = helpView
+
+             //let urlString = "http://www.youtube.com";
+             //let request = URLRequest(url:URL(string: urlString)!)
+             //helpView!.load(request)
+        }
+    }
+    
+    override var representedObject: Any? {
+        didSet {
+            // Update the view, if already loaded.
         }
     }
 }

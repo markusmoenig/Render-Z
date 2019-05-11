@@ -17,6 +17,8 @@ class ObjectPhysics : Node
         name = "Physics Properties"
         type = "Object Physics"
         brand = .Property
+        
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/overview"
     }
     
     private enum CodingKeys: String, CodingKey {
