@@ -418,8 +418,11 @@ class Builder
         instance.objectMap[buildData.objectIndex] = object
         
         if physics {
-            // Init physics body
+            // Init physics body and set point offset
             object.body = Body(object)
+            object.physicPointOffset = buildData.pointIndex
+        } else {
+            object.buildPointOffset = buildData.pointIndex
         }
         
         for shape in object.shapes {
@@ -527,12 +530,6 @@ class Builder
             // --
             
             buildData.shapeIndex += 1
-            
-            if !physics {
-                object.buildPointOffset = buildData.pointIndex
-            } else {
-                object.physicPointOffset = buildData.pointIndex
-            }
             buildData.pointIndex += shape.pointCount
         }
         
@@ -770,6 +767,10 @@ class Builder
             instance.data![instance.objectDataOffset + (objectIndex) * 4] = objectProperties["border"]!
             instance.data![instance.objectDataOffset + (objectIndex) * 4 + 2] = parentScaleX
             instance.data![instance.objectDataOffset + (objectIndex) * 4 + 3] = parentScaleY
+            
+            object.properties["trans_scaleX"] = parentScaleX
+            object.properties["trans_scaleY"] = parentScaleY
+
             objectIndex += 1
             
             if instance.materialDataOffset != 0 {

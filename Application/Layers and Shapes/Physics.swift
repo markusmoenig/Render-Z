@@ -231,12 +231,13 @@ class Physics
         instance.data![6] = 1/camera.zoom
         instance.data![7] = 0
         
+        var objectIndex : Int = 0
+        
         func parseObject(_ object: Object)
         {
             for shape in object.shapes {
                 
                 for index in 0..<8 {
-                    //print(shapeIndex, index, shape.physicShapeOffset+index, builderInstance.data![shape.buildShapeOffset+index] )
                     instance.data![shape.physicShapeOffset+index] = builderInstance.data![shape.buildShapeOffset+index]
                 }
         
@@ -246,6 +247,10 @@ class Physics
                 }
             }
             
+            instance.data![instance.objectDataOffset + objectIndex * 4 + 2] = object.properties["trans_scaleX"]!
+            instance.data![instance.objectDataOffset + objectIndex * 4 + 3] = object.properties["trans_scaleY"]!
+            
+            objectIndex += 1
             for childObject in object.childObjects {
                 parseObject(childObject)
             }
