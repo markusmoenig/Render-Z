@@ -17,6 +17,7 @@ class App
     var bottomRegion    : BottomRegion?
     var editorRegion    : EditorRegion?
     
+    var shapeFactory    : ShapeFactory = ShapeFactory()
     var materialFactory : MaterialFactory = MaterialFactory()
     var nodeGraph       : NodeGraph
     

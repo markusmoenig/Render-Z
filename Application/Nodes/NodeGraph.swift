@@ -502,6 +502,7 @@ class NodeGraph : Codable
     
     func mouseMoved(_ event: MMMouseEvent)
     {
+        if currentMaster == nil { return }
         let scale : Float = currentMaster!.camera!.zoom
 
         let oldNodeHoverMode = nodeHoverMode
@@ -942,7 +943,7 @@ class NodeGraph : Codable
         if let texture = node.previewTexture {
             app!.mmView.drawTexture.draw(texture, x: node.rect.x + (node.rect.width - 200*scale)/2, y: node.rect.y + NodeGraph.bodyY * scale + node.uiArea.height * scale, zoom: 1/scale)
         } else
-        if node.maxDelegate != nil {
+        if node.maxDelegate != nil && node.minimumSize == Node.NodeWithPreviewSize {
             let rect : MMRect = MMRect( node.rect.x + (node.rect.width - 200*scale)/2, node.rect.y + NodeGraph.bodyY * scale + node.uiArea.height * scale, 200 * scale, 140 * scale)
             
             node.livePreview(nodeGraph: self, rect: rect)

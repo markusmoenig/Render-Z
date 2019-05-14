@@ -13,8 +13,11 @@ class ObjectPhysics : Node
     override init()
     {
         super.init()
-        
         name = "Physics Properties"
+    }
+    
+    override func setup()
+    {
         type = "Object Physics"
         brand = .Property
         
@@ -43,9 +46,6 @@ class ObjectPhysics : Node
 
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Object Physics"
-        brand = .Property
     }
     
     override func encode(to encoder: Encoder) throws
@@ -79,9 +79,12 @@ class ObjectAnimation : Node
         super.init()
         
         name = "Animation"
-        type = "Object Animation"
-        
         uiConnections.append(UINodeConnection(.Animation))
+    }
+    
+    override func setup()
+    {
+        type = "Object Animation"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -110,12 +113,9 @@ class ObjectAnimation : Node
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        //        test = try container.decode(Float.self, forKey: .test)
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Object Animation"
     }
     
     override func encode(to encoder: Encoder) throws
@@ -155,11 +155,15 @@ class ObjectApplyForce : Node
         super.init()
         
         name = "Apply Force"
-        type = "Object Apply Force"
         
         uiConnections.append(UINodeConnection(.ObjectInstance))
         uiConnections.append(UINodeConnection(.ValueVariable))
         uiConnections.append(UINodeConnection(.DirectionVariable))
+    }
+    
+    override func setup()
+    {
+        type = "Object Apply Force"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -193,12 +197,9 @@ class ObjectApplyForce : Node
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        //        test = try container.decode(Float.self, forKey: .test)
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Object Apply Force"
     }
     
     override func encode(to encoder: Encoder) throws

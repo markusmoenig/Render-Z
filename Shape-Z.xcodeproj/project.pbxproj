@@ -47,6 +47,10 @@
 		2B639F18221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
 		2B639F1A221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
 		2B639F1B221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
+		2B6D0035228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
+		2B6D0036228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
+		2B6D003722890AB500BEDCFD /* LayerArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0033228907E900BEDCFD /* LayerArea.swift */; };
+		2B6D003822890AB600BEDCFD /* LayerArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0033228907E900BEDCFD /* LayerArea.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
@@ -176,6 +180,8 @@
 		2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Shape-Z iOS.entitlements"; sourceTree = "<group>"; };
 		2B639F16221791F500576542 /* NodeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeList.swift; sourceTree = "<group>"; };
 		2B639F19221A32CD00576542 /* MMFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFile.swift; sourceTree = "<group>"; };
+		2B6D0033228907E900BEDCFD /* LayerArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerArea.swift; sourceTree = "<group>"; };
+		2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerAreaMaxDelegate.swift; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2BA344A121FE8497000BB2EB /* MMTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTimeline.swift; sourceTree = "<group>"; };
 		2BA344AC22029FA4000BB2EB /* MMFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFragment.swift; sourceTree = "<group>"; };
@@ -412,6 +418,8 @@
 				2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */,
 				2B4C380E2272AA2F0017361E /* ObjectProfile.swift */,
 				2B4C380F2272AA3A0017361E /* ObjectProfileMaxDelegate.swift */,
+				2B6D0033228907E900BEDCFD /* LayerArea.swift */,
+				2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */,
 				2BAC26D7226D652E00E20ADD /* Scene.swift */,
 				2BAC26D4226D640300E20ADD /* Game.swift */,
 				2BBF11E021EC1A92001C94E9 /* Shape.swift */,
@@ -604,6 +612,7 @@
 				2BBF11A021EAD46B001C94E9 /* TopRegion.swift in Sources */,
 				2BBF11E121EC1A92001C94E9 /* Shape.swift in Sources */,
 				2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */,
+				2B6D003722890AB500BEDCFD /* LayerArea.swift in Sources */,
 				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BAC26E1226FEC7E00E20ADD /* DiskBuilder.swift in Sources */,
 				2B46E966224481AC0047A94A /* MaterialSelector.swift in Sources */,
@@ -611,6 +620,7 @@
 				2BAC26D8226D652F00E20ADD /* Scene.swift in Sources */,
 				2B4C38122272ACCB0017361E /* ObjectProfileMaxDelegate.swift in Sources */,
 				2BAC26D5226D640300E20ADD /* Game.swift in Sources */,
+				2B6D0036228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */,
 				2BA6163C2259805800638794 /* MMColorWidget.swift in Sources */,
 				2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */,
 				2BBF11D521EADB46001C94E9 /* MMScrollArea.swift in Sources */,
@@ -676,6 +686,7 @@
 				2BBF11A121EAD46B001C94E9 /* TopRegion.swift in Sources */,
 				2BBF11E221EC1A92001C94E9 /* Shape.swift in Sources */,
 				2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */,
+				2B6D003822890AB600BEDCFD /* LayerArea.swift in Sources */,
 				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */,
 				2B46E967224481AC0047A94A /* MaterialSelector.swift in Sources */,
@@ -683,6 +694,7 @@
 				2BAC26D9226D652F00E20ADD /* Scene.swift in Sources */,
 				2B4C38132272ACCC0017361E /* ObjectProfileMaxDelegate.swift in Sources */,
 				2BAC26D6226D640300E20ADD /* Game.swift in Sources */,
+				2B6D0035228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */,
 				2BA6163D2259805800638794 /* MMColorWidget.swift in Sources */,
 				2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */,
 				2BBF11D621EADB46001C94E9 /* MMScrollArea.swift in Sources */,

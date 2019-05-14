@@ -18,12 +18,16 @@ class ObjectProfile : Node
     {
         super.init()
         
-        type = "3D Profile"
         name = "3D Profile"
+    }
+    
+    override func setup()
+    {
+        type = "3D Profile"
         brand = .Property
         
-        maxDelegate = ObjectProfileMaxDelegate()
         minimumSize = Node.NodeWithPreviewSize
+        maxDelegate = ObjectProfileMaxDelegate()
     }
     
     required init(from decoder: Decoder) throws
@@ -32,11 +36,6 @@ class ObjectProfile : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "3D Profile"
-        maxDelegate = ObjectProfileMaxDelegate()
-        minimumSize = Node.NodeWithPreviewSize
-        brand = .Property
     }
     
     override func encode(to encoder: Encoder) throws

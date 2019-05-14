@@ -72,6 +72,8 @@ class Gizmo : MMWidget
     var pointIndex      : Int = 0
     
     var scale           : Float = 1
+    
+    var maxDelegate     : NodeMaxDelegate? = nil
 
     override required init(_ view : MMView)
     {
@@ -138,7 +140,7 @@ class Gizmo : MMWidget
         }
     }
     
-    func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor, materialType: Object.MaterialType = .Body)
+    func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor, materialType: Object.MaterialType = .Body, customDelegate: NodeMaxDelegate? = nil)
     {
         self.object = object
         self.context = context
@@ -148,6 +150,11 @@ class Gizmo : MMWidget
             self.rootObject = rootObject
         } else {
             self.rootObject = object
+        }
+        
+        // Assign the maxDelegate
+        if self.rootObject != nil {
+            maxDelegate = customDelegate == nil ? self.rootObject!.maxDelegate : customDelegate
         }
         
         colorWidget.setState(.Closed)
@@ -301,13 +308,13 @@ class Gizmo : MMWidget
                 shape.properties["point_\(shape.pointCount)_y"] = ptY
                 shape.pointCount += 1
                 
-                rootObject!.maxDelegate!.update(true)
+                maxDelegate!.update(true)
             } else
             if hoverState == .RemovePoint {
                 let shape = object!.getSelectedShapes()[0]
                 if shape.pointCount > 3 {
                     shape.pointCount -= 1
-                    rootObject!.maxDelegate!.update(true)
+                    maxDelegate!.update(true)
                 }
             }
         } else {
@@ -474,6 +481,8 @@ class Gizmo : MMWidget
                     initialValues[object.uuid]!["posX"] = transformed["posX"]!
                     initialValues[object.uuid]!["posY"] = transformed["posY"]!
                     initialValues[object.uuid]!["rotate"] = transformed["rotate"]!
+                    initialValues[object.uuid]!["scaleX"] = transformed["scaleX"]!
+                    initialValues[object.uuid]!["scaleY"] = transformed["scaleY"]!
                 }
             } else
             if mode == .Point {
@@ -530,7 +539,7 @@ class Gizmo : MMWidget
         
         // Update the material list
         if object != nil && context == .MaterialEditor {
-            rootObject!.maxDelegate!.update(false, updateLists: true)
+            maxDelegate!.update(false, updateLists: true)
         }
 
         if hoverState == .GizmoUIMouseLocked {
@@ -584,7 +593,7 @@ class Gizmo : MMWidget
                             }
                             
                             mode = .Normal
-                            rootObject!.maxDelegate!.update(false)
+                            maxDelegate!.update(false)
                             break
                         }
                     }
@@ -637,7 +646,7 @@ class Gizmo : MMWidget
             let pos = convertToSceneSpace(x: event.x, y: event.y)
             let selectedShapeObjects = object!.getSelectedShapes()
             let selectedMaterialObjects = object!.getSelectedMaterials(materialType)
-            rootObject!.maxDelegate!.update(false)
+            maxDelegate!.update(false)
             
             if dragState == .CenterMove {
                 if context == .ShapeEditor {
@@ -796,6 +805,18 @@ class Gizmo : MMWidget
                         ]
                         processGizmoMaterialProperties(properties, material: material)
                     }
+                } else
+                if context == .ObjectEditor {
+                    for object in objects {
+                        var value = initialValues[object.uuid]!["scaleX"]! + ((pos.x - dragStartOffset!.x)) * 0.1 / scale
+                        if value < 0 {
+                            value = 0
+                        }
+                        let properties : [String:Float] = [
+                            "scaleX" : value,
+                        ]
+                        processGizmoObjectProperties(properties, object: object)
+                    }
                 }
             } else
             if dragState == .yAxisScale {
@@ -826,6 +847,18 @@ class Gizmo : MMWidget
                             properties[material.widthProperty] = material.properties[propName]
                         }
                         processGizmoMaterialProperties(properties, material: material)
+                    }
+                } else
+                if context == .ObjectEditor {
+                    for object in objects {
+                        var value = initialValues[object.uuid]!["scaleY"]! - ((pos.y - dragStartOffset!.y)) * 0.1 / scale
+                        if value < 0 {
+                            value = 0
+                        }
+                        let properties : [String:Float] = [
+                            "scaleY" : value,
+                        ]
+                        processGizmoObjectProperties(properties, object: object)
                     }
                 }
             } else
@@ -870,7 +903,7 @@ class Gizmo : MMWidget
                 shape.properties[name] = value
             }
         } else {
-            let timeline = rootObject!.maxDelegate!.getTimeline()!
+            let timeline = maxDelegate!.getTimeline()!
             let uuid = shape.uuid
             timeline.addKeyProperties(sequence: rootObject!.currentSequence!, uuid: uuid, properties: properties)
         }
@@ -884,7 +917,7 @@ class Gizmo : MMWidget
                 object.properties[name] = value
             }
         } else {
-            let timeline = rootObject!.maxDelegate!.getTimeline()!
+            let timeline = maxDelegate!.getTimeline()!
             let uuid = object.uuid
             timeline.addKeyProperties(sequence: rootObject!.currentSequence!, uuid: uuid, properties: properties)
         }
@@ -898,7 +931,7 @@ class Gizmo : MMWidget
                 material.properties[name] = value
             }
         } else {
-            let timeline = rootObject!.maxDelegate!.getTimeline()!
+            let timeline = maxDelegate!.getTimeline()!
             let uuid = material.uuid
             timeline.addKeyProperties(sequence: rootObject!.currentSequence!, uuid: uuid, properties: properties)
         }
@@ -1677,7 +1710,7 @@ class Gizmo : MMWidget
     {
         var result : float2 = float2()
         
-        let camera = rootObject!.maxDelegate!.getCamera()!
+        let camera = maxDelegate!.getCamera()!
         
         result.x = (x - camera.xPos + 0.5)// / 700 * rect.width
         result.y = (y - camera.yPos + 0.5)// / 700 * rect.width
@@ -1699,7 +1732,7 @@ class Gizmo : MMWidget
         result.x = (x - rect.x)// * 700 / rect.width
         result.y = (y - rect.y)// * 700 / rect.width
         
-        let camera = rootObject!.maxDelegate!.getCamera()!
+        let camera = maxDelegate!.getCamera()!
 
         // --- Center
         result.x -= rect.width / 2 - camera.xPos
@@ -1712,7 +1745,7 @@ class Gizmo : MMWidget
     /// Returns true if the timeline is currently recording
     func isRecording() -> Bool
     {
-        let timeline = rootObject!.maxDelegate!.getTimeline()!
+        let timeline = maxDelegate!.getTimeline()!
 
         return timeline.isRecording
     }
@@ -1720,7 +1753,7 @@ class Gizmo : MMWidget
     /// Get transformed properties
     func getTransformedProperties(_ shape: Shape) -> [String:Float]
     {
-        let timeline = rootObject!.maxDelegate!.getTimeline()!
+        let timeline = maxDelegate!.getTimeline()!
         
         let transformed = timeline.transformProperties(sequence: rootObject!.currentSequence!, uuid: shape.uuid, properties: shape.properties)
         return transformed
@@ -1729,7 +1762,7 @@ class Gizmo : MMWidget
     /// Get transformed properties
     func getTransformedProperties(_ material: Material) -> [String:Float]
     {
-        let timeline = rootObject!.maxDelegate!.getTimeline()!
+        let timeline = maxDelegate!.getTimeline()!
         
         let transformed = timeline.transformProperties(sequence: rootObject!.currentSequence!, uuid: material.uuid, properties: material.properties)
         return transformed
@@ -1764,7 +1797,7 @@ class Gizmo : MMWidget
     {
         var attributes : [String:Float] = [:]
         
-        let objectProperties = transformTo(object!, timeline: rootObject!.maxDelegate!.getTimeline()!)
+        let objectProperties = transformTo(object!, timeline: maxDelegate!.getTimeline()!)
 
         attributes["posX"] = objectProperties["posX"]! * scale
         attributes["posY"] = -objectProperties["posY"]! * scale
@@ -2011,7 +2044,7 @@ class GizmoNode : Node
             for shape in selectedShapes {
                 gizmo!.processGizmoProperties(properties, shape: shape)
             }
-            gizmo!.rootObject!.maxDelegate!.update(false)
+            gizmo!.maxDelegate!.update(false)
         } else
         if gizmo!.context == .MaterialEditor
         {
@@ -2020,7 +2053,7 @@ class GizmoNode : Node
             for material in selectedMaterials {
                 gizmo!.processGizmoMaterialProperties(properties, material: material)
             }
-            gizmo!.rootObject!.maxDelegate!.update(true, updateLists: true)
+            gizmo!.maxDelegate!.update(true, updateLists: true)
         }
     }
 }

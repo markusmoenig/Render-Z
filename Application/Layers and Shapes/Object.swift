@@ -87,17 +87,26 @@ class Object : Node
         
         super.init()
         
-        type = "Object"
-        
         properties["posX"] = 0
         properties["posY"] = 0
         properties["rotate"] = 0
         properties["border"] = 2
-        
-        maxDelegate = ObjectMaxDelegate()
-        minimumSize = Node.NodeWithPreviewSize
+        properties["scaleX"] = 1
+        properties["scaleY"] = 1
         
         subset = []
+    }
+    
+    override func setup() {
+        type = "Object"
+        
+        if properties["scaleX"] == nil {
+            properties["scaleX"] = 1
+            properties["scaleY"] = 1
+        }
+
+        maxDelegate = ObjectMaxDelegate()
+        minimumSize = Node.NodeWithPreviewSize
     }
 
     /// Creates an instance of the given object with the given instance properties
@@ -128,6 +137,8 @@ class Object : Node
             properties["posX"] = 0
             properties["posY"] = 0
             properties["rotate"] = 0
+            properties["scaleX"] = 1
+            properties["scaleY"] = 1
         }
         properties["border"] = instanceFor.properties["border"]
         minimumSize = Node.NodeWithPreviewSize
@@ -153,10 +164,6 @@ class Object : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Object"
-        maxDelegate = ObjectMaxDelegate()
-        minimumSize = Node.NodeWithPreviewSize
     }
     
     override func encode(to encoder: Encoder) throws

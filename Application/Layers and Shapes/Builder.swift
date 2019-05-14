@@ -44,6 +44,8 @@ class BuildData
     // --- Hierarchy
     var parentPosX          : Float = 0
     var parentPosY          : Float = 0
+    var parentScaleX        : Float = 1
+    var parentScaleY        : Float = 1
     var parentRotate        : Float = 0
     
     // --- Source
@@ -407,6 +409,8 @@ class Builder
     {
         buildData.parentPosX += object.properties["posX"]!
         buildData.parentPosY += object.properties["posY"]!
+        buildData.parentScaleX *= object.properties["scaleX"]!
+        buildData.parentScaleY *= object.properties["scaleY"]!
         buildData.parentRotate += object.properties["rotate"]!
         
         instance.objectMap[buildData.objectIndex] = object
@@ -428,6 +432,7 @@ class Builder
             buildData.source += "shape = &\(buildData.mainDataName)shapes[\(buildData.shapeIndex)];\n"
             
             buildData.source += "tuv = translate( uv, shape->pos );"
+            buildData.source += "tuv /= \(buildData.mainDataName)objects[\(buildData.objectIndex)].scale;\n"
             if shape.pointCount == 0 {
                 buildData.source += "if ( shape->rotate != 0.0 ) tuv = rotateCCW( tuv, shape->rotate );\n"
             } else {
@@ -633,6 +638,8 @@ class Builder
         
         buildData.parentPosX -= object.properties["posX"]!
         buildData.parentPosY -= object.properties["posY"]!
+        buildData.parentScaleX /= object.properties["scaleX"]!
+        buildData.parentScaleY /= object.properties["scaleY"]!
         buildData.parentRotate -= object.properties["rotate"]!
     }
     
@@ -679,6 +686,8 @@ class Builder
         var parentPosX : Float = 0
         var parentPosY : Float = 0
         var parentRotate : Float = 0
+        var parentScaleX : Float = 1
+        var parentScaleY : Float = 1
         let itemSize : Int = 12
         var rootObject : Object!
         var currentFrame : Int = frame
@@ -695,6 +704,8 @@ class Builder
             
             parentPosX += objectProperties["posX"]!
             parentPosY += objectProperties["posY"]!
+            parentScaleX *= objectProperties["scaleX"]!
+            parentScaleY *= objectProperties["scaleY"]!
             parentRotate += objectProperties["rotate"]!
             
             for shape in object.shapes {
@@ -755,6 +766,8 @@ class Builder
             
             // --- Fill in Object Data
             instance.data![instance.objectDataOffset + (objectIndex) * 4] = objectProperties["border"]!
+            instance.data![instance.objectDataOffset + (objectIndex) * 4 + 2] = parentScaleX
+            instance.data![instance.objectDataOffset + (objectIndex) * 4 + 3] = parentScaleY
             objectIndex += 1
             
             if instance.materialDataOffset != 0 {
@@ -824,6 +837,8 @@ class Builder
             
             parentPosX -= objectProperties["posX"]!
             parentPosY -= objectProperties["posY"]!
+            parentScaleX /= objectProperties["scaleX"]!
+            parentScaleY /= objectProperties["scaleY"]!
             parentRotate -= objectProperties["rotate"]!
         }
         
@@ -838,6 +853,8 @@ class Builder
             }
             parentPosX = 0
             parentPosY = 0
+            parentScaleX = 1
+            parentScaleY = 1
             parentRotate = 0
             parseObject(object)
             if object.instanceOf != nil && object.maxFrame > 0 {
@@ -946,6 +963,8 @@ class Builder
         
         var parentPosX : Float = 0
         var parentPosY : Float = 0
+        var parentScaleX : Float = 1
+        var parentScaleY : Float = 1
         var parentRotate : Float = 0
         
         var objectIndex : Int = 0
@@ -968,6 +987,8 @@ class Builder
             
             parentPosX += objectProperties["posX"]!
             parentPosY += objectProperties["posY"]!
+            parentScaleX *= objectProperties["scaleX"]!
+            parentScaleY *= objectProperties["scaleY"]!
             parentRotate += objectProperties["rotate"]!
             
             for (shapeIndex, shape) in object.shapes.enumerated() {
@@ -996,6 +1017,7 @@ class Builder
                 
                 // --- Rotate
                 source += "uv = translate( tuv, float2( \(posX), \(posY) ) );\n"
+                source += "uv /= float2( \(parentScaleX), \(parentScaleY) );\n"
                 if rotate != 0.0 {
                     if shape.pointCount == 0 {
                         source += "uv = rotateCCW( uv, \(rotate) );\n"
@@ -1050,6 +1072,8 @@ class Builder
             
             parentPosX -= objectProperties["posX"]!
             parentPosY -= objectProperties["posY"]!
+            parentScaleX /= objectProperties["scaleX"]!
+            parentScaleY /= objectProperties["scaleY"]!
             parentRotate -= objectProperties["rotate"]!
         }
         
@@ -1057,6 +1081,8 @@ class Builder
             rootObject = object
             parentPosX = 0
             parentPosY = 0
+            parentScaleX = 1
+            parentScaleY = 1
             parentRotate = 0
             parseObject(object)
         }
@@ -1302,7 +1328,7 @@ class Builder
         {
             float       border;
             float       fill1;
-            float2      fill2;
+            float2      scale;
         } OBJECT_DATA;
 
         """

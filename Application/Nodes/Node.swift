@@ -84,6 +84,7 @@ class Node : Codable
     {
         properties = [:]
         minimumSize = Node.NodeMinimumSize
+        setup()
     }
     
     required init(from decoder: Decoder) throws
@@ -104,6 +105,7 @@ class Node : Codable
         }
         
         minimumSize = Node.NodeMinimumSize
+        setup()
     }
 
     func encode(to encoder: Encoder) throws
@@ -146,6 +148,11 @@ class Node : Codable
     func setupUI(mmView: MMView)
     {
         computeUIArea(mmView: mmView)
+    }
+    
+    /// Setup
+    func setup()
+    {
     }
     
     /// Recomputes the UI area of the node
@@ -439,6 +446,7 @@ enum NodeFamily: String, NodeClassFamily {
     case selector = "Selector"
     case inverter = "Inverter"
     case layer = "Layer"
+    case layerArea = "Layer Area"
     case keyDown = "Key Down"
     case scene = "Scene"
     case game = "Game"
@@ -466,6 +474,8 @@ enum NodeFamily: String, NodeClassFamily {
             
             case .layer:
                 return Layer.self
+            case .layerArea:
+                return LayerArea.self
             
             case .scene:
                 return Scene.self

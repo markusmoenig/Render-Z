@@ -72,6 +72,12 @@ class NodeList : MMWidget
             return ObjectPhysics()
         }
         addNodeItem(item, type: .Property, displayType: .Object)
+        // --- Layer Area
+        item = NodeListItem("Area")
+        item.createNode = {
+            return LayerArea()
+        }
+        addNodeItem(item, type: .Property, displayType: .Layer)
         // --- Game Platform OSX
         item = NodeListItem("Platform: OSX")
         item.createNode = {
