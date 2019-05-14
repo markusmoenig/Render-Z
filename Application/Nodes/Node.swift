@@ -211,7 +211,7 @@ class Node : Codable
 class UINodeConnection: Codable
 {
     enum ConnectionType: Int, Codable {
-        case Object, ObjectInstance, Animation, ValueVariable, DirectionVariable
+        case Object, ObjectInstance, Animation, ValueVariable, DirectionVariable, LayerArea
     }
     
     var connectionType      : ConnectionType = .ValueVariable
@@ -447,6 +447,7 @@ enum NodeFamily: String, NodeClassFamily {
     case inverter = "Inverter"
     case layer = "Layer"
     case layerArea = "Layer Area"
+    case clickInLayerArea = "Click In Layer Area"
     case keyDown = "Key Down"
     case scene = "Scene"
     case game = "Game"
@@ -476,6 +477,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return Layer.self
             case .layerArea:
                 return LayerArea.self
+            case .clickInLayerArea:
+                return ClickInLayerArea.self
             
             case .scene:
                 return Scene.self

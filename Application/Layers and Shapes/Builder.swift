@@ -145,6 +145,8 @@ class Builder
         for object in objects {
             buildData.parentPosX = 0
             buildData.parentPosY = 0
+            buildData.parentScaleX = 1
+            buildData.parentScaleY = 1
             buildData.parentRotate = 0
             parseObject(object, instance: instance, buildData: buildData)
         }
@@ -499,8 +501,8 @@ class Builder
             
             let posX = properties["posX"]! + buildData.parentPosX
             let posY = properties["posY"]! + buildData.parentPosY
-            let sizeX = properties[shape.widthProperty]
-            let sizeY = properties[shape.heightProperty]
+            let sizeX = properties[shape.widthProperty]!
+            let sizeY = properties[shape.heightProperty]!
             let rotate = (properties["rotate"]!+buildData.parentRotate) * Float.pi / 180
             
             if !physics {
@@ -511,8 +513,8 @@ class Builder
             
             instance.data!.append( posX )
             instance.data!.append( posY )
-            instance.data!.append( sizeX! )
-            instance.data!.append( sizeY! )
+            instance.data!.append( sizeX )
+            instance.data!.append( sizeY )
             instance.data!.append( rotate )
             instance.data!.append( properties["rounding"]! )
             instance.data!.append( properties["annular"]! )
@@ -764,7 +766,7 @@ class Builder
                 pointIndex += shape.pointCount
             }
             
-            // --- Fill in Object Data
+            // --- Fill in Object Data: Currently border and scale
             instance.data![instance.objectDataOffset + (objectIndex) * 4] = objectProperties["border"]!
             instance.data![instance.objectDataOffset + (objectIndex) * 4 + 2] = parentScaleX
             instance.data![instance.objectDataOffset + (objectIndex) * 4 + 3] = parentScaleY

@@ -143,7 +143,13 @@ class NodeList : MMWidget
             return Selector()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
-        // --- Leave: Key Down
+        // --- Leaf: Click in Layer Area
+        item = NodeListItem("Click in Layer Area")
+        item.createNode = {
+            return ClickInLayerArea()
+        }
+        addNodeItem(item, type: .Behavior, displayType: .All)
+        // --- Leaf: Key Down
         item = NodeListItem("OSX: Key Down")
         item.createNode = {
             return KeyDown()

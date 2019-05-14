@@ -1542,22 +1542,31 @@ class NodeGraph : Codable
             
             // Fill up an master picker with self + all global masters
             if item.role == .MasterPicker {
-                if let masterObject = getMasterForNode(node) as? Object {
+                
+                if let master = getMasterForNode(node) /* as? Object*/ {
                     
                     if let picker = item as? NodeUIMasterPicker {
                         
                         let conn = picker.uiConnection
                         let type = conn.connectionType
                         
-                        if type != .ObjectInstance {
-                            picker.items = ["Self"]
-                            picker.uuids = [masterObject.uuid]
+                        if type != .ObjectInstance && type != .LayerArea {
+                            if let _ = master as? Object {
+                                picker.items = ["Self"]
+                                picker.uuids = [master.uuid]
+                            }
+                        } else
+                        if type == .LayerArea {
+                            if let _ = master as? Layer {
+                                picker.items = ["Self"]
+                                picker.uuids = [master.uuid]
+                            }
                         }
                         
                         if type == .Object || type == .Animation {
                             // Animation: Only pick other Objects as Layers etc dont have animations
                             for n in nodes {
-                                if n.subset != nil && n.uuid != masterObject.uuid && (n as? Object) != nil {
+                                if n.subset != nil && n.uuid != master.uuid && (n as? Object) != nil {
                                     picker.items.append(n.name)
                                     picker.uuids.append(n.uuid)
                                 }
@@ -1574,11 +1583,22 @@ class NodeGraph : Codable
                                 }
                             }
                         } else
+                        if type == .LayerArea {
+                            // LayerArea: Only pick layers
+                            for n in nodes {
+                                if let layer = n as? Layer {
+                                    if n.uuid != master.uuid {
+                                        picker.items.append(layer.name)
+                                        picker.uuids.append(layer.uuid)
+                                    }
+                                }
+                            }
+                        } else
                         if type == .ValueVariable {
                             // Value Variable. Pick every master which has a value variable
                             for n in nodes {
-                                if n.subset != nil && n.uuid != masterObject.uuid {
-                                    let subs = getNodesOfMaster(for: masterObject)
+                                if n.subset != nil && n.uuid != master.uuid {
+                                    let subs = getNodesOfMaster(for: master)
                                     for s in subs {
                                         if s.type == "Value Variable" {
                                             picker.items.append(n.name)
@@ -1592,8 +1612,8 @@ class NodeGraph : Codable
                         if type == .DirectionVariable {
                             // Direction Variable. Pick every master which has a direction variable
                             for n in nodes {
-                                if n.subset != nil && n.uuid != masterObject.uuid {
-                                    let subs = getNodesOfMaster(for: masterObject)
+                                if n.subset != nil && n.uuid != master.uuid {
+                                    let subs = getNodesOfMaster(for: master)
                                     for s in subs {
                                         if s.type == "Direction Variable" {
                                             picker.items.append(n.name)
@@ -1625,13 +1645,26 @@ class NodeGraph : Codable
                                 }
                             }
                             
-                            if conn.connectedMaster == nil {
+                            if conn.connectedMaster == nil && picker.uuids.count > 0 {
                                 // Not connected, connect to first element(self)
-                                conn.connectedMaster = masterObject.uuid
-                                conn.masterNode = masterObject
-                                picker.index = 0
+                                
+                                let firstListNode = getNodeForUUID(picker.uuids[0])
+                                if firstListNode != nil {
+                                    if type == .LayerArea && (firstListNode as? Layer) != nil {
+                                        conn.connectedMaster = picker.uuids[0]
+                                        conn.masterNode = firstListNode
+                                        picker.index = 0
+                                    } else
+                                    if type != .LayerArea && (firstListNode as? Object) != nil {
+                                        conn.connectedMaster = picker.uuids[0]
+                                        conn.masterNode = firstListNode
+                                        picker.index = 0
+                                    }
+                                }
                             }
-                        } else {
+                        } else
+                        if type == .ObjectInstance
+                        {
                             // For object instances only assign picker index as instance is created live during execution
                             conn.masterNode = nil
                             for (index, uuid) in picker.uuids.enumerated() {
@@ -1773,6 +1806,50 @@ class NodeGraph : Codable
                     node.computeUIArea(mmView: app!.mmView)
                 }
             }
+            
+            // LayerArea picker, show the layer areas of the master
+            if item.role == .LayerAreaPicker {
+                if let picker = item as? NodeUILayerAreaPicker {
+                    let conn = picker.uiConnection
+                    if conn.masterNode != nil {
+                        let layer = conn.masterNode as! Layer
+                        
+                        picker.items = []
+                        picker.uuids = []
+                        
+                        conn.target = nil
+                        let subs = getNodesOfMaster(for: layer)
+                        var index : Int = 0
+                        var first : Node? = nil
+                        for s in subs {
+                            if s.type == "Layer Area" {
+                                if first == nil {
+                                    first = s
+                                }
+                                picker.items.append(s.name)
+                                picker.uuids.append(s.uuid)
+                                if conn.connectedTo == s.uuid {
+                                    conn.target = s
+                                    picker.index = Float(index)
+                                }
+                                index += 1
+                            }
+                        }
+                        
+                        if conn.target == nil && picker.items.count > 0 {
+                            // Not connected, connect to first node
+                            conn.connectedTo = first?.uuid
+                            conn.target = first
+                            picker.index = 0
+                        } else {
+                            conn.connectedTo = nil
+                        }
+                        
+                        node.computeUIArea(mmView: app!.mmView)
+                    }
+                }
+            }
+            
         }
         
         if updatePreview {

@@ -15,7 +15,7 @@ class NodeUI
     }
     
     enum Role {
-        case None, MasterPicker, AnimationPicker, ValueVariablePicker, DirectionVariablePicker
+        case None, MasterPicker, AnimationPicker, ValueVariablePicker, DirectionVariablePicker, LayerAreaPicker
     }
     
     var mmView      : MMView!
@@ -305,6 +305,27 @@ class NodeUIDirectionVariablePicker : NodeUIDropDown
         super.init(node, variable: variable, title: title, items: [])
         uiConnection.uiPicker = self
         role = .DirectionVariablePicker
+    }
+    
+    override func internal_changed()
+    {
+        uiConnection.connectedTo = uuids[Int(index)]
+        uiConnection.target = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedTo!)
+    }
+}
+
+/// Layer area picker derived from NodeUIDropDown and with .LayerAreaPicker role
+class NodeUILayerAreaPicker : NodeUIDropDown
+{
+    var uiConnection        : UINodeConnection
+    var uuids               : [UUID] = []
+    
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        uiConnection = connection
+        super.init(node, variable: variable, title: title, items: [])
+        uiConnection.uiPicker = self
+        role = .LayerAreaPicker
     }
     
     override func internal_changed()

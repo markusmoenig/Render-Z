@@ -140,6 +140,12 @@ class Object : Node
             properties["scaleX"] = 1
             properties["scaleY"] = 1
         }
+        
+        if properties["scaleX"] == nil {
+            properties["scaleX"] = 1
+            properties["scaleY"] = 1
+        }
+        
         properties["border"] = instanceFor.properties["border"]
         minimumSize = Node.NodeWithPreviewSize
     }
