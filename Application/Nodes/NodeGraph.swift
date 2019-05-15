@@ -30,6 +30,8 @@ class NodeGraph : Codable
 
     var app             : App?
     var mmView          : MMView!
+    var mmScreen        : MMScreen? = nil
+
     var maximizedNode   : Node?
     var hoverNode       : Node?
     var currentNode     : Node?
@@ -277,6 +279,7 @@ class NodeGraph : Codable
                 // --- Start Playing
                 self.playToExecute = []
                 self.playNode = self.currentMaster!
+                self.mmScreen = MMScreen(self.mmView)
 
                 let node = self.playNode
                 if node!.type == "Object" {
@@ -505,6 +508,11 @@ class NodeGraph : Codable
         if currentMaster == nil { return }
         let scale : Float = currentMaster!.camera!.zoom
 
+        if let screen = mmScreen {
+            screen.mousePos.x = event.x
+            screen.mousePos.y = event.y
+        }
+        
         let oldNodeHoverMode = nodeHoverMode
         
         // Disengage hover types for the ui items
@@ -1004,48 +1012,10 @@ class NodeGraph : Codable
         
         node.data.scale = 1
         
-        var leftTerminalCount : Int = 0
-        var topTerminalCount : Int = 0
-        var rightTerminalCount : Int = 0
-        var bottomTerminalCount : Int = 0
-        
-        var color : float3 = float3()
-        var leftTerminalY : Float = NodeGraph.tOffY
-        for (index,terminal) in node.terminals.enumerated() {
-            color = getColorForTerminal(terminal)
-            if terminal.connector == .Left {
-                
-                if index == 0 {
-                    node.data.leftTerminals.0 = float4( color.x, color.y, color.z, leftTerminalY)
-                }
-                
-                leftTerminalCount += 1
-                leftTerminalY += NodeGraph.tSpacing * 2
-            }  else
-            if terminal.connector == .Top {
-                
-                node.data.topTerminal = float4( color.x, color.y, color.z, 3)
-                topTerminalCount += 1
-            } else
-            if terminal.connector == .Right {
-                
-                color = getColorForTerminal(terminal)
-                
-                node.data.rightTerminal = float4( color.x, color.y, color.z, NodeGraph.tOffY)
-                rightTerminalCount += 1
-            } else
-            if terminal.connector == .Bottom {
-                
-                node.data.bottomTerminal = float4( color.x, color.y, color.z, 10)
-                
-                bottomTerminalCount += 1
-            }
-        }
-        
-        node.data.leftTerminalCount = Float(leftTerminalCount)
-        node.data.topTerminalCount = Float(topTerminalCount)
-        node.data.rightTerminalCount = Float(rightTerminalCount)
-        node.data.bottomTerminalCount = Float(bottomTerminalCount)
+        node.data.leftTerminalCount = 0
+        node.data.topTerminalCount = 0
+        node.data.rightTerminalCount = 0
+        node.data.bottomTerminalCount = 0
         
         // --- Draw It
         
@@ -1066,6 +1036,14 @@ class NodeGraph : Codable
             
             // Preview Border
             app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 0, borderSize: 3, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
+            
+            // If previewing fill in the screen dimensions
+            if let screen = mmScreen {
+                screen.rect.x = x
+                screen.rect.y = y
+                screen.rect.width = previewSize.x
+                screen.rect.height = previewSize.y
+            }
         }
         
         // --- Buttons
@@ -1757,7 +1735,8 @@ class NodeGraph : Codable
                         conn.connectedTo = first?.uuid
                         conn.target = first
                         picker.index = 0
-                    } else {
+                    } else
+                    if conn.target == nil {
                         conn.connectedTo = nil
                     }
                     
@@ -1799,7 +1778,8 @@ class NodeGraph : Codable
                         conn.connectedTo = first?.uuid
                         conn.target = first
                         picker.index = 0
-                    } else {
+                    } else
+                    if conn.target == nil {
                         conn.connectedTo = nil
                     }
                     
@@ -1841,7 +1821,8 @@ class NodeGraph : Codable
                             conn.connectedTo = first?.uuid
                             conn.target = first
                             picker.index = 0
-                        } else {
+                        } else
+                        if conn.target == nil {
                             conn.connectedTo = nil
                         }
                         

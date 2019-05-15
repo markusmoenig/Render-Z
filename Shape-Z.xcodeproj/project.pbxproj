@@ -152,6 +152,8 @@
 		2BE6710C2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
 		2BEA8C3722573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
 		2BEA8C3822573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
+		2BED879D228B9D9C005CE147 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
+		2BED879E228B9D9C005CE147 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
 		2BF5D361221D2B2400EAAA76 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
 		2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
 		2BF5D3652220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
@@ -246,6 +248,7 @@
 		2BE67107221291D200B95241 /* Node.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Node.metal; sourceTree = "<group>"; };
 		2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectMaxDelegate.swift; sourceTree = "<group>"; };
 		2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatWidget.swift; sourceTree = "<group>"; };
+		2BED879C228B9D9C005CE147 /* MMScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScreen.swift; sourceTree = "<group>"; };
 		2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectNodes.swift; sourceTree = "<group>"; };
 		2BF5D363221E7E2D00EAAA76 /* Data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
 		2BF5D3642220D50D00EAAA76 /* Behavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Behavior.swift; sourceTree = "<group>"; };
@@ -393,6 +396,7 @@
 				2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */,
 				2BA344A121FE8497000BB2EB /* MMTimeline.swift */,
 				2B639F19221A32CD00576542 /* MMFile.swift */,
+				2BED879C228B9D9C005CE147 /* MMScreen.swift */,
 			);
 			path = Mad4Metal;
 			sourceTree = "<group>";
@@ -617,6 +621,7 @@
 				2BAC26E1226FEC7E00E20ADD /* DiskBuilder.swift in Sources */,
 				2B46E966224481AC0047A94A /* MaterialSelector.swift in Sources */,
 				2BAC26DB226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */,
+				2BED879D228B9D9C005CE147 /* MMScreen.swift in Sources */,
 				2BAC26D8226D652F00E20ADD /* Scene.swift in Sources */,
 				2B4C38122272ACCB0017361E /* ObjectProfileMaxDelegate.swift in Sources */,
 				2BAC26D5226D640300E20ADD /* Game.swift in Sources */,
@@ -691,6 +696,7 @@
 				2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */,
 				2B46E967224481AC0047A94A /* MaterialSelector.swift in Sources */,
 				2BAC26DC226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */,
+				2BED879E228B9D9C005CE147 /* MMScreen.swift in Sources */,
 				2BAC26D9226D652F00E20ADD /* Scene.swift in Sources */,
 				2B4C38132272ACCC0017361E /* ObjectProfileMaxDelegate.swift in Sources */,
 				2BAC26D6226D640300E20ADD /* Game.swift in Sources */,

@@ -178,3 +178,13 @@ func toRGB(_ h: Float, _ s: Float, _ l: Float) -> (Float, Float, Float)
     
     return (r,g,b)
 }
+
+func createNodeCamera(_ node: Node) -> Camera
+{
+    let prevOffX = node.properties["prevOffX"]
+    let prevOffY = node.properties["prevOffY"]
+    let prevScale = node.properties["prevScale"]
+    let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
+    
+    return camera
+}
