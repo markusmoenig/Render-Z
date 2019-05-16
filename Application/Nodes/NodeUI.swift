@@ -332,7 +332,6 @@ class NodeUILayerAreaPicker : NodeUIDropDown
     {
         uiConnection.connectedTo = uuids[Int(index)]
         uiConnection.target = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedTo!)
-        print("selected", uiConnection.connectedTo)
     }
 }
 

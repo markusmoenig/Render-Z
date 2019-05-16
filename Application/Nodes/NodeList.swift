@@ -111,13 +111,36 @@ class NodeList : MMWidget
             return ObjectAnimation()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
+        // --- Object Animation
+        item = NodeListItem("Animation State")
+        item.createNode = {
+            return ObjectAnimationState()
+        }
+        addNodeItem(item, type: .Function, displayType: .Object)
         // --- Object Apply Force
         item = NodeListItem("Apply Force")
         item.createNode = {
             return ObjectApplyForce()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
-        
+        // --- Object Apply Directional Force
+        item = NodeListItem("Apply Dir. Force")
+        item.createNode = {
+            return ObjectApplyDirectionalForce()
+        }
+        addNodeItem(item, type: .Function, displayType: .Object)
+        // --- Instance Collision Any
+        item = NodeListItem("Collision (Any)")
+        item.createNode = {
+            return ObjectCollisionAny()
+        }
+        addNodeItem(item, type: .Function, displayType: .Object)
+        // --- Object Touch Layer Area
+        item = NodeListItem("Touch Layer Area")
+        item.createNode = {
+            return ObjectTouchLayerArea()
+        }
+        addNodeItem(item, type: .Function, displayType: .Object)
         
         // --- Behavior: Behavior Tree
         item = NodeListItem("Behavior Tree")

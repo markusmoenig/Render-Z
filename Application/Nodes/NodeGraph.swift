@@ -409,6 +409,12 @@ class NodeGraph : Codable
         if hoverUITitle != nil {
             hoverUITitle?.titleClicked()
         }
+        
+        if let screen = mmScreen {
+            screen.mouseDownPos.x = event.x
+            screen.mouseDownPos.y = event.y
+            screen.mouseDown = true
+        }
                 
 //        #if !os(OSX)
         if nodeHoverMode != .MenuOpen {
@@ -488,6 +494,10 @@ class NodeGraph : Codable
             hoverNode!.menu!.mouseUp(event)
             nodeHoverMode = .None
             return
+        }
+        
+        if let screen = mmScreen {
+            screen.mouseDown = false
         }
         
         if nodeHoverMode == .NodeUIMouseLocked {

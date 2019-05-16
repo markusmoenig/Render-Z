@@ -67,7 +67,7 @@ class LayerArea : Node
         playResult = .Success
         
         if properties["status"] != nil && properties["status"]! == 0 {
-            if let object = root.objectRoot {
+            if let _ = root.objectRoot {
             }
         }
         return playResult!

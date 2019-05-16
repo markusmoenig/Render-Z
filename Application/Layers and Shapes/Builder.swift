@@ -862,34 +862,39 @@ class Builder
             parseObject(object)
             if object.instanceOf != nil && object.maxFrame > 0 {
                 let frames : Float = 1 * object.animationScale
-                object.properties["isAnimating"] = 1
                 
                 if object.animationMode == .Loop {
                     object.frame += frames
+                    object.animationState = .GoingForward
                     if object.frame > object.maxFrame {
                         object.frame = 0
                     }
                 } else
                 if object.animationMode == .InverseLoop {
                     object.frame -= frames
+                    object.animationState = .GoingBackward
                     if object.frame < 0 {
                         object.frame = object.maxFrame
                     }
                 } else
                 if object.animationMode == .GotoStart {
                     object.frame -= frames
+                    object.animationState = .GoingBackward
                     if object.frame < 0 {
                         object.frame = 0
-                        object.properties["isAnimating"] = 0
+                        object.animationState = .AtStart
                     }
                 } else
                 if object.animationMode == .GotoEnd {
                     object.frame += frames
+                    object.animationState = .GoingForward
                     if object.frame > object.maxFrame {
                         object.frame = object.maxFrame
-                        object.properties["isAnimating"] = 0
+                        object.animationState = .AtEnd
                     }
                 }
+            } else {
+                object.animationState = .NotAnimating
             }
         }
     }

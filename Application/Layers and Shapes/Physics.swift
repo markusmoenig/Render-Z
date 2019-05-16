@@ -80,7 +80,7 @@ class Physics
             float4      points[\(max(buildData.maxPoints, 1))];
             OBJECT_DATA objects[\(max(buildData.maxObjects, 1))];
         
-            DYN_OBJ_DATA  dynamicObjects[\(dynaCount)];
+            DYN_OBJ_DATA dynamicObjects[\(dynaCount)];
         } PHYSICS_DATA;
         
         typedef struct
@@ -302,6 +302,11 @@ class Physics
         
         let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 4)
         
+        /// Reset collision infos
+        for object in instance.dynamicObjects {
+            object.body?.collisionInfos = []
+        }
+        
         offset = 0
         var manifolds : [Manifold] = []
         for object in instance.dynamicObjects {
@@ -387,6 +392,8 @@ class Body
     
     var object              : Object
     
+    var collisionInfos      : [CollisionInfo] = []
+    
     init(_ object: Object)
     {
         self.object = object
@@ -447,6 +454,9 @@ class Manifold
         restitution = min(bodyA.restitution, bodyB.restitution)
         staticFriction = sqrt(bodyA.staticFriction * bodyB.staticFriction)
         dynamicFriction = sqrt(bodyA.dynamicFriction * bodyB.dynamicFriction)
+        
+        bodyA.collisionInfos.append( CollisionInfo(collisionWith: bodyB.object) )
+        bodyB.collisionInfos.append( CollisionInfo(collisionWith: bodyA.object) )
     }
     
     func resolve()
@@ -495,5 +505,16 @@ class Manifold
         let correction = max( penetrationDepth - slop, 0.0 ) / (bodyA.invMass + bodyB.invMass) * normal * percent;
         bodyA.applyToPosition(-correction)
         bodyB.applyToPosition(correction)
+    }
+}
+
+/// Collision Info
+class CollisionInfo
+{
+    var     collisionWith   : Object
+    
+    init(collisionWith: Object)
+    {
+        self.collisionWith = collisionWith
     }
 }

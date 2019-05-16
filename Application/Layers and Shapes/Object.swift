@@ -18,6 +18,10 @@ class Object : Node
         case Loop, InverseLoop, GotoStart, GotoEnd
     }
     
+    enum AnimationState : Int {
+        case NotAnimating, AtStart, GoingForward, GoingBackward, AtEnd
+    }
+    
     var shapes          : [Shape]
     var bodyMaterials   : [Material]
     var borderMaterials : [Material]
@@ -25,6 +29,8 @@ class Object : Node
     
     /// The timeline sequences for this object
     var animationMode   : AnimationMode = .Loop
+    var animationState  : AnimationState = .NotAnimating
+    
     var sequences       : [MMTlSequence]
     var currentSequence : MMTlSequence? = nil
     /// Animation related, the current animation frame plus the max frame for the current sequence

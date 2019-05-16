@@ -12,6 +12,9 @@ class MMScreen : MMWidget {
     
     // Mouse position in view coordinates
     var mousePos        : float2 = float2(0,0)
+    var mouseDownPos    : float2 = float2(0,0)
+    
+    var mouseDown       : Bool = false
     
     override init(_ view: MMView)
     {

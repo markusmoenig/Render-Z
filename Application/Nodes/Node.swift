@@ -438,7 +438,11 @@ enum NodeFamily: String, NodeClassFamily {
     case objectPhysics = "Object Physics"
     case objectProfile = "3D Profile"
     case objectAnimation = "Object Animation"
+    case objectAnimationState = "Object Animation State"
     case objectApplyForce = "Object Apply Force"
+    case objectApplyDirectionalForce = "Object Apply Directional Force"
+    case objectCollisionAny = "Object Collision (Any)"
+    case objectTouchLayerArea = "Object Touch Layer Area"
     case gamePlatformOSX = "Platform OSX"
     case gamePlatformIPAD = "Platform IPAD"
     case behaviorTree = "Behavior Tree"
@@ -470,8 +474,16 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectProfile.self
             case .objectAnimation:
                 return ObjectAnimation.self
+            case .objectAnimationState:
+                return ObjectAnimationState.self
             case .objectApplyForce:
                 return ObjectApplyForce.self
+            case .objectApplyDirectionalForce:
+                return ObjectApplyDirectionalForce.self
+            case .objectCollisionAny:
+                return ObjectCollisionAny.self
+            case .objectTouchLayerArea:
+                return ObjectTouchLayerArea.self
             
             case .layer:
                 return Layer.self

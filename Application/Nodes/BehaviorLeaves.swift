@@ -146,6 +146,10 @@ class ClickInLayerArea : Node
                 let screen = nodeGraph.mmScreen!
                 let camera = createNodeCamera(layer)
                 
+                if screen.mouseDown == false {
+                    return playResult!
+                }
+                
                 if let mouse = screen.tranformToCamera(screen.mousePos, camera) {
                     //print("mouse", area.name, mouse.x, mouse.y)
                     
