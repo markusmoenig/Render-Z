@@ -13,28 +13,30 @@ import MetalKit
 
 class MMRenderer : NSObject, MTKViewDelegate {
     
-    let device: MTLDevice
-    let commandQueue: MTLCommandQueue
+    let device          : MTLDevice
+    let commandQueue    : MTLCommandQueue
     
     var renderPipelineState : MTLRenderPipelineState!
 
-    var outputTexture : MTLTexture!
+    var outputTexture   : MTLTexture!
     
-    var viewportSize : vector_uint2
+    var viewportSize    : vector_uint2
     
     let pipelineStateDescriptor : MTLRenderPipelineDescriptor
-    var renderEncoder: MTLRenderCommandEncoder!
+    var renderEncoder   : MTLRenderCommandEncoder!
     
-    let defaultLibrary : MTLLibrary
+    let defaultLibrary  : MTLLibrary
     
-    let mmView : MMView
-    var vertexBuffer : MTLBuffer?
+    let mmView          : MMView
+    var vertexBuffer    : MTLBuffer?
     
-    var width : Float!
-    var height : Float!
+    var width           : Float!
+    var height          : Float!
     
-    var cWidth : Float!
-    var cHeight : Float!
+    var cWidth          : Float!
+    var cHeight         : Float!
+    
+    var clipRects       : [MMRect] = []
     
     var currentRenderEncoder: MTLRenderCommandEncoder?
     
@@ -122,18 +124,18 @@ class MMRenderer : NSObject, MTKViewDelegate {
     
     func setClipRect(_ rect: MMRect? = nil )
     {
-        if rect != nil {
+        func applyClipRect(_ rect: MMRect)
+        {
+            let x : Int = Int(rect.x * mmView.scaleFactor)
+            let y : Int = Int(rect.y * mmView.scaleFactor)
             
-            let x : Int = Int(rect!.x * mmView.scaleFactor)
-            let y : Int = Int(rect!.y * mmView.scaleFactor)
-            
-            var width : Int = Int(rect!.width * mmView.scaleFactor)
-            var height : Int = Int(rect!.height * mmView.scaleFactor )
+            var width : Int = Int(rect.width * mmView.scaleFactor)
+            var height : Int = Int(rect.height * mmView.scaleFactor )
             
             if x + width < 0 {
                 return;
             }
-        
+            
             if x > Int(self.width) {
                 return;
             }
@@ -155,8 +157,29 @@ class MMRenderer : NSObject, MTKViewDelegate {
             }
             
             currentRenderEncoder?.setScissorRect( MTLScissorRect(x: x, y: y, width: width, height: height ) )
+        }
+        
+        if rect != nil {
+            
+            let newRect = MMRect(rect!)
+
+            if clipRects.count > 0 {
+                newRect.intersect( clipRects[clipRects.count-1] )
+            }
+            
+            applyClipRect(newRect)
+            clipRects.append(newRect)
         } else {
-            currentRenderEncoder?.setScissorRect( MTLScissorRect(x:0, y:0, width:Int(viewportSize.x), height:Int(viewportSize.y) ) )
+            if clipRects.count > 0 {
+                clipRects.removeLast()
+            }
+            
+            if clipRects.count > 0 {
+                let last = clipRects.removeLast()
+                applyClipRect(last)
+            } else {
+                currentRenderEncoder?.setScissorRect( MTLScissorRect(x:0, y:0, width:Int(viewportSize.x), height:Int(viewportSize.y) ) )
+            }
         }
     }
     

@@ -26,6 +26,12 @@ class MMRect
         x = 0; y = 0; width = 0; height = 0
     }
     
+    init(_ rect : MMRect)
+    {
+        x = rect.x; y = rect.y
+        width = rect.width; height = rect.height
+    }
+    
     /// Copy the content of the given rect
     func copy(_ rect : MMRect)
     {
@@ -40,6 +46,46 @@ class MMRect
             return true;
         }
         return false;
+    }
+    
+    func intersect(_ rect: MMRect)
+    {
+        /*
+        var left = Math.max( this.x, rect.x );
+        var top = Math.max( this.y, rect.y );
+        
+        var right = Math.min( this.x+this.width, rect.x+rect.width );
+        var bottom = Math.min( this.y+this.height, rect.y+rect.height );
+        
+        var width = right - left;
+        var height= bottom - top;
+        
+        if( width > 0 && height > 0 )
+        return VG.Core.Rect(left, top, width, height);*/
+        
+        let left = max(x, rect.x)
+        let top = max(y, rect.y)
+        let right = min(x + width, rect.x + rect.width )
+        let bottom = min(y + height, rect.y + rect.height )
+        let width = right - left
+        let height = bottom - top
+        
+        if width > 0 && height > 0 {
+            x = left
+            y = top
+            self.width = width
+            self.height = height
+        } else {
+            copy(rect)
+        }
+    }
+    
+    func merge(_ rect: MMRect)
+    {
+        width = width > rect.width ? width : rect.width + (rect.x - x)
+        height = height > rect.height ? height : rect.height + (rect.y - y)
+        x = min(x, rect.x)
+        y = min(y, rect.y)
     }
     
     /// Returns the cordinate of the right edge of the rectangle
