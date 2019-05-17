@@ -436,6 +436,7 @@ enum NodeDiscriminator: String, CodingKey {
 enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
     case objectPhysics = "Object Physics"
+    case setObjectPhysics = "Set Object Physics"
     case objectProfile = "3D Profile"
     case objectAnimation = "Object Animation"
     case objectAnimationState = "Object Animation State"
@@ -470,6 +471,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return Object.self
             case .objectPhysics:
                 return ObjectPhysics.self
+            case .setObjectPhysics:
+                return SetObjectPhysics.self
             case .objectProfile:
                 return ObjectProfile.self
             case .objectAnimation:

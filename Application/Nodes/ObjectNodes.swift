@@ -33,7 +33,7 @@ class ObjectPhysics : Node
         uiItems = [
             NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1),
             NodeUINumber(self, variable: "physicsMass", title: "Mass", range: float2(0, 50), value: 1),
-            NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 1), value: 0.2)
+            NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 5), value: 0.2)
         ]
         
         super.setupUI(mmView: mmView)
@@ -69,6 +69,89 @@ class ObjectPhysics : Node
             return .Success
         }
         return .Failure
+    }
+}
+
+/// Sets a physic property
+class SetObjectPhysics : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Set Physic Property"
+        uiConnections.append(UINodeConnection(.ObjectInstance))
+    }
+    
+    override func setup()
+    {
+        type = "Set Object Physics"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIMasterPicker(self, variable: "master", title: "Instance", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "property", title: "Property", items: ["Mass", "Restitution"], index: 0),
+            NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1),
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Execute the given animation
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        
+        if root.objectRoot != nil {
+            if uiConnections[0].connectedMaster != nil {
+                if let inst = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
+                    let property = properties["property"]!
+                    let value = properties["value"]!
+                    
+                    if let body = inst.body {
+                        if property == 0 {
+                            body.mass = value
+                        } else
+                        if property == 1 {
+                            body.restitution = value
+                        }
+                        playResult = .Success
+                    }
+                }
+            }
+        }
+        
+        return playResult!
     }
 }
 

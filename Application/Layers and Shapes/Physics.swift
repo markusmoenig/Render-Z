@@ -407,7 +407,6 @@ class Body
                 invMass = 1 / mass
             }
             restitution = object.properties["physicsRestitution"]!
-            //force.y = 3000
         }
     }
     

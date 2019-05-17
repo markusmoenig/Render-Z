@@ -175,8 +175,8 @@ class MMRenderer : NSObject, MTKViewDelegate {
             }
             
             if clipRects.count > 0 {
-                let last = clipRects.removeLast()
-                applyClipRect(last)
+                //let last = clipRects.removeLast()
+                applyClipRect( clipRects[clipRects.count-1] )
             } else {
                 currentRenderEncoder?.setScissorRect( MTLScissorRect(x:0, y:0, width:Int(viewportSize.x), height:Int(viewportSize.y) ) )
             }

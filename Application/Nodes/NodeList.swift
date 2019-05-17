@@ -141,6 +141,12 @@ class NodeList : MMWidget
             return ObjectTouchLayerArea()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
+        // --- Object Set Physics
+        item = NodeListItem("Set Physic Property")
+        item.createNode = {
+            return SetObjectPhysics()
+        }
+        addNodeItem(item, type: .Function, displayType: .Object)
         
         // --- Behavior: Behavior Tree
         item = NodeListItem("Behavior Tree")
