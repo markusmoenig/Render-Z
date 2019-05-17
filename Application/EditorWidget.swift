@@ -12,6 +12,8 @@ class EditorWidget      : MMWidget
 {
     var app             : App
     var region          : EditorRegion
+
+    var scrolledMode    : Int? = nil
     
     var dispatched      : Bool = false
     
@@ -48,6 +50,7 @@ class EditorWidget      : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        scrolledMode = nil
         if app.nodeGraph.maximizedNode == nil {
             app.nodeGraph.mouseDown(event)
         } else {
@@ -68,6 +71,18 @@ class EditorWidget      : MMWidget
     {        
         if app.nodeGraph.maximizedNode == nil {
             if app.nodeGraph.hoverNode != nil && app.nodeGraph.nodeHoverMode == .Preview {
+                
+                #if os(iOS)
+                // Prevent scrolling over several areas
+                if scrolledMode == nil {
+                    scrolledMode = 0
+                } else {
+                    if scrolledMode != 0 {
+                        return
+                    }
+                }
+                #endif
+                
                 // Node preview translation
                 let node = app.nodeGraph.hoverNode!
                 var prevOffX = node.properties["prevOffX"] != nil ? node.properties["prevOffX"]! : 0
@@ -95,6 +110,18 @@ class EditorWidget      : MMWidget
             if app.nodeGraph.nodeHoverMode == .None && app.nodeGraph.currentMaster != nil
             {
                 // NodeGraph translation
+                
+                #if os(iOS)
+                // Prevent scrolling over several areas
+                if scrolledMode == nil {
+                    scrolledMode = 1
+                } else {
+                    if scrolledMode != 1 {
+                        return
+                    }
+                }
+                #endif
+
                 if let camera = app.nodeGraph.currentMaster!.camera {
                     #if os(OSX)
                     if mmView.commandIsDown && event.deltaY! != 0 {

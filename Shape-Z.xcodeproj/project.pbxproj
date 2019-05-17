@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B039200228E5BC9002D62C9 /* LayerNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */; };
+		2B039201228E5BC9002D62C9 /* LayerNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */; };
 		2B128761225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
 		2B128762225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
 		2B333D13226043FF0008A8CF /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
@@ -161,6 +163,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerNodes.swift; sourceTree = "<group>"; };
 		2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatPopUp.swift; sourceTree = "<group>"; };
 		2B333D12226043FF0008A8CF /* MMScrollButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScrollButton.swift; sourceTree = "<group>"; };
 		2B46E95C224330050047A94A /* MMTabWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabWidget.swift; sourceTree = "<group>"; };
@@ -447,6 +450,7 @@
 				2B4CC22C2226669000A47812 /* NodeUI.swift */,
 				2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */,
 				2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */,
+				2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */,
 				2BF5D3642220D50D00EAAA76 /* Behavior.swift */,
 				2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */,
 				2BE6710422125D7D00B95241 /* NodeGraph.swift */,
@@ -616,6 +620,7 @@
 				2BBF11A021EAD46B001C94E9 /* TopRegion.swift in Sources */,
 				2BBF11E121EC1A92001C94E9 /* Shape.swift in Sources */,
 				2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */,
+				2B039200228E5BC9002D62C9 /* LayerNodes.swift in Sources */,
 				2B6D003722890AB500BEDCFD /* LayerArea.swift in Sources */,
 				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BAC26E1226FEC7E00E20ADD /* DiskBuilder.swift in Sources */,
@@ -691,6 +696,7 @@
 				2BBF11A121EAD46B001C94E9 /* TopRegion.swift in Sources */,
 				2BBF11E221EC1A92001C94E9 /* Shape.swift in Sources */,
 				2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */,
+				2B039201228E5BC9002D62C9 /* LayerNodes.swift in Sources */,
 				2B6D003822890AB600BEDCFD /* LayerArea.swift in Sources */,
 				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */,
