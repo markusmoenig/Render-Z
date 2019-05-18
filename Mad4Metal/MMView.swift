@@ -30,6 +30,7 @@ class MMView : MMBaseView {
     var drawText        : MMDrawText!
     var drawCustomState : MMDrawCustomState!
     var drawLine        : MMDrawLine!
+    var drawSpline      : MMDrawSpline!
     var drawColorWheel  : MMDrawColorWheel!
 
     // --- Fonts
@@ -97,6 +98,7 @@ class MMView : MMBaseView {
         drawText = MMDrawText( renderer )
         drawCustomState = MMDrawCustomState( renderer )
         drawLine = MMDrawLine( renderer )
+        drawSpline = MMDrawSpline( renderer )
         drawColorWheel = MMDrawColorWheel( renderer )
     }
     

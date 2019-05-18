@@ -36,6 +36,17 @@ typedef struct
 
 typedef struct
 {
+    float2 size;
+    float2 sp, cp, ep;
+    float width, borderSize;
+    float fill1, fill2;
+    float4 fillColor;
+    float4 borderColor;
+    
+} MM_SPLINE;
+
+typedef struct
+{
     vector_float2 size;
     float round, borderSize;
     vector_float4 fillColor;

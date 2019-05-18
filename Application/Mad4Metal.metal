@@ -96,6 +96,89 @@ fragment float4 m4mLineDrawable(RasterizerData in [[stage_in]],
     return col;
 }
 
+float m4mBezier(float2 pos, float2 p0, float2 p1, float2 p2)
+{
+    // p(t)    = (1-t)^2*p0 + 2(1-t)t*p1 + t^2*p2
+    // p'(t)   = 2*t*(p0-2*p1+p2) + 2*(p1-p0)
+    // p'(0)   = 2(p1-p0)
+    // p'(1)   = 2(p2-p1)
+    // p'(1/2) = 2(p2-p0)
+    float2 a = p1 - p0;
+    float2 b = p0 - 2.0*p1 + p2;
+    float2 c = p0 - pos;
+    
+    float kk = 1.0 / dot(b,b);
+    float kx = kk * dot(a,b);
+    float ky = kk * (2.0*dot(a,a)+dot(c,b)) / 3.0;
+    float kz = kk * dot(c,a);
+    
+    float2 res;
+    
+    float p = ky - kx*kx;
+    float p3 = p*p*p;
+    float q = kx*(2.0*kx*kx - 3.0*ky) + kz;
+    float h = q*q + 4.0*p3;
+    
+    if(h >= 0.0)
+    {
+        h = sqrt(h);
+        float2 x = (float2(h, -h) - q) / 2.0;
+        float2 uv = sign(x)*pow(abs(x), float2(1.0/3.0));
+        float t = uv.x + uv.y - kx;
+        t = clamp( t, 0.0, 1.0 );
+        
+        // 1 root
+        float2 qos = c + (2.0*a + b*t)*t;
+        res = float2( length(qos),t);
+    } else {
+        float z = sqrt(-p);
+        float v = acos( q/(p*z*2.0) ) / 3.0;
+        float m = cos(v);
+        float n = sin(v)*1.732050808;
+        float3 t = float3(m + m, -n - m, n - m) * z - kx;
+        t = clamp( t, 0.0, 1.0 );
+        
+        // 3 roots
+        float2 qos = c + (2.0*a + b*t.x)*t.x;
+        float dis = dot(qos,qos);
+        
+        res = float2(dis,t.x);
+        
+        qos = c + (2.0*a + b*t.y)*t.y;
+        dis = dot(qos,qos);
+        if( dis<res.x ) res = float2(dis,t.y );
+        
+        qos = c + (2.0*a + b*t.z)*t.z;
+        dis = dot(qos,qos);
+        if( dis<res.x ) res = float2(dis,t.z );
+        
+        res.x = sqrt( res.x );
+    }
+    return res.x;
+}
+
+fragment float4 m4mSplineDrawable(RasterizerData in [[stage_in]],
+                                constant MM_SPLINE *data [[ buffer(0) ]] )
+{
+    float2 size = data->size;// - float2(400, 400);
+    float2 uv = in.textureCoordinate * ( size + float2( data->borderSize ) * 2.0 );
+    uv -= float2( size / 2.0 + data->borderSize / 2.0 );
+    //    uv -= (data->sp + data->ep) / 2;
+    
+    float dist = m4mBezier( uv, data->sp, data->cp, data->ep ) - data->width;
+    
+//    float2 o = uv - data->sp;
+//    float2 l = data->ep - data->sp;
+    
+//    float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
+//    float dist = -(data->width-distance(o,l*h));
+    
+    float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
+    col = mix( col, data->borderColor, m4mBorderMask( dist, data->borderSize ) );
+    
+    return col;
+}
+
 // --- Box Drawable
 fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],
                                constant MM_BOX *data [[ buffer(0) ]] )

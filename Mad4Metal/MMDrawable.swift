@@ -142,6 +142,59 @@ class MMDrawLine : MMDrawable
     }
 }
 
+/// Draws a Spline
+class MMDrawSpline : MMDrawable
+{
+    let mmRenderer : MMRenderer
+    var state : MTLRenderPipelineState!
+    
+    required init( _ renderer : MMRenderer )
+    {
+        let function = renderer.defaultLibrary.makeFunction( name: "m4mSplineDrawable" )
+        state = renderer.createNewPipelineState( function! )
+        mmRenderer = renderer
+    }
+    
+    func draw( sx: Float, sy: Float, cx: Float, cy: Float, ex: Float, ey: Float, radius: Float = 2, borderSize: Float = 0, fillColor: float4, borderColor: float4 = float4(repeating: 0) )
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        
+        let minX = min(sx, ex)
+        let maxX = max(sx, ex)
+        let minY = min(sy, ey)
+        let maxY = max(sy, ey)
+        
+        let areaWidth : Float = maxX - minX + borderSize + radius * 2 + 100 * scaleFactor
+        let areaHeight : Float = maxY - minY + borderSize + radius * 2 + 100 * scaleFactor
+        
+        let middleX : Float = (sx + ex) / 2 + 50 * scaleFactor
+        let middleY : Float = (sy + ey) / 2 + 50 * scaleFactor
+        
+        let settings: [Float] = [
+            areaWidth * scaleFactor, areaHeight * scaleFactor,
+            (sx - middleX) * scaleFactor, (middleY - sy) * scaleFactor,
+            (cx - middleX) * scaleFactor, (middleY - cy) * scaleFactor,
+            (ex - middleX) * scaleFactor, (middleY - ey) * scaleFactor,
+            radius * scaleFactor, borderSize * scaleFactor,
+            0, 0,
+            fillColor.x, fillColor.y, fillColor.z, fillColor.w,
+            borderColor.x, borderColor.y, borderColor.z, borderColor.w
+        ];
+        
+        let renderEncoder = mmRenderer.renderEncoder!
+        
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( minX - borderSize / 2, minY - borderSize / 2, areaWidth, areaHeight, scale: scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        renderEncoder.setRenderPipelineState( state! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+}
+
 /// Draws a box gradient
 class MMDrawBoxGradient : MMDrawable
 {

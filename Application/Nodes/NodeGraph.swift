@@ -1124,7 +1124,7 @@ class NodeGraph : Codable
                 } else
                 if t.connector == .Top {
                     if t.uuid == conn.terminal!.uuid {
-                        x = node.rect.width / 2 - 3 * scale
+                        x = node.rect.width / 2 - 6 * scale
                         y = 3 * scale + NodeGraph.tRadius * scale
                         
                         break;
@@ -1132,7 +1132,7 @@ class NodeGraph : Codable
                 } else
                 if t.connector == .Bottom {
                     if t.uuid == terminal.uuid {
-                        x = bottomX + NodeGraph.tRadius * scale
+                        x = bottomX + NodeGraph.tRadius * scale - 1 * scale
                         y = node.rect.height - 3 * scale - NodeGraph.tRadius * scale
                         
                         break;
@@ -1155,6 +1155,16 @@ class NodeGraph : Codable
             return nil
         }
         
+        func drawIt(_ from: (Float,Float), _ to: (Float, Float), _ color: float3)
+        {
+            //let dist = simd_distance(float2(from.0, from.1), float2(to.0, to.1)) / 4
+            
+            let cx = from.0// > to.0 ? from.0 - dist : from.0  dist
+            let cy = (from.1 + to.1 ) / 2
+            
+            app!.mmView.drawSpline.draw( sx: from.0, sy: from.1, cx: cx, cy: cy, ex: to.0, ey: to.1, radius: 2 * scale, fillColor : float4(color.x,color.y,color.z,1) )
+        }
+        
         let fromTuple = getPointForConnection(conn)
         
         let toConnection = getConnectionInTerminal(conn.toTerminal!, uuid: conn.toUUID)
@@ -1162,7 +1172,7 @@ class NodeGraph : Codable
         let toTuple = getPointForConnection(toConnection!)
 
         let color = getColorForTerminal(conn.terminal!)
-        app!.mmView.drawLine.draw( sx: fromTuple.0, sy: fromTuple.1, ex: toTuple.0, ey: toTuple.1, radius: 2 * scale, fillColor : float4(color.x,color.y,color.z,1) )
+        drawIt(fromTuple, toTuple, color)
     }
     
     /// Returns the node (if any) at the given mouse coordinates
