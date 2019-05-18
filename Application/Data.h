@@ -29,6 +29,8 @@ typedef struct
     float    rightTerminalCount;
     float    bottomTerminalCount;
     
+    float4   brandColor;
+
     float4   leftTerminals[5];
     
     float4   topTerminal;

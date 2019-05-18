@@ -61,6 +61,11 @@ float2 nodeRotateCW(float2 pos, float angle)
     return pos * float2x2(ca, -sa, sa, ca);
 }
 
+float opSmoothUnion( float d1, float d2, float k ) {
+    float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+    return mix( d2, d1, h ) - k*h*(1.0-h);
+}
+
 // --- Normal Gizmo
 
 fragment float4 drawNode(RasterizerData        in [[stage_in]],
@@ -112,12 +117,13 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     float2 point = in.textureCoordinate * data->size;
     point.y = data->size.y - point.y;
 
+    /*
     for( int i = 0; i < data->leftTerminalCount; i += 1)
     {
         uv = uvCopy;
         uv -= float2( 7 * scale, size.y - data->leftTerminals[i].w );
         dist = max( dist, -(length( uv ) - tRadius) );
-    }
+    }*/
     
     if ( data->topTerminalCount == 1 )
     {
@@ -126,12 +132,13 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         dist = max( dist, -(length( uv ) - tRadius) );
     }
     
+    /*
     if ( data->rightTerminalCount == 1 )
     {
         uv = uvCopy;
         uv -= float2( size.x - 4 * scale, size.y - data->rightTerminal.w );
         dist = max( dist, -(length( uv ) - tRadius) );
-    }
+    }*/
     
     if ( data->bottomTerminalCount > 0 )
     {
@@ -146,9 +153,24 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         }
     }
     
+    // Top left decorator
+    {
+        uv = uvCopy;
+        uv -= float2( 24 * scale, data->size.y - 18 * scale );
+    
+        float2 d = abs( uv ) - float2(20, 20) * scale;
+        float localDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 4.0 * scale;
+        dist = opSmoothUnion( dist, localDist, 3 );
+    }
+    
     // Body Color
     color = float4(0.118, 0.118, 0.118, 1.000);
     finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
+    
+    // Brand Color
+    float s = nodeGradient_linear(point, float2( 80 * scale, 35 * scale ), float2( 5 * scale, 5 * scale ) );
+    finalColor = mix( finalColor, data->brandColor, nodeFillMask( dist ) * s);
+    
     color = data->selected == 1 ? selBorderColor : borderColor;
     finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );
     
@@ -214,12 +236,6 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
             left += tSpacing + tDiam;
         }
     }
-    
-    // Body Color
-    float s = nodeGradient_linear(point, float2( 0, 0 ), float2( 0, data->size.y ) );
-    color = mix( float4(0.251, 0.251, 0.251, 1.000), float4(0.224, 0.224, 0.224, 1.000), clamp(s, 0, 1) );
-    
-    color = float4(0.118, 0.118, 0.118, 1.000);
     
     /*
     // Maximize Icon

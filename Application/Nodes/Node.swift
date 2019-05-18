@@ -10,7 +10,7 @@ import MetalKit
 
 //
 
-class Node : Codable
+class Node : Codable, Equatable
 {
     enum Brand {
         case Property, Behavior, Function, Arithmetic
@@ -120,6 +120,10 @@ class Node : Codable
         try container.encode(subset, forKey: .subset)
         try container.encode(uiConnections, forKey: .uiConnections)
         try container.encode(camera, forKey: .camera)
+    }
+    
+    static func ==(lhs:Node, rhs:Node) -> Bool { // Implement Equatable
+        return lhs.uuid == rhs.uuid
     }
     
     func onConnect(myTerminal: Terminal, toTerminal: Terminal)

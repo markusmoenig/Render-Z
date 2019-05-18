@@ -85,6 +85,7 @@ class SetObjectPhysics : Node
     
     override func setup()
     {
+        brand = .Function
         type = "Set Object Physics"
     }
     
@@ -167,6 +168,7 @@ class ObjectAnimation : Node
     
     override func setup()
     {
+        brand = .Function
         type = "Object Animation"
     }
     
@@ -243,6 +245,7 @@ class ObjectAnimationState : Node
     
     override func setup()
     {
+        brand = .Function
         type = "Object Animation State"
     }
     
@@ -320,6 +323,7 @@ class ObjectApplyForce : Node
     
     override func setup()
     {
+        brand = .Function
         type = "Object Apply Force"
     }
     
@@ -416,6 +420,7 @@ class ObjectApplyDirectionalForce : Node
     
     override func setup()
     {
+        brand = .Function
         type = "Object Apply Directional Force"
     }
     
@@ -521,6 +526,7 @@ class ObjectCollisionAny : Node
     
     override func setup()
     {
+        brand = .Function
         type = "Object Collision (Any)"
     }
     
@@ -597,6 +603,7 @@ class ObjectTouchLayerArea : Node
     
     override func setup()
     {
+        brand = .Function
         type = "Object Touch Layer Area"
     }
     

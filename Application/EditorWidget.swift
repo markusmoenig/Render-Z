@@ -127,6 +127,7 @@ class EditorWidget      : MMWidget
                     if mmView.commandIsDown && event.deltaY! != 0 {
                         camera.zoom += event.deltaY! * 0.003
                         camera.zoom = max(0.2, camera.zoom)
+                        camera.zoom = min(1.5, camera.zoom)
                     } else {
                         camera.xPos -= event.deltaX!
                         camera.yPos -= event.deltaY!

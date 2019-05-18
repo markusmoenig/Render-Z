@@ -171,6 +171,12 @@ class ResetValueVariable : Node
         uiConnections.append(UINodeConnection(.ValueVariable))
     }
     
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Reset Value Variable"
+    }
+    
     private enum CodingKeys: String, CodingKey {
         case type
     }
@@ -198,8 +204,6 @@ class ResetValueVariable : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Reset Value Variable"
     }
     
     override func encode(to encoder: Encoder) throws
@@ -236,9 +240,13 @@ class AddValueVariable : Node
         super.init()
         
         name = "Add Value"
-        type = "Add Value Variable"
-        
         uiConnections.append(UINodeConnection(.ValueVariable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Add Value Variable"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -271,8 +279,6 @@ class AddValueVariable : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Add Value Variable"
     }
     
     override func encode(to encoder: Encoder) throws

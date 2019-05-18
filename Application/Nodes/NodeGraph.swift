@@ -56,6 +56,8 @@ class NodeGraph : Codable
     
     var dragStartPos    : float2 = float2()
     var nodeDragStartPos: float2 = float2()
+    var childsOfSel     : [Node] = []
+    var childsOfSelPos  : [UUID:float2] = [:]
     
     var mousePos        : float2 = float2()
 
@@ -477,13 +479,33 @@ class NodeGraph : Codable
             if offY < 26 && selectedNode !== currentMaster {
                 dragStartPos.x = event.x
                 dragStartPos.y = event.y
-                
-                nodeDragStartPos.x = selectedNode.xPos
-                nodeDragStartPos.y = selectedNode.yPos
                 nodeHoverMode = .Dragging
                 
                 //app?.mmView.mouseTrackWidget = app?.editorRegion?.widget
                 app?.mmView.lockFramerate()
+                
+                // --- Get all nodes of the currently selected
+                childsOfSel = []
+                
+                func getChilds(_ n: Node)
+                {
+                    if !childsOfSel.contains(n) {
+                        
+                        childsOfSel.append(n)
+                        childsOfSelPos[n.uuid] = float2(n.xPos, n.yPos)
+                    }
+                    
+                    for terminal in n.terminals {
+                        
+                        if terminal.connector == .Bottom {
+                            for conn in terminal.connections {
+                                let toTerminal = conn.toTerminal!
+                                getChilds(toTerminal.node!)
+                            }
+                        }
+                    }
+                }
+                getChilds(selectedNode)
             }
         }
     }
@@ -559,10 +581,13 @@ class NodeGraph : Codable
         }
         
         // Drag Node
-        if nodeHoverMode == .Dragging {
-            
-            hoverNode!.xPos = nodeDragStartPos.x + event.x - dragStartPos.x
-            hoverNode!.yPos = nodeDragStartPos.y + event.y - dragStartPos.y
+        if nodeHoverMode == .Dragging {            
+            for n in childsOfSel {
+                if let pos = childsOfSelPos[n.uuid] {
+                    n.xPos = pos.x + (event.x - dragStartPos.x) / scale
+                    n.yPos = pos.y + (event.y - dragStartPos.y) / scale
+                }
+            }
             mmView.update()
             return
         }
@@ -833,8 +858,8 @@ class NodeGraph : Codable
         let scaleFactor : Float = app!.mmView.scaleFactor
         let scale : Float = currentMaster!.camera!.zoom
 
-        node.rect.x = region.rect.x + node.xPos + currentMaster!.camera!.xPos
-        node.rect.y = region.rect.y + node.yPos + currentMaster!.camera!.yPos
+        node.rect.x = region.rect.x + node.xPos * scale + currentMaster!.camera!.xPos
+        node.rect.y = region.rect.y + node.yPos * scale + currentMaster!.camera!.yPos
 
         node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
         node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
@@ -861,6 +886,19 @@ class NodeGraph : Codable
         
         node.data.selected = selectedUUID.contains(node.uuid) ? 1 : 0
         node.data.borderRound = 4
+        
+        if node.brand == .Behavior {
+            node.data.brandColor = mmView.skin.Node.behaviorColor
+        } else
+        if node.brand == .Property {
+            node.data.brandColor = mmView.skin.Node.propertyColor
+        } else
+        if node.brand == .Function {
+            node.data.brandColor = mmView.skin.Node.functionColor
+        } else
+        if node.brand == .Arithmetic {
+            node.data.brandColor = mmView.skin.Node.arithmeticColor
+        }
 
         if playNode != nil && node.playResult != nil {
             if node.playResult! == .Success {
@@ -992,10 +1030,6 @@ class NodeGraph : Codable
     func drawMasterNode(_ node: Node, region: MMRegion)
     {
         if contentType == .Game { return }
-
-        let renderer = app!.mmView.renderer!
-        let renderEncoder = renderer.renderEncoder!
-        let scaleFactor : Float = app!.mmView.scaleFactor
         
         node.rect.width = previewSize.x + 70
         node.rect.height = previewSize.y + 64 + 25
@@ -1003,39 +1037,7 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + region.rect.width - node.rect.width + 11 + 10
         node.rect.y = region.rect.y - 22
         
-        let vertexBuffer = renderer.createVertexBuffer( MMRect( node.rect.x, node.rect.y, node.rect.width, node.rect.height, scale: scaleFactor ) )
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
-        // --- Fill the node data
-        
-        node.data.size.x = node.rect.width
-        node.data.size.y = node.rect.height
-        
-        node.data.selected = 0
-        node.data.borderRound = 16
-        
-        node.data.hoverIndex = 0
-        
-        node.data.hasIcons1.x = 0
-        node.data.hasIcons1.y = 0
-        
-        node.data.scale = 1
-        
-        node.data.leftTerminalCount = 0
-        node.data.topTerminalCount = 0
-        node.data.rightTerminalCount = 0
-        node.data.bottomTerminalCount = 0
-        
-        // --- Draw It
-        
-        if node.buffer == nil {
-            node.buffer = renderer.device.makeBuffer(length: MemoryLayout<NODE_DATA>.stride, options: [])!
-        }
-        
-        memcpy(node.buffer!.contents(), &node.data, MemoryLayout<NODE_DATA>.stride)
-        renderEncoder.setFragmentBuffer(node.buffer!, offset: 0, index: 0)
-        renderEncoder.setRenderPipelineState(drawNodeState!)
-        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 16, borderSize: 8, fillColor: float4(0.118, 0.118, 0.118, 1.000), borderColor: float4(0.173, 0.173, 0.173, 1.000) )
         
         // --- Preview
         if let texture = node.previewTexture {
@@ -1166,16 +1168,17 @@ class NodeGraph : Codable
     /// Returns the node (if any) at the given mouse coordinates
     func nodeAt(_ x: Float, _ y: Float) -> Node?
     {
+        var found : Node? = nil
         if let masterNode = currentMaster {
             for node in nodes {
                 if masterNode.subset!.contains(node.uuid) || node === masterNode {
                     if node.rect.contains( x, y ) {
-                        return node
+                        found = node
                     }
                 }
             }
         }
-        return nil
+        return found
     }
     
     /// Returns the terminal and the terminal connector at the given mouse position for the given node (if any)
