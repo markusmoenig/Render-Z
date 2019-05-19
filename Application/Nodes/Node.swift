@@ -393,6 +393,10 @@ class NodeMaxDelegate
     {
     }
     
+    func pinchGesture(_ scale: Float)
+    {
+    }
+    
     func update(_ hard: Bool = false, updateLists: Bool = false)
     {
     }

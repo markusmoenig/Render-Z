@@ -471,6 +471,15 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         app.gizmo.mouseMoved(event)
     }
     
+    override func pinchGesture(_ scale: Float)
+    {
+        camera.zoom = scale
+        camera.zoom = max(0.1, camera.zoom)
+        camera.zoom = min(1, camera.zoom)
+        update()
+        app.mmView.update()
+    }
+    
     override func mouseScrolled(_ event: MMMouseEvent)
     {
         #if os(iOS) || os(watchOS) || os(tvOS)

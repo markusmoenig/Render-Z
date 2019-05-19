@@ -127,6 +127,10 @@ class MMWidget
     {
     }
     
+    func pinchGesture(_ scale: Float)
+    {
+    }
+
     func _clicked(_ event: MMMouseEvent)
     {
         if clicked != nil {

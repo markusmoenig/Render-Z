@@ -43,6 +43,16 @@ class MMBaseView : MTKView
         
         let panRecognizer = UIPanGestureRecognizer(target: self, action:(#selector(self.handlePanGesture(_:))))
         addGestureRecognizer(panRecognizer)
+        
+        let pinchRecognizer = UIPinchGestureRecognizer(target: self, action:(#selector(self.handlePinchGesture(_:))))
+        addGestureRecognizer(pinchRecognizer)
+    }
+    
+    @objc func handlePinchGesture(_ recognizer: UIPinchGestureRecognizer)
+    {
+        if let hover = hoverWidget {
+            hover.pinchGesture(Float(recognizer.scale))
+        }
     }
     
     @objc func handlePanGesture(_ recognizer: UIPanGestureRecognizer)

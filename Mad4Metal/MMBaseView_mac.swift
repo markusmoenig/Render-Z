@@ -30,6 +30,9 @@ class MMBaseView : MTKView
     var commandIsDown   : Bool = false
     
     var keysDown        : [Float] = []
+    
+    // For pinch gesture
+    var zoom            : Float = 1
 
     func update()
     {
@@ -151,6 +154,19 @@ class MMBaseView : MTKView
                 
         if let widget = hoverWidget {
             widget.mouseScrolled(scrollEvent)
+        }
+    }
+    
+    /// Zoom
+    override func magnify(with event: NSEvent) {
+        if let hover = hoverWidget {
+            if(event.phase == .changed) {
+                zoom += Float(event.magnification)
+            } else
+            if(event.phase == .began) {
+                zoom = 1
+            }
+            hover.pinchGesture(zoom)
         }
     }
     

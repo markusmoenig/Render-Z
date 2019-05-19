@@ -67,6 +67,31 @@ class EditorWidget      : MMWidget
         }
     }
     
+    override func pinchGesture(_ scale: Float)
+    {
+        if app.nodeGraph.maximizedNode == nil {
+            if app.nodeGraph.hoverNode != nil && app.nodeGraph.nodeHoverMode == .Preview {
+                
+                let realScale = max(0.2, scale)
+                
+                let node = app.nodeGraph.hoverNode!
+                node.properties["prevScale"] = realScale
+                node.updatePreview(nodeGraph: app.nodeGraph)
+            } else
+            if app.nodeGraph.nodeHoverMode == .None && app.nodeGraph.currentMaster != nil
+            {
+                if let camera = app.nodeGraph.currentMaster!.camera {
+                    camera.zoom = scale
+                    camera.zoom = max(0.2, camera.zoom)
+                    camera.zoom = min(1.5, camera.zoom)
+                    mmView.update()
+                }
+            }
+        } else {
+            app.nodeGraph.maximizedNode!.maxDelegate!.pinchGesture(scale)
+        }
+    }
+    
     override func mouseScrolled(_ event: MMMouseEvent)
     {        
         if app.nodeGraph.maximizedNode == nil {
