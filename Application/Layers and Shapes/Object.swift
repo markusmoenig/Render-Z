@@ -112,7 +112,7 @@ class Object : Node
         }
 
         maxDelegate = ObjectMaxDelegate()
-        minimumSize = Node.NodeWithPreviewSize
+        //minimumSize = Node.NodeWithPreviewSize
     }
 
     /// Creates an instance of the given object with the given instance properties

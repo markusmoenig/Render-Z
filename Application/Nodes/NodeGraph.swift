@@ -20,7 +20,7 @@ class NodeGraph : Codable
     }
     
     enum ContentType : Int {
-        case Objects, Layers, Scenes, Game
+        case Objects, Layers, Scenes, Game, ObjectsOverview, LayersOverview, ScenesOverview
     }
     
     var nodes           : [Node] = []
@@ -65,12 +65,24 @@ class NodeGraph : Codable
     var nodesButton     : MMButtonWidget!
     
     var contentType     : ContentType = .Objects
-    var typeScrollButton: MMScrollButton!
+    var overviewMaster  : Node = Node()
+    var overviewIsOn    : Bool = false
+    
+    var objectsOverCam  : Camera? = Camera()
+    var layersOverCam   : Camera? = Camera()
+    var scenesOverCam   : Camera? = Camera()
+
+    //var typeScrollButton: MMScrollButton!
     var contentScrollButton: MMScrollButton!
     var currentContent  : [Node] = []
     
-    var addButton       : MMButtonWidget!
-    var removeButton    : MMButtonWidget!
+    var objectsButton   : MMButtonWidget!
+    var layersButton    : MMButtonWidget!
+    var scenesButton    : MMButtonWidget!
+    var gameButton      : MMButtonWidget!
+    
+    var overviewButton  : MMButtonWidget!
+
     var editButton      : MMButtonWidget!
     var playButton      : MMButtonWidget!
 
@@ -179,18 +191,7 @@ class NodeGraph : Codable
         }
         nodesButton.addState(.Checked)
         
-        // Sets the states of the add/remove buttons
-        func setButtonStates()
-        {
-            if self.contentType == .Game {
-                self.addButton.isDisabled = true
-                self.removeButton.isDisabled = true
-            } else {
-                self.addButton.isDisabled = false
-                self.removeButton.isDisabled = currentContent.count == 0
-            }
-        }
-        
+        /*
         typeScrollButton = MMScrollButton(app.mmView, items:["Objects", "Layers", "Scenes", "Game"])
         typeScrollButton.changed = { (index)->() in
             self.contentType = ContentType(rawValue: index)!
@@ -199,71 +200,151 @@ class NodeGraph : Codable
                 self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
             }
             self.nodeList!.switchTo(NodeListItem.DisplayType(rawValue: index+1)!)
-
-            setButtonStates()
-        }
+        }*/
         
         contentScrollButton = MMScrollButton(app.mmView, items:[])
         contentScrollButton.changed = { (index)->() in
-            let node = self.currentContent[index]
-            self.setCurrentMaster(node: node)
-            if self.currentContent.count > 0 {
-                node.updatePreview(nodeGraph: self, hard: false)
+            if !self.overviewIsOn {
+                let node = self.currentContent[index]
+                self.setCurrentMaster(node: node)
+                if self.currentContent.count > 0 {
+                    node.updatePreview(nodeGraph: self, hard: false)
+                }
+            } else {
+                let node = self.currentContent[index]
+                self.setCurrentNode(node)
+                if self.contentType == .ObjectsOverview {
+                    self.currentObjectUUID = node.uuid
+                } else
+                if self.contentType == .LayersOverview {
+                    self.currentLayerUUID = node.uuid
+                } else
+                if self.contentType == .ScenesOverview {
+                    self.currentSceneUUID = node.uuid
+                }
             }
         }
         
-        addButton = MMButtonWidget(app.mmView, text: "Add" )
-        addButton.clicked = { (event) -> Void in
-            
-            if self.contentType == .Objects {
-                getStringDialog(view: app.mmView, title: "Add Object", message: "Object name", defaultValue: "New Object", cb: { (name) -> Void in
+        objectsButton = MMButtonWidget(app.mmView, text: "Objects" )
+        objectsButton.textYOffset = 1.5
+        objectsButton.addState(.Checked)
+        objectsButton.clicked = { (event) -> Void in
+            self.objectsButton.addState(.Checked)
+            self.layersButton.removeState(.Checked)
+            self.scenesButton.removeState(.Checked)
+            self.gameButton.removeState(.Checked)
+            self.overviewButton.isDisabled = false
 
-                    let object = Object()
-                    object.name = name
-                    object.sequences.append( MMTlSequence() )
-                    object.currentSequence = object.sequences[0]
-                    object.setupTerminals()
-                    
-                    self.nodes.append(object)
-                    self.setCurrentMaster(node: object)
-                    self.updateNodes()
-                    self.updateContent(self.contentType)
-                } )
-                self.addButton.removeState(.Checked)
-            } else
-            if self.contentType == .Layers {
-                getStringDialog(view: app.mmView, title: "Add Layer", message: "Layer name", defaultValue: "New Layer", cb: { (name) -> Void in
-                    
-                    let layer = Layer()
-                    layer.name = name
-                    
-                    self.nodes.append(layer)
-                    self.setCurrentMaster(node: layer)
-                    self.updateNodes()
-                    self.updateContent(self.contentType)
-                } )
-                self.addButton.removeState(.Checked)
-            }
-            
-            setButtonStates()
-        }
-        
-        removeButton = MMButtonWidget(app.mmView, text: "Remove" )
-        removeButton.clicked = { (event) -> Void in
-            let node = self.currentContent[self.contentScrollButton.index]
-            let index  = self.nodes.firstIndex(where: { $0.uuid == node.uuid })!
-            self.nodes.remove(at: index)
+            self.contentType = .Objects
             self.updateContent(self.contentType)
             
-            self.removeButton.removeState(.Checked)
-            setButtonStates()
+            if !self.overviewButton.states.contains(.Checked) {
+                if self.currentMaster != nil && self.currentContent.count > 0 {
+                    self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
+                }
+                self.nodeList!.switchTo(.Object)
+            } else {
+                self.contentType = .ObjectsOverview
+                self.setOverviewMaster()
+                self.nodeList!.switchTo(.ObjectOverview)
+            }
+        }
+        
+        layersButton = MMButtonWidget(app.mmView, text: "Layers" )
+        layersButton.rect.width = objectsButton.rect.width
+        layersButton.clicked = { (event) -> Void in
+            self.objectsButton.removeState(.Checked)
+            self.layersButton.addState(.Checked)
+            self.scenesButton.removeState(.Checked)
+            self.gameButton.removeState(.Checked)
+            self.overviewButton.isDisabled = false
+
+            self.contentType = .Layers
+            self.updateContent(self.contentType)
+            
+            if !self.overviewButton.states.contains(.Checked) {
+                if self.currentMaster != nil && self.currentContent.count > 0 {
+                    self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
+                }
+                self.nodeList!.switchTo(.Layer)
+            } else {
+                self.contentType = .LayersOverview
+                self.setOverviewMaster()
+                self.nodeList!.switchTo(.LayerOverview)
+            }
+        }
+        
+        scenesButton = MMButtonWidget(app.mmView, text: "Scenes" )
+        scenesButton.rect.width = objectsButton.rect.width
+        scenesButton.clicked = { (event) -> Void in
+            self.objectsButton.removeState(.Checked)
+            self.layersButton.removeState(.Checked)
+            self.scenesButton.addState(.Checked)
+            self.gameButton.removeState(.Checked)
+            self.overviewButton.isDisabled = false
+
+            self.contentType = .Scenes
+            self.updateContent(self.contentType)
+            
+            if !self.overviewButton.states.contains(.Checked) {
+                if self.currentMaster != nil && self.currentContent.count > 0 {
+                    self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
+                }
+                self.nodeList!.switchTo(.Scene)
+            } else {
+                self.contentType = .ScenesOverview
+                self.setOverviewMaster()
+                self.nodeList!.switchTo(.SceneOverview)
+            }
+        }
+        
+        gameButton = MMButtonWidget(app.mmView, text: "Game" )
+        gameButton.rect.width = objectsButton.rect.width
+        gameButton.clicked = { (event) -> Void in
+            self.objectsButton.removeState(.Checked)
+            self.layersButton.removeState(.Checked)
+            self.scenesButton.removeState(.Checked)
+            self.gameButton.addState(.Checked)
+            self.overviewButton.isDisabled = true
+            
+            self.contentType = .Game
+            self.updateContent(self.contentType)
+            if self.currentMaster != nil && self.currentContent.count > 0 {
+                self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
+            }
+            self.nodeList!.switchTo(.Game)
+        }
+        
+        overviewButton = MMButtonWidget(app.mmView, text: "Overview" )
+        overviewButton.clicked = { (event) -> Void in
+            
+            if !self.overviewIsOn {
+                self.overviewButton.addState(.Checked)
+                self.overviewIsOn = true
+            } else {
+                self.overviewButton.removeState(.Checked)
+                self.overviewIsOn = false
+            }
+            
+            if self.contentType == .Objects || self.contentType == .ObjectsOverview {
+                self.objectsButton._clicked(MMMouseEvent(0, 0))
+            }
+            if self.contentType == .Layers || self.contentType == .LayersOverview {
+                self.layersButton._clicked(MMMouseEvent(0, 0))
+            }
+            if self.contentType == .Scenes || self.contentType == .ScenesOverview {
+                self.scenesButton._clicked(MMMouseEvent(0, 0))
+            }
+            if self.contentType == .Game {
+                self.gameButton._clicked(MMMouseEvent(0, 0))
+            }
         }
         
         var smallButtonSkin = MMSkinButton()
         smallButtonSkin.height = 30
         smallButtonSkin.fontScale = 0.4
         smallButtonSkin.margin.left = 8
-
+        
         editButton = MMButtonWidget(app.mmView, skinToUse: smallButtonSkin, text: "Edit..." )
         editButton.clicked = { (event) -> Void in
             self.editButton.removeState(.Checked)
@@ -348,7 +429,7 @@ class NodeGraph : Codable
     ///
     func activate()
     {
-        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, typeScrollButton, contentScrollButton, addButton, removeButton)
+        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, overviewButton)
         app?.mmView.widgets.insert(editButton, at: 0)
         app?.mmView.widgets.insert(playButton, at: 0)
         app!.leftRegion!.rect.width = 200
@@ -358,7 +439,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, typeScrollButton, contentScrollButton, addButton, removeButton, editButton)
+        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, overviewButton, editButton)
     }
     
     /// Controls the tab mode in the left region
@@ -406,7 +487,27 @@ class NodeGraph : Codable
     
     func mouseDown(_ event: MMMouseEvent)
     {
-        setCurrentNode()
+        self.setCurrentNode()
+        
+        func setCurrentNode(_ node: Node)
+        {
+            if overviewIsOn == true {
+                if let index = self.currentContent.firstIndex(of: node) {
+                    self.contentScrollButton.index = index
+                    
+                    if self.contentType == .ObjectsOverview {
+                        self.currentObjectUUID = node.uuid
+                    } else
+                    if self.contentType == .LayersOverview {
+                        self.currentLayerUUID = node.uuid
+                    } else
+                    if self.contentType == .ScenesOverview {
+                        self.currentSceneUUID = node.uuid
+                    }
+                }
+            }
+            self.setCurrentNode(node)
+        }
         
         if hoverUITitle != nil {
             hoverUITitle?.titleClicked()
@@ -819,28 +920,27 @@ class NodeGraph : Codable
             nodeList!.draw()
         } else
         if region.type == .Top {
+            
             region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: nodesButton)
             //region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: playButton)
             
-            typeScrollButton.rect.x = 200
-            typeScrollButton.rect.y = nodesButton.rect.y
-            typeScrollButton.draw()
+            contentScrollButton.rect.x = 200
+            contentScrollButton.rect.y = 4 + 44
+            contentScrollButton.draw()
             
-            if contentType != .Game {
-                contentScrollButton.rect.x = typeScrollButton.rect.x + typeScrollButton.rect.width + 15
-                contentScrollButton.rect.y = typeScrollButton.rect.y
-                contentScrollButton.draw()
-            
-                addButton.rect.x = contentScrollButton.rect.x + contentScrollButton.rect.width + 10
-                addButton.rect.y = contentScrollButton.rect.y
-                addButton.draw()
-                
-                removeButton.rect.x = addButton.rect.x + addButton.rect.width + 10
-                removeButton.rect.y = contentScrollButton.rect.y
-                removeButton.draw()
-            }
+            region.layoutH( startX: 200 + contentScrollButton.rect.width + 15, startY: 4 + 44, spacing: 10, widgets: objectsButton, layersButton, scenesButton, gameButton)
 
             nodesButton.draw()
+            objectsButton.draw()
+            layersButton.draw()
+            scenesButton.draw()
+            gameButton.draw()
+            
+            overviewButton.rect.x = gameButton.rect.x + gameButton.rect.width + 20
+            overviewButton.rect.y = gameButton.rect.y
+            overviewButton.isDisabled = contentType == .Game
+            overviewButton.draw()
+
         } else
         if region.type == .Right {
             region.rect.width = 0
@@ -997,7 +1097,9 @@ class NodeGraph : Codable
         
         // --- Preview
         if let texture = node.previewTexture {
-            app!.mmView.drawTexture.draw(texture, x: node.rect.x + (node.rect.width - 200*scale)/2, y: node.rect.y + NodeGraph.bodyY * scale + node.uiArea.height * scale, zoom: 1/scale)
+            if node.subset == nil {
+                app!.mmView.drawTexture.draw(texture, x: node.rect.x + (node.rect.width - 200*scale)/2, y: node.rect.y + NodeGraph.bodyY * scale + node.uiArea.height * scale, zoom: 1/scale)
+            }
         } else
         if node.maxDelegate != nil && node.minimumSize == Node.NodeWithPreviewSize {
             let rect : MMRect = MMRect( node.rect.x + (node.rect.width - 200*scale)/2, node.rect.y + NodeGraph.bodyY * scale + node.uiArea.height * scale, 200 * scale, 140 * scale)
@@ -1029,7 +1131,7 @@ class NodeGraph : Codable
     /// Draw the master node
     func drawMasterNode(_ node: Node, region: MMRegion)
     {
-        if contentType == .Game { return }
+        if contentType == .Game || contentType == .ObjectsOverview || contentType == .LayersOverview || contentType == .ScenesOverview { return }
         
         node.rect.width = previewSize.x + 70
         node.rect.height = previewSize.y + 64 + 25
@@ -1501,6 +1603,50 @@ class NodeGraph : Codable
                 currentMaster!.camera = Camera()
             }
         }
+    }
+    
+    /// Sets the overview master node
+    func setOverviewMaster()
+    {
+        overviewMaster.subset = []
+        setCurrentNode(currentMaster != nil ? currentMaster : nil)
+            
+        if contentType == .ObjectsOverview {
+            for node in nodes {
+                if let object = node as? Object {
+                    overviewMaster.subset!.append(node.uuid)
+                    if currentObjectUUID == object.uuid {
+                        setCurrentNode(node)
+                    }
+                }
+            }
+            overviewMaster.camera = objectsOverCam
+        } else
+        if contentType == .LayersOverview {
+            for node in nodes {
+                if let layer = node as? Layer {
+                    overviewMaster.subset!.append(node.uuid)
+                    if currentLayerUUID == layer.uuid {
+                        setCurrentNode(node)
+                    }
+                }
+            }
+            overviewMaster.camera = layersOverCam
+        } else
+        if contentType == .ScenesOverview {
+            for node in nodes {
+                if let scene = node as? Scene {
+                    overviewMaster.subset!.append(node.uuid)
+                    if currentSceneUUID == scene.uuid {
+                        setCurrentNode(node)
+                    }
+                }
+            }
+            overviewMaster.camera = scenesOverCam
+        }
+        
+        currentMaster = overviewMaster
+        nodeList!.switchTo(NodeListItem.DisplayType(rawValue: contentType.rawValue+1)!)
     }
     
     /// Hard updates the given node
@@ -1997,7 +2143,22 @@ class NodeGraph : Codable
             getStringDialog(view: self.mmView, title: "Rename Node", message: "Node name", defaultValue: node.name, cb: { (name) -> Void in
                 node.name = name
                 node.label = nil
-                self.updateMasterNodes(self.currentMaster!)
+                if !self.overviewIsOn {
+                    self.updateMasterNodes(self.currentMaster!)
+                } else {
+                    if self.contentType == .ObjectsOverview {
+                        self.updateContent(.Objects)
+                        self.setOverviewMaster()
+                    } else
+                    if self.contentType == .LayersOverview {
+                        self.updateContent(.Layers)
+                        self.setOverviewMaster()
+                    } else
+                    if self.contentType == .ScenesOverview {
+                        self.updateContent(.Scenes)
+                        self.setOverviewMaster()
+                    }
+                }
                 self.mmView.update()
             } )
         } )

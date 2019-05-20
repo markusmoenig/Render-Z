@@ -163,6 +163,7 @@ class MMButtonWidget : MMWidget
     var label       : MMLabel?
     var texture     : MTLTexture?
     var customState : MTLRenderPipelineState?
+    var textYOffset : Float = 0
     
     init( _ view: MMView, skinToUse: MMSkinButton? = nil, text: String? = nil, iconName: String? = nil, customState: MTLRenderPipelineState? = nil )
     {
@@ -212,8 +213,8 @@ class MMButtonWidget : MMWidget
         }
         
         if label != nil {
-            label!.rect.x = rect.x + skin.margin.left
-            label!.rect.y = rect.y + (skin.height - label!.rect.height) / 2
+            label!.rect.x = rect.x + (rect.width - label!.rect.width) / 2// skin.margin.left
+            label!.rect.y = rect.y + textYOffset + (rect.height - label!.rect.height) / 2
             
             if label!.isDisabled != isDisabled {
                 label!.isDisabled = isDisabled

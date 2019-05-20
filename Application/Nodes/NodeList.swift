@@ -11,7 +11,7 @@ import MetalKit
 class NodeListItem : MMListWidgetItem
 {
     enum DisplayType : Int {
-        case All, Object, Layer, Scene, Game
+        case All, Object, Layer, Scene, Game, ObjectOverview, LayerOverview, SceneOverview
     }
     
     var name         : String = ""
@@ -59,6 +59,15 @@ class NodeList : MMWidget
         super.init(view)
 
         var item : NodeListItem
+        
+        // --- Object Profile
+        item = NodeListItem("Object")
+        item.createNode = {
+            return Object()
+        }
+        addNodeItem(item, type: .Property, displayType: .ObjectOverview)
+        
+        // -------------------------------
 
         // --- Object Profile
         item = NodeListItem("3D Profile")
@@ -226,7 +235,7 @@ class NodeList : MMWidget
     {
         filteredItems = []
         for item in items {
-            if item.displayType == .All || item.displayType == displayType {
+            if (item.displayType == .All && displayType.rawValue <= 4 ) || item.displayType == displayType {
                 filteredItems.append(item)
             }
         }
