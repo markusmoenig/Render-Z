@@ -1347,7 +1347,7 @@ class SequenceWidget : MMWidget
         let sequenceMenuItems = [
             MMMenuItem( text: "Add", cb: {} ),
             MMMenuItem( text: "Rename", cb: {} ),
-            MMMenuItem( text: "Delete", cb: {print("add child") } )
+            MMMenuItem( text: "Delete", cb: {} )
         ]
         menuWidget = MMMenuWidget( view, items: sequenceMenuItems )
         

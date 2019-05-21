@@ -25,6 +25,8 @@ class MMTextLabel: MMLabel
     var scale       : Float
     var color       : float4
     var textBuffer  : MMTextBuffer?
+    var textYOffset : Float = -1
+    
     var isDisabled  : Bool {
         didSet{
             textBuffer = nil
@@ -53,21 +55,21 @@ class MMTextLabel: MMLabel
     func drawCentered(x:Float, y:Float, width:Float, height:Float)
     {
         let drawX = x + (width - rect.width) / 2
-        let drawY = y + (height - rect.height)/2 - 1
+        let drawY = y + (height - rect.height)/2 + textYOffset
         textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
     }
     
     func drawCenteredY(x:Float, y:Float, width:Float, height:Float)
     {
         let drawX = x
-        let drawY = y + (height - rect.height)/2 - 1
+        let drawY = y + (height - rect.height)/2 + textYOffset
         textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
     }
     
     func drawRightCenteredY(x:Float, y:Float, width:Float, height:Float)
     {
         let drawX = x + width - rect.width
-        let drawY = y + (height - rect.height)/2 - 1
+        let drawY = y + (height - rect.height)/2 + textYOffset
         textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: color, textBuffer: textBuffer)
     }
     

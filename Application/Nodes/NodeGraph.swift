@@ -238,6 +238,11 @@ class NodeGraph : Codable
             self.contentType = .Objects
             self.updateContent(self.contentType)
             
+            if self.currentContent.count == 0 {
+                self.overviewButton.addState(.Checked)
+                self.overviewIsOn = true
+            }
+            
             if !self.overviewButton.states.contains(.Checked) {
                 if self.currentMaster != nil && self.currentContent.count > 0 {
                     self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
@@ -262,6 +267,11 @@ class NodeGraph : Codable
             self.contentType = .Layers
             self.updateContent(self.contentType)
             
+            if self.currentContent.count == 0 {
+                self.overviewButton.addState(.Checked)
+                self.overviewIsOn = true
+            }
+            
             if !self.overviewButton.states.contains(.Checked) {
                 if self.currentMaster != nil && self.currentContent.count > 0 {
                     self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
@@ -285,6 +295,11 @@ class NodeGraph : Codable
 
             self.contentType = .Scenes
             self.updateContent(self.contentType)
+            
+            if self.currentContent.count == 0 {
+                self.overviewButton.addState(.Checked)
+                self.overviewIsOn = true
+            }
             
             if !self.overviewButton.states.contains(.Checked) {
                 if self.currentMaster != nil && self.currentContent.count > 0 {
@@ -703,7 +718,7 @@ class NodeGraph : Codable
             previewSize.y = max(previewSize.y, 80)
             
             previewSize.x = min(previewSize.x, app!.editorRegion!.rect.width - 50)
-            previewSize.y = min(previewSize.y, app!.editorRegion!.rect.height - 50)
+            previewSize.y = min(previewSize.y, app!.editorRegion!.rect.height - 65)
 
             currentMaster!.updatePreview(nodeGraph: self)
             mmView.update()
@@ -987,17 +1002,21 @@ class NodeGraph : Codable
         node.data.selected = selectedUUID.contains(node.uuid) ? 1 : 0
         node.data.borderRound = 4
         
-        if node.brand == .Behavior {
-            node.data.brandColor = mmView.skin.Node.behaviorColor
-        } else
-        if node.brand == .Property {
-            node.data.brandColor = mmView.skin.Node.propertyColor
-        } else
-        if node.brand == .Function {
+        if !overviewIsOn {
+            if node.brand == .Behavior {
+                node.data.brandColor = mmView.skin.Node.behaviorColor
+            } else
+            if node.brand == .Property {
+                node.data.brandColor = mmView.skin.Node.propertyColor
+            } else
+            if node.brand == .Function {
+                node.data.brandColor = mmView.skin.Node.functionColor
+            } else
+            if node.brand == .Arithmetic {
+                node.data.brandColor = mmView.skin.Node.arithmeticColor
+            }
+        } else {
             node.data.brandColor = mmView.skin.Node.functionColor
-        } else
-        if node.brand == .Arithmetic {
-            node.data.brandColor = mmView.skin.Node.arithmeticColor
         }
 
         if playNode != nil && node.playResult != nil {
@@ -1132,6 +1151,9 @@ class NodeGraph : Codable
     func drawMasterNode(_ node: Node, region: MMRegion)
     {
         if contentType == .Game || contentType == .ObjectsOverview || contentType == .LayersOverview || contentType == .ScenesOverview { return }
+        
+        previewSize.x = min(previewSize.x, app!.editorRegion!.rect.width - 50)
+        previewSize.y = min(previewSize.y, app!.editorRegion!.rect.height - 65)
         
         node.rect.width = previewSize.x + 70
         node.rect.height = previewSize.y + 64 + 25
@@ -1530,6 +1552,17 @@ class NodeGraph : Codable
             if type == .Layers {
                 if let layer = node as? Layer {
                     if layer.uuid == currentLayerUUID {
+                        index = items.count
+                        currentFound = true
+                        setCurrentMaster(node: node)
+                    }
+                    items.append(node.name)
+                    currentContent.append(node)
+                }
+            } else
+            if type == .Scenes {
+                if let scene = node as? Scene {
+                    if scene.uuid == currentLayerUUID {
                         index = items.count
                         currentFound = true
                         setCurrentMaster(node: node)

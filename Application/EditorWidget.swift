@@ -28,6 +28,7 @@ class EditorWidget      : MMWidget
         dropTargets.append( "MaterialSelectorItem" )
         dropTargets.append( "NodeItem" )
         dropTargets.append( "AvailableObjectItem" )
+        dropTargets.append( "AvailableLayerItem" )
     }
 
     override func keyDown(_ event: MMKeyEvent)
@@ -349,6 +350,25 @@ class EditorWidget      : MMWidget
                     layerDelegate.objectList!.rebuildList()
                     currentLayer!.selectedObjects = [instance.uuid]
                     currentLayer!.maxDelegate?.update(true)
+                }
+            }
+        } else
+        if dragSource.id == "AvailableLayerItem"
+        {
+            // Scene editor, available layer drag to editor
+            
+            let drag = dragSource as! AvailableLayerListItemDrag
+            let node = drag.node!
+            
+            if node.type == "Layer" {
+                let currentScene = app.nodeGraph.maximizedNode as? Scene
+                if currentScene != nil {
+                    currentScene!.layers.append(node.uuid)
+                    
+                    let sceneDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! SceneMaxDelegate
+                    sceneDelegate.layerList!.rebuildList()
+                    currentScene!.selectedLayers = [node.uuid]
+                    currentScene!.maxDelegate?.update(true)
                 }
             }
         }

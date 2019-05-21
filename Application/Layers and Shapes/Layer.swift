@@ -78,13 +78,15 @@ class Layer : Node
         
         super.init()
         
-        type = "Layer"
         name = "New Layer"
-        
-        maxDelegate = LayerMaxDelegate()
-        minimumSize = Node.NodeWithPreviewSize
-        
         subset = []
+    }
+    
+    override func setup()
+    {
+        type = "Layer"
+        maxDelegate = LayerMaxDelegate()
+        //minimumSize = Node.NodeWithPreviewSize
     }
     
     required init(from decoder: Decoder) throws
@@ -100,10 +102,6 @@ class Layer : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Layer"
-        maxDelegate = LayerMaxDelegate()
-        minimumSize = Node.NodeWithPreviewSize
     }
     
     override func encode(to encoder: Encoder) throws

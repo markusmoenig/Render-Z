@@ -10,36 +10,46 @@ import MetalKit
 
 class Scene : Node
 {
+    var layers         : [UUID] = []
+    var selectedLayers : [UUID] = []
+
     private enum CodingKeys: String, CodingKey {
         case type
+        case selectedLayers
+        case layers
     }
     
     override init()
     {
         super.init()
         
-        type = "Scene"
         name = "Scene"
-        
-        minimumSize = Node.NodeWithPreviewSize
-        
         subset = []
+    }
+    
+    override func setup()
+    {
+        type = "Scene"
+        maxDelegate = SceneMaxDelegate()
+        //minimumSize = Node.NodeWithPreviewSize
     }
     
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        
+        selectedLayers = try container.decode([UUID].self, forKey: .selectedLayers)
+        layers = try container.decode([UUID].self, forKey: .layers)
+
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Scene"
     }
     
     override func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(type, forKey: .type)
+        try container.encode(selectedLayers, forKey: .selectedLayers)
+        try container.encode(layers, forKey: .layers)
 
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)

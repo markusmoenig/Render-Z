@@ -60,12 +60,26 @@ class NodeList : MMWidget
 
         var item : NodeListItem
         
-        // --- Object Profile
+        // --- Object
         item = NodeListItem("Object")
         item.createNode = {
             return Object()
         }
-        addNodeItem(item, type: .Property, displayType: .ObjectOverview)
+        addNodeItem(item, type: .Function, displayType: .ObjectOverview)
+        
+        // --- Layer
+        item = NodeListItem("Layer")
+        item.createNode = {
+            return Layer()
+        }
+        addNodeItem(item, type: .Function, displayType: .LayerOverview)
+        
+        // --- Scene
+        item = NodeListItem("Scene")
+        item.createNode = {
+            return Scene()
+        }
+        addNodeItem(item, type: .Function, displayType: .SceneOverview)
         
         // -------------------------------
 

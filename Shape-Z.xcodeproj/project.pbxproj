@@ -142,6 +142,8 @@
 		2BBF120021F808B1001C94E9 /* Gizmo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FE21F808B1001C94E9 /* Gizmo.swift */; };
 		2BBF120221F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
 		2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
+		2BBF37DF2293845700DB6A01 /* SceneMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF37DE2293845700DB6A01 /* SceneMaxDelegate.swift */; };
+		2BBF37E02293845700DB6A01 /* SceneMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF37DE2293845700DB6A01 /* SceneMaxDelegate.swift */; };
 		2BCF5FA3227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
 		2BCF5FA4227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
 		2BE67102221259F500B95241 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67101221259F500B95241 /* Node.swift */; };
@@ -245,6 +247,7 @@
 		2BBF11F821F55D20001C94E9 /* Object.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Object.swift; sourceTree = "<group>"; };
 		2BBF11FE21F808B1001C94E9 /* Gizmo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gizmo.swift; sourceTree = "<group>"; };
 		2BBF120121F80B32001C94E9 /* Gizmo.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Gizmo.metal; sourceTree = "<group>"; };
+		2BBF37DE2293845700DB6A01 /* SceneMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneMaxDelegate.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
 		2BE67101221259F500B95241 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		2BE6710422125D7D00B95241 /* NodeGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeGraph.swift; sourceTree = "<group>"; };
@@ -428,6 +431,7 @@
 				2B6D0033228907E900BEDCFD /* LayerArea.swift */,
 				2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */,
 				2BAC26D7226D652E00E20ADD /* Scene.swift */,
+				2BBF37DE2293845700DB6A01 /* SceneMaxDelegate.swift */,
 				2BAC26D4226D640300E20ADD /* Game.swift */,
 				2BBF11E021EC1A92001C94E9 /* Shape.swift */,
 				2B46E95F224367AF0047A94A /* Material.swift */,
@@ -651,6 +655,7 @@
 				2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BF5D361221D2B2400EAAA76 /* ObjectNodes.swift in Sources */,
 				2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */,
+				2BBF37DF2293845700DB6A01 /* SceneMaxDelegate.swift in Sources */,
 				2B4CC22A2222301300A47812 /* LayerMaxDelegate.swift in Sources */,
 				2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */,
 				2B46E960224367AF0047A94A /* Material.swift in Sources */,
@@ -727,6 +732,7 @@
 				2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */,
 				2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */,
+				2BBF37E02293845700DB6A01 /* SceneMaxDelegate.swift in Sources */,
 				2B4CC22B2222301300A47812 /* LayerMaxDelegate.swift in Sources */,
 				2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */,
 				2B46E961224367AF0047A94A /* Material.swift in Sources */,
