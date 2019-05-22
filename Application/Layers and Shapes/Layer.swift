@@ -189,4 +189,29 @@ class Layer : Node
             nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
         }
     }
+    
+    func updatePreviewExt(nodeGraph: NodeGraph, hard: Bool = false, outTexture: MTLTexture, properties: [String:Float])
+    {
+        let size = nodeGraph.previewSize
+        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
+            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
+        }
+        
+        let prevOffX = properties["prevOffX"]
+        let prevOffY = properties["prevOffY"]
+        let prevScale = properties["prevScale"]
+        let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
+        
+        if builderInstance == nil || hard {
+            builderInstance = nodeGraph.builder.buildObjects(objects: createInstances(nodeGraph: nodeGraph), camera: camera, preview: true)
+        }
+        
+        if builderInstance != nil {
+            nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: outTexture)
+        }
+        
+        if physicsInstance != nil {
+            nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
+        }
+    }
 }

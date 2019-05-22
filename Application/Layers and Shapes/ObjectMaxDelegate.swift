@@ -199,6 +199,16 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         leftRegionMode = .Closed
         setLeftRegionMode(.Shapes)
         
+        let cameraProperties = currentObject!.properties
+        if cameraProperties["prevMaxOffX"] != nil {
+            camera.xPos = cameraProperties["prevMaxOffX"]!
+        }
+        if cameraProperties["prevMaxOffY"] != nil {
+            camera.yPos = cameraProperties["prevMaxOffY"]!
+        }
+        if cameraProperties["prevMaxScale"] != nil {
+            camera.zoom = cameraProperties["prevMaxScale"]!
+        }
         update(true)
     }
     
@@ -476,6 +486,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         camera.zoom = scale
         camera.zoom = max(0.1, camera.zoom)
         camera.zoom = min(1, camera.zoom)
+        currentObject!.properties["prevMaxScale"] = camera.zoom
         update()
         app.mmView.update()
     }
@@ -499,7 +510,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             camera.yPos += event.deltaY! * 2
         }
         #endif
-         
+        
+        currentObject!.properties["prevMaxOffX"] = camera.xPos
+        currentObject!.properties["prevMaxOffY"] = camera.yPos
+        currentObject!.properties["prevMaxScale"] = camera.zoom
         update()
         
         if !dispatched {

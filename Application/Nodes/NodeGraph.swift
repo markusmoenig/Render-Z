@@ -204,6 +204,8 @@ class NodeGraph : Codable
         
         contentScrollButton = MMScrollButton(app.mmView, items:[])
         contentScrollButton.changed = { (index)->() in
+            self.stopPreview()
+            
             if !self.overviewIsOn {
                 let node = self.currentContent[index]
                 self.setCurrentMaster(node: node)
@@ -229,6 +231,9 @@ class NodeGraph : Codable
         objectsButton.textYOffset = 1.5
         objectsButton.addState(.Checked)
         objectsButton.clicked = { (event) -> Void in
+            self.stopPreview()
+            self.editButton.setText("Shape...")
+
             self.objectsButton.addState(.Checked)
             self.layersButton.removeState(.Checked)
             self.scenesButton.removeState(.Checked)
@@ -258,6 +263,9 @@ class NodeGraph : Codable
         layersButton = MMButtonWidget(app.mmView, text: "Layers" )
         layersButton.rect.width = objectsButton.rect.width
         layersButton.clicked = { (event) -> Void in
+            self.stopPreview()
+            self.editButton.setText("Arrange...")
+
             self.objectsButton.removeState(.Checked)
             self.layersButton.addState(.Checked)
             self.scenesButton.removeState(.Checked)
@@ -287,6 +295,9 @@ class NodeGraph : Codable
         scenesButton = MMButtonWidget(app.mmView, text: "Scenes" )
         scenesButton.rect.width = objectsButton.rect.width
         scenesButton.clicked = { (event) -> Void in
+            self.stopPreview()
+            self.editButton.setText("Arrange...")
+
             self.objectsButton.removeState(.Checked)
             self.layersButton.removeState(.Checked)
             self.scenesButton.addState(.Checked)
@@ -316,6 +327,8 @@ class NodeGraph : Codable
         gameButton = MMButtonWidget(app.mmView, text: "Game" )
         gameButton.rect.width = objectsButton.rect.width
         gameButton.clicked = { (event) -> Void in
+            self.stopPreview()
+
             self.objectsButton.removeState(.Checked)
             self.layersButton.removeState(.Checked)
             self.scenesButton.removeState(.Checked)
@@ -332,6 +345,7 @@ class NodeGraph : Codable
         
         overviewButton = MMButtonWidget(app.mmView, text: "Overview" )
         overviewButton.clicked = { (event) -> Void in
+            self.stopPreview()
             
             if !self.overviewIsOn {
                 self.overviewButton.addState(.Checked)
@@ -360,8 +374,10 @@ class NodeGraph : Codable
         smallButtonSkin.fontScale = 0.4
         smallButtonSkin.margin.left = 8
         
-        editButton = MMButtonWidget(app.mmView, skinToUse: smallButtonSkin, text: "Edit..." )
+        editButton = MMButtonWidget(app.mmView, skinToUse: smallButtonSkin, text: "Shape..." )
         editButton.clicked = { (event) -> Void in
+            self.stopPreview()
+
             self.editButton.removeState(.Checked)
             
             self.maximizedNode = self.currentMaster!
@@ -393,6 +409,23 @@ class NodeGraph : Codable
                         self.playToExecute.append(inst.instance!)
                     }
                     self.playToExecute.append(layer)
+                } else
+                if node!.type == "Scene" {
+                    let scene = node as! Scene
+                    
+                    for layerUUID in scene.layers {
+                        for n in self.nodes {
+                            if n.uuid == layerUUID
+                            {
+                                let layer = n as! Layer
+                                layer.setupExecution(nodeGraph: self)
+                                for inst in layer.objectInstances {
+                                    self.playToExecute.append(inst.instance!)
+                                }
+                                self.playToExecute.append(layer)
+                            }
+                        }
+                    }
                 }
                 
                 for exe in self.playToExecute {
@@ -403,28 +436,7 @@ class NodeGraph : Codable
                 self.playButton.addState(.Checked)
                 app.mmView.lockFramerate(true)
             } else {
-                
-                let node = self.playNode
-                
-                if node!.type == "Object" {
-                    let object = node as! Object
-                    object.playInstance = nil
-                } else
-                if self.playNode!.type == "Layer" {
-                    let layer = self.playNode as! Layer
-                    layer.physicsInstance = nil
-                }
-
-                // Send finish to all nodes
-                for node in self.nodes {
-                    node.finishExecution()
-                }
-                
-                self.playNode!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
-                self.playNode = nil
-                self.playToExecute = []
-                self.playButton.removeState(.Checked)
-                app.mmView.unlockFramerate(true)
+                self.stopPreview()
             }
         }
         
@@ -455,6 +467,47 @@ class NodeGraph : Codable
     func deactivate()
     {
         app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, overviewButton, editButton)
+    }
+    
+    /// Stop previewing the playNode
+    func stopPreview()
+    {
+        if playNode == nil { return }
+        
+        let node = self.playNode
+        
+        if node!.type == "Object" {
+            let object = node as! Object
+            object.playInstance = nil
+        } else
+        if self.playNode!.type == "Layer" {
+            let layer = self.playNode as! Layer
+            layer.physicsInstance = nil
+        } else
+        if self.playNode!.type == "Scene" {
+            let scene = node as! Scene
+            
+            for layerUUID in scene.layers {
+                for n in self.nodes {
+                    if n.uuid == layerUUID
+                    {
+                        let layer = n as! Layer
+                        layer.physicsInstance = nil
+                    }
+                }
+            }
+        }
+        
+        // Send finish to all nodes
+        for node in self.nodes {
+            node.finishExecution()
+        }
+        
+        self.playNode!.updatePreview(nodeGraph: app!.nodeGraph, hard: true)
+        self.playNode = nil
+        self.playToExecute = []
+        self.playButton.removeState(.Checked)
+        app!.mmView.unlockFramerate(true)
     }
     
     /// Controls the tab mode in the left region
@@ -1635,6 +1688,7 @@ class NodeGraph : Codable
             if currentMaster!.camera == nil {
                 currentMaster!.camera = Camera()
             }
+            currentMaster!.updatePreview(nodeGraph: self)
         }
     }
     
@@ -1698,10 +1752,11 @@ class NodeGraph : Codable
             return nil
         }
         
+        /*
         if updatePreview && node.type == "Object" {
             let object = node as! Object
             object.instance = app!.nodeGraph.builder.buildObjects(objects: [object], camera: app!.camera)
-        }
+        }*/
         
         for terminal in node.terminals {
             for conn in terminal.connections {
@@ -2034,9 +2089,9 @@ class NodeGraph : Codable
             
         }
         
-        if updatePreview {
-            node.updatePreview(nodeGraph: self, hard: true)
-        }
+        //if updatePreview {
+        //    node.updatePreview(nodeGraph: self, hard: true)
+        //}
     }
     
     /// Hard updates all nodes
@@ -2156,11 +2211,16 @@ class NodeGraph : Codable
         
         if node.maxDelegate != nil {
             let editNodeItem =  MMMenuItem( text: "Edit " + node.type, cb: {
-                self.maximizedNode = node
-                self.deactivate()
-                self.maximizedNode!.maxDelegate!.activate(self.app!)
-                self.nodeHoverMode = .None
-                self.app?.mmView.mouseTrackWidget = nil
+                
+                if node.type == "Object" || node.type == "Layer" || node.type == "Scene" {
+                    self.overviewButton.clicked!(MMMouseEvent(0,0))
+                } else {
+                    self.maximizedNode = node
+                    self.deactivate()
+                    self.maximizedNode!.maxDelegate!.activate(self.app!)
+                    self.nodeHoverMode = .None
+                    self.app?.mmView.mouseTrackWidget = nil
+                }
             } )
             items.append(editNodeItem)
         }

@@ -8,8 +8,16 @@
 
 import MetalKit
 
+class LayerGlobals
+{
+    var position        : float2 = float2(0,0)
+    var limiterSize     : float2 = float2(100000,100000)
+}
+
 class BuilderInstance
 {
+    var layerGlobals    : LayerGlobals? = nil
+    
     var objects         : [Object] = []
     var objectMap       : [Int:Object] = [:]
     
@@ -90,11 +98,12 @@ class Builder
     }
     
     /// Build the state for the given objects
-    func buildObjects(objects: [Object], camera: Camera, preview: Bool  = false) -> BuilderInstance
+    func buildObjects(objects: [Object], camera: Camera, preview: Bool = false, layerGlobals: LayerGlobals = LayerGlobals() ) -> BuilderInstance
     {
         let instance = BuilderInstance()
         let buildData = BuildData()
         
+        instance.layerGlobals = layerGlobals
         instance.objects = objects
         computeMaxCounts(objects: objects, buildData: buildData)
         
@@ -104,9 +113,10 @@ class Builder
         
         typedef struct
         {
-            float2      camera;
-            float2      fill;
-        
+            float4      camera;
+            float2      position;
+            float2      limiterSize;
+
             SHAPE_DATA  shapes[\(max(buildData.maxShapes, 1))];
             float4      points[\(max(buildData.maxPoints, 1))];
             OBJECT_DATA objects[\(max(buildData.maxObjects, 1))];
@@ -125,6 +135,12 @@ class Builder
         instance.data!.append( 1/camera.zoom )
         instance.data!.append( 0 )
         
+        instance.data!.append( 0 )
+        instance.data!.append( 0 )
+        
+        instance.data!.append( 0 )
+        instance.data!.append( 0 )
+        
         instance.headerOffset = instance.data!.count
         
         buildData.source +=
@@ -140,6 +156,16 @@ class Builder
         
         """
 
+        // Global layer limiter
+        buildData.source +=
+        """
+        
+            float2 d = abs(uv) - layerData->limiterSize * layerData->camera.z;
+            float ldist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            if ( ldist < 0.0 ) {
+        
+        """
+        
         /// Parse objects and their shapes
         
         for object in objects {
@@ -198,6 +224,7 @@ class Builder
         buildData.source +=
         """
         
+            }
             return float4(dist, objectId, materialId, 0);
         }
         
@@ -301,10 +328,16 @@ class Builder
             float2 uv = fragCoord;
             
             float2 center = size / 2;
-            uv = translate(uv, center - float2( layerData->camera.x, layerData->camera.y ) );
+            uv = translate(uv, center - float2( layerData->position.x + layerData->camera.x, layerData->position.y + layerData->camera.y ) );
             uv.y = -uv.y;
-            uv *= layerData->fill.x;
+            uv *= layerData->camera.z;
+        
+            float4 col = float4(0);
 
+        """
+        
+        buildData.source +=
+        """
             float4 rc = sdf( uv, layerData );
         
             MATERIAL_DATA bodyMaterial;
@@ -324,11 +357,6 @@ class Builder
         """
         
         buildData.source += buildData.materialSource
-        buildData.source +=
-        """
-        
-            float4 col = float4(0);
-        """
         
         if preview {
             // Preview Pattern
@@ -389,14 +417,12 @@ class Builder
             
             """
         }*/
-        
+            
         buildData.source +=
         """
             outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
         }
         """
-        
-        //print( source )
         
         instance.buffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
@@ -656,6 +682,12 @@ class Builder
         instance.data![0] = camera.xPos
         instance.data![1] = camera.yPos
         instance.data![2] = 1/camera.zoom
+
+        instance.data![4] = instance.layerGlobals!.position.x
+        instance.data![5] = instance.layerGlobals!.position.y
+
+        instance.data![6] = instance.layerGlobals!.limiterSize.x
+        instance.data![7] = instance.layerGlobals!.limiterSize.y
         
         updateInstanceData(instance: instance, camera: camera, frame: frame)
         

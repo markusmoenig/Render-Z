@@ -7,12 +7,13 @@
 //
 
 import MetalKit
+import simd
 
 class SceneMaxDelegate : NodeMaxDelegate {
     
     enum LeftRegionMode
     {
-        case Closed, Objects
+        case Closed, Layers
     }
     
     enum BottomRegionMode
@@ -20,14 +21,25 @@ class SceneMaxDelegate : NodeMaxDelegate {
         case Closed, Open
     }
     
-    var app             : App!
+    enum HoverMode {
+        case None, Center
+    }
     
+    var app             : App!
+    var mmView          : MMView!
+    
+    var hoverMode       : HoverMode = .None
+    var dragMode        : HoverMode = .None
+    
+    var dragPos         : float2 = float2()
+    var dragMousePos    : float2 = float2()
+
     // Top Region
     var objectsButton   : MMButtonWidget!
-    var timelineButton  : MMButtonWidget!
+    //var timelineButton  : MMButtonWidget!
 
     // Left Region
-    var leftRegionMode  : LeftRegionMode = .Objects
+    var leftRegionMode  : LeftRegionMode = .Layers
     var avLayerList     : AvailableLayerList!
 
     var shapeSelector   : ShapeSelector!
@@ -49,24 +61,27 @@ class SceneMaxDelegate : NodeMaxDelegate {
     var camera          : Camera = Camera()
     var patternState    : MTLRenderPipelineState?
     var dispatched      : Bool = false
+    
+    var layerNodes      : [Layer] = []
 
     override func activate(_ app: App)
     {
         self.app = app
+        self.mmView = app.mmView
         currentScene = app.nodeGraph.maximizedNode as? Scene
         
         // Top Region
         if objectsButton == nil {
             objectsButton = MMButtonWidget( app.mmView, text: "Layers" )
-            timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
+            //timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
         }
         objectsButton.clicked = { (event) -> Void in
-            self.setLeftRegionMode(.Objects)
+            self.setLeftRegionMode(.Layers)
         }
 
-        timelineButton.clicked = { (event) -> Void in
-            self.switchTimelineMode()
-        }
+        //timelineButton.clicked = { (event) -> Void in
+        //    self.switchTimelineMode()
+        //}
         
         app.closeButton.clicked = { (event) -> Void in
             self.deactivate()
@@ -119,17 +134,44 @@ class SceneMaxDelegate : NodeMaxDelegate {
         app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
         */
         
-        app.mmView.registerWidgets( widgets: objectsButton, timelineButton, app.closeButton, avLayerList, layerList.menuWidget, layerList)
+        app.mmView.registerWidgets( widgets: objectsButton, app.closeButton, avLayerList, layerList.menuWidget, layerList)
         
-        update(true)
+        let cameraProperties = currentScene!.properties
+        if cameraProperties["prevMaxOffX"] != nil {
+            camera.xPos = cameraProperties["prevMaxOffX"]!
+        }
+        if cameraProperties["prevMaxOffY"] != nil {
+            camera.yPos = cameraProperties["prevMaxOffY"]!
+        }
+        if cameraProperties["prevMaxScale"] != nil {
+            camera.zoom = cameraProperties["prevMaxScale"]!
+        }
+        
+        updateLayerNodes()
+        for layer in layerNodes {
+            layer.updatePreview(nodeGraph: app.nodeGraph, hard: true)
+        }
     }
     
     override func deactivate()
     {
 //        timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: objectsButton, timelineButton, app.closeButton, avLayerList, layerList.menuWidget, layerList)
+        app.mmView.deregisterWidgets( widgets: objectsButton, app.closeButton, avLayerList, layerList.menuWidget, layerList)
         
         currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
+    }
+    
+    func updateLayerNodes()
+    {
+        layerNodes = []
+        
+        for layerUUID in currentScene!.layers {
+            for node in app.nodeGraph.nodes {
+                if layerUUID == node.uuid {
+                    layerNodes.append(node as! Layer)
+                }
+            }
+        }
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -164,33 +206,51 @@ class SceneMaxDelegate : NodeMaxDelegate {
     override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Editor {
-            app.gizmo.rect.copy(region.rect)
             drawPattern(region)
             
-            /*
-            if let instance = currentScene!.builderInstance {
-            
-                if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
-                    app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera)
+            for layer in layerNodes {
+                
+                if currentScene!.properties[layer.uuid.uuidString + "_posX"] == nil {
+                    currentScene!.properties[layer.uuid.uuidString + "_posX"] = 0
+                    currentScene!.properties[layer.uuid.uuidString + "_posY"] = 0
                 }
                 
-                if let texture = instance.texture {
-                    
-                    app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
+                if layer.builderInstance == nil {
+                    layer.updatePreview(nodeGraph: app.nodeGraph, hard: true)
                 }
-            }*/
+                
+                if let instance = layer.builderInstance {
+                    if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
+                        updateLayerPreview(layer, region.rect.width, region.rect.height)
+                    }
+                    
+                    if let texture = instance.texture {
+                        app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
+                    }
+                }
+            }
             
-            app.gizmo.scale = camera.zoom
-            app.gizmo.draw()
-            app.changed = false
+            // --- Draw Gizmo
+            
+            if let layer = getCurrentLayer() {
+                
+                mmView.renderer.setClipRect(region.rect)
+                
+                let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! + camera.xPos)// * camera.zoom
+                let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! + camera.yPos)// * camera.zoom
+                let radius : Float = 15
+
+                app.mmView.drawSphere.draw(x: x - radius, y: y - radius, radius: radius, borderSize: 0, fillColor: hoverMode == .Center ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                
+                mmView.renderer.setClipRect()
+            }
             
         } else
         if region.type == .Top {
             region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: objectsButton )
-            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton, app.closeButton)
+            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: app.closeButton)
             
             objectsButton.draw()
-            timelineButton.draw()
             app.closeButton.draw()
         } else
         if region.type == .Left {
@@ -238,29 +298,74 @@ class SceneMaxDelegate : NodeMaxDelegate {
         }
     }
     
+    func updateLayerPreview(_ layer: Layer,_ width: Float,_ height: Float) {
+        layer.builderInstance?.layerGlobals!.position.x = currentScene!.properties[layer.uuid.uuidString + "_posX" ]!
+        layer.builderInstance?.layerGlobals!.position.y =  currentScene!.properties[layer.uuid.uuidString + "_posY" ]!
+        
+        layer.builderInstance?.layerGlobals!.limiterSize.x = 200// currentScene!.properties[layer.uuid.uuidString + "_posX" ]!
+        layer.builderInstance?.layerGlobals!.limiterSize.y = 200 // currentScene!.properties[layer.uuid.uuidString + "_posY" ]!
+        
+        app.nodeGraph.builder.render(width: width, height: height, instance: layer.builderInstance!, camera: camera)
+    }
+    
     override func mouseDown(_ event: MMMouseEvent)
     {
-        app.gizmo.mouseDown(event)
-        /*
-        if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
-            let editorRegion = app.editorRegion!
-//            app.layerManager.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, multiSelect: app.mmView.shiftIsDown)
-            
-//            func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera, timeline: MMTimeline)
+        dragMode = hoverMode
+        
+        if dragMode == .None {
+            return
+        }
+        
+        if let layer = getCurrentLayer() {
 
-            app.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera, timeline: timeline)
-            update()
-        }*/
+            dragMousePos = float2(event.x, event.y)
+            if dragMode == .Center {
+                dragPos = float2(currentScene!.properties[layer.uuid.uuidString + "_posX"]!, currentScene!.properties[layer.uuid.uuidString + "_posY"]!)
+            }
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        app.gizmo.mouseUp(event)
+        dragMode = .None
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        app.gizmo.mouseMoved(event)
+        let region = app.editorRegion!
+        
+        if dragMode == .Center {
+            
+            if let layer = getCurrentLayer() {
+
+                currentScene!.properties[layer.uuid.uuidString + "_posX"] = dragPos.x + dragMousePos.x - event.x
+                currentScene!.properties[layer.uuid.uuidString + "_posY"] = dragPos.y + dragMousePos.y - event.y
+                
+                updateLayerPreview(layer, region.rect.width, region.rect.height)
+                mmView.update()
+            }
+            
+            return
+        }
+        
+        if let layer = getCurrentLayer() {
+            
+            let oldHoverMode = hoverMode
+            hoverMode = .None
+
+            let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! + camera.xPos)
+            let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! + camera.yPos)
+            let radius : Float = 15
+            
+            let dist = simd_distance(float2(x,y), float2(event.x, event.y))
+            if dist <= radius {
+                hoverMode = .Center
+            }
+            
+            if oldHoverMode != hoverMode {
+                mmView.update()
+            }
+        }
     }
     
     override func pinchGesture(_ scale: Float)
@@ -268,6 +373,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
         camera.zoom = scale
         camera.zoom = max(0.1, camera.zoom)
         camera.zoom = min(1, camera.zoom)
+        currentScene!.properties["prevMaxScale"] = camera.zoom
         update()
         app.mmView.update()
     }
@@ -291,7 +397,17 @@ class SceneMaxDelegate : NodeMaxDelegate {
             camera.yPos += event.deltaY! * 2
         }
         #endif
+        
+        currentScene!.properties["prevMaxOffX"] = camera.xPos
+        currentScene!.properties["prevMaxOffY"] = camera.yPos
+        currentScene!.properties["prevMaxScale"] = camera.zoom
 
+        for layer in layerNodes {
+            if let instance = layer.builderInstance {
+                let region = app.editorRegion!
+                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera)
+            }
+        }
         update()
         
         if !dispatched {
@@ -347,7 +463,6 @@ class SceneMaxDelegate : NodeMaxDelegate {
                 if finished {
                     self.animating = false
                     self.bottomRegionMode = .Closed
-                    self.timelineButton.removeState( .Checked )
                 }
             } )
             animating = true
@@ -375,12 +490,6 @@ class SceneMaxDelegate : NodeMaxDelegate {
             }
         }
         return nil
-    }
-    
-    func updateGizmo()
-    {
-        //let object = getCurrentObject()
-        //app.gizmo.setObject(object, context: .ObjectEditor)
     }
     
     /// Updates the preview. hard does a rebuild, otherwise just a render
@@ -412,132 +521,6 @@ class SceneMaxDelegate : NodeMaxDelegate {
         return timeline
     }
 }
-
-/*
-/// Sequence widget for the bottom timeline
-class SequenceWidget : MMWidget
-{
-    var app                 : App
-    var label               : MMTextLabel
-    var menuWidget          : MMMenuWidget
-    
-    var listWidget          : MMListWidget
-    var items               : [MMListWidgetItem] = []
-    
-    var delegate            : ObjectMaxDelegate
-    
-    init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
-    {
-        self.app = app
-        self.delegate = delegate
-        
-        label = MMTextLabel(view, font: view.openSans, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
-        listWidget = MMListWidget(view)
-        
-        // ---  Menu
-        
-        let sequenceMenuItems = [
-            MMMenuItem( text: "Add", cb: {} ),
-            MMMenuItem( text: "Rename", cb: {} ),
-            MMMenuItem( text: "Delete", cb: {print("add child") } )
-        ]
-        menuWidget = MMMenuWidget( view, items: sequenceMenuItems )
-        
-        super.init(view)
-        
-        // ---
-        
-        menuWidget.items[0].cb = {
-            let object = self.delegate.currentObject!
-            let seq = MMTlSequence()
-            seq.name = "New Animation"
-            object.sequences.append(seq)
-            object.currentSequence = seq
-            self.listWidget.selectedItems = [seq.uuid]
-        }
-        
-        menuWidget.items[1].cb = {
-            var item = self.getCurrentItem()
-            if item != nil {
-                getStringDialog(view: view, title: "Rename Animation", message: "New name", defaultValue: item!.name, cb: { (name) -> Void in
-                    item!.name = name
-                } )
-            }
-        }
-        
-        menuWidget.items[2].cb = {
-            if self.items.count < 2 { return }
-
-            var item = self.getCurrentItem()
-
-            let object = self.delegate.currentObject!
-            object.sequences.remove(at: object.sequences.index(where: { $0.uuid == item!.uuid })!)
-            self.listWidget.selectedItems = [object.sequences[0].uuid]
-        }
-    }
-    
-    func build(items: [MMListWidgetItem])
-    {
-        self.items = items
-        listWidget.build(items: items)
-    }
-    
-    func getCurrentItem() -> MMListWidgetItem?
-    {
-        for item in items {
-            if listWidget.selectedItems.contains( item.uuid ) {
-                return item
-            }
-        }
-        return nil
-    }
-    
-    override func draw()
-    {
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
-        
-        label.setText("Animation Sequence")
-        label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
-        
-        menuWidget.rect.x = rect.x + rect.width - 30 - 1
-        menuWidget.rect.y = rect.y + 1
-        menuWidget.rect.width = 30
-        menuWidget.rect.height = 28
-        
-        if menuWidget.states.contains(.Opened) {
-            mmView.delayedDraws.append( menuWidget )
-        } else {
-            menuWidget.draw()
-            // --- Make focus area the size of the toolbar
-            menuWidget.rect.x = rect.x
-            menuWidget.rect.y = rect.y
-            menuWidget.rect.width = rect.width
-            menuWidget.rect.height = 30
-        }
-        
-        mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height - 30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
-
-        listWidget.rect.x = rect.x
-        listWidget.rect.y = rect.y + 30
-        listWidget.rect.width = rect.width
-        listWidget.rect.height = rect.height - 30
-        listWidget.draw()
-    }
-    
-    override func mouseDown(_ event: MMMouseEvent)
-    {
-        let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y) - 30, items: items)
-        if changed {
-            listWidget.build(items: items)
-        }
-    }
-    
-    override func mouseScrolled(_ event: MMMouseEvent)
-    {
-        listWidget.mouseScrolled(event)
-    }
-}
-*/
 
 class AvailableLayerListItem : MMListWidgetItem
 {
@@ -803,7 +786,6 @@ class LayerList : MMWidget
             delegate.currentScene!.selectedLayers = listWidget.selectedItems
             rebuildList()
             listWidget.build(items: items, fixedWidth: 300)
-            delegate.updateGizmo()
         }
         mouseIsDown = true
     }

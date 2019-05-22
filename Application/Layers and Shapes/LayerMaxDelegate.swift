@@ -121,6 +121,16 @@ class LayerMaxDelegate : NodeMaxDelegate {
         
         app.mmView.registerWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList.menuWidget, objectList)
         
+        let cameraProperties = currentLayer!.properties
+        if cameraProperties["prevMaxOffX"] != nil {
+            camera.xPos = cameraProperties["prevMaxOffX"]!
+        }
+        if cameraProperties["prevMaxOffY"] != nil {
+            camera.yPos = cameraProperties["prevMaxOffY"]!
+        }
+        if cameraProperties["prevMaxScale"] != nil {
+            camera.zoom = cameraProperties["prevMaxScale"]!
+        }
         update(true)
     }
     
@@ -272,6 +282,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
         camera.zoom = scale
         camera.zoom = max(0.1, camera.zoom)
         camera.zoom = min(1, camera.zoom)
+        currentLayer!.properties["prevMaxScale"] = camera.zoom
         update()
         app.mmView.update()
     }
@@ -296,6 +307,9 @@ class LayerMaxDelegate : NodeMaxDelegate {
         }
         #endif
 
+        currentLayer!.properties["prevMaxOffX"] = camera.xPos
+        currentLayer!.properties["prevMaxOffY"] = camera.yPos
+        currentLayer!.properties["prevMaxScale"] = camera.zoom
         update()
         
         if !dispatched {

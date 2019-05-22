@@ -74,5 +74,24 @@ class Scene : Node
     
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
+        let size = nodeGraph.previewSize
+        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
+            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
+        }
+        
+        for layerUUID in layers {
+            for node in nodeGraph.nodes {
+                if layerUUID == node.uuid {
+                    let layer = node as! Layer
+                    
+                    if properties[layer.uuid.uuidString + "_posX" ] != nil {
+                        layer.builderInstance?.layerGlobals?.position.x = properties[layer.uuid.uuidString + "_posX" ]!
+                        layer.builderInstance?.layerGlobals?.position.y = properties[layer.uuid.uuidString + "_posY" ]!
+                    }
+                    
+                    layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, outTexture: previewTexture!, properties: properties)
+                }
+            }
+        }
     }
 }

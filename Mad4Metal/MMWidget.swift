@@ -188,6 +188,14 @@ class MMButtonWidget : MMWidget
         self.customState = customState
     }
     
+    func setText(_ text: String)
+    {
+        if let label = self.label as? MMTextLabel {
+            label.setText(text)
+            rect.width = self.label!.rect.width + skin.margin.width()
+        }
+    }
+
     override func _clicked(_ event:MMMouseEvent)
     {
         if !isDisabled {
