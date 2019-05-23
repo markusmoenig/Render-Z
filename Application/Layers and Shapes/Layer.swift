@@ -186,6 +186,7 @@ class Layer : Node
                 }
                 self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera, preview: true)
                 self.updatePreview(nodeGraph: nodeGraph)
+                nodeGraph.mmView.update()
             }
             return
         }
@@ -197,7 +198,6 @@ class Layer : Node
         if physicsInstance != nil {
             nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
         }
-        nodeGraph.mmView.update()
     }
     
     func updatePreviewExt(nodeGraph: NodeGraph, hard: Bool = false, outTexture: MTLTexture, properties: [String:Float])
@@ -221,6 +221,7 @@ class Layer : Node
                 }
                 self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera, preview: true)
                 self.updatePreviewExt(nodeGraph: nodeGraph, hard: false, outTexture: outTexture, properties: properties)
+                nodeGraph.mmView.update()
             }
             return
         }
@@ -232,6 +233,5 @@ class Layer : Node
         if physicsInstance != nil {
             nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
         }
-        nodeGraph.mmView.update()
     }
 }
