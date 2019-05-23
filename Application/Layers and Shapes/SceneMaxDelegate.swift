@@ -35,7 +35,11 @@ class SceneMaxDelegate : NodeMaxDelegate {
     var dragMousePos    : float2 = float2()
 
     // Top Region
-    var objectsButton   : MMButtonWidget!
+    var layersButton    : MMButtonWidget!
+    
+    var screenButton    : MMScrollButton!
+    var screenSize      : float2? = nil
+
     //var timelineButton  : MMButtonWidget!
 
     // Left Region
@@ -63,6 +67,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
     var dispatched      : Bool = false
     
     var layerNodes      : [Layer] = []
+    var screenList      : [Node?] = []
 
     override func activate(_ app: App)
     {
@@ -71,11 +76,26 @@ class SceneMaxDelegate : NodeMaxDelegate {
         currentScene = app.nodeGraph.maximizedNode as? Scene
         
         // Top Region
-        if objectsButton == nil {
-            objectsButton = MMButtonWidget( app.mmView, text: "Layers" )
+        if layersButton == nil {
+            layersButton = MMButtonWidget( app.mmView, text: "Layers" )
             //timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
         }
-        objectsButton.clicked = { (event) -> Void in
+        
+        screenSize = nil
+        screenButton = MMScrollButton(app.mmView, items: getScreenList(), index: 0)
+        screenButton.changed = { (index)->() in
+            if let osx = self.screenList[index] as? GamePlatformOSX {
+                self.screenSize = osx.getScreenSize()
+            } else
+            if let ipad = self.screenList[index] as? GamePlatformIPAD {
+                self.screenSize = ipad.getScreenSize()
+            } else {
+                self.screenSize = nil
+            }
+            self.mmView.update()
+        }
+
+        layersButton.clicked = { (event) -> Void in
             self.setLeftRegionMode(.Layers)
         }
 
@@ -95,7 +115,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
         
         avLayerList = AvailableLayerList(app.mmView, app:app)
         
-        objectsButton.addState( .Checked )
+        layersButton.addState( .Checked )
         app.leftRegion!.rect.width = 200
         
         // Right Region
@@ -111,30 +131,10 @@ class SceneMaxDelegate : NodeMaxDelegate {
         }
         
         // Bottom Region
-        
-        if timeline == nil {
-            timeline = MMTimeline(app.mmView)
-            timeline.changedCB = { (frame) in
-                self.update()
-            }
-            //sequenceWidget = SequenceWidget(app.mmView, app: app, delegate: self)
-        }
-        timeline.activate()
 
-        /*
-        sequenceWidget.listWidget.selectedItems = []//[currentObject!.sequences[0].uuid]
-        sequenceWidget.listWidget.selectionChanged = { (items:[MMListWidgetItem]) -> Void in
-            self.currentObject!.currentSequence = items[0] as? MMTlSequence
-            self.update()
-        }
-         
-        //timelineButton.addState( .Checked )
-        //app.bottomRegion!.rect.height = 100
+        //
         
-        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
-        */
-        
-        app.mmView.registerWidgets( widgets: objectsButton, app.closeButton, avLayerList, layerList.menuWidget, layerList)
+        app.mmView.registerWidgets( widgets: layersButton, app.closeButton, screenButton, avLayerList, layerList.menuWidget, layerList)
         
         let cameraProperties = currentScene!.properties
         if cameraProperties["prevMaxOffX"] != nil {
@@ -156,11 +156,12 @@ class SceneMaxDelegate : NodeMaxDelegate {
     override func deactivate()
     {
 //        timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: objectsButton, app.closeButton, avLayerList, layerList.menuWidget, layerList)
+        app.mmView.deregisterWidgets( widgets: layersButton, app.closeButton, screenButton, avLayerList, layerList.menuWidget, layerList)
         
         currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
     }
     
+    /// Collects the nodes in the scene
     func updateLayerNodes()
     {
         layerNodes = []
@@ -230,6 +231,15 @@ class SceneMaxDelegate : NodeMaxDelegate {
                 }
             }
             
+            if let screen = screenSize {
+                let x: Float = region.rect.x + region.rect.width / 2 - (camera.xPos + screen.x/2 * camera.zoom)
+                let y: Float = region.rect.y + region.rect.height / 2 - (camera.yPos + screen.y/2 * camera.zoom)
+                
+                app.mmView.renderer!.setClipRect(region.rect)
+                app.mmView.drawBox.draw( x: x, y: y, width: screen.x * camera.zoom, height: screen.y * camera.zoom, round: 0, borderSize: 2, fillColor : float4(0.161, 0.165, 0.188, 0.5), borderColor: float4(0.5, 0.5, 0.5, 0.5) )
+                app.mmView.renderer.setClipRect()
+            }
+            
             // --- Draw Gizmo
             
             if let layer = getCurrentLayer() {
@@ -247,11 +257,15 @@ class SceneMaxDelegate : NodeMaxDelegate {
             
         } else
         if region.type == .Top {
-            region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: objectsButton )
+            region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: layersButton )
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: app.closeButton)
             
-            objectsButton.draw()
+            layersButton.draw()
             app.closeButton.draw()
+            
+            screenButton.rect.x = region.rect.x + 200
+            screenButton.rect.y = 4 + 44
+            screenButton.draw()
         } else
         if region.type == .Left {
             let leftRegion = app.leftRegion!
@@ -434,7 +448,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
                 if finished {
                     self.animating = false
                     self.leftRegionMode = .Closed
-                    self.objectsButton.removeState( .Checked )
+                    self.layersButton.removeState( .Checked )
                 }
             } )
             animating = true
@@ -490,6 +504,25 @@ class SceneMaxDelegate : NodeMaxDelegate {
             }
         }
         return nil
+    }
+    
+    /// Creates a list of the available screens in the game
+    func getScreenList() -> [String]
+    {
+        var list = ["Screen: None"]
+        screenList = [nil]
+        
+        if let osx = app.nodeGraph.getNodeOfType("Platform OSX") as? GamePlatformOSX {
+            screenList.append(osx)
+            list.append("Screen: OSX")
+        }
+        
+        if let ipad = app.nodeGraph.getNodeOfType("Platform IPAD") as? GamePlatformIPAD {
+            screenList.append(ipad)
+            list.append("Screen: iPad")
+        }
+
+        return list
     }
     
     /// Updates the preview. hard does a rebuild, otherwise just a render

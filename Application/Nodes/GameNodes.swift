@@ -15,10 +15,14 @@ class GamePlatformOSX : Node
         super.init()
         
         name = "Platform: OSX"
+    }
+    
+    override func setup()
+    {
         type = "Platform OSX"
-        
         brand = .Property
     }
+    
     
     private enum CodingKeys: String, CodingKey {
         case type
@@ -54,6 +58,11 @@ class GamePlatformOSX : Node
         try super.encode(to: superdecoder)
     }
     
+    func getScreenSize() -> float2
+    {
+        return float2(properties["width"]!, properties["height"]!)
+    }
+    
     /// Return Success if the selected key is currently down
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
@@ -70,8 +79,11 @@ class GamePlatformIPAD : Node
         super.init()
         
         name = "Platform: iPAD"
+    }
+    
+    override func setup()
+    {
         type = "Platform IPAD"
-        
         brand = .Property
     }
     
@@ -106,6 +118,33 @@ class GamePlatformIPAD : Node
         
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
+    }
+    
+    func getScreenSize() -> float2
+    {
+        var width : Float = 0
+        var height : Float = 0
+        
+        let index = properties["type"]
+        let orient = properties["orientation"]
+        
+        if index == 0 {
+            width = 768; height = 1024
+        }
+        if index == 1 {
+            width = 1536; height = 2048
+        } else
+            if index == 2 {
+                width = 2048; height = 2732
+        }
+        
+        if orient == 1 {
+            let temp = height
+            height = width
+            width = temp
+        }
+        
+        return float2(width, height)
     }
     
     /// Return Success if the selected key is currently down

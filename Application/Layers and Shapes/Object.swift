@@ -332,16 +332,18 @@ class Object : Node
         let prevScale = properties["prevScale"]
         let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
         
-        executeProperties(nodeGraph)
-
         if instance == nil || hard {
-            instance = nodeGraph.builder.buildObjects(objects: playInstance != nil ? [playInstance!] : [self], camera: camera, preview: true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
+                self.executeProperties(nodeGraph)
+                self.instance = nodeGraph.builder.buildObjects(objects: self.playInstance != nil ? [self.playInstance!] : [self], camera: self.camera!, preview: true)
+                self.updatePreview(nodeGraph: nodeGraph)
+            }
+            return
         }
         
         if instance != nil {
             nodeGraph.builder.render(width: size.x, height: size.y, instance: instance!, camera: camera, outTexture: previewTexture)
         }
-        
         nodeGraph.mmView.update()
     }
 }

@@ -178,7 +178,16 @@ class Layer : Node
         let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
         
         if builderInstance == nil || hard {
-            builderInstance = nodeGraph.builder.buildObjects(objects: createInstances(nodeGraph: nodeGraph), camera: camera, preview: true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
+                self.executeProperties(nodeGraph)
+                let instances = self.createInstances(nodeGraph: nodeGraph)
+                for instance in instances {
+                    instance.executeProperties(nodeGraph)
+                }
+                self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera, preview: true)
+                self.updatePreview(nodeGraph: nodeGraph)
+            }
+            return
         }
         
         if builderInstance != nil {
@@ -188,6 +197,7 @@ class Layer : Node
         if physicsInstance != nil {
             nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
         }
+        nodeGraph.mmView.update()
     }
     
     func updatePreviewExt(nodeGraph: NodeGraph, hard: Bool = false, outTexture: MTLTexture, properties: [String:Float])
@@ -203,7 +213,16 @@ class Layer : Node
         let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
         
         if builderInstance == nil || hard {
-            builderInstance = nodeGraph.builder.buildObjects(objects: createInstances(nodeGraph: nodeGraph), camera: camera, preview: true)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
+                self.executeProperties(nodeGraph)
+                let instances = self.createInstances(nodeGraph: nodeGraph)
+                for instance in instances {
+                    instance.executeProperties(nodeGraph)
+                }
+                self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera, preview: true)
+                self.updatePreviewExt(nodeGraph: nodeGraph, hard: false, outTexture: outTexture, properties: properties)
+            }
+            return
         }
         
         if builderInstance != nil {
@@ -213,5 +232,6 @@ class Layer : Node
         if physicsInstance != nil {
             nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
         }
+        nodeGraph.mmView.update()
     }
 }

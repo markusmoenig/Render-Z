@@ -1737,7 +1737,7 @@ class NodeGraph : Codable
     }
     
     /// Hard updates the given node
-    func updateNode(_ node: Node, updatePreview: Bool = true)
+    func updateNode(_ node: Node)
     {
         /// Returns the terminal of the given UUID
         func getTerminalOfUUID(_ uuid: UUID) -> Terminal?
@@ -1751,12 +1751,6 @@ class NodeGraph : Codable
             }
             return nil
         }
-        
-        /*
-        if updatePreview && node.type == "Object" {
-            let object = node as! Object
-            object.instance = app!.nodeGraph.builder.buildObjects(objects: [object], camera: app!.camera)
-        }*/
         
         for terminal in node.terminals {
             for conn in terminal.connections {
@@ -2088,17 +2082,13 @@ class NodeGraph : Codable
             }
             
         }
-        
-        //if updatePreview {
-        //    node.updatePreview(nodeGraph: self, hard: true)
-        //}
     }
     
     /// Hard updates all nodes
-    func updateNodes(updatePreviews: Bool = true)
+    func updateNodes()
     {
         for node in nodes {
-            updateNode(node, updatePreview: updatePreviews)
+            updateNode(node)
         }
         maximizedNode = nil
     }
@@ -2110,7 +2100,7 @@ class NodeGraph : Codable
             for clientNode in subset {
                 for node in nodes {
                     if node.uuid == clientNode {
-                        updateNode(node, updatePreview: false)
+                        updateNode(node)
                         break
                     }
                 }
