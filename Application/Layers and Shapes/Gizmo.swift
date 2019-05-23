@@ -17,7 +17,7 @@ class Gizmo : MMWidget
     }
     
     enum GizmoState : Float {
-        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked, AddPoint, RemovePoint, ColorWidgetClosed, ColorWidgetOpened, FloatWidgetClosed, FloatWidgetOpened
+        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked, AddPoint, RemovePoint, ColorWidgetClosed, ColorWidgetOpened, FloatWidgetClosed, FloatWidgetOpened, PointHover
     }
     
     enum GizmoContext : Float {
@@ -323,7 +323,7 @@ class Gizmo : MMWidget
 //        #endif
     
         // --- Check if a point was clicked (including the center point for the normal gizmo)
-        if hoverState == .Inactive && object != nil && context == .ShapeEditor {
+        if hoverState == .PointHover && object != nil && context == .ShapeEditor {
             pointShape = nil
             
             let attributes = getCurrentGizmoAttributes()
@@ -358,7 +358,7 @@ class Gizmo : MMWidget
                         
                         let radius : Float = 10
                         let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
-                        if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
+                        if rect.contains(event.x, event.y) {
                             if ptConn.1 != nil {
                                 // If point is a slave remove the connection
                                 object!.removePointConnection(toShape: shape, toIndex: index)
@@ -374,7 +374,7 @@ class Gizmo : MMWidget
                 }
             }
         } else
-        if hoverState == .Inactive && object != nil && context == .MaterialEditor {
+        if hoverState == .PointHover && object != nil && context == .MaterialEditor {
             pointMaterial = nil
             
             let attributes = getCurrentGizmoAttributes()
@@ -395,7 +395,7 @@ class Gizmo : MMWidget
                         
                         let radius : Float = 10
                         let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
-                        if rect.contains(mmView.mousePos.x, mmView.mousePos.y) {
+                        if rect.contains(event.x, event.y) {
                             // Enter point gizmo
                             pointMaterial = material
                             pointIndex = index
@@ -549,9 +549,13 @@ class Gizmo : MMWidget
             mmView.unlockFramerate()
         }
         mmView.mouseTrackWidget = nil
+        #if os(OSX)
         if hoverState != .CenterMove {
             hoverState = .Inactive
         }
+        #elseif os(iOS)
+        hoverState = .Inactive
+        #endif
     
         dragState = .Inactive
 
@@ -1437,6 +1441,42 @@ class Gizmo : MMWidget
         
         if context == .ShapeEditor {
             if selectedShapes.count == 1 {
+                
+                for shape in selectedShapes {
+                    
+                    // --- Check for point hover
+                    for index in 0..<shape.pointCount {
+                        
+                        var pX = posX + attributes["point_\(index)_x"]!
+                        var pY = posY + attributes["point_\(index)_y"]!
+                        
+                        let ptConn = object!.getPointConnections(shape: shape, index: index)
+                        
+                        if ptConn.0 != nil {
+                            // The point controls other point(s)
+                            ptConn.0!.valueX = pX
+                            ptConn.0!.valueY = pY
+                        }
+                        
+                        if ptConn.1 != nil {
+                            // The point is being controlled by another point
+                            pX = ptConn.1!.valueX
+                            pY = -ptConn.1!.valueY
+                        }
+                        
+                        let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+                        
+                        var pFillColor = float4(repeating: 1)
+                        var pBorderColor = float4( 0, 0, 0, 1)
+                        let radius : Float = 10
+                        let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                        if rect.contains(event.x, event.y) {
+                            hoverState = .PointHover
+                        }
+                    }
+                }
+                
+                // Correct Gizmo position via points
                 for shape in selectedShapes {
 
                     if shape.pointCount > 0 {
@@ -1459,6 +1499,28 @@ class Gizmo : MMWidget
         if context == .MaterialEditor {
             let selectedMaterials = object!.getSelectedMaterials(materialType)
             if selectedMaterials.count == 1 {
+                
+                for material in selectedMaterials {
+                    
+                    // --- Check for point hover
+                    for index in 0..<material.pointCount {
+                        
+                        var pX = posX + attributes["point_\(index)_x"]!
+                        var pY = posY + attributes["point_\(index)_y"]!
+                        
+                        let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+                        
+                        var pFillColor = float4(repeating: 1)
+                        var pBorderColor = float4( 0, 0, 0, 1)
+                        let radius : Float = 10
+                        let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                        if rect.contains(event.x, event.y) {
+                            hoverState = .PointHover
+                        }
+                    }
+                }
+                
+                // Adjust gizmo for point position
                 for material in selectedMaterials {
                     
                     if material.pointCount > 0 {
@@ -1630,8 +1692,79 @@ class Gizmo : MMWidget
         }
         
         let attributes = getCurrentGizmoAttributes()
-        let posX : Float = attributes["posX"]! + attributes["point_\(pointIndex)_x"]!
-        let posY : Float = attributes["posY"]! + attributes["point_\(pointIndex)_y"]!
+        var posX : Float = attributes["posX"]!
+        var posY : Float = attributes["posY"]!
+        
+        // Check for point hover state
+        if context == .ShapeEditor {
+            let selectedShapes = object!.getSelectedShapes()
+            
+            for shape in selectedShapes {
+                
+                for index in 0..<shape.pointCount {
+                    
+                    //if shape === pointShape! && index == pointIndex {
+                    //    continue
+                    // }
+                    
+                    let ptConn = object!.getPointConnections(shape: shape, index: index)
+                    
+                    var pX = posX + attributes["point_\(index)_x"]!
+                    var pY = posY + attributes["point_\(index)_y"]!
+                    
+                    if ptConn.0 != nil {
+                        // The point controls other point(s)
+                        ptConn.0!.valueX = pX
+                        ptConn.0!.valueY = pY
+                    }
+                    
+                    if ptConn.1 != nil {
+                        // The point is being controlled by another point
+                        pX = ptConn.1!.valueX
+                        pY = -ptConn.1!.valueY
+                    }
+                    
+                    let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+                    
+                    var pFillColor = float4(repeating: 1)
+                    var pBorderColor = float4( 0, 0, 0, 1)
+                    let radius : Float = 10
+                    
+                    let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                    if rect.contains(event.x, event.y) {
+                        hoverState = .PointHover
+                    }
+                }
+            }
+        } else
+        if context == .MaterialEditor {
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+            if selectedMaterials.count == 1 {
+                
+                for material in selectedMaterials {
+                    
+                    // --- Check for point hover
+                    for index in 0..<material.pointCount {
+                        
+                        var pX = posX + attributes["point_\(index)_x"]!
+                        var pY = posY + attributes["point_\(index)_y"]!
+                        
+                        let pointInScreen = convertToScreenSpace(x: pX, y: pY)
+                        
+                        var pFillColor = float4(repeating: 1)
+                        var pBorderColor = float4( 0, 0, 0, 1)
+                        let radius : Float = 10
+                        let rect = MMRect(pointInScreen.x - radius, pointInScreen.y - radius, 2 * radius, 2 * radius)
+                        if rect.contains(event.x, event.y) {
+                            hoverState = .PointHover
+                        }
+                    }
+                }
+            }
+        }
+        
+        posX = attributes["posX"]! + attributes["point_\(pointIndex)_x"]!
+        posY = attributes["posY"]! + attributes["point_\(pointIndex)_y"]!
         
         gizmoCenter = convertToScreenSpace(x: posX, y: posY)
     
