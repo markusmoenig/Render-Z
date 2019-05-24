@@ -160,7 +160,7 @@ class Builder
         buildData.source +=
         """
         
-            float2 d = abs(uv) - layerData->limiterSize * layerData->camera.z;
+            float2 d = abs(uv) - layerData->limiterSize;// * layerData->camera.z;
             float ldist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
             if ( ldist < 0.0 ) {
         
@@ -686,9 +686,9 @@ class Builder
         instance.data![4] = instance.layerGlobals!.position.x
         instance.data![5] = instance.layerGlobals!.position.y
 
-        instance.data![6] = instance.layerGlobals!.limiterSize.x
-        instance.data![7] = instance.layerGlobals!.limiterSize.y
-        
+        instance.data![6] = instance.layerGlobals!.limiterSize.x / 2
+        instance.data![7] = instance.layerGlobals!.limiterSize.y / 2
+    
         updateInstanceData(instance: instance, camera: camera, frame: frame)
         
         memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)

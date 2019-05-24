@@ -269,10 +269,12 @@ class Gizmo : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        #if os(OSX)
         if hoverUITitle != nil {
             hoverUITitle?.titleClicked()
             return
         }
+        #endif
         
         // If shape editor has no shape, set to inactive
         if object!.selectedShapes.count == 0 && context == .ShapeEditor { hoverState = .Inactive; return }
@@ -555,6 +557,9 @@ class Gizmo : MMWidget
         }
         #elseif os(iOS)
         hoverState = .Inactive
+        if hoverUITitle != nil {
+            hoverUITitle?.titleClicked()
+        }
         #endif
     
         dragState = .Inactive

@@ -89,6 +89,14 @@ class Scene : Node
                         layer.builderInstance?.layerGlobals?.position.y = properties[layer.uuid.uuidString + "_posY" ]!
                     }
                     
+                    if properties[layer.uuid.uuidString + "_width" ] != nil {
+                        layer.builderInstance?.layerGlobals?.limiterSize.x = properties[layer.uuid.uuidString + "_width" ]!
+                        layer.builderInstance?.layerGlobals?.limiterSize.y = properties[layer.uuid.uuidString + "_height" ]!
+                    } else {
+                        layer.builderInstance?.layerGlobals?.limiterSize.x = 400
+                        layer.builderInstance?.layerGlobals?.limiterSize.y = 400
+                    }
+                    
                     layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, outTexture: previewTexture!, properties: properties)
                 }
             }

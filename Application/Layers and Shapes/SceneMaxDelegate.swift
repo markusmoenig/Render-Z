@@ -22,7 +22,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
     }
     
     enum HoverMode {
-        case None, Center
+        case None, Center, NorthWest, North, NorthEast, East, SouthEast, South, SouthWest, West
     }
     
     var app             : App!
@@ -32,6 +32,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
     var dragMode        : HoverMode = .None
     
     var dragPos         : float2 = float2()
+    var dragSize        : float2 = float2()
     var dragMousePos    : float2 = float2()
 
     // Top Region
@@ -214,6 +215,13 @@ class SceneMaxDelegate : NodeMaxDelegate {
                 if currentScene!.properties[layer.uuid.uuidString + "_posX"] == nil {
                     currentScene!.properties[layer.uuid.uuidString + "_posX"] = 0
                     currentScene!.properties[layer.uuid.uuidString + "_posY"] = 0
+                    currentScene!.properties[layer.uuid.uuidString + "_width"] = 400
+                    currentScene!.properties[layer.uuid.uuidString + "_height"] = 400
+                }
+                
+                if currentScene!.properties[layer.uuid.uuidString + "_width"] == nil {
+                    currentScene!.properties[layer.uuid.uuidString + "_width"] = 400
+                    currentScene!.properties[layer.uuid.uuidString + "_height"] = 400
                 }
                 
                 if layer.builderInstance == nil {
@@ -248,9 +256,28 @@ class SceneMaxDelegate : NodeMaxDelegate {
                 
                 let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! + camera.xPos)// * camera.zoom
                 let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! + camera.yPos)// * camera.zoom
-                let radius : Float = 15
+                let width = currentScene!.properties[layer.uuid.uuidString + "_width"]! * camera.zoom
+                let height = currentScene!.properties[layer.uuid.uuidString + "_height"]! * camera.zoom
+                let halfWidth = width / 2; let halfHeight = height / 2
+                let radius : Float = 15; let halfRadius = radius / 2
 
-                app.mmView.drawSphere.draw(x: x - radius, y: y - radius, radius: radius, borderSize: 0, fillColor: hoverMode == .Center ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                app.mmView.drawSphere.draw(x: x - radius/2, y: y - radius/2, radius: radius/2, borderSize: 0, fillColor: hoverMode == .Center ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                
+                app.mmView.drawBox.draw(x: x - halfWidth, y: y - halfHeight, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .NorthWest ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                
+                app.mmView.drawBox.draw(x: x - halfRadius, y: y - halfHeight, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .North ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                
+                app.mmView.drawBox.draw(x: x + halfWidth - radius, y: y - halfHeight, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .NorthEast ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                
+                app.mmView.drawBox.draw(x: x + halfWidth - radius, y: y - halfRadius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .East ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                
+                app.mmView.drawBox.draw(x: x + halfWidth - radius, y: y + halfHeight - radius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .SouthEast ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                
+                app.mmView.drawBox.draw(x: x - halfRadius, y: y + halfHeight - radius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .South ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                
+                app.mmView.drawBox.draw(x: x - halfWidth, y: y + halfHeight - radius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .SouthWest ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                
+                app.mmView.drawBox.draw(x: x - halfWidth, y: y - halfRadius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .West ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
                 
                 mmView.renderer.setClipRect()
             }
@@ -316,14 +343,15 @@ class SceneMaxDelegate : NodeMaxDelegate {
         layer.builderInstance?.layerGlobals!.position.x = currentScene!.properties[layer.uuid.uuidString + "_posX" ]!
         layer.builderInstance?.layerGlobals!.position.y =  currentScene!.properties[layer.uuid.uuidString + "_posY" ]!
         
-        layer.builderInstance?.layerGlobals!.limiterSize.x = 200// currentScene!.properties[layer.uuid.uuidString + "_posX" ]!
-        layer.builderInstance?.layerGlobals!.limiterSize.y = 200 // currentScene!.properties[layer.uuid.uuidString + "_posY" ]!
+        layer.builderInstance?.layerGlobals!.limiterSize.x = currentScene!.properties[layer.uuid.uuidString + "_width" ]!
+        layer.builderInstance?.layerGlobals!.limiterSize.y = currentScene!.properties[layer.uuid.uuidString + "_height" ]!
         
         app.nodeGraph.builder.render(width: width, height: height, instance: layer.builderInstance!, camera: camera)
     }
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        mouseMoved(event)
         dragMode = hoverMode
         
         if dragMode == .None {
@@ -331,11 +359,9 @@ class SceneMaxDelegate : NodeMaxDelegate {
         }
         
         if let layer = getCurrentLayer() {
-
             dragMousePos = float2(event.x, event.y)
-            if dragMode == .Center {
-                dragPos = float2(currentScene!.properties[layer.uuid.uuidString + "_posX"]!, currentScene!.properties[layer.uuid.uuidString + "_posY"]!)
-            }
+            dragPos = float2(currentScene!.properties[layer.uuid.uuidString + "_posX"]!, currentScene!.properties[layer.uuid.uuidString + "_posY"]!)
+            dragSize = float2(currentScene!.properties[layer.uuid.uuidString + "_width"]!, currentScene!.properties[layer.uuid.uuidString + "_height"]!)
         }
     }
     
@@ -348,17 +374,45 @@ class SceneMaxDelegate : NodeMaxDelegate {
     {
         let region = app.editorRegion!
         
-        if dragMode == .Center {
-            
+        if dragMode != .None {
+            let minSize : Float = 50
             if let layer = getCurrentLayer() {
-
-                currentScene!.properties[layer.uuid.uuidString + "_posX"] = dragPos.x + dragMousePos.x - event.x
-                currentScene!.properties[layer.uuid.uuidString + "_posY"] = dragPos.y + dragMousePos.y - event.y
+                if dragMode == .Center {
+                    currentScene!.properties[layer.uuid.uuidString + "_posX"] = dragPos.x + dragMousePos.x - event.x
+                    currentScene!.properties[layer.uuid.uuidString + "_posY"] = dragPos.y + dragMousePos.y - event.y
+                }
+                if dragMode == .NorthWest {
+                    currentScene!.properties[layer.uuid.uuidString + "_width"] = max( minSize, dragSize.x + (dragMousePos.x - event.x) * 2 / camera.zoom)
+                    currentScene!.properties[layer.uuid.uuidString + "_height"] = max( minSize, dragSize.y + (dragMousePos.y - event.y) * 2 / camera.zoom)
+                } else
+                if dragMode == .North{
+                    currentScene!.properties[layer.uuid.uuidString + "_height"] = max( minSize, dragSize.y + (dragMousePos.y - event.y) * 2 / camera.zoom)
+                } else
+                if dragMode == .NorthEast {
+                    currentScene!.properties[layer.uuid.uuidString + "_width"] = max( minSize, dragSize.x - (dragMousePos.x - event.x) * 2 / camera.zoom)
+                    currentScene!.properties[layer.uuid.uuidString + "_height"] = max( minSize, dragSize.y + (dragMousePos.y - event.y) * 2 / camera.zoom)
+                } else
+                if dragMode == .East {
+                    currentScene!.properties[layer.uuid.uuidString + "_width"] = max( minSize, dragSize.x - (dragMousePos.x - event.x) * 2 / camera.zoom)
+                } else
+                if dragMode == .SouthEast {
+                    currentScene!.properties[layer.uuid.uuidString + "_width"] = max( minSize, dragSize.x - (dragMousePos.x - event.x) * 2 / camera.zoom)
+                    currentScene!.properties[layer.uuid.uuidString + "_height"] = max( minSize, dragSize.y - (dragMousePos.y - event.y) * 2 / camera.zoom)
+                } else
+                if dragMode == .South {
+                    currentScene!.properties[layer.uuid.uuidString + "_height"] = max( minSize, dragSize.y - (dragMousePos.y - event.y) * 2 / camera.zoom)
+                } else
+                if dragMode == .SouthWest {
+                    currentScene!.properties[layer.uuid.uuidString + "_width"] = max( minSize, dragSize.x + (dragMousePos.x - event.x) * 2 / camera.zoom)
+                    currentScene!.properties[layer.uuid.uuidString + "_height"] = max( minSize, dragSize.y - (dragMousePos.y - event.y) * 2 / camera.zoom)
+                } else
+                if dragMode == .West {
+                    currentScene!.properties[layer.uuid.uuidString + "_width"] = max( minSize, dragSize.x + (dragMousePos.x - event.x) * 2 / camera.zoom)
+                }
                 
                 updateLayerPreview(layer, region.rect.width, region.rect.height)
                 mmView.update()
             }
-            
             return
         }
         
@@ -369,11 +423,54 @@ class SceneMaxDelegate : NodeMaxDelegate {
 
             let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! + camera.xPos)
             let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! + camera.yPos)
-            let radius : Float = 15
+            let width = currentScene!.properties[layer.uuid.uuidString + "_width"]! * camera.zoom
+            let height = currentScene!.properties[layer.uuid.uuidString + "_height"]! * camera.zoom
+            let halfWidth = width / 2; let halfHeight = height / 2
+            let radius : Float = 15; let halfRadius = radius / 2
             
-            let dist = simd_distance(float2(x,y), float2(event.x, event.y))
+            var dist = simd_distance(float2(x,y), float2(event.x, event.y))
             if dist <= radius {
                 hoverMode = .Center
+            }
+            
+            dist = simd_distance(float2(x-halfWidth+halfRadius,y-halfHeight+halfRadius), float2(event.x, event.y))
+            if dist <= radius {
+                hoverMode = .NorthWest
+            }
+            
+            dist = simd_distance(float2(x,y-halfHeight+halfRadius), float2(event.x, event.y))
+            if dist <= radius {
+                hoverMode = .North
+            }
+            
+            dist = simd_distance(float2(x+halfWidth-halfRadius,y-halfHeight+halfRadius), float2(event.x, event.y))
+            if dist <= radius {
+                hoverMode = .NorthEast
+            }
+            
+            dist = simd_distance(float2(x+halfWidth-halfRadius,y), float2(event.x, event.y))
+            if dist <= radius {
+                hoverMode = .East
+            }
+            
+            dist = simd_distance(float2(x+halfWidth-halfRadius,y+halfHeight-halfRadius), float2(event.x, event.y))
+            if dist <= radius {
+                hoverMode = .SouthEast
+            }
+            
+            dist = simd_distance(float2(x,y+halfHeight-halfRadius), float2(event.x, event.y))
+            if dist <= radius {
+                hoverMode = .South
+            }
+            
+            dist = simd_distance(float2(x-halfWidth+halfRadius,y+halfHeight-halfRadius), float2(event.x, event.y))
+            if dist <= radius {
+                hoverMode = .SouthWest
+            }
+            
+            dist = simd_distance(float2(x-halfWidth+halfRadius,y), float2(event.x, event.y))
+            if dist <= radius {
+                hoverMode = .West
             }
             
             if oldHoverMode != hoverMode {
@@ -396,9 +493,9 @@ class SceneMaxDelegate : NodeMaxDelegate {
     {
         #if os(iOS) || os(watchOS) || os(tvOS)
         // If there is a selected shape, don't scroll
-//        if getCurrentLayer()?.getCurrentShape() != nil {
-//            return
-//        }
+        if dragMode != .None {
+            return
+        }
         camera.xPos -= event.deltaX! * 2
         camera.yPos -= event.deltaY! * 2
         #elseif os(OSX)
@@ -768,6 +865,7 @@ class LayerList : MMWidget
                 }
             }
         }
+        listWidget.selectedItems = delegate.currentScene!.selectedLayers
         listWidget.build(items: items, fixedWidth: 300)
     }
     

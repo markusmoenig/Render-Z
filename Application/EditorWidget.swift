@@ -78,6 +78,7 @@ class EditorWidget      : MMWidget
                 let node = app.nodeGraph.hoverNode!
                 node.properties["prevScale"] = realScale
                 node.updatePreview(nodeGraph: app.nodeGraph)
+                mmView.update()
             } else
             if app.nodeGraph.nodeHoverMode == .None && app.nodeGraph.currentMaster != nil
             {

@@ -577,7 +577,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     override func mouseDown(_ event: MMMouseEvent)
     {
         mouseMoved(event)
-        
+                
         selPointType = hoverPointType
         selPointIndex = hoverPointIndex
         selControl = hoverControl

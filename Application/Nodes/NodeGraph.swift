@@ -577,9 +577,11 @@ class NodeGraph : Codable
             self.setCurrentNode(node)
         }
         
+        #if os(OSX)
         if hoverUITitle != nil {
             hoverUITitle?.titleClicked()
         }
+        #endif
         
         if let screen = mmScreen {
             screen.mouseDownPos.x = event.x
@@ -702,6 +704,12 @@ class NodeGraph : Codable
         app?.mmView.mouseTrackWidget = nil
         app?.mmView.unlockFramerate()
         nodeHoverMode = .None
+        
+        #if os(iOS)
+        if hoverUITitle != nil {
+            hoverUITitle?.titleClicked()
+        }
+        #endif
     }
     
     func mouseMoved(_ event: MMMouseEvent)
