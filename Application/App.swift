@@ -35,10 +35,11 @@ class App
     
     #if os(OSX)
     var viewController  : NSViewController?
+    var gameController  : NSViewController?
     #else
     var viewController  : ViewController?
     #endif
-
+    
     init(_ view : MMView )
     {
         mmView = view
@@ -151,6 +152,31 @@ class App
     {
         changed = true
         nodeGraph.maximizedNode?.maxDelegate?.setChanged()
+    }
+    
+    func play()
+    {
+        topRegion!.playButton.isDisabled = true
+        #if os(OSX)
+        let mainStoryboard = NSStoryboard.init(name: "Main", bundle: nil)
+        let controller = mainStoryboard.instantiateController(withIdentifier: "GameWindow")
+        
+        if let windowController = controller as? NSWindowController {
+            windowController.showWindow(self)
+        }
+        
+        let appDelegate = (NSApplication.shared.delegate as! AppDelegate)
+        appDelegate.gameView.app.load( nodeGraph.encodeJSON() )
+                
+        /*
+        gameController!.showWindow(self)
+        
+        
+        let game = gameController as! GameViewController
+        game.app.load( nodeGraph.encodeJSON() )
+ */
+//        appDelegate.helpWindowController.window!.makeKeyAndOrderFront(appDelegate)
+        #endif
     }
 }
 

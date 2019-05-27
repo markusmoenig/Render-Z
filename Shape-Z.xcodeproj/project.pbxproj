@@ -45,6 +45,12 @@
 		2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
 		2B5CCB0322152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
+		2B5F506A2298FD3200D3B6C5 /* GameApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50672298FC7900D3B6C5 /* GameApp.swift */; };
+		2B5F506B2298FD3200D3B6C5 /* GameApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50672298FC7900D3B6C5 /* GameApp.swift */; };
+		2B5F506D2298FD4C00D3B6C5 /* GameRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50682298FC8100D3B6C5 /* GameRegion.swift */; };
+		2B5F506E2298FD4D00D3B6C5 /* GameRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50682298FC8100D3B6C5 /* GameRegion.swift */; };
+		2B5F506F2298FD5D00D3B6C5 /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
+		2B5F50702298FD5D00D3B6C5 /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
 		2B639F17221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
 		2B639F18221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
 		2B639F1A221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
@@ -185,6 +191,9 @@
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
 		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
 		2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Shape-Z iOS.entitlements"; sourceTree = "<group>"; };
+		2B5F50672298FC7900D3B6C5 /* GameApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameApp.swift; sourceTree = "<group>"; };
+		2B5F50682298FC8100D3B6C5 /* GameRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRegion.swift; sourceTree = "<group>"; };
+		2B5F50692298FC8500D3B6C5 /* GameWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWidget.swift; sourceTree = "<group>"; };
 		2B639F16221791F500576542 /* NodeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeList.swift; sourceTree = "<group>"; };
 		2B639F19221A32CD00576542 /* MMFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFile.swift; sourceTree = "<group>"; };
 		2B6D0033228907E900BEDCFD /* LayerArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerArea.swift; sourceTree = "<group>"; };
@@ -367,6 +376,7 @@
 				2BBF119A21EAD46B001C94E9 /* Mad4Metal_types.h */,
 				2BBF0F4B225C397A009950E3 /* Renderer.metal */,
 				2BF5D363221E7E2D00EAAA76 /* Data.h */,
+				2BBF27AA2298FAC8007655DC /* Game */,
 				2BBF11DF21EC1A40001C94E9 /* Layers and Shapes */,
 				2BE67100221259A200B95241 /* Nodes */,
 				2BA344A422015402000BB2EB /* Icons */,
@@ -445,6 +455,16 @@
 				2BBF120121F80B32001C94E9 /* Gizmo.metal */,
 			);
 			path = "Layers and Shapes";
+			sourceTree = "<group>";
+		};
+		2BBF27AA2298FAC8007655DC /* Game */ = {
+			isa = PBXGroup;
+			children = (
+				2B5F50672298FC7900D3B6C5 /* GameApp.swift */,
+				2B5F50682298FC8100D3B6C5 /* GameRegion.swift */,
+				2B5F50692298FC8500D3B6C5 /* GameWidget.swift */,
+			);
+			path = Game;
 			sourceTree = "<group>";
 		};
 		2BE67100221259A200B95241 /* Nodes */ = {
@@ -606,6 +626,7 @@
 				2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */,
 				2BE67102221259F500B95241 /* Node.swift in Sources */,
 				2B4CC230222F5D5C00A47812 /* Physics.swift in Sources */,
+				2B5F506F2298FD5D00D3B6C5 /* GameWidget.swift in Sources */,
 				2BBF11C921EADB46001C94E9 /* MMUtils.swift in Sources */,
 				2BE67109221291D300B95241 /* Node.metal in Sources */,
 				2BBF11A221EAD46B001C94E9 /* LeftRegion.swift in Sources */,
@@ -624,6 +645,7 @@
 				2BBF11A021EAD46B001C94E9 /* TopRegion.swift in Sources */,
 				2BBF11E121EC1A92001C94E9 /* Shape.swift in Sources */,
 				2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */,
+				2B5F506D2298FD4C00D3B6C5 /* GameRegion.swift in Sources */,
 				2B039200228E5BC9002D62C9 /* LayerNodes.swift in Sources */,
 				2B6D003722890AB500BEDCFD /* LayerArea.swift in Sources */,
 				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
@@ -651,6 +673,7 @@
 				2BBF11F921F55D20001C94E9 /* Object.swift in Sources */,
 				2B46E95D2243339A0047A94A /* MMTabWidget.swift in Sources */,
 				2BBF11E721EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
+				2B5F506A2298FD3200D3B6C5 /* GameApp.swift in Sources */,
 				2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */,
 				2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BF5D361221D2B2400EAAA76 /* ObjectNodes.swift in Sources */,
@@ -683,6 +706,7 @@
 				2B5CCB0322152EB6005BAA2B /* MMListWidget.swift in Sources */,
 				2BE67103221259F500B95241 /* Node.swift in Sources */,
 				2B4CC231222F5D5C00A47812 /* Physics.swift in Sources */,
+				2B5F50702298FD5D00D3B6C5 /* GameWidget.swift in Sources */,
 				2BBF11CA21EADB46001C94E9 /* MMUtils.swift in Sources */,
 				2BE67108221291D300B95241 /* Node.metal in Sources */,
 				2BBF11A321EAD46B001C94E9 /* LeftRegion.swift in Sources */,
@@ -701,6 +725,7 @@
 				2BBF11A121EAD46B001C94E9 /* TopRegion.swift in Sources */,
 				2BBF11E221EC1A92001C94E9 /* Shape.swift in Sources */,
 				2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */,
+				2B5F506E2298FD4D00D3B6C5 /* GameRegion.swift in Sources */,
 				2B039201228E5BC9002D62C9 /* LayerNodes.swift in Sources */,
 				2B6D003822890AB600BEDCFD /* LayerArea.swift in Sources */,
 				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
@@ -728,6 +753,7 @@
 				2BBF11FA21F55D20001C94E9 /* Object.swift in Sources */,
 				2B46E95E2243339B0047A94A /* MMTabWidget.swift in Sources */,
 				2BBF11E821EC4DC7001C94E9 /* ShapeSelector.swift in Sources */,
+				2B5F506B2298FD3200D3B6C5 /* GameApp.swift in Sources */,
 				2BBF113721EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld in Sources */,
 				2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */,

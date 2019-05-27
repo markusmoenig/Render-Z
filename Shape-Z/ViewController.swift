@@ -55,3 +55,40 @@ class HelpViewController: NSViewController, WKUIDelegate {
     }
 }
 
+class GameViewController: NSViewController, NSWindowDelegate {
+    
+    var app         : GameApp!
+    var mmView      : MMView!
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        mmView = view as? MMView
+        app = GameApp( mmView )
+        
+        let appDelegate = (NSApplication.shared.delegate as! AppDelegate)
+        appDelegate.gameView = self
+    }
+    
+    override func viewDidAppear() {
+        self.view.window?.delegate = self
+    }
+    
+    func windowShouldClose(_ sender: NSWindow) -> Bool
+    {
+        return true
+    }
+    
+    func windowWillClose(_ notification: Notification) {
+        if let delegate = NSApplication.shared.delegate as? AppDelegate {
+            delegate.app.topRegion!.playButton.isDisabled = false
+            delegate.app.mmView.update()
+        }
+    }
+    
+    override var representedObject: Any? {
+        didSet {
+            // Update the view, if already loaded.
+        }
+    }
+}

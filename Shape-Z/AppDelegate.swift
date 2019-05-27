@@ -16,6 +16,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     var helpWindowController: NSWindowController!
     var webView             : WKWebView!
+    weak var gameView       : GameViewController!
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true

@@ -15,6 +15,8 @@ class TopRegion: MMRegion
     var openButton      : MMButtonWidget!
     var saveButton      : MMButtonWidget!
     
+    var playButton      : MMButtonWidget!
+    
     var app             : App
 
     init( _ view: MMView, app: App )
@@ -29,6 +31,7 @@ class TopRegion: MMRegion
 
         undoButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Undo" )
         undoButton.isDisabled = true
+        undoButton.textYOffset = -2
         undoButton.clicked = { (event) -> Void in
             self.undoButton.removeState(.Checked)
             view.undoManager?.undo()
@@ -36,6 +39,7 @@ class TopRegion: MMRegion
         
         redoButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Redo" )
         redoButton.isDisabled = true
+        redoButton.textYOffset = -2
         redoButton.clicked = { (event) -> Void in
             self.redoButton.removeState(.Checked)
             view.undoManager?.redo()
@@ -43,6 +47,7 @@ class TopRegion: MMRegion
         
         openButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Open" )
         openButton.isDisabled = false
+        openButton.textYOffset = -2
         openButton.clicked = { (event) -> Void in
             self.openButton.removeState(.Checked)
 //            view.undoManager?.undo()
@@ -51,6 +56,7 @@ class TopRegion: MMRegion
         
         saveButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Save" )
         saveButton.isDisabled = false
+        saveButton.textYOffset = -2
         saveButton.clicked = { (event) -> Void in
             self.saveButton.removeState(.Checked)
             
@@ -58,8 +64,15 @@ class TopRegion: MMRegion
             app.mmFile.saveAs(json)
         }
         
+        playButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Play" )
+        playButton.isDisabled = false
+        playButton.textYOffset = -2
+        playButton.clicked = { (event) -> Void in
+            app.play()
+        }
+        
         layoutH( startX: 10, startY: 8, spacing: 10, widgets: undoButton, redoButton, openButton, saveButton )
-        registerWidgets( widgets: undoButton, redoButton, openButton, saveButton )
+        registerWidgets( widgets: undoButton, redoButton, openButton, saveButton, playButton )
     }
     
     override func build()
@@ -78,6 +91,10 @@ class TopRegion: MMRegion
 
         openButton.draw()
         saveButton.draw()
+        
+        layoutHFromRight(startX: rect.x + rect.width - 10, startY: 8, spacing: 10, widgets: playButton)
+        
+        playButton.draw()
 
         #if os(OSX)
         mmView.window!.isDocumentEdited = !undoButton.isDisabled

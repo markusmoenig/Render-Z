@@ -720,7 +720,7 @@
         <scene sceneID="dqS-fc-mfv">
             <objects>
                 <windowController storyboardIdentifier="HelpWindow" id="FnV-y3-0of" sceneMemberID="viewController">
-                    <window key="window" title="Help Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" titleVisibility="hidden" id="LgR-pv-iwC">
+                    <window key="window" title="Help Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="LgR-pv-iwC">
                         <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
                         <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
                         <rect key="contentRect" x="91" y="109" width="1024" height="600"/>
@@ -757,6 +757,38 @@
                     </view>
                 </viewController>
                 <customObject id="bSJ-iD-KK5" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <!--Window Controller-->
+        <scene sceneID="6b3-H1-JRW">
+            <objects>
+                <windowController storyboardIdentifier="GameWindow" id="q1D-Ci-EX5" sceneMemberID="viewController">
+                    <window key="window" title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="V0m-lb-p5y" userLabel="Game Window">
+                        <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+                        <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
+                        <rect key="contentRect" x="163" y="199" width="480" height="270"/>
+                        <rect key="screenRect" x="0.0" y="0.0" width="1280" height="777"/>
+                        <connections>
+                            <outlet property="delegate" destination="q1D-Ci-EX5" id="Dvp-6r-eie"/>
+                        </connections>
+                    </window>
+                    <connections>
+                        <segue destination="kkP-aD-wJ9" kind="relationship" relationship="window.shadowedContentViewController" id="xcn-Lz-ZiD"/>
+                    </connections>
+                </windowController>
+                <customObject id="RYH-Px-9HW" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
+            </objects>
+        </scene>
+        <!--Game View Controller-->
+        <scene sceneID="c0s-YB-yEN">
+            <objects>
+                <viewController id="kkP-aD-wJ9" userLabel="Game View Controller" customClass="GameViewController" customModule="Shape_Z" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="jrg-pc-oDv" customClass="MMView" customModule="Shape_Z" customModuleProvider="target">
+                        <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </view>
+                </viewController>
+                <customObject id="WIi-LM-vlZ" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
         </scene>
     </scenes>
