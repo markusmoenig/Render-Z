@@ -158,6 +158,12 @@ class NodeList : MMWidget
             return ObjectCollisionAny()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
+        // --- Object Reset
+        item = NodeListItem("Reset Object")
+        item.createNode = {
+            return ResetObject()
+        }
+        addNodeItem(item, type: .Function, displayType: .Object)
         // --- Object Touch Layer Area
         item = NodeListItem("Touch Layer Area")
         item.createNode = {
@@ -170,6 +176,13 @@ class NodeList : MMWidget
             return SetObjectPhysics()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
+        
+        // --- Game Play Scene
+        item = NodeListItem("Play Scene")
+        item.createNode = {
+            return GamePlayScene()
+        }
+        addNodeItem(item, type: .Function, displayType: .Game)
         
         // --- Behavior: Behavior Tree
         item = NodeListItem("Behavior Tree")

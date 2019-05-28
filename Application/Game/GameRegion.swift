@@ -12,7 +12,10 @@ class GameRegion: MMRegion
 {
     var app                     : GameApp
     var widget                  : GameWidget!
-        
+    
+    var nodeGraph               : NodeGraph!
+    var gameNode                : Game? = nil
+    
     init( _ view: MMView, app: GameApp )
     {
         self.app = app
@@ -27,6 +30,67 @@ class GameRegion: MMRegion
     {
         widget.rect.copy(rect)
         
-        mmView.drawBox.draw( x: 1, y: 0, width: mmView.renderer.width - 20, height: 44, round: 10, borderSize: 1, fillColor : float4(1, 1, 1, 1.000), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
+        nodeGraph.previewSize.x = rect.width
+        nodeGraph.previewSize.y = rect.height
+        
+        nodeGraph.mmScreen!.rect.x = rect.x
+        nodeGraph.mmScreen!.rect.y = rect.y
+        nodeGraph.mmScreen!.rect.width = rect.width
+        nodeGraph.mmScreen!.rect.height = rect.height
+        
+        //mmView.drawBox.draw( x: rect.x, y: rect.y, width: 100, height: 44, round: 10, borderSize: 1, fillColor : float4(1, 1, 1, 1.000), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
+        
+        if let game = gameNode {
+            _ = game.execute(nodeGraph: nodeGraph, root: game.behaviorRoot!, parent: game.behaviorRoot!.rootNode)
+            
+            if let texture = game.previewTexture {
+                app.mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+            }
+        }
+    }
+    
+    override func resize(width: Float, height: Float)
+    {
+        //print("resize", width, height)
+    }
+    
+    func start(_ graph: NodeGraph)
+    {
+        nodeGraph = graph
+        gameNode = app.nodeGraph.getNodeOfType("Game") as? Game
+        
+        nodeGraph.mmView = mmView
+        nodeGraph.previewSize.x = rect.width
+        nodeGraph.previewSize.y = rect.height
+        nodeGraph.mmScreen = MMScreen(mmView)
+        nodeGraph.timeline = MMTimeline(mmView)
+        nodeGraph.builder = Builder(nodeGraph)
+        nodeGraph.physics = Physics(nodeGraph)
+        nodeGraph.diskBuilder = DiskBuilder(nodeGraph)
+        
+        nodeGraph.updateNodes()
+        if let game = gameNode {
+            game.setupExecution(nodeGraph: graph)
+            
+            game.behaviorRoot = BehaviorTreeRoot(game)
+            game.behaviorTrees = graph.getBehaviorTrees(for: game)
+            
+            mmView.lockFramerate(true)
+            
+            #if os(OSX)
+                var windowFrame = mmView.window!.frame
+            
+                var width : Float = 1200; var height : Float = 900
+            
+                if let osx = app.nodeGraph.getNodeOfType("Platform OSX") as? GamePlatformOSX {
+                    let size = osx.getScreenSize()
+                    width = size.x
+                    height = size.y
+                }
+
+                windowFrame.size = NSMakeSize(CGFloat(width / mmView.scaleFactor), CGFloat(height / mmView.scaleFactor))
+                mmView.window!.setFrame(windowFrame, display: true)
+            #endif
+        }
     }
 }

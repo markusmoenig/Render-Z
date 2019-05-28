@@ -157,17 +157,19 @@ class App
     func play()
     {
         topRegion!.playButton.isDisabled = true
+        topRegion!.playButton.removeState(.Checked)
+        topRegion!.playButton.removeState(.Hover)
+
         #if os(OSX)
         let mainStoryboard = NSStoryboard.init(name: "Main", bundle: nil)
         let controller = mainStoryboard.instantiateController(withIdentifier: "GameWindow")
         
+        let appDelegate = (NSApplication.shared.delegate as! AppDelegate)
+        appDelegate.gameView.app.load( nodeGraph.encodeJSON() )
+        
         if let windowController = controller as? NSWindowController {
             windowController.showWindow(self)
         }
-        
-        let appDelegate = (NSApplication.shared.delegate as! AppDelegate)
-        appDelegate.gameView.app.load( nodeGraph.encodeJSON() )
-                
         /*
         gameController!.showWindow(self)
         

@@ -154,6 +154,11 @@ class Object : Node
         
         properties["border"] = instanceFor.properties["border"]
         minimumSize = Node.NodeWithPreviewSize
+        
+        // --- Copy same values for reseting instances
+        
+        properties["copy_posX"] = properties["posX"]
+        properties["copy_posY"] = properties["posY"]
     }
     
     required init(from decoder: Decoder) throws

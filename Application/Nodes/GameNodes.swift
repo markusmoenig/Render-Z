@@ -155,3 +155,122 @@ class GamePlatformIPAD : Node
         return playResult!
     }
 }
+
+class GamePlayScene : Node
+{
+    var currentlyPlaying : Scene? = nil
+    var gameNode         : Node? = nil
+
+    var toExecute        : [Node] = []
+    
+    override init()
+    {
+        super.init()
+        
+        name = "Play Scene"
+    }
+    
+    override func setup()
+    {
+        brand = .Function
+        type = "Game Play Scene"
+        uiConnections.append(UINodeConnection(.Scene))
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIMasterPicker(self, variable: "scene", title: "Scene", connection:  uiConnections[0]),
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    override func finishExecution() {
+        currentlyPlaying = nil
+        gameNode = nil
+    }
+    
+    /// Play the Scene
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        
+        if let scene = uiConnections[0].masterNode as? Scene {
+            
+            if scene !== currentlyPlaying {
+                
+                currentlyPlaying = scene
+                camera = Camera()
+
+                toExecute = []
+                
+                for layerUUID in scene.layers {
+                    for n in nodeGraph.nodes {
+                        if n.uuid == layerUUID
+                        {
+                            let layer = n as! Layer
+                            layer.setupExecution(nodeGraph: nodeGraph)
+                            for inst in layer.objectInstances {
+                                toExecute.append(inst.instance!)
+                            }
+                            toExecute.append(layer)
+                        }
+                    }
+                }
+                
+                scene.setupExecution(nodeGraph: nodeGraph)
+                toExecute.append(scene)
+                
+                for exe in toExecute {
+                    exe.behaviorRoot = BehaviorTreeRoot(exe)
+                    exe.behaviorTrees = nodeGraph.getBehaviorTrees(for: exe)
+                }
+            }
+            
+            for exe in toExecute {
+                _ = exe.execute(nodeGraph: nodeGraph, root: exe.behaviorRoot!, parent: exe.behaviorRoot!.rootNode)
+            }
+            
+            if gameNode == nil {
+                gameNode = nodeGraph.getNodeOfType("Game")
+            }
+            
+            if let game = gameNode {
+                scene.updatePreview(nodeGraph: nodeGraph)
+                game.previewTexture = scene.previewTexture
+                
+                playResult = .Success
+            }
+        }
+        return playResult!
+    }
+}

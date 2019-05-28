@@ -28,7 +28,7 @@ class NodeGraph : Codable
     var drawNodeState   : MTLRenderPipelineState?
     var drawPatternState: MTLRenderPipelineState?
 
-    var app             : App?
+    var app             : App? = nil
     var mmView          : MMView!
     var mmScreen        : MMScreen? = nil
 
@@ -233,6 +233,7 @@ class NodeGraph : Codable
         objectsButton.clicked = { (event) -> Void in
             self.stopPreview()
             self.editButton.setText("Shape...")
+            self.editButton.isDisabled = false
 
             self.objectsButton.addState(.Checked)
             self.layersButton.removeState(.Checked)
@@ -265,6 +266,7 @@ class NodeGraph : Codable
         layersButton.clicked = { (event) -> Void in
             self.stopPreview()
             self.editButton.setText("Arrange...")
+            self.editButton.isDisabled = false
 
             self.objectsButton.removeState(.Checked)
             self.layersButton.addState(.Checked)
@@ -297,6 +299,7 @@ class NodeGraph : Codable
         scenesButton.clicked = { (event) -> Void in
             self.stopPreview()
             self.editButton.setText("Arrange...")
+            self.editButton.isDisabled = false
 
             self.objectsButton.removeState(.Checked)
             self.layersButton.removeState(.Checked)
@@ -328,6 +331,8 @@ class NodeGraph : Codable
         gameButton.rect.width = objectsButton.rect.width
         gameButton.clicked = { (event) -> Void in
             self.stopPreview()
+            self.editButton.setText("Arrange...")
+            self.editButton.isDisabled = true
 
             self.objectsButton.removeState(.Checked)
             self.layersButton.removeState(.Checked)
@@ -426,6 +431,12 @@ class NodeGraph : Codable
                             }
                         }
                     }
+                } else
+                if node!.type == "Game" {
+                    let game = node as! Game
+
+                    game.setupExecution(nodeGraph: self)
+                    self.playToExecute.append(game)
                 }
                 
                 for exe in self.playToExecute {
@@ -493,6 +504,7 @@ class NodeGraph : Codable
                     {
                         let layer = n as! Layer
                         layer.physicsInstance = nil
+                        layer.builderInstance = nil
                     }
                 }
             }
@@ -1211,7 +1223,7 @@ class NodeGraph : Codable
     /// Draw the master node
     func drawMasterNode(_ node: Node, region: MMRegion)
     {
-        if contentType == .Game || contentType == .ObjectsOverview || contentType == .LayersOverview || contentType == .ScenesOverview { return }
+        if contentType == .ObjectsOverview || contentType == .LayersOverview || contentType == .ScenesOverview { return }
         
         previewSize.x = min(previewSize.x, app!.editorRegion!.rect.width - 50)
         previewSize.y = min(previewSize.y, app!.editorRegion!.rect.height - 65)
@@ -1767,7 +1779,7 @@ class NodeGraph : Codable
         }
 
         // Update the UI and special role items
-        node.setupUI(mmView: app!.mmView)
+        node.setupUI(mmView: mmView)
         
         // Init the uiConnectors
         for conn in node.uiConnections {
@@ -1826,6 +1838,17 @@ class NodeGraph : Codable
                                     if n.uuid != master.uuid {
                                         picker.items.append(layer.name)
                                         picker.uuids.append(layer.uuid)
+                                    }
+                                }
+                            }
+                        } else
+                        if type == .Scene {
+                            // Scene: Only pick scenes ...
+                            for n in nodes {
+                                if let scene = n as? Scene {
+                                    if n.uuid != master.uuid {
+                                        picker.items.append(scene.name)
+                                        picker.uuids.append(scene.uuid)
                                     }
                                 }
                             }
@@ -1895,6 +1918,11 @@ class NodeGraph : Codable
                                         conn.connectedMaster = picker.uuids[0]
                                         conn.masterNode = firstListNode
                                         picker.index = 0
+                                    } else
+                                    if type == .Scene && (firstListNode as? Scene) != nil {
+                                        conn.connectedMaster = picker.uuids[0]
+                                        conn.masterNode = firstListNode
+                                        picker.index = 0
                                     }
                                 }
                             }
@@ -1910,7 +1938,7 @@ class NodeGraph : Codable
                                 }
                             }
                         }
-                        node.computeUIArea(mmView: app!.mmView)
+                        node.computeUIArea(mmView: mmView)
                     }
                 }
             }
@@ -1955,7 +1983,7 @@ class NodeGraph : Codable
                         picker.index = 0
                     }
                     
-                    node.computeUIArea(mmView: app!.mmView)
+                    node.computeUIArea(mmView: mmView)
                 }
             }
             
@@ -1998,7 +2026,7 @@ class NodeGraph : Codable
                         conn.connectedTo = nil
                     }
                     
-                    node.computeUIArea(mmView: app!.mmView)
+                    node.computeUIArea(mmView: mmView)
                 }
             }
             
@@ -2041,7 +2069,7 @@ class NodeGraph : Codable
                         conn.connectedTo = nil
                     }
                     
-                    node.computeUIArea(mmView: app!.mmView)
+                    node.computeUIArea(mmView: mmView)
                 }
             }
             
@@ -2084,7 +2112,7 @@ class NodeGraph : Codable
                             conn.connectedTo = nil
                         }
                         
-                        node.computeUIArea(mmView: app!.mmView)
+                        node.computeUIArea(mmView: mmView)
                     }
                 }
             }

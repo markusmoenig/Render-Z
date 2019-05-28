@@ -67,7 +67,7 @@ class KeyDown : Node
         playResult = .Failure
         
         #if os(OSX)
-        let index = nodeGraph.app!.mmView.keysDown.firstIndex{$0 == properties["keyCode"]!}
+        let index = nodeGraph.mmView.keysDown.firstIndex{$0 == properties["keyCode"]!}
         
         if index != nil {
             playResult = .Success
@@ -144,7 +144,13 @@ class ClickInLayerArea : Node
             if let area = uiConnections[0].target as? LayerArea {
                 if area.areaObject == nil || area.areaObject!.shapes.count == 0 { return playResult! }
                 let screen = nodeGraph.mmScreen!
-                let camera = createNodeCamera(layer)
+                let camera : Camera
+                    
+                if nodeGraph.app != nil {
+                    camera = createNodeCamera(layer)
+                } else {
+                    camera = layer.gameCamera!
+                }
                 
                 if screen.mouseDown == false {
                     return playResult!

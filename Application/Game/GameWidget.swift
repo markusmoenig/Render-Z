@@ -29,12 +29,28 @@ class GameWidget      : MMWidget
     {
     }
     
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if let screen = region.nodeGraph.mmScreen {
+            screen.mousePos.x = event.x
+            screen.mousePos.y = event.y
+        }
+    }
+    
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if let screen = region.nodeGraph.mmScreen {
+            screen.mouseDownPos.x = event.x
+            screen.mouseDownPos.y = event.y
+            screen.mouseDown = true
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if let screen = region.nodeGraph.mmScreen {
+            screen.mouseDown = false
+        }
     }
     
     override func pinchGesture(_ scale: Float)
@@ -42,10 +58,6 @@ class GameWidget      : MMWidget
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
-    {
-    }
-    
-    override func mouseMoved(_ event: MMMouseEvent)
     {
     }
     

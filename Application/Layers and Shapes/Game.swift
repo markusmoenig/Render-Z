@@ -18,12 +18,13 @@ class Game : Node
     {
         super.init()
         
-        type = "Game"
         name = "Game"
-        
-        minimumSize = Node.NodeWithPreviewSize
-        
         subset = []
+    }
+    
+    override func setup()
+    {
+        type = "Game"
     }
     
     required init(from decoder: Decoder) throws
@@ -32,8 +33,6 @@ class Game : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Game"
     }
     
     override func encode(to encoder: Encoder) throws

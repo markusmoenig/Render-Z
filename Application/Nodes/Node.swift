@@ -215,7 +215,7 @@ class Node : Codable, Equatable
 class UINodeConnection: Codable
 {
     enum ConnectionType: Int, Codable {
-        case Object, ObjectInstance, Animation, ValueVariable, DirectionVariable, LayerArea
+        case Object, ObjectInstance, Animation, ValueVariable, DirectionVariable, LayerArea, Scene
     }
     
     var connectionType      : ConnectionType = .ValueVariable
@@ -418,12 +418,14 @@ class BehaviorTreeRoot
     var rootNode        : Node
     var objectRoot      : Object?=nil
     var layerRoot       : Layer?=nil
+    var sceneRoot       : Scene?=nil
     
     init(_ node : Node)
     {
         rootNode = node
         objectRoot = node as? Object
         layerRoot = node as? Layer
+        sceneRoot = node as? Scene
     }
 }
 
@@ -452,8 +454,10 @@ enum NodeFamily: String, NodeClassFamily {
     case objectApplyDirectionalForce = "Object Apply Directional Force"
     case objectCollisionAny = "Object Collision (Any)"
     case objectTouchLayerArea = "Object Touch Layer Area"
+    case objectReset = "Object Reset"
     case gamePlatformOSX = "Platform OSX"
     case gamePlatformIPAD = "Platform IPAD"
+    case gamePlayScene = "Game Play Scene"
     case behaviorTree = "Behavior Tree"
     case sequence = "Sequence"
     case selector = "Selector"
@@ -495,6 +499,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectCollisionAny.self
             case .objectTouchLayerArea:
                 return ObjectTouchLayerArea.self
+            case .objectReset:
+                return ResetObject.self
             
             case .layer:
                 return Layer.self
@@ -512,6 +518,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return GamePlatformOSX.self
             case .gamePlatformIPAD:
                 return GamePlatformIPAD.self
+            case .gamePlayScene:
+                return GamePlayScene.self
             
             case .behaviorTree:
                 return BehaviorTree.self

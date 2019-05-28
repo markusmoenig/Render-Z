@@ -156,6 +156,84 @@ class SetObjectPhysics : Node
     }
 }
 
+/// Resets an object
+class ResetObject : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Reset Object"
+        uiConnections.append(UINodeConnection(.ObjectInstance))
+    }
+    
+    override func setup()
+    {
+        brand = .Function
+        type = "Object Reset"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIMasterPicker(self, variable: "master", title: "Instance", connection:  uiConnections[0])
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Execute the given animation
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        
+        if root.objectRoot != nil {
+            if uiConnections[0].connectedMaster != nil {
+                if let inst = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
+
+                    //let object = inst.instanceOf!
+                    
+                    inst.properties["posX"] = inst.properties["copy_posX"]
+                    inst.properties["posY"] = inst.properties["copy_posY"]
+                    
+                    if let body = inst.body {
+                        body.velocity = float2(0,0)
+                    }
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}
+
 class ObjectAnimation : Node
 {
     override init()
@@ -222,7 +300,7 @@ class ObjectAnimation : Node
             let scale = properties["scale"]!
             
             if uiConnections[0].target != nil {
-                object.setSequence(sequence: (uiConnections[0].target as! MMTlSequence), timeline: nodeGraph.app!.timeline)
+                object.setSequence(sequence: (uiConnections[0].target as! MMTlSequence), timeline: nodeGraph.timeline)
                 object.setAnimationMode(Object.AnimationMode(rawValue: Int(mode))!, scale: scale)
             }
             playResult = .Success

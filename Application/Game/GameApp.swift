@@ -11,7 +11,7 @@ import MetalKit
 class GameApp
 {
     var mmView          : MMView
-    var gameRegion      : GameRegion?
+    var gameRegion      : GameRegion!
     
     var nodeGraph       : NodeGraph
     
@@ -79,7 +79,8 @@ class GameApp
 
             if let graph =  try? JSONDecoder().decode(NodeGraph.self, from: jsonData) {
         
-                nodeGraph = graph        
+                nodeGraph = graph
+                gameRegion.start(graph)
             }
         }
     }

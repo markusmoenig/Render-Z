@@ -60,6 +60,8 @@ class Layer : Node
     
     var selectedObjects : [UUID]
     
+    var gameCamera      : Camera? = nil
+    
     var builderInstance : BuilderInstance?
     var physicsInstance : PhysicsInstance?
         
@@ -142,8 +144,17 @@ class Layer : Node
         }
         executeProperties(nodeGraph)
         
-        builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: maxDelegate!.getCamera()!, preview: true)
-        physicsInstance = nodeGraph.physics.buildPhysics(objects: objects, builder: nodeGraph.builder, camera: maxDelegate!.getCamera()!)
+        var camera = maxDelegate!.getCamera()!
+        if nodeGraph.app == nil {
+            self.gameCamera = Camera()
+            camera = self.gameCamera!
+        } else {
+            self.gameCamera = nil
+        }
+        
+        builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: camera, preview: nodeGraph.app == nil ? false : true)
+        physicsInstance = nodeGraph.physics.buildPhysics(objects: objects, builder: nodeGraph.builder, camera: camera)
+        
     }
     
     /// Execute the layer
@@ -163,6 +174,7 @@ class Layer : Node
         for inst in objectInstances {
             inst.instance = nil
         }
+        gameCamera = nil
     }
     
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
@@ -207,10 +219,16 @@ class Layer : Node
             previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
         }
         
-        let prevOffX = properties["prevOffX"]
-        let prevOffY = properties["prevOffY"]
-        let prevScale = properties["prevScale"]
-        let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
+        let camera : Camera
+        
+        if self.gameCamera == nil {
+            let prevOffX = properties["prevOffX"]
+            let prevOffY = properties["prevOffY"]
+            let prevScale = properties["prevScale"]
+            camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
+        } else {
+            camera = self.gameCamera!
+        }
         
         if builderInstance == nil || hard {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {

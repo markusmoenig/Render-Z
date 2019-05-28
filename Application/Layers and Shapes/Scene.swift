@@ -12,7 +12,7 @@ class Scene : Node
 {
     var layers         : [UUID] = []
     var selectedLayers : [UUID] = []
-
+    
     private enum CodingKeys: String, CodingKey {
         case type
         case selectedLayers
@@ -97,7 +97,15 @@ class Scene : Node
                         layer.builderInstance?.layerGlobals?.limiterSize.y = 400
                     }
                     
-                    layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, outTexture: previewTexture!, properties: properties)
+                    if nodeGraph.app != nil {
+                        layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, outTexture: previewTexture!, properties: properties)
+                    } else {
+                        let width = properties[layer.uuid.uuidString + "_width" ]!
+                        let height = properties[layer.uuid.uuidString + "_height" ]!
+                        layer.gameCamera!.zoom = min(nodeGraph.previewSize.x / width, nodeGraph.previewSize.y / height)
+                        
+                        layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, outTexture: previewTexture!, properties: properties)
+                    }
                 }
             }
         }
