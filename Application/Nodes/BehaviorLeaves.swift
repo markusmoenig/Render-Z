@@ -152,6 +152,12 @@ class ClickInLayerArea : Node
                     camera = layer.gameCamera!
                 }
                 
+                #if os(iOS)
+                if nodeGraph.app != nil && nodeGraph.contentType == .Objects && screen.mouseDown == true && root.objectRoot != nil {
+                    playResult = .Success
+                }
+                #endif
+                
                 if screen.mouseDown == false {
                     return playResult!
                 }
