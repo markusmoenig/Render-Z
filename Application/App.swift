@@ -170,14 +170,24 @@ class App
         if let windowController = controller as? NSWindowController {
             windowController.showWindow(self)
         }
-        /*
-        gameController!.showWindow(self)
+        #elseif os(iOS)
         
+        let widgets = mmView.widgets
         
-        let game = gameController as! GameViewController
-        game.app.load( nodeGraph.encodeJSON() )
- */
-//        appDelegate.helpWindowController.window!.makeKeyAndOrderFront(appDelegate)
+        mmView.widgets = []
+        let gameApp = GameApp( mmView, embeddedCB: {
+            
+            self.topRegion!.playButton.isDisabled = false
+            self.mmView.widgets = widgets
+            self.mmView.unlockFramerate(true)
+            
+            self.mmView.leftRegion = self.leftRegion
+            self.mmView.topRegion = self.topRegion
+            self.mmView.rightRegion = self.rightRegion
+            self.mmView.bottomRegion = self.bottomRegion
+            self.mmView.editorRegion = self.editorRegion
+        } )
+        gameApp.load( nodeGraph.encodeJSON() )
         #endif
     }
 }

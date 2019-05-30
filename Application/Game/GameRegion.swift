@@ -37,7 +37,7 @@ class GameRegion: MMRegion
         nodeGraph.mmScreen!.rect.y = rect.y
         nodeGraph.mmScreen!.rect.width = rect.width
         nodeGraph.mmScreen!.rect.height = rect.height
-        
+                
         //mmView.drawBox.draw( x: rect.x, y: rect.y, width: 100, height: 44, round: 10, borderSize: 1, fillColor : float4(1, 1, 1, 1.000), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
         
         if let game = gameNode {
@@ -47,6 +47,14 @@ class GameRegion: MMRegion
                 app.mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
             }
         }
+        
+        #if os(iOS)
+        if app.embeddedCB != nil {
+            app.closeButton.rect.x = rect.x
+            app.closeButton.rect.y = rect.y
+            app.closeButton.draw()
+        }
+        #endif
     }
     
     override func resize(width: Float, height: Float)

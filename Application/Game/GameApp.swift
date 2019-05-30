@@ -21,6 +21,7 @@ class GameApp
     let timeline        : MMTimeline!
     
     let mmFile          : MMFile!
+    let embeddedCB      : (()->())?
     
     #if os(OSX)
     var viewController  : NSViewController?
@@ -29,8 +30,9 @@ class GameApp
     var viewController  : ViewController?
     #endif
     
-    init(_ view : MMView )
+    init(_ view : MMView, embeddedCB: (()->())? = nil)
     {
+        self.embeddedCB = embeddedCB
         mmView = view
         mmFile = MMFile( view )
             
@@ -70,7 +72,18 @@ class GameApp
         
         gameRegion = GameRegion( mmView, app: self )
         
+        mmView.leftRegion = nil
+        mmView.topRegion = nil
+        mmView.rightRegion = nil
+        mmView.bottomRegion = nil
         mmView.editorRegion = gameRegion
+        
+        if embeddedCB != nil {
+            mmView.registerWidget(closeButton)
+            closeButton.clicked = { (event) -> Void in
+                embeddedCB!()
+            }
+        }
     }
     
     func load(_ json: String)

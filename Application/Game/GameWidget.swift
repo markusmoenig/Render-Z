@@ -39,6 +39,13 @@ class GameWidget      : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        #if os(iOS)
+        if app.embeddedCB != nil {
+            if app.closeButton!.rect.contains(event.x, event.y) {
+                app.closeButton!.clicked!(event)
+            }
+        }
+        #endif
         if let screen = region.nodeGraph.mmScreen {
             screen.mouseDownPos.x = event.x
             screen.mouseDownPos.y = event.y
