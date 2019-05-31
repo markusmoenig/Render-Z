@@ -99,6 +99,7 @@ class App
         timeline = MMTimeline(view)
 
         nodeGraph.setup(app: self)
+        gizmo.app = self
 
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )
@@ -190,11 +191,20 @@ class App
         gameApp.load( nodeGraph.encodeJSON() )
         #endif
     }
-}
-
-class AppUndo : UndoManager
-{
     
+    
+    /// Updates the preview of the given object
+    func updateObjectPreview(_ object: Object)
+    {
+        if nodeGraph.maximizedNode != nil {
+            (object.maxDelegate as! ObjectMaxDelegate).update(true, updateLists: true)
+        } else {
+            object.updatePreview(nodeGraph: nodeGraph, hard: true)
+            (object.maxDelegate as! ObjectMaxDelegate).shapeListChanged = true
+            (object.maxDelegate as! ObjectMaxDelegate).materialListChanged = true
+        }
+        setChanged()
+    }
 }
 
 

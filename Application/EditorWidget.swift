@@ -197,10 +197,6 @@ class EditorWidget      : MMWidget
         if dragSource.id == "ShapeSelectorItem" {
             // Object Editor, shape drag to editor
             let drag = dragSource as! ShapeSelectorDrag
-            
-//            mmView.window!.undoManager!.registerUndo(withTarget: self) { target in
-//                print( "undo" )
-//            }
         
             let currentObject = app.nodeGraph.maximizedNode as? Object
             let delegate = currentObject!.maxDelegate as! ObjectMaxDelegate
@@ -209,6 +205,26 @@ class EditorWidget      : MMWidget
             let addedShape = selObject.addShape(drag.shape!)
             selObject.selectedShapes = [addedShape.uuid]
             app.setChanged()
+            
+            func shapeStatusChanged(_ object: Object, _ shape: Shape)
+            {
+                mmView.undoManager!.registerUndo(withTarget: self) { target in
+                    
+                    let index = selObject.shapes.firstIndex(where: { $0.uuid == shape.uuid })
+                    if index != nil {
+                        object.shapes.remove(at: index!)
+                        object.selectedShapes = []
+                        self.app.updateObjectPreview(object)
+                    } else {
+                        object.addShape(shape)
+                        object.selectedShapes = [shape.uuid]
+                        self.app.updateObjectPreview(object)
+                    }
+                    shapeStatusChanged(object, shape)
+                }
+            }
+            
+            shapeStatusChanged(selObject, addedShape)
             
             if let shape = drag.shape {
                 
@@ -307,6 +323,25 @@ class EditorWidget      : MMWidget
 
             let drag = dragSource as! NodeListDrag
             let node = drag.node!
+            
+            func nodeStatusChanged(_ node: Node)
+            {
+                mmView.undoManager!.registerUndo(withTarget: self) { target in
+                    
+                    let index = self.app.nodeGraph.nodes.firstIndex(where: { $0.uuid == node.uuid })
+                    if index != nil {
+                        self.app.nodeGraph.deleteNode(node)
+                    } else {
+                        self.app.nodeGraph.nodes.append(node)
+                        self.app.nodeGraph.currentMaster?.subset!.append(node.uuid)
+                        self.app.nodeGraph.setCurrentNode()
+                        self.app.nodeGraph.updateMasterNodes(self.app.nodeGraph.currentMaster!)
+                    }
+                    nodeStatusChanged(node)
+                }
+            }
+            
+            nodeStatusChanged(node)
             
             if app.nodeGraph.currentMaster != nil {
                 if let camera = app.nodeGraph.currentMaster!.camera {

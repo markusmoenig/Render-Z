@@ -2224,7 +2224,9 @@ class NodeGraph : Codable
         }
         // Remove node from master subset
         if let master = currentMaster {
-            master.subset!.remove(at: master.subset!.firstIndex(where: { $0 == node.uuid })!)
+            if let index = master.subset!.firstIndex(where: { $0 == node.uuid }) {
+                master.subset!.remove(at: index)
+            }
         }
         // Remove from nodes
         nodes.remove(at: nodes.firstIndex(where: { $0.uuid == node.uuid })!)

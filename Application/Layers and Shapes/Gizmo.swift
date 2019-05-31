@@ -24,6 +24,8 @@ class Gizmo : MMWidget
         case ShapeEditor, ObjectEditor, MaterialEditor
     }
     
+    var app             : App!
+    
     var mode            : GizmoMode = .Normal
     var context         : GizmoContext = .ShapeEditor
     var materialType    : Object.MaterialType = .Body
@@ -74,6 +76,8 @@ class Gizmo : MMWidget
     var scale           : Float = 1
     
     var maxDelegate     : NodeMaxDelegate? = nil
+    
+    var undoProperties  : [String:Float] = [:]
 
     override required init(_ view : MMView)
     {
@@ -461,6 +465,8 @@ class Gizmo : MMWidget
                     
                     initialValues[shape.uuid]![shape.widthProperty] = transformed[shape.widthProperty]!
                     initialValues[shape.uuid]![shape.heightProperty] = transformed[shape.heightProperty]!
+                    
+                    undoProperties = shape.properties
                 }
             } else
             if mode == .Normal && context == .MaterialEditor {
@@ -485,6 +491,8 @@ class Gizmo : MMWidget
                     initialValues[object.uuid]!["rotate"] = transformed["rotate"]!
                     initialValues[object.uuid]!["scaleX"] = transformed["scaleX"]!
                     initialValues[object.uuid]!["scaleY"] = transformed["scaleY"]!
+                    
+                    undoProperties = object.properties
                 }
             } else
             if mode == .Point {
@@ -536,6 +544,21 @@ class Gizmo : MMWidget
             let selectedShapes = object!.getSelectedShapes()
             for shape in selectedShapes {
                 shape.updateSize()
+            }
+            
+            // Undo for shape based action
+            if selectedShapes.count == 1 && dragState != .Inactive && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: undoProperties) {
+                func applyProperties(_ shape: Shape,_ old: [String:Float],_ new: [String:Float])
+                {
+                    mmView.undoManager!.registerUndo(withTarget: self) { target in
+                        shape.properties = old
+                        
+                        applyProperties(shape, new, old)
+                        self.app.updateObjectPreview(self.rootObject!)
+                    }
+                }
+                
+                applyProperties(selectedShapes[0], undoProperties, selectedShapes[0].properties)
             }
         }
         
