@@ -80,7 +80,17 @@ class ShapeSelector
     {
         var source =
         """
-            
+            typedef struct
+            {
+                float2  charPos;
+                float2  charSize;
+                float2  charOffset;
+                float2  charAdvance;
+                float4  stringInfo;
+
+                bool    finished;
+            } FontChar;
+
             float merge(float d1, float d2)
             {
                 return min(d1, d2);
@@ -111,7 +121,8 @@ class ShapeSelector
         source +=
         """
         
-            fragment float4 shapeBuilder(RasterizerData in [[stage_in]])
+            fragment float4 shapeBuilder(RasterizerData in [[stage_in]],
+               texture2d<half, access::sample>   fontTexture [[texture(1)]])
             {
                 float2 size = float2( \(width), \(height) );
                 float2 uvOrigin = in.textureCoordinate * size - size / 2;
@@ -135,6 +146,10 @@ class ShapeSelector
             
             if shape.pointsVariable {
                 source += shape.createPointsVariableCode(shapeIndex: 0)
+            }
+            
+            if shape.name == "Text" {
+                source += createStaticTextSource(mmView.openSans, "Abc")
             }
             source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: 0) + ");"
             
@@ -208,6 +223,17 @@ class ShapeSelector
             #include <simd/simd.h>
             using namespace metal;
 
+            typedef struct
+            {
+                float2  charPos;
+                float2  charSize;
+                float2  charOffset;
+                float2  charAdvance;
+                float4  stringInfo;
+
+                bool    finished;
+            } FontChar;
+
             float merge(float d1, float d2)
             {
                 return min(d1, d2);
@@ -238,7 +264,7 @@ class ShapeSelector
         
         kernel void
         iconBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
-        texture2d<half, access::read>   inTexture   [[texture(1)]],
+        texture2d<half, access::sample>   fontTexture   [[texture(2)]],
         uint2                           gid         [[thread_position_in_grid]])
         {
             float2 uv = float2( gid.x - outTexture.get_width() / 2., gid.y - outTexture.get_height() / 2. );
@@ -247,6 +273,10 @@ class ShapeSelector
         
         if shape.pointsVariable {
             source += shape.createPointsVariableCode(shapeIndex: 0)
+        }
+        
+        if shape.name == "Text" {
+            source += createStaticTextSource(mmView.openSans, "Abc")
         }
         source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: 0) + ");"
         source +=

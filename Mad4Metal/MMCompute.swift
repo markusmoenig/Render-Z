@@ -56,7 +56,7 @@ class MMCompute {
             print( "computePipelineState failed" )
             return nil
         }
-        
+
         return computePipelineState
     }
     
@@ -130,7 +130,7 @@ class MMCompute {
     }
 
     /// Run the given state
-    func runBuffer(_ state: MTLComputePipelineState?, outBuffer: MTLBuffer, inBuffer: MTLBuffer? = nil, size: float2? = nil )
+    func runBuffer(_ state: MTLComputePipelineState?, outBuffer: MTLBuffer, inBuffer: MTLBuffer? = nil, size: float2? = nil, inTexture: MTLTexture? = nil )
     {
         let commandBuffer = commandQueue!.makeCommandBuffer()!
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
@@ -140,6 +140,10 @@ class MMCompute {
 
         if let buffer = inBuffer {
             computeEncoder.setBuffer(buffer, offset: 0, index: 1)
+        }
+        
+        if inTexture != nil {
+            computeEncoder.setTexture(inTexture, index: 2)
         }
         
         if size != nil {

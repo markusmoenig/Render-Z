@@ -11,7 +11,7 @@ import Foundation
 class NodeUI
 {
     enum Brand {
-        case Separator, DropDown, KeyDown, Number
+        case Separator, DropDown, KeyDown, Number, Text
     }
     
     enum Role {
@@ -723,5 +723,93 @@ class NodeUIAngle : NodeUI
         let y1: Float = y0 + sin(value * Float.pi / 180) * length * scale
         
         mmView.drawLine.draw(sx: x0, sy: y0, ex: x1, ey: y1, radius: 1, fillColor: float4(repeating: 1))
+    }
+}
+
+/// Text class
+class NodeUIText : NodeUI
+{
+    var value       : String
+    var oldValue    : String
+    var defaultValue: String
+    var mouseIsDown : Bool = false
+    var x           : Float = 0
+    var width       : Float = 0
+    
+    init(_ node: Node, variable: String, title: String, value: String = "")
+    {
+        self.value = value
+        self.defaultValue = value
+        self.oldValue = value
+        
+        super.init(node, brand: .Text, variable: variable, title: title)
+        supportsTitleHover = true
+    }
+    
+    override func calcSize(mmView: MMView) {
+        self.mmView = mmView
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
+        
+        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 120
+        rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
+    }
+    
+    override func titleClicked()
+    {
+        let old = value
+        getStringDialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, cb: { (value) -> Void in
+            self.value = value
+            self.oldValue = old
+            self.titleHover = false
+            self.updateLinked()
+            self.mmView.update()
+            self.node.variableChanged(variable: self.variable, oldValue: 0, newValue: 1, continuous: false)
+        } )
+        return
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        mouseIsDown = true
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        mouseIsDown = false
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+    }
+    
+    override func mouseLeave() {
+    }
+    
+    func updateLinked()
+    {
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    {
+        if titleLabel!.scale != NodeUI.fontScale * scale {
+            titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
+        }
+        
+        let skin = mmView.skin.MenuWidget
+        
+        if titleHover {
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: maxTitleSize.x * scale + NodeUI.titleSpacing * scale, height: maxTitleSize.y * scale, round: 4, borderSize: 1, fillColor : float4(0.5, 0.5, 0.5, 1), borderColor: float4(repeating:0) )
+        }
+        
+        titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
+        
+        x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
+        width = 120 * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
+        
+        let itemHeight =  rect.height * scale
+        
+        mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
+        
+        mmView.drawText.drawTextCentered(mmView.openSans, text: value, x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: skin.textColor)
     }
 }

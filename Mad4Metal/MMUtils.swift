@@ -223,3 +223,52 @@ func createNodeCamera(_ node: Node) -> Camera
     
     return camera
 }
+
+func createStaticTextSource(_ font: MMFont, _ text: String, varCounter: Int = 0) -> String
+{
+    var source = "FontChar chars\(varCounter)[\(text.count)];\n"
+    
+    var totalWidth : Float = 0
+    var totalHeight : Float = 0
+    
+    for c in text {
+        let bmFont = font.getItemForChar(c)!
+        
+        totalWidth += bmFont.width + bmFont.xadvance
+        totalHeight = max(totalHeight,bmFont.height)
+    }
+    
+    for (index,c) in text.enumerated() {
+        let bmFont = font.getItemForChar(c)!
+        let varName = "chars\(varCounter)[\(index)]"
+        
+        source += "\(varName).charPos.x = \(bmFont.x);\n"
+        source += "\(varName).charPos.y = \(bmFont.y);\n"
+        source += "\(varName).charSize.x = \(bmFont.width);\n"
+        source += "\(varName).charSize.y = \(bmFont.height);\n"
+        source += "\(varName).charOffset.x = \(bmFont.xoffset);\n"
+        source += "\(varName).charOffset.y = \(bmFont.yoffset);\n"
+        source += "\(varName).charAdvance.x = \(bmFont.xadvance);\n"
+        source += "\(varName).stringInfo.x = \(totalWidth);\n"
+        source += "\(varName).stringInfo.y = \(totalHeight);\n"
+        //source += "chars[\(index)].charAdvance.y = \(bmFont.yoffset);\n"
+        source += "\(varName).finished = \(index == text.count-1 ? true : false);\n"
+    }
+    
+    return source
+}
+
+func getStaticTextSize(_ font: MMFont, _ text: String,_ scale: Float = 1) -> float2
+{
+    var totalWidth : Float = 0
+    var totalHeight : Float = 0
+    
+    for c in text {
+        let bmFont = font.getItemForChar(c)!
+        
+        totalWidth += bmFont.width + bmFont.xadvance
+        totalHeight = max(totalHeight,bmFont.height)
+    }
+    
+    return float2(totalWidth,totalHeight)
+}

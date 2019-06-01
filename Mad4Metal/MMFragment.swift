@@ -173,6 +173,10 @@ class MMFragment {
             renderEncoder!.setFragmentBuffer(inBuffer, offset: 0, index: 2)
         }
         
+        if inTexture != nil {
+            renderEncoder!.setFragmentTexture(inTexture, index: 1)
+        }
+        
         renderEncoder!.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
     

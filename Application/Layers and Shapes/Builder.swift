@@ -146,7 +146,7 @@ class Builder
         buildData.source +=
         """
         
-        float4 sdf( float2 uv, constant LAYER_DATA *layerData )
+        float4 sdf( float2 uv, constant LAYER_DATA *layerData, texture2d<half, access::sample> fontTexture )
         {
             float2 tuv = uv, pAverage;
         
@@ -307,12 +307,12 @@ class Builder
             return value;
         }
         
-        float3 calculateNormal(float2 uv, float dist, constant LAYER_DATA *layerData, int profileIndex)
+        float3 calculateNormal(float2 uv, float dist, constant LAYER_DATA *layerData, texture2d<half, access::sample> fontTexture, int profileIndex)
         {
             float p = 0.0005;//min(.3, .0005+.00005 * distance*distance);
             float3 nor      = float3(0.0,            profile(dist, layerData->profileData, profileIndex), 0.0);
-            float3 v2        = nor-float3(p,        profile(sdf(uv+float2(p,0.0), layerData).x, layerData->profileData, profileIndex), 0.0);
-            float3 v3        = nor-float3(0.0,        profile(sdf(uv+float2(0.0,-p), layerData).x, layerData->profileData, profileIndex), -p);
+            float3 v2        = nor-float3(p,        profile(sdf(uv+float2(p,0.0), layerData, fontTexture).x, layerData->profileData, profileIndex), 0.0);
+            float3 v3        = nor-float3(0.0,        profile(sdf(uv+float2(0.0,-p), layerData, fontTexture).x, layerData->profileData, profileIndex), -p);
             nor = cross(v2, v3);
             return normalize(nor);
         }
@@ -320,7 +320,7 @@ class Builder
         kernel void
         layerBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
             constant LAYER_DATA            *layerData   [[ buffer(1) ]],
-            texture2d<half, access::read>   inTexture   [[texture(2)]],
+            texture2d<half, access::sample>   fontTexture [[texture(2)]],
             uint2                           gid         [[thread_position_in_grid]])
         {
             float2 size = float2( outTexture.get_width(), outTexture.get_height() );
@@ -338,7 +338,7 @@ class Builder
         
         buildData.source +=
         """
-            float4 rc = sdf( uv, layerData );
+            float4 rc = sdf( uv, layerData, fontTexture );
         
             MATERIAL_DATA bodyMaterial;
             bodyMaterial.baseColor = float4(0.5, 0.5, 0.5, 1);
@@ -497,6 +497,9 @@ class Builder
                 }
             }
             
+            if shape.name == "Text" {
+                buildData.source += createStaticTextSource(nodeGraph.mmView.openSans, shape.customText!, varCounter: buildData.shapeIndex)
+            }
             let distanceCode = "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, shapeIndex: buildData.shapeIndex, mainDataName: buildData.mainDataName) + ";\n"
             buildData.source += distanceCode
             
@@ -627,7 +630,7 @@ class Builder
             // Insert normal calculation code for the profile data
             if object.profile != nil {
                 buildData.materialSource += "if (dist <= 0 && objectId == \(buildData.objectIndex)) { \n"
-                buildData.materialSource += "normal = calculateNormal( uv, dist, layerData, \(buildData.profileIndex));"
+                buildData.materialSource += "normal = calculateNormal( uv, dist, layerData, fontTexture, \(buildData.profileIndex));"
                 buildData.materialSource += "}\n"
                 buildData.profileIndex += object.profile!.count
             }
@@ -694,10 +697,10 @@ class Builder
         memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
         
         if outTexture == nil {
-            compute!.run( instance.state, inBuffer: instance.buffer )
+            compute!.run( instance.state, inBuffer: instance.buffer, inTexture: nodeGraph.mmView.openSans.atlas )
             return compute!.texture
         } else {
-            compute!.run( instance.state, outTexture: outTexture, inBuffer: instance.buffer )
+            compute!.run( instance.state, outTexture: outTexture, inBuffer: instance.buffer, inTexture: nodeGraph.mmView.openSans.atlas )
             return outTexture!
         }
     }
@@ -940,6 +943,17 @@ class Builder
         #include <simd/simd.h>
         using namespace metal;
 
+        typedef struct
+        {
+            float2  charPos;
+            float2  charSize;
+            float2  charOffset;
+            float2  charAdvance;
+            float4  stringInfo;
+
+            bool    finished;
+        } FontChar;
+
         float4 merge(float4 d1, float4 d2)
         {
             if ( d1.x < d2.x ) return d1;
@@ -986,6 +1000,7 @@ class Builder
         
         kernel void
         selectedAt(device float4  *out [[ buffer(0) ]],
+        texture2d<half, access::sample>   fontTexture [[texture(2)]],
         uint id [[ thread_position_in_grid ]])
         {
             float2 fragCoord = float2( \(x), \(y) );
@@ -1078,6 +1093,10 @@ class Builder
                 if shape.pointsVariable {
                     source += shape.createPointsVariableCode(shapeIndex: totalShapeIndex)
                 }
+                
+                if shape.name == "Text" {
+                    source += createStaticTextSource(nodeGraph.mmView.openSans, shape.customText!, varCounter: totalShapeIndex)
+                }
                 source += "newDist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformed, shapeIndex: totalShapeIndex) + ";\n"
                 
                 let minSize : Float = min(shape.properties["sizeX"]!,shape.properties["sizeY"]!)
@@ -1138,7 +1157,7 @@ class Builder
         let state = compute!.createState(library: library, name: "selectedAt")
         
         let outBuffer = compute!.device.makeBuffer(length: MemoryLayout<float4>.stride, options: [])!
-        compute!.runBuffer(state, outBuffer: outBuffer)
+        compute!.runBuffer(state, outBuffer: outBuffer, inTexture: nodeGraph.mmView.openSans.atlas)
         
         let result = outBuffer.contents().load(as: float4.self)
 //        print( result )
@@ -1292,6 +1311,17 @@ class Builder
         #include <metal_stdlib>
         #include <simd/simd.h>
         using namespace metal;
+
+        typedef struct
+        {
+            float2  charPos;
+            float2  charSize;
+            float2  charOffset;
+            float2  charAdvance;
+            float4  stringInfo;
+
+            bool    finished;
+        } FontChar;
         
         float merge(float d1, float d2)
         {

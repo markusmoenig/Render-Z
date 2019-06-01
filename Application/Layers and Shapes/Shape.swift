@@ -39,6 +39,11 @@ class Shape : Codable
     // Build data table for custom property names
     var customProperties: [String] = []
     
+    // For text based shapes
+    
+    var customText      : String? = nil
+    var customReference : UUID? = nil
+
     private enum CodingKeys: String, CodingKey {
         case name
         case mode
@@ -53,6 +58,8 @@ class Shape : Codable
         case pointCount
         case pointsScale
         case supportsRounding
+        case customText
+        case customReference
     }
     
     required init()
@@ -87,6 +94,8 @@ class Shape : Codable
         pointCount = try container.decode(Int.self, forKey: .pointCount)
         pointsScale = try container.decode(Bool.self, forKey: .pointsScale)
         supportsRounding = try container.decode(Bool.self, forKey: .supportsRounding)
+        customText = try container.decodeIfPresent(String.self, forKey: .customText)
+        customReference = try container.decodeIfPresent(UUID.self, forKey: .customText)
     }
     
     func encode(to encoder: Encoder) throws
@@ -106,6 +115,8 @@ class Shape : Codable
         try container.encode(pointCount, forKey: .pointCount)
         try container.encode(pointsScale, forKey: .pointsScale)
         try container.encode(supportsRounding, forKey: .supportsRounding)
+        try container.encode(customText, forKey: .customText)
+        try container.encode(customReference, forKey: .customReference)
     }
     
     /// Creates the distance code for the shape, optionally using the supplied transformed properties or insertig the metal code for accessing the shape data structure
@@ -114,8 +125,27 @@ class Shape : Codable
         var code = distanceCode
         let props = transProperties != nil ? transProperties : properties
         
-        code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
-        
+        if name != "Text" {
+            code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
+        } else {
+            
+            if layerIndex == nil {
+                code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
+                
+                if shapeIndex == nil {
+                    code = code.replacingOccurrences(of: "__text_chars__", with: "&chars0[0]")
+                } else {
+                    code = code.replacingOccurrences(of: "__text_chars__", with: "&chars\(shapeIndex!)[0]")
+                }
+            } else {
+                code = code.replacingOccurrences(of: "__uv__", with: "float2(\(uvName).x, -\(uvName).y)")
+                
+                code = code.replacingOccurrences(of: "__text_chars__", with: "&chars\(shapeIndex!)[0]")
+            }
+
+            code = code.replacingOccurrences(of: "__font_texture__", with: "fontTexture")
+        }
+
         for (name,value) in props! {
             if name.starts(with: "custom_") && layerIndex != nil {
                 // Custom properties

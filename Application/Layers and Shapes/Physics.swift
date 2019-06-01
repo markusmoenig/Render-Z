@@ -107,7 +107,7 @@ class Physics
         buildData.source +=
         """
         
-        float2 sdf( float2 uv, constant PHYSICS_DATA *physicsData )
+        float2 sdf( float2 uv, constant PHYSICS_DATA *physicsData, texture2d<half, access::sample> fontTexture )
         {
             float2 tuv = uv, pAverage;
             float dist = 100000, newDist, objectDistance = 100000;
@@ -163,14 +163,15 @@ class Physics
 
         buildData.source +=
         """
-        float2 normal(float2 uv, constant PHYSICS_DATA *physicsData) {
+        float2 normal(float2 uv, constant PHYSICS_DATA *physicsData, texture2d<half, access::sample> fontTexture) {
             float2 eps = float2( 0.0005, 0.0 );
             return normalize(
-                float2(sdf(uv+eps.xy, physicsData).x - sdf(uv-eps.xy, physicsData).x,
-                sdf(uv+eps.yx, physicsData).x - sdf(uv-eps.yx, physicsData).x));
+                float2(sdf(uv+eps.xy, physicsData).x - sdf(uv-eps.xy, physicsData, fontTexture).x,
+                sdf(uv+eps.yx, physicsData, fontTexture).x - sdf(uv-eps.yx, physicsData, fontTexture).x));
         }
         
         kernel void layerPhysics(constant PHYSICS_DATA *physicsData [[ buffer(1) ]],
+                        texture2d<half, access::sample> fontTexture [[ texture(2) ]],
                                         device float4  *out [[ buffer(0) ]],
                                                   uint  gid [[thread_position_in_grid]])
         {
@@ -191,18 +192,20 @@ class Physics
                 float2 pos =  physicsData->dynamicObjects[i].pos;
                 float radius = physicsData->dynamicObjects[i].radius;
         
-                float2 hit = sdf(pos, physicsData);
+                float2 hit = sdf(pos, physicsData, fontTexture);
                 float4 rc = float4( hit.y, 0, 0, 0 );
 
                 if ( hit.x < radius ) {
                     rc.y = radius - hit.x;
-                    rc.zw = normal(pos, physicsData);
+                    rc.zw = normal(pos, physicsData, fontTexture);
                 }
                 out[gid+i] = rc;//float4( pos.x, pos.y, velocity.x, velocity.y );
             }
         }
 
         """
+        
+        print(buildData.source)
 
         instance.inBuffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
@@ -298,7 +301,7 @@ class Physics
         //accumulator += getDeltaTime()
         //accumulator = simd_clamp( 0, 0.1, accumulator )
         
-        compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer )
+        compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer, inTexture: nodeGraph.mmView.openSans!.atlas )
         
         let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 4)
         

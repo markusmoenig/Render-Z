@@ -231,7 +231,7 @@ class Layer : Node
         }
         
         if builderInstance == nil || hard {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
+            DispatchQueue.main.async {
                 self.executeProperties(nodeGraph)
                 let instances = self.createInstances(nodeGraph: nodeGraph)
                 for instance in instances {

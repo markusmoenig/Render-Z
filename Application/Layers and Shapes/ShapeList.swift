@@ -71,6 +71,17 @@ class ShapeList
         #include <simd/simd.h>
         using namespace metal;
 
+        typedef struct
+        {
+            float2  charPos;
+            float2  charSize;
+            float2  charOffset;
+            float2  charAdvance;
+            float4  stringInfo;
+
+            bool    finished;
+        } FontChar;
+
         float merge(float d1, float d2)
         {
             return min(d1, d2);
@@ -110,6 +121,7 @@ class ShapeList
         kernel void
         shapeListBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
                          constant SHAPELIST_HOVER_DATA  *hoverData   [[ buffer(1) ]],
+                       texture2d<half, access::sample>   fontTexture [[texture(2)]],
                          uint2                           gid         [[thread_position_in_grid]])
         {
             float2 uvOrigin = float2( gid.x - outTexture.get_width() / 2.,
@@ -161,7 +173,16 @@ class ShapeList
             if shape.pointsVariable {
                 source += shape.createPointsVariableCode(shapeIndex: index, transProperties: transformPropertySize(shape: shape, size: 12), maxPoints: 3)
             }
+            
+            if shape.name == "Text" {
+                source += "uv /= 7; uv -= float2( 1., -0.5 );"
+                source += createStaticTextSource(mmView.openSans, "Abc", varCounter: index)
+            }
             source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12), shapeIndex: index) + ";"
+            
+            if shape.name == "Text" {
+                source += "uv -= float2( -1., 0.5 ); uv *= 7;"
+            }
             
             if shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1 {
                 // Inverse
@@ -257,7 +278,7 @@ class ShapeList
     func update()
     {
         memcpy(hoverBuffer?.contents(), hoverData, hoverData.count * MemoryLayout<Float>.stride)
-        compute!.run(state, inBuffer: hoverBuffer)
+        compute!.run(state, inBuffer: hoverBuffer, inTexture: mmView.openSans.atlas)
     }
     
     /// Selected the shape at the given relative mouse position

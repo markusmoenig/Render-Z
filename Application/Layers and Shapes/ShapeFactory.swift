@@ -442,6 +442,76 @@ class ShapeFactory
         def.properties["thickness_min"] = 0
         def.properties["thickness_max"] = 1
         def.properties["thickness_int"] = 0
+        shapes.append( def )
+        
+        
+        //Optional("a") Optional(245.0) Optional(138.0) Optional(22.0) Optional(27.0)
+
+        // --- Text
+        def = ShapeDefinition()
+        def.name = "Text"
+        def.distanceCode = "sdText(__uv__, float2(__radius__,__radius__), __font_texture__, __text_chars__, __custom_thickness__)"
+        def.globalCode =
+        """
+        float sdText( float2 p, float2 size, texture2d<half, access::sample> texture, thread FontChar *chars, float thickness )
+        {
+            constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
+        
+            float2 atlasSize = float2( texture.get_width(), texture.get_height() );
+            float d = 100000;
+        
+            float scale = 40 / size.x;
+        
+            float xAdvance = 0;
+            int index  = 0;
+            while(1)
+            {
+                thread FontChar *text = &chars[index++];
+
+                float2 uv = p / text->charSize * scale;
+        
+                float2 fontPos = text->charPos;
+                float2 fontSize = text->charSize * scale;
+        
+                uv /= atlasSize / fontSize;
+                uv += fontPos / atlasSize + float2( - xAdvance - text->charOffset.x + text->stringInfo.x/4, text->stringInfo.y/2 - text->charOffset.y) / atlasSize;
+        
+                if (uv.x >= fontPos.x / atlasSize.x && uv.x <= (fontPos.x + fontSize.x / scale) / atlasSize.x && uv.y >= fontPos.y / atlasSize.y && uv.y <= (fontPos.y + fontSize.y / scale) / atlasSize.y)
+                {
+        
+                    const half3 colorSample = texture.sample(textureSampler, uv ).xyz;
+        
+                    float3 sample = float3( colorSample );// * float3(40 / size.x);
+        
+                    float dist = max(min(sample.r, sample.g), min(max(sample.r, sample.g), sample.b));// - 0.5 + 0.3;
+                    dist = clamp(dist, 0.0, 0.9);
+                    dist = dist - 0.5 + thickness;
+        
+                    dist = 0 - dist * 12 * 0.4;//thickness;
+        
+                    d = min(d, dist);
+
+                    //float d = 1.0;//m4mMedian(sample.r, sample.g, sample.b) - 0.5;
+                    //float w = clamp(d/fwidth(d) + 0.5, 0.0, 1.0);
+                }
+        
+                xAdvance += text->charAdvance.x;
+                if ( text->finished ) break;
+            }
+        
+            return d;
+        }
+        """
+        
+        def.properties["radius"] = 40
+        def.widthProperty = "radius"
+        def.heightProperty = "radius"
+        def.supportsRounding = true
+        
+        def.properties["custom_thickness"] = 0.2
+        def.properties["thickness_min"] = 0
+        def.properties["thickness_max"] = 0.3
+        def.properties["thickness_int"] = 0
         
         shapes.append( def )
     }
@@ -477,6 +547,10 @@ class ShapeFactory
                 if (name == "radius" || name == "width" || name == "height") && shape.name != "Ellipse" && shape.name != "Cross" {
                     shape.properties[name] = size
                 }
+            }
+            
+            if shape.name == "Text" {
+                shape.customText = "Abc"
             }
         }
         shape.updateSize()

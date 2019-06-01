@@ -107,7 +107,7 @@ class DiskBuilder
         buildData.source +=
         """
         
-        float sdf( float2 uv, constant DISK_BUILDER_DATA *diskBuilderData )
+        float sdf( float2 uv, constant DISK_BUILDER_DATA *diskBuilderData,                         texture2d<half, access::sample> fontTexture)
         {
             float2 tuv = uv, pAverage;
             float dist = 100000, newDist, objectDistance = 100000;
@@ -158,6 +158,7 @@ class DiskBuilder
         """
         kernel void diskBuilder(constant DISK_BUILDER_DATA *diskBuilderData [[ buffer(1) ]],
                                         device float *out [[ buffer(0) ]],
+                      texture2d<half, access::sample> fontTexture [[ texture(2) ]],
                                                 uint2 id [[ thread_position_in_grid ]],
                                                 uint tid [[ thread_index_in_threadgroup ]],
                                                 uint2 bid [[ threadgroup_position_in_grid ]],
@@ -174,7 +175,7 @@ class DiskBuilder
             //int maxDisks = (int) diskBuilderData->maxDisks.x;
         
             uint2 i = bid * blockDim + tid;
-            float dist = sdf(float2(i) - float2(width,height)/2, diskBuilderData);
+            float dist = sdf(float2(i) - float2(width,height)/2, diskBuilderData, fontTexture);
             out[i.y * 800 + i.x] = dist;
         }
 
@@ -210,7 +211,7 @@ class DiskBuilder
 
         memcpy(instance.inBuffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
         
-        compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer, size: float2(800, 800) )
+        compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer, size: float2(800, 800), inTexture: nodeGraph.mmView.openSans.atlas )
         
         let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 800*800)
         

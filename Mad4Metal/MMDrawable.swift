@@ -557,6 +557,7 @@ class MMDrawText : MMDrawable
                 if bmChar != nil {
                     let char = drawChar( font, char: bmChar!, x: posX + bmChar!.xoffset * scale, y: y + bmChar!.yoffset * scale, color: color, scale: scale, fragment: fragment)
                     array.append(char)
+                    //print( bmChar?.char, bmChar?.x, bmChar?.y, bmChar?.width, bmChar?.height)
                     posX += bmChar!.xadvance * scale;
                 
                 }

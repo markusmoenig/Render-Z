@@ -229,6 +229,13 @@ class Gizmo : MMWidget
             
             if selectedShapes.count == 1 {
                 let shape = selectedShapes[0]
+                
+                if shape.name == "Text" {
+                    gizmoNode.uiItems.append(
+                        NodeUIText(gizmoNode, variable: "text", title: "Text", value: shape.customText!)
+                    )
+                }
+                
                 var customs : [NodeUI] = []
                 for (key, value) in shape.properties {
                     if key.starts(with: "custom_") {
@@ -2201,6 +2208,17 @@ class GizmoNode : Node
         if gizmo!.context == .ShapeEditor
         {
             let selectedShapes = gizmo!.object!.getSelectedShapes()
+            if variable == "text" && selectedShapes.count == 1 {
+                let shape = selectedShapes[0]
+                
+                for item in uiItems {
+                    if let uiText = item as? NodeUIText {
+                        shape.customText = uiText.value
+                        gizmo!.maxDelegate!.update(true)
+                        return
+                    }
+                }
+            }
             let properties : [String:Float] = [variable:newValue]
             for shape in selectedShapes {
                 gizmo!.processGizmoProperties(properties, shape: shape)
