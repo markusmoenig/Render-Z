@@ -44,7 +44,7 @@ class MMFont
         let data = NSData(contentsOfFile: path)! as Data
         
         guard let font = try? JSONDecoder().decode(BMFont.self, from: data) else {
-            print("Error: Could not decode JSON of \name")
+            print("Error: Could not decode JSON of \(name)")
             return
         }
         bmFont = font
@@ -77,8 +77,8 @@ class MMFont
         for c in text {
             let bmChar = getItemForChar( c )
             if bmChar != nil {
-                rect.width += bmChar!.xadvance * scale;
-                rect.height = max( rect.height, (bmChar!.height /*- bmChar!.yoffset*/) * scale)
+                rect.width += bmChar!.xadvance * scale / 2;
+                rect.height = max( rect.height, (bmChar!.height /*- bmChar!.yoffset*/) * scale / 2)
             }
         }
         

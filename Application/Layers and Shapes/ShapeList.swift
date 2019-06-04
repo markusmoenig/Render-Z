@@ -78,8 +78,6 @@ class ShapeList
             float2  charOffset;
             float2  charAdvance;
             float4  stringInfo;
-
-            bool    finished;
         } FontChar;
 
         float merge(float d1, float d2)
@@ -174,14 +172,14 @@ class ShapeList
                 source += shape.createPointsVariableCode(shapeIndex: index, transProperties: transformPropertySize(shape: shape, size: 12), maxPoints: 3)
             }
             
-            if shape.name == "Text" {
-                source += "uv /= 7; uv -= float2( 1., -0.5 );"
-                source += createStaticTextSource(mmView.openSans, "Abc", varCounter: index)
+            if shape.name == "Text" || shape.name == "Variable" {
+                source += "uv /= 8; uv -= float2( 1.2, -0.2 );"
+                source += createStaticTextSource(mmView.openSans, shape.name == "Text" ? "Abc" : "123", varCounter: index)
             }
             source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12), shapeIndex: index) + ";"
             
-            if shape.name == "Text" {
-                source += "uv -= float2( -1., 0.5 ); uv *= 7;"
+            if shape.name == "Text" || shape.name == "Variable" {
+                source += "uv -= float2( -1.2, 0.2  ); uv *= 8;"
             }
             
             if shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1 {

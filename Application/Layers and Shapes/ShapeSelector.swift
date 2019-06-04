@@ -87,8 +87,6 @@ class ShapeSelector
                 float2  charOffset;
                 float2  charAdvance;
                 float4  stringInfo;
-
-                bool    finished;
             } FontChar;
 
             float merge(float d1, float d2)
@@ -108,11 +106,11 @@ class ShapeSelector
             }
         """
         
-        for shape in shapes {
+        for (index,shape) in shapes.enumerated() {
             source += shape.globalCode;
             if shape.dynamicCode != nil {
                 var dyn = shape.dynamicCode!
-                dyn = dyn.replacingOccurrences(of: "__shapeIndex__", with: "0")
+                dyn = dyn.replacingOccurrences(of: "__shapeIndex__", with: String(index))
                 dyn = dyn.replacingOccurrences(of: "__pointCount__", with: String(shape.pointCount))
                 source += dyn
             }
@@ -138,20 +136,24 @@ class ShapeSelector
         var top : Float = (spacing + unitSize / 2) * zoom
         
         shapeRects = []
-        for (_, shape) in shapes.enumerated() {
+        for (index, shape) in shapes.enumerated() {
 
             source += "uv = uvOrigin; uv.x += size.x / 2 - \(left); uv.y += size.y / 2 - \(top);\n"
             
             source += "uv /= \(zoom);\n"
             
             if shape.pointsVariable {
-                source += shape.createPointsVariableCode(shapeIndex: 0)
+                source += shape.createPointsVariableCode(shapeIndex: index)
             }
             
             if shape.name == "Text" {
-                source += createStaticTextSource(mmView.openSans, "Abc")
+                source += createStaticTextSource(mmView.openSans, "Abc", varCounter: index)
+            } else
+            if shape.name == "Variable" {
+                source += createStaticTextSource(mmView.openSans, "123", varCounter: index)
             }
-            source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: 0) + ");"
+            
+            source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: index) + ");"
             
             shapeRects.append( MMRect(left/zoom - unitSize / 2, top / zoom - unitSize / 2, unitSize, unitSize ) )
             
@@ -230,8 +232,6 @@ class ShapeSelector
                 float2  charOffset;
                 float2  charAdvance;
                 float4  stringInfo;
-
-                bool    finished;
             } FontChar;
 
             float merge(float d1, float d2)
@@ -275,7 +275,7 @@ class ShapeSelector
             source += shape.createPointsVariableCode(shapeIndex: 0)
         }
         
-        if shape.name == "Text" {
+        if shape.name == "Text" || shape.name == "Variable" {
             source += createStaticTextSource(mmView.openSans, "Abc")
         }
         source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: 0) + ");"

@@ -61,6 +61,10 @@
 		2B6D003822890AB600BEDCFD /* LayerArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0033228907E900BEDCFD /* LayerArea.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
+		2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
+		2B8BBA8922A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
+		2B8BBA8A22A4AA4600E541B9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
+		2B8BBA8B22A4AA4600E541B9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
 		2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
 		2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
 		2BA344AD2202A0A0000BB2EB /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
@@ -127,10 +131,6 @@
 		2BBF11D621EADB46001C94E9 /* MMScrollArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */; };
 		2BBF11D721EADB46001C94E9 /* MMSkin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BC21EADB46001C94E9 /* MMSkin.swift */; };
 		2BBF11D821EADB46001C94E9 /* MMSkin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BC21EADB46001C94E9 /* MMSkin.swift */; };
-		2BBF11D921EADB46001C94E9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF11BE21EADB46001C94E9 /* OpenSans.tiff */; };
-		2BBF11DA21EADB46001C94E9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF11BE21EADB46001C94E9 /* OpenSans.tiff */; };
-		2BBF11DB21EADB46001C94E9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF11BF21EADB46001C94E9 /* OpenSans.json */; };
-		2BBF11DC21EADB46001C94E9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF11BF21EADB46001C94E9 /* OpenSans.json */; };
 		2BBF11DE21EADB46001C94E9 /* MMBaseView__ios.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */; };
 		2BBF11E121EC1A92001C94E9 /* Shape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E021EC1A92001C94E9 /* Shape.swift */; };
 		2BBF11E221EC1A92001C94E9 /* Shape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11E021EC1A92001C94E9 /* Shape.swift */; };
@@ -199,6 +199,8 @@
 		2B6D0033228907E900BEDCFD /* LayerArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerArea.swift; sourceTree = "<group>"; };
 		2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerAreaMaxDelegate.swift; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
+		2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
+		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
 		2BA344A121FE8497000BB2EB /* MMTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTimeline.swift; sourceTree = "<group>"; };
 		2BA344AC22029FA4000BB2EB /* MMFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFragment.swift; sourceTree = "<group>"; };
 		2BA6163B22597EF400638794 /* MMColorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMColorWidget.swift; sourceTree = "<group>"; };
@@ -245,8 +247,6 @@
 		2BBF11BA21EADB46001C94E9 /* MMCompute.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMCompute.swift; sourceTree = "<group>"; };
 		2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMScrollArea.swift; sourceTree = "<group>"; };
 		2BBF11BC21EADB46001C94E9 /* MMSkin.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMSkin.swift; sourceTree = "<group>"; };
-		2BBF11BE21EADB46001C94E9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
-		2BBF11BF21EADB46001C94E9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
 		2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MMBaseView__ios.swift; sourceTree = "<group>"; };
 		2BBF11E021EC1A92001C94E9 /* Shape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shape.swift; sourceTree = "<group>"; };
 		2BBF11E621EC4DC7001C94E9 /* ShapeSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeSelector.swift; sourceTree = "<group>"; };
@@ -420,8 +420,8 @@
 		2BBF11BD21EADB46001C94E9 /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
-				2BBF11BE21EADB46001C94E9 /* OpenSans.tiff */,
-				2BBF11BF21EADB46001C94E9 /* OpenSans.json */,
+				2B8BBA8722A4AA4600E541B9 /* OpenSans.json */,
+				2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -582,11 +582,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2BBF11DB21EADB46001C94E9 /* OpenSans.json in Resources */,
 				2B4896D422851E860062F42F /* timeline_delete.tiff in Resources */,
+				2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */,
+				2B8BBA8A22A4AA4600E541B9 /* OpenSans.json in Resources */,
 				2BBF110121EAD2B0001C94E9 /* Assets.xcassets in Resources */,
 				2B4896E0228521160062F42F /* timeline_play.tiff in Resources */,
-				2BBF11D921EADB46001C94E9 /* OpenSans.tiff in Resources */,
 				2B4896D822851FE50062F42F /* timeline_recording.tiff in Resources */,
 				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
 			);
@@ -597,12 +597,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				2BBF113C21EAD38E001C94E9 /* LaunchScreen.storyboard in Resources */,
+				2B8BBA8922A4AA4600E541B9 /* OpenSans.tiff in Resources */,
 				2BBF113921EAD38E001C94E9 /* Assets.xcassets in Resources */,
 				2B4896D522851E860062F42F /* timeline_delete.tiff in Resources */,
+				2B8BBA8B22A4AA4600E541B9 /* OpenSans.json in Resources */,
 				2BBF113421EAD38E001C94E9 /* Main.storyboard in Resources */,
-				2BBF11DC21EADB46001C94E9 /* OpenSans.json in Resources */,
 				2B4896E1228521160062F42F /* timeline_play.tiff in Resources */,
-				2BBF11DA21EADB46001C94E9 /* OpenSans.tiff in Resources */,
 				2B4896D922851FE50062F42F /* timeline_recording.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

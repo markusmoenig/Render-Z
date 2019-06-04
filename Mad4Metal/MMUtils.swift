@@ -251,8 +251,7 @@ func createStaticTextSource(_ font: MMFont, _ text: String, varCounter: Int = 0)
         source += "\(varName).charAdvance.x = \(bmFont.xadvance);\n"
         source += "\(varName).stringInfo.x = \(totalWidth);\n"
         source += "\(varName).stringInfo.y = \(totalHeight);\n"
-        //source += "chars[\(index)].charAdvance.y = \(bmFont.yoffset);\n"
-        source += "\(varName).finished = \(index == text.count-1 ? true : false);\n"
+        source += "\(varName).stringInfo.w = \(index == text.count-1 ? 1 : 0);\n"
     }
     
     return source

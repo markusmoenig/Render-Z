@@ -166,7 +166,7 @@ class Physics
         float2 normal(float2 uv, constant PHYSICS_DATA *physicsData, texture2d<half, access::sample> fontTexture) {
             float2 eps = float2( 0.0005, 0.0 );
             return normalize(
-                float2(sdf(uv+eps.xy, physicsData).x - sdf(uv-eps.xy, physicsData, fontTexture).x,
+                float2(sdf(uv+eps.xy, physicsData, fontTexture).x - sdf(uv-eps.xy, physicsData, fontTexture).x,
                 sdf(uv+eps.yx, physicsData, fontTexture).x - sdf(uv-eps.yx, physicsData, fontTexture).x));
         }
         
@@ -205,8 +205,6 @@ class Physics
 
         """
         
-        print(buildData.source)
-
         instance.inBuffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
         instance.outBuffer = compute!.device.makeBuffer(length: dynaCount * 4 * MemoryLayout<Float>.stride, options: [])!

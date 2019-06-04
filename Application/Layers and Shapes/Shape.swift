@@ -95,7 +95,7 @@ class Shape : Codable
         pointsScale = try container.decode(Bool.self, forKey: .pointsScale)
         supportsRounding = try container.decode(Bool.self, forKey: .supportsRounding)
         customText = try container.decodeIfPresent(String.self, forKey: .customText)
-        customReference = try container.decodeIfPresent(UUID.self, forKey: .customText)
+        customReference = try container.decodeIfPresent(UUID.self, forKey: .customReference)
     }
     
     func encode(to encoder: Encoder) throws
@@ -120,12 +120,12 @@ class Shape : Codable
     }
     
     /// Creates the distance code for the shape, optionally using the supplied transformed properties or insertig the metal code for accessing the shape data structure
-    func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil, pointIndex: Int? = nil, shapeIndex: Int? = nil, mainDataName: String = "layerData->") -> String
+    func createDistanceCode( uvName: String, transProperties: [String:Float]? = nil, layerIndex: Int? = nil, pointIndex: Int? = nil, shapeIndex: Int? = nil, mainDataName: String = "layerData->", variableIndex: Int? = nil) -> String
     {
         var code = distanceCode
         let props = transProperties != nil ? transProperties : properties
         
-        if name != "Text" {
+        if name != "Text" && name != "Variable" {
             code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
         } else {
             
@@ -140,7 +140,14 @@ class Shape : Codable
             } else {
                 code = code.replacingOccurrences(of: "__uv__", with: "float2(\(uvName).x, -\(uvName).y)")
                 
-                code = code.replacingOccurrences(of: "__text_chars__", with: "&chars\(shapeIndex!)[0]")
+                if variableIndex == nil {
+                    code = code.replacingOccurrences(of: "__text_chars__", with: "&chars\(shapeIndex!)[0]")
+                } else {
+                    
+                    code = code.replacingOccurrences(of: "sdVariable", with: "sdVariableConstant")
+                    
+                    code = code.replacingOccurrences(of: "__text_chars__", with: "&layerData->variables[\(variableIndex!)].chars[0]")
+                }
             }
 
             code = code.replacingOccurrences(of: "__font_texture__", with: "fontTexture")

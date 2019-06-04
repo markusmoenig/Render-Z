@@ -36,6 +36,8 @@ class BuilderInstance
     var materialDataOffset : Int = 0
     // Offset to the profile data / points
     var profileDataOffset : Int = 0
+    // Offset to the variables
+    var variablesDataOffset : Int = 0
     
     var texture         : MTLTexture? = nil
 }
@@ -48,6 +50,7 @@ class BuildData
     var materialDataIndex   : Int = 0
     var pointIndex          : Int = 0
     var profileIndex        : Int = 0
+    var variableIndex       : Int = 0
 
     // --- Hierarchy
     var parentPosX          : Float = 0
@@ -68,6 +71,7 @@ class BuildData
     var maxObjects          : Int = 0
     var maxMaterialData     : Int = 0
     var maxProfileData      : Int = 0
+    var maxVariables        : Int = 1
 }
 
 class Camera : Codable
@@ -90,6 +94,7 @@ class Builder
 {
     var compute         : MMCompute?
     var nodeGraph       : NodeGraph
+    var maxVarSize      : Int = 10
     
     init(_ nodeGraph: NodeGraph)
     {
@@ -122,6 +127,7 @@ class Builder
             OBJECT_DATA objects[\(max(buildData.maxObjects, 1))];
             float4      materialData[\(max(buildData.maxMaterialData, 1))];
             float4      profileData[\(max(buildData.maxProfileData, 1))];
+            VARIABLE    variables[\(max(buildData.maxVariables, 1))];
         } LAYER_DATA;
         
         """
@@ -221,6 +227,27 @@ class Builder
             instance.data!.append( 0 )
         }
         
+        instance.variablesDataOffset = instance.data!.count
+
+        // Fill up the variables
+        let variablesDataCount = max(buildData.maxVariables,1) * 10
+        for _ in 0..<variablesDataCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
         buildData.source +=
         """
         
@@ -309,10 +336,10 @@ class Builder
         
         float3 calculateNormal(float2 uv, float dist, constant LAYER_DATA *layerData, texture2d<half, access::sample> fontTexture, int profileIndex)
         {
-            float p = 0.0005;//min(.3, .0005+.00005 * distance*distance);
-            float3 nor      = float3(0.0,            profile(dist, layerData->profileData, profileIndex), 0.0);
-            float3 v2        = nor-float3(p,        profile(sdf(uv+float2(p,0.0), layerData, fontTexture).x, layerData->profileData, profileIndex), 0.0);
-            float3 v3        = nor-float3(0.0,        profile(sdf(uv+float2(0.0,-p), layerData, fontTexture).x, layerData->profileData, profileIndex), -p);
+            float p = 10;//min(.3, .0005+.00005 * distance*distance);
+            float3 nor      = float3(0.0,            profile(min(dist,0.0), layerData->profileData, profileIndex), 0.0);
+            float3 v2        = nor-float3(p,        profile(min(sdf(uv+float2(p,0.0), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), 0.0);
+            float3 v3        = nor-float3(0.0,        profile(min(sdf(uv+float2(0.0,-p), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), -p);
             nor = cross(v2, v3);
             return normalize(nor);
         }
@@ -500,7 +527,8 @@ class Builder
             if shape.name == "Text" {
                 buildData.source += createStaticTextSource(nodeGraph.mmView.openSans, shape.customText!, varCounter: buildData.shapeIndex)
             }
-            let distanceCode = "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, shapeIndex: buildData.shapeIndex, mainDataName: buildData.mainDataName) + ";\n"
+            
+            let distanceCode = "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, shapeIndex: buildData.shapeIndex, mainDataName: buildData.mainDataName, variableIndex: buildData.variableIndex) + ";\n"
             buildData.source += distanceCode
             
             if shape.supportsRounding {
@@ -714,6 +742,7 @@ class Builder
         var objectIndex : Int = 0
         var materialDataIndex : Int = 0
         var profileDataIndex : Int = 0
+        var variablesDataIndex : Int = 0
 
         // Update Shapes / Objects
         
@@ -794,6 +823,50 @@ class Builder
                     }
                 }
                 
+                // Build variable
+                if shape.name == "Variable" {
+                    let text = "12345"
+                    let font = nodeGraph.mmView.openSans!
+                    var offset = instance.variablesDataOffset + variablesDataIndex * 12 * maxVarSize
+
+                    var totalWidth : Float = 0
+                    var totalHeight : Float = 0
+                    
+                    for (index,c) in text.enumerated() {
+                        let bmFont = font.getItemForChar(c)!
+                        
+                        instance.data![offset] = bmFont.x
+                        instance.data![offset + 1] = bmFont.y
+                        instance.data![offset + 2] = bmFont.width
+                        instance.data![offset + 3] = bmFont.height
+
+                        instance.data![offset + 4] = bmFont.xoffset
+                        instance.data![offset + 5] = bmFont.yoffset
+                        instance.data![offset + 6] = bmFont.xadvance
+
+                        instance.data![offset + 8] = totalWidth
+                        instance.data![offset + 9] = totalHeight
+                        
+                        instance.data![offset + 11] = index == text.count-1 ? 1 : 0
+                        
+                        totalWidth += bmFont.width + bmFont.xadvance
+                        totalHeight = max(totalHeight,bmFont.height)
+                        
+                        offset += 12
+                    }
+                    
+                    offset = instance.variablesDataOffset + variablesDataIndex * 12 * maxVarSize
+
+                    for (index,_) in text.enumerated() {
+                        
+                        instance.data![offset + 8] = totalWidth
+                        instance.data![offset + 9] = totalHeight
+                        
+                        offset += 12
+                    }
+                }
+                
+                // Shape processing finished
                 index += 1
                 pointIndex += shape.pointCount
             }
@@ -950,8 +1023,6 @@ class Builder
             float2  charOffset;
             float2  charAdvance;
             float4  stringInfo;
-
-            bool    finished;
         } FontChar;
 
         float4 merge(float4 d1, float4 d2)
@@ -1094,7 +1165,7 @@ class Builder
                     source += shape.createPointsVariableCode(shapeIndex: totalShapeIndex)
                 }
                 
-                if shape.name == "Text" {
+                if shape.name == "Text" || shape.name == "Variable" {
                     source += createStaticTextSource(nodeGraph.mmView.openSans, shape.customText!, varCounter: totalShapeIndex)
                 }
                 source += "newDist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformed, shapeIndex: totalShapeIndex) + ";\n"
@@ -1250,12 +1321,17 @@ class Builder
         var pointIndex : Int = 0
         var materialIndex : Int = 0
         var profileIndex : Int = 0
+        var variableIndex : Int = 0
 
         func parseObject(_ object: Object)
         {
             for shape in object.shapes {
                 shapeIndex += 1
                 pointIndex += shape.pointCount
+                
+                if shape.name == "Variable" {
+                    variableIndex += 1
+                }
             }
             
             if object.profile != nil {
@@ -1301,6 +1377,7 @@ class Builder
         buildData.maxObjects = objectIndex
         buildData.maxMaterialData = materialIndex
         buildData.maxProfileData = profileIndex
+        buildData.maxVariables = variableIndex
     }
     
     /// Returns the common code for all shaders
@@ -1319,9 +1396,12 @@ class Builder
             float2  charOffset;
             float2  charAdvance;
             float4  stringInfo;
-
-            bool    finished;
         } FontChar;
+
+        typedef struct
+        {
+            FontChar chars[\(maxVarSize)];
+        } VARIABLE;
         
         float merge(float d1, float d2)
         {

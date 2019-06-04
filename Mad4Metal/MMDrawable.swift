@@ -508,6 +508,7 @@ class MMDrawText : MMDrawable
     @discardableResult func drawChar( _ font: MMFont, char: BMChar, x: Float, y: Float, color: float4, scale: Float = 1.0, fragment: MMFragment? = nil ) -> MMCharBuffer
     {
         let scaleFactor : Float = fragment == nil ? mmRenderer.mmView.scaleFactor : 2
+        let adjScale : Float = scale / 2
         
         let textSettings: [Float] = [
             Float(font.atlas!.width) * scaleFactor, Float(font.atlas!.height) * scaleFactor,
@@ -520,8 +521,8 @@ class MMDrawText : MMDrawable
         let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
 
         let vertexBuffer = fragment == nil ?
-            mmRenderer.createVertexBuffer( MMRect( x, y, char.width * scale, char.height * scale, scale: scaleFactor) )
-            : fragment!.createVertexBuffer( MMRect( x, y, char.width * scale, char.height * scale, scale: scaleFactor) )
+            mmRenderer.createVertexBuffer( MMRect( x, y, char.width * adjScale, char.height * adjScale, scale: scaleFactor) )
+            : fragment!.createVertexBuffer( MMRect( x, y, char.width * adjScale, char.height * adjScale, scale: scaleFactor) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         
         let textData = mmRenderer.device.makeBuffer(bytes: textSettings, length: textSettings.count * MemoryLayout<Float>.stride, options: [])!
@@ -537,6 +538,8 @@ class MMDrawText : MMDrawable
     
     @discardableResult func drawText( _ font: MMFont, text: String, x: Float, y: Float, scale: Float = 1.0, color: float4 = float4(repeating: 1), textBuffer: MMTextBuffer? = nil, fragment: MMFragment? = nil ) -> MMTextBuffer?
     {
+        let adjScale : Float = scale / 2
+
         if textBuffer != nil && textBuffer!.x == x && textBuffer!.y == y && textBuffer!.viewWidth == mmRenderer.width && textBuffer!.viewHeight == mmRenderer.height {
             let renderEncoder = mmRenderer.renderEncoder!
             renderEncoder.setRenderPipelineState( state! )
@@ -555,10 +558,10 @@ class MMDrawText : MMDrawable
             for c in text {
                 let bmChar = font.getItemForChar( c )
                 if bmChar != nil {
-                    let char = drawChar( font, char: bmChar!, x: posX + bmChar!.xoffset * scale, y: y + bmChar!.yoffset * scale, color: color, scale: scale, fragment: fragment)
+                    let char = drawChar( font, char: bmChar!, x: posX + bmChar!.xoffset * adjScale, y: y + bmChar!.yoffset * adjScale, color: color, scale: scale, fragment: fragment)
                     array.append(char)
                     //print( bmChar?.char, bmChar?.x, bmChar?.y, bmChar?.width, bmChar?.height)
-                    posX += bmChar!.xadvance * scale;
+                    posX += bmChar!.xadvance * adjScale;
                 
                 }
             }
