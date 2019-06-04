@@ -230,7 +230,7 @@ class Builder
         instance.variablesDataOffset = instance.data!.count
 
         // Fill up the variables
-        let variablesDataCount = max(buildData.maxVariables,1) * 10
+        let variablesDataCount = max(buildData.maxVariables,1) * maxVarSize
         for _ in 0..<variablesDataCount {
             instance.data!.append( 0 )
             instance.data!.append( 0 )
@@ -825,44 +825,51 @@ class Builder
                 
                 // Build variable
                 if shape.name == "Variable" {
-                    let text = "12345"
-                    let font = nodeGraph.mmView.openSans!
-                    var offset = instance.variablesDataOffset + variablesDataIndex * 12 * maxVarSize
-
-                    var totalWidth : Float = 0
-                    var totalHeight : Float = 0
                     
-                    for (index,c) in text.enumerated() {
-                        let bmFont = font.getItemForChar(c)!
+                    if let uuid = shape.customReference {
                         
-                        instance.data![offset] = bmFont.x
-                        instance.data![offset + 1] = bmFont.y
-                        instance.data![offset + 2] = bmFont.width
-                        instance.data![offset + 3] = bmFont.height
+                        if let varNode = nodeGraph.getNodeForUUID(uuid) {
+                        
+                            let text = String(varNode.properties["value"]!)
+                            let font = nodeGraph.mmView.openSans!
+                            var offset = instance.variablesDataOffset + variablesDataIndex * 12 * maxVarSize
 
-                        instance.data![offset + 4] = bmFont.xoffset
-                        instance.data![offset + 5] = bmFont.yoffset
-                        instance.data![offset + 6] = bmFont.xadvance
+                            var totalWidth : Float = 0
+                            var totalHeight : Float = 0
+                        
+                            for (index,c) in text.enumerated() {
+                                let bmFont = font.getItemForChar(c)!
+                                
+                                instance.data![offset] = bmFont.x
+                                instance.data![offset + 1] = bmFont.y
+                                instance.data![offset + 2] = bmFont.width
+                                instance.data![offset + 3] = bmFont.height
 
-                        instance.data![offset + 8] = totalWidth
-                        instance.data![offset + 9] = totalHeight
-                        
-                        instance.data![offset + 11] = index == text.count-1 ? 1 : 0
-                        
-                        totalWidth += bmFont.width + bmFont.xadvance
-                        totalHeight = max(totalHeight,bmFont.height)
-                        
-                        offset += 12
-                    }
-                    
-                    offset = instance.variablesDataOffset + variablesDataIndex * 12 * maxVarSize
+                                instance.data![offset + 4] = bmFont.xoffset
+                                instance.data![offset + 5] = bmFont.yoffset
+                                instance.data![offset + 6] = bmFont.xadvance
 
-                    for (index,_) in text.enumerated() {
+                                instance.data![offset + 8] = totalWidth
+                                instance.data![offset + 9] = totalHeight
+                                
+                                instance.data![offset + 11] = index == text.count-1 ? 1 : 0
+                                
+                                totalWidth += bmFont.width + bmFont.xadvance
+                                totalHeight = max(totalHeight,bmFont.height)
+                                
+                                offset += 12
+                            }
                         
-                        instance.data![offset + 8] = totalWidth
-                        instance.data![offset + 9] = totalHeight
-                        
-                        offset += 12
+                            offset = instance.variablesDataOffset + variablesDataIndex * 12 * maxVarSize
+
+                            for (index,_) in text.enumerated() {
+                                
+                                instance.data![offset + 8] = totalWidth
+                                instance.data![offset + 9] = totalHeight
+                                
+                                offset += 12
+                            }
+                        }
                     }
                 }
                 

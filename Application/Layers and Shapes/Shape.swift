@@ -146,7 +146,7 @@ class Shape : Codable
                     
                     code = code.replacingOccurrences(of: "sdVariable", with: "sdVariableConstant")
                     
-                    code = code.replacingOccurrences(of: "__text_chars__", with: "&layerData->variables[\(variableIndex!)].chars[0]")
+                    code = code.replacingOccurrences(of: "__text_chars__", with: "&\(mainDataName)variables[\(variableIndex!)].chars[0]")
                 }
             }
 

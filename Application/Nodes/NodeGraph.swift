@@ -2162,6 +2162,11 @@ class NodeGraph : Codable
             }
         }
         
+        // Check if this node is the gizmo UI node
+        if masterNode == nil && app?.gizmo.gizmoNode.uuid == clientNode.uuid {
+            return currentMaster
+        }
+        
         return masterNode
     }
     

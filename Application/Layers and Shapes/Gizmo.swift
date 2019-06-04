@@ -56,6 +56,11 @@ class Gizmo : MMWidget
     var gizmoUIMenuRect : MMRect = MMRect()
     var gizmoUIOpen     : Bool = false
     
+    var gizmoVariableShape              : Shape? = nil
+    var gizmoVariableConnection         : UINodeConnection? = nil
+    var gizmoNodeUIMasterPicker         : NodeUIMasterPicker? = nil
+    var gizmoNodeUIValueVariablePicker  : NodeUIValueVariablePicker? = nil
+    
     var gizmoPtPlusRect : MMRect = MMRect()
     var gizmoPtMinusRect: MMRect = MMRect()
     var gizmoPtLockRect : MMRect = MMRect()
@@ -185,6 +190,12 @@ class Gizmo : MMWidget
         
         // Setup Gizmo UI
         gizmoNode.uiItems = []
+        gizmoNode.uiConnections = []
+        gizmoNodeUIMasterPicker = nil
+        gizmoNodeUIValueVariablePicker = nil
+        gizmoVariableShape = nil
+        gizmoVariableConnection = nil
+        
         if context == .ShapeEditor
         {
             let selectedShapes = object!.getSelectedShapes()
@@ -234,6 +245,25 @@ class Gizmo : MMWidget
                     gizmoNode.uiItems.append(
                         NodeUIText(gizmoNode, variable: "text", title: "Text", value: shape.customText!)
                     )
+                } else
+                if shape.name == "Variable" {
+                    gizmoVariableShape = shape
+
+                    gizmoVariableConnection = UINodeConnection(.ValueVariable)
+                    gizmoNode.uiConnections.append(gizmoVariableConnection!)
+
+                    gizmoNodeUIMasterPicker = NodeUIMasterPicker(gizmoNode, variable: "master", title: "Class", connection: gizmoVariableConnection!)
+                    gizmoNode.uiItems.append(
+                        gizmoNodeUIMasterPicker!
+                    )
+                    
+                    gizmoNodeUIValueVariablePicker = NodeUIValueVariablePicker(gizmoNode, variable: "var", title: "Variable", connection: gizmoVariableConnection!)
+                    gizmoNode.uiItems.append(
+                        gizmoNodeUIValueVariablePicker!
+                    )
+
+                    app.nodeGraph.updateNode(gizmoNode!)
+                    gizmoVariableShape!.customReference = gizmoVariableConnection!.connectedTo
                 }
                 
                 var customs : [NodeUI] = []
@@ -2205,6 +2235,8 @@ class GizmoNode : Node
     {
 //        print( "variableChanged", variable, oldValue, newValue, continuous)
         
+        gizmo?.app.nodeGraph.updateNode(gizmo!.gizmoNode)
+
         if gizmo!.context == .ShapeEditor
         {
             let selectedShapes = gizmo!.object!.getSelectedShapes()
@@ -2219,6 +2251,7 @@ class GizmoNode : Node
                     }
                 }
             }
+            
             let properties : [String:Float] = [variable:newValue]
             for shape in selectedShapes {
                 gizmo!.processGizmoProperties(properties, shape: shape)
