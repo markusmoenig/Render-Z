@@ -13,6 +13,8 @@ class Scene : Node
     var layers         : [UUID] = []
     var selectedLayers : [UUID] = []
     
+    var outputTextures : [MTLTexture] = []
+    
     private enum CodingKeys: String, CodingKey {
         case type
         case selectedLayers
@@ -74,11 +76,7 @@ class Scene : Node
     
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
-        let size = nodeGraph.previewSize
-        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
-            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
-        }
-        
+        outputTextures = []
         for layerUUID in layers {
             for node in nodeGraph.nodes {
                 if layerUUID == node.uuid {
@@ -98,14 +96,15 @@ class Scene : Node
                     }
                     
                     if nodeGraph.app != nil {
-                        layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, outTexture: previewTexture!, properties: properties)
+                        layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
                     } else {
                         let width = properties[layer.uuid.uuidString + "_width" ]!
                         let height = properties[layer.uuid.uuidString + "_height" ]!
                         layer.gameCamera!.zoom = min(nodeGraph.previewSize.x / width, nodeGraph.previewSize.y / height)
                         
-                        layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, outTexture: previewTexture!, properties: properties)
+                        layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
                     }
+                    outputTextures.append(layer.previewTexture!)
                 }
             }
         }

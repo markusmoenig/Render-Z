@@ -159,7 +159,7 @@ class GamePlatformIPAD : Node
 class GamePlayScene : Node
 {
     var currentlyPlaying : Scene? = nil
-    var gameNode         : Node? = nil
+    var gameNode         : Game? = nil
 
     var toExecute        : [Node] = []
     
@@ -261,12 +261,12 @@ class GamePlayScene : Node
             }
             
             if gameNode == nil {
-                gameNode = nodeGraph.getNodeOfType("Game")
+                gameNode = nodeGraph.getNodeOfType("Game") as? Game
             }
             
             if let game = gameNode {
                 scene.updatePreview(nodeGraph: nodeGraph)
-                game.previewTexture = scene.previewTexture
+                game.currentScene = scene
                 
                 playResult = .Success
             }

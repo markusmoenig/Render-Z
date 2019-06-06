@@ -317,7 +317,7 @@ class NodeGraph : Codable
             
             if !self.overviewButton.states.contains(.Checked) {
                 if self.currentMaster != nil && self.currentContent.count > 0 {
-                    self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
+                    self.currentMaster!.updatePreview(nodeGraph: self)
                 }
                 self.nodeList!.switchTo(.Scene)
             } else {
@@ -1237,21 +1237,37 @@ class NodeGraph : Codable
         app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 16, borderSize: 8, fillColor: float4(0.118, 0.118, 0.118, 1.000), borderColor: float4(0.173, 0.173, 0.173, 1.000) )
         
         // --- Preview
-        if let texture = node.previewTexture {
-            let x : Float = node.rect.x + 34
-            let y : Float = node.rect.y + 34 + 25
-            app!.mmView.drawTexture.draw(texture, x: x, y: y, zoom: 1)
-            
-            // Preview Border
-            app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 0, borderSize: 3, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
-            
-            // If previewing fill in the screen dimensions
-            if let screen = mmScreen {
-                screen.rect.x = x
-                screen.rect.y = y
-                screen.rect.width = previewSize.x
-                screen.rect.height = previewSize.y
+        
+        var textures : [MTLTexture] = []
+        
+        if let scene = node as? Scene {
+            textures = scene.outputTextures
+        } else
+        if let game = node as? Game {
+            if let scene = game.currentScene {
+                textures = scene.outputTextures
             }
+        } else
+        if let texture = node.previewTexture {
+            textures.append(texture)
+        }
+
+        let x : Float = node.rect.x + 34
+        let y : Float = node.rect.y + 34 + 25
+        
+        for texture in textures {
+            app!.mmView.drawTexture.draw(texture, x: x, y: y, zoom: 1)
+        }
+            
+        // Preview Border
+        app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 0, borderSize: 3, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
+        
+        // If previewing fill in the screen dimensions
+        if let screen = mmScreen {
+            screen.rect.x = x
+            screen.rect.y = y
+            screen.rect.width = previewSize.x
+            screen.rect.height = previewSize.y
         }
         
         // --- Buttons
@@ -1996,8 +2012,6 @@ class NodeGraph : Codable
                     
                     picker.items = []
                     picker.uuids = []
-                    
-                    print("masterNode", conn.masterNode!.name)
                     
                     conn.target = nil
                     let subs = getNodesOfMaster(for: conn.masterNode!)

@@ -152,7 +152,7 @@ class Layer : Node
             self.gameCamera = nil
         }
         
-        builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: camera, preview: nodeGraph.app == nil ? false : true)
+        builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: camera, preview: nodeGraph.app == nil ? false : false)
         physicsInstance = nodeGraph.physics.buildPhysics(objects: objects, builder: nodeGraph.builder, camera: camera)
         
     }
@@ -190,13 +190,13 @@ class Layer : Node
         let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
         
         if builderInstance == nil || hard {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
+            DispatchQueue.main.async {
                 self.executeProperties(nodeGraph)
                 let instances = self.createInstances(nodeGraph: nodeGraph)
                 for instance in instances {
                     instance.executeProperties(nodeGraph)
                 }
-                self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera, preview: true)
+                self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera, preview: false)
                 self.updatePreview(nodeGraph: nodeGraph)
                 nodeGraph.mmView.update()
             }
@@ -212,7 +212,7 @@ class Layer : Node
         }
     }
     
-    func updatePreviewExt(nodeGraph: NodeGraph, hard: Bool = false, outTexture: MTLTexture, properties: [String:Float])
+    func updatePreviewExt(nodeGraph: NodeGraph, hard: Bool = false, properties: [String:Float])
     {
         let size = nodeGraph.previewSize
         if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
@@ -237,15 +237,15 @@ class Layer : Node
                 for instance in instances {
                     instance.executeProperties(nodeGraph)
                 }
-                self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera, preview: true)
-                self.updatePreviewExt(nodeGraph: nodeGraph, hard: false, outTexture: outTexture, properties: properties)
+                self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera, preview: false)
+                self.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
                 nodeGraph.mmView.update()
             }
             return
         }
         
         if builderInstance != nil {
-            nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: outTexture)
+            nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture!)
         }
         
         if physicsInstance != nil {

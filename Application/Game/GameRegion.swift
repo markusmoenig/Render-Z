@@ -43,8 +43,10 @@ class GameRegion: MMRegion
         if let game = gameNode {
             _ = game.execute(nodeGraph: nodeGraph, root: game.behaviorRoot!, parent: game.behaviorRoot!.rootNode)
             
-            if let texture = game.previewTexture {
-                app.mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+            if let scene = game.currentScene {
+                for texture in scene.outputTextures {
+                    app.mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+                }
             }
         }
         

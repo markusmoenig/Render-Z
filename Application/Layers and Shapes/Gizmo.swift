@@ -2250,7 +2250,7 @@ class GizmoNode : Node
 //        print( "variableChanged", variable, oldValue, newValue, continuous)
         
         gizmo?.app.nodeGraph.updateNode(gizmo!.gizmoNode)
-        gizmo?.gizmoVariableShape!.customReference = gizmo?.gizmoVariableConnection!.connectedTo
+        gizmo?.gizmoVariableShape?.customReference = gizmo?.gizmoVariableConnection!.connectedTo
 
         if gizmo!.context == .ShapeEditor
         {

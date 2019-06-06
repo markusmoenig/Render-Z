@@ -10,6 +10,8 @@ import MetalKit
 
 class Game : Node
 {
+    var currentScene        : Scene? = nil
+    
     private enum CodingKeys: String, CodingKey {
         case type
     }
@@ -44,9 +46,14 @@ class Game : Node
         try super.encode(to: superdecoder)
     }
     
-    /// Sets up the object instances for execution
     func setupExecution(nodeGraph: NodeGraph)
     {
+        currentScene = nil
+    }
+    
+    
+    override func finishExecution() {
+        currentScene = nil
     }
     
     /// Execute the layer
