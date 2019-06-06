@@ -227,6 +227,12 @@ class NodeList : MMWidget
             return AddValueVariable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
+
+        item = NodeListItem("Subtract Value")
+        item.createNode = {
+            return SubtractValueVariable()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
         
         item = NodeListItem("Reset Value")
         item.createNode = {

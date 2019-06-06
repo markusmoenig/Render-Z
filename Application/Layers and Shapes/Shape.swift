@@ -140,7 +140,7 @@ class Shape : Codable
             } else {
                 code = code.replacingOccurrences(of: "__uv__", with: "float2(\(uvName).x, -\(uvName).y)")
                 
-                if variableIndex == nil {
+                if name == "Text" {
                     code = code.replacingOccurrences(of: "__text_chars__", with: "&chars\(shapeIndex!)[0]")
                 } else {
                     

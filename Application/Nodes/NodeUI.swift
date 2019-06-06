@@ -161,6 +161,7 @@ class NodeUIDropDown : NodeUI
     override func mouseDown(_ event: MMMouseEvent)
     {
         open = true
+        mouseMoved(event)
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -240,6 +241,9 @@ class NodeUIMasterPicker : NodeUIDropDown
     {
         uiConnection.connectedMaster = uuids[Int(index)]
         uiConnection.masterNode = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedMaster!)
+        if let nodeGraph = uiConnection.nodeGraph {
+            nodeGraph.updateNode(node)
+        }
     }
 }
 

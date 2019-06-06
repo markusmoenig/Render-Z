@@ -471,6 +471,7 @@ enum NodeFamily: String, NodeClassFamily {
     case valueVariable = "Value Variable"
     case directionVariable = "Direction Variable"
     case addValueVariable = "Add Value Variable"
+    case subtractValueVariable = "Subtract Value Variable"
     case resetValueVariable = "Reset Value Variable"
 
     static var discriminator: NodeDiscriminator = .type
@@ -538,6 +539,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return DirectionVariable.self
             case .addValueVariable:
                 return AddValueVariable.self
+            case .subtractValueVariable:
+                return SubtractValueVariable.self
             case .resetValueVariable:
                 return ResetValueVariable.self
         }

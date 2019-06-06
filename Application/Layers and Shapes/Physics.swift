@@ -79,6 +79,7 @@ class Physics
             SHAPE_DATA  shapes[\(max(buildData.maxShapes, 1))];
             float4      points[\(max(buildData.maxPoints, 1))];
             OBJECT_DATA objects[\(max(buildData.maxObjects, 1))];
+            VARIABLE    variables[\(max(buildData.maxVariables, 1))];
         
             DYN_OBJ_DATA dynamicObjects[\(dynaCount)];
         } PHYSICS_DATA;
@@ -151,6 +152,25 @@ class Physics
         // Fill up the objects
         let objectCount = max(buildData.maxObjects,1)
         for _ in 0..<objectCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
+        // Fill up the variables
+        let variablesDataCount = max(buildData.maxVariables,1) * builder.maxVarSize
+        for _ in 0..<variablesDataCount {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )

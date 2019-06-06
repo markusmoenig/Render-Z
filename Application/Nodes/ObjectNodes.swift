@@ -225,6 +225,7 @@ class ResetObject : Node
                     
                     if let body = inst.body {
                         body.velocity = float2(0,0)
+                        playResult = .Success
                     }
                 }
             }

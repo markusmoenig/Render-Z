@@ -1857,7 +1857,7 @@ class NodeGraph : Codable
                             // Value Variable. Pick every master which has a value variable
                             for n in nodes {
                                 if n.subset != nil && n.uuid != master.uuid {
-                                    let subs = getNodesOfMaster(for: master)
+                                    let subs = getNodesOfMaster(for: n)
                                     for s in subs {
                                         if s.type == "Value Variable" {
                                             picker.items.append(n.name)
@@ -1872,7 +1872,7 @@ class NodeGraph : Codable
                             // Direction Variable. Pick every master which has a direction variable
                             for n in nodes {
                                 if n.subset != nil && n.uuid != master.uuid {
-                                    let subs = getNodesOfMaster(for: master)
+                                    let subs = getNodesOfMaster(for: n)
                                     for s in subs {
                                         if s.type == "Direction Variable" {
                                             picker.items.append(n.name)
@@ -1992,13 +1992,15 @@ class NodeGraph : Codable
                 if let picker = item as? NodeUIValueVariablePicker {
                     
                     let conn = picker.uiConnection
-                    let object = conn.masterNode as! Object
+                    //let object = conn.masterNode as! Object
                     
                     picker.items = []
                     picker.uuids = []
                     
+                    print("masterNode", conn.masterNode!.name)
+                    
                     conn.target = nil
-                    let subs = getNodesOfMaster(for: object)
+                    let subs = getNodesOfMaster(for: conn.masterNode!)
                     var index : Int = 0
                     var first : Node? = nil
                     for s in subs {
@@ -2035,13 +2037,13 @@ class NodeGraph : Codable
                 if let picker = item as? NodeUIDirectionVariablePicker {
                     
                     let conn = picker.uiConnection
-                    let object = conn.masterNode as! Object
+                    //let object = conn.masterNode as! Object
                     
                     picker.items = []
                     picker.uuids = []
                     
                     conn.target = nil
-                    let subs = getNodesOfMaster(for: object)
+                    let subs = getNodesOfMaster(for: conn.masterNode!)
                     var index : Int = 0
                     var first : Node? = nil
                     for s in subs {
@@ -2285,6 +2287,7 @@ class NodeGraph : Codable
                         self.setOverviewMaster()
                     }
                 }
+                self.setCurrentNode(node)
                 self.mmView.update()
             } )
         } )

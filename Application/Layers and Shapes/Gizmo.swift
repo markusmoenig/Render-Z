@@ -261,6 +261,20 @@ class Gizmo : MMWidget
                     gizmoNode.uiItems.append(
                         gizmoNodeUIValueVariablePicker!
                     )
+                    
+                    if gizmoVariableShape!.customReference != nil {
+                        if let connectedNode = app.nodeGraph.getNodeForUUID(gizmoVariableShape!.customReference!) {
+
+                            gizmoVariableConnection?.connectedTo = gizmoVariableShape!.customReference!
+                            
+                            gizmoVariableConnection?.target = connectedNode
+                            
+                            if let master = app.nodeGraph.getMasterForNode(connectedNode) {
+                                gizmoVariableConnection?.connectedMaster = master.uuid
+                                gizmoVariableConnection?.masterNode = master
+                            }
+                        }
+                    }
 
                     app.nodeGraph.updateNode(gizmoNode!)
                     gizmoVariableShape!.customReference = gizmoVariableConnection!.connectedTo
@@ -1426,8 +1440,8 @@ class Gizmo : MMWidget
                     if uiItem.supportsTitleHover {
                         uiRect.x = uiItemX
                         uiRect.y = uiItemY
-                        uiRect.width = titleWidth - NodeUI.titleSpacing * scale
-                        uiRect.height = uiItem.rect.height * scale
+                        uiRect.width = titleWidth - NodeUI.titleSpacing
+                        uiRect.height = uiItem.rect.height
                         
                         if uiRect.contains(event.x, event.y) {
                             uiItem.titleHover = true
@@ -1439,7 +1453,7 @@ class Gizmo : MMWidget
 
                     uiRect.x = uiItemX + titleWidth
                     uiRect.y = uiItemY
-                    uiRect.width = uiItem.rect.width * scale - uiItem.titleLabel!.rect.width - NodeUI.titleMargin.width() - NodeUI.titleSpacing
+                    uiRect.width = uiItem.rect.width - uiItem.titleLabel!.rect.width - NodeUI.titleMargin.width() - NodeUI.titleSpacing
                     uiRect.height = uiItem.rect.height
                     
                     if uiRect.contains(event.x, event.y) {
@@ -2236,6 +2250,7 @@ class GizmoNode : Node
 //        print( "variableChanged", variable, oldValue, newValue, continuous)
         
         gizmo?.app.nodeGraph.updateNode(gizmo!.gizmoNode)
+        gizmo?.gizmoVariableShape!.customReference = gizmo?.gizmoVariableConnection!.connectedTo
 
         if gizmo!.context == .ShapeEditor
         {

@@ -251,33 +251,35 @@ class SceneMaxDelegate : NodeMaxDelegate {
             // --- Draw Gizmo
             
             if let layer = getCurrentLayer() {
-                
                 mmView.renderer.setClipRect(region.rect)
                 
-                let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! + camera.xPos)// * camera.zoom
-                let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! + camera.yPos)// * camera.zoom
-                let width = currentScene!.properties[layer.uuid.uuidString + "_width"]! * camera.zoom
-                let height = currentScene!.properties[layer.uuid.uuidString + "_height"]! * camera.zoom
-                let halfWidth = width / 2; let halfHeight = height / 2
-                let radius : Float = 15; let halfRadius = radius / 2
+                if currentScene!.properties[layer.uuid.uuidString + "_posX"] != nil {
+                
+                    let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! + camera.xPos)// * camera.zoom
+                    let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! + camera.yPos)// * camera.zoom
+                    let width = currentScene!.properties[layer.uuid.uuidString + "_width"]! * camera.zoom
+                    let height = currentScene!.properties[layer.uuid.uuidString + "_height"]! * camera.zoom
+                    let halfWidth = width / 2; let halfHeight = height / 2
+                    let radius : Float = 15; let halfRadius = radius / 2
 
-                app.mmView.drawSphere.draw(x: x - radius/2, y: y - radius/2, radius: radius/2, borderSize: 0, fillColor: hoverMode == .Center ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
-                
-                app.mmView.drawBox.draw(x: x - halfWidth, y: y - halfHeight, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .NorthWest ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
-                
-                app.mmView.drawBox.draw(x: x - halfRadius, y: y - halfHeight, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .North ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
-                
-                app.mmView.drawBox.draw(x: x + halfWidth - radius, y: y - halfHeight, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .NorthEast ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
-                
-                app.mmView.drawBox.draw(x: x + halfWidth - radius, y: y - halfRadius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .East ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
-                
-                app.mmView.drawBox.draw(x: x + halfWidth - radius, y: y + halfHeight - radius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .SouthEast ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
-                
-                app.mmView.drawBox.draw(x: x - halfRadius, y: y + halfHeight - radius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .South ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
-                
-                app.mmView.drawBox.draw(x: x - halfWidth, y: y + halfHeight - radius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .SouthWest ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
-                
-                app.mmView.drawBox.draw(x: x - halfWidth, y: y - halfRadius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .West ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                    app.mmView.drawSphere.draw(x: x - radius/2, y: y - radius/2, radius: radius/2, borderSize: 0, fillColor: hoverMode == .Center ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                    
+                    app.mmView.drawBox.draw(x: x - halfWidth, y: y - halfHeight, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .NorthWest ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                    
+                    app.mmView.drawBox.draw(x: x - halfRadius, y: y - halfHeight, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .North ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                    
+                    app.mmView.drawBox.draw(x: x + halfWidth - radius, y: y - halfHeight, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .NorthEast ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                    
+                    app.mmView.drawBox.draw(x: x + halfWidth - radius, y: y - halfRadius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .East ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                    
+                    app.mmView.drawBox.draw(x: x + halfWidth - radius, y: y + halfHeight - radius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .SouthEast ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                    
+                    app.mmView.drawBox.draw(x: x - halfRadius, y: y + halfHeight - radius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .South ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                    
+                    app.mmView.drawBox.draw(x: x - halfWidth, y: y + halfHeight - radius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .SouthWest ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                    
+                    app.mmView.drawBox.draw(x: x - halfWidth, y: y - halfRadius, width: radius, height: radius, borderSize: 0, fillColor: hoverMode == .West ? float4(1,1,1,0.8) : float4(0.5,0.5,0.5,0.8), borderColor: float4(repeating:0))
+                }
                 
                 mmView.renderer.setClipRect()
             }
@@ -421,56 +423,59 @@ class SceneMaxDelegate : NodeMaxDelegate {
             let oldHoverMode = hoverMode
             hoverMode = .None
 
-            let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! + camera.xPos)
-            let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! + camera.yPos)
-            let width = currentScene!.properties[layer.uuid.uuidString + "_width"]! * camera.zoom
-            let height = currentScene!.properties[layer.uuid.uuidString + "_height"]! * camera.zoom
-            let halfWidth = width / 2; let halfHeight = height / 2
-            let radius : Float = 15; let halfRadius = radius / 2
-            
-            var dist = simd_distance(float2(x,y), float2(event.x, event.y))
-            if dist <= radius {
-                hoverMode = .Center
-            }
-            
-            dist = simd_distance(float2(x-halfWidth+halfRadius,y-halfHeight+halfRadius), float2(event.x, event.y))
-            if dist <= radius {
-                hoverMode = .NorthWest
-            }
-            
-            dist = simd_distance(float2(x,y-halfHeight+halfRadius), float2(event.x, event.y))
-            if dist <= radius {
-                hoverMode = .North
-            }
-            
-            dist = simd_distance(float2(x+halfWidth-halfRadius,y-halfHeight+halfRadius), float2(event.x, event.y))
-            if dist <= radius {
-                hoverMode = .NorthEast
-            }
-            
-            dist = simd_distance(float2(x+halfWidth-halfRadius,y), float2(event.x, event.y))
-            if dist <= radius {
-                hoverMode = .East
-            }
-            
-            dist = simd_distance(float2(x+halfWidth-halfRadius,y+halfHeight-halfRadius), float2(event.x, event.y))
-            if dist <= radius {
-                hoverMode = .SouthEast
-            }
-            
-            dist = simd_distance(float2(x,y+halfHeight-halfRadius), float2(event.x, event.y))
-            if dist <= radius {
-                hoverMode = .South
-            }
-            
-            dist = simd_distance(float2(x-halfWidth+halfRadius,y+halfHeight-halfRadius), float2(event.x, event.y))
-            if dist <= radius {
-                hoverMode = .SouthWest
-            }
-            
-            dist = simd_distance(float2(x-halfWidth+halfRadius,y), float2(event.x, event.y))
-            if dist <= radius {
-                hoverMode = .West
+            if currentScene!.properties[layer.uuid.uuidString + "_posX"] != nil {
+                
+                let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! + camera.xPos)
+                let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! + camera.yPos)
+                let width = currentScene!.properties[layer.uuid.uuidString + "_width"]! * camera.zoom
+                let height = currentScene!.properties[layer.uuid.uuidString + "_height"]! * camera.zoom
+                let halfWidth = width / 2; let halfHeight = height / 2
+                let radius : Float = 15; let halfRadius = radius / 2
+                
+                var dist = simd_distance(float2(x,y), float2(event.x, event.y))
+                if dist <= radius {
+                    hoverMode = .Center
+                }
+                
+                dist = simd_distance(float2(x-halfWidth+halfRadius,y-halfHeight+halfRadius), float2(event.x, event.y))
+                if dist <= radius {
+                    hoverMode = .NorthWest
+                }
+                
+                dist = simd_distance(float2(x,y-halfHeight+halfRadius), float2(event.x, event.y))
+                if dist <= radius {
+                    hoverMode = .North
+                }
+                
+                dist = simd_distance(float2(x+halfWidth-halfRadius,y-halfHeight+halfRadius), float2(event.x, event.y))
+                if dist <= radius {
+                    hoverMode = .NorthEast
+                }
+                
+                dist = simd_distance(float2(x+halfWidth-halfRadius,y), float2(event.x, event.y))
+                if dist <= radius {
+                    hoverMode = .East
+                }
+                
+                dist = simd_distance(float2(x+halfWidth-halfRadius,y+halfHeight-halfRadius), float2(event.x, event.y))
+                if dist <= radius {
+                    hoverMode = .SouthEast
+                }
+                
+                dist = simd_distance(float2(x,y+halfHeight-halfRadius), float2(event.x, event.y))
+                if dist <= radius {
+                    hoverMode = .South
+                }
+                
+                dist = simd_distance(float2(x-halfWidth+halfRadius,y+halfHeight-halfRadius), float2(event.x, event.y))
+                if dist <= radius {
+                    hoverMode = .SouthWest
+                }
+                
+                dist = simd_distance(float2(x-halfWidth+halfRadius,y), float2(event.x, event.y))
+                if dist <= radius {
+                    hoverMode = .West
+                }
             }
             
             if oldHoverMode != hoverMode {

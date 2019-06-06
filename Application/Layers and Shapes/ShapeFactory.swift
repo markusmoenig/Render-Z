@@ -630,6 +630,11 @@ class ShapeFactory
         def.properties["thickness_max"] = 0.3
         def.properties["thickness_int"] = 0
         
+        def.properties["custom_precision"] = 0
+        def.properties["precision_min"] = 0
+        def.properties["precision_max"] = 5
+        def.properties["precision_int"] = 1
+        
         shapes.append( def )
     }
     
