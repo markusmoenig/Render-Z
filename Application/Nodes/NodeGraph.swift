@@ -431,6 +431,7 @@ class NodeGraph : Codable
                             }
                         }
                     }
+                    self.playToExecute.append(scene)
                 } else
                 if node!.type == "Game" {
                     let game = node as! Game
@@ -972,7 +973,7 @@ class NodeGraph : Codable
                         _ = exe.execute(nodeGraph: self, root: root, parent: exe.behaviorRoot!.rootNode)
                     //}
                 }
-                playNode!.updatePreview(nodeGraph: self)
+                playNode?.updatePreview(nodeGraph: self)
             }
             
             // --- Draw Nodes

@@ -59,6 +59,11 @@ class SceneFinished : Node
             if scene.runningInRoot != nil && scene.runBy != nil {
                 scene.runningInRoot!.hasRun.append(scene.runBy!)
             }
+            //if nodeGraph.playNode != nil && scene.uuid == nodeGraph.playNode!.uuid {
+            else
+            {
+                nodeGraph.stopPreview()
+            }
         }
         return playResult!
     }
