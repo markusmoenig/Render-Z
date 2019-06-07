@@ -211,7 +211,7 @@ class Shape : Codable
     }
     
     /// Create the code for a shape with variable points
-    func createPointsVariableCode(shapeIndex: Int, transProperties: [String:Float]? = nil, pointIndex: Int? = nil, maxPoints: Int? = nil) -> String
+    func createPointsVariableCode(shapeIndex: Int, transProperties: [String:Float]? = nil, pointIndex: Int? = nil, maxPoints: Int? = nil, mainDataName: String? = nil) -> String
     {
         var result = ""
         let props = transProperties != nil ? transProperties : properties
@@ -225,7 +225,7 @@ class Shape : Codable
                 result += "\(varName)[\(i)].x = \(props!["point_\(i)_x"]!);\n"
                 result += "\(varName)[\(i)].y = \(props!["point_\(i)_y"]!);\n"
             } else {
-                result += "\(varName)[\(i)] = layerData->points[\(pointIndex!+i)].xy;\n"
+                result += "\(varName)[\(i)] = \(mainDataName != nil ? mainDataName! : "layerData->")points[\(pointIndex!+i)].xy;\n"
             }
         }
         return result

@@ -102,7 +102,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     } else
     if ( data->selected == 4 ) {
         // Running
-        borderColor = float4(0, 0, 0, 1);
+        borderColor = float4(0.620, 0.506, 0.165, 1.000);
     }
     
     // Body

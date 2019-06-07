@@ -14,6 +14,8 @@ class Scene : Node
     var selectedLayers : [UUID] = []
     
     var outputTextures : [MTLTexture] = []
+    var runningInRoot  : BehaviorTreeRoot? = nil
+    var runBy          : UUID? = nil
     
     private enum CodingKeys: String, CodingKey {
         case type

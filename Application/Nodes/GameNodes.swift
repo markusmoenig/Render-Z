@@ -224,6 +224,13 @@ class GamePlayScene : Node
     {
         playResult = .Failure
         
+        // If scene has already run
+        if root.hasRun.contains(self.uuid) {
+            playResult = .Success
+            currentlyPlaying = nil
+            return playResult!
+        }
+        
         if let scene = uiConnections[0].masterNode as? Scene {
             
             if scene !== currentlyPlaying {
@@ -254,7 +261,13 @@ class GamePlayScene : Node
                     exe.behaviorRoot = BehaviorTreeRoot(exe)
                     exe.behaviorTrees = nodeGraph.getBehaviorTrees(for: exe)
                 }
+                
+                root.runningNode = self
+                scene.runningInRoot = root
+                scene.runBy = uuid
             }
+            
+            playResult = .Running
             
             for exe in toExecute {
                 _ = exe.execute(nodeGraph: nodeGraph, root: exe.behaviorRoot!, parent: exe.behaviorRoot!.rootNode)
@@ -267,8 +280,6 @@ class GamePlayScene : Node
             if let game = gameNode {
                 scene.updatePreview(nodeGraph: nodeGraph)
                 game.currentScene = scene
-                
-                playResult = .Success
             }
         }
         return playResult!

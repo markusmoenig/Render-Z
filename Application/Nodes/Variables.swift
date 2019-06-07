@@ -388,3 +388,94 @@ class SubtractValueVariable : Node
         return playResult!
     }
 }
+
+class TestValueVariable : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Test Value"
+        uiConnections.append(UINodeConnection(.ValueVariable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Test Value Variable"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIMasterPicker(self, variable: "master", title: "Class", connection:  uiConnections[0]),
+            NodeUIValueVariablePicker(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "mode", title: "Test", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
+            NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1)
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// test value from variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let target = uiConnections[0].target as? ValueVariable {
+            
+            let valueVariable : Float = target.properties["value"]!
+            let myMode : Float = properties["mode"]!
+            let myValue : Float = properties["value"]!
+
+            if myMode == 0 {
+                // Equal to
+                if valueVariable == myValue {
+                    playResult = .Success
+                }
+            } else
+            if myMode == 1 {
+                // Smaller as
+                if valueVariable < myValue {
+                    playResult = .Success
+                }
+            } else
+            if myMode == 2 {
+                // Bigger as
+                if valueVariable > myValue {
+                    playResult = .Success
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}

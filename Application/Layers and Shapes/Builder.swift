@@ -513,7 +513,7 @@ class Builder
             }
             
             if shape.pointsVariable {
-                buildData.source += shape.createPointsVariableCode(shapeIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex)
+                buildData.source += shape.createPointsVariableCode(shapeIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, mainDataName: buildData.mainDataName)
             }
             
             // --- Setup the custom properties table

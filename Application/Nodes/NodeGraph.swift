@@ -317,7 +317,7 @@ class NodeGraph : Codable
             
             if !self.overviewButton.states.contains(.Checked) {
                 if self.currentMaster != nil && self.currentContent.count > 0 {
-                    self.currentMaster!.updatePreview(nodeGraph: self)
+                    self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
                 }
                 self.nodeList!.switchTo(.Scene)
             } else {
@@ -954,7 +954,7 @@ class NodeGraph : Codable
             renderEncoder.setRenderPipelineState( drawPatternState! )
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             
-            // --- Draw Nodes
+            // --- Run nodes when playing
             
             if playNode != nil {
                 
@@ -963,11 +963,20 @@ class NodeGraph : Codable
                 }
                 
                 for exe in playToExecute {
-                    _ = exe.execute(nodeGraph: self, root: exe.behaviorRoot!, parent: exe.behaviorRoot!.rootNode)
+                    let root = exe.behaviorRoot!
+                    
+                    /*if let runningNode = root.runningNode {
+                        _ = runningNode.execute(nodeGraph: self, root: root, parent: exe.behaviorRoot!.rootNode)
+                    } else {*/
+                        //root.hasRun = []
+                        _ = exe.execute(nodeGraph: self, root: root, parent: exe.behaviorRoot!.rootNode)
+                    //}
                 }
                 playNode!.updatePreview(nodeGraph: self)
             }
             
+            // --- Draw Nodes
+
             if let masterNode = currentMaster {
 
                 for node in nodes {
@@ -1098,7 +1107,7 @@ class NodeGraph : Codable
             } else
             if node.playResult! == .Failure {
                 node.data.selected = 3
-            } else if node.playResult! == .Failure {
+            } else if node.playResult! == .Running {
                 node.data.selected = 4
             }
         }
@@ -1513,7 +1522,7 @@ class NodeGraph : Codable
                     color = float3(0.988, 0.129, 0.188);
                 } else
                 if terminal.node!.playResult! == .Running {
-                    color = float3(0,0,0);
+                    color = float3(0.620, 0.506, 0.165)
                 }
             }
         }
@@ -1651,7 +1660,7 @@ class NodeGraph : Codable
             } else
             if type == .Scenes {
                 if let scene = node as? Scene {
-                    if scene.uuid == currentLayerUUID {
+                    if scene.uuid == currentSceneUUID {
                         index = items.count
                         currentFound = true
                         setCurrentMaster(node: node)

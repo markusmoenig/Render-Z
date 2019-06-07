@@ -136,6 +136,9 @@ class Sequence : Node
                     if playResult == .Failure {
                         return .Failure
                     }
+                    if playResult == .Running {
+                        return .Success
+                    }
                 }
             }
         }
@@ -202,6 +205,9 @@ class Selector : Node
                     let toTerminal = conn.toTerminal!
                     playResult = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
                     if playResult == .Success {
+                        return .Success
+                    }
+                    if playResult == .Running {
                         return .Success
                     }
                 }
@@ -275,6 +281,58 @@ class Inverter : Node
             }
         }
         
+        return playResult!
+    }
+}
+
+class Restart : Node
+{
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override init()
+    {
+        super.init()
+        
+        name = "Restart"
+    }
+    
+    override func setup()
+    {
+        type = "Restart"
+        brand = .Behavior
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self),            
+        ]
+    }
+    
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Success
+        
+        root.hasRun = []
         return playResult!
     }
 }

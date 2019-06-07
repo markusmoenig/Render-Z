@@ -416,9 +416,14 @@ class NodeMaxDelegate
 class BehaviorTreeRoot
 {
     var rootNode        : Node
-    var objectRoot      : Object?=nil
-    var layerRoot       : Layer?=nil
-    var sceneRoot       : Scene?=nil
+    var objectRoot      : Object? = nil
+    var layerRoot       : Layer? = nil
+    var sceneRoot       : Scene? = nil
+    
+    var runningNode     : Node? = nil
+
+    /// List of Running capable nodes which have already been run, gets reset each time the tree is run
+    var hasRun          : [UUID] = []
     
     init(_ node : Node)
     {
@@ -455,6 +460,7 @@ enum NodeFamily: String, NodeClassFamily {
     case objectCollisionAny = "Object Collision (Any)"
     case objectTouchLayerArea = "Object Touch Layer Area"
     case objectReset = "Object Reset"
+    case sceneFinished = "Scene Finished"
     case gamePlatformOSX = "Platform OSX"
     case gamePlatformIPAD = "Platform IPAD"
     case gamePlayScene = "Game Play Scene"
@@ -462,6 +468,7 @@ enum NodeFamily: String, NodeClassFamily {
     case sequence = "Sequence"
     case selector = "Selector"
     case inverter = "Inverter"
+    case restart = "Restart"
     case layer = "Layer"
     case layerArea = "Layer Area"
     case clickInLayerArea = "Click In Layer Area"
@@ -473,6 +480,7 @@ enum NodeFamily: String, NodeClassFamily {
     case addValueVariable = "Add Value Variable"
     case subtractValueVariable = "Subtract Value Variable"
     case resetValueVariable = "Reset Value Variable"
+    case testValueVariable = "Test Value Variable"
 
     static var discriminator: NodeDiscriminator = .type
     
@@ -512,6 +520,8 @@ enum NodeFamily: String, NodeClassFamily {
             
             case .scene:
                 return Scene.self
+            case .sceneFinished:
+                return SceneFinished.self
             
             case .game:
                 return Game.self
@@ -530,6 +540,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return Sequence.self
             case .selector:
                 return Selector.self
+            case .restart:
+                return Restart.self
             case .keyDown:
                 return KeyDown.self
             
@@ -543,6 +555,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return SubtractValueVariable.self
             case .resetValueVariable:
                 return ResetValueVariable.self
+            case .testValueVariable:
+                return TestValueVariable.self
         }
     }
 }

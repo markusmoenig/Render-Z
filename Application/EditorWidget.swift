@@ -401,6 +401,11 @@ class EditorWidget      : MMWidget
                 if currentScene != nil {
                     currentScene!.layers.append(node.uuid)
                     
+                    currentScene!.properties[node.uuid.uuidString + "_posX"] = 0
+                    currentScene!.properties[node.uuid.uuidString + "_posY"] = 0
+                    currentScene!.properties[node.uuid.uuidString + "_width"] = 400
+                    currentScene!.properties[node.uuid.uuidString + "_height"] = 400
+                    
                     let sceneDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! SceneMaxDelegate
                     sceneDelegate.layerList!.rebuildList()
                     currentScene!.selectedLayers = [node.uuid]

@@ -177,6 +177,13 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Function, displayType: .Object)
         
+        // --- Scene Finished
+        item = NodeListItem("Finished")
+        item.createNode = {
+            return SceneFinished()
+        }
+        addNodeItem(item, type: .Function, displayType: .Scene)
+        
         // --- Game Play Scene
         item = NodeListItem("Play Scene")
         item.createNode = {
@@ -208,6 +215,12 @@ class NodeList : MMWidget
             return Selector()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
+        // --- Behavior: Restart
+        item = NodeListItem("Restart")
+        item.createNode = {
+            return Restart()
+        }
+        addNodeItem(item, type: .Behavior, displayType: .All)
         // --- Leaf: Click in Layer Area
         item = NodeListItem("Click in Layer Area")
         item.createNode = {
@@ -237,6 +250,12 @@ class NodeList : MMWidget
         item = NodeListItem("Reset Value")
         item.createNode = {
             return ResetValueVariable()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
+        item = NodeListItem("Test Value")
+        item.createNode = {
+            return TestValueVariable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
