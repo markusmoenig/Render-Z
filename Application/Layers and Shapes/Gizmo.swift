@@ -529,6 +529,9 @@ class Gizmo : MMWidget
                     initialValues[material.uuid]!["posY"] = transformed["posY"]!
                     initialValues[material.uuid]!["rotate"] = transformed["rotate"]!
                     
+                    initialValues[material.uuid]!["limiterWidth"] = transformed["limiterWidth"]!
+                    initialValues[material.uuid]!["limiterHeight"] = transformed["limiterHeight"]!
+
                     initialValues[material.uuid]![material.widthProperty] = transformed[material.widthProperty]!
                     initialValues[material.uuid]![material.heightProperty] = transformed[material.heightProperty]!
                 }
@@ -878,7 +881,12 @@ class Gizmo : MMWidget
                 } else
                 if context == .MaterialEditor {
                     for material in selectedMaterialObjects {
-                        let propName : String = material.widthProperty
+                        let propName : String
+                        if material.properties["limiterType"]! == 0 {
+                            propName = material.widthProperty
+                        } else {
+                            propName = "limiterWidth"
+                        }
                         var value = initialValues[material.uuid]![propName]! + (pos.x - dragStartOffset!.x) / scale
                         if value < 0 {
                             value = 0
@@ -918,7 +926,12 @@ class Gizmo : MMWidget
                 } else
                 if context == .MaterialEditor {
                     for material in selectedMaterialObjects {
-                        let propName : String = material.heightProperty
+                        let propName : String
+                        if material.properties["limiterType"]! == 0 {
+                            propName = material.heightProperty
+                        } else {
+                            propName = "limiterHeight"
+                        }
                         var value = initialValues[material.uuid]![propName]! - (pos.y - dragStartOffset!.y) / scale
                         if value < 0 {
                             value = 0
@@ -1166,7 +1179,10 @@ class Gizmo : MMWidget
                     
                     // --- Test if we have to hover highlight both scale axes
                     if selectedMaterials.count == 1 && (hoverState == .xAxisScale || hoverState == .yAxisScale) {
-                        if material.widthProperty == material.heightProperty || material.properties["limiterType"]! >= 2 {
+                        if material.widthProperty == material.heightProperty && material.properties["limiterType"]! == 0 {
+                            data[3] = 1
+                        }
+                        if material.properties["limiterType"]! >= 2 {
                             data[3] = 1
                         }
                     }

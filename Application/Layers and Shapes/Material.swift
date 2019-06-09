@@ -47,6 +47,8 @@ class Material : Codable
         properties["rotate"] = 0
         properties["channel"] = 0
         properties["limiterType"] = 0
+        properties["limiterWidth"] = 40
+        properties["limiterHeight"] = 40
     }
 
     required init(from decoder: Decoder) throws
@@ -129,9 +131,12 @@ class Material : Codable
         if pointCount == 0 {
             if materialDataIndex == nil {
                 code = code.replacingOccurrences(of: "__value__", with: "float4(\(props!["value_x"]!), \(props!["value_y"]!), \(props!["value_z"]!), \(props!["value_w"]!) )")
+                code = code.replacingOccurrences(of: "__size__", with: "float2(\(props![widthProperty]!), \(props![heightProperty]!) )")
             } else {
-                let matDataCode = "layerData->materialData[\(materialDataIndex!)]"
+                var matDataCode = "layerData->materialData[\(materialDataIndex!)]"
                 code = code.replacingOccurrences(of: "__value__", with: matDataCode)
+                matDataCode = "layerData->materialData[\(materialDataIndex!-2)].zw"
+                code = code.replacingOccurrences(of: "__size__", with: matDataCode)
             }
         } else {
             var materialIndex : Int = 0

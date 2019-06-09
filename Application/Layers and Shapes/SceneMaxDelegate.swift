@@ -69,12 +69,15 @@ class SceneMaxDelegate : NodeMaxDelegate {
     
     var layerNodes      : [Layer] = []
     var screenList      : [Node?] = []
+    
+    var previewSize     : float2 = float2(0,0)
 
     override func activate(_ app: App)
     {
         self.app = app
         self.mmView = app.mmView
         currentScene = app.nodeGraph.maximizedNode as? Scene
+        previewSize = app.nodeGraph.previewSize
         
         // Top Region
         if layersButton == nil {
@@ -137,6 +140,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
         
         app.mmView.registerWidgets( widgets: layersButton, app.closeButton, screenButton, avLayerList, layerList.menuWidget, layerList)
         
+        
         let cameraProperties = currentScene!.properties
         if cameraProperties["prevMaxOffX"] != nil {
             camera.xPos = cameraProperties["prevMaxOffX"]!
@@ -149,9 +153,6 @@ class SceneMaxDelegate : NodeMaxDelegate {
         }
         
         updateLayerNodes()
-        for layer in layerNodes {
-            layer.updatePreview(nodeGraph: app.nodeGraph, hard: true)
-        }
     }
     
     override func deactivate()
@@ -159,6 +160,11 @@ class SceneMaxDelegate : NodeMaxDelegate {
 //        timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: layersButton, app.closeButton, screenButton, avLayerList, layerList.menuWidget, layerList)
         
+        for layer in layerNodes {
+            layer.gameCamera = nil
+        }
+        
+        app.nodeGraph.previewSize = previewSize
         currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
     }
     
@@ -212,11 +218,18 @@ class SceneMaxDelegate : NodeMaxDelegate {
             
             for layer in layerNodes {
                 
-                if layer.builderInstance == nil {
-                    layer.updatePreview(nodeGraph: app.nodeGraph, hard: true)
-                }
+                layer.gameCamera = camera
+                //if layer.builderInstance == nil {
+                //    layer.updatePreview(nodeGraph: app.nodeGraph, hard: true)
+                //}
                 
+                //updateLayerPreview(layer, region.rect.width, region.rect.height)
+
+                //if let texture = layer.previewTexture {
+                  //  app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
+                //}
                 
+                /*
                 if let instance = layer.builderInstance {
                     if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
                         updateLayerPreview(layer, region.rect.width, region.rect.height)
@@ -225,7 +238,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
                     if let texture = instance.texture {
                         app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
                     }
-                }
+                }*/
                 
                 /*
                 updateLayerPreview(layer, region.rect.width, region.rect.height)
@@ -233,6 +246,15 @@ class SceneMaxDelegate : NodeMaxDelegate {
                 for texture in currentScene!.outputTextures {
                     app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
                 }*/
+            }
+            
+            app.nodeGraph.previewSize.x = region.rect.width
+            app.nodeGraph.previewSize.y = region.rect.height
+            
+            currentScene!.updatePreview(nodeGraph: app.nodeGraph)
+            
+            for texture in currentScene!.outputTextures {
+                app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
             }
             
             if let screen = screenSize {
@@ -341,7 +363,10 @@ class SceneMaxDelegate : NodeMaxDelegate {
         layer.builderInstance?.layerGlobals!.limiterSize.x = currentScene!.properties[layer.uuid.uuidString + "_width" ]!
         layer.builderInstance?.layerGlobals!.limiterSize.y = currentScene!.properties[layer.uuid.uuidString + "_height" ]!
         
-        app.nodeGraph.builder.render(width: width, height: height, instance: layer.builderInstance!, camera: camera)
+        app.nodeGraph.previewSize.x = width
+        app.nodeGraph.previewSize.y = height
+        
+        currentScene!.updatePreview(nodeGraph: app.nodeGraph)
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -405,7 +430,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
                     currentScene!.properties[layer.uuid.uuidString + "_width"] = max( minSize, dragSize.x + (dragMousePos.x - event.x) * 2 / camera.zoom)
                 }
                 
-                updateLayerPreview(layer, region.rect.width, region.rect.height)
+                //updateLayerPreview(layer, region.rect.width, region.rect.height)
                 mmView.update()
             }
             return
@@ -509,12 +534,13 @@ class SceneMaxDelegate : NodeMaxDelegate {
         currentScene!.properties["prevMaxOffY"] = camera.yPos
         currentScene!.properties["prevMaxScale"] = camera.zoom
 
+        /*
         for layer in layerNodes {
             if let instance = layer.builderInstance {
                 let region = app.editorRegion!
                 app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera)
             }
-        }
+        }*/
         update()
         
         if !dispatched {
@@ -862,7 +888,7 @@ class LayerList : MMWidget
             }
         }
         listWidget.selectedItems = delegate.currentScene!.selectedLayers
-        listWidget.build(items: items, fixedWidth: 300)
+        listWidget.build(items: items, fixedWidth: 300, supportsUpDown: true, supportsClose: true)
     }
     
     func getCurrentItem() -> MMListWidgetItem?
@@ -912,7 +938,7 @@ class LayerList : MMWidget
         if changed {
             delegate.currentScene!.selectedLayers = listWidget.selectedItems
             rebuildList()
-            listWidget.build(items: items, fixedWidth: 300)
+            listWidget.build(items: items, fixedWidth: 300, supportsUpDown: true, supportsClose: true)
         }
         mouseIsDown = true
     }

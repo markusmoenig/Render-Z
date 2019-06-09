@@ -17,6 +17,9 @@ class Scene : Node
     var runningInRoot  : BehaviorTreeRoot? = nil
     var runBy          : UUID? = nil
     
+    var layerObjects   : [Layer]? = nil
+    var platformSize   : float2? = nil
+
     private enum CodingKeys: String, CodingKey {
         case type
         case selectedLayers
@@ -62,6 +65,21 @@ class Scene : Node
     /// Sets up the object instances for execution
     func setupExecution(nodeGraph: NodeGraph)
     {
+        layerObjects = []
+        for layerUUID in layers {
+            for node in nodeGraph.nodes {
+                if layerUUID == node.uuid {
+                    let layer = node as! Layer
+                    layerObjects!.append(layer)
+                }
+            }
+        }
+        platformSize = getPlatformSize(nodeGraph: nodeGraph)
+    }
+    
+    override func finishExecution() {
+        layerObjects = nil
+        platformSize = nil
     }
     
     /// Execute the layer
@@ -76,37 +94,57 @@ class Scene : Node
         return result
     }
     
+    /// Returns the platform size (if any) for the current platform
+    func getPlatformSize(nodeGraph: NodeGraph) -> float2?
+    {
+        var size : float2? = nil
+        
+        #if os(OSX)
+        if let osx = nodeGraph.getNodeOfType("Platform OSX") as? GamePlatformOSX {
+            size = osx.getScreenSize()
+        }
+        #elseif os(iOS)
+        
+        #endif
+        return size
+    }
+    
+    /// Process a layer
+    func processLayer(nodeGraph: NodeGraph, layer: Layer)
+    {
+        layer.builderInstance?.layerGlobals?.position.x = properties[layer.uuid.uuidString + "_posX" ]!
+        layer.builderInstance?.layerGlobals?.position.y = properties[layer.uuid.uuidString + "_posY" ]!
+        
+        layer.builderInstance?.layerGlobals?.limiterSize.x = properties[layer.uuid.uuidString + "_width" ]!
+        layer.builderInstance?.layerGlobals?.limiterSize.y = properties[layer.uuid.uuidString + "_height" ]!
+        
+        if nodeGraph.app != nil {
+            layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
+        } else {
+            let width = properties[layer.uuid.uuidString + "_width" ]!
+            let height = properties[layer.uuid.uuidString + "_height" ]!
+            layer.gameCamera!.zoom = min(nodeGraph.previewSize.x / width, nodeGraph.previewSize.y / height)
+            
+            layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
+        }
+        outputTextures.append(layer.previewTexture!)
+    }
+    
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
         outputTextures = []
-        for layerUUID in layers {
-            for node in nodeGraph.nodes {
-                if layerUUID == node.uuid {
-                    let layer = node as! Layer
-                    
-                    if properties[layer.uuid.uuidString + "_posX" ] != nil {
-                        layer.builderInstance?.layerGlobals?.position.x = properties[layer.uuid.uuidString + "_posX" ]!
-                        layer.builderInstance?.layerGlobals?.position.y = properties[layer.uuid.uuidString + "_posY" ]!
-                    }
-                    
-                    if properties[layer.uuid.uuidString + "_width" ] != nil {
-                        layer.builderInstance?.layerGlobals?.limiterSize.x = properties[layer.uuid.uuidString + "_width" ]!
-                        layer.builderInstance?.layerGlobals?.limiterSize.y = properties[layer.uuid.uuidString + "_height" ]!
-                    } else {
-                        layer.builderInstance?.layerGlobals?.limiterSize.x = 400
-                        layer.builderInstance?.layerGlobals?.limiterSize.y = 400
-                    }
-                    
-                    if nodeGraph.app != nil {
-                        layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
-                    } else {
-                        let width = properties[layer.uuid.uuidString + "_width" ]!
-                        let height = properties[layer.uuid.uuidString + "_height" ]!
-                        layer.gameCamera!.zoom = min(nodeGraph.previewSize.x / width, nodeGraph.previewSize.y / height)
+        if let objects = layerObjects {
+            for layer in objects {
+                processLayer(nodeGraph: nodeGraph, layer: layer)
+            }
+        } else {
+            for layerUUID in layers {
+                for node in nodeGraph.nodes {
+                    if layerUUID == node.uuid {
+                        let layer = node as! Layer
                         
-                        layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
+                        processLayer(nodeGraph: nodeGraph, layer: layer)
                     }
-                    outputTextures.append(layer.previewTexture!)
                 }
             }
         }

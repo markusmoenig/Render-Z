@@ -636,18 +636,18 @@ class Builder
                     } else
                     if limiterType == 1 {
                         // --- Rectangle
-                        buildData.materialSource += "  d = abs( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].zw;\n"
+                        buildData.materialSource += "  d = abs( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].zw;\n"
                         buildData.materialSource += "  limiterDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
                         buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
                     } else
                     if limiterType == 2 {
                         // --- Sphere
-                        buildData.materialSource += "  limiterDist = length( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
+                        buildData.materialSource += "  limiterDist = length( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].z;\n"
                         buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
                     } else
                     if limiterType == 3 {
                         // --- Border
-                        buildData.materialSource += "  limiterDist = -dist - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].z;\n"
+                        buildData.materialSource += "  limiterDist = -dist - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].z;\n"
                         buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
                     }
                 } else {
@@ -940,8 +940,10 @@ class Builder
                         materialDataIndex += 1
                         // rotation, space for 3 more values
                         instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = (properties["rotate"]!+parentRotate) * Float.pi / 180
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties["limiterWidth"]!
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties["limiterHeight"]!
                         materialDataIndex += 1
-                        
+
                         // --- values
                         if material.pointCount == 0 {
                             instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["value_x"]!

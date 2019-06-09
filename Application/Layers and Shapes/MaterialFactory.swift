@@ -86,8 +86,8 @@ class MaterialFactory
         def.name = "Grid"
         def.globalCode =
         """
-        float4 gridMaterial( float2 uv, float4 value) {
-            float2 vPixelsPerGridSquare = float2(20.0, 20.0);
+        float4 gridMaterial( float2 uv, float4 value, float2 size) {
+            float2 vPixelsPerGridSquare = size;
             float2 vScreenPixelCoordinate = uv;
             float2 vGridSquareCoords = fract(vScreenPixelCoordinate / vPixelsPerGridSquare);
             float2 vGridSquarePixelCoords = vGridSquareCoords * vPixelsPerGridSquare;
@@ -97,7 +97,7 @@ class MaterialFactory
             return mix( float4(0), value, fIsGridLine);
         }
         """
-        def.code = "gridMaterial(__uv__, __value__)"
+        def.code = "gridMaterial(__uv__, __value__, __size__)"
         def.properties["value_x"] = 0.3
         def.properties["value_y"] = 0.3
         def.properties["value_z"] = 0.3
@@ -114,22 +114,22 @@ class MaterialFactory
         def.name = "Checker"
         def.globalCode =
         """
-        float4 checkerMaterial( float2 uv, float4 value) {
-            float2 q = floor(uv/20.);
+        float4 checkerMaterial( float2 uv, float4 value, float2 size) {
+            float2 q = floor(uv/size);
             float4 col = mix( float4(0), value, abs(fmod(q.x+q.y, 2.0)) );
             return col;
         }
         """
-        def.code = "checkerMaterial(__uv__, __value__)"
+        def.code = "checkerMaterial(__uv__, __value__, __size__)"
         def.properties["value_x"] = 0.3
         def.properties["value_y"] = 0.3
         def.properties["value_z"] = 0.3
         def.properties["value_w"] = 1
         
-        def.properties["width"] = defaultSize
-        def.properties["height"] = defaultSize
-        def.widthProperty = "width"
-        def.heightProperty = "height"
+        def.properties["size"] = defaultSize / 2
+        def.properties["size"] = defaultSize / 2
+        def.widthProperty = "size"
+        def.heightProperty = "size"
         materials.append( def )
         
         

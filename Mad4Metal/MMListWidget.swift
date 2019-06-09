@@ -37,6 +37,9 @@ class MMListWidget : MMWidget
     
     var skin            : MMSkinWidget
     
+    var supportsUpDown  : Bool = false
+    var supportsClose   : Bool = false
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -62,7 +65,7 @@ class MMListWidget : MMWidget
     }
     
     /// Build the source
-    func build(items: [MMListWidgetItem], fixedWidth: Float? = nil)
+    func build(items: [MMListWidgetItem], fixedWidth: Float? = nil, supportsUpDown: Bool = false, supportsClose: Bool = false)
     {
         let count : Float = Float(items.count)
         width = fixedWidth != nil ? fixedWidth! * zoom : rect.width * zoom
@@ -74,6 +77,9 @@ class MMListWidget : MMWidget
             height = 1
         }
         
+        self.supportsUpDown = supportsUpDown
+        self.supportsClose = supportsClose
+
         var source =
         """
         #include <metal_stdlib>
@@ -146,7 +152,7 @@ class MMListWidget : MMWidget
         let left : Float = (width/2) * zoom
         var top : Float = (unitSize / 2) * zoom
         
-        for (_, item) in items.enumerated() {
+        for (index, item) in items.enumerated() {
 
             source += "uv = uvOrigin; uv.x += size.x / 2.0 - \(left) + borderSize/2; uv.y += size.y / 2.0 - \(top) + borderSize/2;\n"
             source += "uv /= \(zoom);\n"
@@ -165,30 +171,33 @@ class MMListWidget : MMWidget
             }
             source += "col = mix( col, borderColor, borderMask( dist, borderSize) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
-            /*
-            // --- Up / Down Arrows
             
-            // --- Up
-            source += "uv -= float2( 105., 0. );\n"
-            source += "dist = sdLineListWidget( uv, float2( 0, 6 ), float2( 10, -4), 2);\n"
-            source += "dist = min( dist, sdLineListWidget( uv, float2( 10, -4), float2( 20, 6), 2) );\n"
-            if index == 0 || items.count < 2 {
-                source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
-            } else {
-                source += "if (\(index*2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
+            
+            if supportsUpDown {
+                // --- Up / Down Arrows
+            
+                // --- Up
+                source += "uv -= float2( 105., 0. );\n"
+                source += "dist = sdLineListWidget( uv, float2( 0, 6 ), float2( 10 * \(zoom), -4), 2);\n"
+                source += "dist = min( dist, sdLineListWidget( uv, float2( 10* \(zoom), -4), float2( 20 * \(zoom), 6), 2) );\n"
+                if index == 0 || items.count < 2 {
+                    source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
+                } else {
+                    source += "if (\(index*2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
+                }
+                source += "finalCol = mix( finalCol, col, col.a );\n"
+            
+                // --- Down
+                source += "uv -= float2( 35. * \(zoom), 0. );\n"
+                source += "dist = sdLineListWidget( uv, float2( 0, -4 ), float2( 10* \(zoom), 6), 2);\n"
+                source += "dist = min( dist, sdLineListWidget( uv, float2( 10* \(zoom), 6 ), float2( 20* \(zoom), -4), 2) );\n"
+                if index == items.count - 1 || items.count < 2 {
+                    source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
+                } else {
+                    source += "if (\(index*2+1) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"            }
+                source += "finalCol = mix( finalCol, col, col.a );\n"
             }
-            source += "finalCol = mix( finalCol, col, col.a );\n"
             
-            // --- Down
-            source += "uv -= float2( 35., 0. );\n"
-            source += "dist = sdLineListWidget( uv, float2( 0, -4 ), float2( 10, 6), 2);\n"
-            source += "dist = min( dist, sdLineListWidget( uv, float2( 10, 6 ), float2( 20, -4), 2) );\n"
-            if index == items.count - 1 || items.count < 2 {
-                source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
-            } else {
-                source += "if (\(index*2+1) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"            }
-            source += "finalCol = mix( finalCol, col, col.a );\n"
-            */
             // ---
             
             //            source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
@@ -216,7 +225,7 @@ class MMListWidget : MMWidget
         
         if fragment!.encoderStart() {
             
-            fragment!.encodeRun(state)//, inBuffer: hoverBuffer)
+            fragment!.encodeRun(state, inBuffer: hoverBuffer)
             
             let left : Float = 6 * zoom
             var top : Float = 4 * zoom
