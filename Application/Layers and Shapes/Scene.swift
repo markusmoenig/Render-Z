@@ -74,7 +74,7 @@ class Scene : Node
                 }
             }
         }
-        platformSize = getPlatformSize(nodeGraph: nodeGraph)
+        platformSize = nodeGraph.getPlatformSize()
     }
     
     override func finishExecution() {
@@ -82,7 +82,7 @@ class Scene : Node
         platformSize = nil
     }
     
-    /// Execute the layer
+    /// Execute the scene
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         let result : Result = .Success
@@ -94,39 +94,51 @@ class Scene : Node
         return result
     }
     
-    /// Returns the platform size (if any) for the current platform
-    func getPlatformSize(nodeGraph: NodeGraph) -> float2?
-    {
-        var size : float2? = nil
-        
-        #if os(OSX)
-        if let osx = nodeGraph.getNodeOfType("Platform OSX") as? GamePlatformOSX {
-            size = osx.getScreenSize()
-        }
-        #elseif os(iOS)
-        
-        #endif
-        return size
-    }
-    
     /// Process a layer
     func processLayer(nodeGraph: NodeGraph, layer: Layer)
     {
-        layer.builderInstance?.layerGlobals?.position.x = properties[layer.uuid.uuidString + "_posX" ]!
-        layer.builderInstance?.layerGlobals?.position.y = properties[layer.uuid.uuidString + "_posY" ]!
+        var x       : Float
+        var y       : Float
+        var width   : Float
+        var height  : Float
         
-        layer.builderInstance?.layerGlobals?.limiterSize.x = properties[layer.uuid.uuidString + "_width" ]!
-        layer.builderInstance?.layerGlobals?.limiterSize.y = properties[layer.uuid.uuidString + "_height" ]!
+        x = properties[layer.uuid.uuidString + "_posX" ]!
+        y = properties[layer.uuid.uuidString + "_posY" ]!
+        width = properties[layer.uuid.uuidString + "_width" ]!
+        height = properties[layer.uuid.uuidString + "_height" ]!
         
-        if nodeGraph.app != nil {
-            layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
-        } else {
-            let width = properties[layer.uuid.uuidString + "_width" ]!
-            let height = properties[layer.uuid.uuidString + "_height" ]!
-            layer.gameCamera!.zoom = min(nodeGraph.previewSize.x / width, nodeGraph.previewSize.y / height)
+        if let gameCamera = layer.gameCamera {
             
-            layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
+            if layerObjects == nil {
+                x *= gameCamera.zoom
+                y *= gameCamera.zoom
+            } else {
+                
+                var xFactor        : Float = 1
+                var yFactor        : Float = 1
+                
+                var factor : Float = 1
+
+                if let size = platformSize {
+                    xFactor = nodeGraph.previewSize.x / size.x
+                    yFactor = nodeGraph.previewSize.y / size.y
+                    
+                    factor = max(xFactor, yFactor)
+                }
+                
+                gameCamera.zoom = factor
+                
+                x *= factor
+                y *= factor
+            }
         }
+        
+        layer.builderInstance?.layerGlobals?.position.x = x
+        layer.builderInstance?.layerGlobals?.position.y = y
+        layer.builderInstance?.layerGlobals?.limiterSize.x = width
+        layer.builderInstance?.layerGlobals?.limiterSize.y = height
+        
+        layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
         outputTextures.append(layer.previewTexture!)
     }
     

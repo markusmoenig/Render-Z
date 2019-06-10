@@ -145,7 +145,7 @@ class Layer : Node
         executeProperties(nodeGraph)
         
         var camera = maxDelegate!.getCamera()!
-        if nodeGraph.app == nil {
+        if nodeGraph.app == nil || nodeGraph.currentMaster!.type == "Scene" || nodeGraph.currentMaster!.type == "Game" {
             self.gameCamera = Camera()
             camera = self.gameCamera!
         } else {
@@ -154,7 +154,6 @@ class Layer : Node
         
         builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: camera, preview: nodeGraph.app == nil ? false : false)
         physicsInstance = nodeGraph.physics.buildPhysics(objects: objects, builder: nodeGraph.builder, camera: camera)
-        
     }
     
     /// Execute the layer

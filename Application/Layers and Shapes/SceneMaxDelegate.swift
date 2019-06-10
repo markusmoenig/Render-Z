@@ -271,8 +271,8 @@ class SceneMaxDelegate : NodeMaxDelegate {
             if let layer = getCurrentLayer() {
                 mmView.renderer.setClipRect(region.rect)
                 
-                let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! + camera.xPos)// * camera.zoom
-                let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! + camera.yPos)// * camera.zoom
+                let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! * camera.zoom + camera.xPos)// * camera.zoom
+                let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! * camera.zoom + camera.yPos)// * camera.zoom
                 let width = currentScene!.properties[layer.uuid.uuidString + "_width"]! * camera.zoom
                 let height = currentScene!.properties[layer.uuid.uuidString + "_height"]! * camera.zoom
                 let halfWidth = width / 2; let halfHeight = height / 2
@@ -398,8 +398,8 @@ class SceneMaxDelegate : NodeMaxDelegate {
             let minSize : Float = 50
             if let layer = getCurrentLayer() {
                 if dragMode == .Center {
-                    currentScene!.properties[layer.uuid.uuidString + "_posX"] = dragPos.x + dragMousePos.x - event.x
-                    currentScene!.properties[layer.uuid.uuidString + "_posY"] = dragPos.y + dragMousePos.y - event.y
+                    currentScene!.properties[layer.uuid.uuidString + "_posX"] = dragPos.x + (dragMousePos.x - event.x) / camera.zoom
+                    currentScene!.properties[layer.uuid.uuidString + "_posY"] = dragPos.y + (dragMousePos.y - event.y) / camera.zoom
                 }
                 if dragMode == .NorthWest {
                     currentScene!.properties[layer.uuid.uuidString + "_width"] = max( minSize, dragSize.x + (dragMousePos.x - event.x) * 2 / camera.zoom)
@@ -441,8 +441,8 @@ class SceneMaxDelegate : NodeMaxDelegate {
             let oldHoverMode = hoverMode
             hoverMode = .None
 
-            let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! + camera.xPos)
-            let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! + camera.yPos)
+            let x : Float = region.rect.x + region.rect.width / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posX"]! * camera.zoom + camera.xPos)
+            let y : Float = region.rect.y + region.rect.height / 2 - (currentScene!.properties[layer.uuid.uuidString + "_posY"]! * camera.zoom + camera.yPos)
             let width = currentScene!.properties[layer.uuid.uuidString + "_width"]! * camera.zoom
             let height = currentScene!.properties[layer.uuid.uuidString + "_height"]! * camera.zoom
             let halfWidth = width / 2; let halfHeight = height / 2

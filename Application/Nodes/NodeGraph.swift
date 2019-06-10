@@ -417,7 +417,8 @@ class NodeGraph : Codable
                 } else
                 if node!.type == "Scene" {
                     let scene = node as! Scene
-                    
+                    scene.setupExecution(nodeGraph: self)
+
                     for layerUUID in scene.layers {
                         for n in self.nodes {
                             if n.uuid == layerUUID
@@ -788,7 +789,7 @@ class NodeGraph : Codable
             previewSize.x = floor(nodeDragStartPos.x - (event.x - dragStartPos.x))
             previewSize.y = floor(nodeDragStartPos.y + (event.y - dragStartPos.y))
             
-            previewSize.x = max(previewSize.x, 80)
+            previewSize.x = max(previewSize.x, 240)
             previewSize.y = max(previewSize.y, 80)
             
             previewSize.x = min(previewSize.x, app!.editorRegion!.rect.width - 50)
@@ -1250,20 +1251,31 @@ class NodeGraph : Codable
         
         var textures : [MTLTexture] = []
         
+        let x : Float = node.rect.x + 34
+        let y : Float = node.rect.y + 34 + 25
+        
+        func printBehaviorOnlyText()
+        {
+            mmView.drawText.drawTextCentered(mmView.openSans, text: "Behavior Only", x: x, y: y, width: previewSize.x, height: previewSize.y, scale: 0.4, color: float4(1,1,1,1))
+        }
+        
         if let scene = node as? Scene {
-            textures = scene.outputTextures
+            if playNode != nil {
+                textures = scene.outputTextures
+            } else {
+                printBehaviorOnlyText()
+            }
         } else
         if let game = node as? Game {
             if let scene = game.currentScene {
                 textures = scene.outputTextures
+            } else {
+                printBehaviorOnlyText()
             }
         } else
         if let texture = node.previewTexture {
             textures.append(texture)
         }
-
-        let x : Float = node.rect.x + 34
-        let y : Float = node.rect.y + 34 + 25
         
         for texture in textures {
             app!.mmView.drawTexture.draw(texture, x: x, y: y, zoom: 1)
@@ -2326,5 +2338,22 @@ class NodeGraph : Codable
         items.append(deleteNodeItem)
         
         node.menu = MMMenuWidget(mmView, items: items)
+    }
+    
+    /// Returns the platform size (if any) for the current platform
+    func getPlatformSize() -> float2?
+    {
+        var size : float2? = nil
+        
+        #if os(OSX)
+        if let osx = getNodeOfType("Platform OSX") as? GamePlatformOSX {
+            size = osx.getScreenSize()
+        }
+        #elseif os(iOS)
+        if let ipad = app.nodeGraph.getNodeOfType("Platform IPAD") as? GamePlatformIPAD {
+            size = osx.getScreenSize()
+        }
+        #endif
+        return size
     }
 }
