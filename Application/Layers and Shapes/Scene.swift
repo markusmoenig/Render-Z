@@ -123,7 +123,7 @@ class Scene : Node
                     xFactor = nodeGraph.previewSize.x / size.x
                     yFactor = nodeGraph.previewSize.y / size.y
                     
-                    factor = max(xFactor, yFactor)
+                    factor = min(xFactor, yFactor)
                 }
                 
                 gameCamera.zoom = factor
