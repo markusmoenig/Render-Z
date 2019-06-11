@@ -129,10 +129,10 @@ class GamePlatformIPAD : Node
         let orient = properties["orientation"]
         
         if index == 0 {
-            width = 768; height = 1024
+            width = 1536; height = 2048
         }
         if index == 1 {
-            width = 1536; height = 2048
+            width = 2048; height = 2732
         } else
             if index == 2 {
                 width = 2048; height = 2732

@@ -2350,8 +2350,8 @@ class NodeGraph : Codable
             size = osx.getScreenSize()
         }
         #elseif os(iOS)
-        if let ipad = app.nodeGraph.getNodeOfType("Platform IPAD") as? GamePlatformIPAD {
-            size = osx.getScreenSize()
+        if let ipad = getNodeOfType("Platform IPAD") as? GamePlatformIPAD {
+            size = ipad.getScreenSize()
         }
         #endif
         return size

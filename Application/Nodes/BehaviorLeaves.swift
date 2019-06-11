@@ -143,6 +143,7 @@ class ClickInLayerArea : Node
         if let layer = uiConnections[0].masterNode as? Layer {
             if let area = uiConnections[0].target as? LayerArea {
                 if area.areaObject == nil || area.areaObject!.shapes.count == 0 { return playResult! }
+                
                 let screen = nodeGraph.mmScreen!
                 let camera : Camera
                     
@@ -162,8 +163,7 @@ class ClickInLayerArea : Node
                     return playResult!
                 }
                 
-                if let mouse = screen.tranformToCamera(screen.mousePos, camera) {
-                    //print("mouse", area.name, mouse.x, mouse.y)
+                if let mouse = screen.tranformToCamera(screen.mouseDownPos, camera) {
                     
                     let object = area.areaObject!
                     let shape = object.shapes[0]
@@ -184,7 +184,7 @@ class ClickInLayerArea : Node
                     var d : float2 = simd_abs( uv ) - float2(shape.properties[shape.widthProperty]!, shape.properties[shape.heightProperty]!)
                     let dist : Float = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0)
 
-                    //print(name, object.properties["posX"]!, object.properties["posY"]!, dist)
+                    //print(area.name, object.properties["posX"]!, object.properties["posY"]!, dist)
                     if dist < 0 {
                         playResult = .Success
                     }
