@@ -17,6 +17,12 @@ protocol MMListWidgetItem
 
 class MMListWidget : MMWidget
 {
+    enum HoverState {
+        case None, HoverUp, HoverDown, Close
+    }
+    
+    var hoverState      : HoverState = .None
+    
     var fragment        : MMFragment?
     var state           : MTLRenderPipelineState?
     
@@ -27,7 +33,6 @@ class MMListWidget : MMWidget
     var hoverData       : [Float]
     var hoverBuffer     : MTLBuffer?
     var hoverIndex      : Int = -1
-    var hoverUp         : Bool = false
     
     var textureWidget   : MMTextureWidget
     var scrollArea      : MMScrollArea
@@ -39,6 +44,8 @@ class MMListWidget : MMWidget
     
     var supportsUpDown  : Bool = false
     var supportsClose   : Bool = false
+    
+    var items           : [MMListWidgetItem] = []
     
     override init(_ view: MMView)
     {
@@ -79,6 +86,7 @@ class MMListWidget : MMWidget
         
         self.supportsUpDown = supportsUpDown
         self.supportsClose = supportsClose
+        self.items = items
 
         var source =
         """
@@ -177,13 +185,13 @@ class MMListWidget : MMWidget
                 // --- Up / Down Arrows
             
                 // --- Up
-                source += "uv -= float2( 105., 0. );\n"
+                source += "uv -= float2( 50., 0. );\n"
                 source += "dist = sdLineListWidget( uv, float2( 0, 6 ), float2( 10 * \(zoom), -4), 2);\n"
                 source += "dist = min( dist, sdLineListWidget( uv, float2( 10* \(zoom), -4), float2( 20 * \(zoom), 6), 2) );\n"
                 if index == 0 || items.count < 2 {
                     source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
                 } else {
-                    source += "if (\(index*2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
+                    source += "if (\(index*3) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
                 }
                 source += "finalCol = mix( finalCol, col, col.a );\n"
             
@@ -194,7 +202,16 @@ class MMListWidget : MMWidget
                 if index == items.count - 1 || items.count < 2 {
                     source += "col = float4( scrollInactiveColor.xyz, fillMask( dist ) * scrollInactiveColor.w );\n"
                 } else {
-                    source += "if (\(index*2+1) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"            }
+                    source += "if (\(index*3+1) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"            }
+                source += "finalCol = mix( finalCol, col, col.a );\n"
+            }
+            
+            if supportsClose {
+                // --- Close Button
+                source += "uv -= float2( 65. * \(zoom), 0. );\n"
+                source += "dist = sdLineListWidget( uv, float2( -8* \(zoom), -8 ), float2( 8* \(zoom), 8), 2);\n"
+                source += "dist = min( dist, sdLineListWidget( uv, float2( -8* \(zoom), 8 ), float2( 8* \(zoom), -8), 2) );\n"
+                source += "if (\(index*3+2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
                 source += "finalCol = mix( finalCol, col, col.a );\n"
             }
             
@@ -221,8 +238,13 @@ class MMListWidget : MMWidget
             textureWidget.setTexture(fragment!.texture)
         }
         
-//        update()
-        
+        update()
+    }
+    
+    override func update()
+    {
+        memcpy(hoverBuffer!.contents(), hoverData, hoverData.count * MemoryLayout<Float>.stride)
+
         if fragment!.encoderStart() {
             
             fragment!.encodeRun(state, inBuffer: hoverBuffer)
@@ -233,10 +255,10 @@ class MMListWidget : MMWidget
             
             var fontRect = MMRect()
             
-//            let item = items[0]
+            //            let item = items[0]
             
             for item in items {
-            
+                
                 fontRect = mmView.openSans.getTextRect(text: item.name, scale: fontScale, rectToUse: fontRect)
                 mmView.drawText.drawText(mmView.openSans, text: item.name, x: left, y: top, scale: fontScale * zoom, fragment: fragment)
                 
@@ -290,7 +312,6 @@ class MMListWidget : MMWidget
         return nil
     }
     
-    /*
     /// Sets the hover index for the given mouse position
     @discardableResult func hoverAt(_ x: Float,_ y: Float) -> Bool
     {
@@ -298,29 +319,41 @@ class MMListWidget : MMWidget
         hoverIndex = Int(index)
         let oldIndex = hoverData[0]
         hoverData[0] = -1
-        
-        if currentObject != nil {
-            if hoverIndex >= 0 && hoverIndex < currentObject!.shapes.count {
-                
-                //            print( x )
-                
-                if x >= 227 && x <= 255 {
-                    hoverData[0] = Float(hoverIndex*2)
-                    hoverUp = true
+        hoverState = .None
+
+        if hoverIndex >= 0 && hoverIndex < items.count {
+            
+            //            print( x )
+            
+            if supportsUpDown {
+                if x >= 172 && x <= 201 {
+                    hoverData[0] = Float(hoverIndex*3)
+                    hoverState = .HoverUp
                 } else
-                    if x >= 262 && x <= 289 {
-                        hoverData[0] = Float(hoverIndex*2+1)
-                        hoverUp = false
+                if x >= 207 && x <= 235 {
+                    hoverData[0] = Float(hoverIndex*3+1)
+                    hoverState = .HoverDown
+                }
+            }
+            if supportsClose {
+                if x >= 262 && x <= 291 {
+                    hoverData[0] = Float(hoverIndex*3+2)
+                    hoverState = .Close
                 }
             }
         }
         
         return hoverData[0] != oldIndex
-    }*/
+    }
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
         scrollArea.mouseScrolled(event)
+    }
+    
+    func removeFromSelection(_ uuid: UUID)
+    {
+        selectedItems.removeAll(where: { $0 == uuid })
     }
     
     /// Creates a thumbnail for the given shape name

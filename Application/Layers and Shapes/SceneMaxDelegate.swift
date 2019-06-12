@@ -864,6 +864,10 @@ class LayerList : MMWidget
                     }
                 }
                 if foundIndex != nil {
+                    let uuid = delegate.currentScene!.layers[foundIndex!]
+                    self.listWidget.removeFromSelection(uuid)
+                    self.delegate.currentScene!.selectedLayers = self.listWidget.selectedItems
+                    
                     delegate.currentScene!.layers.remove(at: foundIndex!)
                     self.rebuildList()
                     self.delegate.update(true, updateLists: false)
@@ -936,7 +940,28 @@ class LayerList : MMWidget
     {
         let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y) - 30, items: items)
         if changed {
+            
+            var itemList = delegate.currentScene!.layers
+            
+            if listWidget.hoverState != .None {
+                if listWidget.hoverState == .HoverUp && itemList.count > 1 && listWidget.hoverIndex > 0 {
+                    let item = itemList.remove(at: listWidget.hoverIndex)
+                    itemList.insert(item, at: listWidget.hoverIndex - 1)
+                } else
+                if listWidget.hoverState == .HoverDown && itemList.count > 1 && listWidget.hoverIndex < itemList.count-1 {
+                    let item = itemList.remove(at: listWidget.hoverIndex)
+                    itemList.insert(item, at: listWidget.hoverIndex + 1)
+                } else
+                if listWidget.hoverState == .Close && listWidget.hoverIndex >= 0 && listWidget.hoverIndex < itemList.count {
+                    let uuid = itemList[listWidget.hoverIndex]
+                    itemList.remove(at: listWidget.hoverIndex)
+                    listWidget.removeFromSelection(uuid)
+                }
+            }
+
+            delegate.currentScene!.layers = itemList
             delegate.currentScene!.selectedLayers = listWidget.selectedItems
+
             rebuildList()
             listWidget.build(items: items, fixedWidth: 300, supportsUpDown: true, supportsClose: true)
         }
@@ -945,8 +970,11 @@ class LayerList : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if mouseIsDown {
-
+        if !mouseIsDown {
+            if listWidget.hoverAt(event.x - rect.x, event.y - rect.y - 30) {
+                listWidget.update()
+                mmView.update()
+            }
         }
     }
     
