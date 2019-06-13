@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		2B039200228E5BC9002D62C9 /* LayerNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */; };
 		2B039201228E5BC9002D62C9 /* LayerNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */; };
+		2B06710E22B1DCC200983A76 /* GizmoInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */; };
+		2B06710F22B1DCC200983A76 /* GizmoInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */; };
 		2B128761225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
 		2B128762225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
 		2B333D13226043FF0008A8CF /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
@@ -174,6 +176,7 @@
 
 /* Begin PBXFileReference section */
 		2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerNodes.swift; sourceTree = "<group>"; };
+		2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GizmoInfoArea.swift; sourceTree = "<group>"; };
 		2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatPopUp.swift; sourceTree = "<group>"; };
 		2B333D12226043FF0008A8CF /* MMScrollButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScrollButton.swift; sourceTree = "<group>"; };
 		2B46E95C224330050047A94A /* MMTabWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabWidget.swift; sourceTree = "<group>"; };
@@ -455,6 +458,7 @@
 				2BBF11EF21EEC618001C94E9 /* ShapeFactory.swift */,
 				2B46E962224466CC0047A94A /* MaterialFactory.swift */,
 				2BBF11FE21F808B1001C94E9 /* Gizmo.swift */,
+				2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */,
 				2BBF120121F80B32001C94E9 /* Gizmo.metal */,
 			);
 			path = "Layers and Shapes";
@@ -628,6 +632,7 @@
 				2BBF11CD21EADB46001C94E9 /* MMBaseView_mac.swift in Sources */,
 				2BBF11F621F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */,
+				2B06710E22B1DCC200983A76 /* GizmoInfoArea.swift in Sources */,
 				2BE67102221259F500B95241 /* Node.swift in Sources */,
 				2B4CC230222F5D5C00A47812 /* Physics.swift in Sources */,
 				2B5F506F2298FD5D00D3B6C5 /* GameWidget.swift in Sources */,
@@ -709,6 +714,7 @@
 				2BBF11A721EAD46B001C94E9 /* BottomRegion.swift in Sources */,
 				2BBF11F721F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2B5CCB0322152EB6005BAA2B /* MMListWidget.swift in Sources */,
+				2B06710F22B1DCC200983A76 /* GizmoInfoArea.swift in Sources */,
 				2BE67103221259F500B95241 /* Node.swift in Sources */,
 				2B4CC231222F5D5C00A47812 /* Physics.swift in Sources */,
 				2B5F50702298FD5D00D3B6C5 /* GameWidget.swift in Sources */,

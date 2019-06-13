@@ -17,7 +17,7 @@ class Gizmo : MMWidget
     }
     
     enum GizmoState : Float {
-        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked, AddPoint, RemovePoint, ColorWidgetClosed, ColorWidgetOpened, FloatWidgetClosed, FloatWidgetOpened, PointHover
+        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale, GizmoUIMenu, GizmoUI, GizmoUIMouseLocked, AddPoint, RemovePoint, ColorWidgetClosed, ColorWidgetOpened, FloatWidgetClosed, FloatWidgetOpened, PointHover, InfoAreaHover
     }
     
     enum GizmoContext : Float {
@@ -52,6 +52,8 @@ class Gizmo : MMWidget
 
     var gizmoRect       : MMRect = MMRect()
     var gizmoNode       : GizmoNode!
+    
+    var gizmoInfoArea   : GizmoInfoArea!
 
     var gizmoUIMenuRect : MMRect = MMRect()
     var gizmoUIOpen     : Bool = false
@@ -100,6 +102,7 @@ class Gizmo : MMWidget
 
         super.init(view)
 
+        gizmoInfoArea = GizmoInfoArea(self)
         gizmoNode = GizmoNode(self)
         
         // --- Color change handling
@@ -154,6 +157,8 @@ class Gizmo : MMWidget
         self.object = object
         self.context = context
         self.materialType = materialType
+        
+        gizmoInfoArea.reset()
         
         if rootObject != nil {
             self.rootObject = rootObject
@@ -333,6 +338,12 @@ class Gizmo : MMWidget
         
         // If shape editor has no shape, set to inactive
         if object!.selectedShapes.count == 0 && context == .ShapeEditor { hoverState = .Inactive; return }
+        
+        // Check if an gizmo info area item was clicked
+        if gizmoInfoArea.mouseDown(event) {
+            hoverState = .InfoAreaHover
+            return
+        }
 
 //        #if os(iOS) || os(watchOS) || os(tvOS)
         if mode == .Normal {
@@ -504,10 +515,16 @@ class Gizmo : MMWidget
             startRotate = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
 
             initialValues = [:]
+            gizmoInfoArea.reset()
             
             if mode == .Normal && context == .ShapeEditor {
+                
                 for shape in object!.getSelectedShapes() {
                     let transformed = getTransformedProperties(shape)
+                    
+                    if object!.selectedShapes.count == 1 {
+                        gizmoInfoArea.addItemsFor(hoverState, transformed)
+                    }
                     
                     initialValues[shape.uuid] = [:]
                     initialValues[shape.uuid]!["posX"] = transformed["posX"]!
@@ -583,6 +600,10 @@ class Gizmo : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        //if gizmoInfoArea.hoverItem != nil {
+        //    return
+        //}
+        
         if context == .MaterialEditor && colorWidget.states.contains(.Opened) {
             if colorWidget.rect.contains(event.x, event.y) {
                 colorWidget.mouseUp(event)
@@ -720,12 +741,17 @@ class Gizmo : MMWidget
         
         if dragState == .Inactive {
             let oldHoverState = hoverState
-            if mode == .Normal {
-                updateNormalHoverState(editorRect: rect, event: event)
-            } else {
-                updatePointHoverState(editorRect: rect, event: event)
+            let oldHoverItem = gizmoInfoArea.hoverItem
+            
+            if !gizmoInfoArea.mouseMoved(event) {
+                if mode == .Normal {
+                    updateNormalHoverState(editorRect: rect, event: event)
+                } else {
+                    updatePointHoverState(editorRect: rect, event: event)
+                }
             }
-            if oldHoverState != hoverState {
+            
+            if oldHoverState != hoverState || oldHoverItem !== gizmoInfoArea.hoverItem {
                 update()
             }
         } else {
@@ -742,6 +768,7 @@ class Gizmo : MMWidget
                                 "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                                 "posY" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
+                            gizmoInfoArea.updateItems(properties)
                             processGizmoProperties(properties, shape: shape)
                         }
                     } else {
@@ -1428,6 +1455,7 @@ class Gizmo : MMWidget
             }
         }
         
+        gizmoInfoArea.draw()
         mmRenderer.setClipRect()
     }
     
