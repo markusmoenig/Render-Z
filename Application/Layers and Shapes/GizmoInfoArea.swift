@@ -41,6 +41,10 @@ class GizmoInfoAreaItem {
 
 class GizmoInfoArea {
     
+    enum GizmoProperty {
+        case WidthProperty, HeightProperty
+    }
+    
     var gizmo           : Gizmo
     var items           : [GizmoInfoAreaItem] = []
     
@@ -68,14 +72,51 @@ class GizmoInfoArea {
         if state == .CenterMove {
             addItem("X", "posX", transformed["posX"]!)
             addItem("Y", "posY", transformed["posY"]!)
+        } else
+        if state == .xAxisMove {
+            addItem("X", "posX", transformed["posX"]!)
+        } else
+        if state == .yAxisMove {
+            addItem("Y", "posY", transformed["posY"]!)
+        } else
+        if state == .xAxisScale {
+            let widthProperty = getProperty(.WidthProperty)
+            addItem("Width", widthProperty, transformed[widthProperty]!)
+        } else
+        if state == .yAxisScale {
+            let heightProperty = getProperty(.HeightProperty)
+            addItem("Height", heightProperty, transformed[heightProperty]!)
         }
+        if state == .Rotate {
+            addItem("Rotation", "rotate", -transformed["rotate"]!)
+        }
+    }
+    
+    func getProperty(_ prop: GizmoProperty) -> String
+    {
+        var result = ""
+        if prop == .WidthProperty {
+            if gizmo.context == .ShapeEditor {
+                let selectedShapeObjects = gizmo.object!.getSelectedShapes()
+                if selectedShapeObjects.count == 1 {
+                    result = selectedShapeObjects[0].widthProperty
+                }
+            }
+        }
+        
+        return result
     }
     
     func updateItems(_ transformed: [String:Float])
     {
         for item in items {
             if transformed[item.variable] != nil {
-                item.setValue(transformed[item.variable]!)
+                var value = transformed[item.variable]!
+                
+                if item.variable == "rotate" {
+                    value = -value
+                }
+                item.setValue(value)
             }
         }
     }

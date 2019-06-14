@@ -815,6 +815,7 @@ class Gizmo : MMWidget
                             let properties : [String:Float] = [
                                 "posX" : initialValues[shape.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                                 ]
+                            gizmoInfoArea.updateItems(properties)
                             processGizmoProperties(properties, shape: shape)
                         }
                     } else {
@@ -857,6 +858,7 @@ class Gizmo : MMWidget
                             let properties : [String:Float] = [
                                 "posY" : initialValues[shape.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                                 ]
+                            gizmoInfoArea.updateItems(properties)
                             processGizmoProperties(properties, shape: shape)
                         }
                     } else {
@@ -903,6 +905,7 @@ class Gizmo : MMWidget
                         let properties : [String:Float] = [
                             propName : value,
                             ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoProperties(properties, shape: shape)
                     }
                 } else
@@ -948,6 +951,7 @@ class Gizmo : MMWidget
                         let properties : [String:Float] = [
                             propName : value,
                             ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoProperties(properties, shape: shape)
                     }
                 } else
@@ -993,6 +997,7 @@ class Gizmo : MMWidget
                         let properties : [String:Float] = [
                             "rotate" : initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
                         ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoProperties(properties, shape: shape)
                     }
                 } else
