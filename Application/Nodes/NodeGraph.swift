@@ -1894,11 +1894,12 @@ class NodeGraph : Codable
                 conn.toTerminal = getTerminalOfUUID(conn.toTerminalUUID)
             }
             
-            // Go up the tree to see if it is connected to a behavior tree and if yes adjust scaling values
-            let rootNode = getRootNode(node)
-            if let behaviorTree = rootNode as? BehaviorTree {
-                print("Tree for", node.name, behaviorTree.name)
-                node.behaviorTree = behaviorTree
+            // Go up the tree to see if it is connected to a behavior tree and if yes link it
+            if terminal.connector == .Top {
+                let rootNode = getRootNode(node)
+                if let behaviorTree = rootNode as? BehaviorTree {
+                    node.behaviorTree = behaviorTree
+                }
             }
         }
 
