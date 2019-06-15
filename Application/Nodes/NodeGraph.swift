@@ -996,6 +996,7 @@ class NodeGraph : Codable
                 }
                 
                 // --- DrawConnections
+                
                 for node in nodes {
                     if masterNode.subset!.contains(node.uuid) || node === masterNode {
                         

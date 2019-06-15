@@ -88,7 +88,7 @@ class GizmoInfoArea {
             addItem("Height", heightProperty, transformed[heightProperty]!)
         }
         if state == .Rotate {
-            addItem("Rotation", "rotate", -transformed["rotate"]!)
+            addItem("Rotation", "rotate", transformed["rotate"]!)
         }
     }
     
@@ -102,6 +102,14 @@ class GizmoInfoArea {
                     result = selectedShapeObjects[0].widthProperty
                 }
             }
+        } else
+        if prop == .HeightProperty {
+            if gizmo.context == .ShapeEditor {
+                let selectedShapeObjects = gizmo.object!.getSelectedShapes()
+                if selectedShapeObjects.count == 1 {
+                    result = selectedShapeObjects[0].heightProperty
+                }
+            }
         }
         
         return result
@@ -111,11 +119,7 @@ class GizmoInfoArea {
     {
         for item in items {
             if transformed[item.variable] != nil {
-                var value = transformed[item.variable]!
-                
-                if item.variable == "rotate" {
-                    value = -value
-                }
+                let value = transformed[item.variable]!
                 item.setValue(value)
             }
         }

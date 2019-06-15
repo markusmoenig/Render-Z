@@ -994,8 +994,12 @@ class Gizmo : MMWidget
                 if context == .ShapeEditor {
                     for shape in selectedShapeObjects {
                         let initialValue = initialValues[shape.uuid]!["rotate"]!
+                        var value = initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                        if value < 0 {
+                            value = 360 + value
+                        }
                         let properties : [String:Float] = [
-                            "rotate" : initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                            "rotate" : value
                         ]
                         gizmoInfoArea.updateItems(properties)
                         processGizmoProperties(properties, shape: shape)
@@ -1004,8 +1008,12 @@ class Gizmo : MMWidget
                 if context == .MaterialEditor {
                     for material in selectedMaterialObjects {
                         let initialValue = initialValues[material.uuid]!["rotate"]!
+                        var value = initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                        if value < 0 {
+                            value = 360 + value
+                        }
                         let properties : [String:Float] = [
-                            "rotate" : initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                            "rotate" : value
                         ]
                         processGizmoMaterialProperties(properties, material: material)
                     }
@@ -1013,8 +1021,12 @@ class Gizmo : MMWidget
                 if context == .ObjectEditor {
                     for object in objects {
                         let initialValue = initialValues[object.uuid]!["rotate"]!
+                        var value = initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                        if value < 0 {
+                            value = 360 + value
+                        }
                         let properties : [String:Float] = [
-                            "rotate" : initialValue + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                            "rotate" : value
                         ]
                         processGizmoObjectProperties(properties, object: object)
                     }
@@ -1709,7 +1721,7 @@ class Gizmo : MMWidget
             var uv = center
             var dist = simd_length( uv ) - 15
             
-            if dist < 0 {
+            if dist < 4 {
                 hoverState = .CenterMove
                 return
             }
@@ -1722,7 +1734,7 @@ class Gizmo : MMWidget
             uv = rotateCW(uv, angle: 1.5708 );
             dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,-20)))
             
-            if dist < 0 {
+            if dist < 4 {
                 hoverState = .xAxisMove
                 return
             }
@@ -1736,7 +1748,7 @@ class Gizmo : MMWidget
             d = simd_abs( uv ) - float2( 8, 7)
             dist = min( dist, length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0) );
             
-            if dist < 0 {
+            if dist < 4 {
                 hoverState = .xAxisScale
                 return
             }
@@ -1748,7 +1760,7 @@ class Gizmo : MMWidget
             uv = center + float2(0,110);
             dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,20)))
             
-            if dist < 0 {
+            if dist < 4 {
                 hoverState = .yAxisMove
                 return
             }
@@ -1762,14 +1774,14 @@ class Gizmo : MMWidget
             d = simd_abs( uv ) - float2( 7, 8)
             dist = min( dist, length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0) );
             
-            if dist < 0 {
+            if dist < 4 {
                 hoverState = .yAxisScale
                 return
             }
             
             // Rotate
             dist = simd_length( center ) - 73
-            let ringSize : Float = 6
+            let ringSize : Float = 10//6
             
             let border = simd_clamp(dist + ringSize, 0.0, 1.0) - simd_clamp(dist, 0.0, 1.0)
             if ( border > 0.0 ) {
@@ -1947,7 +1959,7 @@ class Gizmo : MMWidget
             uv = rotateCW(uv, angle: 1.5708 );
             dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,-20)))
             
-            if dist < 0 {
+            if dist < 4 {
                 hoverState = .xAxisMove
                 return
             }
@@ -1959,7 +1971,7 @@ class Gizmo : MMWidget
             uv = center + float2(0,110);
             dist = min( dist, sdTriangleIsosceles(uv, q: float2(10,20)))
             
-            if dist < 0 {
+            if dist < 4 {
                 hoverState = .yAxisMove
                 return
             }
@@ -2032,7 +2044,7 @@ class Gizmo : MMWidget
     /// Returns the angle between the start / end points
     func getAngle(cx : Float, cy : Float, ex : Float, ey : Float, degree : Bool ) -> Float
     {
-        var a : Float = atan2(ey - cy, ex - cx);
+        var a : Float = atan2(-ey - -cy, ex - cx);
         if a < 0 {
             a += 2 * Float.pi; //angle is now in radians
         }

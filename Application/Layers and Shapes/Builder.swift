@@ -492,14 +492,14 @@ class Builder
             buildData.source += "tuv = translate( uv, shape->pos );"
             buildData.source += "tuv /= \(buildData.mainDataName)objects[\(buildData.objectIndex)].scale;\n"
             if shape.pointCount == 0 {
-                buildData.source += "if ( shape->rotate != 0.0 ) tuv = rotateCCW( tuv, shape->rotate );\n"
+                buildData.source += "if ( shape->rotate != 0.0 ) tuv = rotateCW( tuv, shape->rotate );\n"
             } else {
                 buildData.source += "if ( shape->rotate != 0.0 ) {\n"
                 buildData.source += "pAverage = float2(0);\n"
                 buildData.source += "for (int i = \(buildData.pointIndex); i < \(buildData.pointIndex + shape.pointCount); ++i) \n"
                 buildData.source += "pAverage += \(buildData.mainDataName)points[i].xy;\n"
                 buildData.source += "pAverage /= \(shape.pointCount);\n"
-                buildData.source += "tuv = rotateCCW( tuv - pAverage, shape->rotate );\n"
+                buildData.source += "tuv = rotateCW( tuv - pAverage, shape->rotate );\n"
                 buildData.source += "tuv += pAverage;\n"
                 buildData.source += "}\n"
             }
@@ -625,7 +625,7 @@ class Builder
                 buildData.materialSource += "tuv = translate( uv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].xy );"
                 
                 // --- Rotate material uv
-                buildData.materialSource += "if ( \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x != 0.0 ) tuv = rotateCCW( tuv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x );\n"
+                buildData.materialSource += "if ( \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x != 0.0 ) tuv = rotateCW( tuv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x );\n"
                 
                 if !material.isCompound {
                     buildData.materialSource += "value = " + material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+2) + ";\n"
@@ -1187,7 +1187,7 @@ class Builder
                 source += "uv /= float2( \(parentScaleX), \(parentScaleY) );\n"
                 if rotate != 0.0 {
                     if shape.pointCount == 0 {
-                        source += "uv = rotateCCW( uv, \(rotate) );\n"
+                        source += "uv = rotateCW( uv, \(rotate) );\n"
                     } else {
                         var offX : Float = 0
                         var offY : Float = 0
@@ -1197,7 +1197,7 @@ class Builder
                         }
                         offX /= Float(shape.pointCount)
                         offY /= Float(shape.pointCount)
-                        source += "uv = rotateCCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
+                        source += "uv = rotateCW( uv - float2( \(offX), \(offY) ), \(rotate) );\n"
                         source += "uv += float2( \(offX), \(offY) );\n"
                     }
                 }
