@@ -600,10 +600,6 @@ class Gizmo : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        //if gizmoInfoArea.hoverItem != nil {
-        //    return
-        //}
-        
         if context == .MaterialEditor && colorWidget.states.contains(.Opened) {
             if colorWidget.rect.contains(event.x, event.y) {
                 colorWidget.mouseUp(event)
@@ -615,7 +611,7 @@ class Gizmo : MMWidget
             return
         }
         
-        if object != nil && context == .ShapeEditor {
+        if object != nil && context == .ShapeEditor && gizmoInfoArea.hoverItem == nil {
             let selectedShapes = object!.getSelectedShapes()
             for shape in selectedShapes {
                 shape.updateSize()

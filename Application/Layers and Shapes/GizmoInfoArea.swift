@@ -160,7 +160,7 @@ class GizmoInfoArea {
                     ]
                     self.gizmo.processGizmoProperties(properties, shape: selectedShapes[0])
                     self.hoverItem!.setValue(value)
-                    
+                                        
                     // Undo for shape based action
                     if selectedShapes.count == 1 && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: self.gizmo.undoProperties) {
                         
