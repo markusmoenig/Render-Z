@@ -269,7 +269,7 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
     
     alert.addTextField(configurationHandler: { (textField) -> Void in
-        textField.text = String(defaultValue)
+        textField.text = String(format: "%.02f", defaultValue)
         textField.keyboardType = UIKeyboardType.numberPad
     })
     

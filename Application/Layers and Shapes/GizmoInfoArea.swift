@@ -141,6 +141,7 @@ class GizmoInfoArea {
     
     func mouseDown(_ event: MMMouseEvent) -> Bool
     {
+        _ = mouseMoved(event)
         if hoverItem != nil {
             
             getNumberDialog(view: gizmo.mmView, title: hoverItem!.title, message: "Enter new value", defaultValue: hoverItem!.value, cb: { (value) -> Void in

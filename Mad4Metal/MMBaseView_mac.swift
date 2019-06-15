@@ -242,8 +242,13 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
     msg.messageText = title
     msg.informativeText = message
     
+    func roundTo(value: Float, places:Int) -> Double {
+        let divisor = pow(10.0, Double(places))
+        return (Double(value) * divisor).rounded() / divisor
+    }
+    
     let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
-    txt.doubleValue = Double(defaultValue)
+    txt.doubleValue = roundTo(value: defaultValue, places: 2)
     
     msg.window.initialFirstResponder = txt
     msg.accessoryView = txt
