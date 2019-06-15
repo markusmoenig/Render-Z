@@ -60,6 +60,9 @@ class Node : Codable, Equatable
     var behaviorTrees   : [BehaviorTree]? = nil
     var behaviorRoot    : BehaviorTreeRoot? = nil
     
+    // Set for behavior nodes to allow for tree scaling
+    var behaviorTree    : BehaviorTree? = nil
+
     var playResult      : Result? = nil
     var helpUrl         : String? = nil
 

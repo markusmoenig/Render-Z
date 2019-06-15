@@ -713,6 +713,8 @@ class NodeGraph : Codable
 
         if nodeHoverMode == .TerminalConnection && connectTerminal != nil {
             connectTerminals(hoverTerminal!.0, connectTerminal!.0)
+            updateNode(hoverTerminal!.0.node!)
+            updateNode(connectTerminal!.0.node!)
         }
         
         app?.mmView.mouseTrackWidget = nil
@@ -729,7 +731,7 @@ class NodeGraph : Codable
     func mouseMoved(_ event: MMMouseEvent)
     {
         if currentMaster == nil { return }
-        let scale : Float = currentMaster!.camera!.zoom
+        var scale : Float = currentMaster!.camera!.zoom
 
         if let screen = mmScreen {
             screen.mousePos.x = event.x
@@ -769,6 +771,11 @@ class NodeGraph : Codable
         if nodeHoverMode == .NodeUIMouseLocked {
             hoverUIItem!.mouseMoved(event)
             return
+        }
+        
+        // Adjust scale
+        if hoverNode != nil && hoverNode!.behaviorTree != nil {
+            scale *= hoverNode!.behaviorTree!.properties["treeScale"]!
         }
         
         // Drag Node
@@ -1056,13 +1063,27 @@ class NodeGraph : Codable
         let renderer = app!.mmView.renderer!
         let renderEncoder = renderer.renderEncoder!
         let scaleFactor : Float = app!.mmView.scaleFactor
-        let scale : Float = currentMaster!.camera!.zoom
+        var scale : Float = currentMaster!.camera!.zoom
 
         node.rect.x = region.rect.x + node.xPos * scale + currentMaster!.camera!.xPos
         node.rect.y = region.rect.y + node.yPos * scale + currentMaster!.camera!.yPos
-
-        node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
-        node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
+        
+        if let behaviorTree = node.behaviorTree {
+            let treeScale = behaviorTree.properties["treeScale"]!
+            scale *= treeScale
+            node.rect.x += (behaviorTree.rect.x + behaviorTree.rect.width / 2 - node.rect.x) * (1.0 - treeScale)
+            node.rect.y += (behaviorTree.rect.y + behaviorTree.rect.height / 2 - node.rect.y) * (1.0 - treeScale)
+            
+            node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
+            node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
+            
+            if behaviorTree.rect.contains(node.rect.x, node.rect.y) {
+                return
+            }
+        } else {
+            node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
+            node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
+        }
         
         if node.label == nil {
             node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name, scale: 0.5 * scale)
@@ -1325,9 +1346,20 @@ class NodeGraph : Codable
     /// Draws the given connection
     func drawConnection(_ conn: Connection)
     {
-        let scale : Float = currentMaster!.camera!.zoom
+        var scale : Float = currentMaster!.camera!.zoom
+        let terminal = conn.terminal!
+        let node = terminal.node!
+        
+        if let behaviorTree = node.behaviorTree {
+            let treeScale = behaviorTree.properties["treeScale"]!
+            scale *= treeScale
+        } else
+        if let behaviorTree = node as? BehaviorTree {
+            let treeScale = behaviorTree.properties["treeScale"]!
+            scale *= treeScale
+        }
 
-        func getPointForConnection(_ conn:Connection) -> (Float, Float)
+        func getPointForConnection(_ conn: Connection) -> (Float, Float)?
         {
             var x : Float = 0
             var y : Float = 0
@@ -1377,6 +1409,12 @@ class NodeGraph : Codable
                 }
             }
             
+            if let behaviorRoot = node.behaviorTree {
+                if behaviorRoot.rect.contains(node.rect.x + x, node.rect.y + y) {
+                    return nil
+                }
+            }
+            
             return (node.rect.x + x, node.rect.y + y)
         }
         
@@ -1408,7 +1446,10 @@ class NodeGraph : Codable
         let toTuple = getPointForConnection(toConnection!)
 
         let color = getColorForTerminal(conn.terminal!)
-        drawIt(fromTuple, toTuple, color)
+        
+        if fromTuple != nil && toTuple != nil {
+            drawIt(fromTuple!, toTuple!, color)
+        }
     }
     
     /// Returns the node (if any) at the given mouse coordinates
@@ -1419,6 +1460,13 @@ class NodeGraph : Codable
             for node in nodes {
                 if masterNode.subset!.contains(node.uuid) || node === masterNode {
                     if node.rect.contains( x, y ) {
+                        
+                        // --- If the node is inside its root tree due to scaling skip it
+                        if let behaviorTree = node.behaviorTree {
+                            if behaviorTree.rect.contains(x, y) {
+                                continue
+                            }
+                        }
                         found = node
                     }
                 }
@@ -1430,8 +1478,13 @@ class NodeGraph : Codable
     /// Returns the terminal and the terminal connector at the given mouse position for the given node (if any)
     func terminalAt(_ node: Node, _ x: Float, _ y: Float) -> (Terminal, Terminal.Connector, Float, Float)?
     {
-        let scale : Float = currentMaster!.camera!.zoom
+        var scale : Float = currentMaster!.camera!.zoom
 
+        if let behaviorTree = node.behaviorTree {
+            let treeScale = behaviorTree.properties["treeScale"]!
+            scale *= treeScale
+        }
+        
         var lefTerminalY : Float = NodeGraph.tOffY * scale
         var rightTerminalY : Float = NodeGraph.tOffY * scale
         
@@ -1508,6 +1561,9 @@ class NodeGraph : Codable
         
         terminal.node!.onConnect(myTerminal: terminal, toTerminal: toTerminal)
         toTerminal.node!.onConnect(myTerminal: toTerminal, toTerminal: terminal)
+        
+        updateNode(terminal.node!)
+        updateNode(toTerminal.node!)
     }
     
     /// Returns the color for the given terminal
@@ -1811,9 +1867,38 @@ class NodeGraph : Codable
             return nil
         }
         
+        /// Recursively goes up the tree to find the root
+        func getRootNode(_ node: Node) -> Node?
+        {
+            var rc : Node? = nil
+            
+            for terminal in node.terminals {
+                
+                if terminal.connector == .Top && terminal.connections.count > 0 {
+                    if let destTerminal = terminal.connections[0].toTerminal {
+                        rc = destTerminal.node!
+                        let behaviorTree = rc as? BehaviorTree
+                        if behaviorTree == nil {
+                            rc = getRootNode(destTerminal.node!)
+                        }
+                    }
+                }
+            }
+            
+            return rc
+        }
+        
+        node.behaviorTree = nil
         for terminal in node.terminals {
             for conn in terminal.connections {
                 conn.toTerminal = getTerminalOfUUID(conn.toTerminalUUID)
+            }
+            
+            // Go up the tree to see if it is connected to a behavior tree and if yes adjust scaling values
+            let rootNode = getRootNode(node)
+            if let behaviorTree = rootNode as? BehaviorTree {
+                print("Tree for", node.name, behaviorTree.name)
+                node.behaviorTree = behaviorTree
             }
         }
 
