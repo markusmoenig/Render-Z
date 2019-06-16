@@ -1170,9 +1170,29 @@ class MaterialListScrollArea: MMScrollArea
         }
         
         floatWidget.changed = { (value) -> Void in
+            
+            let selObject = self.delegate.selObject!
+            let rootObject = self.delegate.currentObject!
             let timeline = delegate.getTimeline()!
+
+            func apply(_ object: Object,_ old: Float,_ new: Float,_ isRecording: Bool)
+            {
+                self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                    if !isRecording {
+                        self.delegate.selObject!.properties["border"] = new
+                    } else {
+                        let uuid = self.delegate.selObject!.uuid
+                        timeline.addKeyProperties(sequence: self.delegate.currentObject!.currentSequence!, uuid: uuid, properties: ["border":new])
+                    }
+                    self.floatWidget.value = new
+                    apply(object, new, old, isRecording)
+                    self.app.updateObjectPreview(rootObject)
+                }
+            }
+            apply(selObject, value, selObject.properties["border"]!, timeline.isRecording)
+            
             if !timeline.isRecording {
-                self.delegate.selObject!.properties["border"] = value
+                selObject.properties["border"] = value
             } else {
                 let uuid = self.delegate.selObject!.uuid
                 timeline.addKeyProperties(sequence: self.delegate.currentObject!.currentSequence!, uuid: uuid, properties: ["border":value])

@@ -96,18 +96,38 @@ class GizmoInfoArea {
     {
         var result = ""
         if prop == .WidthProperty {
-            if gizmo.context == .ShapeEditor {
+            if gizmo.mode == .Normal && gizmo.context == .ShapeEditor {
                 let selectedShapeObjects = gizmo.object!.getSelectedShapes()
                 if selectedShapeObjects.count == 1 {
                     result = selectedShapeObjects[0].widthProperty
                 }
+            } else
+            if gizmo.mode == .Normal && gizmo.context == .MaterialEditor {
+                let selectedMaterials = gizmo.object!.getSelectedMaterials(gizmo.materialType)
+                if selectedMaterials.count == 1 {
+                    if selectedMaterials[0].properties["limiterType"]! == 0 {
+                        result = selectedMaterials[0].widthProperty
+                    } else {
+                        result = "limiterWidth"
+                    }
+                }
             }
         } else
         if prop == .HeightProperty {
-            if gizmo.context == .ShapeEditor {
+            if gizmo.mode == .Normal && gizmo.context == .ShapeEditor {
                 let selectedShapeObjects = gizmo.object!.getSelectedShapes()
                 if selectedShapeObjects.count == 1 {
                     result = selectedShapeObjects[0].heightProperty
+                }
+            } else
+            if gizmo.mode == .Normal && gizmo.context == .MaterialEditor {
+                let selectedMaterials = gizmo.object!.getSelectedMaterials(gizmo.materialType)
+                if selectedMaterials.count == 1 {
+                    if selectedMaterials[0].properties["limiterType"]! == 0 {
+                        result = selectedMaterials[0].heightProperty
+                    } else {
+                        result = "limiterHeight"
+                    }
                 }
             }
         }
@@ -150,17 +170,20 @@ class GizmoInfoArea {
                 let context = self.gizmo.context
                 
                 if object != nil && context == .ShapeEditor {
+                    
                     let selectedShapes = object!.getSelectedShapes()
                     for shape in selectedShapes {
                         shape.updateSize()
                     }
-                    
+                
                     let properties : [String:Float] = [
                         self.hoverItem!.variable : value
                     ]
                     self.gizmo.processGizmoProperties(properties, shape: selectedShapes[0])
                     self.hoverItem!.setValue(value)
-                                        
+                    
+                    self.gizmo.dragState = .Inactive
+                    
                     // Undo for shape based action
                     if selectedShapes.count == 1 && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: self.gizmo.undoProperties) {
                         
@@ -176,6 +199,35 @@ class GizmoInfoArea {
                         }
                         
                         applyProperties(selectedShapes[0], self.gizmo.undoProperties, selectedShapes[0].properties)
+                    }
+                } else
+                if object != nil && context == .MaterialEditor {
+                    
+                    let selectedMaterials = self.gizmo.object!.getSelectedMaterials(self.gizmo.materialType)
+                    
+                    let properties : [String:Float] = [
+                        self.hoverItem!.variable : value
+                    ]
+                    self.gizmo.processGizmoMaterialProperties(properties, material: selectedMaterials[0])
+                    self.hoverItem!.setValue(value)
+                    
+                    self.gizmo.dragState = .Inactive
+                    
+                    // Undo for shape based action
+                    if selectedMaterials.count == 1 && !NSDictionary(dictionary: selectedMaterials[0].properties).isEqual(to: self.gizmo.undoProperties) {
+                        
+                        func applyProperties(_ material: Material,_ old: [String:Float],_ new: [String:Float])
+                        {
+                            self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                                material.properties = old
+                                
+                                applyProperties(material, new, old)
+                            }
+                            self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
+                            self.gizmo.mmView.update()
+                        }
+                        
+                        applyProperties(selectedMaterials[0], self.gizmo.undoProperties, selectedMaterials[0].properties)
                     }
                 }
                 

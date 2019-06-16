@@ -342,6 +342,18 @@ class Gizmo : MMWidget
         // Check if an gizmo info area item was clicked
         if gizmoInfoArea.mouseDown(event) {
             hoverState = .InfoAreaHover
+            if mode == .Normal && context == .ShapeEditor {
+                let selectedShapes = object!.getSelectedShapes()
+                if selectedShapes.count == 1 {
+                    undoProperties = selectedShapes[0].properties
+                }
+            } else
+            if mode == .Normal && context == .MaterialEditor {
+                let selectedMaterials = object!.getSelectedMaterials(materialType)
+                if selectedMaterials.count == 1 {
+                    undoProperties = selectedMaterials[0].properties
+                }
+            }
             return
         }
 
@@ -541,6 +553,10 @@ class Gizmo : MMWidget
                 for material in object!.getSelectedMaterials(materialType) {
                     let transformed = getTransformedProperties(material)
                     
+                    if object!.selectedShapes.count == 1 {
+                        gizmoInfoArea.addItemsFor(hoverState, transformed)
+                    }
+                    
                     initialValues[material.uuid] = [:]
                     initialValues[material.uuid]!["posX"] = transformed["posX"]!
                     initialValues[material.uuid]!["posY"] = transformed["posY"]!
@@ -551,6 +567,8 @@ class Gizmo : MMWidget
 
                     initialValues[material.uuid]![material.widthProperty] = transformed[material.widthProperty]!
                     initialValues[material.uuid]![material.heightProperty] = transformed[material.heightProperty]!
+                    
+                    undoProperties = material.properties
                 }
             } else
             if mode == .Normal && context == .ObjectEditor {
@@ -611,7 +629,7 @@ class Gizmo : MMWidget
             return
         }
         
-        if object != nil && context == .ShapeEditor && gizmoInfoArea.hoverItem == nil {
+        if object != nil && context == .ShapeEditor {
             let selectedShapes = object!.getSelectedShapes()
             for shape in selectedShapes {
                 shape.updateSize()
@@ -630,6 +648,25 @@ class Gizmo : MMWidget
                 }
                 
                 applyProperties(selectedShapes[0], undoProperties, selectedShapes[0].properties)
+            }
+        } else
+        if object != nil && context == .MaterialEditor
+        {
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+            
+            // Undo for material based action
+            if selectedMaterials.count == 1 && dragState != .Inactive && !NSDictionary(dictionary: selectedMaterials[0].properties).isEqual(to: undoProperties) {
+                func applyProperties(_ material: Material,_ old: [String:Float],_ new: [String:Float])
+                {
+                    mmView.undoManager!.registerUndo(withTarget: self) { target in
+                        material.properties = old
+                        
+                        applyProperties(material, new, old)
+                        self.app.updateObjectPreview(self.rootObject!)
+                    }
+                }
+                
+                applyProperties(selectedMaterials[0], undoProperties, selectedMaterials[0].properties)
             }
         }
         
@@ -783,6 +820,7 @@ class Gizmo : MMWidget
                                 "posX" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                                 "posY" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
+                            gizmoInfoArea.updateItems(properties)
                             processGizmoMaterialProperties(properties, material: material)
                         }
                     } else {
@@ -828,6 +866,7 @@ class Gizmo : MMWidget
                             let properties : [String:Float] = [
                                 "posX" : initialValues[material.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                             ]
+                            gizmoInfoArea.updateItems(properties)
                             processGizmoMaterialProperties(properties, material: material)
                         }
                     } else {
@@ -871,6 +910,7 @@ class Gizmo : MMWidget
                             let properties : [String:Float] = [
                                 "posY" : initialValues[material.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
+                            gizmoInfoArea.updateItems(properties)
                             processGizmoMaterialProperties(properties, material: material)
                         }
                     } else {
@@ -920,6 +960,7 @@ class Gizmo : MMWidget
                         let properties : [String:Float] = [
                             propName : value,
                         ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoMaterialProperties(properties, material: material)
                     }
                 } else
@@ -969,6 +1010,7 @@ class Gizmo : MMWidget
                         if material.properties["limiterType"]! >= 2 {
                             properties[material.widthProperty] = material.properties[propName]
                         }
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoMaterialProperties(properties, material: material)
                     }
                 } else
@@ -1011,6 +1053,7 @@ class Gizmo : MMWidget
                         let properties : [String:Float] = [
                             "rotate" : value
                         ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoMaterialProperties(properties, material: material)
                     }
                 } else

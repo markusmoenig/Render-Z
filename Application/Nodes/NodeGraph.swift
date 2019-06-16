@@ -1460,7 +1460,10 @@ class NodeGraph : Codable
             for node in nodes {
                 if masterNode.subset!.contains(node.uuid) || node === masterNode {
                     if node.rect.contains( x, y ) {
-                        
+                        // Master always has priority
+                        if node === masterNode {
+                            return node
+                        }
                         // --- If the node is inside its root tree due to scaling skip it
                         if let behaviorTree = node.behaviorTree {
                             if behaviorTree.rect.contains(x, y) {

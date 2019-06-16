@@ -291,8 +291,42 @@ class EditorWidget      : MMWidget
                 selObject.borderMaterials.append(drag.material!)
                 selObject.selectedBorderMaterials = [drag.material!.uuid]
             }
-            app.setChanged()
             
+            func materialStatusChanged(_ object: Object, _ material: Material,_ materialType: Object.MaterialType)
+            {
+                mmView.undoManager!.registerUndo(withTarget: self) { target in
+                    
+                    if materialType == .Body {
+                        let index = selObject.bodyMaterials.firstIndex(where: { $0.uuid == material.uuid })
+                        if index != nil {
+                            object.bodyMaterials.remove(at: index!)
+                            object.selectedBodyMaterials = []
+                            self.app.updateObjectPreview(object)
+                        } else {
+                            object.bodyMaterials.append(material)
+                            object.selectedBodyMaterials = [material.uuid]
+                            self.app.updateObjectPreview(object)
+                        }
+                    } else
+                    if materialType == .Border {
+                        let index = selObject.borderMaterials.firstIndex(where: { $0.uuid == material.uuid })
+                        if index != nil {
+                            object.borderMaterials.remove(at: index!)
+                            object.selectedBorderMaterials = []
+                            self.app.updateObjectPreview(object)
+                        } else {
+                            object.borderMaterials.append(material)
+                            object.selectedBorderMaterials = [material.uuid]
+                            self.app.updateObjectPreview(object)
+                        }
+                    }
+                    materialStatusChanged(object, material, materialType)
+                }
+            }
+            
+            materialStatusChanged(selObject, drag.material!, delegate.materialType)
+            app.setChanged()
+
             if let material = drag.material {
                 
                 var xOff : Float = 0
