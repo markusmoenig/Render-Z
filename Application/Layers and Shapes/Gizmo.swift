@@ -321,6 +321,21 @@ class Gizmo : MMWidget
                         NodeUIDropDown(gizmoNode, variable: "limiterType", title: "Limiter", items: ["None", "Rectangle", "Sphere", "Border"], index: 0)
                     )
                 }
+                
+                var customs : [NodeUI] = []
+                for (key, value) in material.properties {
+                    if key.starts(with: "custom_") {
+                        let cKey = String(key.dropFirst(7))
+                        let title = cKey.capitalizingFirstLetter()
+                        customs.append(
+                            NodeUINumber(gizmoNode, variable: key, title: title, range: float2(material.properties[cKey + "_min"]!, material.properties[cKey + "_max"]!), int: material.properties[cKey + "_int"]! == 0 ? false : true, value: value)
+                        )
+                    }
+                }
+                let sorted = customs.sorted(by: { $0.title.lowercased() < $1.title.lowercased() })
+                for item in sorted {
+                    gizmoNode.uiItems.append( item )
+                }
             }
             
             gizmoNode.setupUI(mmView: mmView)

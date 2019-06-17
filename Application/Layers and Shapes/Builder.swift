@@ -121,6 +121,7 @@ class Builder
             float4      camera;
             float2      position;
             float2      limiterSize;
+            float4      general; // .x == time
 
             SHAPE_DATA  shapes[\(max(buildData.maxShapes, 1))];
             float4      points[\(max(buildData.maxPoints, 1))];
@@ -144,6 +145,11 @@ class Builder
         instance.data!.append( 0 )
         instance.data!.append( 0 )
         
+        instance.data!.append( 0 )
+        instance.data!.append( 0 )
+        
+        instance.data!.append( 0 )
+        instance.data!.append( 0 )
         instance.data!.append( 0 )
         instance.data!.append( 0 )
         
@@ -621,6 +627,14 @@ class Builder
                 let limiterType = material.properties["limiterType"]
                 let materialExt = channel == 0 ? "" : ".x"
                 
+                // --- Setup the custom properties table
+                material.customProperties = []
+                for (key, _) in material.properties {
+                    if key.starts(with: "custom_") {
+                        material.customProperties.append(key)
+                    }
+                }
+                
                 // --- Translate material uv
                 buildData.materialSource += "tuv = translate( uv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].xy );"
                 
@@ -628,7 +642,7 @@ class Builder
                 buildData.materialSource += "if ( \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x != 0.0 ) tuv = rotateCW( tuv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x );\n"
                 
                 if !material.isCompound {
-                    buildData.materialSource += "value = " + material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+2) + ";\n"
+                    buildData.materialSource += "value = " + material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+3) + ";\n"
                     
                     if limiterType == 0 {
                         // --- No Limiter
@@ -651,7 +665,7 @@ class Builder
                         buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
                     }
                 } else {
-                    buildData.materialSource += material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+2, materialName: materialName) + ";\n"
+                    buildData.materialSource += material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+3, materialName: materialName) + ";\n"
                 }
             }
             
@@ -669,17 +683,17 @@ class Builder
             for material in object.bodyMaterials {
                 createMaterialCode(material, "bodyMaterial")
                 if material.pointCount == 0 {
-                    buildData.materialDataIndex += 3
+                    buildData.materialDataIndex += 4
                 } else {
-                    buildData.materialDataIndex += 2 + material.pointCount * 2
+                    buildData.materialDataIndex += 3 + material.pointCount * 2
                 }
             }
             for material in object.borderMaterials {
                 createMaterialCode(material, "borderMaterial")
                 if material.pointCount == 0 {
-                    buildData.materialDataIndex += 3
+                    buildData.materialDataIndex += 4
                 } else {
-                    buildData.materialDataIndex += 2 + material.pointCount * 2
+                    buildData.materialDataIndex += 3 + material.pointCount * 2
                 }
             }
             
@@ -719,6 +733,8 @@ class Builder
 
         instance.data![6] = instance.layerGlobals!.limiterSize.x / 2
         instance.data![7] = instance.layerGlobals!.limiterSize.y / 2
+        
+        instance.data![8] = instance.data![8] + (1000/60) / 1000;
     
         updateInstanceData(instance: instance, camera: camera, frame: frame)
         
@@ -943,7 +959,16 @@ class Builder
                         instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties["limiterWidth"]!
                         instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties["limiterHeight"]!
                         materialDataIndex += 1
-
+                        
+                        // --- Custom material properties
+                        for (customIndex,value) in material.customProperties.enumerated() {
+                            if customIndex > 3 {
+                                break
+                            }
+                            instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + customIndex] = properties[value]!
+                        }
+                        materialDataIndex += 1
+                        
                         // --- values
                         if material.pointCount == 0 {
                             instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["value_x"]!
@@ -1381,16 +1406,16 @@ class Builder
             
             for material in object.bodyMaterials {
                 if material.pointCount == 0 {
-                    materialIndex += 3 // value + 2 for pos, size, rotation
+                    materialIndex += 4 // value + 2 for pos, size, rotation
                 } else {
-                    materialIndex += 2 + material.pointCount * 2
+                    materialIndex += 4 + material.pointCount * 2
                 }
             }
             for material in object.borderMaterials {
                 if material.pointCount == 0 {
-                    materialIndex += 3
+                    materialIndex += 4
                 } else {
-                    materialIndex += 2 + material.pointCount * 2
+                    materialIndex += 3 + material.pointCount * 2
                 }
             }
             

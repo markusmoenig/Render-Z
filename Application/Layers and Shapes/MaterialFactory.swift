@@ -132,6 +132,101 @@ class MaterialFactory
         def.heightProperty = "size"
         materials.append( def )
         
+        // --- Checker
+        def = MaterialDefinition()
+        def.name = "Stars"
+        def.globalCode =
+        """
+        
+        float starsMaterialRandom(float2 par) {
+            return fract(sin(dot(par.xy,float2(12.9898,78.233))) * 43758.5453);
+        }
+        
+        float2 starsMaterialRandom2(float2 par) {
+            float rand = starsMaterialRandom(par);
+            return float2(rand, starsMaterialRandom(par+rand));
+        }
+        
+        float4 starsMaterial( float2 uv, float4 value, float2 iResolution, float time, float speed, float rotationSpeed) {
+        
+            //The ratio of the width and height of the screen
+            //float widthHeightRatio = iResolution.x/iResolution.y;
+        
+            float t = time * speed;
+            float dist = 0.0;
+            float layers = 16.0;
+            float scale = 32.0;
+            float depth;
+            float size;
+            float rotationAngle = time * rotationSpeed;
+        
+            float2 offset;
+            float2 local_uv;
+            float2 index;
+            float2 pos;
+            float2 seed;
+            float2 centre = float2(0.5, 0.5);
+            float2 uvCopy = uv;
+        
+            float2x2 rotation = float2x2(cos(rotationAngle), -sin(rotationAngle), sin(rotationAngle),  cos(rotationAngle));
+        
+            for(float i = 0.0; i < layers; i++){
+                depth = fract(i/layers + t);
+        
+                //Move centre in a circle depending on the depth of the layer
+                centre.x = 0.5 + 0.1 * cos(t) * depth;
+                centre.y = 0.5 + 0.1 * sin(t) * depth;
+        
+                //Get uv from the fragment coordinates, rotation and depth
+                uv = centre - uvCopy;//fragCoord/iResolution;
+                //uv.y /= widthHeightRatio;
+                uv *= rotation;
+                uv *= mix(iResolution/100, 0.0, depth);
+        
+                //The local cell
+                index = floor(uv);
+        
+                //Local cell seed;
+                seed = 20.0 * i + index;
+        
+                //The local cell coordinates
+                local_uv = fract(i + uv) - 0.5;
+        
+                //Get a random position for the local cell
+                pos = 0.8 * (starsMaterialRandom2(seed) - 0.5);
+        
+                //Get a random size
+                size = 0.01 + 0.02*starsMaterialRandom(seed);
+        
+                //Get distance to the generated point, add fading to distant points
+                //Add the distance to the sum
+                dist += smoothstep(size, 0.0, length(local_uv-pos)) * min(1.0, depth*2.0);
+            }
+        
+            return float4(value.xyz,dist);
+        }
+        """
+        def.code = "starsMaterial(__uv__, __value__, __size__, __time__, __custom_speed__,__custom_rotation__)"
+        def.properties["value_x"] = 1
+        def.properties["value_y"] = 1
+        def.properties["value_z"] = 1
+        def.properties["value_w"] = 1
+        
+        def.properties["custom_speed"] = 0.1
+        def.properties["speed_min"] = 0
+        def.properties["speed_max"] = 1
+        def.properties["speed_int"] = 0
+        
+        def.properties["custom_rotation"] = 0.2
+        def.properties["rotation_min"] = -2
+        def.properties["rotation_max"] = 2
+        def.properties["rotation_int"] = 0
+        
+        def.properties["size"] = defaultSize / 2
+        def.properties["size"] = defaultSize / 2
+        def.widthProperty = "size"
+        def.heightProperty = "size"
+        materials.append( def )
         
         // --- Compounds
         

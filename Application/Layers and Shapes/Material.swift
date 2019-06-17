@@ -23,6 +23,9 @@ class Material : Codable
     var pointCount      : Int = 0
     var isCompound      : Bool = false
     
+    // Build data table for custom property names
+    var customProperties: [String] = []
+    
     private enum CodingKeys: String, CodingKey {
         case name
         case properties
@@ -127,6 +130,33 @@ class Material : Codable
         
         code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
         code = code.replacingOccurrences(of: "__material__", with: ("&" + materialName))
+        
+        if materialDataIndex == nil {
+            code = code.replacingOccurrences(of: "__time__", with: "0.0")
+        } else {
+            code = code.replacingOccurrences(of: "__time__", with: "layerData->general.x")
+        }
+        
+        if materialDataIndex != nil {
+            for (name,_) in props! {
+                if name.starts(with: "custom_") {
+                    // Custom properties
+                    let table : [String] = ["x", "y", "z", "w"]
+                    var customCode = "layerData->materialData[\(materialDataIndex!-1)]."
+                    let index = customProperties.firstIndex(of: name)
+                    if index != nil {
+                        customCode += table[index!]
+                        code = code.replacingOccurrences(of: "__" + name + "__", with: customCode)
+                    }
+                }
+            }
+        } else {
+            for (name,value) in props! {
+                if name.starts(with: "custom_") {
+                    code = code.replacingOccurrences(of: "__" + name + "__", with: String(value))
+                }
+            }
+        }
 
         if pointCount == 0 {
             if materialDataIndex == nil {
@@ -135,7 +165,7 @@ class Material : Codable
             } else {
                 var matDataCode = "layerData->materialData[\(materialDataIndex!)]"
                 code = code.replacingOccurrences(of: "__value__", with: matDataCode)
-                matDataCode = "layerData->materialData[\(materialDataIndex!-2)].zw"
+                matDataCode = "layerData->materialData[\(materialDataIndex!-3)].zw"
                 code = code.replacingOccurrences(of: "__size__", with: matDataCode)
             }
         } else {
