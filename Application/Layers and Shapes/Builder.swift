@@ -423,7 +423,7 @@ class Builder
             float bm = 0;
             bodyMaterial.baseColor.w = fm;
         
-            if ( materialId >= 0 )
+            if ( materialId >= 0 && layerData->objects[materialId].border > 0 )
             {
                 bm = borderMask( dist, layerData->objects[materialId].border );
                 if ( bm > 0.0 ) {

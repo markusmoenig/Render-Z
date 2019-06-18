@@ -953,9 +953,13 @@ class Gizmo : MMWidget
                         if value < 0 {
                             value = 0
                         }
-                        let properties : [String:Float] = [
+                        var properties : [String:Float] = [
                             propName : value,
-                            ]
+                        ]
+                        // Shift for uniform scaling
+                        if mmView.shiftIsDown && shape.heightProperty != shape.widthProperty {
+                            properties[shape.heightProperty] = initialValues[shape.uuid]![shape.heightProperty]! + (pos.x - dragStartOffset!.x) / scale
+                        }
                         gizmoInfoArea.updateItems(properties)
                         processGizmoProperties(properties, shape: shape)
                     }
@@ -1000,9 +1004,13 @@ class Gizmo : MMWidget
                         if value < 0 {
                             value = 0
                         }
-                        let properties : [String:Float] = [
+                        var properties : [String:Float] = [
                             propName : value,
-                            ]
+                        ]
+                        // Shift for uniform scaling
+                        if mmView.shiftIsDown && shape.heightProperty != shape.widthProperty {
+                            properties[shape.widthProperty] = initialValues[shape.uuid]![shape.widthProperty]! - (pos.y - dragStartOffset!.y) / scale
+                        }
                         gizmoInfoArea.updateItems(properties)
                         processGizmoProperties(properties, shape: shape)
                     }
@@ -1226,7 +1234,7 @@ class Gizmo : MMWidget
                     
                     // --- Test if we have to hover highlight both scale axes
                     if selectedShapes.count == 1 && (hoverState == .xAxisScale || hoverState == .yAxisScale) {
-                        if shape.widthProperty == shape.heightProperty {
+                        if shape.widthProperty == shape.heightProperty || mmView.shiftIsDown {
                             data[3] = 1
                         }
                     }

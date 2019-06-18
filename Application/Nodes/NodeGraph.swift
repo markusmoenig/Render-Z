@@ -244,7 +244,7 @@ class NodeGraph : Codable
             self.contentType = .Objects
             self.updateContent(self.contentType)
             
-            if self.currentContent.count == 0 {
+            if self.currentContent.count == 0 || event.x != 0 {
                 self.overviewButton.addState(.Checked)
                 self.overviewIsOn = true
             }
@@ -277,7 +277,7 @@ class NodeGraph : Codable
             self.contentType = .Layers
             self.updateContent(self.contentType)
             
-            if self.currentContent.count == 0 {
+            if self.currentContent.count == 0 || event.x != 0 {
                 self.overviewButton.addState(.Checked)
                 self.overviewIsOn = true
             }
@@ -310,7 +310,7 @@ class NodeGraph : Codable
             self.contentType = .Scenes
             self.updateContent(self.contentType)
             
-            if self.currentContent.count == 0 {
+            if self.currentContent.count == 0 || event.x != 0 {
                 self.overviewButton.addState(.Checked)
                 self.overviewIsOn = true
             }
@@ -359,6 +359,9 @@ class NodeGraph : Codable
                 self.overviewButton.removeState(.Checked)
                 self.overviewIsOn = false
             }
+            
+            self.overviewButton.removeState(.Checked)
+            self.overviewIsOn = false
             
             if self.contentType == .Objects || self.contentType == .ObjectsOverview {
                 self.objectsButton._clicked(MMMouseEvent(0, 0))
@@ -469,7 +472,7 @@ class NodeGraph : Codable
     ///
     func activate()
     {
-        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, overviewButton)
+        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton)
         app?.mmView.widgets.insert(editButton, at: 0)
         app?.mmView.widgets.insert(playButton, at: 0)
         app!.leftRegion!.rect.width = 200
@@ -479,7 +482,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, overviewButton, editButton)
+        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton)
     }
     
     /// Stop previewing the playNode
@@ -1043,11 +1046,11 @@ class NodeGraph : Codable
             scenesButton.draw()
             gameButton.draw()
             
+            /*
             overviewButton.rect.x = gameButton.rect.x + gameButton.rect.width + 20
             overviewButton.rect.y = gameButton.rect.y
             overviewButton.isDisabled = contentType == .Game
-            overviewButton.draw()
-
+            overviewButton.draw()*/
         } else
         if region.type == .Right {
             region.rect.width = 0
@@ -2376,6 +2379,8 @@ class NodeGraph : Codable
                 
                 if node.type == "Object" || node.type == "Layer" || node.type == "Scene" {
                     self.overviewButton.clicked!(MMMouseEvent(0,0))
+                    //self.overviewButton.removeState(.Checked)
+                    //self.overviewIsOn = false
                 } else {
                     self.maximizedNode = node
                     self.deactivate()

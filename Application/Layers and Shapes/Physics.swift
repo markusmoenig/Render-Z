@@ -158,6 +158,8 @@ class Physics
             instance.data!.append( 0 )
         }
         
+        instance.variablesDataOffset = instance.data!.count
+
         // Fill up the variables
         let variablesDataCount = max(buildData.maxVariables,1) * builder.maxVarSize
         for _ in 0..<variablesDataCount {

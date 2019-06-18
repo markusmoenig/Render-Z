@@ -36,7 +36,7 @@ class DiskBuilder
         if async == nil {
             executeDisks(object, builder: builder)
         } else {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            DispatchQueue.main.async {
                 self.executeDisks(object, builder: builder)
                 async!()
             }
@@ -153,6 +153,8 @@ class DiskBuilder
             instance.data!.append( 0 )
         }
         
+        instance.variablesDataOffset = instance.data!.count
+        
         // Fill up the variables
         let variablesDataCount = max(buildData.maxVariables,1) * builder.maxVarSize
         for _ in 0..<variablesDataCount {
@@ -231,13 +233,18 @@ class DiskBuilder
 
         memcpy(instance.inBuffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
         
-        compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer, size: float2(800, 800), inTexture: nodeGraph.mmView.openSans.atlas )
+        print("1")
+        compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer, size: float2(800,800), inTexture: nodeGraph.mmView.openSans.atlas )
         
+        print("2")
+
         let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 800*800)
         
         let object = instance.objects[0]
         object.disks = []
         
+        print("3")
+
         var smallest : Float = 10000
         var x : Int = 0
         var y : Int = 0
@@ -251,6 +258,9 @@ class DiskBuilder
                 }
             }
         }
+        
+        print("4")
+
         
         print( smallest, x, y )
         object.disks.append(Disk(Float(x) - width/2, Float(y) - height/2, abs(smallest)))
