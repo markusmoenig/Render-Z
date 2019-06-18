@@ -358,7 +358,7 @@ class EditorWidget      : MMWidget
             let drag = dragSource as! NodeListDrag
             let node = drag.node!
             
-            func nodeStatusChanged(_ node: Node)
+            func nodeStatusChanged(_ node: Node,_ master: Node)
             {
                 mmView.undoManager!.registerUndo(withTarget: self) { target in
                     
@@ -367,17 +367,17 @@ class EditorWidget      : MMWidget
                         self.app.nodeGraph.deleteNode(node)
                     } else {
                         self.app.nodeGraph.nodes.append(node)
-                        self.app.nodeGraph.currentMaster?.subset!.append(node.uuid)
+                        master.subset!.append(node.uuid)
                         self.app.nodeGraph.setCurrentNode()
                         self.app.nodeGraph.updateMasterNodes(self.app.nodeGraph.currentMaster!)
                     }
-                    nodeStatusChanged(node)
+                    nodeStatusChanged(node, master)
                 }
             }
-            
-            nodeStatusChanged(node)
-            
+                        
             if app.nodeGraph.currentMaster != nil {
+                nodeStatusChanged(node, self.app.nodeGraph.currentMaster!)
+
                 if let camera = app.nodeGraph.currentMaster!.camera {
 
                     node.xPos = event.x - rect.x - camera.xPos - drag.pWidgetOffset!.x

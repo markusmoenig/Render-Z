@@ -86,7 +86,7 @@ class MMCompute {
         textureDescriptor.width = Int(width)
         textureDescriptor.height = Int(height)
         
-        textureDescriptor.usage = MTLTextureUsage.unknown;
+        textureDescriptor.usage = MTLTextureUsage.unknown
 
         let texture = device.makeTexture( descriptor: textureDescriptor )
         if output! {

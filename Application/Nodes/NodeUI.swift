@@ -89,6 +89,11 @@ class NodeUI
         rect.height = 20
     }
     
+    // Update from properties
+    func update()
+    {
+    }
+    
     func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
     {
     }
@@ -186,6 +191,10 @@ class NodeUIDropDown : NodeUI
                 mmView.update()
             }
         }
+    }
+    
+    override func update() {
+        index = node.properties[variable]!
     }
     
     override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
@@ -465,6 +474,10 @@ class NodeUIKeyDown : NodeUI
         }
     }
     
+    override func update() {
+        keyCode = node.properties[variable]!
+    }
+    
     override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
     {
         if titleLabel!.scale != NodeUI.fontScale * scale {
@@ -494,6 +507,7 @@ class NodeUINumber : NodeUI
     var x           : Float = 0
     var width       : Float = 0
     var int         : Bool = false
+    var undoValue   : Float = 0
     
     init(_ node: Node, variable: String, title: String, range: float2? = float2(0,1), int: Bool = false, value: Float = 0)
     {
@@ -542,6 +556,9 @@ class NodeUINumber : NodeUI
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if mouseIsDown == false {
+            undoValue = value
+        }
         mouseIsDown = true
 
         if range != nil {
@@ -566,14 +583,15 @@ class NodeUINumber : NodeUI
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        let oldValue = node.properties[variable]!
+        //let oldValue = node.properties[variable]!
         node.properties[variable] = value
         
-        if oldValue != value {
-            node.variableChanged(variable: variable, oldValue: oldValue, newValue: value)
+        // Disabled the check to allow an continuous event to come through for undo / redo
+        //if oldValue != value {
+            node.variableChanged(variable: variable, oldValue: undoValue, newValue: value)
             updateLinked()
             mmView.update()
-        }
+        //}
         mouseIsDown = false
     }
     
@@ -593,6 +611,10 @@ class NodeUINumber : NodeUI
             linked.value = value
             node.properties[linked.variable] = value
         }
+    }
+    
+    override func update() {
+        value = node.properties[variable]!
     }
     
     override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
@@ -686,6 +708,10 @@ class NodeUIAngle : NodeUI
     }
     
     override func mouseLeave() {
+    }
+    
+    override func update() {
+        value = node.properties[variable]!
     }
     
     override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
@@ -791,6 +817,10 @@ class NodeUIText : NodeUI
     
     func updateLinked()
     {
+    }
+    
+    override func update() {
+        value = oldValue
     }
     
     override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)

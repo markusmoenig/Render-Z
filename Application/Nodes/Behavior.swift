@@ -58,11 +58,14 @@ class BehaviorTree : Node
         try super.encode(to: superdecoder)
     }
     
-    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
     {
         if variable == "treeScale" {
             properties[variable] = newValue
             uiItems[0].mmView.update()
+        }
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
         }
     }
     
@@ -83,7 +86,6 @@ class BehaviorTree : Node
         return playResult!
     }
 }
-
 
 class Sequence : Node
 {

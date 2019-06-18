@@ -1891,6 +1891,7 @@ class NodeGraph : Codable
             return rc
         }
         
+        node.nodeGraph = self
         node.behaviorTree = nil
         for terminal in node.terminals {
             for conn in terminal.connections {

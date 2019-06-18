@@ -66,6 +66,8 @@ class Node : Codable, Equatable
     var playResult      : Result? = nil
     var helpUrl         : String? = nil
 
+    var nodeGraph       : NodeGraph? = nil
+    
     /// Static sizes
     static var NodeWithPreviewSize : float2 = float2(260,220)
     static var NodeMinimumSize     : float2 = float2(240,75)
@@ -157,6 +159,14 @@ class Node : Codable, Equatable
         computeUIArea(mmView: mmView)
     }
     
+    /// Update the UI of the node
+    func updateUI(mmView: MMView)
+    {
+        for item in uiItems {
+            item.update()
+        }
+    }
+    
     /// Setup
     func setup()
     {
@@ -188,8 +198,24 @@ class Node : Codable, Equatable
     }
     
     /// A UI Variable changed
-    func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
+    func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
     {
+        func applyProperties(_ variable: String,_ old: Float,_ new: Float)
+        {
+            nodeGraph!.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                self.properties[variable] = new
+                
+                //print("change", variable, "to", new)
+                applyProperties(variable, new, old)
+                //self.setupUI(mmView: self.nodeGraph!.mmView)
+                self.updateUI(mmView: self.nodeGraph!.mmView)
+                self.variableChanged(variable: variable, oldValue: old, newValue: new, continuous: false, noUndo: true)
+            }
+        }
+        
+        if continuous == false {
+            applyProperties(variable, newValue, oldValue)
+        }
     }
     
     /// Executes the connected properties
@@ -474,6 +500,7 @@ enum NodeFamily: String, NodeClassFamily {
     case restart = "Restart"
     case layer = "Layer"
     case layerArea = "Layer Area"
+    case layerRender = "Layer Render"
     case clickInLayerArea = "Click In Layer Area"
     case keyDown = "Key Down"
     case scene = "Scene"
@@ -520,6 +547,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return LayerArea.self
             case .clickInLayerArea:
                 return ClickInLayerArea.self
+            case .layerRender:
+                return LayerRender.self
             
             case .scene:
                 return Scene.self

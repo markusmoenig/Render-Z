@@ -101,6 +101,12 @@ class NodeList : MMWidget
             return LayerArea()
         }
         addNodeItem(item, type: .Property, displayType: .Layer)
+        // --- Layer Render
+        item = NodeListItem("Render Properties")
+        item.createNode = {
+            return LayerRender()
+        }
+        addNodeItem(item, type: .Property, displayType: .Layer)
         // --- Game Platform OSX
         item = NodeListItem("Platform: OSX")
         item.createNode = {

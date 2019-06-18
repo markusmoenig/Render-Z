@@ -61,12 +61,15 @@ class ValueVariable : Node
     }
     
     /// A UI Variable changed
-    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
     {
         if variable == "value" {
             let number = uiItems[0] as! NodeUINumber
             number.defaultValue = newValue
             properties["defaultValue"] = newValue
+        }
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
         }
     }
     
@@ -141,12 +144,15 @@ class DirectionVariable : Node
     }
     
     /// A UI Variable changed
-    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
     {
         if variable == "angle" {
             let number = uiItems[1] as! NodeUINumber
             number.defaultValue = newValue
             properties["defaultValue"] = newValue
+        }
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
         }
     }
     

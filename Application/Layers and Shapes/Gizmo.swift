@@ -2360,9 +2360,9 @@ class GizmoNode : Node
         super.init()
     }
     
-    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false)
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
     {
-//        print( "variableChanged", variable, oldValue, newValue, continuous)
+        //print( "variableChanged", variable, oldValue, newValue, continuous, noUndo)
         
         gizmo?.app.nodeGraph.updateNode(gizmo!.gizmoNode)
         gizmo?.gizmoVariableShape?.customReference = gizmo?.gizmoVariableConnection!.connectedTo
@@ -2396,6 +2396,9 @@ class GizmoNode : Node
                 gizmo!.processGizmoMaterialProperties(properties, material: material)
             }
             gizmo!.maxDelegate!.update(true, updateLists: true)
+        }
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
         }
     }
 }

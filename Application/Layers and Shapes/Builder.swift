@@ -12,6 +12,7 @@ class LayerGlobals
 {
     var position        : float2 = float2(0,0)
     var limiterSize     : float2 = float2(100000,100000)
+    var normalSampling  : Float = 0.1
 }
 
 class BuilderInstance
@@ -121,7 +122,7 @@ class Builder
             float4      camera;
             float2      position;
             float2      limiterSize;
-            float4      general; // .x == time
+            float4      general; // .x == time, .y == renderSampling
 
             SHAPE_DATA  shapes[\(max(buildData.maxShapes, 1))];
             float4      points[\(max(buildData.maxPoints, 1))];
@@ -342,7 +343,7 @@ class Builder
         
         float3 calculateNormal(float2 uv, float dist, constant LAYER_DATA *layerData, texture2d<half, access::sample> fontTexture, int profileIndex)
         {
-            float p = 10;//min(.3, .0005+.00005 * distance*distance);
+            float p = layerData->general.y;//min(.3, .0005+.00005 * distance*distance);
             float3 nor      = float3(0.0,            profile(min(dist,0.0), layerData->profileData, profileIndex), 0.0);
             float3 v2        = nor-float3(p,        profile(min(sdf(uv+float2(p,0.0), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), 0.0);
             float3 v3        = nor-float3(0.0,        profile(min(sdf(uv+float2(0.0,-p), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), -p);
@@ -734,8 +735,9 @@ class Builder
         instance.data![6] = instance.layerGlobals!.limiterSize.x / 2
         instance.data![7] = instance.layerGlobals!.limiterSize.y / 2
         
-        instance.data![8] = instance.data![8] + (1000/60) / 1000;
-    
+        instance.data![8] = instance.data![8] + (1000/60) / 1000
+        instance.data![9] = instance.layerGlobals!.normalSampling
+
         updateInstanceData(instance: instance, camera: camera, frame: frame)
         
         memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)

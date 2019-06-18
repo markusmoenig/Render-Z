@@ -137,7 +137,8 @@ class Scene : Node
         layer.builderInstance?.layerGlobals?.position.y = y
         layer.builderInstance?.layerGlobals?.limiterSize.x = width
         layer.builderInstance?.layerGlobals?.limiterSize.y = height
-        
+        layer.builderInstance?.layerGlobals?.normalSampling = layer.properties["renderSampling"]!
+
         layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
         outputTextures.append(layer.previewTexture!)
     }

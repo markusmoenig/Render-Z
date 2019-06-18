@@ -88,6 +88,10 @@ class Layer : Node
     {
         type = "Layer"
         maxDelegate = LayerMaxDelegate()
+        
+        properties["renderMode"] = 1
+        properties["renderSampling"] = 1
+        
         //minimumSize = Node.NodeWithPreviewSize
     }
     
@@ -142,6 +146,9 @@ class Layer : Node
         for object in objects {
             object.executeProperties(nodeGraph)
         }
+        
+        properties["renderMode"] = 1
+        properties["renderSampling"] = 0.1
         executeProperties(nodeGraph)
         
         var camera = maxDelegate!.getCamera()!
@@ -203,6 +210,7 @@ class Layer : Node
         }
         
         if builderInstance != nil {
+            builderInstance?.layerGlobals?.normalSampling = properties["renderSampling"]!
             nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture)
         }
         
