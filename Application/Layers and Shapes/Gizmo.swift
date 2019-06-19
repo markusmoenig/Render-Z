@@ -154,11 +154,13 @@ class Gizmo : MMWidget
     
     func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor, materialType: Object.MaterialType = .Body, customDelegate: NodeMaxDelegate? = nil)
     {
+        if self.object !== object {
+            gizmoInfoArea.reset()
+        }
+        
         self.object = object
         self.context = context
         self.materialType = materialType
-        
-        gizmoInfoArea.reset()
         
         if rootObject != nil {
             self.rootObject = rootObject
@@ -299,6 +301,13 @@ class Gizmo : MMWidget
                 for item in sorted {
                     gizmoNode.uiItems.append( item )
                 }
+                
+                // -- Update the info area
+                
+                if !gizmoInfoArea.items.isEmpty {
+                    let transformed = getTransformedProperties(shape)
+                    gizmoInfoArea.updateItems(transformed)
+                }
             }
             
             // --
@@ -335,6 +344,13 @@ class Gizmo : MMWidget
                 let sorted = customs.sorted(by: { $0.title.lowercased() < $1.title.lowercased() })
                 for item in sorted {
                     gizmoNode.uiItems.append( item )
+                }
+                
+                // -- Update the info area
+                
+                if !gizmoInfoArea.items.isEmpty {
+                    let transformed = getTransformedProperties(material)
+                    gizmoInfoArea.updateItems(transformed)
                 }
             }
             

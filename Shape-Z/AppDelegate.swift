@@ -31,9 +31,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         window.setFrameAutosaveName("MainWindow")
         
-//        var windowFrame = window.frame
-//        let width : Float = 1920; let height : Float = 1080
-//        windowFrame.size = NSMakeSize(CGFloat(width / app.mmView.scaleFactor), CGFloat(height / app.mmView.scaleFactor))
+        //var windowFrame = window.frame
+        //let width : Float = 1920; let height : Float = 1080
+        //windowFrame.size = NSMakeSize(CGFloat(width / app.mmView.scaleFactor), CGFloat(height / app.mmView.scaleFactor))
         
         let mainStoryboard = NSStoryboard.init(name: "Main", bundle: nil)
         helpWindowController = (mainStoryboard.instantiateController(withIdentifier: "HelpWindow") as! NSWindowController)

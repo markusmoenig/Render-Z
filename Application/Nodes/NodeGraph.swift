@@ -16,7 +16,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, MasterNode, MenuHover, MenuOpen
+        case None, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, MasterNode, MenuHover, MenuOpen, OverviewEdit
     }
     
     enum ContentType : Int {
@@ -99,6 +99,8 @@ class NodeGraph : Codable
 
     var previewSize     : float2 = float2(320, 200)
 
+    var editLabel       : MMTextLabel!
+    
     // --- Icons
     
     var executeIcon     : MTLTexture?
@@ -465,6 +467,8 @@ class NodeGraph : Codable
 //            executeIcon = app.mmView.icons["execute"]
 //        }
         
+        editLabel = MMTextLabel(mmView, font: mmView.openSans, text: "EDIT", scale: 0.3)
+        
         updateNodes()
         updateContent(.Objects)
     }
@@ -612,6 +616,16 @@ class NodeGraph : Codable
         }
 //        #endif
 
+        if nodeHoverMode == .OverviewEdit {
+            #if os(OSX)
+            self.overviewButton.clicked!(MMMouseEvent(0,0))
+            nodeHoverMode = .None
+            #else
+            setCurrentNode(hoverNode!)
+            #endif
+            return
+        }
+        
         if nodeHoverMode != .None && nodeHoverMode != .Preview {
             app?.mmView.mouseTrackWidget = app?.editorRegion?.widget
         }
@@ -700,6 +714,14 @@ class NodeGraph : Codable
     
     func mouseUp(_ event: MMMouseEvent)
     {
+        if nodeHoverMode == .OverviewEdit {
+            #if os(iOS)
+            self.overviewButton.clicked!(MMMouseEvent(0,0))
+            nodeHoverMode = .None
+            return
+            #endif
+        }
+        
         if nodeHoverMode == .MenuOpen {
             hoverNode!.menu!.mouseUp(event)
             nodeHoverMode = .None
@@ -860,11 +882,27 @@ class NodeGraph : Codable
                 }
             }
             
+            // Check for terminal
             if let terminalTuple = terminalAt(hoverNode!, event.x, event.y) {
                 nodeHoverMode = .Terminal
                 hoverTerminal = terminalTuple
                 mmView.update()
                 return
+            }
+            
+            // Check for top left edit area
+            
+            if event.x > hoverNode!.rect.x + 8 * scale && event.y > hoverNode!.rect.y + 12 * scale && event.x <= hoverNode!.rect.x + 45 * scale && event.y <= hoverNode!.rect.y + 40 * scale {
+                if overviewIsOn {
+                    nodeHoverMode = .OverviewEdit
+                    mmView.update()
+                    return
+                }
+            } else
+            if nodeHoverMode == .OverviewEdit
+            {
+                //print("no")
+                mmView.update()
             }
             
             if hoverNode !== currentMaster {
@@ -1204,6 +1242,16 @@ class NodeGraph : Codable
                 label.setText(node.name, scale: 0.5 * scale)
             }
             label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 23 * scale, width: node.rect.width - 50 * scale, height: label.rect.height)
+        }
+        
+        if nodeHoverMode == .OverviewEdit {
+            if editLabel.scale != 0.3 * scale {
+                editLabel.setText("EDIT", scale: 0.3 * scale)
+            }
+            editLabel.rect.x = node.rect.x + 10 * scale
+            editLabel.rect.y = node.rect.y + 20 * scale
+            editLabel.draw()
+//            editLabel.draw(x: node.rect.x + 10 * scale, y: node.rect.y + 10 * scale, width: node.rect.x + 40 * scale, height: editLabel.rect.height)
         }
         
         // --- UI
@@ -1764,7 +1812,7 @@ class NodeGraph : Codable
                 currentMaster = nil
             }
         }
-        contentScrollButton.setItems(items, fixedWidth: 250)
+        contentScrollButton.setItems(items, fixedWidth: 220)
         contentScrollButton.index = index
     }
     
