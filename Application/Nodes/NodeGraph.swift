@@ -617,11 +617,14 @@ class NodeGraph : Codable
 //        #endif
 
         if nodeHoverMode == .OverviewEdit {
-            #if os(OSX)
-            self.overviewButton.clicked!(MMMouseEvent(0,0))
-            nodeHoverMode = .None
-            #else
             setCurrentNode(hoverNode!)
+            #if os(OSX)
+            if overviewIsOn {
+                self.overviewButton.clicked!(MMMouseEvent(0,0))
+                nodeHoverMode = .None
+            } else {
+                activateNodeDelegate(hoverNode!)
+            }
             #endif
             return
         }
@@ -716,8 +719,12 @@ class NodeGraph : Codable
     {
         if nodeHoverMode == .OverviewEdit {
             #if os(iOS)
-            self.overviewButton.clicked!(MMMouseEvent(0,0))
-            nodeHoverMode = .None
+            if overviewIsOn {
+                self.overviewButton.clicked!(MMMouseEvent(0,0))
+                nodeHoverMode = .None
+            } else {
+                activateNodeDelegate(hoverNode!)
+            }
             return
             #endif
         }
@@ -893,7 +900,7 @@ class NodeGraph : Codable
             // Check for top left edit area
             
             if event.x > hoverNode!.rect.x + 8 * scale && event.y > hoverNode!.rect.y + 12 * scale && event.x <= hoverNode!.rect.x + 45 * scale && event.y <= hoverNode!.rect.y + 40 * scale {
-                if overviewIsOn {
+                if overviewIsOn || (overviewIsOn == false && hoverNode!.maxDelegate != nil) {
                     nodeHoverMode = .OverviewEdit
                     mmView.update()
                     return
@@ -1244,7 +1251,7 @@ class NodeGraph : Codable
             label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 23 * scale, width: node.rect.width - 50 * scale, height: label.rect.height)
         }
         
-        if nodeHoverMode == .OverviewEdit {
+        if nodeHoverMode == .OverviewEdit && node === hoverNode {
             if editLabel.scale != 0.3 * scale {
                 editLabel.setText("EDIT", scale: 0.3 * scale)
             }
@@ -2418,6 +2425,15 @@ class NodeGraph : Codable
         mmView.update()
     }
     
+    func activateNodeDelegate(_ node: Node)
+    {
+        maximizedNode = node
+        deactivate()
+        maximizedNode!.maxDelegate!.activate(app!)
+        nodeHoverMode = .None
+        app?.mmView.mouseTrackWidget = nil
+    }
+    
     func createNodeMenu(_ node: Node)
     {
         var items : [MMMenuItem] = []
@@ -2430,11 +2446,7 @@ class NodeGraph : Codable
                     //self.overviewButton.removeState(.Checked)
                     //self.overviewIsOn = false
                 } else {
-                    self.maximizedNode = node
-                    self.deactivate()
-                    self.maximizedNode!.maxDelegate!.activate(self.app!)
-                    self.nodeHoverMode = .None
-                    self.app?.mmView.mouseTrackWidget = nil
+                    self.activateNodeDelegate(node)
                 }
             } )
             items.append(editNodeItem)

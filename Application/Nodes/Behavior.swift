@@ -15,7 +15,12 @@ class BehaviorTree : Node
         super.init()
         
         name = "Behavior Tree"
+    }
+    
+    override func setup()
+    {
         type = "Behavior Tree"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5505133/Behavior+Tree"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -45,8 +50,6 @@ class BehaviorTree : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Behavior Tree"
     }
     
     override func encode(to encoder: Encoder) throws
@@ -94,7 +97,12 @@ class Sequence : Node
         super.init()
         
         name = "Sequence"
+    }
+    
+    override func setup()
+    {
         type = "Sequence"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5734443/Sequence"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -121,8 +129,6 @@ class Sequence : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Sequence"
     }
     
     override func encode(to encoder: Encoder) throws
@@ -165,7 +171,12 @@ class Selector : Node
         super.init()
         
         name = "Selector"
+    }
+    
+    override func setup()
+    {
         type = "Selector"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5505069/Selector"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -192,8 +203,6 @@ class Selector : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Selector"
     }
     
     override func encode(to encoder: Encoder) throws
@@ -236,7 +245,12 @@ class Inverter : Node
         super.init()
         
         name = "Inverter"
+    }
+    
+    override func setup()
+    {
         type = "Inverter"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5537868/Inverter"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -259,8 +273,6 @@ class Inverter : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Inverter"
     }
     
     override func encode(to encoder: Encoder) throws
