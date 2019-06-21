@@ -133,37 +133,34 @@ class ShapeFactory
         
         def.dynamicCode =
         """
-        float sdPolygon__shapeIndex__( float2 p, float2 poly[__pointCount__] )
+        float sdPolygon__shapeIndex__( float2 p, float2 v[__pointCount__] )
         {
             // https://www.shadertoy.com/view/WdSGRd
-            const int N = __pointCount__;
-            float2 e[N];
-            float2 v[N];
-            float2 pq[N];
-            // data
-            for( int i=0; i<N; i++) {
-                int i2= int(fmod(float(i+1),float(N))); //i+1
-                e[i] = poly[i2] - poly[i];
-                v[i] = p - poly[i];
-                pq[i] = v[i] - e[i]*clamp( dot(v[i],e[i])/dot(e[i],e[i]), 0.0, 1.0 );
+            const int num = __pointCount__;
+            float d = dot(p-v[0],p-v[0]);
+            float s = 1.0;
+            for( int i=0, j=num-1; i<num; j=i, i++ )
+            {
+                // distance
+                float2 e = v[j] - v[i];
+                float2 w =    p - v[i];
+                float2 b = w - e*clamp( dot(w,e)/dot(e,e), 0.0, 1.0 );
+                d = min( d, dot(b,b) );
+        
+                // winding number from http://geomalgorithms.com/a03-_inclusion.html
+                //sdPolygon_bvec3 cond = sdPolygon_bvec3( p.y>=v[i].y, p.y<v[j].y, e.x*w.y>e.y*w.x );
+                //if( all(cond) || all(not(cond)) ) s*=-1.0;
+        
+                bool cond1 = p.y>=v[i].y;
+                bool cond2 = p.y<v[j].y;
+                bool cond3 = e.x*w.y>e.y*w.x;
+        
+                if( (cond1 && cond2 && cond3) || (!cond1 && !cond2 && !cond3) ) {
+                    s*=-1.0;
+                }
             }
         
-            float d = dot(pq[0], pq[0]);
-            for( int i=1; i<N; i++) {
-                d = min( d, dot(pq[i], pq[i]));
-            }
-        
-            int wn =0;
-            for( int i=0; i<N; i++) {
-                int i2= int(fmod(float(i+1),float(N)));
-                bool cond1= 0. <= v[i].y;
-                bool cond2= 0. > v[i2].y;
-                float val3= sdPolygon_cross2d(e[i],v[i]);
-                wn+= cond1 && cond2 && val3>0. ? 1 : 0;
-                wn-= !cond1 && !cond2 && val3<0. ? 1 : 0;
-            }
-            float s= wn == 0 ? 1. : -1.;
-            return sqrt(d) * s;
+            return s*sqrt(d);
         }
         """
         def.properties["lineWidth"] = 0
@@ -636,6 +633,40 @@ class ShapeFactory
         def.properties["precision_int"] = 1
         
         shapes.append( def )
+        /*
+        // --- Star
+        def = ShapeDefinition()
+        def.name = "Star"
+        def.distanceCode = "sdStar(__uv__,__radius__, 4 )"
+        def.globalCode =
+        """
+        float sdStar(float2 p, float r, int n)
+        {
+            float a = 0;                 // angle factor
+            float m = 4.0;// + a*a*(n*2.0-4.0);    // angle divisor, between 4 and 2n
+        
+            // these 4 lines can be precomputed for a given shape
+            float an = 3.141593/float(n);
+            float en = 6.283185/m;
+            float2  acs = float2(cos(an),sin(an));
+            float2  ecs = float2(cos(en),sin(en)); // ecs=vec2(0,1) and simplify, for regular polygon,
+        
+            // reduce to first sector
+            float bn = fmod(atan2(p.x,p.y),2.0*an) - an;
+            p = length(p)*float2(cos(bn),abs(sin(bn)));
+        
+            // line sdf
+            p -= r*acs;
+            p += ecs*clamp( -dot(p,ecs), 0.0, r*acs.y/ecs.y);
+        
+            return length(p)*sign(p.x);
+        }
+        """
+        def.properties["radius"] = defaultSize
+        def.widthProperty = "radius"
+        def.heightProperty = "radius"
+        def.supportsRounding = true;
+        shapes.append( def )*/
     }
     
     /// Create a shape

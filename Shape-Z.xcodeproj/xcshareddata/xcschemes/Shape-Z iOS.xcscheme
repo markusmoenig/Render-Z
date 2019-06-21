@@ -86,6 +86,7 @@
    </AnalyzeAction>
    <ArchiveAction
       buildConfiguration = "Release"
+      customArchiveName = "Shape-Z"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>

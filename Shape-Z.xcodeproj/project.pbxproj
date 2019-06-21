@@ -223,7 +223,7 @@
 		2BBF110321EAD2B0001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		2BBF110521EAD2B0001C94E9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2BBF110621EAD2B0001C94E9 /* Shape_Z.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Shape_Z.entitlements; sourceTree = "<group>"; };
-		2BBF112C21EAD38D001C94E9 /* Shape-Z iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z iOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2BBF112C21EAD38D001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2BBF113021EAD38E001C94E9 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		2BBF113321EAD38E001C94E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -333,7 +333,7 @@
 			isa = PBXGroup;
 			children = (
 				2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */,
-				2BBF112C21EAD38D001C94E9 /* Shape-Z iOS.app */,
+				2BBF112C21EAD38D001C94E9 /* Shape-Z.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -527,7 +527,7 @@
 			);
 			name = "Shape-Z iOS";
 			productName = "Shape-Z iOS";
-			productReference = 2BBF112C21EAD38D001C94E9 /* Shape-Z iOS.app */;
+			productReference = 2BBF112C21EAD38D001C94E9 /* Shape-Z.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -988,7 +988,7 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z-iOS";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Shape-Z";
 				SDKROOT = iphoneos;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
@@ -1014,10 +1014,10 @@
 					"@executable_path/Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z-iOS";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Shape-Z";
 				SDKROOT = iphoneos;
-				SWIFT_OBJC_BRIDGING_HEADER = Application/Data.h;
-				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
+				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
