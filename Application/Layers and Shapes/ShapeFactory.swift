@@ -673,8 +673,7 @@ class ShapeFactory
         float sdStar(float2 p, float r, float a, float n)
         {
             p = abs(p);
-            //float a = 0.5;                 // angle factor
-            float m = 4.0 + a*a*(n*2.0-4.0);    // angle divisor, between 4 and 2n
+            float m = min(a, 2 * n);
         
             // these 4 lines can be precomputed for a given shape
             float an = 3.141593/float(n);
@@ -694,15 +693,21 @@ class ShapeFactory
         }
         """
         
-        def.properties["custom_factor"] = 0.5
-        def.properties["factor_min"] = 0
-        def.properties["factor_max"] = 1
+        def.properties["custom_factor"] = 6
+        def.properties["factor_min"] = 4
+        def.properties["factor_max"] = 20
         def.properties["factor_int"] = 0
         
         def.properties["custom_sides"] = 4
         def.properties["sides_min"] = 3
         def.properties["sides_max"] = 20
         def.properties["sides_int"] = 1
+        
+        /*
+        def.properties["custom_angle"] = 4
+        def.properties["angle_min"] = 3
+        def.properties["angle_max"] = 10
+        def.properties["angle_int"] = 0*/
         
         def.properties["radius"] = defaultSize
         def.widthProperty = "radius"
@@ -721,6 +726,8 @@ class ShapeFactory
             float2 c = float2(cos(cin), sin(cin));
             float2 w = float2(hin,win);
         
+            w *= r;
+        
             p.x = abs(p.x);
             float l = length(p);
             p = float2x2(-c.x, c.y,
@@ -734,17 +741,17 @@ class ShapeFactory
         
         def.properties["custom_angle"] = 1.2
         def.properties["angle_min"] = 0
-        def.properties["angle_max"] = 1.5
+        def.properties["angle_max"] = 3
         def.properties["angle_int"] = 0
         
-        def.properties["custom_thickness"] = 6
+        def.properties["custom_thickness"] = 0.5
         def.properties["thickness_min"] = 0
-        def.properties["thickness_max"] = 200
+        def.properties["thickness_max"] = 1
         def.properties["thickness_int"] = 0
         
-        def.properties["custom_height"] = 20
+        def.properties["custom_height"] = 0.7
         def.properties["height_min"] = 0
-        def.properties["height_max"] = 200
+        def.properties["height_max"] = 1
         def.properties["height_int"] = 0
         
         def.properties["radius"] = defaultSize
@@ -761,6 +768,7 @@ class ShapeFactory
         float sdVesica(float2 p, float r, float d)
         {
             p = abs(p);
+            d *= r;
 
             float b = sqrt(r*r-d*d);  // can delay this sqrt by rewriting the comparison
             return ((p.y-b)*d > p.x*b) ? length(p-float2(0.0,b))
@@ -768,9 +776,9 @@ class ShapeFactory
         }
         """
         
-        def.properties["custom_distance"] = 20
+        def.properties["custom_distance"] = 0.5
         def.properties["distance_min"] = 0
-        def.properties["distance_max"] = 200
+        def.properties["distance_max"] = 1
         def.properties["distance_int"] = 0
         
         def.properties["radius"] = defaultSize
