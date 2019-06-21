@@ -152,6 +152,9 @@ class ShapeSelector
             if shape.name == "Variable" {
                 source += createStaticTextSource(mmView.openSans, "123", varCounter: index)
             }
+            if shape.name == "Horseshoe" {
+                source += "uv.y = -uv.y;\n"
+            }
             
             source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: index) + ");"
             
@@ -277,6 +280,9 @@ class ShapeSelector
         
         if shape.name == "Text" || shape.name == "Variable" {
             source += createStaticTextSource(mmView.openSans, "Abc")
+        }
+        if shape.name == "Horseshoe" {
+            source += "uv.y = -uv.y;\n"
         }
         source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: 0) + ");"
         source +=

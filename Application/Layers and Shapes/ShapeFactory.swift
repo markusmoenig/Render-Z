@@ -633,17 +633,48 @@ class ShapeFactory
         def.properties["precision_int"] = 1
         
         shapes.append( def )
-        /*
+        
+        
+        // --- Pie
+        def = ShapeDefinition()
+        def.name = "Pie"
+        def.distanceCode = "sdPie(__uv__,__radius__, __custom_angle__ )"
+        def.globalCode =
+        """
+        float sdPie(float2 p, float r, float angle)
+        {
+            const float PI = 3.14159265359;
+            angle = angle * PI / 180;
+            float2 c = float2(sin(angle),cos(angle));
+            p.x = abs(p.x);
+            float l = length(p) - r;
+            float m = length(p - c*clamp(dot(p,c),0.0,r) );
+            return max(l,m*sign(c.y*p.x-c.x*p.y));
+        }
+        """
+        def.properties["radius"] = defaultSize
+        def.widthProperty = "radius"
+        def.heightProperty = "radius"
+        
+        def.properties["custom_angle"] = 45
+        def.properties["angle_min"] = 0
+        def.properties["angle_max"] = 180
+        def.properties["angle_int"] = 0
+        
+        def.supportsRounding = true;
+        shapes.append( def )
+        
         // --- Star
         def = ShapeDefinition()
         def.name = "Star"
-        def.distanceCode = "sdStar(__uv__,__radius__, 4 )"
+        def.distanceCode = "sdStar(__uv__,__radius__,__custom_factor__,__custom_sides__)"
         def.globalCode =
         """
-        float sdStar(float2 p, float r, int n)
+        float sdStar(float2 p, float r, float a, float n)
         {
-            float a = 0;                 // angle factor
-            float m = 4.0;// + a*a*(n*2.0-4.0);    // angle divisor, between 4 and 2n
+            p = abs(p);
+            //float a = 0.5;                 // angle factor
+            float m = 4.0 + a*a*(n*2.0-4.0);    // angle divisor, between 4 and 2n
         
             // these 4 lines can be precomputed for a given shape
             float an = 3.141593/float(n);
@@ -658,15 +689,94 @@ class ShapeFactory
             // line sdf
             p -= r*acs;
             p += ecs*clamp( -dot(p,ecs), 0.0, r*acs.y/ecs.y);
-        
+
             return length(p)*sign(p.x);
         }
         """
+        
+        def.properties["custom_factor"] = 0.5
+        def.properties["factor_min"] = 0
+        def.properties["factor_max"] = 1
+        def.properties["factor_int"] = 0
+        
+        def.properties["custom_sides"] = 4
+        def.properties["sides_min"] = 3
+        def.properties["sides_max"] = 20
+        def.properties["sides_int"] = 1
+        
         def.properties["radius"] = defaultSize
         def.widthProperty = "radius"
         def.heightProperty = "radius"
         def.supportsRounding = true;
-        shapes.append( def )*/
+        shapes.append( def )
+        
+        // --- Horseshoe
+        def = ShapeDefinition()
+        def.name = "Horseshoe"
+        def.distanceCode = "sdHorseshoe(__uv__,__radius__,__custom_angle__,__custom_thickness__,__custom_height__)"
+        def.globalCode =
+        """
+        float sdHorseshoe(float2 p, float r, float cin, float win, float hin )
+        {
+            float2 c = float2(cos(cin), sin(cin));
+            float2 w = float2(hin,win);
+        
+            p.x = abs(p.x);
+            float l = length(p);
+            p = float2x2(-c.x, c.y,
+            c.y, c.x)*p;
+            p = float2((p.y>0.0)?p.x:l*sign(-c.x),
+            (p.x>0.0)?p.y:l );
+            p = float2(p.x,abs(p.y-r))-w;
+            return length(max(p,0.0)) + min(0.0,max(p.x,p.y));
+        }
+        """
+        
+        def.properties["custom_angle"] = 1.2
+        def.properties["angle_min"] = 0
+        def.properties["angle_max"] = 1.5
+        def.properties["angle_int"] = 0
+        
+        def.properties["custom_thickness"] = 6
+        def.properties["thickness_min"] = 0
+        def.properties["thickness_max"] = 200
+        def.properties["thickness_int"] = 0
+        
+        def.properties["custom_height"] = 20
+        def.properties["height_min"] = 0
+        def.properties["height_max"] = 200
+        def.properties["height_int"] = 0
+        
+        def.properties["radius"] = defaultSize
+        def.widthProperty = "radius"
+        def.heightProperty = "radius"
+        shapes.append( def )
+        
+        // --- Vesica
+        def = ShapeDefinition()
+        def.name = "Vesica"
+        def.distanceCode = "sdVesica(__uv__,__radius__,__custom_distance__)"
+        def.globalCode =
+        """
+        float sdVesica(float2 p, float r, float d)
+        {
+            p = abs(p);
+
+            float b = sqrt(r*r-d*d);  // can delay this sqrt by rewriting the comparison
+            return ((p.y-b)*d > p.x*b) ? length(p-float2(0.0,b))
+            : length(p-float2(-d,0.0))-r;
+        }
+        """
+        
+        def.properties["custom_distance"] = 20
+        def.properties["distance_min"] = 0
+        def.properties["distance_max"] = 200
+        def.properties["distance_int"] = 0
+        
+        def.properties["radius"] = defaultSize
+        def.widthProperty = "radius"
+        def.heightProperty = "radius"
+        shapes.append( def )
     }
     
     /// Create a shape
@@ -697,7 +807,7 @@ class ShapeFactory
             shape.supportsRounding = def.supportsRounding
 
             for (name,_) in shape.properties {
-                if (name == "radius" || name == "width" || name == "height") && shape.name != "Ellipse" && shape.name != "Cross" {
+                if (name == "radius" || name == "width" || name == "height") && shape.name != "Ellipse" && shape.name != "Cross" && shape.name != "Horseshoe" {
                     shape.properties[name] = size
                 }
             }

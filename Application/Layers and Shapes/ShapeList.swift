@@ -176,6 +176,9 @@ class ShapeList
                 source += "uv /= 8; uv -= float2( 1.2, -0.2 );"
                 source += createStaticTextSource(mmView.openSans, shape.name == "Text" ? "Abc" : "123", varCounter: index)
             }
+            if shape.name == "Horseshoe" {
+                source += "uv.y = -uv.y;\n"
+            }
             source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12), shapeIndex: index) + ";"
             
             if shape.name == "Text" || shape.name == "Variable" {
@@ -361,6 +364,11 @@ class ShapeList
         properties[shape.widthProperty] = size
         properties[shape.heightProperty] = size
 
+        if shape.name == "Horseshoe" {
+            properties["custom_thickness"] = shape.properties["custom_thickness"]! / 2
+            properties["custom_height"] = shape.properties["custom_height"]! / 2
+            properties["radius"] = shape.properties["radius"]! / 2
+        } else
         if shape.name == "Ellipse" {
             properties[shape.heightProperty] = size / 1.5
         } else
