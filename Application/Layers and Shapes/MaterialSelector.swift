@@ -120,8 +120,10 @@ class MaterialSelector
         
             fragment float4 materialBuilder(RasterizerData in [[stage_in]])
             {
-                float2 size = float2( \(width), \(height) );
-                float2 uvOrigin = in.textureCoordinate * size - size / 2;
+                float2 size = float2( \(unitSize*4), \(unitSize*4) );
+                float2 realSize = float2( \(width), \(height) );
+
+                float2 uvOrigin = in.textureCoordinate * realSize - realSize / 2;
                 uvOrigin.y = 1 - uvOrigin.y;
                 float2 uv, d;
         
@@ -139,8 +141,7 @@ class MaterialSelector
         var materialRects : [MMRect] = []
         for (_, material) in materials.enumerated() {
 
-            source += "uv = uvOrigin; uv.x += size.x / 2 - \(left); uv.y += size.y / 2 - \(top);\n"
-            
+            source += "uv = uvOrigin; uv.x += realSize.x / 2 - \(left); uv.y += realSize.y / 2 - \(top);\n"
             source += "uv /= \(zoom);\n"
             
             source += "d = abs(uv) - float2(\(unitSize/2));\n"
@@ -256,6 +257,7 @@ class MaterialSelector
         texture2d<half, access::read>   inTexture   [[texture(1)]],
         uint2                           gid         [[thread_position_in_grid]])
         {
+            float2 size = float2( \(unitSize*4), \(unitSize*4) );
             float2 uv = float2( gid.x - outTexture.get_width() / 2., gid.y - outTexture.get_height() / 2. );
             MATERIAL_DATA material;
         

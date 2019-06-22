@@ -422,7 +422,7 @@ class ShapeFactory
         def.heightProperty = "radius"
         def.properties["custom_stretch"] = 1.6
         def.properties["stretch_min"] = 0
-        def.properties["stretch_max"] = 5
+        def.properties["stretch_max"] = 50
         def.properties["stretch_int"] = 0
         
         def.properties["custom_spires"] = 5
@@ -437,7 +437,7 @@ class ShapeFactory
         
         def.properties["custom_thickness"] = 0.05
         def.properties["thickness_min"] = 0
-        def.properties["thickness_max"] = 1
+        def.properties["thickness_max"] = 2
         def.properties["thickness_int"] = 0
         shapes.append( def )
         
@@ -785,6 +785,67 @@ class ShapeFactory
         def.widthProperty = "radius"
         def.heightProperty = "radius"
         shapes.append( def )
+        
+        /*
+        // --- Cosine
+        def = ShapeDefinition()
+        def.name = "Cosine"
+        def.distanceCode = "udCos(__uv__,__radius__,__custom_offset__,__custom_amplitude__,__custom_frequency__,__custom_phase__)"
+        def.globalCode =
+        """
+        float udCos(float2 p, float r, float a, float b, float c, float d )
+        {
+            p = abs(p);
+        
+            //a /= r; b /= r; c /= r; d /= r;
+        
+            // convert all data to a primitive cosine wave
+            p = c*(p-float2(d,a));
+        
+            // reduce to principal half cycle
+            const float TPI = 6.28318530718;
+            p.x = fmod( p.x, TPI); if( p.x>(0.5*TPI) ) p.x = TPI - p.x;
+        
+            // find zero of derivative (minimize distance)
+            float xa = 0.0, xb = TPI;
+            for( int i=0; i<24; i++ ) // 24 bit precision
+            {
+                float x = 0.5*(xa+xb);
+                float y = x-p.x+b*c*sin(x)*(p.y-b*c*cos(x));
+                if( y<0.0 ) xa = x; else xb = x;
+            }
+            float x = 0.5*(xa+xb);
+        
+            // compute distance
+            float2 q = float2(x,b*c*cos(x));
+            return length(p-q)/c - r;
+        }
+        """
+        
+        def.properties["custom_offset"] = 0.5
+        def.properties["offset_min"] = 0
+        def.properties["offset_max"] = 100
+        def.properties["offset_int"] = 0
+        
+        def.properties["custom_amplitude"] = 0.5
+        def.properties["amplitude_min"] = 0
+        def.properties["amplitude_max"] = 100
+        def.properties["amplitude_int"] = 0
+        
+        def.properties["custom_frequency"] = 0.5
+        def.properties["frequency_min"] = 0
+        def.properties["frequency_max"] = 100
+        def.properties["frequency_int"] = 0
+        
+        def.properties["custom_phase"] = 0.5
+        def.properties["phase_min"] = 0
+        def.properties["phase_max"] = 100
+        def.properties["phase_int"] = 0
+        
+        def.properties["radius"] = 5;
+        def.widthProperty = "radius"
+        def.heightProperty = "radius"
+        shapes.append( def )*/
     }
     
     /// Create a shape

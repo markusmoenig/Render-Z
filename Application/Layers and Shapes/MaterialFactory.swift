@@ -132,7 +132,66 @@ class MaterialFactory
         def.heightProperty = "size"
         materials.append( def )
         
-        // --- Checker
+        // --- Bricks
+        def = MaterialDefinition()
+        def.name = "Bricks"
+        def.globalCode =
+        """
+        float4 bricksMaterial( float2 uv, float4 value, float2 size, float2 screenSize, float bevel, float gap, float rounding) {
+            float CELL = round(size.y);//20;
+            float RATIO = round(size.x); //3
+        
+            float2 U = uv / screenSize;
+
+            float2 BEVEL = bevel;
+            float2 GAP  = gap;//float2(.5)/8.;
+            float ROUND  = rounding;//float2(.5)/8.;
+
+            float2 W = float2(RATIO,1);
+            U *= CELL/W;
+
+            U.x += .5* fmod(floor(U.y),2.);
+
+            float2 S = W* (fract(U) - 1./2.);
+        
+            float2 A = W/2.-GAP - abs(S);
+            float2 B = A * 2. / BEVEL;
+            float m = min(B.x,B.y);
+            if (A.x<ROUND && A.y<ROUND)
+                m = (ROUND-length(ROUND-A)) *2./dot(BEVEL,normalize(ROUND-A));
+        
+            float alpha = clamp( m ,0.,1.);
+            return float4( value.xyz, alpha);
+        }
+        """
+        def.code = "bricksMaterial(__uv__, __value__, __size__, __screenSize__, __custom_bevel__,__custom_gap__,__custom_round__)"
+        def.properties["value_x"] = 0.8
+        def.properties["value_y"] = 0
+        def.properties["value_z"] = 0
+        def.properties["value_w"] = 1
+        
+        def.properties["custom_bevel"] = 0.3
+        def.properties["bevel_min"] = 0
+        def.properties["bevel_max"] = 1
+        def.properties["bevel_int"] = 0
+        
+        def.properties["custom_gap"] = 0.1
+        def.properties["gap_min"] = 0
+        def.properties["gap_max"] = 1
+        def.properties["gap_int"] = 0
+        
+        def.properties["custom_round"] = 0.1
+        def.properties["round_min"] = 0
+        def.properties["round_max"] = 1
+        def.properties["round_int"] = 0
+        
+        def.properties["ratio"] = 2
+        def.properties["scale"] = 40
+        def.widthProperty = "ratio"
+        def.heightProperty = "scale"
+        materials.append( def )
+        
+        // --- Stars
         def = MaterialDefinition()
         def.name = "Stars"
         def.globalCode =

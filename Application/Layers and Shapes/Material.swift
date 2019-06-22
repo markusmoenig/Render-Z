@@ -130,7 +130,9 @@ class Material : Codable
         
         code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
         code = code.replacingOccurrences(of: "__material__", with: ("&" + materialName))
-        
+
+        code = code.replacingOccurrences(of: "__screenSize__", with: "size")
+
         if materialDataIndex == nil {
             code = code.replacingOccurrences(of: "__time__", with: "0.0")
         } else {
