@@ -259,6 +259,7 @@ class MaterialSelector
         {
             float2 size = float2( \(unitSize*4), \(unitSize*4) );
             float2 uv = float2( gid.x - outTexture.get_width() / 2., gid.y - outTexture.get_height() / 2. );
+            float dist = 1.0;
             MATERIAL_DATA material;
         
         """

@@ -82,13 +82,13 @@ class NodeList : MMWidget
         addNodeItem(item, type: .Function, displayType: .SceneOverview)
         
         // -------------------------------
-
+        /*
         // --- Object Profile
         item = NodeListItem("3D Profile")
         item.createNode = {
             return ObjectProfile()
         }
-        addNodeItem(item, type: .Property, displayType: .Object)
+        addNodeItem(item, type: .Property, displayType: .Object)*/
         // --- Object Physics
         item = NodeListItem("Physics Properties")
         item.createNode = {

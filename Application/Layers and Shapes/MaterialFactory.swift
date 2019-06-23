@@ -81,32 +81,46 @@ class MaterialFactory
         def.pointCount = 2
         materials.append( def )
         
-        // --- Grid
+        // --- Distance
         def = MaterialDefinition()
-        def.name = "Grid"
+        def.name = "Distance"
         def.globalCode =
         """
-        float4 gridMaterial( float2 uv, float4 value, float2 size) {
-            float2 vPixelsPerGridSquare = size;
-            float2 vScreenPixelCoordinate = uv;
-            float2 vGridSquareCoords = fract(vScreenPixelCoordinate / vPixelsPerGridSquare);
-            float2 vGridSquarePixelCoords = vGridSquareCoords * vPixelsPerGridSquare;
-            float2 vIsGridLine = step(vGridSquarePixelCoords, float2(1.0));
+        float4 distanceMaterial( float2 uv, float4 value, float2 size, float dist) {
+            //float alpha = mix( 0, 1, abs(dist) / size.x);
+            //float alpha = mix( 0, 1, smoothstep( 0, 1, -dist / size.x ) );
+            //value = mix( pt1->y, pt2->y, smoothstep(0, 1, dist / (pt2->x - pt1->x) ) );
+
+            dist = abs(dist);
+        /*
+        float x = dist;// - pt1->x;
+        float r = (pt2->x - pt1->x);
+        float center = (pt2->x + pt1->x);
+        float xM = x - center;
+        value = mix( pt1->y, pt2->y, clamp( dist / (pt2->x - pt1->x), 0, 1 ) ) + sqrt( r * r - xM * xM );*/
         
-            float fIsGridLine = max(vIsGridLine.x, vIsGridLine.y);
-            return mix( float4(0), value, fIsGridLine);
+            float sized = size.x * 25;
+            dist = min(dist, sized);
+        
+            float x = dist;// - pt1->x;
+            float r = sized;//(pt2->x - pt1->x);
+            float center = sized;//size.x / 2;//(pt2->x + pt1->x);
+            float xM = x - center;
+            float alpha = (sqrt( r * r - xM * xM )) / (sized/4);
+        
+            return float4( value.xyz, alpha);//clamp(alpha, 0, 1) );
         }
         """
-        def.code = "gridMaterial(__uv__, __value__, __size__)"
-        def.properties["value_x"] = 0.3
-        def.properties["value_y"] = 0.3
-        def.properties["value_z"] = 0.3
+        def.code = "distanceMaterial(__uv__, __value__, __size__, __distance__)"
+        def.properties["value_x"] = 1
+        def.properties["value_y"] = 1
+        def.properties["value_z"] = 1
         def.properties["value_w"] = 1
         
-        def.properties["width"] = defaultSize
-        def.properties["height"] = defaultSize
-        def.widthProperty = "width"
-        def.heightProperty = "height"
+        def.properties["size"] = defaultSize
+        def.properties["size"] = defaultSize
+        def.widthProperty = "size"
+        def.heightProperty = "size"
         materials.append( def )
         
         // --- Checker
@@ -165,12 +179,12 @@ class MaterialFactory
         }
         """
         def.code = "bricksMaterial(__uv__, __value__, __size__, __screenSize__, __custom_bevel__,__custom_gap__,__custom_round__)"
-        def.properties["value_x"] = 0.8
-        def.properties["value_y"] = 0
-        def.properties["value_z"] = 0
+        def.properties["value_x"] = 0.3
+        def.properties["value_y"] = 0.3
+        def.properties["value_z"] = 0.3
         def.properties["value_w"] = 1
         
-        def.properties["custom_bevel"] = 0.3
+        def.properties["custom_bevel"] = 0.2
         def.properties["bevel_min"] = 0
         def.properties["bevel_max"] = 1
         def.properties["bevel_int"] = 0
@@ -189,6 +203,39 @@ class MaterialFactory
         def.properties["scale"] = 40
         def.widthProperty = "ratio"
         def.heightProperty = "scale"
+        materials.append( def )
+        
+        // --- Grid
+        def = MaterialDefinition()
+        def.name = "Grid"
+        def.globalCode =
+        """
+        float4 gridMaterial( float2 uv, float4 value, float2 size, float2 screenSize, float thickness) {
+        float2 vPixelsPerGridSquare = size;
+        float2 vScreenPixelCoordinate = uv;
+        float2 vGridSquareCoords = fract(vScreenPixelCoordinate / vPixelsPerGridSquare);
+        float2 vGridSquarePixelCoords = vGridSquareCoords * vPixelsPerGridSquare;
+        float2 vIsGridLine = step(vGridSquarePixelCoords, float2(1.0) * thickness);
+        
+        float fIsGridLine = max(vIsGridLine.x, vIsGridLine.y);
+        return mix( float4(0), value, fIsGridLine);
+        }
+        """
+        def.code = "gridMaterial(__uv__, __value__, __size__,__screenSize__,__custom_thickness__)"
+        def.properties["value_x"] = 0.3
+        def.properties["value_y"] = 0.3
+        def.properties["value_z"] = 0.3
+        def.properties["value_w"] = 1
+        
+        def.properties["custom_thickness"] = 2
+        def.properties["thickness_min"] = 1
+        def.properties["thickness_max"] = 40
+        def.properties["thickness_int"] = 0
+        
+        def.properties["width"] = defaultSize
+        def.properties["height"] = defaultSize
+        def.widthProperty = "width"
+        def.heightProperty = "height"
         materials.append( def )
         
         // --- Stars

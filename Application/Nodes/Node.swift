@@ -481,7 +481,7 @@ enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
     case objectPhysics = "Object Physics"
     case setObjectPhysics = "Set Object Physics"
-    case objectProfile = "3D Profile"
+    //case objectProfile = "3D Profile"
     case objectAnimation = "Object Animation"
     case objectAnimationState = "Object Animation State"
     case objectApplyForce = "Object Apply Force"
@@ -524,8 +524,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectPhysics.self
             case .setObjectPhysics:
                 return SetObjectPhysics.self
-            case .objectProfile:
-                return ObjectProfile.self
+            //case .objectProfile:
+            //    return ObjectProfile.self
             case .objectAnimation:
                 return ObjectAnimation.self
             case .objectAnimationState:

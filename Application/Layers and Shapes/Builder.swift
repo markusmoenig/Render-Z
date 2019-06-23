@@ -64,6 +64,7 @@ class BuildData
     
     var mainDataName        : String = "layerData->"
     var materialSource      : String = ""
+    var materialNormalSource: String = ""
     var source              : String = ""
     
     // Maximum values
@@ -261,7 +262,7 @@ class Builder
             }
             return float4(dist, objectId, materialId, 0);
         }
-        
+        /*
         float profile( float dist, constant float4 *profileData, int profileIndex)
         {
             dist = abs(dist);
@@ -349,7 +350,14 @@ class Builder
             float3 v3        = nor-float3(0.0,        profile(min(sdf(uv+float2(0.0,-p), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), -p);
             nor = cross(v2, v3);
             return normalize(nor);
-        }
+        }*/
+        
+        """
+        
+        let headerSource = buildData.source
+        
+        buildData.source =
+        """
         
         kernel void
         layerBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
@@ -456,7 +464,10 @@ class Builder
         """
             outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
         }
+        
         """
+        
+        buildData.source = headerSource + buildData.materialNormalSource + buildData.source
         
         instance.buffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
@@ -604,8 +615,9 @@ class Builder
     
         if !physics && buildMaterials {
             // --- Material Code
-            func createMaterialCode(_ material: Material, _ materialName: String)
+            func createMaterialCode(_ material: Material, _ materialName: String, normal: Bool = false) -> String
             {
+                var source = ""
                 var channelCode = materialName + "."
                 var materialProperty : String = ""
                 let channel = material.properties["channel"]
@@ -628,6 +640,10 @@ class Builder
                 let limiterType = material.properties["limiterType"]
                 let materialExt = channel == 0 ? "" : ".x"
                 
+                if normal {
+                    channelCode = "mixValue"
+                }
+                
                 // --- Setup the custom properties table
                 material.customProperties = []
                 for (key, _) in material.properties {
@@ -637,52 +653,103 @@ class Builder
                 }
                 
                 // --- Translate material uv
-                buildData.materialSource += "tuv = translate( uv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].xy );"
+                source += "tuv = translate( uv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].xy );"
                 
                 // --- Rotate material uv
-                buildData.materialSource += "if ( \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x != 0.0 ) tuv = rotateCW( tuv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x );\n"
+                source += "if ( \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x != 0.0 ) tuv = rotateCW( tuv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x );\n"
                 
                 if !material.isCompound {
-                    buildData.materialSource += "value = " + material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+3) + ";\n"
+                    source += "value = " + material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+3) + ";\n"
                     
                     if limiterType == 0 {
                         // --- No Limiter
-                        buildData.materialSource += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
+                        source += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
                     } else
                     if limiterType == 1 {
                         // --- Rectangle
-                        buildData.materialSource += "  d = abs( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].zw;\n"
-                        buildData.materialSource += "  limiterDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
-                        buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                        source += "  d = abs( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].zw;\n"
+                        source += "  limiterDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
+                        source += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
                     } else
                     if limiterType == 2 {
                         // --- Sphere
-                        buildData.materialSource += "  limiterDist = length( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].z;\n"
-                        buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                        source += "  limiterDist = length( tuv ) - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].z;\n"
+                        source += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
                     } else
                     if limiterType == 3 {
                         // --- Border
-                        buildData.materialSource += "  limiterDist = -dist - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].z;\n"
-                        buildData.materialSource += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
+                        source += "  limiterDist = -dist - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].z;\n"
+                        source += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
                     }
                 } else {
-                    buildData.materialSource += material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+3, materialName: materialName) + ";\n"
+                    source += material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+3, materialName: materialName) + ";\n"
                 }
+                
+                if normal {
+                    source += "alpha += mixValue.w;\n"
+                }
+                
+                return source;
             }
             
             // Insert normal calculation code for the profile data
-            if object.profile != nil {
+            //if object.profile != nil {
                 buildData.materialSource += "if (dist <= 0 && objectId == \(buildData.objectIndex)) { \n"
-                buildData.materialSource += "normal = calculateNormal( uv, dist, layerData, fontTexture, \(buildData.profileIndex));"
+                buildData.materialSource += "normal = calculateNormalForObject\(buildData.objectIndex)(uv, layerData, fontTexture, dist, size);"
                 buildData.materialSource += "}\n"
-                buildData.profileIndex += object.profile!.count
+                //buildData.profileIndex += object.profile!.count
+            //}
+            
+            // --- Normal
+            
+            buildData.materialNormalSource += "\nfloat calculateBumpForObject\(buildData.objectIndex)( float2 uv, constant LAYER_DATA *layerData, float dist, float2 size ) {\n float2 tuv; float4 value, mixValue; float alpha = 0; MATERIAL_DATA bodyMaterial; MATERIAL_DATA borderMaterial;\n "
+            
+            for material in object.bodyMaterials {
+                let bumpValue = material.properties["bump"]!
+                if bumpValue > 0 && !material.isCompound {
+                    buildData.materialNormalSource += createMaterialCode(material, "bodyMaterial", normal: true)
+                }
             }
             
-            ///
+            buildData.materialNormalSource += "\nreturn alpha;\n}"
+            
+            buildData.materialNormalSource += """
+            
+            float3 calculateNormalForObject\(buildData.objectIndex)(float2 uv, constant LAYER_DATA *layerData, texture2d<half, access::sample> fontTexture, float dist, float2 size)
+            {
+                float p = layerData->general.y;//min(.3, .0005+.00005 * distance*distance);
+                float3 nor = float3(0.0, calculateBumpForObject\(buildData.objectIndex)(uv, layerData, dist*25, size), 0.0);
+            
+                float3 v2 = nor - float3(p, calculateBumpForObject\(buildData.objectIndex)(uv+float2(p,0.0), layerData, sdf(uv+float2(p,0.0), layerData, fontTexture).x*25, size), 0.0);
+            
+                float3 v3 = nor - float3(0.0, calculateBumpForObject\(buildData.objectIndex)(uv+float2(0.0,-p), layerData, sdf(uv+float2(0.0,-p), layerData, fontTexture).x*25, size), -p);
+                nor = cross(v2, v3);
+                return normalize(nor);
+            }
+            
+            /*
+            float3 calculateNormal(float2 uv, float dist, constant LAYER_DATA *layerData, texture2d<half, access::sample> fontTexture, int profileIndex)
+            {
+            float p = layerData->general.y;//min(.3, .0005+.00005 * distance*distance);
+            float3 nor      = float3(0.0,            profile(min(dist,0.0), layerData->profileData, profileIndex), 0.0);
+            float3 v2        = nor-float3(p,        profile(min(sdf(uv+float2(p,0.0), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), 0.0);
+            float3 v3        = nor-float3(0.0,        profile(min(sdf(uv+float2(0.0,-p), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), -p);
+            nor = cross(v2, v3);
+            return normalize(nor);
+            }*/
+            
+            """
+            
+            //
             
             buildData.materialSource += "if (materialId == \(buildData.objectIndex)) { float2 d; float limiterDist; float4 value;\n"
             for material in object.bodyMaterials {
-                createMaterialCode(material, "bodyMaterial")
+                
+                let bumpValue = material.properties["bump"]!
+                if bumpValue != 2 {
+                    buildData.materialSource += createMaterialCode(material, "bodyMaterial")
+                }
+                
                 if material.pointCount == 0 {
                     buildData.materialDataIndex += 4
                 } else {
@@ -690,7 +757,7 @@ class Builder
                 }
             }
             for material in object.borderMaterials {
-                createMaterialCode(material, "borderMaterial")
+                buildData.materialSource += createMaterialCode(material, "borderMaterial")
                 if material.pointCount == 0 {
                     buildData.materialDataIndex += 4
                 } else {

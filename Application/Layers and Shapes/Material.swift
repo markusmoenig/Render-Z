@@ -49,6 +49,7 @@ class Material : Codable
         properties["posY"] = 0
         properties["rotate"] = 0
         properties["channel"] = 0
+        properties["bump"] = 0
         properties["limiterType"] = 0
         properties["limiterWidth"] = 40
         properties["limiterHeight"] = 40
@@ -66,6 +67,10 @@ class Material : Codable
         heightProperty = try container.decode(String.self, forKey: .heightProperty)
         pointCount = try container.decode(Int.self, forKey: .pointCount)
         isCompound = try container.decode(Bool.self, forKey: .isCompound)
+        
+        if properties["bump"] == nil {
+            properties["bump"] = 0
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -132,6 +137,7 @@ class Material : Codable
         code = code.replacingOccurrences(of: "__material__", with: ("&" + materialName))
 
         code = code.replacingOccurrences(of: "__screenSize__", with: "size")
+        code = code.replacingOccurrences(of: "__distance__", with: "dist")
 
         if materialDataIndex == nil {
             code = code.replacingOccurrences(of: "__time__", with: "0.0")
