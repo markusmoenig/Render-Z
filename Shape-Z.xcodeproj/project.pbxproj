@@ -49,6 +49,7 @@
 		2B5F506E2298FD4D00D3B6C5 /* GameRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50682298FC8100D3B6C5 /* GameRegion.swift */; };
 		2B5F506F2298FD5D00D3B6C5 /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
 		2B5F50702298FD5D00D3B6C5 /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
+		2B5FE42322C0A96F0046A435 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF110021EAD2B0001C94E9 /* Assets.xcassets */; };
 		2B639F17221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
 		2B639F18221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
 		2B639F1A221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
@@ -82,7 +83,6 @@
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
 		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
 		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
-		2BBF110121EAD2B0001C94E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF110021EAD2B0001C94E9 /* Assets.xcassets */; };
 		2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF110221EAD2B0001C94E9 /* Main.storyboard */; };
 		2BBF112F21EAD38E001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */; };
 		2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF113021EAD38E001C94E9 /* ViewController.swift */; };
@@ -589,8 +589,8 @@
 				2B4896D422851E860062F42F /* timeline_delete.tiff in Resources */,
 				2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */,
 				2B8BBA8A22A4AA4600E541B9 /* OpenSans.json in Resources */,
-				2BBF110121EAD2B0001C94E9 /* Assets.xcassets in Resources */,
 				2B4896E0228521160062F42F /* timeline_play.tiff in Resources */,
+				2B5FE42322C0A96F0046A435 /* Assets.xcassets in Resources */,
 				2B4896D822851FE50062F42F /* timeline_recording.tiff in Resources */,
 				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
 			);
@@ -979,7 +979,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z-iOS";
+				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapezios;
 				PRODUCT_NAME = "Shape-Z";
 				SDKROOT = iphoneos;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
@@ -1005,7 +1005,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shapez.Shape-Z-iOS";
+				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapezios;
 				PRODUCT_NAME = "Shape-Z";
 				SDKROOT = iphoneos;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
