@@ -107,6 +107,7 @@ class Material : Codable
             float   anisotropic;
             float   sheen;
             float   sheenTint;
+            float   border;
         } MATERIAL_DATA;
 
         void clearMaterial(thread MATERIAL_DATA *material)
@@ -121,6 +122,7 @@ class Material : Codable
             material->anisotropic = 0;
             material->sheen = 0;
             material->sheenTint = 0;
+            material->border = 2.0 / 30.0;
         }
 
         """
@@ -138,6 +140,7 @@ class Material : Codable
 
         code = code.replacingOccurrences(of: "__screenSize__", with: "size")
         code = code.replacingOccurrences(of: "__distance__", with: "dist")
+        code = code.replacingOccurrences(of: "__componentBlend__", with: "componentBlend")
 
         if materialDataIndex == nil {
             code = code.replacingOccurrences(of: "__time__", with: "0.0")

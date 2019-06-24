@@ -205,6 +205,72 @@ class MaterialFactory
         def.heightProperty = "scale"
         materials.append( def )
         
+        // --- Value Noise
+        def = MaterialDefinition()
+        def.name = "Noise"
+        def.globalCode =
+        """
+        // https://www.shadertoy.com/view/4dS3Wd
+        float valueNoiseHash(float2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
+        float valueNoise( float2 x)
+        {
+            float2 i = floor(x);
+            float2 f = fract(x);
+        
+            // Four corners in 2D of a tile
+            float a = valueNoiseHash(i);
+            float b = valueNoiseHash(i + float2(1.0, 0.0));
+            float c = valueNoiseHash(i + float2(0.0, 1.0));
+            float d = valueNoiseHash(i + float2(1.0, 1.0));
+        
+            // Simple 2D lerp using smoothstep envelope between the values.
+            // return vec3(mix(mix(a, b, smoothstep(0.0, 1.0, f.x)),
+            //            mix(c, d, smoothstep(0.0, 1.0, f.x)),
+            //            smoothstep(0.0, 1.0, f.y)));
+        
+            // Same code, with the clamps in smoothstep and common subexpressions
+            // optimized away.
+            float2 u = f * f * (3.0 - 2.0 * f);
+            return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
+        float valueNoiseFBM(float2 x, int octaves)
+        {
+            float v = 0.0;
+            float a = 0.5;
+            float2 shift = float2(100);
+            // Rotate to reduce axial bias
+            float2x2 rot = float2x2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
+            for (int i = 0; i < octaves; ++i) {
+                v += a * valueNoise(x);
+                x = rot * x * 2.0 + shift;
+                a *= 0.5;
+            }
+            return v;
+        }
+        float4 valueNoiseMaterial( float2 x, float4 value, float2 size, float2 screenSize, int smoothing)
+        {
+            x /= size;
+            float noise = valueNoiseFBM(x, smoothing);
+            return float4(value.xyz, noise);
+        }
+        """
+        def.code = "valueNoiseMaterial(__uv__, __value__, __size__,__screenSize__,__custom_smoothing__)"
+        def.properties["value_x"] = 1
+        def.properties["value_y"] = 1
+        def.properties["value_z"] = 1
+        def.properties["value_w"] = 1
+        
+        def.properties["custom_smoothing"] = 5
+        def.properties["smoothing_min"] = 1
+        def.properties["smoothing_max"] = 10
+        def.properties["smoothing_int"] = 1
+        
+        def.properties["size"] = defaultSize / 4
+        def.properties["size"] = defaultSize / 4
+        def.widthProperty = "size"
+        def.heightProperty = "size"
+        materials.append( def )
+        
         // --- Grid
         def = MaterialDefinition()
         def.name = "Grid"
@@ -240,7 +306,7 @@ class MaterialFactory
         
         // --- Stars
         def = MaterialDefinition()
-        def.name = "Stars"
+        def.name = "Stars #1"
         def.globalCode =
         """
         
@@ -341,14 +407,14 @@ class MaterialFactory
         def.name = "Alu"
         def.globalCode =
         """
-        void aluminiumMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material) {
-        material->baseColor = value;
-        material->metallic = 1.;
-        material->roughness = 0.53;
-        material->specular = 0.3;
+        void aluminiumMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material, float blend) {
+            material->baseColor = mix(material->baseColor, value, blend);
+            material->metallic = mix(material->metallic, 1., blend);
+            material->roughness = mix(material->roughness, 0.53, blend);
+            material->specular = mix(material->specular, 0.3, blend);
         }
         """
-        def.code = "aluminiumMaterial(__uv__, __value__, __material__)"
+        def.code = "aluminiumMaterial(__uv__, __value__, __material__,__componentBlend__)"
         def.properties["value_x"] = 0.91
         def.properties["value_y"] = 0.92
         def.properties["value_z"] = 0.92
@@ -366,14 +432,14 @@ class MaterialFactory
         def.name = "Gold"
         def.globalCode =
         """
-        void goldMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material) {
-            material->baseColor = value;
-            material->metallic = 1.;
-            material->roughness = 0.53;
-            material->specular = 0.3;
+        void goldMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material, float blend) {
+            material->baseColor = mix(material->baseColor, value, blend);
+            material->metallic = mix(material->metallic, 1., blend);
+            material->roughness = mix(material->roughness, 0.53, blend);
+            material->specular = mix(material->specular, 0.3, blend);
         }
         """
-        def.code = "goldMaterial(__uv__, __value__, __material__)"
+        def.code = "goldMaterial(__uv__, __value__, __material__,__componentBlend__)"
         def.properties["value_x"] = 1.0
         def.properties["value_y"] = 0.71
         def.properties["value_z"] = 0.29
@@ -391,14 +457,14 @@ class MaterialFactory
         def.name = "Iron"
         def.globalCode =
         """
-        void ironMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material) {
-            material->baseColor = value;
-            material->metallic = 1.;
-            material->roughness = 0.53;
-            material->specular = 0.3;
+        void ironMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material, float blend) {
+            material->baseColor = mix(material->baseColor, value, blend);
+            material->metallic = mix(material->metallic, 1., blend);
+            material->roughness = mix(material->roughness, 0.53, blend);
+            material->specular = mix(material->specular, 0.3, blend);
         }
         """
-        def.code = "ironMaterial(__uv__, __value__, __material__)"
+        def.code = "ironMaterial(__uv__, __value__, __material__,__componentBlend__)"
         def.properties["value_x"] = 0.56
         def.properties["value_y"] = 0.57
         def.properties["value_z"] = 0.58
@@ -416,14 +482,14 @@ class MaterialFactory
         def.name = "Silver"
         def.globalCode =
         """
-        void silverMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material) {
-            material->baseColor = value;
-            material->metallic = 1.;
-            material->roughness = 0.53;
-            material->specular = 0.3;
+        void silverMaterial( float2 uv, float4 value, thread MATERIAL_DATA *material, float blend) {
+            material->baseColor = mix(material->baseColor, value, blend);
+            material->metallic = mix(material->metallic, 1., blend);
+            material->roughness = mix(material->roughness, 0.53, blend);
+            material->specular = mix(material->specular, 0.3, blend);
         }
         """
-        def.code = "silverMaterial(__uv__, __value__, __material__)"
+        def.code = "silverMaterial(__uv__, __value__, __material__,__componentBlend__)"
         def.properties["value_x"] = 0.91
         def.properties["value_y"] = 0.92
         def.properties["value_z"] = 0.92

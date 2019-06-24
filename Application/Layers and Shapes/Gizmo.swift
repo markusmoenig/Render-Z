@@ -323,7 +323,7 @@ class Gizmo : MMWidget
                 if !material.isCompound {
                     gizmoNode.properties["channel"] = material.properties["channel"]
                     gizmoNode.uiItems.append(
-                        NodeUIDropDown(gizmoNode, variable: "channel", title: "Channel", items: ["Base Color", "Subsurface","Roughness", "Metallic", "Specular", "Specular Tint", "Clearcoat", "Clearc. Gloss", "Anisotropic", "Sheen", "Sheen Tint"], index: 0)
+                        NodeUIDropDown(gizmoNode, variable: "channel", title: "Channel", items: ["Base Color", "Subsurface","Roughness", "Metallic", "Specular", "Specular Tint", "Clearcoat", "Clearc. Gloss", "Anisotropic", "Sheen", "Sheen Tint", "Border"], index: 0)
                     )
                     
                     gizmoNode.properties["limiterType"] = material.properties["limiterType"]

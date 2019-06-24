@@ -430,10 +430,11 @@ class Builder
             float fm = fillMask( dist ) * bodyMaterial.baseColor.w;
             float bm = 0;
             bodyMaterial.baseColor.w = fm;
+            float border = bodyMaterial.border * 30;
         
-            if ( materialId >= 0 && layerData->objects[materialId].border > 0 )
+            if ( materialId >= 0 && border > 0 )//layerData->objects[materialId].border > 0 )
             {
-                bm = borderMask( dist, layerData->objects[materialId].border );
+                bm = borderMask( dist, border );//layerData->objects[materialId].border );
                 if ( bm > 0.0 ) {
                     bodyMaterial.baseColor = mix( bodyMaterial.baseColor, borderMaterial.baseColor, bm * borderMaterial.baseColor.w );
                     bodyMaterial.subsurface = mix( bodyMaterial.subsurface, borderMaterial.subsurface, bm );
@@ -634,6 +635,7 @@ class Builder
                     case 8: materialProperty = "anisotropic"
                     case 9: materialProperty = "sheen"
                     case 10: materialProperty = "sheenTint"
+                    case 11: materialProperty = "border"
                     default: print("Invalid Channel")
                 }
                 channelCode += materialProperty
@@ -642,6 +644,7 @@ class Builder
                 
                 if normal {
                     channelCode = "mixValue"
+                    source += "mixValue = float4(0);\n"
                 }
                 
                 // --- Setup the custom properties table
@@ -661,9 +664,14 @@ class Builder
                 if !material.isCompound {
                     source += "value = " + material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+3) + ";\n"
                     
-                    if limiterType == 0 {
+                    if limiterType == 0 || channel == 11 {
                         // --- No Limiter
-                        source += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
+                        if channel == 11 && material.name == "Static" {
+                            // Static border gets multiplicated to allow scaling
+                            source += "  " + channelCode + " = " + channelCode + " * value.x * 10.0;\n"
+                        } else {
+                            source += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
+                        }
                     } else
                     if limiterType == 1 {
                         // --- Rectangle
@@ -681,12 +689,17 @@ class Builder
                         source += "  limiterDist = -dist - \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].z;\n"
                         source += "  " + channelCode + " = mix(" + channelCode + ", value\(materialExt), fillMask(limiterDist) * value.w );\n"
                     }
+                    
+                    if normal {
+                        source += "alpha += mixValue.w;\n"
+                    } else {
+                        source += "componentBlend = value.w;\n"
+                    }
+                    
                 } else {
-                    source += material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+3, materialName: materialName) + ";\n"
-                }
-                
-                if normal {
-                    source += "alpha += mixValue.w;\n"
+                    if !normal {
+                        source += material.createCode(uvName: "tuv", materialDataIndex: buildData.materialDataIndex+3, materialName: materialName) + ";\n"
+                    }
                 }
                 
                 return source;
@@ -702,14 +715,34 @@ class Builder
             
             // --- Normal
             
-            buildData.materialNormalSource += "\nfloat calculateBumpForObject\(buildData.objectIndex)( float2 uv, constant LAYER_DATA *layerData, float dist, float2 size ) {\n float2 tuv; float4 value, mixValue; float alpha = 0; MATERIAL_DATA bodyMaterial; MATERIAL_DATA borderMaterial;\n "
+            buildData.materialNormalSource += "\nfloat calculateBumpForObject\(buildData.objectIndex)( float2 uv, constant LAYER_DATA *layerData, float dist, float2 size ) {\n float2 tuv; float4 value, mixValue; float2 d; float limiterDist; float alpha = 0; MATERIAL_DATA bodyMaterial; MATERIAL_DATA borderMaterial;\n "
             
+            let indexBuffer = buildData.materialDataIndex
             for material in object.bodyMaterials {
                 let bumpValue = material.properties["bump"]!
                 if bumpValue > 0 && !material.isCompound {
                     buildData.materialNormalSource += createMaterialCode(material, "bodyMaterial", normal: true)
                 }
+                
+                if material.pointCount == 0 {
+                    buildData.materialDataIndex += 4
+                } else {
+                    buildData.materialDataIndex += 3 + material.pointCount * 2
+                }
             }
+            for material in object.borderMaterials {
+                let bumpValue = material.properties["bump"]!
+                if bumpValue > 0 && !material.isCompound {
+                    buildData.materialNormalSource += createMaterialCode(material, "borderMaterial", normal: true)
+                }
+                
+                if material.pointCount == 0 {
+                    buildData.materialDataIndex += 4
+                } else {
+                    buildData.materialDataIndex += 3 + material.pointCount * 2
+                }
+            }
+            buildData.materialDataIndex = indexBuffer
             
             buildData.materialNormalSource += "\nreturn alpha;\n}"
             
@@ -727,24 +760,12 @@ class Builder
                 return normalize(nor);
             }
             
-            /*
-            float3 calculateNormal(float2 uv, float dist, constant LAYER_DATA *layerData, texture2d<half, access::sample> fontTexture, int profileIndex)
-            {
-            float p = layerData->general.y;//min(.3, .0005+.00005 * distance*distance);
-            float3 nor      = float3(0.0,            profile(min(dist,0.0), layerData->profileData, profileIndex), 0.0);
-            float3 v2        = nor-float3(p,        profile(min(sdf(uv+float2(p,0.0), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), 0.0);
-            float3 v3        = nor-float3(0.0,        profile(min(sdf(uv+float2(0.0,-p), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), -p);
-            nor = cross(v2, v3);
-            return normalize(nor);
-            }*/
-            
             """
             
             //
             
-            buildData.materialSource += "if (materialId == \(buildData.objectIndex)) { float2 d; float limiterDist; float4 value;\n"
+            buildData.materialSource += "if (materialId == \(buildData.objectIndex)) { float2 d; float limiterDist; float componentBlend = 1.0; float4 value = float4(0);\n"
             for material in object.bodyMaterials {
-                
                 let bumpValue = material.properties["bump"]!
                 if bumpValue != 2 {
                     buildData.materialSource += createMaterialCode(material, "bodyMaterial")
@@ -757,7 +778,11 @@ class Builder
                 }
             }
             for material in object.borderMaterials {
-                buildData.materialSource += createMaterialCode(material, "borderMaterial")
+                let bumpValue = material.properties["bump"]!
+                if bumpValue != 2 {
+                    buildData.materialSource += createMaterialCode(material, "borderMaterial")
+                }
+                
                 if material.pointCount == 0 {
                     buildData.materialDataIndex += 4
                 } else {

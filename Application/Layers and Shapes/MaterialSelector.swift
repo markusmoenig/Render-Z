@@ -132,6 +132,8 @@ class MaterialSelector
                 float4 col = float4(0);
                 float4 fillColor;
         
+                float componentBlend = 1.0;
+        
         """
 
         var counter : Int = 0
@@ -150,6 +152,7 @@ class MaterialSelector
             if !material.isCompound {
                 source += "material.baseColor = " + material.createCode(uvName: "uv") + ";\n"
             } else {
+                source += "material.baseColor = float4(0); clearMaterial(&material);\n"
                 source += material.createCode(uvName: "uv", materialName: "material") + ";\n"
             }
             
@@ -262,11 +265,14 @@ class MaterialSelector
             float dist = 1.0;
             MATERIAL_DATA material;
         
+            float componentBlend = 1.0;
+
         """
         
         if !material.isCompound {
             source += "material.baseColor = " + material.createCode(uvName: "uv") + ";\n"
         } else {
+            source += "material.baseColor = float4(0); clearMaterial(&material);\n"
             source += material.createCode(uvName: "uv", materialName: "material") + ";\n"
         }
         source +=

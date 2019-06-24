@@ -145,6 +145,8 @@ class MaterialList
         
             MATERIAL_DATA material;
         
+            float componentBlend = 1.0;
+        
         """
 
         let left : Float = (width/2) * zoom
@@ -291,6 +293,7 @@ class MaterialList
                         case 8: text += "Anisotropic"
                         case 9: text += "Sheen"
                         case 10: text += "Sheen Tint"
+                        case 11: text += "Border"
                         default: print("Wrong Channel")
                     }
                 } else {
