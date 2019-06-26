@@ -20,6 +20,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         case Closed, Open
     }
     
+    var firstStart      : Bool = true
+    
     var app             : App!
     var gizmoContext    : Gizmo.GizmoContext = .ShapeEditor
     
@@ -190,17 +192,32 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             self.currentObject!.setSequence(sequence: items[0] as? MMTlSequence, timeline: self.app!.timeline)
             self.update()
         }
-        timelineButton.addState( .Checked )
-        app.bottomRegion!.rect.height = 100
         
         app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, screenButton, app.closeButton)
 
-        // Set Default Layout
-        shapesButton.addState( .Checked )
-        materialsButton.removeState( .Checked )
-        app.leftRegion!.rect.width = 200
-        leftRegionMode = .Closed
-        setLeftRegionMode(.Shapes)
+        // Set Layouts
+        if firstStart {
+            shapesButton.addState( .Checked )
+            materialsButton.removeState( .Checked )
+            app.leftRegion!.rect.width = 200
+            leftRegionMode = .Closed
+            setLeftRegionMode(.Shapes)
+            
+            timelineButton.addState( .Checked )
+            app.bottomRegion!.rect.height = 100
+        } else {
+            if leftRegionMode == .Closed {
+                app.leftRegion!.rect.width = 0
+            } else {
+                app.leftRegion!.rect.width = 200
+            }
+            
+            if bottomRegionMode == .Closed {
+                app.bottomRegion!.rect.height = 0
+            } else {
+                app.bottomRegion!.rect.height = 100
+            }
+        }
         
         let cameraProperties = currentObject!.properties
         if cameraProperties["prevMaxOffX"] != nil {
@@ -213,6 +230,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             camera.zoom = cameraProperties["prevMaxScale"]!
         }
         update(true)
+        firstStart = false
     }
     
     override func deactivate()
