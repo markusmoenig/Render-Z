@@ -125,6 +125,12 @@ class Shape : Codable
         var code = distanceCode
         let props = transProperties != nil ? transProperties : properties
         
+        if layerIndex == nil {
+            code = code.replacingOccurrences(of: "__time__", with: "0.0")
+        } else {
+            code = code.replacingOccurrences(of: "__time__", with: "\(mainDataName)general.x")
+        }
+        
         if name != "Text" && name != "Variable" {
             code = code.replacingOccurrences(of: "__uv__", with: String(uvName))
         } else {

@@ -786,66 +786,85 @@ class ShapeFactory
         def.heightProperty = "radius"
         shapes.append( def )
         
-        /*
         // --- Cosine
         def = ShapeDefinition()
-        def.name = "Cosine"
-        def.distanceCode = "udCos(__uv__,__radius__,__custom_offset__,__custom_amplitude__,__custom_frequency__,__custom_phase__)"
+        def.name = "Wave"
+        def.distanceCode = "sdCosine(__uv__, float2(__stretch__,__scale__), __custom_animation__, __custom_spires__, __custom_ratio__, __custom_thickness__, __time__ )"
         def.globalCode =
         """
-        float udCos(float2 p, float r, float a, float b, float c, float d )
+        float sdCosine( float2 uv, float2 size, float anim, float spires, float ratio, float thickness, float time )
         {
-            p = abs(p);
+            float2 U = uv / float2(size.y);
         
-            //a /= r; b /= r; c /= r; d /= r;
+            float ofs = anim * time;
         
-            // convert all data to a primitive cosine wave
-            p = c*(p-float2(d,a));
+            float L = size.x,//;//stretch,                   // sprint length
+            n = spires,                   // number of spires
+            r = ratio,                    // spring radius
+            w = thickness;                   // wire radius
+            const int N = 8;                     // number of iterations
+            const float PI = 3.14159265359;
         
-            // reduce to principal half cycle
-            const float TPI = 6.28318530718;
-            p.x = fmod( p.x, TPI); if( p.x>(0.5*TPI) ) p.x = TPI - p.x;
+            #define f(x)  ( r * sin(k*(x-ofs)) ) // spring equation
+            #define df(x) ( x0-(x) + r*k*cos(k*(x-ofs))* ( y0 -r*sin(k*(x-ofs)) ) )
         
-            // find zero of derivative (minimize distance)
-            float xa = 0.0, xb = TPI;
-            for( int i=0; i<24; i++ ) // 24 bit precision
-            {
-                float x = 0.5*(xa+xb);
-                float y = x-p.x+b*c*sin(x)*(p.y-b*c*cos(x));
-                if( y<0.0 ) xa = x; else xb = x;
+            #define d(x)  length( float2(x0,y0) - float2( x, f(x) ) ) // distance
+        
+            float x0 = U.x, y0 = U.y, x=x0, k = 2.*PI*n/L, d;
+        
+            x = clamp( x0, -L/2., L/2.);
+            float  h = .5, // set to 0 for f(x) = cos()
+            xm = ( floor((x-ofs)*k/PI +h) -h ) *PI/k + ofs, // monotonous sin() branch
+            xM = (  ceil((x-ofs)*k/PI +h) -h ) *PI/k + ofs; // = range with only one dist extrema
+            // ends and beyond requires special care
+            xm = max(xm,-L/2.);
+            xM = min(xM, L/2.);
+            float ym = df(xm), yM = df(xM), y;   // v sign: hack to avoid the extra extrema
+            if ( xm ==-L/2. && ym < 0. ) xm=xM, ym= 1., xM+=PI/k, yM=df(xM);
+            if ( xM == L/2. && yM > 0. ) xM=xm, yM=-1., xm-=PI/k, ym=df(xm);
+            // special case when x is exactly above an extrema
+            //if ( yM > 0. ) xM -= .01*PI/k, yM = 1.;  // should be df
+            if ( ym < 0. ) xm -= .01*PI/k, ym = 1.;  //-> 1st useless, 2nd = any positive
+            // bisection to find distance extrema (i.e. zero of derivative df() )
+            for (int i=0; i<N; i++) {
+                x = (xm+xM)/2.; y = df(x);
+                if ( sign(y)==sign(ym)) xm = x, ym = y;
+                else                xM = x, yM = y;
             }
-            float x = 0.5*(xa+xb);
         
-            // compute distance
-            float2 q = float2(x,b*c*cos(x));
-            return length(p-q)/c - r;
+            d = d(x);                                   // dist to sine
+            d = min( d, d( L/2.) );                     // dist to ends
+            d = min( d, d(-L/2.) );
+            d -= w;                                     // thickness
+        
+            return d * size.y;
         }
         """
+        def.properties["stretch"] = 2
+        def.properties["scale"] = defaultSize*2
+        def.widthProperty = "stretch"
+        def.heightProperty = "scale"
         
-        def.properties["custom_offset"] = 0.5
-        def.properties["offset_min"] = 0
-        def.properties["offset_max"] = 100
-        def.properties["offset_int"] = 0
+        def.properties["custom_animation"] = 0
+        def.properties["animation_min"] = -2
+        def.properties["animation_max"] = 2
+        def.properties["animation_int"] = 0
         
-        def.properties["custom_amplitude"] = 0.5
-        def.properties["amplitude_min"] = 0
-        def.properties["amplitude_max"] = 100
-        def.properties["amplitude_int"] = 0
+        def.properties["custom_spires"] = 2
+        def.properties["spires_min"] = 1
+        def.properties["spires_max"] = 30
+        def.properties["spires_int"] = 1
         
-        def.properties["custom_frequency"] = 0.5
-        def.properties["frequency_min"] = 0
-        def.properties["frequency_max"] = 100
-        def.properties["frequency_int"] = 0
+        def.properties["custom_ratio"] = 0.3
+        def.properties["ratio_min"] = 0
+        def.properties["ratio_max"] = 1
+        def.properties["ratio_int"] = 0
         
-        def.properties["custom_phase"] = 0.5
-        def.properties["phase_min"] = 0
-        def.properties["phase_max"] = 100
-        def.properties["phase_int"] = 0
-        
-        def.properties["radius"] = 5;
-        def.widthProperty = "radius"
-        def.heightProperty = "radius"
-        shapes.append( def )*/
+        def.properties["custom_thickness"] = 0.05
+        def.properties["thickness_min"] = 0
+        def.properties["thickness_max"] = 2
+        def.properties["thickness_int"] = 0
+        shapes.append( def )
     }
     
     /// Create a shape

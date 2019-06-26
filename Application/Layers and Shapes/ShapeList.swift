@@ -367,6 +367,14 @@ class ShapeList
         if shape.name == "Horseshoe" {
             properties["radius"] = shape.properties["radius"]! / 2
         } else
+        if shape.name == "Spring" {
+            properties["custom_thickness"] = properties["custom_thickness"]! * 3
+        } else
+        if shape.name == "Wave" {
+            properties["custom_spires"] = 2
+            properties["stretch"] = properties["stretch"]! / 4
+            properties["custom_thickness"] = properties["custom_thickness"]! * 2
+        } else
         if shape.name == "Ellipse" {
             properties[shape.heightProperty] = size / 1.5
         } else

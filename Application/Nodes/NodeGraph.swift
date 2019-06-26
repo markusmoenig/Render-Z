@@ -2463,6 +2463,20 @@ class NodeGraph : Codable
             } )
             items.append(helpNodeItem)
         }
+        
+        /*
+        let duplicateNodeItem =  MMMenuItem( text: "Duplicate", cb: {
+            if node.type == "Object" {
+                
+                let encodedData = try? JSONEncoder().encode(node)
+                if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+                {
+                    print( encodedObjectJsonString)
+                }
+            }
+        } )
+        items.append(duplicateNodeItem)
+        */
 
         let renameNodeItem =  MMMenuItem( text: "Rename", cb: {
             getStringDialog(view: self.mmView, title: "Rename Node", message: "Node name", defaultValue: node.name, cb: { (name) -> Void in
