@@ -112,7 +112,8 @@ class TopRegion: MMRegion
             app.play()
         }
         
-        layoutH( startX: 10, startY: 8, spacing: 10, widgets: undoButton, redoButton, newButton, openButton, saveButton )
+        layoutH( startX: 10, startY: 8, spacing: 10, widgets: undoButton, redoButton)
+        layoutH( startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton )
         registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, playButton )
     }
     
@@ -121,6 +122,9 @@ class TopRegion: MMRegion
         mmView.drawBox.draw( x: 1, y: 0, width: mmView.renderer.width - 1, height: 44, round: 0, borderSize: 1, fillColor : float4(0.153, 0.153, 0.153, 1.000), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
         mmView.drawBoxGradient.draw( x: 1, y: 0, width: mmView.renderer.width - 1, height: 44, round: 0, borderSize: 1, uv1: float2( 0, 0 ), uv2: float2( 0, 1 ), gradientColor1 : float4(0.275, 0.275, 0.275, 1.000), gradientColor2 : float4(0.153, 0.153, 0.153, 1.000), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
         
+        mmView.drawBox.draw( x: 149, y: 8, width: 1, height: 30, round: 0, borderSize: 0, fillColor : float4(0.125, 0.125, 0.125, 1.000) )
+        mmView.drawBox.draw( x: 150, y: 8, width: 1, height: 30, round: 0, borderSize: 0, fillColor : float4(0.247, 0.243, 0.247, 1.000) )
+
         mmView.drawBoxGradient.draw( x: 1, y: 44, width: mmView.renderer.width-1, height: 48, round: 0, borderSize: 1, uv1: float2( 0, 0 ), uv2: float2( 0, 1 ), gradientColor1 : float4( 0.082, 0.082, 0.082, 1), gradientColor2 : float4( 0.169, 0.173, 0.169, 1), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
         rect.height = 48 + 44
         

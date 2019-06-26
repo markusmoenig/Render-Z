@@ -297,6 +297,25 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
     }
 }
 
+func getSampleProject(view: MMView, title: String, message: String, sampleProjects: [String], cb: @escaping (Int)->())
+{
+    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        
+    for project in sampleProjects {
+        alert.addAction(UIAlertAction(title: project, style: .default, handler: { (action) -> Void in
+            cb( 0 )
+        }))
+    }
+        
+    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+        while let presentedViewController = topController.presentedViewController {
+            topController = presentedViewController
+        }
+        
+        topController.present(alert, animated: true, completion: nil)
+    }
+}
+
 func askUserToSave(view: MMView, cb: @escaping (Bool)->())
 {
     let alertController = UIAlertController(title: NSLocalizedString("You have unsaved changes. Continue anyway?", comment: "Continue without saves error question message"), message: NSLocalizedString("Continuing now will lose any changes you have made since the last successful save", comment: "Continue without saves error question info"), preferredStyle: UIAlertController.Style.alert)

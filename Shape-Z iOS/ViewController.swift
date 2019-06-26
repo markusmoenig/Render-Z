@@ -22,6 +22,12 @@ class ViewController: UIViewController, UIDocumentPickerDelegate {
         app.viewController = self
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        //getSampleProject(view: app.mmView, title: "New Project", message: "Select the project type", sampleProjects: ["Empty Project", "Pinball"], cb: { (index) -> () in
+           // print("Result", index)
+        //} )
+    }
+    
     override var prefersStatusBarHidden: Bool {
         return true
     }

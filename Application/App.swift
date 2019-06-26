@@ -119,6 +119,7 @@ class App
         nodeGraph.activate()
         
         setChanged()
+
         
         /*
         let query = CKQuery(recordType: "SampleProjects", predicate: NSPredicate(value: true))

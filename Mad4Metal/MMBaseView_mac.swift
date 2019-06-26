@@ -265,6 +265,32 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
     })
 }
 
+func getSampleProject(view: MMView, title: String, message: String, sampleProjects: [String], cb: @escaping (Int)->())
+{
+    let msg = NSAlert()
+    msg.addButton(withTitle: "OK")      // 1st button
+    msg.messageText = title
+    msg.informativeText = message
+    
+    let popUp = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
+//    txt.stringValue = defaultValue
+    popUp.addItems(withTitles: sampleProjects)
+    
+    msg.window.initialFirstResponder = popUp
+    msg.accessoryView = popUp
+    //    let response: NSApplication.ModalResponse = msg.runModal()
+    
+    //    if (response == NSApplication.ModalResponse.alertFirstButtonReturn) {
+    //        cb( txt.stringValue )
+    //    }
+    
+    msg.beginSheetModal(for: view.window!, completionHandler: { (modalResponse) -> Void in
+        if modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn {
+            cb(popUp.indexOfSelectedItem)
+        }
+    })
+}
+
 func askUserToSave(view: MMView, cb: @escaping (Bool)->())
 {
     let question = NSLocalizedString("You have unsaved changes. Continue anyway?", comment: "Quit without saves error question message")

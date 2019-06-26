@@ -37,6 +37,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let mainStoryboard = NSStoryboard.init(name: "Main", bundle: nil)
         helpWindowController = (mainStoryboard.instantiateController(withIdentifier: "HelpWindow") as! NSWindowController)
+        
+        //getSampleProject(view: app.mmView, title: "New Project", message: "Select the project type", sampleProjects: ["Empty Project"], cb: { (index) -> () in
+        //    print("Result", index)
+        //} )
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {
