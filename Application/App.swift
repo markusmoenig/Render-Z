@@ -41,11 +41,13 @@ class App
     var viewController  : ViewController?
     #endif
     
+    var properties      : [String:Float] = [:]
+    
     init(_ view : MMView )
     {
         mmView = view
         mmFile = MMFile( view )
-            
+        
         nodeGraph = NodeGraph()
         
         // --- Reusable buttons

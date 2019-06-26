@@ -297,6 +297,36 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
     }
 }
 
+func askUserToSave(view: MMView, cb: @escaping (Bool)->())
+{
+    let alertController = UIAlertController(title: NSLocalizedString("You have unsaved changes. Continue anyway?", comment: "Continue without saves error question message"), message: NSLocalizedString("Continuing now will lose any changes you have made since the last successful save", comment: "Continue without saves error question info"), preferredStyle: UIAlertController.Style.alert)
+    
+    let continueButton = NSLocalizedString("Continue", comment: "Continue button title")
+    let cancelButton = NSLocalizedString("Cancel", comment: "Cancel button title")
+    
+    let cancelAction: UIAlertAction = UIAlertAction(title: cancelButton,
+                                                    style: .cancel,
+                                                    handler: { (_) in
+                                                        cb(false)
+    } )
+    
+    let successAction: UIAlertAction = UIAlertAction(title: continueButton,
+                                                     style: .default,
+                                                     handler: { (_) in
+                                                        cb(true)
+    } )
+    
+    alertController.addAction(cancelAction)
+    alertController.addAction(successAction)
+    
+    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+        while let presentedViewController = topController.presentedViewController {
+            topController = presentedViewController
+        }
+        topController.present(alertController, animated: true, completion: nil)
+    }
+}
+
 /// Open help in browser
 func showHelp(_ urlString: String? = nil)
 {

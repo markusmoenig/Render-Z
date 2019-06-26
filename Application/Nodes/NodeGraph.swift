@@ -479,7 +479,11 @@ class NodeGraph : Codable
         app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton)
         app?.mmView.widgets.insert(editButton, at: 0)
         app?.mmView.widgets.insert(playButton, at: 0)
-        app!.leftRegion!.rect.width = 200
+        if app!.properties["NodeGraphNodesOpen"] == nil || app!.properties["NodeGraphNodesOpen"]! == 1 {
+            app!.leftRegion!.rect.width = 200
+        } else {
+            app!.leftRegion!.rect.width = 0
+        }
         nodeHoverMode = .None
     }
     
@@ -487,6 +491,7 @@ class NodeGraph : Codable
     func deactivate()
     {
         app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton)
+        app!.properties["NodeGraphNodesOpen"] = leftRegionMode == .Closed ? 0 : 1
     }
     
     /// Stop previewing the playNode

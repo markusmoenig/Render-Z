@@ -12,6 +12,7 @@ class TopRegion: MMRegion
 {
     var undoButton      : MMButtonWidget!
     var redoButton      : MMButtonWidget!
+    var newButton       : MMButtonWidget!
     var openButton      : MMButtonWidget!
     var saveButton      : MMButtonWidget!
     
@@ -45,13 +46,53 @@ class TopRegion: MMRegion
             view.undoManager?.redo()
         }
         
+        newButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "New" )
+        newButton.isDisabled = false
+        newButton.textYOffset = -2
+        newButton.clicked = { (event) -> Void in
+            self.newButton.removeState(.Checked)
+            
+            func new() {
+                self.mmView.undoManager!.removeAllActions()
+                
+                if self.app.nodeGraph.maximizedNode != nil {
+                    self.app.nodeGraph.maximizedNode!.maxDelegate!.deactivate()
+                }
+                self.app.nodeGraph.deactivate()
+                
+                self.app.nodeGraph = NodeGraph()
+                self.app.nodeGraph.setup(app: self.app)
+                self.app.nodeGraph.activate()
+                self.app.nodeGraph.updateNodes()
+            }
+            
+            askUserToSave(view: self.mmView, cb: { (rc) -> Void in
+                if rc == true {
+                    new()
+                }
+            })
+        }
+        
         openButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Open" )
         openButton.isDisabled = false
         openButton.textYOffset = -2
         openButton.clicked = { (event) -> Void in
             self.openButton.removeState(.Checked)
 //            view.undoManager?.undo()
-            app.mmFile.chooseFile(app: app)
+
+            func load() {
+                app.mmFile.chooseFile(app: app)
+            }
+
+            if self.mmView.undoManager!.canUndo {
+                askUserToSave(view: self.mmView, cb: { (rc) -> Void in
+                    if rc == true {
+                        load()
+                    }
+                })
+            } else {
+                load()
+            }
         }
         
         saveButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Save" )
@@ -71,8 +112,8 @@ class TopRegion: MMRegion
             app.play()
         }
         
-        layoutH( startX: 10, startY: 8, spacing: 10, widgets: undoButton, redoButton, openButton, saveButton )
-        registerWidgets( widgets: undoButton, redoButton, openButton, saveButton, playButton )
+        layoutH( startX: 10, startY: 8, spacing: 10, widgets: undoButton, redoButton, newButton, openButton, saveButton )
+        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, playButton )
     }
     
     override func build()
@@ -89,6 +130,9 @@ class TopRegion: MMRegion
         redoButton.isDisabled = !mmView.window!.undoManager!.canRedo
         redoButton.draw()
 
+        newButton.isDisabled = !mmView.window!.undoManager!.canUndo
+        newButton.draw()
+        
         openButton.draw()
         saveButton.draw()
         
