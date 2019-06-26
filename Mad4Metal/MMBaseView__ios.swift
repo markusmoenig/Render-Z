@@ -349,8 +349,13 @@ func askUserToSave(view: MMView, cb: @escaping (Bool)->())
 /// Open help in browser
 func showHelp(_ urlString: String? = nil)
 {
-    if urlString == nil { return }
+    //if urlString == nil { return }
     
-    guard let url = URL(string: urlString!) else { return }
-    UIApplication.shared.open(url)
+    if urlString != nil {
+        guard let url = URL(string: urlString!) else { return }
+        UIApplication.shared.open(url)
+    } else {
+        guard let url = URL(string: "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5406721/Getting+Started") else { return }
+        UIApplication.shared.open(url)
+    }
 }

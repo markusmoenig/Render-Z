@@ -44,6 +44,7 @@ class ViewController: NSViewController, NSWindowDelegate {
                 return false
             }
         }
+        app!.mmView.undoManager!.removeAllActions()
         return true
     }
     

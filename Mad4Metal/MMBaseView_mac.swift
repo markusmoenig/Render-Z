@@ -314,13 +314,15 @@ func askUserToSave(view: MMView, cb: @escaping (Bool)->())
 /// Show help window
 func showHelp(_ urlString: String? = nil)
 {
-    if urlString == nil { return }
-    
     let appDelegate = (NSApplication.shared.delegate as! AppDelegate)
     
     appDelegate.helpWindowController.showWindow(appDelegate)
     appDelegate.helpWindowController.window!.makeKeyAndOrderFront(appDelegate)
     
-    let request = URLRequest(url:URL(string: urlString!)!)
-    appDelegate.webView.load(request)
+    let url = urlString != nil ? URL(string: urlString!) : URL(string: "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5406721/Getting+Started")
+    
+    if appDelegate.webView.url != url {
+        let request = URLRequest(url:URL(string: "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5406721/Getting+Started")!)
+        appDelegate.webView.load(request)
+    }
 }

@@ -37,6 +37,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let mainStoryboard = NSStoryboard.init(name: "Main", bundle: nil)
         helpWindowController = (mainStoryboard.instantiateController(withIdentifier: "HelpWindow") as! NSWindowController)
+        let request = URLRequest(url:URL(string: "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5406721/Getting+Started")!)
+        webView.load(request)
         
         //getSampleProject(view: app.mmView, title: "New Project", message: "Select the project type", sampleProjects: ["Empty Project"], cb: { (index) -> () in
         //    print("Result", index)
@@ -54,7 +56,47 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        if app.mmView.undoManager!.canUndo {
+            let question = NSLocalizedString("You have unsaved changes. Quit anyway?", comment: "Quit without saves error question message")
+            let info = NSLocalizedString("Quitting now will lose any changes you have made since the last successful save", comment: "Quit without saves error question info");
+            let quitButton = NSLocalizedString("Quit anyway", comment: "Quit anyway button title")
+            let cancelButton = NSLocalizedString("Cancel", comment: "Cancel button title")
+            let alert = NSAlert()
+            alert.messageText = question
+            alert.informativeText = info
+            alert.addButton(withTitle: quitButton)
+            alert.addButton(withTitle: cancelButton)
+            
+            let answer = alert.runModal()
+            if answer == .alertSecondButtonReturn {
+                return .terminateCancel
+            }
+        }
         return .terminateNow
+    }
+    
+    // new menu item
+    @IBAction func newMenu(_ sender: Any)
+    {
+        app.topRegion!.newButton!._clicked(MMMouseEvent(0,0))
+    }
+    
+    // Open menu item
+    @IBAction func openMenu(_ sender: Any)
+    {
+        app.topRegion!.openButton!._clicked(MMMouseEvent(0,0))
+    }
+    
+    // save menu item
+    @IBAction func saveMenu(_ sender: Any)
+    {
+        app.topRegion!.saveButton!._clicked(MMMouseEvent(0,0))
+    }
+    
+    // help menu item
+    @IBAction func helpMenu(_ sender: Any)
+    {
+        showHelp()
     }
 }
 
