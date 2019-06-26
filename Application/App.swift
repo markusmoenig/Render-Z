@@ -7,6 +7,7 @@
 //
 
 import MetalKit
+//import CloudKit
 
 class App
 {
@@ -116,6 +117,21 @@ class App
         nodeGraph.activate()
         
         setChanged()
+        
+        /*
+        let query = CKQuery(recordType: "SampleProjects", predicate: NSPredicate(value: true))
+        CKContainer.init(identifier: "iCloud.com.moenig.shapez.documents").publicCloudDatabase.perform(query, inZoneWith: nil) { (records, error) in
+            records?.forEach({ (record) in
+                
+                print(record)
+                
+                // System Field from property
+                //let recordName_fromProperty = record.recordID.recordName
+                //print("System Field, recordName: \(recordName_fromProperty)")
+                //let deeplink = record.value(forKey: "deeplink")
+                //print("Custom Field, deeplink: \(deeplink ?? "")")
+            })
+        }*/
     }
 
     func loadFrom(_ json: String)

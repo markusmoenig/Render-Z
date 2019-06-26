@@ -50,6 +50,8 @@
 		2B5F506F2298FD5D00D3B6C5 /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
 		2B5F50702298FD5D00D3B6C5 /* GameWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; };
 		2B5FE42322C0A96F0046A435 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2BBF110021EAD2B0001C94E9 /* Assets.xcassets */; };
+		2B5FE42722C213410046A435 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5FE42622C213410046A435 /* CloudKit.framework */; };
+		2B5FE42922C213690046A435 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5FE42822C213690046A435 /* CloudKit.framework */; };
 		2B639F17221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
 		2B639F18221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
 		2B639F1A221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
@@ -195,6 +197,8 @@
 		2B5F50672298FC7900D3B6C5 /* GameApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameApp.swift; sourceTree = "<group>"; };
 		2B5F50682298FC8100D3B6C5 /* GameRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameRegion.swift; sourceTree = "<group>"; };
 		2B5F50692298FC8500D3B6C5 /* GameWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameWidget.swift; sourceTree = "<group>"; };
+		2B5FE42622C213410046A435 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS12.2.sdk/System/Library/Frameworks/CloudKit.framework; sourceTree = DEVELOPER_DIR; };
+		2B5FE42822C213690046A435 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		2B639F16221791F500576542 /* NodeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeList.swift; sourceTree = "<group>"; };
 		2B639F19221A32CD00576542 /* MMFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFile.swift; sourceTree = "<group>"; };
 		2B6D0033228907E900BEDCFD /* LayerArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerArea.swift; sourceTree = "<group>"; };
@@ -276,6 +280,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B5FE42922C213690046A435 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -283,6 +288,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B5FE42722C213410046A435 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -292,6 +298,8 @@
 		2B5CCB0522169D95005BAA2B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2B5FE42822C213690046A435 /* CloudKit.framework */,
+				2B5FE42622C213410046A435 /* CloudKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -351,13 +359,13 @@
 		2BBF112D21EAD38E001C94E9 /* Shape-Z iOS */ = {
 			isa = PBXGroup;
 			children = (
-				2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */,
 				2BBF112E21EAD38E001C94E9 /* AppDelegate.swift */,
 				2BBF113021EAD38E001C94E9 /* ViewController.swift */,
 				2BBF113221EAD38E001C94E9 /* Main.storyboard */,
 				2BBF113821EAD38E001C94E9 /* Assets.xcassets */,
 				2BBF113A21EAD38E001C94E9 /* LaunchScreen.storyboard */,
 				2BBF113D21EAD38E001C94E9 /* Info.plist */,
+				2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */,
 				2BBF113521EAD38E001C94E9 /* Shape_Z_iOS.xcdatamodeld */,
 			);
 			path = "Shape-Z iOS";
@@ -540,6 +548,9 @@
 						CreatedOnToolsVersion = 10.1;
 						LastSwiftMigration = 1020;
 						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
 							com.apple.Sandbox = {
 								enabled = 1;
 							};
@@ -986,7 +997,7 @@
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 2;
 			};
 			name = Debug;
 		};
@@ -1011,7 +1022,7 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "";
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 2;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;

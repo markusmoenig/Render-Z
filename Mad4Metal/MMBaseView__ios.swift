@@ -86,6 +86,13 @@ class MMBaseView : MTKView
                 event.deltaZ = 0
                 
                 hoverWidget?.mouseScrolled(event)
+                
+                if recognizer.numberOfTouches > 1 {
+                    // Only scroll when using with more than 1 finger
+                    lastX = Float(translation.x)
+                    lastY = Float(translation.y)
+                    return
+                }
             }
         }
         
