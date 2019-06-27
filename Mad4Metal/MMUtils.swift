@@ -271,3 +271,4 @@ func getStaticTextSize(_ font: MMFont, _ text: String,_ scale: Float = 1) -> flo
     
     return float2(totalWidth,totalHeight)
 }
+

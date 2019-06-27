@@ -110,6 +110,7 @@ class MaterialList
 
         """
     
+        source += Builder.getNoiseLibrarySource()
         source += Material.getMaterialStructCode()
         source += getGlobalCode(object: object)
         

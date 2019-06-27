@@ -217,6 +217,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             } else {
                 app.bottomRegion!.rect.height = 100
             }
+            
+            animating = true
+            setLeftRegionMode(leftRegionMode)
+            animating = false
         }
         
         let cameraProperties = currentObject!.properties

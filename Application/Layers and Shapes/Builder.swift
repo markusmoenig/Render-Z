@@ -1223,6 +1223,7 @@ class Builder
 
         """
         
+        source += Builder.getNoiseLibrarySource()
         source += Material.getMaterialStructCode()
         source += getGlobalCode(objects:instance.objects)
         
@@ -1543,7 +1544,7 @@ class Builder
     /// Returns the common code for all shaders
     func getCommonCode() -> String
     {
-        let code =
+        var code =
         """
         #include <metal_stdlib>
         #include <simd/simd.h>
@@ -1642,6 +1643,8 @@ class Builder
         } OBJECT_DATA;
 
         """
+        
+        code += Builder.getNoiseLibrarySource()
         
         return code
     }
@@ -2120,6 +2123,56 @@ class Builder
             return float4(clamp(pow(L, 0.4545), 0, 1), material.baseColor.w);
         }
 
+        """
+        
+        return code
+    }
+    
+    static func getNoiseLibrarySource() -> String
+    {
+        let code =
+        """
+
+        // Noises
+
+        // https://www.shadertoy.com/view/4dS3Wd
+        float valueNoise2DHash(float2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
+        float valueNoise2D( float2 x)
+        {
+            float2 i = floor(x);
+            float2 f = fract(x);
+
+            // Four corners in 2D of a tile
+            float a = valueNoise2DHash(i);
+            float b = valueNoise2DHash(i + float2(1.0, 0.0));
+            float c = valueNoise2DHash(i + float2(0.0, 1.0));
+            float d = valueNoise2DHash(i + float2(1.0, 1.0));
+
+            // Simple 2D lerp using smoothstep envelope between the values.
+            // return vec3(mix(mix(a, b, smoothstep(0.0, 1.0, f.x)),
+            //            mix(c, d, smoothstep(0.0, 1.0, f.x)),
+            //            smoothstep(0.0, 1.0, f.y)));
+
+            // Same code, with the clamps in smoothstep and common subexpressions
+            // optimized away.
+            float2 u = f * f * (3.0 - 2.0 * f);
+            return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
+        float valueNoise2DFBM(float2 x, int octaves = 5)
+        {
+            float v = 0.0;
+            float a = 0.5;
+            float2 shift = float2(100);
+            // Rotate to reduce axial bias
+            float2x2 rot = float2x2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
+            for (int i = 0; i < octaves; ++i) {
+                v += a * valueNoise2D(x);
+                x = rot * x * 2.0 + shift;
+                a *= 0.5;
+            }
+            return v;
+        }
+        
         """
         
         return code

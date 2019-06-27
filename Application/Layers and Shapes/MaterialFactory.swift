@@ -210,47 +210,10 @@ class MaterialFactory
         def.name = "Noise #1"
         def.globalCode =
         """
-        // https://www.shadertoy.com/view/4dS3Wd
-        float valueNoiseMaterialHash(float2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
-        float valueNoiseMaterial( float2 x)
-        {
-            float2 i = floor(x);
-            float2 f = fract(x);
-        
-            // Four corners in 2D of a tile
-            float a = valueNoiseMaterialHash(i);
-            float b = valueNoiseMaterialHash(i + float2(1.0, 0.0));
-            float c = valueNoiseMaterialHash(i + float2(0.0, 1.0));
-            float d = valueNoiseMaterialHash(i + float2(1.0, 1.0));
-        
-            // Simple 2D lerp using smoothstep envelope between the values.
-            // return vec3(mix(mix(a, b, smoothstep(0.0, 1.0, f.x)),
-            //            mix(c, d, smoothstep(0.0, 1.0, f.x)),
-            //            smoothstep(0.0, 1.0, f.y)));
-        
-            // Same code, with the clamps in smoothstep and common subexpressions
-            // optimized away.
-            float2 u = f * f * (3.0 - 2.0 * f);
-            return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
-        }
-        float valueNoiseMaterialFBM(float2 x, int octaves)
-        {
-            float v = 0.0;
-            float a = 0.5;
-            float2 shift = float2(100);
-            // Rotate to reduce axial bias
-            float2x2 rot = float2x2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
-            for (int i = 0; i < octaves; ++i) {
-                v += a * valueNoiseMaterial(x);
-                x = rot * x * 2.0 + shift;
-                a *= 0.5;
-            }
-            return v;
-        }
         float4 valueNoiseMaterial( float2 x, float4 value, float2 size, float2 screenSize, int smoothing)
         {
             x /= size;
-            float noise = valueNoiseMaterialFBM(x, smoothing);
+            float noise = valueNoise2DFBM(x, smoothing);
             return float4(value.xyz, noise);
         }
         """
@@ -276,47 +239,36 @@ class MaterialFactory
         def.name = "Wood"
         def.globalCode =
         """
-        float4 woodMaterial( float2 p, float4 value, float2 size, float2 screenSize, float bevel, float gap, float rounding) {
+        float woodMaterial_repramp(float x) {
+            return pow(sin(x)*0.5+0.5, 8.0) + cos(x)*0.7 + 0.7;
+        }
+        float4 woodMaterial( float2 uv, float4 value, float2 size) {
 
-            p *= bevel / 0.01;
-            p *= float2(1.5, 20.0) * .01;// ...Fiddly adjustments!
-            p.y -=.4;
-            //p = abs(.85-fmod(p,float2(.85*2.))); // tiling fold
+            uv /= size;
         
-            for (int i=0; i < 6; i++)
-                p = abs(p * 2.27) / dot(p, p) - .94 ;
+            float rings = woodMaterial_repramp(length(uv + float2(valueNoise2DFBM(uv*float2(8.0, 1.5)), valueNoise2DFBM(-uv*float2(8.0, 1.5)+4.5678))*0.05)*64.0) / 1.8;
         
-            float f = max(sin(dot(p,p)), 0.0);
-            f =  fract(f*.14);
+            rings -= valueNoise2DFBM(uv *1.0)*0.75;
+        
+            //float3 texColor = mix(value0.xyz, value1.xyz, rings);//*1.5;
+            //texColor = max(float3(0.0), texColor);
+            float rough = (valueNoise2DFBM(uv*64.0*float2(1.0, 0.2))*0.1+0.9);
+            //texColor *= rough;
 
-            return float4( value.xyz, f);
+            return float4( value.xyz, rings * rough);
         }
         """
-        def.code = "woodMaterial(__uv__, __value__, __size__, __screenSize__, __custom_bevel__,__custom_gap__,__custom_round__)"
-        def.properties["value_x"] = 0.3
-        def.properties["value_y"] = 0.3
-        def.properties["value_z"] = 0.3
+        def.code = "woodMaterial(__uv__, __value__, __size__)"
+        
+        def.properties["value_x"] = 1
+        def.properties["value_y"] = 1
+        def.properties["value_z"] = 1
         def.properties["value_w"] = 1
         
-        def.properties["custom_bevel"] = 0.2
-        def.properties["bevel_min"] = 0
-        def.properties["bevel_max"] = 50
-        def.properties["bevel_int"] = 0
-        
-        def.properties["custom_gap"] = 0.1
-        def.properties["gap_min"] = 0
-        def.properties["gap_max"] = 1
-        def.properties["gap_int"] = 0
-        
-        def.properties["custom_round"] = 0.1
-        def.properties["round_min"] = 0
-        def.properties["round_max"] = 1
-        def.properties["round_int"] = 0
-        
-        def.properties["ratio"] = 2
-        def.properties["scale"] = 40
-        def.widthProperty = "ratio"
-        def.heightProperty = "scale"
+        def.properties["scaleX"] = defaultSize * 2
+        def.properties["scaleY"] = defaultSize * 2
+        def.widthProperty = "scaleX"
+        def.heightProperty = "scaleY"
         materials.append( def )
         
         // --- Grid

@@ -109,6 +109,7 @@ class MaterialSelector
             }
         """
         
+        source += Builder.getNoiseLibrarySource()
         source += Material.getMaterialStructCode()
         
         for mat in materials {
@@ -250,6 +251,7 @@ class MaterialSelector
             }
         """
         
+        source += Builder.getNoiseLibrarySource()
         source += Material.getMaterialStructCode()
         source += material.globalCode
         source +=

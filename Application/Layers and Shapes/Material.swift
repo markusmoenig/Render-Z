@@ -169,15 +169,19 @@ class Material : Codable
             }
         }
 
+        if materialDataIndex == nil {
+            code = code.replacingOccurrences(of: "__size__", with: "float2(\(props![widthProperty]!), \(props![heightProperty]!) )")
+        } else {
+            let matDataCode = "layerData->materialData[\(materialDataIndex!-3)].zw"
+            code = code.replacingOccurrences(of: "__size__", with: matDataCode)
+        }
+        
         if pointCount == 0 {
             if materialDataIndex == nil {
                 code = code.replacingOccurrences(of: "__value__", with: "float4(\(props!["value_x"]!), \(props!["value_y"]!), \(props!["value_z"]!), \(props!["value_w"]!) )")
-                code = code.replacingOccurrences(of: "__size__", with: "float2(\(props![widthProperty]!), \(props![heightProperty]!) )")
             } else {
-                var matDataCode = "layerData->materialData[\(materialDataIndex!)]"
+                let matDataCode = "layerData->materialData[\(materialDataIndex!)]"
                 code = code.replacingOccurrences(of: "__value__", with: matDataCode)
-                matDataCode = "layerData->materialData[\(materialDataIndex!-3)].zw"
-                code = code.replacingOccurrences(of: "__size__", with: matDataCode)
             }
         } else {
             var materialIndex : Int = 0
