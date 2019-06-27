@@ -631,9 +631,7 @@ class ShapeFactory
         def.properties["precision_min"] = 0
         def.properties["precision_max"] = 5
         def.properties["precision_int"] = 1
-        
         shapes.append( def )
-        
         
         // --- Pie
         def = ShapeDefinition()
@@ -786,7 +784,7 @@ class ShapeFactory
         def.heightProperty = "radius"
         shapes.append( def )
         
-        // --- Cosine
+        // --- Wave
         def = ShapeDefinition()
         def.name = "Wave"
         def.distanceCode = "sdCosine(__uv__, float2(__stretch__,__scale__), __custom_animation__, __custom_spires__, __custom_ratio__, __custom_thickness__, __time__ )"
@@ -866,6 +864,56 @@ class ShapeFactory
         def.properties["thickness_min"] = 0
         def.properties["thickness_max"] = 2
         def.properties["thickness_int"] = 0
+        shapes.append( def )
+        
+        // --- Noise
+        def = ShapeDefinition()
+        def.name = "Noise"
+        
+        def.globalCode =
+        """
+        // https://www.shadertoy.com/view/4dS3Wd
+        float noiseHashShape(float n) { return fract(sin(n) * 1e4); }
+        
+        float noiseShape(float x) {
+            float i = floor(x);
+            float f = fract(x);
+            float u = f * f * (3.0 - 2.0 * f);
+            return mix(noiseHashShape(i), noiseHashShape(i + 1.0), u);
+        }
+        float noiseFBMShape(float x, int octaves) {
+            float v = 0.0;
+            float a = 0.5;
+            float shift = float(100);
+            for (int i = 0; i < octaves; ++i) {
+                v += a * noiseShape(x);
+                x = x * 2.0 + shift;
+                a *= 0.5;
+            }
+            return v;
+        }
+        float valueNoiseShape( float2 x, float2 size, int smoothing, float offset)
+        {
+            float height = noiseFBMShape((x.x+offset * 100) / size.x, smoothing);
+            return (x.y - height * size.y);
+        }
+        """
+        def.distanceCode = "valueNoiseShape(__uv__,float2 (__width__,__height__),__custom_smoothing__,__custom_offset__)"
+        
+        def.properties["custom_smoothing"] = 5
+        def.properties["smoothing_min"] = 1
+        def.properties["smoothing_max"] = 10
+        def.properties["smoothing_int"] = 1
+        
+        def.properties["custom_offset"] = 0
+        def.properties["offset_min"] = 0
+        def.properties["offset_max"] = 10000
+        def.properties["offset_int"] = 1
+        
+        def.properties["width"] = defaultSize / 4
+        def.properties["height"] = defaultSize / 4
+        def.widthProperty = "width"
+        def.heightProperty = "height"
         shapes.append( def )
     }
     

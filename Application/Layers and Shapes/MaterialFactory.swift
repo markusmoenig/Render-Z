@@ -207,21 +207,21 @@ class MaterialFactory
         
         // --- Value Noise
         def = MaterialDefinition()
-        def.name = "Noise"
+        def.name = "Noise #1"
         def.globalCode =
         """
         // https://www.shadertoy.com/view/4dS3Wd
-        float valueNoiseHash(float2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
-        float valueNoise( float2 x)
+        float valueNoiseMaterialHash(float2 p) { return fract(1e4 * sin(17.0 * p.x + p.y * 0.1) * (0.1 + abs(sin(p.y * 13.0 + p.x)))); }
+        float valueNoiseMaterial( float2 x)
         {
             float2 i = floor(x);
             float2 f = fract(x);
         
             // Four corners in 2D of a tile
-            float a = valueNoiseHash(i);
-            float b = valueNoiseHash(i + float2(1.0, 0.0));
-            float c = valueNoiseHash(i + float2(0.0, 1.0));
-            float d = valueNoiseHash(i + float2(1.0, 1.0));
+            float a = valueNoiseMaterialHash(i);
+            float b = valueNoiseMaterialHash(i + float2(1.0, 0.0));
+            float c = valueNoiseMaterialHash(i + float2(0.0, 1.0));
+            float d = valueNoiseMaterialHash(i + float2(1.0, 1.0));
         
             // Simple 2D lerp using smoothstep envelope between the values.
             // return vec3(mix(mix(a, b, smoothstep(0.0, 1.0, f.x)),
@@ -233,7 +233,7 @@ class MaterialFactory
             float2 u = f * f * (3.0 - 2.0 * f);
             return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
         }
-        float valueNoiseFBM(float2 x, int octaves)
+        float valueNoiseMaterialFBM(float2 x, int octaves)
         {
             float v = 0.0;
             float a = 0.5;
@@ -241,7 +241,7 @@ class MaterialFactory
             // Rotate to reduce axial bias
             float2x2 rot = float2x2(cos(0.5), sin(0.5), -sin(0.5), cos(0.50));
             for (int i = 0; i < octaves; ++i) {
-                v += a * valueNoise(x);
+                v += a * valueNoiseMaterial(x);
                 x = rot * x * 2.0 + shift;
                 a *= 0.5;
             }
@@ -250,7 +250,7 @@ class MaterialFactory
         float4 valueNoiseMaterial( float2 x, float4 value, float2 size, float2 screenSize, int smoothing)
         {
             x /= size;
-            float noise = valueNoiseFBM(x, smoothing);
+            float noise = valueNoiseMaterialFBM(x, smoothing);
             return float4(value.xyz, noise);
         }
         """

@@ -155,7 +155,7 @@ class ShapeSelector
             if shape.name == "Variable" {
                 source += createStaticTextSource(mmView.openSans, "123", varCounter: index)
             }
-            if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" {
+            if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" || shape.name == "Noise" {
                 source += "uv.y = -uv.y;\n"
             }
             
@@ -290,7 +290,7 @@ class ShapeSelector
         if shape.name == "Text" || shape.name == "Variable" {
             source += createStaticTextSource(mmView.openSans, "Abc")
         }
-        if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" {
+        if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" || shape.name == "Noise" {
             source += "uv.y = -uv.y;\n"
         }
         source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: 0) + ");"

@@ -179,7 +179,7 @@ class ShapeList
                 source += "uv /= 8; uv -= float2( 1.2, -0.2 );"
                 source += createStaticTextSource(mmView.openSans, shape.name == "Text" ? "Abc" : "123", varCounter: index)
             }
-            if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" {
+            if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" || shape.name == "Noise" {
                 source += "uv.y = -uv.y;\n"
             }
             source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12), shapeIndex: index) + ";"
