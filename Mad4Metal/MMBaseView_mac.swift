@@ -63,6 +63,9 @@ class MMBaseView : MTKView
     override func mouseDown(with event: NSEvent) {
         let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ) )
         
+        if mouseTrackWidget != nil {
+            mouseTrackWidget!.mouseDown(event)
+        } else
         if hoverWidget != nil {
             
             if focusWidget != nil {
@@ -80,6 +83,10 @@ class MMBaseView : MTKView
     override func mouseUp(with event: NSEvent) {
         let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ) )
 
+        if mouseTrackWidget != nil {
+            mouseTrackWidget!.mouseUp(event)
+        }
+        
         // --- Drag and Drop
         if hoverWidget != nil && dragSource != nil {
             if hoverWidget!.dropTargets.contains(dragSource!.id) {

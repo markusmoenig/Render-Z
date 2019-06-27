@@ -616,7 +616,14 @@ class NodeGraph : Codable
         }
                 
 //        #if !os(OSX)
-        if nodeHoverMode != .MenuOpen {
+        if nodeHoverMode != .MenuOpen || mmView.mouseTrackWidget == nil {
+            
+            if hoverNode != nil && hoverNode!.menu != nil {
+                if !hoverNode!.menu!.states.contains(.Opened) {
+                    nodeHoverMode = .None
+                }
+            }
+            
             mouseMoved( event )
         }
 //        #endif
@@ -641,6 +648,7 @@ class NodeGraph : Codable
         if nodeHoverMode == .MenuHover {
             if let menu = hoverNode!.menu {
                 menu.mouseDown(event)
+
                 if menu.states.contains(.Opened) {
                     nodeHoverMode = .MenuOpen
                     menu.removeState(.Hover)

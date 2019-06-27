@@ -812,13 +812,13 @@ class ShapeFactory
         
             float x0 = U.x, y0 = U.y, x=x0, k = 2.*PI*n/L, d;
         
-            x = clamp( x0, -L/2., L/2.);
+            //x = clamp( x0, -L/2., L/2.);
             float  h = .5, // set to 0 for f(x) = cos()
             xm = ( floor((x-ofs)*k/PI +h) -h ) *PI/k + ofs, // monotonous sin() branch
             xM = (  ceil((x-ofs)*k/PI +h) -h ) *PI/k + ofs; // = range with only one dist extrema
             // ends and beyond requires special care
-            xm = max(xm,-L/2.);
-            xM = min(xM, L/2.);
+            //xm = max(xm,-L/2.);
+            //xM = min(xM, L/2.);
             float ym = df(xm), yM = df(xM), y;   // v sign: hack to avoid the extra extrema
             if ( xm ==-L/2. && ym < 0. ) xm=xM, ym= 1., xM+=PI/k, yM=df(xM);
             if ( xM == L/2. && yM > 0. ) xM=xm, yM=-1., xm-=PI/k, ym=df(xm);
@@ -835,6 +835,8 @@ class ShapeFactory
             d = d(x);                                   // dist to sine
             d = min( d, d( L/2.) );                     // dist to ends
             d = min( d, d(-L/2.) );
+        
+            if (y0<f(x)) d = -d;
             d -= w;                                     // thickness
         
             return d * size.y;

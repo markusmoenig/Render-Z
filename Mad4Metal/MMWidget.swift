@@ -268,6 +268,8 @@ class MMMenuWidget : MMWidget
     var selIndex    : Int = -1
     var itemHeight  : Int = 0
     
+    var firstClick  : Bool = false
+    
     init( _ view: MMView, skinToUse: MMSkinMenuWidget? = nil, items: [MMMenuItem])
     {
         skin = skinToUse != nil ? skinToUse! : view.skin.MenuWidget
@@ -299,22 +301,52 @@ class MMMenuWidget : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        addState( .Checked )
-        addState( .Opened )
-        selIndex = -1
-        mmView.mouseTrackWidget = self
+        #if os(iOS)
+        mouseMoved(event)
+        #endif
+        
+        if !states.contains(.Opened) {
+            
+            addState( .Checked )
+            addState( .Opened )
+            selIndex = -1
+            mmView.mouseTrackWidget = self
+            firstClick = true
+        
+        } else {
+            #if os(OSX)
+
+            if states.contains(.Opened) && selIndex > -1 {
+                removeState( .Opened )
+                let item = items[selIndex]
+                item.cb()
+            }
+            removeState( .Checked )
+            removeState( .Opened )
+            mmView.mouseTrackWidget = nil
+            #endif
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        if states.contains(.Opened) && selIndex > -1 {
+        #if os(iOS)
+
+        if states.contains(.Opened) && (firstClick == false || (selIndex > -1 && selIndex < items.count)) {
+
+            if states.contains(.Opened) && selIndex > -1 && selIndex < items.count {
+                removeState( .Opened )
+                let item = items[selIndex]
+                item.cb()
+            }
+            removeState( .Checked )
             removeState( .Opened )
-            let item = items[selIndex]
-            item.cb()
+            
+            mmView.mouseTrackWidget = nil
         }
-        removeState( .Checked )
-        removeState( .Opened )
-        mmView.mouseTrackWidget = nil
+ 
+        firstClick = false
+        #endif
     }
     
     override func mouseMoved(_ event: MMMouseEvent)

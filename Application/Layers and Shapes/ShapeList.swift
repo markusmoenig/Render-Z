@@ -145,6 +145,9 @@ class ShapeList
 
             float4 finalCol = float4( 0 ), col = float4( 0 );
         
+            float2 limitD;
+            float limit;
+        
         """
 
         let left : Float = width / 2
@@ -176,10 +179,19 @@ class ShapeList
                 source += "uv /= 8; uv -= float2( 1.2, -0.2 );"
                 source += createStaticTextSource(mmView.openSans, shape.name == "Text" ? "Abc" : "123", varCounter: index)
             }
-            if shape.name == "Horseshoe" || shape.name == "Pie" {
+            if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" {
                 source += "uv.y = -uv.y;\n"
             }
             source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12), shapeIndex: index) + ";"
+            
+            source +=
+            """
+            
+            limitD = abs(uv) - float2(\(unitSize/2-8));
+            limit = length(max(limitD,float2(0))) + min(max(limitD.x,limitD.y),0.0);
+            dist = max(limit,dist);
+            
+            """
             
             if shape.name == "Text" || shape.name == "Variable" {
                 source += "uv -= float2( -1.2, 0.2  ); uv *= 8;"
@@ -373,7 +385,7 @@ class ShapeList
         if shape.name == "Wave" {
             properties["custom_spires"] = 2
             properties["stretch"] = properties["stretch"]! / 4
-            properties["custom_thickness"] = properties["custom_thickness"]! * 2
+            //properties["custom_thickness"] = properties["custom_thickness"]! * 2
         } else
         if shape.name == "Ellipse" {
             properties[shape.heightProperty] = size / 1.5

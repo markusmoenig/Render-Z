@@ -122,7 +122,7 @@ class MMBaseView : MTKView
                 animations: {recognizer.view!.center = finalPoint },
                 completion: nil)
             */
-                        
+            
             // --- Drag and Drop
             if hoverWidget != nil && dragSource != nil {
                 if hoverWidget!.dropTargets.contains(dragSource!.id) {
@@ -138,6 +138,9 @@ class MMBaseView : MTKView
             }
             // ---
             
+            if mouseTrackWidget != nil {
+                mouseTrackWidget!.mouseUp(event)
+            } else
             if focusWidget != nil {
                 focusWidget!.removeState( .Clicked )
                 focusWidget!.mouseUp(event)
@@ -174,19 +177,22 @@ class MMBaseView : MTKView
             mouseDownPos.x = event.x
             mouseDownPos.y = event.y
 
-            widgetForMouse = nil
-
             if hoverWidget != nil {
                 hoverWidget!.removeState(.Hover)
             }
             
-            for widget in widgets {
-                //            print( x, y, widget.rect.x, widget.rect.y, widget.rect.width, widget.rect.height )
-                if widget.rect.contains( event.x, event.y ) {
-                    hoverWidget = widget
-                    hoverWidget?.mouseDown(event)
-//                    hoverWidget!.addState(.Hover)
-                    break;
+            if mouseTrackWidget != nil {
+                mouseTrackWidget!.mouseDown(event)
+            } else {
+                widgetForMouse = nil
+                for widget in widgets {
+                    //            print( x, y, widget.rect.x, widget.rect.y, widget.rect.width, widget.rect.height )
+                    if widget.rect.contains( event.x, event.y ) {
+                        hoverWidget = widget
+                        hoverWidget?.mouseDown(event)
+    //                    hoverWidget!.addState(.Hover)
+                        break;
+                    }
                 }
             }
             
@@ -237,6 +243,9 @@ class MMBaseView : MTKView
             }
             // ---
             
+            if mouseTrackWidget != nil {
+                mouseTrackWidget!.mouseUp(event)
+            } else
             if focusWidget != nil {
                 focusWidget!.removeState( .Clicked )
                 focusWidget!.mouseUp(event)

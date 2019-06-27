@@ -271,20 +271,68 @@ class MaterialFactory
         def.heightProperty = "size"
         materials.append( def )
         
+        // --- Wood
+        def = MaterialDefinition()
+        def.name = "Wood"
+        def.globalCode =
+        """
+        float4 woodMaterial( float2 p, float4 value, float2 size, float2 screenSize, float bevel, float gap, float rounding) {
+
+            p *= bevel / 0.01;
+            p *= float2(1.5, 20.0) * .01;// ...Fiddly adjustments!
+            p.y -=.4;
+            //p = abs(.85-fmod(p,float2(.85*2.))); // tiling fold
+        
+            for (int i=0; i < 6; i++)
+                p = abs(p * 2.27) / dot(p, p) - .94 ;
+        
+            float f = max(sin(dot(p,p)), 0.0);
+            f =  fract(f*.14);
+
+            return float4( value.xyz, f);
+        }
+        """
+        def.code = "woodMaterial(__uv__, __value__, __size__, __screenSize__, __custom_bevel__,__custom_gap__,__custom_round__)"
+        def.properties["value_x"] = 0.3
+        def.properties["value_y"] = 0.3
+        def.properties["value_z"] = 0.3
+        def.properties["value_w"] = 1
+        
+        def.properties["custom_bevel"] = 0.2
+        def.properties["bevel_min"] = 0
+        def.properties["bevel_max"] = 50
+        def.properties["bevel_int"] = 0
+        
+        def.properties["custom_gap"] = 0.1
+        def.properties["gap_min"] = 0
+        def.properties["gap_max"] = 1
+        def.properties["gap_int"] = 0
+        
+        def.properties["custom_round"] = 0.1
+        def.properties["round_min"] = 0
+        def.properties["round_max"] = 1
+        def.properties["round_int"] = 0
+        
+        def.properties["ratio"] = 2
+        def.properties["scale"] = 40
+        def.widthProperty = "ratio"
+        def.heightProperty = "scale"
+        materials.append( def )
+        
         // --- Grid
         def = MaterialDefinition()
         def.name = "Grid"
         def.globalCode =
         """
         float4 gridMaterial( float2 uv, float4 value, float2 size, float2 screenSize, float thickness) {
-        float2 vPixelsPerGridSquare = size;
-        float2 vScreenPixelCoordinate = uv;
-        float2 vGridSquareCoords = fract(vScreenPixelCoordinate / vPixelsPerGridSquare);
-        float2 vGridSquarePixelCoords = vGridSquareCoords * vPixelsPerGridSquare;
-        float2 vIsGridLine = step(vGridSquarePixelCoords, float2(1.0) * thickness);
-        
-        float fIsGridLine = max(vIsGridLine.x, vIsGridLine.y);
-        return mix( float4(0), value, fIsGridLine);
+            float2 vPixelsPerGridSquare = size;
+            float2 vScreenPixelCoordinate = uv;
+            float2 vGridSquareCoords = fract(vScreenPixelCoordinate / vPixelsPerGridSquare);
+            float2 vGridSquarePixelCoords = vGridSquareCoords * vPixelsPerGridSquare;
+            float2 vIsGridLine = step(vGridSquarePixelCoords, float2(1.0) * thickness);
+            
+            float fIsGridLine = max(vIsGridLine.x, vIsGridLine.y);
+            return mix( float4(0), value, fIsGridLine);
         }
         """
         def.code = "gridMaterial(__uv__, __value__, __size__,__screenSize__,__custom_thickness__)"

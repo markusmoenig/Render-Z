@@ -127,6 +127,9 @@ class ShapeSelector
                 uvOrigin.y = 1 - uvOrigin.y;
                 float2 uv;
         
+                float2 limitD;
+                float limit;
+        
                 float dist = 10000;
         
         """
@@ -156,7 +159,13 @@ class ShapeSelector
                 source += "uv.y = -uv.y;\n"
             }
             
-            source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv", shapeIndex: index) + ");"
+            source +=
+            """
+                limitD = abs(uv) - float2(\(unitSize/2));
+                limit = length(max(limitD,float2(0))) + min(max(limitD.x,limitD.y),0.0);
+            """
+            
+            source += "dist = merge( dist, max(limit, " + shape.createDistanceCode(uvName: "uv", shapeIndex: index) + "));"
             
             shapeRects.append( MMRect(left/zoom - unitSize / 2, top / zoom - unitSize / 2, unitSize, unitSize ) )
             

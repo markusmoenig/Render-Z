@@ -76,7 +76,8 @@ class DiskBuilder
             float2      size;
             float2      maxDisks;
             float4      camera;
-        
+            float4      general; // .x == time, .y == renderSampling
+
             SHAPE_DATA  shapes[\(max(buildData.maxShapes, 1))];
             float4      points[\(max(buildData.maxPoints, 1))];
             OBJECT_DATA objects[\(max(buildData.maxObjects, 1))];
@@ -99,6 +100,11 @@ class DiskBuilder
         instance.data!.append( camera.xPos )
         instance.data!.append( camera.yPos )
         instance.data!.append( 1/camera.zoom )
+        instance.data!.append( 0 )
+        
+        instance.data!.append( 0 )
+        instance.data!.append( 0 )
+        instance.data!.append( 0 )
         instance.data!.append( 0 )
         
         instance.headerOffset = instance.data!.count
