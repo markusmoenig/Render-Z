@@ -235,9 +235,8 @@ class MMListWidget : MMWidget
         
         if fragment!.width != width || fragment!.height != height {
             fragment!.allocateTexture(width: width, height: height)
-            textureWidget.setTexture(fragment!.texture)
         }
-        
+        textureWidget.setTexture(fragment!.texture)
         update()
     }
     

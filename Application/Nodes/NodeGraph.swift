@@ -259,7 +259,6 @@ class NodeGraph : Codable
             } else {
                 self.contentType = .ObjectsOverview
                 self.setOverviewMaster()
-                self.nodeList!.switchTo(.ObjectOverview)
             }
         }
         
@@ -292,7 +291,6 @@ class NodeGraph : Codable
             } else {
                 self.contentType = .LayersOverview
                 self.setOverviewMaster()
-                self.nodeList!.switchTo(.LayerOverview)
             }
         }
         
@@ -325,7 +323,6 @@ class NodeGraph : Codable
             } else {
                 self.contentType = .ScenesOverview
                 self.setOverviewMaster()
-                self.nodeList!.switchTo(.SceneOverview)
             }
         }
         
