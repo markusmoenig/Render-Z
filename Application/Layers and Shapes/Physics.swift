@@ -257,13 +257,12 @@ class Physics
         """
             float dynaCount = physicsData->objectCount.x;
             int outCounter = 0;
-            //for (uint i = 0; i < dynaCount; i += 1 )
-            //{
-                float2 pos =  physicsData->dynamicObjects[0].pos;
-                float radius = physicsData->dynamicObjects[0].radius;
+
+            float2 pos =  physicsData->dynamicObjects[0].pos;
+            float radius = physicsData->dynamicObjects[0].radius;
         
-                float2 hit;// = sdf(pos, physicsData, fontTexture);
-                float4 rc;// = float4( hit.y, 0, 0, 0 );
+            float2 hit;// = sdf(pos, physicsData, fontTexture);
+            float4 rc;// = float4( hit.y, 0, 0, 0 );
 
         """
         
@@ -276,14 +275,14 @@ class Physics
                     buildData.source +=
                     """
                     
-                            hit = object\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
-                            rc = float4( pos.x, 0, 0, 0 );
+                        hit = object\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
+                        rc = float4( pos.x, 0, 0, 0 );
                     
-                            if ( hit.x < radius ) {
-                                rc.y = radius - hit.x;
-                                rc.zw = normal\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
-                            }
-                            out[gid + outCounter++] = rc;
+                        if ( hit.x < radius ) {
+                            rc.y = radius - hit.x;
+                            rc.zw = normal\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
+                        }
+                        out[gid + outCounter++] = rc;
                     
                     """
                     totalCollisionChecks += 1
@@ -296,12 +295,12 @@ class Physics
                 radius = physicsData->dynamicObjects[\(objectCounter)].radius;
             
             """
+            objectCounter += 1
         }
         
         buildData.source +=
         """
         
-            //}
         }
 
         """
@@ -339,7 +338,7 @@ class Physics
         {
             for shape in object.shapes {
                 
-                for index in 0..<8 {
+                for index in 0..<12 {
                     instance.data![shape.physicShapeOffset+index] = builderInstance.data![shape.buildShapeOffset+index]
                 }
         
