@@ -13,7 +13,8 @@ import MetalKit
 class PhysicsInstance : BuilderInstance
 {
     var dynamicObjects  : [Object] = []
-    
+    var collisionObjects: [Object] = []
+
     var inBuffer        : MTLBuffer? = nil
     var outBuffer       : MTLBuffer? = nil
     
@@ -39,7 +40,6 @@ class Physics
     /// Build the state for the given objects
     func buildPhysics(objects: [Object], builder: Builder, camera: Camera) -> PhysicsInstance?
     {
-        // Build the disks for dynamic objects
         let dynamicObjects = getDynamicObjects(objects: objects)
         //for object in dynamicObjects {
             //nodeGraph.diskBuilder.getDisksFor(object, builder: nodeGraph.builder)
@@ -110,8 +110,9 @@ class Physics
         
         instance.headerOffset = instance.data!.count
         
-        // --- Build static code
+        // --- Build overall static code
         
+        /*
         buildData.source +=
         """
         
@@ -126,11 +127,10 @@ class Physics
         """
         
         for object in objects {
-            let physicsMode = object.properties["physicsMode"]
-            if physicsMode != nil {
-                if physicsMode! == 1 {
-                    builder.parseObject(object, instance: instance, buildData: buildData, physics: true)
-                }
+            let physicsMode = object.getPhysicsMode()
+            if physicsMode == .Static {
+                object.body = Body(object)
+                builder.parseObject(object, instance: instance, buildData: buildData, physics: true)
             }
         }
         
@@ -141,6 +141,52 @@ class Physics
         }
         
         """
+        */
+ 
+        // --- Build sdf code for all dynamic, static objects
+        
+        var objectCounter : Int = 0
+        for object in objects {
+            let physicsMode = object.getPhysicsMode()
+            if physicsMode == .Dynamic || physicsMode == .Static {
+                
+//                object.body = Body(object)
+
+                buildData.source +=
+                """
+                
+                float2 object\(objectCounter)( float2 uv, constant PHYSICS_DATA *physicsData, texture2d<half, access::sample> fontTexture )
+                {
+                    float2 tuv = uv, pAverage;
+                    float dist = 100000, newDist, objectDistance = 100000;
+                
+                    int materialId = -1, objectId = -1;
+                    constant SHAPE_DATA *shape;
+                
+                """
+                
+                builder.parseObject(object, instance: instance, buildData: buildData, physics: true)
+                
+                buildData.source +=
+                """
+                
+                    return float2(objectDistance,objectId);
+                }
+                
+                float2 normal\(objectCounter)(float2 uv, constant PHYSICS_DATA *physicsData, texture2d<half, access::sample> fontTexture) {
+                    float2 eps = float2( 0.0005, 0.0 );
+                    return normalize(
+                        float2(object\(objectCounter)(uv+eps.xy, physicsData, fontTexture).x - object\(objectCounter)(uv-eps.xy, physicsData, fontTexture).x,
+                        object\(objectCounter)(uv+eps.yx, physicsData, fontTexture).x - object\(objectCounter)(uv-eps.yx, physicsData, fontTexture).x));
+                }
+                
+                """
+                
+                object.body!.shaderIndex = objectCounter
+                objectCounter += 1
+                instance.collisionObjects.append(object)
+            }
+        }
         
         // Fill up the data
         instance.pointDataOffset = instance.data!.count
@@ -192,12 +238,6 @@ class Physics
 
         buildData.source +=
         """
-        float2 normal(float2 uv, constant PHYSICS_DATA *physicsData, texture2d<half, access::sample> fontTexture) {
-            float2 eps = float2( 0.0005, 0.0 );
-            return normalize(
-                float2(sdf(uv+eps.xy, physicsData, fontTexture).x - sdf(uv-eps.xy, physicsData, fontTexture).x,
-                sdf(uv+eps.yx, physicsData, fontTexture).x - sdf(uv-eps.yx, physicsData, fontTexture).x));
-        }
         
         kernel void layerPhysics(constant PHYSICS_DATA *physicsData [[ buffer(1) ]],
                         texture2d<half, access::sample> fontTexture [[ texture(2) ]],
@@ -216,27 +256,59 @@ class Physics
         buildData.source +=
         """
             float dynaCount = physicsData->objectCount.x;
-            for (uint i = 0; i < dynaCount; i += 1 )
-            {
-                float2 pos =  physicsData->dynamicObjects[i].pos;
-                float radius = physicsData->dynamicObjects[i].radius;
+            int outCounter = 0;
+            //for (uint i = 0; i < dynaCount; i += 1 )
+            //{
+                float2 pos =  physicsData->dynamicObjects[0].pos;
+                float radius = physicsData->dynamicObjects[0].radius;
         
-                float2 hit = sdf(pos, physicsData, fontTexture);
-                float4 rc = float4( hit.y, 0, 0, 0 );
+                float2 hit;// = sdf(pos, physicsData, fontTexture);
+                float4 rc;// = float4( hit.y, 0, 0, 0 );
 
-                if ( hit.x < radius ) {
-                    rc.y = radius - hit.x;
-                    rc.zw = normal(pos, physicsData, fontTexture);
+        """
+        
+        var totalCollisionChecks : Int = 0
+        objectCounter = 1
+        for object in instance.dynamicObjects {
+            for collisionObject in instance.collisionObjects {
+                if collisionObject !== object {
+
+                    buildData.source +=
+                    """
+                    
+                            hit = object\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
+                            rc = float4( pos.x, 0, 0, 0 );
+                    
+                            if ( hit.x < radius ) {
+                                rc.y = radius - hit.x;
+                                rc.zw = normal\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
+                            }
+                            out[gid + outCounter++] = rc;
+                    
+                    """
+                    totalCollisionChecks += 1
                 }
-                out[gid+i] = rc;//float4( pos.x, pos.y, velocity.x, velocity.y );
             }
+            buildData.source +=
+            """
+            
+                pos =  physicsData->dynamicObjects[\(objectCounter)].pos;
+                radius = physicsData->dynamicObjects[\(objectCounter)].radius;
+            
+            """
+        }
+        
+        buildData.source +=
+        """
+        
+            //}
         }
 
         """
         
         instance.inBuffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
-        instance.outBuffer = compute!.device.makeBuffer(length: dynaCount * 4 * MemoryLayout<Float>.stride, options: [])!
+        instance.outBuffer = compute!.device.makeBuffer(length: totalCollisionChecks * 4 * MemoryLayout<Float>.stride, options: [])!
         
         let library = compute!.createLibraryFromSource(source: buildData.source)
         instance.state = compute!.createState(library: library, name: "layerPhysics")
@@ -286,21 +358,14 @@ class Physics
             }
         }
         
-        for object in instance.objects {
-            let physicsMode = object.properties["physicsMode"]
-            if physicsMode != nil {
-                if physicsMode! == 1 {
-                    parseObject(object)
-                }
-            }
+        for object in instance.collisionObjects {
+            parseObject(object)
         }
         
+        //builder.updateInstanceData(instance: builderInstance, camera: camera, doMaterials: false, frame: 0)
+
         var offset : Int = instance.physicsOffset
         for object in instance.dynamicObjects {
-            
-            if object.body == nil {
-                object.body = Body(object)
-            }
             
             var radius : Float = 1
             var xOff : Float = 0
@@ -341,34 +406,40 @@ class Physics
         var manifolds : [Manifold] = []
         for object in instance.dynamicObjects {
             
-            let id : Float = result[offset]
-            let penetration : Float = result[offset+1]
-            
-//            print( id, penetration, result[offset+2] )
-            
-            if ( penetration > 0.0 )
-            {
-                let normal = float2( result[offset + 2], result[offset + 3] )
-                
-                let manifold = Manifold(object.body!,instance.objectMap[Int(id)]!.body!)
-                manifold.penetrationDepth = penetration
-                manifold.normal = -normal
-                manifold.resolve()
-                manifolds.append(manifold)
+            for collisionObject in instance.collisionObjects {
+                if collisionObject !== object {
+                    
+                    //let distance : Float = result[offset]
+                    let penetration : Float = result[offset+1]
+                    
+                    //print(object.name, collisionObject.name, distance, penetration)
+
+                    if ( penetration > 0.0 )
+                    {
+                        //print("hit", object.name, collisionObject.name, distance, penetration)
+
+                        let normal = float2( result[offset + 2], result[offset + 3] )
+                        
+                        let manifold = Manifold(object.body!, collisionObject.body!)//instance.objectMap[Int(id)]!.body!)
+                        manifold.penetrationDepth = penetration
+                        manifold.normal = -normal
+                        manifold.resolve()
+                        manifolds.append(manifold)
+                    }
+                    
+                    offset += 4
+                }
             }
-            
             object.body!.integrateForces(delta)
             object.body!.integrateVelocity(delta)
             
-            for manifold in manifolds {
-                manifold.positionalCorrection()
-            }
-            
             object.body!.force = float2(0,0)
-            
-            offset += 4
         }
         //accumulator -= delta
+        
+        for manifold in manifolds {
+            manifold.positionalCorrection()
+        }
     }
     
     func getCurrentTime()->Double {
@@ -389,12 +460,10 @@ class Physics
         var result : [Object] = []
         
         for object in objects {
-            let physicsMode = object.properties["physicsMode"]
-            if physicsMode != nil && physicsMode! == 2 {
+            if object.getPhysicsMode() == .Dynamic {
                 result.append(object)
             }
         }
-        
         return result
     }
 }
@@ -424,13 +493,15 @@ class Body
     
     var collisionInfos      : [CollisionInfo] = []
     
+    var shaderIndex         : Int = -1
+    
     init(_ object: Object)
     {
         self.object = object
         
-        let physicsMode = object.properties["physicsMode"]
-        if physicsMode != nil && physicsMode! == 2 {
-            // Get parameters for dynamic objects
+        let physicsMode = object.getPhysicsMode()
+        if physicsMode == .Dynamic {
+            // Get parameters for dynamic objects, statics have a mass of 0
             
             mass = object.properties["physicsMass"]!
             if mass != 0 {

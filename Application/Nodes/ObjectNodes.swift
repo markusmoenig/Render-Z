@@ -31,7 +31,7 @@ class ObjectPhysics : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "On"], index: 1),
+            NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "Dynamic", "Collision Only"], index: 1),
             NodeUINumber(self, variable: "physicsMass", title: "Mass", range: float2(0, 50), value: 1),
             NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 5), value: 0.2)
         ]

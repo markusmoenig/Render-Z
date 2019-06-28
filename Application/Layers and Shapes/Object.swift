@@ -22,6 +22,10 @@ class Object : Node
         case NotAnimating, AtStart, GoingForward, GoingBackward, AtEnd
     }
     
+    enum PhysicsMode : Int {
+        case Off, Static, Dynamic, CollisionOnly
+    }
+    
     var shapes          : [Shape]
     var bodyMaterials   : [Material]
     var borderMaterials : [Material]
@@ -200,6 +204,17 @@ class Object : Node
 
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
+    }
+    
+    /// Returns the physics mode for this object
+    func getPhysicsMode() -> Object.PhysicsMode
+    {
+        var mode : PhysicsMode = .Off
+        
+        if properties["physicsMode"] != nil {
+            mode = PhysicsMode(rawValue: Int(properties["physicsMode"]!))!
+        }
+        return mode
     }
     
     /// Sets the animation mode

@@ -1525,9 +1525,9 @@ class Builder
             if !physics {
                 parseObject(object)
             } else {
-                let physicsMode = object.properties["physicsMode"]
+                let physicsMode = object.getPhysicsMode()
                 /// Dynamic and static objects only in physics mode
-                if physicsMode != nil && (physicsMode! == 1 /*|| physicsMode! == 2*/) {
+                if physicsMode == .Static || physicsMode == .Dynamic {
                     parseObject(object)
                 }
             }
