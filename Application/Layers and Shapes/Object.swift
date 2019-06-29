@@ -163,6 +163,7 @@ class Object : Node
         
         properties["copy_posX"] = properties["posX"]
         properties["copy_posY"] = properties["posY"]
+        properties["copy_rotate"] = properties["rotate"]
     }
     
     required init(from decoder: Decoder) throws

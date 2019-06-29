@@ -222,9 +222,11 @@ class ResetObject : Node
                     
                     inst.properties["posX"] = inst.properties["copy_posX"]
                     inst.properties["posY"] = inst.properties["copy_posY"]
-                    
+                    inst.properties["rotate"] = inst.properties["copy_rotate"]
+
                     if let body = inst.body {
                         body.velocity = float2(0,0)
+                        body.angularVelocity = 0
                         playResult = .Success
                     }
                 }
