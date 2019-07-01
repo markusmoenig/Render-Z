@@ -81,11 +81,23 @@ class GizmoInfoArea {
         } else
         if state == .xAxisScale {
             let widthProperty = getProperty(.WidthProperty)
-            addItem("Width", widthProperty, transformed[widthProperty]!)
+            var title = widthProperty
+            if title != "scaleX" {
+                title = title.prefix(1).uppercased() + title.dropFirst()
+            } else {
+                title = "Width"
+            }
+            addItem(title, widthProperty, transformed[widthProperty]!)
         } else
         if state == .yAxisScale {
             let heightProperty = getProperty(.HeightProperty)
-            addItem("Height", heightProperty, transformed[heightProperty]!)
+            var title = heightProperty
+            if title != "scaleY" {
+                title = title.prefix(1).uppercased() + title.dropFirst()
+            } else {
+                title = "Height"
+            }
+            addItem(title, heightProperty, transformed[heightProperty]!)
         }
         if state == .Rotate {
             addItem("Rotation", "rotate", transformed["rotate"]!)
@@ -111,6 +123,8 @@ class GizmoInfoArea {
                         result = "limiterWidth"
                     }
                 }
+            } else {
+                result = "scaleX"
             }
         } else
         if prop == .HeightProperty {
@@ -129,9 +143,10 @@ class GizmoInfoArea {
                         result = "limiterHeight"
                     }
                 }
+            } else {
+                result = "scaleY"
             }
         }
-        
         return result
     }
     
@@ -228,6 +243,34 @@ class GizmoInfoArea {
                         }
                         
                         applyProperties(selectedMaterials[0], self.gizmo.undoProperties, selectedMaterials[0].properties)
+                    }
+                } else
+                if object != nil && context == .ObjectEditor {
+                    let object = self.gizmo.objects[0]
+                    
+                    let properties : [String:Float] = [
+                        self.hoverItem!.variable : value
+                    ]
+                    self.gizmo.processGizmoObjectProperties(properties, object: object)
+                    self.hoverItem!.setValue(value)
+                    
+                    self.gizmo.dragState = .Inactive
+                    
+                    // Undo for shape based action
+                    if self.gizmo.objects.count == 1 && !NSDictionary(dictionary: object.properties).isEqual(to: self.gizmo.undoProperties) {
+                        
+                        func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
+                        {
+                            self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                                object.properties = old
+                                
+                                applyProperties(object, new, old)
+                            }
+                            self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
+                            self.gizmo.mmView.update()
+                        }
+                        
+                        applyProperties(object, self.gizmo.undoProperties, object.properties)
                     }
                 }
                 

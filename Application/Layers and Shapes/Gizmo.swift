@@ -152,6 +152,7 @@ class Gizmo : MMWidget
         }
     }
     
+    // Set the object the gizmo will be working on
     func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor, materialType: Object.MaterialType = .Body, customDelegate: NodeMaxDelegate? = nil)
     {
         if self.object !== object {
@@ -587,10 +588,12 @@ class Gizmo : MMWidget
                 }
             } else
             if mode == .Normal && context == .MaterialEditor {
-                for material in object!.getSelectedMaterials(materialType) {
+                let materials = object!.getSelectedMaterials(materialType)
+
+                for material in materials {
                     let transformed = getTransformedProperties(material)
                     
-                    if object!.selectedShapes.count == 1 {
+                    if materials.count == 1 {
                         gizmoInfoArea.addItemsFor(hoverState, transformed)
                     }
                     
@@ -610,8 +613,13 @@ class Gizmo : MMWidget
             } else
             if mode == .Normal && context == .ObjectEditor {
                 for object in objects {
+                    
                     initialValues[object.uuid] = [:]
                     let transformed = object.properties
+                    if objects.count == 1 {
+                        gizmoInfoArea.addItemsFor(hoverState, transformed)
+                    }
+                    
                     initialValues[object.uuid]!["posX"] = transformed["posX"]!
                     initialValues[object.uuid]!["posY"] = transformed["posY"]!
                     initialValues[object.uuid]!["rotate"] = transformed["rotate"]!
@@ -704,6 +712,24 @@ class Gizmo : MMWidget
                 }
                 
                 applyProperties(selectedMaterials[0], undoProperties, selectedMaterials[0].properties)
+            }
+        } else
+        if object != nil && context == .ObjectEditor {
+
+            if objects.count == 1 && !NSDictionary(dictionary: object!.properties).isEqual(to: undoProperties) {
+                    
+                func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
+                {
+                    mmView.undoManager!.registerUndo(withTarget: self) { target in
+                        object.properties = old
+                        
+                        applyProperties(object, new, old)
+                    }
+                    app.updateObjectPreview(rootObject!)
+                    mmView.update()
+                }
+                
+                applyProperties(object!, undoProperties, object!.properties)
             }
         }
         
@@ -875,6 +901,7 @@ class Gizmo : MMWidget
                             "posX" : initialValues[object.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                             "posY" : initialValues[object.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoObjectProperties(properties, object: object)
                     }
                 }
@@ -919,6 +946,7 @@ class Gizmo : MMWidget
                         let properties : [String:Float] = [
                             "posX" : initialValues[object.uuid]!["posX"]! + (pos.x - dragStartOffset!.x) / scale,
                             ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoObjectProperties(properties, object: object)
                     }
                 }
@@ -963,6 +991,7 @@ class Gizmo : MMWidget
                         let properties : [String:Float] = [
                             "posY" : initialValues[object.uuid]!["posY"]! - (pos.y - dragStartOffset!.y) / scale,
                             ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoObjectProperties(properties, object: object)
                     }
                 }
@@ -1014,6 +1043,7 @@ class Gizmo : MMWidget
                         let properties : [String:Float] = [
                             "scaleX" : value,
                         ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoObjectProperties(properties, object: object)
                     }
                 }
@@ -1068,6 +1098,7 @@ class Gizmo : MMWidget
                         let properties : [String:Float] = [
                             "scaleY" : value,
                         ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoObjectProperties(properties, object: object)
                     }
                 }
@@ -1112,6 +1143,7 @@ class Gizmo : MMWidget
                         let properties : [String:Float] = [
                             "rotate" : value
                         ]
+                        gizmoInfoArea.updateItems(properties)
                         processGizmoObjectProperties(properties, object: object)
                     }
                 }
