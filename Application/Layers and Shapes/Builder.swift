@@ -211,6 +211,11 @@ class Builder
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
         }
         
         instance.materialDataOffset = instance.data!.count
@@ -505,11 +510,16 @@ class Builder
             } else {
                 properties = shape.properties
             }
-            
+
             buildData.source += "shape = &\(buildData.mainDataName)shapes[\(buildData.shapeIndex)];\n"
-            
-            buildData.source += "tuv = translate( uv, shape->pos );"
+
+            // Object transforms
+            buildData.source += "tuv = translate( uv, \(buildData.mainDataName)objects[\(buildData.objectIndex)].pos);"
             buildData.source += "tuv /= \(buildData.mainDataName)objects[\(buildData.objectIndex)].scale;\n"
+            buildData.source += "/*if ( \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate != 0.0 )*/ tuv = rotateCCWWithPivot( tuv - shape->pos, \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate, tuv);\n"
+            // ---
+
+//            buildData.source += "tuv = translate( tuv, shape->pos );"
             if shape.pointCount == 0 {
                 buildData.source += "if ( shape->rotate != 0.0 ) tuv = rotateCW( tuv, shape->rotate );\n"
             } else {
@@ -656,6 +666,13 @@ class Builder
                 }
                 
                 // --- Translate material uv
+                
+                // Object
+                //source += "tuv = translate( uv, \(buildData.mainDataName)objects[\(buildData.objectIndex)].pos );"
+                //source += "tuv /= \(buildData.mainDataName)objects[\(buildData.objectIndex)].scale;\n"
+                //source += "if ( \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate != 0.0 ) tuv = rotateCW( tuv, \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate );\n"
+                // ---
+                
                 source += "tuv = translate( uv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].xy );"
                 
                 // --- Rotate material uv
@@ -890,12 +907,12 @@ class Builder
                     properties = shape.properties
                 }
                 
-                instance.data![offset + index * itemSize] = properties["posX"]! + parentPosX
-                instance.data![offset + index * itemSize+1] = properties["posY"]! + parentPosY
+                instance.data![offset + index * itemSize] = properties["posX"]!// + parentPosX
+                instance.data![offset + index * itemSize+1] = properties["posY"]!// + parentPosY
                 instance.data![offset + index * itemSize+2] = properties[shape.widthProperty]!
                 instance.data![offset + index * itemSize+3] = properties[shape.heightProperty]!
                 
-                instance.data![offset + index * itemSize+4] = (properties["rotate"]!+parentRotate) * Float.pi / 180
+                instance.data![offset + index * itemSize+4] = (properties["rotate"]!/*+parentRotate*/) * Float.pi / 180
                 
                 let minSize : Float = min(shape.properties["sizeX"]!,shape.properties["sizeY"]!)
                 
@@ -1020,14 +1037,22 @@ class Builder
                 pointIndex += shape.pointCount
             }
             
-            // --- Fill in Object Data: Currently border and scale
-            instance.data![instance.objectDataOffset + (objectIndex) * 4] = objectProperties["border"]!
-            instance.data![instance.objectDataOffset + (objectIndex) * 4 + 2] = parentScaleX
-            instance.data![instance.objectDataOffset + (objectIndex) * 4 + 3] = parentScaleY
+            // --- Fill in Object Transformation Data
+            //instance.data![instance.objectDataOffset + (objectIndex) * 4] = 0//unused, was objectProperties["border"]!
+            instance.data![instance.objectDataOffset + (objectIndex) * 8 + 1] = parentRotate * Float.pi / 180
+            instance.data![instance.objectDataOffset + (objectIndex) * 8 + 2] = parentScaleX
+            instance.data![instance.objectDataOffset + (objectIndex) * 8 + 3] = parentScaleY
+            instance.data![instance.objectDataOffset + (objectIndex) * 8 + 4] = parentPosX
+            instance.data![instance.objectDataOffset + (objectIndex) * 8 + 5] = parentPosY
             
+            object.properties["trans_rotate"] = parentRotate
+
             object.properties["trans_scaleX"] = parentScaleX
             object.properties["trans_scaleY"] = parentScaleY
 
+            object.properties["trans_posX"] = parentPosX
+            object.properties["trans_posY"] = parentPosY
+            
             objectIndex += 1
             
             if instance.materialDataOffset != 0 {
@@ -1215,10 +1240,22 @@ class Builder
             return pos * float2x2(ca, -sa, sa, ca);
         }
 
+        float2 rotateCWWithPivot(float2 pos, float angle, float2 pivot)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pivot + (pos-pivot) * float2x2(ca, -sa, sa, ca);
+        }
+
         float2 rotateCCW (float2 pos, float angle)
         {
             float ca = cos(angle), sa = sin(angle);
             return pos * float2x2(ca, sa, -sa, ca);
+        }
+
+        float2 rotateCCWWithPivot (float2 pos, float angle, float2 pivot)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pivot + (pos-pivot) * float2x2(ca, sa, -sa, ca);
         }
 
         """
@@ -1281,10 +1318,16 @@ class Builder
             for (shapeIndex, shape) in object.shapes.enumerated() {
                 
                 var transformed = nodeGraph.timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: shape.uuid, properties: shape.properties, frame: frame)
-                let posX : Float = parentPosX + transformed["posX"]!
-                let posY : Float = parentPosY + transformed["posY"]!
-                let rotate : Float = (parentRotate + transformed["rotate"]!) * Float.pi / 180
+                let posX : Float = /*parentPosX +*/ transformed["posX"]!
+                let posY : Float = /*parentPosY +*/ transformed["posY"]!
+                let rotate : Float = (/*parentRotate +*/ transformed["rotate"]!) * Float.pi / 180
                 
+                // --- Transform Object
+                
+                source += "uv = translate( tuv, float2( \(parentPosX), \(parentPosY) ) );\n"
+                source += "uv /= float2( \(parentScaleX), \(parentScaleY) );\n"
+                source += "uv = rotateCW( uv, \(parentRotate * Float.pi / 180) );\n"
+
                 // --- Correct slave point positions
                 for i in 0..<shape.pointCount {
                     let ptConn = object.getPointConnections(shape: shape, index: i)
@@ -1302,9 +1345,9 @@ class Builder
                     }
                 }
                 
-                // --- Rotate
-                source += "uv = translate( tuv, float2( \(posX), \(posY) ) );\n"
-                source += "uv /= float2( \(parentScaleX), \(parentScaleY) );\n"
+                // --- Transform Shape
+                source += "uv = translate( uv, float2( \(posX), \(posY) ) );\n"
+                //source += "uv /= float2( \(parentScaleX), \(parentScaleY) );\n"
                 if rotate != 0.0 {
                     if shape.pointCount == 0 {
                         source += "uv = rotateCW( uv, \(rotate) );\n"
@@ -1618,10 +1661,22 @@ class Builder
             return pos * float2x2(ca, -sa, sa, ca);
         }
         
+        float2 rotateCWWithPivot(float2 pos, float angle, float2 pivot)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pivot + (pos-pivot) * float2x2(ca, -sa, sa, ca);
+        }
+        
         float2 rotateCCW (float2 pos, float angle)
         {
             float ca = cos(angle), sa = sin(angle);
             return pos * float2x2(ca, sa, -sa, ca);
+        }
+        
+        float2 rotateCCWWithPivot (float2 pos, float angle, float2 pivot)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pivot + (pos-pivot) * float2x2(ca, sa, -sa, ca);
         }
         
         typedef struct
@@ -1638,8 +1693,10 @@ class Builder
         typedef struct
         {
             float       border;
-            float       fill1;
+            float       rotate;
             float2      scale;
+            float2      pos;
+            float2      fill;
         } OBJECT_DATA;
 
         """

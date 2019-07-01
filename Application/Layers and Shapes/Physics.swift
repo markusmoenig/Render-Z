@@ -67,7 +67,9 @@ class Physics
         {
             float2      pos;
             float       radius;
-            float       fill;
+            float       rotate;
+            float2      offset;
+            float2      fill;
         } DYN_OBJ_DATA;
         
         typedef struct
@@ -209,6 +211,11 @@ class Physics
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
         }
         
         instance.variablesDataOffset = instance.data!.count
@@ -251,6 +258,11 @@ class Physics
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
         }
         
         buildData.source +=
@@ -258,8 +270,13 @@ class Physics
             float dynaCount = physicsData->objectCount.x;
             int outCounter = 0;
 
-            float2 pos =  physicsData->dynamicObjects[0].pos;
+            float2 pos =  physicsData->dynamicObjects[0].pos; // object pos
             float radius = physicsData->dynamicObjects[0].radius;
+            float rotate = physicsData->dynamicObjects[0].rotate;
+            float2 offset = physicsData->dynamicObjects[0].offset; // disk offset
+
+            pos = rotateCCWWithPivot(pos+offset, rotate, pos);
+            //pos += offset;
         
             float2 hit;// = sdf(pos, physicsData, fontTexture);
             float4 rc;// = float4( hit.y, 0, 0, 0 );
@@ -293,7 +310,12 @@ class Physics
             
                 pos =  physicsData->dynamicObjects[\(objectCounter)].pos;
                 radius = physicsData->dynamicObjects[\(objectCounter)].radius;
+                rotate = physicsData->dynamicObjects[\(objectCounter)].rotate;
+                offset = physicsData->dynamicObjects[\(objectCounter)].offset;
             
+                pos = rotateCCWWithPivot(pos+offset, rotate, pos);
+                //pos += offset;
+
             """
             objectCounter += 1
         }
@@ -348,9 +370,17 @@ class Physics
                 }
             }
             
-            instance.data![instance.objectDataOffset + objectIndex * 4 + 2] = object.properties["trans_scaleX"]!
-            instance.data![instance.objectDataOffset + objectIndex * 4 + 3] = object.properties["trans_scaleY"]!
+            // Object transform
             
+            instance.data![instance.objectDataOffset + objectIndex * 8 + 1] = object.properties["trans_rotate"]! * Float.pi / 180
+
+            instance.data![instance.objectDataOffset + objectIndex * 8 + 2] = object.properties["trans_scaleX"]!
+            instance.data![instance.objectDataOffset + objectIndex * 8 + 3] = object.properties["trans_scaleY"]!
+            
+            instance.data![instance.objectDataOffset + objectIndex * 8 + 4] = object.properties["trans_posX"]!
+            instance.data![instance.objectDataOffset + objectIndex * 8 + 5] = object.properties["trans_posY"]!
+
+            //
             objectIndex += 1
             for childObject in object.childObjects {
                 parseObject(childObject)
@@ -378,11 +408,14 @@ class Physics
                 radius = object.disks[0].distance
             }
             
-            instance.data![offset + 0] = object.properties["posX"]! + xOff
-            instance.data![offset + 1] = object.properties["posY"]! + yOff
+            instance.data![offset + 0] = object.properties["trans_posX"]!// + xOff
+            instance.data![offset + 1] = object.properties["trans_posY"]!// + yOff
             instance.data![offset + 2] = radius
-            
-            offset += 4
+            instance.data![offset + 3] = object.properties["trans_rotate"]! * Float.pi / 180
+            instance.data![offset + 4] = xOff//object.properties["posX"]!
+            instance.data![offset + 5] = yOff//object.properties["posY"]!
+
+            offset += 8
         }
         
         memcpy(instance.inBuffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
@@ -693,7 +726,7 @@ class Manifold
     func positionalCorrection()
     {
         let slop : Float = 0.05
-        let percent : Float = 0.4 // 0.4
+        let percent : Float = 1 // 0.4
         
         let correction = max( penetrationDepth - slop, 0.0 ) / (bodyA.invMass + bodyB.invMass) * normal * percent;
         bodyA.applyToPosition(-correction)

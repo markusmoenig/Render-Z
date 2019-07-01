@@ -157,6 +157,11 @@ class DiskBuilder
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
         }
         
         instance.variablesDataOffset = instance.data!.count
