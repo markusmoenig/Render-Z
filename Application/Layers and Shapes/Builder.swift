@@ -516,10 +516,10 @@ class Builder
             // Object transforms
             buildData.source += "tuv = translate( uv, \(buildData.mainDataName)objects[\(buildData.objectIndex)].pos);"
             buildData.source += "tuv /= \(buildData.mainDataName)objects[\(buildData.objectIndex)].scale;\n"
-            buildData.source += "/*if ( \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate != 0.0 )*/ tuv = rotateCCWWithPivot( tuv - shape->pos, \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate, tuv);\n"
+            buildData.source += "if ( \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate != 0.0 ) tuv = rotateCW( tuv, \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate);\n"
             // ---
 
-//            buildData.source += "tuv = translate( tuv, shape->pos );"
+            buildData.source += "tuv = translate( tuv, shape->pos );"
             if shape.pointCount == 0 {
                 buildData.source += "if ( shape->rotate != 0.0 ) tuv = rotateCW( tuv, shape->rotate );\n"
             } else {
@@ -667,13 +667,13 @@ class Builder
                 
                 // --- Translate material uv
                 
-                // Object
-                //source += "tuv = translate( uv, \(buildData.mainDataName)objects[\(buildData.objectIndex)].pos );"
-                //source += "tuv /= \(buildData.mainDataName)objects[\(buildData.objectIndex)].scale;\n"
-                //source += "if ( \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate != 0.0 ) tuv = rotateCW( tuv, \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate );\n"
+                // Object transforms
+                source += "tuv = translate( uv, \(buildData.mainDataName)objects[\(buildData.objectIndex)].pos);"
+                source += "tuv /= \(buildData.mainDataName)objects[\(buildData.objectIndex)].scale;\n"
+                source += "if ( \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate != 0.0 ) tuv = rotateCW( tuv, \(buildData.mainDataName)objects[\(buildData.objectIndex)].rotate);\n"
                 // ---
                 
-                source += "tuv = translate( uv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].xy );"
+                source += "tuv = translate( tuv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex)].xy );"
                 
                 // --- Rotate material uv
                 source += "if ( \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x != 0.0 ) tuv = rotateCW( tuv, \(buildData.mainDataName)materialData[\(buildData.materialDataIndex+1)].x );\n"
@@ -907,12 +907,12 @@ class Builder
                     properties = shape.properties
                 }
                 
-                instance.data![offset + index * itemSize] = properties["posX"]!// + parentPosX
-                instance.data![offset + index * itemSize+1] = properties["posY"]!// + parentPosY
+                instance.data![offset + index * itemSize] = properties["posX"]!
+                instance.data![offset + index * itemSize+1] = properties["posY"]!
                 instance.data![offset + index * itemSize+2] = properties[shape.widthProperty]!
                 instance.data![offset + index * itemSize+3] = properties[shape.heightProperty]!
                 
-                instance.data![offset + index * itemSize+4] = (properties["rotate"]!/*+parentRotate*/) * Float.pi / 180
+                instance.data![offset + index * itemSize+4] = properties["rotate"]! * Float.pi / 180
                 
                 let minSize : Float = min(shape.properties["sizeX"]!,shape.properties["sizeY"]!)
                 
@@ -1068,13 +1068,13 @@ class Builder
                         }
                         
                         // pos + size
-                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["posX"]! + parentPosX
-                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["posY"]! + parentPosY
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["posX"]!
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 1] = properties["posY"]!
                         instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties[material.widthProperty]!
                         instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties[material.heightProperty]!
                         materialDataIndex += 1
                         // rotation, space for 3 more values
-                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = (properties["rotate"]!+parentRotate) * Float.pi / 180
+                        instance.data![instance.materialDataOffset + (materialDataIndex) * 4] = properties["rotate"]! * Float.pi / 180
                         instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 2] = properties["limiterWidth"]!
                         instance.data![instance.materialDataOffset + (materialDataIndex) * 4 + 3] = properties["limiterHeight"]!
                         materialDataIndex += 1
