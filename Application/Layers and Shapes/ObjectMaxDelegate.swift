@@ -385,7 +385,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 materialList.build( width: materialListWidget.rect.width, object: selObject!, type: materialType)
                 // Remove gizmo focus from the selected object if it has selected shapes
                 //if selObject!.selectedMaterials.count > 0 {
-                //    selObjectActive = false
+                    selObjectActive = false
                 //}
                 materialListChanged = false
             }
