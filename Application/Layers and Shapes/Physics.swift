@@ -113,39 +113,6 @@ class Physics
         instance.data!.append( 0 )
         
         instance.headerOffset = instance.data!.count
-        
-        // --- Build overall static code
-        
-        /*
-        buildData.source +=
-        """
-        
-        float2 sdf( float2 uv, constant PHYSICS_DATA *physicsData, texture2d<half, access::sample> fontTexture )
-        {
-            float2 tuv = uv, pAverage;
-            float dist = 100000, newDist, objectDistance = 100000;
-
-            int materialId = -1, objectId = -1;
-            constant SHAPE_DATA *shape;
-
-        """
-        
-        for object in objects {
-            let physicsMode = object.getPhysicsMode()
-            if physicsMode == .Static {
-                object.body = Body(object)
-                builder.parseObject(object, instance: instance, buildData: buildData, physics: true)
-            }
-        }
-        
-        buildData.source +=
-        """
-        
-            return float2(objectDistance,objectId);
-        }
-        
-        """
-        */
  
         // --- Build sdf code for all dynamic, static objects
         
@@ -257,15 +224,15 @@ class Physics
         
         for _ in instance.dynamicObjects {
             for _ in 0..<maxDisks {
-                instance.data!.append( -1 )
-                instance.data!.append( -1 )
-                instance.data!.append( -1 )
-                instance.data!.append( -1 )
+                instance.data!.append( 0 )
+                instance.data!.append( 0 )
+                instance.data!.append( 0 )
+                instance.data!.append( 0 )
                 
-                instance.data!.append( -1 )
-                instance.data!.append( -1 )
-                instance.data!.append( -1 )
-                instance.data!.append( -1 )
+                instance.data!.append( 0 )
+                instance.data!.append( 0 )
+                instance.data!.append( 0 )
+                instance.data!.append( 0 )
             }
         }
         
@@ -289,14 +256,12 @@ class Physics
                     
                         rc = float4( 0, 100000, 0, 0 );
                     
-                        for (int i = 0; i < \(maxDisks); ++i)
+                        for (int i = 0; i < \(object.disks.count); ++i)
                         {
                             float2 pos =  physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].pos;
                             float radius = physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].radius;
                             float rotate = physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].rotate;
                             float2 offset = physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].offset;
-                    
-                            if ( radius == -1 ) break;
                     
                             pos = rotateCCWWithPivot(pos+offset, rotate, pos);
                     
@@ -399,21 +364,12 @@ class Physics
 
             for disk in object.disks {
                 
-                /*
-                // --- Get the disk parameters
-                if object.disks.count > 0 {
-                    //print("instance disk", object.disks![0].z)
-                    xOff = object.disks[0].xPos
-                    yOff = object.disks[0].yPos
-                    radius = object.disks[0].distance
-                }*/
-                
-                instance.data![diskOffset + 0] = object.properties["trans_posX"]!// + xOff
-                instance.data![diskOffset + 1] = object.properties["trans_posY"]!// + yOff
+                instance.data![diskOffset + 0] = object.properties["trans_posX"]!
+                instance.data![diskOffset + 1] = object.properties["trans_posY"]!
                 instance.data![diskOffset + 2] = disk.distance
                 instance.data![diskOffset + 3] = object.properties["trans_rotate"]! * Float.pi / 180
-                instance.data![diskOffset + 4] = disk.xPos//object.properties["posX"]!
-                instance.data![diskOffset + 5] = disk.yPos//object.properties["posY"]!
+                instance.data![diskOffset + 4] = disk.xPos
+                instance.data![diskOffset + 5] = disk.yPos
 
                 diskOffset += 8
             }
@@ -451,10 +407,18 @@ class Physics
                     if ( penetration > 0.0 )
                     {
                         //print("hit", object.name, collisionObject.name, distance, penetration)
-
+                        
+                        func rotateCCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
+                        {
+                            let ca : Float = cos(angle), sa = sin(angle)
+                            return pivot + (pos-pivot) * float2x2(float2(ca, sa), float2(-sa, ca))
+                        }
+                        
                         let normal = float2( result[offset + 2], result[offset + 3] )
-                        let contact = float2(object.properties["posX"]! + object.disks[0].xPos, object.properties["posY"]! + object.disks[0].yPos) + normal * (distance)
-                        //print("dist", distance)
+                        
+                        var contact = rotateCCWWithPivot(float2(object.properties["posX"]! + object.disks[diskIndex].xPos, object.properties["posY"]! + object.disks[diskIndex].yPos), object.properties["trans_rotate"]!, float2(object.properties["posX"]!, object.properties["posY"]!))
+                        
+                        contact = contact + normal * distance
                         
                         let manifold = Manifold(object.body!, collisionObject.body!, penetrationDepth: penetration, normal: -normal, contact: contact)//instance.objectMap[Int(id)]!.body!)
 
@@ -732,7 +696,7 @@ class Manifold
     func positionalCorrection()
     {
         let slop : Float = 0.05
-        let percent : Float = 1 // 0.4
+        let percent : Float = 0.6// 0.4
         
         let correction = max( penetrationDepth - slop, 0.0 ) / (bodyA.invMass + bodyB.invMass) * normal * percent;
         bodyA.applyToPosition(-correction)

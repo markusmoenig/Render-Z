@@ -17,14 +17,16 @@ class DiskInstance : BuilderInstance
     var inBuffer        : MTLBuffer? = nil
     var outBuffer       : MTLBuffer? = nil
     
-    var maxDisks        : Int = 10
+    var maxDisks        : Int = 0
 }
 
 class DiskBuilder
 {
     var compute         : MMCompute?
     var nodeGraph       : NodeGraph
-    
+
+    var maxDisks        : Int = 10
+
     init(_ nodeGraph: NodeGraph)
     {
         self.nodeGraph = nodeGraph
@@ -46,7 +48,7 @@ class DiskBuilder
     func executeDisks(_ object: Object, builder: Builder)
     {
         let camera = Camera()
-        if let instance = buildShader(objects: [object], camera: camera, maxDisks: 10) {
+        if let instance = buildShader(objects: [object], camera: camera) {
             
             object.disks = []
             for i in 0..<instance.maxDisks {
@@ -59,7 +61,7 @@ class DiskBuilder
     }
     
     /// Build the state for the given objects
-    func buildShader(objects: [Object], camera: Camera, maxDisks: Int = 10) -> DiskInstance?
+    func buildShader(objects: [Object], camera: Camera) -> DiskInstance?
     {
         let builder = nodeGraph.builder!
         let instance = DiskInstance()
