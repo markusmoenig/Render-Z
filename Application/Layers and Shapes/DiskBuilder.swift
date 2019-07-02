@@ -48,6 +48,7 @@ class DiskBuilder
         let camera = Camera()
         if let instance = buildShader(objects: [object], camera: camera, maxDisks: 10) {
             
+            object.disks = []
             for i in 0..<instance.maxDisks {
                 let rc = render(width: 800, height: 800, instance: instance, camera: camera, pass: i)
                 if rc == false {
@@ -276,7 +277,6 @@ class DiskBuilder
         let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 800*800)
         
         let object = instance.objects[0]
-        object.disks = []
         
         var smallest : Float = 10000
         var x : Int = 0
@@ -303,7 +303,7 @@ class DiskBuilder
             return false
         } else {
             object.disks.append(Disk(Float(x) - width/2, Float(y) - height/2, radius))
-            print( pass, radius, x, y )
+            print( pass, radius, Float(x) - width/2, Float(y) - height/2 )
 
             return true
         }

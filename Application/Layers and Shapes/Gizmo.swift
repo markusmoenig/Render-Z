@@ -730,6 +730,7 @@ class Gizmo : MMWidget
         } else
         if object != nil && context == .ObjectEditor {
 
+            /*
             if objects.count == 1 && !NSDictionary(dictionary: object!.properties).isEqual(to: undoProperties) {
                     
                 func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
@@ -744,7 +745,7 @@ class Gizmo : MMWidget
                 }
                 
                 applyProperties(object!, undoProperties, object!.properties)
-            }
+            }*/
         }
         
         // Update the material list

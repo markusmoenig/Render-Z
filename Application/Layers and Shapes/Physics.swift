@@ -31,6 +31,8 @@ class Physics
     var lastTime        : Double = 0
     var delta           : Float = 1 / 60
     
+    let maxDisks        : Int = 10
+    
     init(_ nodeGraph: NodeGraph)
     {
         self.nodeGraph = nodeGraph
@@ -85,7 +87,7 @@ class Physics
             OBJECT_DATA objects[\(max(buildData.maxObjects, 1))];
             VARIABLE    variables[\(max(buildData.maxVariables, 1))];
         
-            DYN_OBJ_DATA dynamicObjects[\(dynaCount)];
+            DYN_OBJ_DATA dynamicObjects[\(dynaCount*maxDisks)];
         } PHYSICS_DATA;
         
         typedef struct
@@ -254,37 +256,30 @@ class Physics
         """
         
         for _ in instance.dynamicObjects {
-            instance.data!.append( 0 )
-            instance.data!.append( 0 )
-            instance.data!.append( 0 )
-            instance.data!.append( 0 )
-            
-            instance.data!.append( 0 )
-            instance.data!.append( 0 )
-            instance.data!.append( 0 )
-            instance.data!.append( 0 )
+            for _ in 0..<maxDisks {
+                instance.data!.append( -1 )
+                instance.data!.append( -1 )
+                instance.data!.append( -1 )
+                instance.data!.append( -1 )
+                
+                instance.data!.append( -1 )
+                instance.data!.append( -1 )
+                instance.data!.append( -1 )
+                instance.data!.append( -1 )
+            }
         }
         
         buildData.source +=
         """
-            float dynaCount = physicsData->objectCount.x;
             int outCounter = 0;
-
-            float2 pos =  physicsData->dynamicObjects[0].pos; // object pos
-            float radius = physicsData->dynamicObjects[0].radius;
-            float rotate = physicsData->dynamicObjects[0].rotate;
-            float2 offset = physicsData->dynamicObjects[0].offset; // disk offset
-
-            pos = rotateCCWWithPivot(pos+offset, rotate, pos);
-            //pos += offset;
         
-            float2 hit;// = sdf(pos, physicsData, fontTexture);
-            float4 rc;// = float4( hit.y, 0, 0, 0 );
-
+            float2 hit;
+            float4 rc;
+        
         """
         
         var totalCollisionChecks : Int = 0
-        objectCounter = 1
+        objectCounter = 0
         for object in instance.dynamicObjects {
             for collisionObject in instance.collisionObjects {
                 if collisionObject !== object {
@@ -292,12 +287,27 @@ class Physics
                     buildData.source +=
                     """
                     
-                        hit = object\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
-                        rc = float4( hit.x, 0, 0, 0 );
+                        rc = float4( 0, 100000, 0, 0 );
                     
-                        if ( hit.x < radius ) {
-                            rc.y = radius - hit.x;
-                            rc.zw = normal\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
+                        for (int i = 0; i < \(maxDisks); ++i)
+                        {
+                            float2 pos =  physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].pos;
+                            float radius = physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].radius;
+                            float rotate = physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].rotate;
+                            float2 offset = physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].offset;
+                    
+                            if ( radius == -1 ) break;
+                    
+                            pos = rotateCCWWithPivot(pos+offset, rotate, pos);
+                    
+                            hit = object\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
+                    
+                            if ( hit.x < radius && hit.x < rc.y ) {
+                                rc.x = i;
+                                rc.y = hit.x;
+                                //rc.y = radius - hit.x;
+                                rc.zw = normal\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
+                            }
                         }
                         out[gid + outCounter++] = rc;
                     
@@ -305,18 +315,6 @@ class Physics
                     totalCollisionChecks += 1
                 }
             }
-            buildData.source +=
-            """
-            
-                pos =  physicsData->dynamicObjects[\(objectCounter)].pos;
-                radius = physicsData->dynamicObjects[\(objectCounter)].radius;
-                rotate = physicsData->dynamicObjects[\(objectCounter)].rotate;
-                offset = physicsData->dynamicObjects[\(objectCounter)].offset;
-            
-                pos = rotateCCWWithPivot(pos+offset, rotate, pos);
-                //pos += offset;
-
-            """
             objectCounter += 1
         }
         
@@ -394,28 +392,31 @@ class Physics
         //builder.updateInstanceData(instance: builderInstance, camera: camera, doMaterials: false, frame: 0)
 
         var offset : Int = instance.physicsOffset
-        for object in instance.dynamicObjects {
+        for (index,object) in instance.dynamicObjects.enumerated() {
             
-            var radius : Float = 1
-            var xOff : Float = 0
-            var yOff : Float = 0
+            let objectOffset = offset + index * 8 * maxDisks
+            var diskOffset = objectOffset
 
-            // --- Get the disk parameters
-            if object.disks.count > 0 {
-                //print("instance disk", object.disks![0].z)
-                xOff = object.disks[0].xPos
-                yOff = object.disks[0].yPos
-                radius = object.disks[0].distance
+            for disk in object.disks {
+                
+                /*
+                // --- Get the disk parameters
+                if object.disks.count > 0 {
+                    //print("instance disk", object.disks![0].z)
+                    xOff = object.disks[0].xPos
+                    yOff = object.disks[0].yPos
+                    radius = object.disks[0].distance
+                }*/
+                
+                instance.data![diskOffset + 0] = object.properties["trans_posX"]!// + xOff
+                instance.data![diskOffset + 1] = object.properties["trans_posY"]!// + yOff
+                instance.data![diskOffset + 2] = disk.distance
+                instance.data![diskOffset + 3] = object.properties["trans_rotate"]! * Float.pi / 180
+                instance.data![diskOffset + 4] = disk.xPos//object.properties["posX"]!
+                instance.data![diskOffset + 5] = disk.yPos//object.properties["posY"]!
+
+                diskOffset += 8
             }
-            
-            instance.data![offset + 0] = object.properties["trans_posX"]!// + xOff
-            instance.data![offset + 1] = object.properties["trans_posY"]!// + yOff
-            instance.data![offset + 2] = radius
-            instance.data![offset + 3] = object.properties["trans_rotate"]! * Float.pi / 180
-            instance.data![offset + 4] = xOff//object.properties["posX"]!
-            instance.data![offset + 5] = yOff//object.properties["posY"]!
-
-            offset += 8
         }
         
         memcpy(instance.inBuffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
@@ -441,8 +442,9 @@ class Physics
             for collisionObject in instance.collisionObjects {
                 if collisionObject !== object {
                     
-                    let distance : Float = result[offset]
-                    let penetration : Float = result[offset+1]
+                    let diskIndex : Int = Int(result[offset])
+                    let distance : Float = result[offset+1]
+                    let penetration : Float = object.disks[diskIndex].distance - distance
                     
                     //print(object.name, collisionObject.name, distance, penetration)
 
@@ -545,7 +547,11 @@ class Body
                 invMass = 1 / mass
             }
             
-            inertia = mass * 100 * 100
+            inertia = mass
+            for disk in object.disks {
+                inertia += disk.distance * disk.distance
+            }
+            
             if inertia != 0 {
                 invInertia = 1 / inertia
             }
