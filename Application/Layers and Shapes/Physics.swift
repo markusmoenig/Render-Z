@@ -92,7 +92,7 @@ class Physics
         
         typedef struct
         {
-            float4      objResult[\(dynaCount)];
+            float4      objResult[\(dynaCount*maxDisks)];
         } PHYSICS_RESULT;
         
         """
@@ -267,17 +267,17 @@ class Physics
                     
                             hit = object\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
                     
-                            if ( hit.x < radius && hit.x < rc.y ) {
-                                rc.x = i;
-                                rc.y = hit.x;
-                                //rc.y = radius - hit.x;
+                            rc.x = radius - hit.x;
+                            rc.y = hit.x;
+                            if ( hit.x < radius ) {
                                 rc.zw = normal\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
                             }
+                            out[gid + i + \(totalCollisionChecks)] = rc;
                         }
-                        out[gid + outCounter++] = rc;
                     
                     """
-                    totalCollisionChecks += 1
+                    
+                    totalCollisionChecks += maxDisks
                 }
             }
             objectCounter += 1
@@ -398,35 +398,54 @@ class Physics
             for collisionObject in instance.collisionObjects {
                 if collisionObject !== object {
                     
-                    let diskIndex : Int = Int(result[offset])
-                    let distance : Float = result[offset+1]
-                    let penetration : Float = object.disks[diskIndex].distance - distance
+                    var contacts : [float4] = []
+                    var penetrationDepth : Float = 0
+                    var normal : float2? = nil
                     
-                    //print(object.name, collisionObject.name, distance, penetration)
-
-                    if ( penetration > 0.0 )
-                    {
-                        //print("hit", object.name, collisionObject.name, distance, penetration)
+                    for i in 0..<object.disks.count {
                         
-                        func rotateCCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
+                        let diskOffset : Int = offset + i * 4
+                        
+                        let penetration : Float = result[diskOffset]//object.disks[diskIndex].distance - distance
+                        let distance : Float = result[diskOffset+1]
+                        
+                        if ( penetration > 0.0 )
                         {
-                            let ca : Float = cos(angle), sa = sin(angle)
-                            return pivot + (pos-pivot) * float2x2(float2(ca, sa), float2(-sa, ca))
+                            //print(object.name, collisionObject.name, i, penetration)
+                            
+                            func rotateCCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
+                            {
+                                let ca : Float = cos(angle), sa = sin(angle)
+                                return pivot + (pos-pivot) * float2x2(float2(ca, sa), float2(-sa, ca))
+                            }
+                            
+                            let localNormal = float2( result[diskOffset + 2], result[diskOffset + 3] )
+                            
+                            if normal == nil {
+                                normal = -localNormal
+                            }
+                            if penetration > penetrationDepth  {
+                                penetrationDepth = penetration
+                            }
+                            
+                            var contact = rotateCCWWithPivot(float2(object.properties["posX"]! + object.disks[i].xPos, object.properties["posY"]! + object.disks[i].yPos), object.properties["trans_rotate"]!, float2(object.properties["posX"]!, object.properties["posY"]!))
+                            
+                            contact += localNormal * distance
+                            
+                            contacts.append(float4(contact.x, contact.y, -localNormal.x, -localNormal.y))
                         }
+                    }
+                    
+                    if contacts.isEmpty == false {
+                        //print("hit", object.name, collisionObject.name, contacts.count)
                         
-                        let normal = float2( result[offset + 2], result[offset + 3] )
+                        let manifold = Manifold(object.body!, collisionObject.body!, penetrationDepth: penetrationDepth, normal: normal!, contacts: contacts)//instance.objectMap[Int(id)]!.body!)
                         
-                        var contact = rotateCCWWithPivot(float2(object.properties["posX"]! + object.disks[diskIndex].xPos, object.properties["posY"]! + object.disks[diskIndex].yPos), object.properties["trans_rotate"]!, float2(object.properties["posX"]!, object.properties["posY"]!))
-                        
-                        contact = contact + normal * distance
-                        
-                        let manifold = Manifold(object.body!, collisionObject.body!, penetrationDepth: penetration, normal: -normal, contact: contact)//instance.objectMap[Int(id)]!.body!)
-
                         manifold.resolve()
                         manifolds.append(manifold)
                     }
                     
-                    offset += 4
+                    offset += maxDisks * 4
                 }
             }
             
@@ -502,6 +521,8 @@ class Body
     {
         self.object = object
         
+        orientation = (object.properties["rotate"]!+180) * Float.pi / 180
+
         let physicsMode = object.getPhysicsMode()
         if physicsMode == .Dynamic {
             // Get parameters for dynamic objects, statics have a mass of 0
@@ -558,7 +579,7 @@ class Body
         object.properties["posY"] = object.properties["posY"]! + velocity.y
         
         orientation += angularVelocity
-        object.properties["rotate"] = orientation * 180 / Float.pi
+        object.properties["rotate"] = orientation * 180 / Float.pi + 180
     }
 }
 
@@ -570,19 +591,19 @@ class Manifold
     var penetrationDepth    : Float = 0
     var normal              : float2 = float2()
     
-    var contact             : float2 = float2()
+    var contacts            : [float4] = []
 
     var staticFriction      : Float
     var dynamicFriction     : Float
     var restitution         : Float
 
-    init(_ bodyA: Body, _ bodyB: Body, penetrationDepth: Float, normal: float2, contact: float2)
+    init(_ bodyA: Body, _ bodyB: Body, penetrationDepth: Float, normal: float2, contacts: [float4])
     {
         self.bodyA = bodyA
         self.bodyB = bodyB
         self.penetrationDepth = penetrationDepth
         self.normal = normal
-        self.contact = contact
+        self.contacts = contacts
         
         restitution = min(bodyA.restitution, bodyB.restitution)
         staticFriction = sqrt(bodyA.staticFriction * bodyB.staticFriction)
@@ -592,29 +613,31 @@ class Manifold
         bodyB.collisionInfos.append( CollisionInfo(collisionWith: bodyA.object) )
         
         //
-        let ra = contact - bodyA.getPosition()
-        let rb = contact - bodyB.getPosition()
         
-        func Cross12(_ a: Float,_ v: float2) -> float2
-        {
-            return float2( -a * v.y, a * v.x )
-        }
-        
-        func LenSqr(_ v: float2) -> Float
-        {
-            return v.x * v.x + v.y * v.y;
-        }
-        
-        let rv : float2 = bodyB.velocity + Cross12(bodyB.angularVelocity, rb) - bodyA.velocity - Cross12(bodyA.angularVelocity, ra)
-        
-        if LenSqr(rv) < LenSqr(1 / 60 * bodyA.gravity) + 0.0001 {
-            restitution = 0
+        for contact in contacts {
+            let ra = float2(contact.x, contact.y) - bodyA.getPosition()
+            let rb = float2(contact.x, contact.y) - bodyB.getPosition()
+            
+            func Cross12(_ a: Float,_ v: float2) -> float2
+            {
+                return float2( -a * v.y, a * v.x )
+            }
+            
+            func LenSqr(_ v: float2) -> Float
+            {
+                return v.x * v.x + v.y * v.y;
+            }
+            
+            let rv : float2 = bodyB.velocity + Cross12(bodyB.angularVelocity, rb) - bodyA.velocity - Cross12(bodyA.angularVelocity, ra)
+            
+            if LenSqr(rv) < LenSqr(1 / 60 * bodyA.gravity) + 0.0001 {
+                restitution = 0
+            }
         }
     }
     
     func resolve()
     {
-        
         func Cross21(_ v: float2,_ a: Float) -> float2
         {
             return float2( a * v.y, -a * v.x )
@@ -630,67 +653,78 @@ class Manifold
             return a.x * b.y - a.y * b.x
         }
         
-        // Calculate radii from COM to contact
-        let ra = contact - bodyA.getPosition()
-        let rb = contact - bodyB.getPosition()
-        
-        // Relative velocity
-//        Vec2 rv = B->velocity + Cross( B->angularVelocity, rb ) -
-//            A->velocity - Cross( A->angularVelocity, ra );
-        
-        var rv : float2 = bodyB.velocity + Cross12(bodyB.angularVelocity, rb) - bodyA.velocity - Cross12(bodyA.angularVelocity, ra)
+        for contact in contacts {
+            // Calculate radii from COM to contact
+            let ra = float2(contact.x, contact.y) - bodyA.getPosition()
+            let rb = float2(contact.x, contact.y) - bodyB.getPosition()
+            
+            let normal = float2(contact.z, contact.w)
+            
+            // Relative velocity
+    //        Vec2 rv = B->velocity + Cross( B->angularVelocity, rb ) -
+    //            A->velocity - Cross( A->angularVelocity, ra );
+            
+            var rv : float2 = bodyB.velocity + Cross12(bodyB.angularVelocity, rb) - bodyA.velocity - Cross12(bodyA.angularVelocity, ra)
 
-        // Relative velocity along the normal
-        let contactVel = dot( rv, normal );
-        
-        // Do not resolve if velocities are separating
-        if contactVel > 0 { return }
-        
-        //real raCrossN = Cross( ra, normal );
-        //real rbCrossN = Cross( rb, normal );
-        //real invMassSum = A->im + B->im + Sqr( raCrossN ) * A->iI + Sqr( rbCrossN ) * B->iI;
-        
-        let raCrossN = Cross22(ra, normal)
-        let rbCrossN = Cross22(rb, normal)
+            // Relative velocity along the normal
+            let contactVel = dot( rv, normal );
+            
+            // Do not resolve if velocities are separating
+            if contactVel > 0 { return }
+            
+            //real raCrossN = Cross( ra, normal );
+            //real rbCrossN = Cross( rb, normal );
+            //real invMassSum = A->im + B->im + Sqr( raCrossN ) * A->iI + Sqr( rbCrossN ) * B->iI;
+            
+            let raCrossN = Cross22(ra, normal)
+            let rbCrossN = Cross22(rb, normal)
 
-//        let invMassSum = bodyA.invMass + bodyB.invMass
-        let invMassSum = bodyA.invMass + bodyB.invMass + raCrossN * raCrossN * bodyA.invInertia + rbCrossN * rbCrossN * bodyB.invInertia
+    //        let invMassSum = bodyA.invMass + bodyB.invMass
+            let invMassSum = bodyA.invMass + bodyB.invMass + raCrossN * raCrossN * bodyA.invInertia + rbCrossN * rbCrossN * bodyB.invInertia
 
-        // Calculate impulse scalar
-        var j = -(1.0 + restitution) * contactVel
-        j /= invMassSum
-        //j /= (real)contact_count;
-        
-        // Apply impulse
-        let impulse : float2 = normal * j
-        bodyA.applyImpulse( -impulse, ra )
-        bodyB.applyImpulse(  impulse, rb )
-        
-        // Friction impulse
-        rv = bodyB.velocity + Cross12(bodyB.angularVelocity, rb) - bodyA.velocity - Cross12(bodyA.angularVelocity, ra)
+            // Calculate impulse scalar
+            var j = -(1.0 + restitution) * contactVel
+            j /= invMassSum
+            j /= Float(contacts.count)
+            
+            // Apply impulse
+            let impulse : float2 = normal * j
+            bodyA.applyImpulse( -impulse, ra )
+            bodyB.applyImpulse(  impulse, rb )
+            
+            // Friction impulse
+            rv = bodyB.velocity + Cross12(bodyB.angularVelocity, rb) - bodyA.velocity - Cross12(bodyA.angularVelocity, ra)
 
-        var t = rv - (normal * dot( rv, normal ))
-        t = normalize(t)
-        
-        // j tangent magnitude
-        var jt = -dot( rv, t )
-        jt /= invMassSum
-        //jt /= (real)contact_count
-        
-        if jt == 0.0 {
-            return
+            var t = rv - (normal * dot( rv, normal ))
+            t = normalize(t)
+            
+            // j tangent magnitude
+            var jt = -dot( rv, t )
+            jt /= invMassSum
+            jt /= Float(contacts.count)
+            
+            
+            //inline bool Equal( real a, real b )
+            //{
+                // <= instead of < for NaN comparison safety
+            //    return std::abs( a - b ) <= EPSILON;
+            //}
+            
+            if abs(jt) <= 0.0001 {
+                return
+            }
+            
+            // Coulumb's law
+            var tangentImpulse : float2
+            if abs( jt ) < j * staticFriction {
+                tangentImpulse = t * jt;
+            } else {
+                tangentImpulse = t * -j * dynamicFriction
+            }
+            
+            bodyA.applyImpulse( -tangentImpulse, ra )
+            bodyB.applyImpulse( tangentImpulse, rb )
         }
-        
-        // Coulumb's law
-        var tangentImpulse : float2
-        if abs( jt ) < j * staticFriction {
-            tangentImpulse = t * jt;
-        } else {
-            tangentImpulse = t * -j * dynamicFriction
-        }
-        
-        bodyA.applyImpulse( -tangentImpulse, ra )
-        bodyB.applyImpulse( tangentImpulse, rb )
     }
     
     func positionalCorrection()
