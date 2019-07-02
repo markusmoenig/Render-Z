@@ -216,11 +216,20 @@ class App
     func updateObjectPreview(_ object: Object)
     {
         if nodeGraph.maximizedNode != nil {
-            (object.maxDelegate as! ObjectMaxDelegate).update(true, updateLists: true)
+            if let objectMaxDelegate = object.maxDelegate as? ObjectMaxDelegate {
+                objectMaxDelegate.update(true, updateLists: true)
+            }
+            /*
+            else
+            if let layerMaxDelegate = object.maxDelegate as? LayerMaxDelegate {
+                layerMaxDelegate.update(true, updateLists: true)
+            }*/
         } else {
             object.updatePreview(nodeGraph: nodeGraph, hard: true)
-            (object.maxDelegate as! ObjectMaxDelegate).shapeListChanged = true
-            (object.maxDelegate as! ObjectMaxDelegate).materialListChanged = true
+            if let objectMaxDelegate = object.maxDelegate as? ObjectMaxDelegate {
+                objectMaxDelegate.shapeListChanged = true
+                objectMaxDelegate.materialListChanged = true
+            }
         }
         setChanged()
     }
