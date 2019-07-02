@@ -17,7 +17,7 @@ class DiskInstance : BuilderInstance
     var inBuffer        : MTLBuffer? = nil
     var outBuffer       : MTLBuffer? = nil
     
-    var maxDisks        : Int = 0
+    var maxDisks        : Int = 10
 }
 
 class DiskBuilder
@@ -47,7 +47,13 @@ class DiskBuilder
     {
         let camera = Camera()
         if let instance = buildShader(objects: [object], camera: camera, maxDisks: 10) {
-            render(width: 800, height: 800, instance: instance, camera: camera)
+            
+            for i in 0..<instance.maxDisks {
+                let rc = render(width: 800, height: 800, instance: instance, camera: camera, pass: i)
+                if rc == false {
+                    break
+                }
+            }
         }
     }
     
@@ -77,6 +83,8 @@ class DiskBuilder
             float2      maxDisks;
             float4      camera;
             float4      general; // .x == time, .y == renderSampling
+        
+            float4      diskData[\(maxDisks)];
 
             SHAPE_DATA  shapes[\(max(buildData.maxShapes, 1))];
             float4      points[\(max(buildData.maxPoints, 1))];
@@ -87,7 +95,7 @@ class DiskBuilder
         
         typedef struct
         {
-            float4      objResult[\(maxDisks)];
+            float4      objResult[1];
         } DISK_BUILDER_RESULT;
         
         """
@@ -106,6 +114,13 @@ class DiskBuilder
         instance.data!.append( 0 )
         instance.data!.append( 0 )
         instance.data!.append( 0 )
+        
+        for _ in 0..<maxDisks {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
         
         instance.headerOffset = instance.data!.count
         
@@ -189,6 +204,7 @@ class DiskBuilder
 
         buildData.source +=
         """
+        
         kernel void diskBuilder(constant DISK_BUILDER_DATA *diskBuilderData [[ buffer(1) ]],
                                         device float *out [[ buffer(0) ]],
                       texture2d<half, access::sample> fontTexture [[ texture(2) ]],
@@ -206,9 +222,20 @@ class DiskBuilder
             float width = diskBuilderData->size.x;
             float height = diskBuilderData->size.y;
             //int maxDisks = (int) diskBuilderData->maxDisks.x;
-        
+            int pass = (int) diskBuilderData->maxDisks.y;
+
             uint2 i = bid * blockDim + tid;
-            float dist = sdf(float2(i) - float2(width,height)/2, diskBuilderData, fontTexture);
+            float2 uv = float2(i) - float2(width,height)/2;
+            float dist = sdf(uv, diskBuilderData, fontTexture);
+            for( int iter = 0; iter < pass; ++iter ) {
+                float diskX = diskBuilderData->diskData[iter].x;
+                float diskY = diskBuilderData->diskData[iter].y;
+                float diskRadius = diskBuilderData->diskData[iter].z;
+        
+                float diskDist = length(uv - (float2(diskX,diskY) - float2(width,height)/2) ) - diskRadius;
+
+                dist = subtract(dist, diskDist);
+            }
             out[i.y * 800 + i.x] = dist;
         }
 
@@ -225,7 +252,7 @@ class DiskBuilder
     }
     
     /// Render
-    func render(width:Float, height:Float, instance: DiskInstance, camera: Camera)
+    func render(width:Float, height:Float, instance: DiskInstance, camera: Camera, pass: Int) -> Bool
     {
         let builder = nodeGraph.builder!
 
@@ -233,7 +260,7 @@ class DiskBuilder
         instance.data![0] = width
         instance.data![1] = height
         instance.data![2] = Float(instance.maxDisks)
-        instance.data![3] = 0
+        instance.data![3] = Float(pass)
         
         instance.data![4] = camera.xPos
         instance.data![5] = camera.yPos
@@ -265,7 +292,20 @@ class DiskBuilder
             }
         }
         
-        print( smallest, x, y )
-        object.disks.append(Disk(Float(x) - width/2, Float(y) - height/2, abs(smallest)))
+        let radius = abs(smallest)
+        let offset : Int = 12 + pass * 4
+        
+        instance.data![offset] = Float(x)
+        instance.data![offset+1] = Float(y)
+        instance.data![offset+2] = radius
+        
+        if radius < 1 {
+            return false
+        } else {
+            object.disks.append(Disk(Float(x) - width/2, Float(y) - height/2, radius))
+            print( pass, radius, x, y )
+
+            return true
+        }
     }
 }
