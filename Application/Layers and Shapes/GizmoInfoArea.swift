@@ -70,8 +70,21 @@ class GizmoInfoArea {
     func addItemsFor(_ state: Gizmo.GizmoState,_ transformed: [String:Float])
     {
         if state == .CenterMove {
-            addItem("X", "posX", transformed["posX"]!)
-            addItem("Y", "posY", transformed["posY"]!)
+            if transformed["posX"] != nil {
+                addItem("X", "posX", transformed["posX"]!)
+                addItem("Y", "posY", transformed["posY"]!)
+            } else {
+                let keys = Array(transformed.keys)
+                if keys.count == 2 {
+                    if keys[0].contains("_x") {
+                        addItem("X", keys[0], transformed[keys[0]]!)
+                        addItem("Y", keys[1], transformed[keys[1]]!)
+                    } else {
+                        addItem("X", keys[0], transformed[keys[0]]!)
+                        addItem("Y", keys[1], transformed[keys[1]]!)
+                    }
+                }
+            }
         } else
         if state == .xAxisMove {
             addItem("X", "posX", transformed["posX"]!)
