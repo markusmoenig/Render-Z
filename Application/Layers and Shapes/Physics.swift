@@ -428,7 +428,7 @@ class Physics
                         //print(object.properties["trans_rotate"]!)
                         var contact = rotateCCWWithPivot(objectPos + diskPos, toRadians(object.properties["trans_rotate"]!), objectPos)
 
-                        nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), object.disks[i].distance, penetration > 0.0 ? float4(1,0,0,1) : float4(1,1,0,1) )
+                        nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), object.disks[i].distance, 4, penetration > 0.0 ? float4(1,0,0,1) : float4(1,1,0,1) )
 
                         if ( penetration > 0.0 )
                         {
@@ -447,7 +447,7 @@ class Physics
                             contact += -localNormal * object.disks[i].distance// distance
                             
                             // Visualize contact point
-                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), 4, float4(0,1,0,1) )
+                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), 4, 0, float4(0,1,0,1) )
                             
                             // Visualize normal
 //                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), 10, float4(0,1,0,1) )
@@ -597,8 +597,8 @@ class Body
             return a.x * b.y - a.y * b.x
         }
         
-        velocity += invMass * impulse;
-        angularVelocity += invInertia * Cross22( contactVector, impulse );
+        velocity += invMass * impulse
+        angularVelocity += invInertia * Cross22( contactVector, impulse )
     }
     
     func applyToPosition(_ value: float2)
@@ -614,6 +614,7 @@ class Body
         
         orientation += angularVelocity
         object.properties["rotate"] = toDegrees(orientation)
+        print(object.name, "rotate", object.properties["rotate"]! )
     }
 }
 

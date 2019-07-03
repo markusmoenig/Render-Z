@@ -11,12 +11,14 @@ import MetalKit
 class DebugDisk {
     var pos         : float2
     var radius      : Float
+    var border      : Float
     var color       : float4
     
-    init(_ pos : float2,_ radius: Float,_ color: float4)
+    init(_ pos : float2,_ radius: Float,_ border: Float,_ color: float4)
     {
         self.pos = pos
         self.radius = radius
+        self.border = border
         self.color = color
     }
 }
@@ -40,9 +42,9 @@ class DebugBuilderInstance
         disks = []
     }
     
-    func addDisk(_ pos : float2,_ radius: Float,_ color: float4)
+    func addDisk(_ pos : float2,_ radius: Float,_ border: Float, _ color: float4)
     {
-        disks.append(DebugDisk(pos, radius, color))
+        disks.append(DebugDisk(pos, radius, border, color))
     }
 }
 
@@ -139,10 +141,14 @@ class DebugBuilder
             {
                 float2 pos = float2(debugData->disks[i*2].x, debugData->disks[i*2].y);
                 float radius = debugData->disks[i*2].z;
-        
+                float border = debugData->disks[i*2].w;
+
                 if ( radius > 0.0 ) {
                     float dist = length(uv - pos) - radius;
-                    col = mix( col, debugData->disks[i*2+1], fillMask(dist) * debugData->disks[i*2+1].w );
+                    if ( border == 0.0 )
+                        col = mix( col, debugData->disks[i*2+1], fillMask(dist) * debugData->disks[i*2+1].w );
+                    else
+                        col = mix( col, debugData->disks[i*2+1], borderMask(dist, border) * debugData->disks[i*2+1].w );
                 }
             }
 
@@ -190,7 +196,8 @@ class DebugBuilder
             instance.data![offset + index * 8] = disk.pos.x
             instance.data![offset + index * 8 + 1] = disk.pos.y
             instance.data![offset + index * 8 + 2] = disk.radius
-            
+            instance.data![offset + index * 8 + 3] = disk.border
+
             instance.data![offset + index * 8 + 4] = disk.color.x
             instance.data![offset + index * 8 + 5] = disk.color.y
             instance.data![offset + index * 8 + 6] = disk.color.z
