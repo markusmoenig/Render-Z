@@ -39,6 +39,8 @@
 		2B4CC22E2226669000A47812 /* NodeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22C2226669000A47812 /* NodeUI.swift */; };
 		2B4CC230222F5D5C00A47812 /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22F222F5D5C00A47812 /* Physics.swift */; };
 		2B4CC231222F5D5C00A47812 /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22F222F5D5C00A47812 /* Physics.swift */; };
+		2B501A5D22CC5602008D409F /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
+		2B501A5E22CC5602008D409F /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
 		2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
@@ -191,6 +193,7 @@
 		2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerMaxDelegate.swift; sourceTree = "<group>"; };
 		2B4CC22C2226669000A47812 /* NodeUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeUI.swift; sourceTree = "<group>"; };
 		2B4CC22F222F5D5C00A47812 /* Physics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics.swift; sourceTree = "<group>"; };
+		2B501A5C22CC5426008D409F /* DebugBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBuilder.swift; sourceTree = "<group>"; };
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
 		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
 		2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Shape-Z iOS.entitlements"; sourceTree = "<group>"; };
@@ -440,6 +443,7 @@
 			isa = PBXGroup;
 			children = (
 				2B5CCAFE2214F2FF005BAA2B /* Builder.swift */,
+				2B501A5C22CC5426008D409F /* DebugBuilder.swift */,
 				2B4CC22F222F5D5C00A47812 /* Physics.swift */,
 				2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */,
 				2BBF11F821F55D20001C94E9 /* Object.swift */,
@@ -654,6 +658,7 @@
 				2BCF5FA3227D6EC3002FCB37 /* Variables.swift in Sources */,
 				2B46E963224466CD0047A94A /* MaterialFactory.swift in Sources */,
 				2BBF120221F80B32001C94E9 /* Gizmo.metal in Sources */,
+				2B501A5D22CC5602008D409F /* DebugBuilder.swift in Sources */,
 				2BBF11CB21EADB46001C94E9 /* MMView.swift in Sources */,
 				2BBF11D721EADB46001C94E9 /* MMSkin.swift in Sources */,
 				2BEA8C3822573CE20010C204 /* MMFloatWidget.swift in Sources */,
@@ -734,6 +739,7 @@
 				2BCF5FA4227D6EC3002FCB37 /* Variables.swift in Sources */,
 				2B46E964224466CD0047A94A /* MaterialFactory.swift in Sources */,
 				2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */,
+				2B501A5E22CC5602008D409F /* DebugBuilder.swift in Sources */,
 				2BBF11CC21EADB46001C94E9 /* MMView.swift in Sources */,
 				2BBF11D821EADB46001C94E9 /* MMSkin.swift in Sources */,
 				2BEA8C3722573CE20010C204 /* MMFloatWidget.swift in Sources */,

@@ -94,6 +94,8 @@ class NodeGraph : Codable
     var physics         : Physics!
     var timeline        : MMTimeline!
     var diskBuilder     : DiskBuilder!
+    var debugBuilder    : DebugBuilder!
+    var debugInstance   : DebugBuilderInstance!
 
     var nodeMenu        : MMMenuWidget!
 
@@ -179,6 +181,9 @@ class NodeGraph : Codable
         builder = Builder(self)
         physics = Physics(self)
         diskBuilder = DiskBuilder(self)
+        
+        debugBuilder = DebugBuilder(self)
+        debugInstance = debugBuilder.build(camera: Camera())
 
         let renderer = app.mmView.renderer!
         
@@ -1002,6 +1007,7 @@ class NodeGraph : Codable
             let renderer = app!.mmView.renderer!
             let scaleFactor : Float = app!.mmView.scaleFactor
 
+            debugInstance.clear()
             renderer.setClipRect(region.rect)
             
             // --- Background
@@ -1369,6 +1375,15 @@ class NodeGraph : Codable
         
         for texture in textures {
             app!.mmView.drawTexture.draw(texture, x: x, y: y, zoom: 1)
+        }
+        
+        // Draw Debug
+        
+        if true {
+            let camera = createNodeCamera(node)
+                        
+            debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)
+            app!.mmView.drawTexture.draw(debugInstance.texture!, x: x, y: y, zoom: 1)
         }
             
         // Preview Border

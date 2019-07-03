@@ -272,3 +272,12 @@ func getStaticTextSize(_ font: MMFont, _ text: String,_ scale: Float = 1) -> flo
     return float2(totalWidth,totalHeight)
 }
 
+func toDegrees(_ rad: Float) -> Float
+{
+    return rad * 180 / Float.pi
+}
+
+func toRadians(_ degree: Float) -> Float
+{
+    return degree * Float.pi / 180
+}

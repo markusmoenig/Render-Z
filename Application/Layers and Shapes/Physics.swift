@@ -335,13 +335,13 @@ class Physics
             
             // Object transform
             
-            instance.data![instance.objectDataOffset + objectIndex * 8 + 1] = object.properties["trans_rotate"]! * Float.pi / 180
+            instance.data![instance.objectDataOffset + objectIndex * 8 + 1] = toRadians(object.properties["rotate"]!)
 
-            instance.data![instance.objectDataOffset + objectIndex * 8 + 2] = object.properties["trans_scaleX"]!
-            instance.data![instance.objectDataOffset + objectIndex * 8 + 3] = object.properties["trans_scaleY"]!
+            instance.data![instance.objectDataOffset + objectIndex * 8 + 2] = object.properties["scaleX"]!
+            instance.data![instance.objectDataOffset + objectIndex * 8 + 3] = object.properties["scaleY"]!
             
-            instance.data![instance.objectDataOffset + objectIndex * 8 + 4] = object.properties["trans_posX"]!
-            instance.data![instance.objectDataOffset + objectIndex * 8 + 5] = object.properties["trans_posY"]!
+            instance.data![instance.objectDataOffset + objectIndex * 8 + 4] = object.properties["posX"]!
+            instance.data![instance.objectDataOffset + objectIndex * 8 + 5] = object.properties["posY"]!
 
             //
             objectIndex += 1
@@ -364,10 +364,10 @@ class Physics
 
             for disk in object.disks {
                 
-                instance.data![diskOffset + 0] = object.properties["trans_posX"]!
-                instance.data![diskOffset + 1] = object.properties["trans_posY"]!
+                instance.data![diskOffset + 0] = object.properties["posX"]!
+                instance.data![diskOffset + 1] = object.properties["posY"]!
                 instance.data![diskOffset + 2] = disk.distance
-                instance.data![diskOffset + 3] = object.properties["trans_rotate"]! * Float.pi / 180
+                instance.data![diskOffset + 3] = toRadians(object.properties["trans_rotate"]!)
                 instance.data![diskOffset + 4] = disk.xPos
                 instance.data![diskOffset + 5] = disk.yPos
 
@@ -400,8 +400,9 @@ class Physics
                     
                     var contacts : [float4] = []
                     var penetrationDepth : Float = 0
-                    var normal : float2? = nil
-                    
+                    var normal : float2 = float2()
+                    var normals : [float2] = []
+
                     for i in 0..<object.disks.count {
                         
                         let diskOffset : Int = offset + i * 4
@@ -409,28 +410,47 @@ class Physics
                         let penetration : Float = result[diskOffset]//object.disks[diskIndex].distance - distance
                         let distance : Float = result[diskOffset+1]
                         
+                        func rotateCCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
+                        {
+                            let ca : Float = cos(angle), sa = sin(angle)
+                            return pivot + (pos-pivot) * float2x2(float2(ca, sa), float2(-sa, ca))
+                        }
+                        
+                        func rotateCCW(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
+                        {
+                            let ca : Float = cos(angle), sa = sin(angle)
+                            return (pos) * float2x2(float2(ca, sa), float2(-sa, ca))
+                        }
+                        
+                        let objectPos : float2 = float2(object.properties["posX"]!, object.properties["posY"]!)
+                        let diskPos : float2 = float2(object.disks[i].xPos, object.disks[i].yPos)
+                        
+                        //print(object.properties["trans_rotate"]!)
+                        var contact = rotateCCWWithPivot(objectPos + diskPos, toRadians(object.properties["trans_rotate"]!), objectPos)
+
+                        nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), object.disks[i].distance, penetration > 0.0 ? float4(1,0,0,1) : float4(1,1,0,1) )
+
                         if ( penetration > 0.0 )
                         {
                             //print(object.name, collisionObject.name, i, penetration)
                             
-                            func rotateCCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
-                            {
-                                let ca : Float = cos(angle), sa = sin(angle)
-                                return pivot + (pos-pivot) * float2x2(float2(ca, sa), float2(-sa, ca))
-                            }
-                            
                             let localNormal = float2( result[diskOffset + 2], result[diskOffset + 3] )
+                            normals.append(localNormal)
                             
-                            if normal == nil {
-                                normal = -localNormal
-                            }
-                            if penetration > penetrationDepth  {
+                            if penetration > penetrationDepth {
                                 penetrationDepth = penetration
+                                if normals.count == 1 {
+                                    normal = -localNormal
+                                }
                             }
                             
-                            var contact = rotateCCWWithPivot(float2(object.properties["posX"]! + object.disks[i].xPos, object.properties["posY"]! + object.disks[i].yPos), object.properties["trans_rotate"]!, float2(object.properties["posX"]!, object.properties["posY"]!))
+                            contact += -localNormal * object.disks[i].distance// distance
                             
-                            contact += localNormal * distance
+                            // Visualize contact point
+                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), 4, float4(0,1,0,1) )
+                            
+                            // Visualize normal
+//                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), 10, float4(0,1,0,1) )
                             
                             contacts.append(float4(contact.x, contact.y, -localNormal.x, -localNormal.y))
                         }
@@ -438,11 +458,25 @@ class Physics
                     
                     if contacts.isEmpty == false {
                         //print("hit", object.name, collisionObject.name, contacts.count)
+                     
+                        /*
+                        normal = float2(0,0)
+                        for n in normals {
+                            normal += -n
+                        }
+                        normal /= Float(normals.count)*/
                         
-                        let manifold = Manifold(object.body!, collisionObject.body!, penetrationDepth: penetrationDepth, normal: normal!, contacts: contacts)//instance.objectMap[Int(id)]!.body!)
+                        let manifold = Manifold(object.body!, collisionObject.body!, penetrationDepth: penetrationDepth, normal: normal, contacts: contacts)//instance.objectMap[Int(id)]!.body!)
                         
                         manifold.resolve()
                         manifolds.append(manifold)
+                        
+                        /*
+                        if collisionObject.getPhysicsMode() == .Static {
+                            let staticManifold = Manifold(collisionObject.body!, object.body!, penetrationDepth: penetrationDepth, normal: -normal, contacts: contacts)
+                            staticManifold.resolve()
+                            manifolds.append(staticManifold)
+                        }*/
                     }
                     
                     offset += maxDisks * 4
@@ -521,7 +555,7 @@ class Body
     {
         self.object = object
         
-        orientation = (object.properties["rotate"]!+180) * Float.pi / 180
+//        orientation = toRadians(object.properties["trans_rotate"]!)
 
         let physicsMode = object.getPhysicsMode()
         if physicsMode == .Dynamic {
@@ -532,9 +566,9 @@ class Body
                 invMass = 1 / mass
             }
             
-            inertia = mass
+            inertia = 0
             for disk in object.disks {
-                inertia += disk.distance * disk.distance
+                inertia += mass * disk.distance * disk.distance
             }
             
             if inertia != 0 {
@@ -579,7 +613,7 @@ class Body
         object.properties["posY"] = object.properties["posY"]! + velocity.y
         
         orientation += angularVelocity
-        object.properties["rotate"] = orientation * 180 / Float.pi + 180
+        object.properties["rotate"] = toDegrees(orientation)
     }
 }
 
@@ -730,7 +764,7 @@ class Manifold
     func positionalCorrection()
     {
         let slop : Float = 0.05
-        let percent : Float = 0.6// 0.4
+        let percent : Float = 0.4 // 0.4
         
         let correction = max( penetrationDepth - slop, 0.0 ) / (bodyA.invMass + bodyB.invMass) * normal * percent;
         bodyA.applyToPosition(-correction)

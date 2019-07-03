@@ -354,6 +354,7 @@ class Object : Node
         let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
         
         if instance == nil || hard {
+            instance = nil
             DispatchQueue.main.async {
                 self.executeProperties(nodeGraph)
                 self.instance = nodeGraph.builder.buildObjects(objects: self.playInstance != nil ? [self.playInstance!] : [self], camera: self.camera!, preview: true)
