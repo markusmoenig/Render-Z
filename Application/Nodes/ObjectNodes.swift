@@ -658,8 +658,10 @@ class ObjectCollisionAny : Node
                 if let instance = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
                     
                     if let body = instance.body {
-                        if body.collisionInfos.count > 0 {
-                            playResult = .Success
+                        for (_, distance) in body.distanceInfos {
+                            if distance < 0 {
+                                playResult = .Success
+                            }
                         }
                     }
                 }

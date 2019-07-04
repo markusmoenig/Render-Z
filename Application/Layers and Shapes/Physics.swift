@@ -386,11 +386,6 @@ class Physics
         
         let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 4)
         
-        /// Reset collision infos
-        for object in instance.dynamicObjects {
-            object.body?.collisionInfos = []
-        }
-        
         offset = 0
         var manifolds : [Manifold] = []
         for object in instance.dynamicObjects {
@@ -400,6 +395,7 @@ class Physics
                     
                     var contacts : [float4] = []
                     var penetrationDepth : Float = 0
+                    var shortestDistance : Float = 100000
                     var normal : float2 = float2()
                     var normals : [float2] = []
 
@@ -409,6 +405,10 @@ class Physics
                         
                         let penetration : Float = result[diskOffset]//object.disks[diskIndex].distance - distance
                         let distance : Float = result[diskOffset+1]
+                        
+                        if distance < shortestDistance {
+                            shortestDistance = distance
+                        }
                         
                         func rotateCCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
                         {
@@ -430,7 +430,7 @@ class Physics
 
                         nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), object.disks[i].distance, 4, penetration > 0.0 ? float4(1,0,0,1) : float4(1,1,0,1) )
 
-                        if ( penetration > 0.0 )
+                        if ( penetration >= 0.0 )
                         {
                             //print(object.name, collisionObject.name, i, penetration)
                             
@@ -444,10 +444,10 @@ class Physics
                                 }
                             }
                             
-                            contact += -localNormal * object.disks[i].distance// distance
+                            contact += -localNormal * distance//object.disks[i].distance// distance
                             
                             // Visualize contact point
-                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), 4, 0, float4(0,1,0,1) )
+                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), 8, 0, float4(0,1,0,1) )
                             
                             // Visualize normal
 //                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), 10, float4(0,1,0,1) )
@@ -455,6 +455,9 @@ class Physics
                             contacts.append(float4(contact.x, contact.y, -localNormal.x, -localNormal.y))
                         }
                     }
+                    
+                    // Set the shortest distance of the object to the collision object for future reference via nodes
+                    object.body!.distanceInfos[collisionObject.uuid] = shortestDistance
                     
                     if contacts.isEmpty == false {
                         //print("hit", object.name, collisionObject.name, contacts.count)
@@ -547,7 +550,7 @@ class Body
     
     var object              : Object
     
-    var collisionInfos      : [CollisionInfo] = []
+    var distanceInfos       : [UUID:Float] = [:]
     
     var shaderIndex         : Int = -1
     
@@ -586,6 +589,9 @@ class Body
     
     func integrateForces(_ delta: Float)
     {
+        if invMass == 0.0 {
+            return
+        }
         velocity += (force * invMass + gravity) * (delta/2)
         angularVelocity += torque * invInertia * (delta/2)
     }
@@ -614,7 +620,7 @@ class Body
         
         orientation += angularVelocity
         object.properties["rotate"] = toDegrees(orientation)
-        print(object.name, "rotate", object.properties["rotate"]! )
+        //print(object.name, "rotate", object.properties["rotate"]! )
     }
 }
 
@@ -643,9 +649,6 @@ class Manifold
         restitution = min(bodyA.restitution, bodyB.restitution)
         staticFriction = sqrt(bodyA.staticFriction * bodyB.staticFriction)
         dynamicFriction = sqrt(bodyA.dynamicFriction * bodyB.dynamicFriction)
-        
-        bodyA.collisionInfos.append( CollisionInfo(collisionWith: bodyB.object) )
-        bodyB.collisionInfos.append( CollisionInfo(collisionWith: bodyA.object) )
         
         //
         
@@ -770,16 +773,5 @@ class Manifold
         let correction = max( penetrationDepth - slop, 0.0 ) / (bodyA.invMass + bodyB.invMass) * normal * percent;
         bodyA.applyToPosition(-correction)
         bodyB.applyToPosition(correction)
-    }
-}
-
-/// Collision Info
-class CollisionInfo
-{
-    var     collisionWith   : Object
-    
-    init(collisionWith: Object)
-    {
-        self.collisionWith = collisionWith
     }
 }
