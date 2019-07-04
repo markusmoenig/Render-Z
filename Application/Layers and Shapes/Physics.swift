@@ -429,8 +429,12 @@ class Physics
 
                         nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), disk.distance, 4, penetration > 0.0 ? float4(1,0,0,1) : float4(1,1,0,1) )
 
-                        if ( penetration > 0.0 )
+                        if ( penetration > -0.2 )
                         {
+                            //if object.disks.count > 1 && abs(penetration) < 5 {
+                            //    print(object.name, i, distance, penetration)
+                            //}
+                            
                             //print(object.name, collisionObject.name, i, penetration)
                             
                             let localNormal = float2( result[diskOffset + 2], result[diskOffset + 3] )
