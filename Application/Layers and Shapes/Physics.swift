@@ -263,7 +263,7 @@ class Physics
                             float rotate = physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].rotate;
                             float2 offset = physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].offset;
                     
-                            pos = rotateCCWWithPivot(pos+offset, rotate, pos);
+                            pos = rotateCWWithPivot(pos+offset, rotate, pos);
                     
                             hit = object\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
                     
@@ -367,7 +367,7 @@ class Physics
                 instance.data![diskOffset + 0] = object.properties["posX"]!
                 instance.data![diskOffset + 1] = object.properties["posY"]!
                 instance.data![diskOffset + 2] = disk.distance
-                instance.data![diskOffset + 3] = toRadians(object.properties["trans_rotate"]!)
+                instance.data![diskOffset + 3] = toRadians(object.properties["rotate"]!)
                 instance.data![diskOffset + 4] = disk.xPos
                 instance.data![diskOffset + 5] = disk.yPos
 
@@ -399,38 +399,37 @@ class Physics
                     var normal : float2 = float2()
                     var normals : [float2] = []
 
-                    for i in 0..<object.disks.count {
+                    for (i, disk) in object.disks.enumerated() {
                         
                         let diskOffset : Int = offset + i * 4
                         
-                        let penetration : Float = result[diskOffset]//object.disks[diskIndex].distance - distance
+                        let penetration : Float = result[diskOffset]
                         let distance : Float = result[diskOffset+1]
                         
                         if distance < shortestDistance {
                             shortestDistance = distance
                         }
                         
-                        func rotateCCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
+                        func rotateCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
                         {
                             let ca : Float = cos(angle), sa = sin(angle)
                             return pivot + (pos-pivot) * float2x2(float2(ca, sa), float2(-sa, ca))
                         }
                         
-                        func rotateCCW(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
+                        func rotateCCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
                         {
                             let ca : Float = cos(angle), sa = sin(angle)
-                            return (pos) * float2x2(float2(ca, sa), float2(-sa, ca))
+                            return pivot + (pos-pivot) * float2x2(float2(ca, -sa), float2(sa, ca))
                         }
                         
                         let objectPos : float2 = float2(object.properties["posX"]!, object.properties["posY"]!)
-                        let diskPos : float2 = float2(object.disks[i].xPos, object.disks[i].yPos)
+                        let diskPos : float2 = float2(disk.xPos, disk.yPos)
                         
-                        //print(object.properties["trans_rotate"]!)
-                        var contact = rotateCCWWithPivot(objectPos + diskPos, toRadians(object.properties["trans_rotate"]!), objectPos)
+                        var contact = rotateCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
 
-                        nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), object.disks[i].distance, 4, penetration > 0.0 ? float4(1,0,0,1) : float4(1,1,0,1) )
+                        nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), disk.distance, 4, penetration > 0.0 ? float4(1,0,0,1) : float4(1,1,0,1) )
 
-                        if ( penetration >= 0.0 )
+                        if ( penetration > 0.0 )
                         {
                             //print(object.name, collisionObject.name, i, penetration)
                             
@@ -439,18 +438,17 @@ class Physics
                             
                             if penetration > penetrationDepth {
                                 penetrationDepth = penetration
-                                if normals.count == 1 {
-                                    normal = -localNormal
-                                }
+                                normal = -localNormal
                             }
                             
-                            contact += -localNormal * distance//object.disks[i].distance// distance
+                            let contactOrigin = contact
+                            contact += -localNormal * distance
                             
                             // Visualize contact point
-                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), 8, 0, float4(0,1,0,1) )
+                            nodeGraph.debugInstance.addDisk(contact, 8, 0, float4(0,1,0,1) )
                             
                             // Visualize normal
-//                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), 10, float4(0,1,0,1) )
+                            nodeGraph.debugInstance.addLine(contactOrigin + localNormal * distance * 4, contactOrigin + -localNormal * distance * 4, 3, 0, float4(0,0,1,1) )
                             
                             contacts.append(float4(contact.x, contact.y, -localNormal.x, -localNormal.y))
                         }
@@ -473,13 +471,6 @@ class Physics
                         
                         manifold.resolve()
                         manifolds.append(manifold)
-                        
-                        /*
-                        if collisionObject.getPhysicsMode() == .Static {
-                            let staticManifold = Manifold(collisionObject.body!, object.body!, penetrationDepth: penetrationDepth, normal: -normal, contacts: contacts)
-                            staticManifold.resolve()
-                            manifolds.append(staticManifold)
-                        }*/
                     }
                     
                     offset += maxDisks * 4
@@ -558,7 +549,7 @@ class Body
     {
         self.object = object
         
-//        orientation = toRadians(object.properties["trans_rotate"]!)
+        orientation = toRadians(object.properties["rotate"]!)
 
         let physicsMode = object.getPhysicsMode()
         if physicsMode == .Dynamic {
@@ -619,7 +610,7 @@ class Body
         object.properties["posY"] = object.properties["posY"]! + velocity.y
         
         orientation += angularVelocity
-        object.properties["rotate"] = toDegrees(orientation)
+        object.properties["rotate"] = toDegrees(orientation)//.truncatingRemainder(dividingBy: 360))
         //print(object.name, "rotate", object.properties["rotate"]! )
     }
 }
@@ -668,7 +659,7 @@ class Manifold
             
             let rv : float2 = bodyB.velocity + Cross12(bodyB.angularVelocity, rb) - bodyA.velocity - Cross12(bodyA.angularVelocity, ra)
             
-            if LenSqr(rv) < LenSqr(1 / 60 * bodyA.gravity) + 0.0001 {
+            if LenSqr(rv) < LenSqr((1 / 60) * bodyA.gravity) + 0.0001 {
                 restitution = 0
             }
         }
@@ -723,7 +714,7 @@ class Manifold
             // Calculate impulse scalar
             var j = -(1.0 + restitution) * contactVel
             j /= invMassSum
-            j /= Float(contacts.count)
+            //j /= Float(contacts.count)
             
             // Apply impulse
             let impulse : float2 = normal * j
@@ -768,7 +759,7 @@ class Manifold
     func positionalCorrection()
     {
         let slop : Float = 0.05
-        let percent : Float = 0.4 // 0.4
+        let percent : Float = 1 // 0.4
         
         let correction = max( penetrationDepth - slop, 0.0 ) / (bodyA.invMass + bodyB.invMass) * normal * percent;
         bodyA.applyToPosition(-correction)

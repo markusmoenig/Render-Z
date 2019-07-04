@@ -301,7 +301,7 @@ class DiskBuilder
         instance.data![offset+1] = Float(y)
         instance.data![offset+2] = radius
         
-        if radius < 1 {
+        if radius < 4 {
             return false
         } else {
             object.disks.append(Disk(Float(x) - width/2, Float(y) - height/2, radius))

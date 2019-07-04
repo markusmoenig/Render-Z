@@ -23,6 +23,23 @@ class DebugDisk {
     }
 }
 
+class DebugLine {
+    var pos1        : float2
+    var pos2        : float2
+    var radius      : Float
+    var border      : Float
+    var color       : float4
+    
+    init(_ pos1 : float2, _ pos2 : float2,_ radius: Float,_ border: Float,_ color: float4)
+    {
+        self.pos1 = pos1
+        self.pos2 = pos2
+        self.radius = radius
+        self.border = border
+        self.color = color
+    }
+}
+
 class DebugBuilderInstance
 {
     var state           : MTLComputePipelineState? = nil
@@ -32,19 +49,29 @@ class DebugBuilderInstance
     
     // Offset of the header data
     var headerOffset    : Int = 0
+
+    // Offset of the line data
+    var lineOffset      : Int = 0
     
     var texture         : MTLTexture? = nil
     
     var disks           : [DebugDisk] = []
-    
+    var lines           : [DebugLine] = []
+
     func clear()
     {
         disks = []
+        lines = []
     }
     
     func addDisk(_ pos : float2,_ radius: Float,_ border: Float, _ color: float4)
     {
         disks.append(DebugDisk(pos, radius, border, color))
+    }
+    
+    func addLine(_ pos1 : float2, _ pos2 : float2,_ radius: Float,_ border: Float, _ color: float4)
+    {
+        lines.append(DebugLine(pos1, pos2, radius, border, color))
     }
 }
 
@@ -53,6 +80,7 @@ class DebugBuilder
     var compute         : MMCompute?
     var nodeGraph       : NodeGraph
     var maxDiskSize     : Int = 20
+    var maxLineSize     : Int = 20
 
     init(_ nodeGraph: NodeGraph)
     {
@@ -93,6 +121,7 @@ class DebugBuilder
             float4      camera;
 
             float4      disks[\(maxDiskSize*2)];
+            float4      lines[\(maxLineSize*3)];
         } DEBUG_DATA;
         
         """
@@ -104,8 +133,28 @@ class DebugBuilder
         
         instance.headerOffset = instance.data!.count
         
-        // Fill up the objects
+        // Fill up the disk space
         for _ in 0..<maxDiskSize {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
+        instance.lineOffset = instance.data!.count
+
+        // Fill up the lines
+        for _ in 0..<maxLineSize {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
@@ -119,6 +168,13 @@ class DebugBuilder
         
         source +=
         """
+        
+        float sdLine( float2 uv, float2 pa, float2 pb, float r) {
+            float2 o = uv-pa;
+            float2 l = pb-pa;
+            float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
+            return -(r-distance(o,l*h));
+        }
         
         kernel void
         debugBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
@@ -149,7 +205,23 @@ class DebugBuilder
                         col = mix( col, debugData->disks[i*2+1], fillMask(dist) * debugData->disks[i*2+1].w );
                     else
                         col = mix( col, debugData->disks[i*2+1], borderMask(dist, border) * debugData->disks[i*2+1].w );
-                }
+                } else break;
+            }
+        
+            for(int i = 0; i < \(maxLineSize); ++i)
+            {
+                float2 pos1 = float2(debugData->lines[i*3].x, debugData->lines[i*3].y);
+                float2 pos2 = float2(debugData->lines[i*3].z, debugData->lines[i*3].w);
+                float radius = debugData->lines[i*3+1].x;
+                float border = debugData->lines[i*3+1].y;
+        
+                if ( radius > 0.0 ) {
+                    float dist = sdLine(uv, pos1, pos2, radius);
+                    if ( border == 0.0 )
+                        col = mix( col, debugData->lines[i*3+2], fillMask(dist) * debugData->lines[i*3+2].w );
+                    else
+                        col = mix( col, debugData->lines[i*3+2], borderMask(dist, border) * debugData->lines[i*3+2].w );
+                } else break;
             }
 
         """
@@ -183,7 +255,7 @@ class DebugBuilder
         instance.data![2] = 1/camera.zoom
         
         // Fill Disks
-        let offset : Int = instance.headerOffset
+        var offset : Int = instance.headerOffset
         
         for index in 0..<maxDiskSize {
             instance.data![offset + index * 8 + 2] = -1
@@ -202,6 +274,31 @@ class DebugBuilder
             instance.data![offset + index * 8 + 5] = disk.color.y
             instance.data![offset + index * 8 + 6] = disk.color.z
             instance.data![offset + index * 8 + 7] = disk.color.w
+        }
+        
+        // Fill Lines
+        offset = instance.lineOffset
+        
+        for index in 0..<maxLineSize {
+            instance.data![offset + index * 12 + 4] = -1
+        }
+        
+        for (index,line) in instance.lines.enumerated() {
+            if index >= maxLineSize {
+                break;
+            }
+            instance.data![offset + index * 12] = line.pos1.x
+            instance.data![offset + index * 12 + 1] = line.pos1.y
+            instance.data![offset + index * 12 + 2] = line.pos2.x
+            instance.data![offset + index * 12 + 3] = line.pos2.y
+            
+            instance.data![offset + index * 12 + 4] = line.radius
+            instance.data![offset + index * 12 + 5] = line.border
+            
+            instance.data![offset + index * 12 + 8] = line.color.x
+            instance.data![offset + index * 12 + 9] = line.color.y
+            instance.data![offset + index * 12 + 10] = line.color.z
+            instance.data![offset + index * 12 + 11] = line.color.w
         }
         
         // ---
