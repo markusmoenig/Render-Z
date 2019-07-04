@@ -10,6 +10,11 @@ import MetalKit
 
 class NodeGraph : Codable
 {
+    enum DebugMode
+    {
+        case None, Physics
+    }
+    
     enum LeftRegionMode
     {
         case Closed, Nodes
@@ -23,6 +28,7 @@ class NodeGraph : Codable
         case Objects, Layers, Scenes, Game, ObjectsOverview, LayersOverview, ScenesOverview
     }
     
+    var debugMode       : DebugMode = .None
     var nodes           : [Node] = []
 
     var drawNodeState   : MTLRenderPipelineState?
@@ -152,6 +158,9 @@ class NodeGraph : Codable
         nodes.append(game)
 
         setCurrentMaster(node: object)
+        
+        debugBuilder = DebugBuilder(self)
+        debugInstance = debugBuilder.build(camera: Camera())
     }
     
     required init(from decoder: Decoder) throws
@@ -161,6 +170,9 @@ class NodeGraph : Codable
         currentMasterUUID = try container.decode(UUID?.self, forKey: .currentMasterUUID)
         previewSize = try container.decode(float2.self, forKey: .previewSize)
         setCurrentMaster(uuid: currentMasterUUID)
+        
+        debugBuilder = DebugBuilder(self)
+        debugInstance = debugBuilder.build(camera: Camera())
     }
     
     func encode(to encoder: Encoder) throws
@@ -181,9 +193,6 @@ class NodeGraph : Codable
         builder = Builder(self)
         physics = Physics(self)
         diskBuilder = DiskBuilder(self)
-        
-        debugBuilder = DebugBuilder(self)
-        debugInstance = debugBuilder.build(camera: Camera())
 
         let renderer = app.mmView.renderer!
         
@@ -1379,7 +1388,7 @@ class NodeGraph : Codable
         
         // Draw Debug
         
-        if true {
+        if debugMode != .None {
             let camera = createNodeCamera(node)
                         
             debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)

@@ -427,8 +427,10 @@ class Physics
                         
                         var contact = rotateCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
 
-                        nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), disk.distance, 4, penetration > 0.0 ? float4(1,0,0,1) : float4(1,1,0,1) )
-
+                        if nodeGraph.debugMode == .Physics {
+                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), disk.distance, 4, penetration > 0.0 ? float4(1,0,0,1) : float4(1,1,0,1) )
+                        }
+                        
                         if ( penetration > -0.2 )
                         {
                             //if object.disks.count > 1 && abs(penetration) < 5 {
@@ -448,11 +450,13 @@ class Physics
                             let contactOrigin = contact
                             contact += -localNormal * distance
                             
-                            // Visualize contact point
-                            nodeGraph.debugInstance.addDisk(contact, 8, 0, float4(0,1,0,1) )
-                            
-                            // Visualize normal
-                            nodeGraph.debugInstance.addLine(contactOrigin + localNormal * distance * 4, contactOrigin + -localNormal * distance * 4, 3, 0, float4(0,0,1,1) )
+                            if nodeGraph.debugMode == .Physics {
+                                // Visualize contact point
+                                nodeGraph.debugInstance.addDisk(contact, 8, 0, float4(0,1,0,1) )
+                                
+                                // Visualize normal
+                                nodeGraph.debugInstance.addLine(contactOrigin + localNormal * distance * 4, contactOrigin + -localNormal * distance * 4, 3, 0, float4(0,0,1,1) )
+                            }
                             
                             contacts.append(float4(contact.x, contact.y, -localNormal.x, -localNormal.y))
                         }
