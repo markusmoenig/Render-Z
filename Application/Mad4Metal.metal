@@ -232,6 +232,9 @@ fragment float4 m4mBoxedMenuDrawable(RasterizerData in [[stage_in]],
     
     float lineWidth = 1.5;
     float lineRound = 4.0;
+    
+    //const float4 lineColor = float4(0.957, 0.957, 0.957, 1.000);
+    const float4 lineColor = float4(0.95, 0.95, 0.95, 1.000);
 
     // --- Middle
     uv = in.textureCoordinate * data->size;
@@ -241,7 +244,7 @@ fragment float4 m4mBoxedMenuDrawable(RasterizerData in [[stage_in]],
     dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - lineRound;
     
 //    col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
-    col = mix( col,  float4( 0.957, 0.957, 0.957, 1 ), m4mFillMask( dist ) );
+    col = mix( col, lineColor, m4mFillMask( dist ) );
 
     // --- Top
     uv = in.textureCoordinate * data->size;
@@ -250,7 +253,7 @@ fragment float4 m4mBoxedMenuDrawable(RasterizerData in [[stage_in]],
     
     d = abs( uv ) -  float2( data->size.x / 3, lineWidth) + lineRound;
     dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - lineRound;
-    col = mix( col,  float4( 0.957, 0.957, 0.957, 1 ), m4mFillMask( dist ) );
+    col = mix( col, lineColor, m4mFillMask( dist ) );
     
     // --- Bottom
     uv = in.textureCoordinate * data->size;
@@ -259,7 +262,7 @@ fragment float4 m4mBoxedMenuDrawable(RasterizerData in [[stage_in]],
     
     d = abs( uv ) -  float2( data->size.x / 3, lineWidth) + lineRound;
     dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - lineRound;
-    col = mix( col,  float4( 0.957, 0.957, 0.957, 1 ), m4mFillMask( dist ) );
+    col = mix( col, lineColor, m4mFillMask( dist ) );
     
     return col;
 }

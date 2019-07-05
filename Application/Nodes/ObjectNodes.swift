@@ -31,12 +31,22 @@ class ObjectPhysics : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "Dynamic", "Collision Only"], index: 1),
+            NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "Dynamic"], index: 1),
             NodeUINumber(self, variable: "physicsMass", title: "Mass", range: float2(0, 50), value: 1),
             NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 5), value: 0.2)
         ]
         
         super.setupUI(mmView: mmView)
+    }
+    
+    override func updateUIState()
+    {
+        let mode = properties["physicsMode"]!
+
+        uiItems[1].isDisabled = mode == 0 || mode == 1
+        uiItems[2].isDisabled = mode == 0 || mode == 1
+
+        super.updateUIState()
     }
     
     required init(from decoder: Decoder) throws

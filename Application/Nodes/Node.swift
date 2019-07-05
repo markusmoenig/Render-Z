@@ -159,12 +159,18 @@ class Node : Codable, Equatable
         computeUIArea(mmView: mmView)
     }
     
-    /// Update the UI of the node
+    /// Update the UI elements of the node
     func updateUI(mmView: MMView)
     {
         for item in uiItems {
             item.update()
         }
+        updateUIState()
+    }
+    
+    /// Update the UI State
+    func updateUIState()
+    {
     }
     
     /// Setup
@@ -195,6 +201,8 @@ class Node : Codable, Equatable
         uiArea.height += 6
         
         uiMaxWidth -= NodeUI.titleMargin.width() + NodeUI.titleSpacing
+        
+        updateUIState()
     }
     
     /// A UI Variable changed
@@ -216,6 +224,7 @@ class Node : Codable, Equatable
         if continuous == false {
             applyProperties(variable, newValue, oldValue)
         }
+        self.updateUIState()
     }
     
     /// Executes the connected properties

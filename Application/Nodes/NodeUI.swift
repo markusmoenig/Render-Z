@@ -33,6 +33,9 @@ class NodeUI
     var supportsTitleHover: Bool = false
     var titleHover  : Bool = false
     
+    var isDisabled  : Bool = false
+    var disabledAlpha: Float = 0.2
+    
     var linkedTo    : NodeUI? = nil
 
     // --- Statics
@@ -96,6 +99,11 @@ class NodeUI
     
     func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
     {
+    }
+    
+    /// Adjust color to disabled if necessary
+    func adjustColor(_ color: float4) -> float4 {
+        return isDisabled ? float4(color.x, color.y, color.z, disabledAlpha) : color
     }
 }
 
@@ -165,8 +173,10 @@ class NodeUIDropDown : NodeUI
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        open = true
-        mouseMoved(event)
+        if isDisabled == false {
+            open = true
+            mouseMoved(event)
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -204,6 +214,7 @@ class NodeUIDropDown : NodeUI
         if titleLabel!.scale != NodeUI.fontScale * scale {
             titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
         }
+        titleLabel!.isDisabled = isDisabled
         titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
         
         let x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
@@ -213,10 +224,10 @@ class NodeUIDropDown : NodeUI
         let skin = mmView.skin.MenuWidget
         
         if !open || items.count == 0 {
-            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
+            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : adjustColor(skin.color), borderColor: adjustColor(skin.borderColor))
             
             if items.count > 0 {
-                mmView.drawText.drawTextCentered(mmView.openSans, text: items[Int(index)], x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: skin.textColor)
+                mmView.drawText.drawTextCentered(mmView.openSans, text: items[Int(index)], x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
             }
         } else {
             mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight * Float(items.count), round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
@@ -483,6 +494,7 @@ class NodeUIKeyDown : NodeUI
         if titleLabel!.scale != NodeUI.fontScale * scale {
             titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
         }
+        titleLabel!.isDisabled = isDisabled
         titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
         
         let x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
@@ -491,9 +503,9 @@ class NodeUIKeyDown : NodeUI
         
         let skin = mmView.skin.MenuWidget
         
-        mmView.drawBox.draw( x: x, y: rect.y, width: width, height: height, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
+        mmView.drawBox.draw( x: x, y: rect.y, width: width, height: height, round: 0, borderSize: 1, fillColor : adjustColor(skin.color), borderColor: adjustColor(skin.borderColor) )
         
-        mmView.drawText.drawTextCentered(mmView.openSans, text: keyText, x: x, y: rect.y, width: width, height: height, scale: NodeUI.fontScale * scale, color: skin.textColor)
+        mmView.drawText.drawTextCentered(mmView.openSans, text: keyText, x: x, y: rect.y, width: width, height: height, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
     }
 }
 
@@ -536,6 +548,9 @@ class NodeUINumber : NodeUI
     
     override func titleClicked()
     {
+        if isDisabled {
+            return
+        }
         getNumberDialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, cb: { (value) -> Void in
             if self.range != nil {
                 let oldValue = self.value
@@ -551,11 +566,14 @@ class NodeUINumber : NodeUI
             self.updateLinked()
             self.mmView.update()
         } )
-        return
     }
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if isDisabled {
+            return
+        }
+
         if mouseIsDown == false {
             undoValue = value
         }
@@ -583,6 +601,9 @@ class NodeUINumber : NodeUI
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if isDisabled {
+            return
+        }
         //let oldValue = node.properties[variable]!
         node.properties[variable] = value
         
@@ -625,10 +646,11 @@ class NodeUINumber : NodeUI
         
         let skin = mmView.skin.MenuWidget
         
-        if titleHover {
+        if titleHover && isDisabled == false {
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: maxTitleSize.x * scale + NodeUI.titleSpacing * scale, height: maxTitleSize.y * scale, round: 4, borderSize: 1, fillColor : float4(0.5, 0.5, 0.5, 1), borderColor: float4(repeating:0) )
         }
         
+        titleLabel!.isDisabled = isDisabled
         titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
         
         x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
@@ -636,15 +658,15 @@ class NodeUINumber : NodeUI
         
         let itemHeight =  rect.height * scale
         
-        mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
+        mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : adjustColor(skin.color), borderColor: adjustColor(skin.borderColor) )
         
         if range != nil {
             let offset = (width / (range!.y - range!.x)) * (value - range!.x)
             
-            mmView.drawBox.draw( x: x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: skin.borderColor )
+            mmView.drawBox.draw( x: x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: adjustColor(skin.borderColor) )
         }
         
-        mmView.drawText.drawTextCentered(mmView.openSans, text: int ? String(Int(value)) : String(format: "%.02f", value), x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: skin.textColor)
+        mmView.drawText.drawTextCentered(mmView.openSans, text: int ? String(Int(value)) : String(format: "%.02f", value), x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
     }
 }
 
@@ -722,6 +744,7 @@ class NodeUIAngle : NodeUI
         
         let skin = mmView.skin.MenuWidget
         
+        titleLabel!.isDisabled = isDisabled
         titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
         
         x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale + (maxWidth - 40) * scale / 2
@@ -835,6 +858,7 @@ class NodeUIText : NodeUI
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: maxTitleSize.x * scale + NodeUI.titleSpacing * scale, height: maxTitleSize.y * scale, round: 4, borderSize: 1, fillColor : float4(0.5, 0.5, 0.5, 1), borderColor: float4(repeating:0) )
         }
         
+        titleLabel!.isDisabled = isDisabled
         titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
         
         x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale

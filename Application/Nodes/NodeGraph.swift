@@ -103,7 +103,8 @@ class NodeGraph : Codable
     var debugBuilder    : DebugBuilder!
     var debugInstance   : DebugBuilderInstance!
 
-    var nodeMenu        : MMMenuWidget!
+    //var nodeMenu        : MMMenuWidget!
+    var behaviorMenu    : MMMenuWidget!
 
     var previewSize     : float2 = float2(320, 200)
 
@@ -480,6 +481,23 @@ class NodeGraph : Codable
         
         editLabel = MMTextLabel(mmView, font: mmView.openSans, text: "EDIT", scale: 0.3)
         
+        // Behavior Menu (Debug Options)
+        var behaviorItems : [MMMenuItem] = []
+        
+        let noDebugItem =  MMMenuItem( text: "Debug Info: None", cb: {
+            self.debugMode = .None
+        } )
+        behaviorItems.append(noDebugItem)
+        
+        let physicsDebugItem =  MMMenuItem( text: "Debug Info: Physics", cb: {
+            self.debugMode = .Physics
+        } )
+        behaviorItems.append(physicsDebugItem)
+        
+        behaviorMenu = MMMenuWidget(mmView, items: behaviorItems)
+        
+        //
+        
         updateNodes()
         updateContent(.Objects)
     }
@@ -490,6 +508,7 @@ class NodeGraph : Codable
         app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton)
         app?.mmView.widgets.insert(editButton, at: 0)
         app?.mmView.widgets.insert(playButton, at: 0)
+        app?.mmView.widgets.insert(behaviorMenu, at: 0)
         if app!.properties["NodeGraphNodesOpen"] == nil || app!.properties["NodeGraphNodesOpen"]! == 1 {
             app!.leftRegion!.rect.width = 200
         } else {
@@ -501,7 +520,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton)
+        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton, behaviorMenu)
         app!.properties["NodeGraphNodesOpen"] = leftRegionMode == .Closed ? 0 : 1
     }
     
@@ -852,7 +871,7 @@ class NodeGraph : Codable
             previewSize.x = floor(nodeDragStartPos.x - (event.x - dragStartPos.x))
             previewSize.y = floor(nodeDragStartPos.y + (event.y - dragStartPos.y))
             
-            previewSize.x = max(previewSize.x, 240)
+            previewSize.x = max(previewSize.x, 260)
             previewSize.y = max(previewSize.y, 80)
             
             previewSize.x = min(previewSize.x, app!.editorRegion!.rect.width - 50)
@@ -1415,6 +1434,12 @@ class NodeGraph : Codable
         playButton.rect.x = editButton.rect.x + editButton.rect.width + 10
         playButton.rect.y = editButton.rect.y
         playButton.draw()
+        
+        behaviorMenu.rect.x = node.rect.x + node.rect.width - 64
+        behaviorMenu.rect.y = node.rect.y + 26
+        behaviorMenu.rect.width = 30
+        behaviorMenu.rect.height = 28
+        behaviorMenu.draw()
         
         // --- Node Drag Handles
         

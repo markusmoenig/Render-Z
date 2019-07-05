@@ -79,7 +79,7 @@ class DebugBuilder
 {
     var compute         : MMCompute?
     var nodeGraph       : NodeGraph
-    var maxDiskSize     : Int = 20
+    var maxDiskSize     : Int = 80
     var maxLineSize     : Int = 20
 
     init(_ nodeGraph: NodeGraph)

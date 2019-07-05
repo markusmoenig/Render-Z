@@ -398,7 +398,8 @@ class Physics
                     var shortestDistance : Float = 100000
                     var normal : float2 = float2()
                     var normals : [float2] = []
-
+                    let hitPenetration : Float = -0.2
+                    
                     for (i, disk) in object.disks.enumerated() {
                         
                         let diskOffset : Int = offset + i * 4
@@ -428,10 +429,10 @@ class Physics
                         var contact = rotateCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
 
                         if nodeGraph.debugMode == .Physics {
-                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), disk.distance, 4, penetration > 0.0 ? float4(1,0,0,1) : float4(1,1,0,1) )
+                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), disk.distance, 4, penetration > hitPenetration ? float4(1,0,0,1) : float4(1,1,0,1) )
                         }
                         
-                        if ( penetration > -0.2 )
+                        if ( penetration > hitPenetration )
                         {
                             //if object.disks.count > 1 && abs(penetration) < 5 {
                             //    print(object.name, i, distance, penetration)
