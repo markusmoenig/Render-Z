@@ -249,20 +249,29 @@ struct MMMenuItem
     
     var textBuffer  : MMTextBuffer?
     
+    var custom      : Any? = nil
+    
     init(text: String, cb: @escaping ()->() )
     {
         self.text = text
         self.cb = cb
         textBuffer = nil
+        custom = nil
     }
 }
 
 /// Button widget class which handles all buttons
 class MMMenuWidget : MMWidget
 {
+    enum MenuType {
+        case BoxedMenu, LabelMenu
+    }
+    
+    var menuType    : MenuType = .BoxedMenu
+    
     var skin        : MMSkinMenuWidget
     var menuRect    : MMRect
-    
+ 
     var items       : [MMMenuItem]
     
     var selIndex    : Int = -1
@@ -270,24 +279,51 @@ class MMMenuWidget : MMWidget
     
     var firstClick  : Bool = false
     
-    init( _ view: MMView, skinToUse: MMSkinMenuWidget? = nil, items: [MMMenuItem])
+    var textLabel   : MMTextLabel? = nil
+    
+    init( _ view: MMView, skinToUse: MMSkinMenuWidget? = nil, type: MenuType = .BoxedMenu, items: [MMMenuItem] = [])
     {
         skin = skinToUse != nil ? skinToUse! : view.skin.MenuWidget
         menuRect = MMRect( 0, 0, 0, 0)
+        
+        self.menuType = type
         self.items = items
-
+        
         super.init(view)
         
         name = "MMMenuWidget"
+        
         rect.width = skin.button.width
         rect.height = skin.button.height
         
         validStates = [.Checked]
+        setItems(items)
+    }
+    
+    /// Only for MenuType == LabelMenu
+    func setText(_ text: String,_ scale: Float? = nil)
+    {
+        if textLabel == nil {
+            textLabel = MMTextLabel(mmView, font: mmView.openSans, text: "")
+        }
         
+        if let label = textLabel {
+            label.setText(text, scale: scale)
+            
+            rect.width = label.rect.width + 10
+            rect.height = label.rect.height + 4
+        }
+    }
+
+    /// Set the items for the menu, can be updated dynamically
+    func setItems(_ items: [MMMenuItem])
+    {
+        self.items = items
+
         let r = MMRect()
         var maxHeight : Float = 0
         for item in self.items {
-            view.openSans.getTextRect(text: item.text, scale: skin.fontScale, rectToUse: r)
+            mmView.openSans.getTextRect(text: item.text, scale: skin.fontScale, rectToUse: r)
             menuRect.width = max(menuRect.width, r.width)
             maxHeight = max(maxHeight, r.height)
         }
@@ -377,9 +413,18 @@ class MMMenuWidget : MMWidget
         } else {
             fColor = skin.button.color
         }
-        mmView.drawBoxedMenu.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor : fColor, borderColor: skin.button.borderColor )
         
-        if states.contains(.Opened) {
+        if menuType == .BoxedMenu {
+            mmView.drawBoxedMenu.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor : fColor, borderColor: skin.button.borderColor )
+        } else
+        if menuType == .LabelMenu {
+            if let label = textLabel {
+                mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 4, borderSize: 0, fillColor : fColor)
+                label.drawCentered(x: rect.x, y: rect.y, width: rect.width, height: rect.height)
+            }
+        }
+        
+        if states.contains(.Opened) && items.count > 0 {
             
             let x = rect.x + rect.width - menuRect.width
             var y = rect.y + rect.height

@@ -42,6 +42,7 @@ class NodeGraph : Codable
     var hoverNode       : Node?
     var currentNode     : Node?
     
+    var previewNode     : Node? = nil
     var playNode        : Node? = nil
     var playToExecute   : [Node] = []
 
@@ -103,8 +104,8 @@ class NodeGraph : Codable
     var debugBuilder    : DebugBuilder!
     var debugInstance   : DebugBuilderInstance!
 
-    //var nodeMenu        : MMMenuWidget!
     var behaviorMenu    : MMMenuWidget!
+    var previewInfoMenu : MMMenuWidget!
 
     var previewSize     : float2 = float2(320, 200)
 
@@ -414,7 +415,7 @@ class NodeGraph : Codable
                 
                 // --- Start Playing
                 self.playToExecute = []
-                self.playNode = self.currentMaster!
+                self.playNode = self.previewNode
                 self.mmScreen = MMScreen(self.mmView)
 
                 let node = self.playNode
@@ -495,8 +496,9 @@ class NodeGraph : Codable
         behaviorItems.append(physicsDebugItem)
         
         behaviorMenu = MMMenuWidget(mmView, items: behaviorItems)
+        // ---
         
-        //
+        previewInfoMenu = MMMenuWidget(mmView, type: .LabelMenu)
         
         updateNodes()
         updateContent(.Objects)
@@ -509,6 +511,7 @@ class NodeGraph : Codable
         app?.mmView.widgets.insert(editButton, at: 0)
         app?.mmView.widgets.insert(playButton, at: 0)
         app?.mmView.widgets.insert(behaviorMenu, at: 0)
+        app?.mmView.widgets.insert(previewInfoMenu, at: 0)
         if app!.properties["NodeGraphNodesOpen"] == nil || app!.properties["NodeGraphNodesOpen"]! == 1 {
             app!.leftRegion!.rect.width = 200
         } else {
@@ -520,7 +523,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton, behaviorMenu)
+        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu)
         app!.properties["NodeGraphNodesOpen"] = leftRegionMode == .Closed ? 0 : 1
     }
     
@@ -1383,22 +1386,24 @@ class NodeGraph : Codable
             mmView.drawText.drawTextCentered(mmView.openSans, text: "Behavior Only", x: x, y: y, width: previewSize.x, height: previewSize.y, scale: 0.4, color: float4(1,1,1,1))
         }
         
-        if let scene = node as? Scene {
+        if let scene = previewNode as? Scene {
             if playNode != nil {
                 textures = scene.outputTextures
             } else {
                 printBehaviorOnlyText()
             }
         } else
-        if let game = node as? Game {
+        if let game = previewNode as? Game {
             if let scene = game.currentScene {
                 textures = scene.outputTextures
             } else {
                 printBehaviorOnlyText()
             }
         } else
-        if let texture = node.previewTexture {
-            textures.append(texture)
+        if previewNode != nil {
+            if let texture = previewNode!.previewTexture {
+                textures.append(texture)
+            }
         }
         
         for texture in textures {
@@ -1415,7 +1420,7 @@ class NodeGraph : Codable
         }
             
         // Preview Border
-        app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 0, borderSize: 3, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
+        app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 0, borderSize: 1, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
         
         // If previewing fill in the screen dimensions
         if let screen = mmScreen {
@@ -1458,6 +1463,12 @@ class NodeGraph : Codable
         eY = node.rect.y + node.rect.height - 18
         
         app!.mmView.drawLine.draw(sx: sX, sy: sY, ex: eX, ey: eY, radius: 1.2, fillColor: dragColor)
+        
+        // --- Preview Info Label
+        
+        previewInfoMenu.rect.x = node.rect.x + node.rect.width - previewInfoMenu.rect.width - 36
+        previewInfoMenu.rect.y = node.rect.y + node.rect.height - 28
+        previewInfoMenu.draw()
     }
     
     /// Draws the given connection
@@ -1924,6 +1935,41 @@ class NodeGraph : Codable
                 currentMaster!.camera = Camera()
             }
             currentMaster!.updatePreview(nodeGraph: self)
+            
+            // --- Update the previewInfoMenu
+            previewInfoMenu.setText(currentMaster!.type + ": " + currentMaster!.name, 0.3)
+            
+            var items : [MMMenuItem] = []
+            var selfItem = MMMenuItem( text: currentMaster!.type + ": " + currentMaster!.name + " (Self)", cb: {} )
+            selfItem.cb = {
+                self.stopPreview()
+                if let node = selfItem.custom! as? Node {
+                    self.previewInfoMenu.setText(node.type + ": " + node.name + " (Self)", 0.3)
+                    self.previewNode = node
+                    self.mmView.update()
+                }
+            }
+            selfItem.custom = currentMaster!
+            items.append(selfItem)
+            
+            let occurences = getOccurencesOf(currentMaster!)
+            for node in occurences {
+                self.stopPreview()
+                var item = MMMenuItem( text: node.type + ": " + node.name, cb: {} )
+                item.cb = {
+                    if let node = item.custom! as? Node {
+                        self.previewInfoMenu.setText(node.type + ": " + node.name, 0.3)
+                        node.updatePreview(nodeGraph: self)
+                        self.previewNode = node
+                        self.mmView.update()
+                    }
+                }
+                item.custom = node
+                items.append(item)
+            }
+            
+            previewInfoMenu.setItems(items)
+            previewNode = node
         }
     }
     
@@ -2584,5 +2630,48 @@ class NodeGraph : Codable
         }
         #endif
         return size
+    }
+    
+    /// Returns all nodes which contain a reference of this node (objects in layers, layers in scenes).
+    func getOccurencesOf(_ node: Node) -> [Node]
+    {
+        var layers : [Node] = []
+        
+        // Find the occurenes of an object in the layers
+        if node.type == "Object" {
+            for n in nodes {
+                if let layer = n as? Layer {
+                    for inst in layer.objectInstances {
+                        if inst.objectUUID == node.uuid {
+                            if !layers.contains(layer) {
+                                layers.append(layer)
+                            }
+                        }
+                    }
+                }
+            }
+        } else
+        if node.type == "Layer" {
+            layers.append(node)
+        }
+        
+        var scenes : [Node] = []
+
+        // Find the occurenes of the layers in the scenes
+        for layer in layers {
+            for n in nodes {
+                if let scene = n as? Scene {
+                    for uuid in scene.layers {
+                        if uuid == layer.uuid {
+                            if !scenes.contains(scene) {
+                                scenes.append(scene)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return layers + scenes
     }
 }

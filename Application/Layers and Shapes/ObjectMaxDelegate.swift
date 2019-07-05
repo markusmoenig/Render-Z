@@ -248,6 +248,13 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             self.currentObject!.updatePreview(nodeGraph: self.app.nodeGraph, hard: true)
         })
         
+        let occurences = app!.nodeGraph.getOccurencesOf(currentObject!)
+        for occ in occurences {
+            if let layer = occ as? Layer {
+                layer.builderInstance = nil
+            }
+        }
+        
         timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, screenButton, app.closeButton)
         materialsTab.deregisterWidget()
