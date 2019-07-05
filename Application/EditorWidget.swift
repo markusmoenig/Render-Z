@@ -75,7 +75,11 @@ class EditorWidget      : MMWidget
                 
                 let realScale = max(0.2, scale)
                 
-                let node = app.nodeGraph.hoverNode!
+                var node = app.nodeGraph.hoverNode!
+                if node === app.nodeGraph.currentMaster! {
+                    node = app.nodeGraph.previewNode!
+                }
+                
                 node.properties["prevScale"] = realScale
                 node.updatePreview(nodeGraph: app.nodeGraph)
                 mmView.update()
@@ -111,7 +115,11 @@ class EditorWidget      : MMWidget
                 #endif
                 
                 // Node preview translation
-                let node = app.nodeGraph.hoverNode!
+                var node = app.nodeGraph.hoverNode!
+                if node === app.nodeGraph.currentMaster! {
+                    node = app.nodeGraph.previewNode!
+                }
+                
                 var prevOffX = node.properties["prevOffX"] != nil ? node.properties["prevOffX"]! : 0
                 var prevOffY = node.properties["prevOffY"] != nil ? node.properties["prevOffY"]! : 0
                 var prevScale = node.properties["prevScale"] != nil ? node.properties["prevScale"]! : 1
