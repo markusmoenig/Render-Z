@@ -139,6 +139,8 @@ class NodeUIDropDown : NodeUI
     var itemHeight  : Float = 0
     var minItemWidth: Float = 85
     
+    var contentLabel: MMTextLabel!
+    
     init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0)
     {
         self.items = items
@@ -157,7 +159,8 @@ class NodeUIDropDown : NodeUI
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
-        
+        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale)
+
         minItemWidth = 85
         let itemRect = MMRect()
         for item in items {
@@ -227,7 +230,14 @@ class NodeUIDropDown : NodeUI
             mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : adjustColor(skin.color), borderColor: adjustColor(skin.borderColor))
             
             if items.count > 0 {
-                mmView.drawText.drawTextCentered(mmView.openSans, text: items[Int(index)], x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
+                
+                if contentLabel.text != items[Int(index)] || contentLabel.scale != NodeUI.fontScale * scale {
+                    contentLabel.setText(items[Int(index)], scale: NodeUI.fontScale * scale)
+                }
+                
+                //mmView.drawText.drawTextCentered(mmView.openSans, text: items[Int(index)], x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
+                contentLabel.color = adjustColor(skin.textColor)
+                contentLabel.drawCentered(x: x, y: rect.y, width: width, height: itemHeight)
             }
         } else {
             mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight * Float(items.count), round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
@@ -438,6 +448,8 @@ class NodeUIKeyDown : NodeUI
         125: "Arrow Down",
     ]
     
+    var contentLabel: MMTextLabel!
+
     init(_ node: Node, variable: String, title: String)
     {
         if node.properties[variable] == nil {
@@ -459,7 +471,8 @@ class NodeUIKeyDown : NodeUI
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
-        
+        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale)
+
         rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 120
         rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
     }
@@ -505,7 +518,13 @@ class NodeUIKeyDown : NodeUI
         
         mmView.drawBox.draw( x: x, y: rect.y, width: width, height: height, round: 0, borderSize: 1, fillColor : adjustColor(skin.color), borderColor: adjustColor(skin.borderColor) )
         
-        mmView.drawText.drawTextCentered(mmView.openSans, text: keyText, x: x, y: rect.y, width: width, height: height, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
+        // Draw Text
+        if contentLabel.text != keyText || contentLabel.scale != NodeUI.fontScale * scale {
+            contentLabel.setText(keyText, scale: NodeUI.fontScale * scale)
+        }
+        contentLabel.color = adjustColor(skin.textColor)
+        contentLabel.drawCentered(x: x, y: rect.y, width: width, height: height)
+        //mmView.drawText.drawTextCentered(mmView.openSans, text: keyText, x: x, y: rect.y, width: width, height: height, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
     }
 }
 
@@ -520,6 +539,10 @@ class NodeUINumber : NodeUI
     var width       : Float = 0
     var int         : Bool = false
     var undoValue   : Float = 0
+    
+    var contentLabel: MMTextLabel!
+    var contentText : String = ""
+    var contentValue: Float = 0
     
     init(_ node: Node, variable: String, title: String, range: float2? = float2(0,1), int: Bool = false, value: Float = 0)
     {
@@ -541,7 +564,8 @@ class NodeUINumber : NodeUI
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
-        
+        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale)
+
         rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 120
         rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
     }
@@ -666,7 +690,18 @@ class NodeUINumber : NodeUI
             mmView.drawBox.draw( x: x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: adjustColor(skin.borderColor) )
         }
         
-        mmView.drawText.drawTextCentered(mmView.openSans, text: int ? String(Int(value)) : String(format: "%.02f", value), x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
+        // --- Draw Text
+        if contentValue != value {
+            contentText = int ? String(Int(value)) : String(format: "%.02f", value)
+        }
+        if contentLabel.text != contentText || contentLabel.scale != NodeUI.fontScale * scale {
+            contentLabel.setText(contentText, scale: NodeUI.fontScale * scale)
+        }
+
+        contentLabel.color = adjustColor(skin.textColor)
+        contentLabel.drawCentered(x: x, y: rect.y, width: width, height: itemHeight)
+        
+        //mmView.drawText.drawTextCentered(mmView.openSans, text: text, x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
     }
 }
 

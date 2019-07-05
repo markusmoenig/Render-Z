@@ -81,6 +81,8 @@ class NodeGraph : Codable
 
     //var typeScrollButton: MMScrollButton!
     var contentScrollButton: MMScrollButton!
+    
+    // Current available class nodes (selectable master nodes)
     var currentContent  : [Node] = []
     
     var objectsButton   : MMButtonWidget!
@@ -1083,10 +1085,10 @@ class NodeGraph : Codable
 
             if let masterNode = currentMaster {
 
-                for node in nodes {
-                    if masterNode.subset!.contains(node.uuid) {
-                        drawNode( node, region: region)
-                    }
+                let toDraw = getNodesOfMaster(for: currentMaster!)
+                
+                for node in toDraw {
+                    drawNode( node, region: region)
                 }
                 
                 // --- Ongoing Node connection attempt ?
