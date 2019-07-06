@@ -28,8 +28,11 @@ class MMTextLabel: MMLabel
     var textYOffset : Float = -1
     
     var isDisabled  : Bool {
-        didSet{
-            textBuffer = nil
+        
+        willSet(newValue) {
+            if newValue != isDisabled {
+                textBuffer = nil
+            }
         }
     }
     

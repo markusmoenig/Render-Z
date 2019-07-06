@@ -79,6 +79,23 @@ class ValueVariable : Node
         properties["value"] = number.defaultValue
         number.value = number.defaultValue
     }
+    
+    /// Returns the current value of the variable
+    func getValue() -> Float
+    {
+        return properties["value"]!
+    }
+
+    /// Set a new value to the variable
+    func setValue(_ value: Float)
+    {
+        properties["value"] = value
+        
+        if let number = uiItems[0] as? NodeUINumber {
+            number.value = value
+            number.updateLinked()
+        }
+    }
 }
 
 class DirectionVariable : Node
@@ -227,10 +244,7 @@ class ResetValueVariable : Node
         playResult = .Failure
         if let target = uiConnections[0].target as? ValueVariable {
             let number = target.uiItems[0] as? NodeUINumber
-            
-            target.properties["value"] = number!.defaultValue
-            number?.value = number!.defaultValue
-            number?.updateLinked()
+            target.setValue(number!.defaultValue)
             
             playResult = .Success
         }
@@ -301,14 +315,10 @@ class AddValueVariable : Node
     {
         playResult = .Failure
         if let target = uiConnections[0].target as? ValueVariable {
-            let number = target.uiItems[0] as? NodeUINumber
-
-            var value : Float = target.properties["value"]! + properties["value"]!
-            value = min( value, properties["max"]! )
             
-            target.properties["value"] = value
-            number?.value = value
-            number?.updateLinked()
+            var value : Float = target.getValue() + properties["value"]!
+            value = min( value, properties["max"]! )
+            target.setValue(value)
             
             playResult = .Success
         }

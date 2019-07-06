@@ -1402,9 +1402,18 @@ class NodeGraph : Codable
                 printBehaviorOnlyText()
             }
         } else
-        if previewNode != nil {
-            if let texture = previewNode!.previewTexture {
-                textures.append(texture)
+        if let layer = previewNode as? Layer {
+            if let texture = layer.previewTexture {
+                if layer.builderInstance != nil {
+                    textures.append(texture)
+                }
+            }
+        } else
+        if let object = previewNode as? Object {
+            if let texture = object.previewTexture {
+                if object.instance != nil {
+                    textures.append(texture)
+                }
             }
         }
         
@@ -1939,7 +1948,7 @@ class NodeGraph : Codable
             currentMaster!.updatePreview(nodeGraph: self)
             
             // --- Update the previewInfoMenu
-            previewInfoMenu.setText(currentMaster!.type + ": " + currentMaster!.name, 0.3)
+            previewInfoMenu.setText(currentMaster!.type + ": " + currentMaster!.name + " (Self)", 0.3)
             
             var items : [MMMenuItem] = []
             var selfItem = MMMenuItem( text: currentMaster!.type + ": " + currentMaster!.name + " (Self)", cb: {} )

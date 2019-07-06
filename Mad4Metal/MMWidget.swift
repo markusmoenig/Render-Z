@@ -319,6 +319,7 @@ class MMMenuWidget : MMWidget
     func setItems(_ items: [MMMenuItem])
     {
         self.items = items
+        menuRect = MMRect( 0, 0, 0, 0)
 
         let r = MMRect()
         var maxHeight : Float = 0

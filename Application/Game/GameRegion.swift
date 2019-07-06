@@ -28,8 +28,6 @@ class GameRegion: MMRegion
     
     override func build()
     {
-        nodeGraph.debugInstance.clear()
-
         widget.rect.copy(rect)
         
         nodeGraph.previewSize.x = rect.width
@@ -57,6 +55,7 @@ class GameRegion: MMRegion
                         nodeGraph.debugBuilder.render(width: nodeGraph.previewSize.x, height: nodeGraph.previewSize.y, instance: nodeGraph.debugInstance, camera: scene.layerObjects![0].gameCamera! )
                         app.mmView.drawTexture.draw(nodeGraph.debugInstance.texture!, x: rect.x, y: rect.y, zoom: 1)
                     }
+                    nodeGraph.debugInstance.clear()
                 }
             }
         }

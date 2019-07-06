@@ -542,7 +542,7 @@ class NodeUINumber : NodeUI
     
     var contentLabel: MMTextLabel!
     var contentText : String = ""
-    var contentValue: Float = 0
+    var contentValue: Float? = nil
     
     init(_ node: Node, variable: String, title: String, range: float2? = float2(0,1), int: Bool = false, value: Float = 0)
     {
@@ -693,6 +693,7 @@ class NodeUINumber : NodeUI
         // --- Draw Text
         if contentValue != value {
             contentText = int ? String(Int(value)) : String(format: "%.02f", value)
+            contentValue = value
         }
         if contentLabel.text != contentText || contentLabel.scale != NodeUI.fontScale * scale {
             contentLabel.setText(contentText, scale: NodeUI.fontScale * scale)
