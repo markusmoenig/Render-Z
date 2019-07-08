@@ -135,13 +135,13 @@ class NodeList : MMWidget
         addNodeItem(item, type: .Property, displayType: .All)
         
         // --- Object Animation
-        item = NodeListItem("Animation")
+        item = NodeListItem("Play Animation")
         item.createNode = {
             return ObjectAnimation()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
         // --- Object Animation
-        item = NodeListItem("Animation State")
+        item = NodeListItem("Get Animation State")
         item.createNode = {
             return ObjectAnimationState()
         }
@@ -171,7 +171,7 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Function, displayType: .Object)
         // --- Object Touch Layer Area
-        item = NodeListItem("Touch Layer Area")
+        item = NodeListItem("Touch Layer Area ?")
         item.createNode = {
             return ObjectTouchLayerArea()
         }

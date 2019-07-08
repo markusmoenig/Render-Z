@@ -1948,14 +1948,20 @@ class NodeGraph : Codable
             currentMaster!.updatePreview(nodeGraph: self)
             
             // --- Update the previewInfoMenu
-            previewInfoMenu.setText(currentMaster!.type + ": " + currentMaster!.name + " (Self)", 0.3)
+            
+            func getPreviewClassText(_ node: Node) -> String
+            {
+                return "Preview: " + node.name + " (" + node.type + (node === currentMaster ? " - Self)" : ")")
+            }
+            
+            previewInfoMenu.setText(getPreviewClassText(currentMaster!), 0.3)
             
             var items : [MMMenuItem] = []
-            var selfItem = MMMenuItem( text: currentMaster!.type + ": " + currentMaster!.name + " (Self)", cb: {} )
+            var selfItem = MMMenuItem( text: getPreviewClassText(currentMaster!), cb: {} )
             selfItem.cb = {
                 self.stopPreview()
                 if let node = selfItem.custom! as? Node {
-                    self.previewInfoMenu.setText(node.type + ": " + node.name + " (Self)", 0.3)
+                    self.previewInfoMenu.setText(getPreviewClassText(node), 0.3)
                     self.previewNode = node
                     self.mmView.update()
                 }
@@ -1965,11 +1971,11 @@ class NodeGraph : Codable
             
             let occurences = getOccurencesOf(currentMaster!)
             for node in occurences {
-                self.stopPreview()
-                var item = MMMenuItem( text: node.type + ": " + node.name, cb: {} )
+                var item = MMMenuItem( text: getPreviewClassText(node), cb: {} )
                 item.cb = {
+                    self.stopPreview()
                     if let node = item.custom! as? Node {
-                        self.previewInfoMenu.setText(node.type + ": " + node.name, 0.3)
+                        self.previewInfoMenu.setText(getPreviewClassText(node), 0.3)
                         node.updatePreview(nodeGraph: self)
                         self.previewNode = node
                         self.mmView.update()

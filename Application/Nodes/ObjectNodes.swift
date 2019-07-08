@@ -253,7 +253,7 @@ class ObjectAnimation : Node
     {
         super.init()
         
-        name = "Animation"
+        name = "Play Animation"
         uiConnections.append(UINodeConnection(.Animation))
     }
     
@@ -330,7 +330,7 @@ class ObjectAnimationState : Node
     {
         super.init()
         
-        name = "Animation State"
+        name = "Get Animation State"
         uiConnections.append(UINodeConnection(.ObjectInstance))
     }
     
@@ -689,7 +689,7 @@ class ObjectTouchLayerArea : Node
     {
         super.init()
         
-        name = "Touch Layer Area"
+        name = "Touch Layer Area ?"
         uiConnections.append(UINodeConnection(.ObjectInstance))
         uiConnections.append(UINodeConnection(.LayerArea))
     }
