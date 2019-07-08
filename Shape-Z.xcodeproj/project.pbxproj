@@ -172,6 +172,8 @@
 		2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
 		2BF5D3652220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
 		2BF5D3662220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
+		2BFBC58722D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
+		2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -276,6 +278,7 @@
 		2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectNodes.swift; sourceTree = "<group>"; };
 		2BF5D363221E7E2D00EAAA76 /* Data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
 		2BF5D3642220D50D00EAAA76 /* Behavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Behavior.swift; sourceTree = "<group>"; };
+		2BFBC58622D2C51300A27FAD /* ReferenceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceList.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -494,6 +497,7 @@
 				2BF5D3642220D50D00EAAA76 /* Behavior.swift */,
 				2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */,
 				2BE6710422125D7D00B95241 /* NodeGraph.swift */,
+				2BFBC58622D2C51300A27FAD /* ReferenceList.swift */,
 				2BE67107221291D200B95241 /* Node.metal */,
 				2B639F16221791F500576542 /* NodeList.swift */,
 				2BCF5FA2227D6EC3002FCB37 /* Variables.swift */,
@@ -672,6 +676,7 @@
 				2B6D003722890AB500BEDCFD /* LayerArea.swift in Sources */,
 				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BAC26E1226FEC7E00E20ADD /* DiskBuilder.swift in Sources */,
+				2BFBC58722D2C51300A27FAD /* ReferenceList.swift in Sources */,
 				2B46E966224481AC0047A94A /* MaterialSelector.swift in Sources */,
 				2BAC26DB226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */,
 				2BED879D228B9D9C005CE147 /* MMScreen.swift in Sources */,
@@ -753,6 +758,7 @@
 				2B6D003822890AB600BEDCFD /* LayerArea.swift in Sources */,
 				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */,
+				2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */,
 				2B46E967224481AC0047A94A /* MaterialSelector.swift in Sources */,
 				2BAC26DC226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */,
 				2BED879E228B9D9C005CE147 /* MMScreen.swift in Sources */,

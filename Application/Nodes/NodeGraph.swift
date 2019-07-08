@@ -113,6 +113,8 @@ class NodeGraph : Codable
 
     var editLabel       : MMTextLabel!
     
+    var refList         : ReferenceList!
+    
     // --- Icons
     
     var executeIcon     : MTLTexture?
@@ -504,6 +506,9 @@ class NodeGraph : Codable
         
         updateNodes()
         updateContent(.Objects)
+        
+        refList = ReferenceList(self)
+        refList.createVariableList()
     }
 
     ///
@@ -616,6 +621,11 @@ class NodeGraph : Codable
     
     func mouseDown(_ event: MMMouseEvent)
     {
+        if refList.isActive && refList.rect.contains(event.x, event.y){
+            refList.mouseDown(event)
+            return
+        }
+        
         self.setCurrentNode()
         
         func setCurrentNode(_ node: Node)
@@ -765,6 +775,11 @@ class NodeGraph : Codable
     
     func mouseUp(_ event: MMMouseEvent)
     {
+        if refList.isActive && refList.rect.contains(event.x, event.y){
+            refList.mouseUp(event)
+            return
+        }
+        
         if nodeHoverMode == .OverviewEdit {
             #if os(iOS)
             if overviewIsOn {
@@ -810,9 +825,14 @@ class NodeGraph : Codable
     
     func mouseMoved(_ event: MMMouseEvent)
     {
+        if refList.isActive && refList.mouseIsDown == true && refList.rect.contains(event.x, event.y){
+            refList.mouseMoved(event)
+            return
+        }
+        
         if currentMaster == nil { return }
         var scale : Float = currentMaster!.camera!.zoom
-
+        
         if let screen = mmScreen {
             screen.mousePos.x = event.x
             screen.mousePos.y = event.y
@@ -1383,55 +1403,69 @@ class NodeGraph : Codable
         let x : Float = node.rect.x + 34
         let y : Float = node.rect.y + 34 + 25
         
-        func printBehaviorOnlyText()
-        {
-            mmView.drawText.drawTextCentered(mmView.openSans, text: "Behavior Only", x: x, y: y, width: previewSize.x, height: previewSize.y, scale: 0.4, color: float4(1,1,1,1))
-        }
-        
-        if let scene = previewNode as? Scene {
-            if playNode != nil {
-                textures = scene.outputTextures
-            } else {
-                printBehaviorOnlyText()
+        if refList.isActive == false {
+            // --- Preview
+            
+            func printBehaviorOnlyText()
+            {
+                mmView.drawText.drawTextCentered(mmView.openSans, text: "Behavior Only", x: x, y: y, width: previewSize.x, height: previewSize.y, scale: 0.4, color: float4(1,1,1,1))
             }
-        } else
-        if let game = previewNode as? Game {
-            if let scene = game.currentScene {
-                textures = scene.outputTextures
-            } else {
-                printBehaviorOnlyText()
-            }
-        } else
-        if let layer = previewNode as? Layer {
-            if let texture = layer.previewTexture {
-                if layer.builderInstance != nil {
-                    textures.append(texture)
+            
+            if let scene = previewNode as? Scene {
+                if playNode != nil {
+                    textures = scene.outputTextures
+                } else {
+                    printBehaviorOnlyText()
+                }
+            } else
+            if let game = previewNode as? Game {
+                if let scene = game.currentScene {
+                    textures = scene.outputTextures
+                } else {
+                    printBehaviorOnlyText()
+                }
+            } else
+            if let layer = previewNode as? Layer {
+                if let texture = layer.previewTexture {
+                    if layer.builderInstance != nil {
+                        textures.append(texture)
+                    }
+                }
+            } else
+            if let object = previewNode as? Object {
+                if let texture = object.previewTexture {
+                    if object.instance != nil {
+                        textures.append(texture)
+                    }
                 }
             }
-        } else
-        if let object = previewNode as? Object {
-            if let texture = object.previewTexture {
-                if object.instance != nil {
-                    textures.append(texture)
-                }
+            
+            for texture in textures {
+                app!.mmView.drawTexture.draw(texture, x: x, y: y, zoom: 1)
             }
-        }
-        
-        for texture in textures {
-            app!.mmView.drawTexture.draw(texture, x: x, y: y, zoom: 1)
-        }
-        
-        // Draw Debug
-        
-        if debugMode != .None {
-            let camera = createNodeCamera(node)
-                        
-            debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)
-            app!.mmView.drawTexture.draw(debugInstance.texture!, x: x, y: y, zoom: 1)
+            
+            // Draw Debug
+            
+            if debugMode != .None {
+                let camera = createNodeCamera(node)
+                
+                debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)
+                app!.mmView.drawTexture.draw(debugInstance.texture!, x: x, y: y, zoom: 1)
+            }
+            
+            // Preview Border
+            app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 0, borderSize: 1, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
+        } else {
+            // Visible reference list
+            
+            refList.rect.x = x
+            refList.rect.y = y
+            refList.rect.width = previewSize.x
+            refList.rect.height = previewSize.y
+            
+            refList.draw()
         }
             
-        // Preview Border
-        app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 0, borderSize: 1, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
         
         // If previewing fill in the screen dimensions
         if let screen = mmScreen {
@@ -1960,6 +1994,7 @@ class NodeGraph : Codable
             var selfItem = MMMenuItem( text: getPreviewClassText(currentMaster!), cb: {} )
             selfItem.cb = {
                 self.stopPreview()
+                self.refList.isActive = false
                 if let node = selfItem.custom! as? Node {
                     self.previewInfoMenu.setText(getPreviewClassText(node), 0.3)
                     self.previewNode = node
@@ -1974,6 +2009,7 @@ class NodeGraph : Codable
                 var item = MMMenuItem( text: getPreviewClassText(node), cb: {} )
                 item.cb = {
                     self.stopPreview()
+                    self.refList.isActive = false
                     if let node = item.custom! as? Node {
                         self.previewInfoMenu.setText(getPreviewClassText(node), 0.3)
                         node.updatePreview(nodeGraph: self)
@@ -1985,6 +2021,17 @@ class NodeGraph : Codable
                 items.append(item)
             }
             
+            // Variables
+            
+            var variablesItem = MMMenuItem( text: "Variables", cb: {} )
+            variablesItem.cb = {
+                self.stopPreview()
+                self.refList.isActive = true
+                self.refList.createVariableList()
+                self.previewInfoMenu.setText("Variables", 0.3)
+            }
+            items.append(variablesItem)
+
             previewInfoMenu.setItems(items)
             previewNode = node
         }

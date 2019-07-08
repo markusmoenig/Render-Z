@@ -29,6 +29,9 @@ class EditorWidget      : MMWidget
         dropTargets.append( "NodeItem" )
         dropTargets.append( "AvailableObjectItem" )
         dropTargets.append( "AvailableLayerItem" )
+        
+        dropTargets.append( "Value Variable" )
+        dropTargets.append( "Direction Variable" )
     }
 
     override func keyDown(_ event: MMKeyEvent)
@@ -120,6 +123,11 @@ class EditorWidget      : MMWidget
                     node = app.nodeGraph.previewNode!
                 }
                 
+                if app.nodeGraph.refList.isActive && app.nodeGraph.refList.rect.contains(event.x, event.y) {
+                    app.nodeGraph.refList.mouseScrolled(event)
+                    return
+                }
+                
                 var prevOffX = node.properties["prevOffX"] != nil ? node.properties["prevOffX"]! : 0
                 var prevOffY = node.properties["prevOffY"] != nil ? node.properties["prevOffY"]! : 0
                 var prevScale = node.properties["prevScale"] != nil ? node.properties["prevScale"]! : 1
@@ -199,9 +207,16 @@ class EditorWidget      : MMWidget
         }
     }
     
+    override func dragTerminated() {
+        app.nodeGraph.refList.dragSource = nil
+        mmView.unlockFramerate()
+        app.nodeGraph.refList.mouseIsDown = false
+    }
+    
     /// Drag and Drop Target
     override func dragEnded(event:MMMouseEvent, dragSource:MMDragSource)
     {
+        print(dragSource.id)
         if dragSource.id == "ShapeSelectorItem" {
             // Object Editor, shape drag to editor
             let drag = dragSource as! ShapeSelectorDrag
