@@ -435,10 +435,9 @@ class ObjectApplyForce : Node
             NodeUIMasterPicker(self, variable: "master", title: "Apply To", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             
-            NodeUIMasterPicker(self, variable: "master", title: "Power of Force", connection:  uiConnections[1]),
-            NodeUIValueVariablePicker(self, variable: "power", title: "Variable", connection:  uiConnections[1]),
+            NodeUIValueVariableTarget(self, variable: "power", title: "Force Value", connection:  uiConnections[1]),
+
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
-            NodeUISeparator(self, variable:"", title: ""),
         ]
         super.setupUI(mmView: mmView)
     }
@@ -529,16 +528,16 @@ class ObjectApplyDirectionalForce : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Apply To", connection:  uiConnections[0]),
-            NodeUISeparator(self, variable:"", title: ""),
+            //NodeUIMasterPicker(self, variable: "master", title: "Apply To", connection:  uiConnections[0]),
+            //NodeUISeparator(self, variable:"", title: ""),
+            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection:  uiConnections[0]),
             
-            NodeUIMasterPicker(self, variable: "master", title: "Power of Force", connection:  uiConnections[1]),
-            NodeUIValueVariablePicker(self, variable: "power", title: "Variable", connection:  uiConnections[1]),
+            NodeUIValueVariableTarget(self, variable: "power", title: "Force Value", connection:  uiConnections[1]),
+
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
             NodeUISeparator(self, variable:"", title: ""),
             
-            NodeUIMasterPicker(self, variable: "master", title: "Direction of Force", connection:  uiConnections[2]),
-            NodeUIDirectionVariablePicker(self, variable: "direction", title: "Variable", connection:  uiConnections[2]),
+            NodeUIDirectionVariableTarget(self, variable: "direction", title: "Force Direction", connection:  uiConnections[2]),
         ]
         super.setupUI(mmView: mmView)
     }

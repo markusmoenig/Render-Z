@@ -11,6 +11,7 @@ import Foundation
 class ReferenceItem {
     
     var uuid                : UUID!
+    var classUUID           : UUID!
 
     var name                : MMTextLabel
     var category            : MMTextLabel
@@ -26,7 +27,7 @@ class ReferenceItem {
 class ReferenceList {
     
     enum Mode {
-        case Variables
+        case Variables, Instances, LayerAreas, Animations
     }
     
     var currentMode         : Mode = .Variables
@@ -45,7 +46,7 @@ class ReferenceList {
     var selectedUUID        : UUID? = nil
     var selectedItem        : ReferenceItem? = nil
 
-    var dragSource          : NodeListDrag? = nil
+    var dragSource          : ReferenceListDrag? = nil
     var mouseIsDown         : Bool = false
 
     init(_ nodeGraph: NodeGraph)
@@ -71,8 +72,91 @@ class ReferenceList {
                 item.category.setText(category, scale: 0.3)
                 item.color = nodeGraph.mmView.skin.Node.propertyColor
                 item.uuid = node.uuid
+                item.classUUID = master.uuid
+
+                refs.append(item)
+            }
+        }
+    }
+    
+    func createLayerAreaList()
+    {
+        currentMode = .LayerAreas
+        refs = []
+        for node in nodeGraph.nodes
+        {
+            if node.type == "Layer Area" {
+                let item = ReferenceItem(nodeGraph.mmView)
+                
+                let name : String = node.name + " (" + node.type + ")"
+                
+                let master = nodeGraph.getMasterForNode(node)!
+                let category : String = master.type + ": " + master.name
+                
+                item.name.setText( name, scale: 0.4)
+                item.category.setText(category, scale: 0.3)
+                item.color = nodeGraph.mmView.skin.Node.propertyColor
+                item.uuid = node.uuid
+                item.classUUID = master.uuid
                 
                 refs.append(item)
+            }
+        }
+    }
+    
+    func createInstanceList()
+    {
+        currentMode = .Instances
+        refs = []
+        for node in nodeGraph.nodes
+        {
+            if let layer = node as? Layer {
+                
+                for inst in layer.objectInstances {
+                    let item = ReferenceItem(nodeGraph.mmView)
+                    
+                    let name : String = inst.name
+                    let category : String = layer.name
+                    
+                    item.name.setText( name, scale: 0.4)
+                    item.category.setText(category, scale: 0.3)
+                    item.color = nodeGraph.mmView.skin.Node.functionColor
+                    item.uuid = node.uuid
+                    item.classUUID = layer.uuid
+                    
+                    refs.append(item)
+                }
+            }
+        }
+    }
+    
+    func createAnimationList()
+    {
+        currentMode = .Animations
+        refs = []
+        for node in nodeGraph.nodes
+        {
+            if let layer = node as? Layer {
+                
+                for inst in layer.objectInstances {
+                    
+                    if let object = nodeGraph.getNodeForUUID(inst.objectUUID) as? Object {
+                        for seq in object.sequences {
+                            let item = ReferenceItem(nodeGraph.mmView)
+                        
+                            let name : String = seq.name
+                            let category : String = object.name
+                        
+                            item.name.setText( name, scale: 0.4)
+                            item.category.setText(category, scale: 0.3)
+                            item.color = nodeGraph.mmView.skin.Node.functionColor
+                            item.uuid = seq.uuid
+                            item.classUUID = layer.uuid
+                        
+                            refs.append(item)
+                        }
+                    }
+                }
             }
         }
     }
@@ -176,7 +260,7 @@ class ReferenceList {
     }
     
     /// Create a drag item
-    func createDragSource(_ x: Float,_ y: Float) -> NodeListDrag?
+    func createDragSource(_ x: Float,_ y: Float) -> ReferenceListDrag?
     {
         if selectedUUID == nil {
             return nil
@@ -185,7 +269,7 @@ class ReferenceList {
         
         if node != nil {
             
-            var drag = NodeListDrag()
+            var drag = ReferenceListDrag()
             
             drag.id = node!.type
             drag.name = node!.name
@@ -195,6 +279,8 @@ class ReferenceList {
             drag.node = node
             drag.previewWidget = ReferenceThumb(nodeGraph.mmView, item: selectedItem!)
             
+            drag.refItem = selectedItem!
+            
             return drag
         }
         return nil
@@ -202,8 +288,42 @@ class ReferenceList {
     
     /// Update the current list (after undo / redo etc).
     func update() {
+        if isActive == false {
+            return
+        }
         if currentMode == .Variables {
             createVariableList()
+        }
+        if currentMode == .Instances {
+            createInstanceList()
+        }
+        if currentMode == .LayerAreas {
+            createLayerAreaList()
+        }
+        if currentMode == .Animations {
+            createAnimationList()
+        }
+    }
+    
+    /// Activates and switches to the given type
+    func switchTo(id: String, selected: UUID? = nil)
+    {
+        isActive = true
+        if id == "Value Variable" || id == "Direction Variable" {
+            createVariableList()
+            nodeGraph.previewInfoMenu.setText("Variables")
+        }
+        if id == "Object" {
+            createInstanceList()
+            nodeGraph.previewInfoMenu.setText("Object Instances")
+        }
+        if id == "Layer Area" {
+            createLayerAreaList()
+            nodeGraph.previewInfoMenu.setText("Layer Areas")
+        }
+        if id == "Sequence" {
+            createAnimationList()
+            nodeGraph.previewInfoMenu.setText("Animations")
         }
     }
 }
@@ -228,4 +348,16 @@ class ReferenceThumb : MMWidget {
         mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 12, fillColor: color)
         item.name.drawCentered(x: rect.x, y: rect.y, width: rect.width - 5, height: 30)
     }
+}
+
+struct ReferenceListDrag : MMDragSource
+{
+    var id              : String = ""
+    var sourceWidget    : MMWidget? = nil
+    var previewWidget   : MMWidget? = nil
+    var pWidgetOffset   : float2? = float2()
+    var node            : Node? = nil
+    var name            : String = ""
+    
+    var refItem         : ReferenceItem!
 }

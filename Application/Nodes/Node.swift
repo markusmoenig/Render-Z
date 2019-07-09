@@ -263,11 +263,14 @@ class UINodeConnection: Codable
     
     var masterNode          : Node? = nil
     var target              : Any? = nil
+    var targetName          : String? = nil
+
     var nodeGraph           : NodeGraph? = nil
     
     var uiMasterPicker      : NodeUIMasterPicker? = nil
     var uiPicker            : NodeUIDropDown? = nil
-    
+    var uiTarget            : NodeUIDropTarget? = nil
+
     private enum CodingKeys: String, CodingKey {
         case connectionType
         case connectedMaster

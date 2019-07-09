@@ -216,7 +216,6 @@ class EditorWidget      : MMWidget
     /// Drag and Drop Target
     override func dragEnded(event:MMMouseEvent, dragSource:MMDragSource)
     {
-        print(dragSource.id)
         if dragSource.id == "ShapeSelectorItem" {
             // Object Editor, shape drag to editor
             let drag = dragSource as! ShapeSelectorDrag
@@ -393,6 +392,7 @@ class EditorWidget      : MMWidget
                         master.subset!.append(node.uuid)
                         self.app.nodeGraph.setCurrentNode()
                         self.app.nodeGraph.updateMasterNodes(self.app.nodeGraph.currentMaster!)
+                        self.app.nodeGraph.refList.update()
                     }
                     nodeStatusChanged(node, master)
                 }
@@ -422,6 +422,7 @@ class EditorWidget      : MMWidget
                         app.nodeGraph.setCurrentNode(node)
         //                app.nodeGraph.updateNode(node)
                         app.nodeGraph.updateMasterNodes(app.nodeGraph.currentMaster!)
+                        app.nodeGraph.refList.update()
                     }
                 }
             }
@@ -468,6 +469,11 @@ class EditorWidget      : MMWidget
                     currentScene!.selectedLayers = [node.uuid]
                     currentScene!.maxDelegate?.update(true)
                 }
+            }
+        } else {
+            // --- Drop Target ?
+            if app.nodeGraph.validHoverTarget != nil {
+                app.nodeGraph.acceptDragSource(dragSource)
             }
         }
     }

@@ -11,11 +11,11 @@ import Foundation
 class NodeUI
 {
     enum Brand {
-        case Separator, DropDown, KeyDown, Number, Text
+        case Separator, DropDown, KeyDown, Number, Text, DropTarget
     }
     
     enum Role {
-        case None, MasterPicker, AnimationPicker, ValueVariablePicker, DirectionVariablePicker, LayerAreaPicker
+        case None, MasterPicker, AnimationPicker, ValueVariablePicker, DirectionVariablePicker, LayerAreaPicker, ValueVariableTarget, DirectionVariableTarget, ObjectInstance
     }
     
     var mmView      : MMView!
@@ -37,6 +37,8 @@ class NodeUI
     var disabledAlpha: Float = 0.2
     
     var linkedTo    : NodeUI? = nil
+    
+    var dropTarget  : String? = nil
 
     // --- Statics
     
@@ -366,6 +368,128 @@ class NodeUILayerAreaPicker : NodeUIDropDown
     {
         uiConnection.connectedTo = uuids[Int(index)]
         uiConnection.target = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedTo!)
+    }
+}
+
+/// NodeUI Drop Target
+class NodeUIDropTarget : NodeUI
+{
+    enum HoverState {
+        case None, Valid, Invalid
+    }
+    
+    var hoverState  : HoverState = .None
+    var uiConnection: UINodeConnection!
+
+    var itemHeight  : Float = 48
+    var minItemWidth: Float = 85
+
+    var targetID    : String
+    
+    var contentLabel: MMTextLabel!
+    
+    init(_ node: Node, variable: String, title: String, targetID: String)
+    {
+        self.targetID = targetID
+        super.init(node, brand: .DropTarget, variable: variable, title: title)
+    }
+    
+    override func calcSize(mmView: MMView) {
+        self.mmView = mmView
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
+        
+        var text = ""
+        if let name = uiConnection.targetName {
+            text = name
+        }
+        
+        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: text, scale: NodeUI.fontScale)
+        minItemWidth = max( contentLabel.rect.width + 10, 85 )
+        
+        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + minItemWidth
+        rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        uiConnection.nodeGraph!.refList.switchTo(id: targetID, selected: uiConnection.connectedTo)
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+    }
+    
+    override func update() {
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    {
+        if titleLabel!.scale != NodeUI.fontScale * scale {
+            titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
+        }
+        titleLabel!.isDisabled = isDisabled
+        titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
+        
+        let x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
+        let width = node.uiMaxWidth * scale// minItemWidth * scale
+        itemHeight =  rect.height * scale
+        
+        let skin = mmView.skin.MenuWidget
+        
+        if hoverState == .Valid {
+            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.successColor)
+        } else
+        if hoverState == .Invalid || contentLabel!.text == "" {
+            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.failureColor)
+        } else {
+            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : float4(repeating: 0), borderColor: skin.color)
+        }
+        
+        if contentLabel.scale != NodeUI.fontScale * scale {
+            contentLabel.setText(contentLabel.text, scale: NodeUI.fontScale * scale)
+        }
+        
+        contentLabel.drawCentered(x: x, y: rect.y, width: width, height: itemHeight)
+    }
+}
+
+/// Value Variable Target derived from NodeUIDropTarget and with "Value Variable" drop ID
+class NodeUIValueVariableTarget : NodeUIDropTarget
+{
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        super.init(node, variable: variable, title: title, targetID: "Value Variable")
+        uiConnection = connection
+        uiConnection.uiTarget = self
+        role = .ValueVariableTarget
+    }
+}
+
+/// Direction Variable Target derived from NodeUIDropTarget and with "Value Variable" drop ID
+class NodeUIDirectionVariableTarget : NodeUIDropTarget
+{
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        super.init(node, variable: variable, title: title, targetID: "Direction Variable")
+        uiConnection = connection
+        uiConnection.uiTarget = self
+        role = .DirectionVariableTarget
+    }
+}
+
+/// Object Instance Target derived from NodeUIDropTarget and with "Object" drop ID
+class NodeUIObjectInstanceTarget : NodeUIDropTarget
+{
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        super.init(node, variable: variable, title: title, targetID: "Object")
+        uiConnection = connection
+        uiConnection.uiTarget = self
+        role = .ObjectInstance
     }
 }
 

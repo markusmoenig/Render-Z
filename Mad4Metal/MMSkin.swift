@@ -87,6 +87,10 @@ struct MMSkinNode
     var functionColor   : float4 = float4(0.184, 0.431, 0.569, 1.000)
     var arithmeticColor : float4 = float4(0.1, 0.1, 0.1, 1.000)
     var selectionColor  : float4 = float4(0.224, 0.275, 0.361, 1.000)
+    
+    var successColor    : float4 = float4(0.192, 0.573, 0.478, 1.000)
+    var failureColor    : float4 = float4(0.988, 0.129, 0.188, 1.000)
+    var runningColor    : float4 = float4(0.620, 0.506, 0.165, 1.000)
 }
 
 struct MMSkin

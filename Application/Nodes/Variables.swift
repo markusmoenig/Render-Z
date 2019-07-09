@@ -214,8 +214,7 @@ class ResetValueVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Class", connection:  uiConnections[0]),
-            NodeUIValueVariablePicker(self, variable: "node", title: "Variable", connection:  uiConnections[0])
+            NodeUIValueVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0])
         ]
         super.setupUI(mmView: mmView)
     }
@@ -283,8 +282,7 @@ class AddValueVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Class", connection:  uiConnections[0]),
-            NodeUIValueVariablePicker(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
+            NodeUIValueVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1),
             NodeUINumber(self, variable: "max", title: "Max", range: nil, value: 100)
@@ -357,8 +355,7 @@ class SubtractValueVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Class", connection:  uiConnections[0]),
-            NodeUIValueVariablePicker(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
+            NodeUIValueVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1),
             NodeUINumber(self, variable: "min", title: "Min", range: nil, value: 0)
@@ -435,8 +432,7 @@ class TestValueVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Class", connection:  uiConnections[0]),
-            NodeUIValueVariablePicker(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
+            NodeUIValueVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIDropDown(self, variable: "mode", title: "Test", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1)

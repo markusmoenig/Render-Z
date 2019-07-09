@@ -114,6 +114,7 @@ class NodeGraph : Codable
     var editLabel       : MMTextLabel!
     
     var refList         : ReferenceList!
+    var validHoverTarget: NodeUIDropTarget? = nil
     
     // --- Icons
     
@@ -830,6 +831,12 @@ class NodeGraph : Codable
             return
         }
         
+        /*
+        if let dragSource = refList.dragSource {
+            
+            return
+        }*/
+        
         if currentMaster == nil { return }
         var scale : Float = currentMaster!.camera!.zoom
         
@@ -986,6 +993,7 @@ class NodeGraph : Codable
                 var uiItemY = hoverNode!.rect.y + NodeGraph.bodyY * scale
                 let uiRect = MMRect()
                 let titleWidth : Float = (hoverNode!.uiMaxTitleSize.x + NodeUI.titleSpacing) * scale
+                validHoverTarget = nil
                 for uiItem in hoverNode!.uiItems {
                     
                     if uiItem.supportsTitleHover {
@@ -1007,7 +1015,25 @@ class NodeGraph : Codable
                     uiRect.width = uiItem.rect.width * scale - uiItem.titleLabel!.rect.width - NodeUI.titleMargin.width() - NodeUI.titleSpacing
                     uiRect.height = uiItem.rect.height * scale
 
+                    let dropTarget = uiItem as? NodeUIDropTarget
+                    
+                    if dropTarget != nil {
+                        dropTarget!.hoverState = .None
+                    }
+                    
                     if uiRect.contains(event.x, event.y) {
+                        
+                        if refList.dragSource != nil {
+                            if dropTarget != nil {
+                                if refList.dragSource!.id == dropTarget!.targetID {
+                                    dropTarget!.hoverState = .Valid
+                                    validHoverTarget = dropTarget
+                                } else {
+                                    dropTarget!.hoverState = .Invalid
+                                }
+                            }
+                        }
+                        
                         hoverUIItem = uiItem
                         nodeHoverMode = .NodeUI
                         hoverUIItem!.mouseMoved(event)
@@ -2020,9 +2046,37 @@ class NodeGraph : Codable
                 item.custom = node
                 items.append(item)
             }
+            // Animations
+            var animationsItem = MMMenuItem( text: "Animations", cb: {} )
+            animationsItem.cb = {
+                self.stopPreview()
+                self.refList.isActive = true
+                self.refList.createAnimationList()
+                self.previewInfoMenu.setText("Animations", 0.3)
+            }
+            items.append(animationsItem)
+            
+            // Layer Areas
+            var areasItem = MMMenuItem( text: "Layer Areas", cb: {} )
+            areasItem.cb = {
+                self.stopPreview()
+                self.refList.isActive = true
+                self.refList.createLayerAreaList()
+                self.previewInfoMenu.setText("Layer Areas", 0.3)
+            }
+            items.append(areasItem)
+            
+            // Object Instances
+            var instanceItem = MMMenuItem( text: "Object Instances", cb: {} )
+            instanceItem.cb = {
+                self.stopPreview()
+                self.refList.isActive = true
+                self.refList.createInstanceList()
+                self.previewInfoMenu.setText("Object Instances", 0.3)
+            }
+            items.append(instanceItem)
             
             // Variables
-            
             var variablesItem = MMMenuItem( text: "Variables", cb: {} )
             variablesItem.cb = {
                 self.stopPreview()
@@ -2343,6 +2397,36 @@ class NodeGraph : Codable
                 }
             }
             
+            func validateConn(_ conn: UINodeConnection)
+            {
+                if conn.masterNode == nil || conn.target == nil {
+                    conn.connectedMaster = nil
+                    conn.connectedTo = nil
+                    conn.masterNode = nil
+                    conn.target = nil
+                    conn.targetName = nil
+                }
+            }
+            
+            // .ValueVariableTarget Drop Target
+            if item.role == .ValueVariableTarget {
+                if let target = item as? NodeUIValueVariableTarget {
+                    let conn = target.uiConnection!
+                    
+                    if conn.connectedMaster != nil {
+                        conn.masterNode = getNodeForUUID(conn.connectedMaster!)
+                    }
+                    if conn.connectedTo != nil {
+                        if let target = getNodeForUUID(conn.connectedTo!) {
+                            conn.target = target
+                            conn.targetName = target.name
+                        }
+                    }
+                    validateConn(conn)
+                }
+                node.computeUIArea(mmView: mmView)
+            }
+            
             // ValueVariable picker, show the value variables of the master
             if item.role == .ValueVariablePicker {
                 if let picker = item as? NodeUIValueVariablePicker {
@@ -2384,6 +2468,25 @@ class NodeGraph : Codable
                     
                     node.computeUIArea(mmView: mmView)
                 }
+            }
+            
+            // .DirectionVariableTarget Drop Target
+            if item.role == .DirectionVariableTarget {
+                if let target = item as? NodeUIDirectionVariableTarget {
+                    let conn = target.uiConnection!
+                    
+                    if conn.connectedMaster != nil {
+                        conn.masterNode = getNodeForUUID(conn.connectedMaster!)
+                    }
+                    if conn.connectedTo != nil {
+                        if let target = getNodeForUUID(conn.connectedTo!) {
+                            conn.target = target
+                            conn.targetName = target.name
+                        }
+                    }
+                    validateConn(conn)
+                }
+                node.computeUIArea(mmView: mmView)
             }
             
             // DirectionVariable picker, show the direction variables of the master
@@ -2591,6 +2694,7 @@ class NodeGraph : Codable
         }
         // Remove from nodes
         nodes.remove(at: nodes.firstIndex(where: { $0.uuid == node.uuid })!)
+        refList.update()
         mmView.update()
     }
     
@@ -2737,5 +2841,29 @@ class NodeGraph : Codable
         }
 
         return layers + scenes
+    }
+    
+    /// Accept a drag from the reference list to a NodeUIDropTarget
+    func acceptDragSource(_ dragSource: MMDragSource)
+    {
+        let uiTarget = validHoverTarget!
+        if let source = dragSource as? ReferenceListDrag {
+            
+            let refItem = source.refItem!
+            
+            uiTarget.uiConnection.connectedMaster = refItem.classUUID
+            uiTarget.uiConnection.connectedTo = refItem.uuid
+            
+            /*
+            uiTarget.uiConnection.masterNode = getNodeForUUID(refItem.classUUID)
+            
+            if let target = getNodeForUUID(refItem.uuid) {
+                uiTarget.uiConnection.target = target
+                uiTarget.uiConnection.targetName = target.name
+            }*/
+            
+            updateNode(uiTarget.node)
+            uiTarget.hoverState = .None
+        }
     }
 }
