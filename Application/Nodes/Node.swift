@@ -501,6 +501,7 @@ enum NodeFamily: String, NodeClassFamily {
     case objectCollisionAny = "Object Collision (Any)"
     case objectTouchLayerArea = "Object Touch Layer Area"
     case objectReset = "Object Reset"
+    case objectDistanceTo = "Object Distance To"
     case sceneFinished = "Scene Finished"
     case gamePlatformOSX = "Platform OSX"
     case gamePlatformIPAD = "Platform IPAD"
@@ -552,6 +553,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectTouchLayerArea.self
             case .objectReset:
                 return ResetObject.self
+            case .objectDistanceTo:
+                return ObjectDistanceTo.self
             
             case .layer:
                 return Layer.self

@@ -164,6 +164,12 @@ class NodeList : MMWidget
             return ObjectCollisionAny()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
+        // --- Instance Distance To
+        item = NodeListItem("Distance To")
+        item.createNode = {
+            return ObjectDistanceTo()
+        }
+        addNodeItem(item, type: .Function, displayType: .Object)
         // --- Object Reset
         item = NodeListItem("Reset Object")
         item.createNode = {
