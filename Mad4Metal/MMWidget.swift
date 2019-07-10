@@ -360,6 +360,9 @@ class MMMenuWidget : MMWidget
             }
             removeState( .Checked )
             removeState( .Opened )
+            if !rect.contains(event.x, event.y) {
+                removeState( .Hover )
+            }
             mmView.mouseTrackWidget = nil
             #endif
         }
