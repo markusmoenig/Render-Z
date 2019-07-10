@@ -15,7 +15,7 @@ class NodeUI
     }
     
     enum Role {
-        case None, MasterPicker, AnimationPicker, ValueVariablePicker, DirectionVariablePicker, LayerAreaPicker, ValueVariableTarget, DirectionVariableTarget, ObjectInstance
+        case None, MasterPicker, AnimationPicker, ValueVariablePicker, DirectionVariablePicker, LayerAreaPicker, ValueVariableTarget, DirectionVariableTarget, ObjectInstanceTarget, LayerAreaTarget, AnimationTarget
     }
     
     var mmView      : MMView!
@@ -404,10 +404,10 @@ class NodeUIDropTarget : NodeUI
         }
         
         contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: text, scale: NodeUI.fontScale)
-        minItemWidth = max( contentLabel.rect.width + 10, 85 )
+        minItemWidth = max( contentLabel.rect.width + 15, 85 )
         
         rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + minItemWidth
-        rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
+        rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height() + 2
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -436,17 +436,17 @@ class NodeUIDropTarget : NodeUI
         
         let x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
         let width = node.uiMaxWidth * scale// minItemWidth * scale
-        itemHeight =  rect.height * scale
+        itemHeight =  (rect.height-2) * scale
         
         let skin = mmView.skin.MenuWidget
         
         if hoverState == .Valid {
-            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.successColor)
+            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.successColor)
         } else
         if hoverState == .Invalid || contentLabel!.text == "" {
-            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.failureColor)
+            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.failureColor)
         } else {
-            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : float4(repeating: 0), borderColor: skin.color)
+            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: skin.color)
         }
         
         if contentLabel.scale != NodeUI.fontScale * scale {
@@ -481,15 +481,39 @@ class NodeUIDirectionVariableTarget : NodeUIDropTarget
     }
 }
 
-/// Object Instance Target derived from NodeUIDropTarget and with "Object" drop ID
+/// Object Instance Target derived from NodeUIDropTarget and with "Object Instance" drop ID
 class NodeUIObjectInstanceTarget : NodeUIDropTarget
 {
     init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
     {
-        super.init(node, variable: variable, title: title, targetID: "Object")
+        super.init(node, variable: variable, title: title, targetID: "Object Instance")
         uiConnection = connection
         uiConnection.uiTarget = self
-        role = .ObjectInstance
+        role = .ObjectInstanceTarget
+    }
+}
+
+/// Layer Area Target derived from NodeUIDropTarget and with "Layer Area" drop ID
+class NodeUILayerAreaTarget : NodeUIDropTarget
+{
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        super.init(node, variable: variable, title: title, targetID: "Layer Area")
+        uiConnection = connection
+        uiConnection.uiTarget = self
+        role = .LayerAreaTarget
+    }
+}
+
+/// Animation Target derived from NodeUIDropTarget and with "Animation" drop ID
+class NodeUIAnimationTarget : NodeUIDropTarget
+{
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        super.init(node, variable: variable, title: title, targetID: "Animation")
+        uiConnection = connection
+        uiConnection.uiTarget = self
+        role = .AnimationTarget
     }
 }
 

@@ -108,8 +108,7 @@ class ClickInLayerArea : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Layer", connection:  uiConnections[0]),
-            NodeUILayerAreaPicker(self, variable: "layerArea", title: "Area", connection:  uiConnections[0]),
+            NodeUILayerAreaTarget(self, variable: "layerArea", title: "Area", connection: uiConnections[0])
         ]
         
         super.setupUI(mmView: mmView)

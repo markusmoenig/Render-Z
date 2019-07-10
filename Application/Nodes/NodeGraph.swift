@@ -1018,6 +1018,7 @@ class NodeGraph : Codable
                     let dropTarget = uiItem as? NodeUIDropTarget
                     
                     if dropTarget != nil {
+                        uiRect.width = hoverNode!.uiMaxWidth * scale
                         dropTarget!.hoverState = .None
                     }
                     
@@ -2196,7 +2197,46 @@ class NodeGraph : Codable
             conn.nodeGraph = self
         }
         
+        // Validates a given UINodeConnection
+        func validateConn(_ conn: UINodeConnection)
+        {
+            if conn.masterNode == nil || conn.target == nil {
+                conn.connectedMaster = nil
+                conn.connectedTo = nil
+                conn.masterNode = nil
+                conn.target = nil
+                conn.targetName = nil
+            }
+        }
+        
         for item in node.uiItems {
+            
+            // .ObjectInstanceTarget Drop Target
+            if item.role == .ObjectInstanceTarget {
+                if let target = item as? NodeUIObjectInstanceTarget {
+                    let conn = target.uiConnection!
+                    
+                    if conn.connectedMaster != nil {
+                        conn.masterNode = getNodeForUUID(conn.connectedMaster!)
+                    }
+                    
+                    if conn.connectedMaster != nil && conn.connectedTo != nil {
+                        if let layer = conn.masterNode as? Layer {
+                            for inst in layer.objectInstances {
+                                if inst.uuid == conn.connectedTo {
+                                    conn.target = inst
+                                    conn.targetName = inst.name
+                                    break
+                                }
+                            }
+                        } else {
+                            conn.masterNode = nil
+                        }
+                    }
+                    validateConn(conn)
+                }
+                node.computeUIArea(mmView: mmView)
+            }
             
             // Fill up an master picker with self + all global masters
             if item.role == .MasterPicker {
@@ -2353,6 +2393,49 @@ class NodeGraph : Codable
                 }
             }
             
+            // .AnimationTarget Drop Target
+            if item.role == .AnimationTarget {
+                if let target = item as? NodeUIAnimationTarget {
+                    let conn = target.uiConnection!
+                    
+                    var animInstance : ObjectInstance? = nil
+                    
+                    if conn.connectedMaster != nil {
+                        for node in nodes {
+                            if let layer = node as? Layer {
+                                for inst in layer.objectInstances {
+                                    if inst.uuid == conn.connectedMaster {
+                                        animInstance = inst
+                                        conn.masterNode = layer
+                                        break
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    if animInstance != nil && conn.connectedTo != nil {
+                        conn.target = animInstance!
+                        conn.targetName = ""
+                        if let object = getNodeForUUID(animInstance!.objectUUID) as? Object {
+                            for seq in object.sequences {
+                                if seq.uuid == conn.connectedTo {
+                                    conn.targetName = seq.name
+                                    break
+                                }
+                            }
+                        }
+                        if conn.targetName == "" {
+                            conn.masterNode = nil
+                        }
+                    } else {
+                        conn.masterNode = nil
+                    }
+                    validateConn(conn)
+                }
+                node.computeUIArea(mmView: mmView)
+            }
+            
             // Animation picker, show the animations of the selected object
             if item.role == .AnimationPicker {
                 if let picker = item as? NodeUIAnimationPicker {
@@ -2394,17 +2477,6 @@ class NodeGraph : Codable
                     }
                     
                     node.computeUIArea(mmView: mmView)
-                }
-            }
-            
-            func validateConn(_ conn: UINodeConnection)
-            {
-                if conn.masterNode == nil || conn.target == nil {
-                    conn.connectedMaster = nil
-                    conn.connectedTo = nil
-                    conn.masterNode = nil
-                    conn.target = nil
-                    conn.targetName = nil
                 }
             }
             
@@ -2530,6 +2602,25 @@ class NodeGraph : Codable
                     
                     node.computeUIArea(mmView: mmView)
                 }
+            }
+            
+            // .LayerAreaTarget Drop Target
+            if item.role == .LayerAreaTarget {
+                if let target = item as? NodeUILayerAreaTarget {
+                    let conn = target.uiConnection!
+                    
+                    if conn.connectedMaster != nil {
+                        conn.masterNode = getNodeForUUID(conn.connectedMaster!)
+                    }
+                    if conn.connectedTo != nil {
+                        if let target = getNodeForUUID(conn.connectedTo!) {
+                            conn.target = target
+                            conn.targetName = target.name
+                        }
+                    }
+                    validateConn(conn)
+                }
+                node.computeUIArea(mmView: mmView)
             }
             
             // LayerArea picker, show the layer areas of the master

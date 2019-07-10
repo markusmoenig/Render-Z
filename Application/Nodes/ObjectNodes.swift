@@ -113,7 +113,7 @@ class SetObjectPhysics : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Instance", connection:  uiConnections[0]),
+            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIDropDown(self, variable: "property", title: "Property", items: ["Mass", "Restitution"], index: 0),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1),
@@ -144,8 +144,8 @@ class SetObjectPhysics : Node
         playResult = .Failure
         
         if root.objectRoot != nil {
-            if uiConnections[0].connectedMaster != nil {
-                if let inst = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
+            if uiConnections[0].connectedTo != nil {
+                if let inst = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
                     let property = properties["property"]!
                     let value = properties["value"]!
                     
@@ -197,7 +197,7 @@ class ResetObject : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Instance", connection:  uiConnections[0])
+            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0])
         ]
         super.setupUI(mmView: mmView)
     }
@@ -225,8 +225,8 @@ class ResetObject : Node
         playResult = .Failure
         
         if root.objectRoot != nil {
-            if uiConnections[0].connectedMaster != nil {
-                if let inst = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
+            if uiConnections[0].connectedTo != nil {
+                if let inst = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
 
                     //let object = inst.instanceOf!
                     
@@ -277,8 +277,7 @@ class ObjectAnimation : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Object", connection:  uiConnections[0]),
-            NodeUIAnimationPicker(self, variable: "animation", title: "Animation", connection:  uiConnections[0]),
+            NodeUIAnimationTarget(self, variable: "animation", title: "Animation", connection: uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIDropDown(self, variable: "mode", title: "Mode", items: ["Loop", "Inverse Loop", "Goto Start", "Goto End"], index: 0),
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 20), value: 1)
@@ -307,16 +306,33 @@ class ObjectAnimation : Node
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
-        
-        if let object = root.objectRoot {
-            let mode = properties["mode"]!
-            let scale = properties["scale"]!
-            
-            if uiConnections[0].target != nil {
-                object.setSequence(sequence: (uiConnections[0].target as! MMTlSequence), timeline: nodeGraph.timeline)
-                object.setAnimationMode(Object.AnimationMode(rawValue: Int(mode))!, scale: scale)
+
+        func applySequence(_ object: Object) {
+            for seq in object.sequences {
+                if seq.uuid == uiConnections[0].connectedTo {
+                    
+                    let mode = properties["mode"]!
+                    let scale = properties["scale"]!
+                    
+                    object.setSequence(sequence: seq, timeline: nodeGraph.timeline)
+                    object.setAnimationMode(Object.AnimationMode(rawValue: Int(mode))!, scale: scale)
+                    
+                    playResult = .Success
+                    
+                    break
+                }
             }
-            playResult = .Success
+        }
+        
+        if let instance = uiConnections[0].target as? ObjectInstance {
+            if let object = instance.instance {
+                applySequence(object)
+            } else {
+                // --- No instance, this should only happen in behavior preview for objects!
+                if let object = root.objectRoot {
+                    applySequence(object)
+                }
+            }
         }
         
         return playResult!
@@ -354,7 +370,7 @@ class ObjectAnimationState : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Instance", connection:  uiConnections[0]),
+            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIDropDown(self, variable: "state", title: "State", items: ["Not Animating", "At Start", "Going Forward", "Going Backward", "At End"], index: 0)
         ]
@@ -384,8 +400,8 @@ class ObjectAnimationState : Node
         playResult = .Failure
         
         if root.objectRoot != nil {
-            if uiConnections[0].connectedMaster != nil {
-                if let inst = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
+            if uiConnections[0].connectedTo != nil {
+                if let inst = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
                     let state = properties["state"]!
                     
                     if Int(state) == inst.animationState.rawValue {
@@ -432,10 +448,10 @@ class ObjectApplyForce : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Apply To", connection:  uiConnections[0]),
+            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
-            
-            NodeUIValueVariableTarget(self, variable: "power", title: "Force Value", connection:  uiConnections[1]),
+
+            NodeUIValueVariableTarget(self, variable: "power", title: "Force Value", connection: uiConnections[1]),
 
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
         ]
@@ -476,8 +492,8 @@ class ObjectApplyForce : Node
             
             //print( power, dir.x, dir.y )
             
-            if uiConnections[0].connectedMaster != nil {
-                if let instance = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
+            if uiConnections[0].connectedTo != nil {
+                if let instance = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
 
                     if let body = instance.body {
                         body.force.x = power * scale
@@ -528,16 +544,15 @@ class ObjectApplyDirectionalForce : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            //NodeUIMasterPicker(self, variable: "master", title: "Apply To", connection:  uiConnections[0]),
-            //NodeUISeparator(self, variable:"", title: ""),
-            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection:  uiConnections[0]),
-            
-            NodeUIValueVariableTarget(self, variable: "power", title: "Force Value", connection:  uiConnections[1]),
+            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+
+            NodeUIValueVariableTarget(self, variable: "power", title: "Force Value", connection: uiConnections[1]),
 
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
             NodeUISeparator(self, variable:"", title: ""),
             
-            NodeUIDirectionVariableTarget(self, variable: "direction", title: "Force Direction", connection:  uiConnections[2]),
+            NodeUIDirectionVariableTarget(self, variable: "direction", title: "Force Direction", connection: uiConnections[2]),
         ]
         super.setupUI(mmView: mmView)
     }
@@ -584,8 +599,8 @@ class ObjectApplyDirectionalForce : Node
             
             //print( power, dir.x, dir.y )
             
-            if uiConnections[0].connectedMaster != nil {
-                if let instance = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
+            if uiConnections[0].connectedTo != nil {
+                if let instance = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
                     
                     if let body = instance.body {
                         body.force.x = dir.x * power * scale
@@ -634,7 +649,7 @@ class ObjectCollisionAny : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Instance", connection:  uiConnections[0])
+            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0])
         ]
         super.setupUI(mmView: mmView)
     }
@@ -663,8 +678,8 @@ class ObjectCollisionAny : Node
         
         if root.objectRoot != nil {
             
-            if uiConnections[0].connectedMaster != nil {
-                if let instance = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
+            if uiConnections[0].connectedTo != nil {
+                if let instance = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
                     
                     if let body = instance.body {
                         for (_, distance) in body.distanceInfos {
@@ -713,9 +728,9 @@ class ObjectTouchLayerArea : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "master", title: "Instance", connection:  uiConnections[0]),
-            NodeUIMasterPicker(self, variable: "master", title: "Layer", connection:  uiConnections[1]),
-            NodeUILayerAreaPicker(self, variable: "layerArea", title: "Area", connection:  uiConnections[1])
+            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUILayerAreaTarget(self, variable: "layerArea", title: "Layer Area", connection: uiConnections[1])
         ]
         
         super.setupUI(mmView: mmView)
@@ -747,8 +762,8 @@ class ObjectTouchLayerArea : Node
         var instanceObject : Object? = nil
         
         if root.objectRoot != nil {
-            if uiConnections[0].connectedMaster != nil {
-                if let inst = nodeGraph.getInstance(uiConnections[0].connectedMaster!) {
+            if uiConnections[0].connectedTo != nil {
+                if let inst = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
                     instanceObject = inst
                 }
             }

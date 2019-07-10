@@ -27,7 +27,7 @@ class ReferenceItem {
 class ReferenceList {
     
     enum Mode {
-        case Variables, Instances, LayerAreas, Animations
+        case Variables, ObjectInstances, LayerAreas, Animations
     }
     
     var currentMode         : Mode = .Variables
@@ -106,7 +106,7 @@ class ReferenceList {
     
     func createInstanceList()
     {
-        currentMode = .Instances
+        currentMode = .ObjectInstances
         refs = []
         for node in nodeGraph.nodes
         {
@@ -121,7 +121,7 @@ class ReferenceList {
                     item.name.setText( name, scale: 0.4)
                     item.category.setText(category, scale: 0.3)
                     item.color = nodeGraph.mmView.skin.Node.functionColor
-                    item.uuid = node.uuid
+                    item.uuid = inst.uuid
                     item.classUUID = layer.uuid
                     
                     refs.append(item)
@@ -151,7 +151,7 @@ class ReferenceList {
                             item.category.setText(category, scale: 0.3)
                             item.color = nodeGraph.mmView.skin.Node.functionColor
                             item.uuid = seq.uuid
-                            item.classUUID = layer.uuid
+                            item.classUUID = inst.uuid
                         
                             refs.append(item)
                         }
@@ -262,17 +262,36 @@ class ReferenceList {
     /// Create a drag item
     func createDragSource(_ x: Float,_ y: Float) -> ReferenceListDrag?
     {
-        if selectedUUID == nil {
+        if selectedItem == nil {
             return nil
         }
-        let node = nodeGraph.getNodeForUUID(selectedUUID!)
+        
+        let item = selectedItem!
+        var node = nodeGraph.getNodeForUUID(selectedUUID!)
+        var name : String = ""
+        var type : String = ""
+        
+        if node != nil && (currentMode == .Variables || currentMode == .LayerAreas) {
+            name = node!.name
+            type = node!.type
+        } else
+        if currentMode == .ObjectInstances {
+            node = nodeGraph.getNodeForUUID(item.classUUID)
+            name = item.name.text
+            type = "Object Instance"
+        } else
+        if currentMode == .Animations {
+            node = nodeGraph.nodes[0]//nodeGraph.getNodeForUUID(item.classUUID)
+            name = item.name.text
+            type = "Animation"
+        }
         
         if node != nil {
             
             var drag = ReferenceListDrag()
             
-            drag.id = node!.type
-            drag.name = node!.name
+            drag.id = type
+            drag.name = name
             drag.pWidgetOffset!.x = 0
             drag.pWidgetOffset!.y = 0
             
@@ -294,7 +313,7 @@ class ReferenceList {
         if currentMode == .Variables {
             createVariableList()
         }
-        if currentMode == .Instances {
+        if currentMode == .ObjectInstances {
             createInstanceList()
         }
         if currentMode == .LayerAreas {
@@ -313,7 +332,7 @@ class ReferenceList {
             createVariableList()
             nodeGraph.previewInfoMenu.setText("Variables")
         }
-        if id == "Object" {
+        if id == "Object Instance" {
             createInstanceList()
             nodeGraph.previewInfoMenu.setText("Object Instances")
         }
@@ -321,7 +340,7 @@ class ReferenceList {
             createLayerAreaList()
             nodeGraph.previewInfoMenu.setText("Layer Areas")
         }
-        if id == "Sequence" {
+        if id == "Animation" {
             createAnimationList()
             nodeGraph.previewInfoMenu.setText("Animations")
         }
