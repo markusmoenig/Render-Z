@@ -88,6 +88,15 @@ class MMRect
     {
         return y + height
     }
+    
+    /// Shrinks the rectangle by the given x and y amounts
+    func shrink(_ x : Float,_ y : Float)
+    {
+        self.x += x
+        self.y += y
+        self.width -= x * 2
+        self.height -= y * 2
+    }
 }
 
 /// MMMargin class
@@ -280,4 +289,13 @@ func toDegrees(_ rad: Float) -> Float
 func toRadians(_ degree: Float) -> Float
 {
     return degree * Float.pi / 180
+}
+
+func shadeColor(_ color: float4,_ factor: Float) -> float4
+{
+    let t: Float = factor < 0 ? 0 : 1
+    let p: Float = factor < 0 ? -factor : factor
+    
+    let rc = float4((t - color.x) * p + color.x,(t - color.y) * p + color.y,(t - color.z) * p + color.z,color.w)
+    return rc
 }

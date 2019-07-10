@@ -47,6 +47,8 @@ class MMListWidget : MMWidget
     
     var items           : [MMListWidgetItem] = []
     
+    var selectionShade  : Float = 0.25
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -169,7 +171,8 @@ class MMListWidget : MMWidget
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
             
             if selectedItems.contains( item.uuid ) {
-                source += "col = float4( \(skin.selectionColor.x), \(skin.selectionColor.y), \(skin.selectionColor.z), fillMask( dist ) * \(skin.selectionColor.w) );\n"
+                let selectionColor = item.color != nil ? shadeColor(item.color!, selectionShade) : skin.selectionColor
+                source += "col = float4( \(selectionColor.x), \(selectionColor.y), \(selectionColor.z), fillMask( dist ) * \(selectionColor.w) );\n"
             } else {
                 if item.color != nil {
                 source += "col = float4( \(item.color!.x), \(item.color!.y), \(item.color!.z), fillMask( dist ) * \(item.color!.w) );\n"

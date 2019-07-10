@@ -173,28 +173,31 @@ class ReferenceList {
             offsetY = 0
         }
         
-        var y : Float = rect.y + offsetY
+        var y : Float = rect.y + offsetY + 1
         
-        mmView?.renderer.setClipRect(rect)
+        let scrollRect = MMRect(rect)
+        scrollRect.shrink(2,2)
+        mmView?.renderer.setClipRect(scrollRect)
         
         for item in refs {
          
-            if y + itemHeight < rect.y || y > rect.bottom() {
+            if y + itemHeight < scrollRect.y || y > scrollRect.bottom() {
                 y += itemHeight
                 continue
             }
             
             let isSelected = selectedUUID == item.uuid
             
-            mmView?.drawBox.draw(x: rect.x, y: y, width: rect.width, height: itemHeight, round: 12, fillColor: isSelected ? float4( 0.5, 0.5, 0.5, 1) : item.color)
+            mmView?.drawBox.draw(x: scrollRect.x, y: y, width: scrollRect.width, height: itemHeight, round: 12, fillColor: isSelected ? shadeColor(item.color, 0.25) : item.color)
             
-            item.name.drawRightCenteredY(x: rect.x, y: y, width: rect.width - 5, height: 30)
-            item.category.drawRightCenteredY(x: rect.x, y: y + 20, width: rect.width - 5, height: 30)
+            item.name.drawRightCenteredY(x: scrollRect.x, y: y, width: scrollRect.width - 5, height: 30)
+            item.category.drawRightCenteredY(x: scrollRect.x, y: y + 20, width: scrollRect.width - 5, height: 30)
 
             y += itemHeight
         }
-        
         mmView?.renderer.setClipRect()
+
+        mmView?.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: float4(0.173, 0.173, 0.173, 1.000))
     }
     
     func mouseDown(_ event: MMMouseEvent)
@@ -343,6 +346,29 @@ class ReferenceList {
         if id == "Animation" {
             createAnimationList()
             nodeGraph.previewInfoMenu.setText("Animations")
+        }
+        
+        if selected != nil {
+            setSelected(selected!)
+        } else
+        if selectedUUID != nil {
+            setSelected(selectedUUID!)
+        }
+    }
+    
+    /// Sets (and makes visible) the currently selected item
+    func setSelected(_ uuid: UUID)
+    {
+        selectedUUID = nil
+        selectedItem = nil
+        
+        for item in refs {
+            if item.uuid == uuid {
+                selectedUUID = uuid
+                selectedItem = item
+                
+                break
+            }
         }
     }
 }
