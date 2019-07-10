@@ -101,6 +101,12 @@ class NodeList : MMWidget
             return LayerArea()
         }
         addNodeItem(item, type: .Property, displayType: .Layer)
+        // --- Layer Gravity
+        item = NodeListItem("Gravity")
+        item.createNode = {
+            return LayerGravity()
+        }
+        addNodeItem(item, type: .Property, displayType: .Layer)
         // --- Layer Render
         item = NodeListItem("Render Properties")
         item.createNode = {

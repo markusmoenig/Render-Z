@@ -143,13 +143,19 @@ class Layer : Node
     func setupExecution(nodeGraph: NodeGraph)
     {
         let objects = createInstances(nodeGraph: nodeGraph)
+
+        executeProperties(nodeGraph)
         for object in objects {
             object.executeProperties(nodeGraph)
+
+            let physicsMode = object.getPhysicsMode()
+            if physicsMode == .Static || physicsMode == .Dynamic {
+                object.body = Body(object, self)
+            }
         }
         
         properties["renderMode"] = 1
         properties["renderSampling"] = 0.1
-        executeProperties(nodeGraph)
         
         var camera = maxDelegate!.getCamera()!
         if nodeGraph.app == nil || nodeGraph.currentMaster!.type == "Scene" || nodeGraph.currentMaster!.type == "Game" {

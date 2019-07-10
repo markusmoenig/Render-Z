@@ -8,6 +8,147 @@
 
 import Foundation
 
+class LayerArea : Node
+{
+    var areaObject  : Object? = nil
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+        case areaObject
+    }
+    
+    override init()
+    {
+        super.init()
+        
+        areaObject = Object()
+        name = "Area"
+    }
+    
+    override func setup()
+    {
+        type = "Layer Area"
+        brand = .Property
+        
+        //minimumSize = Node.NodeWithPreviewSize
+        maxDelegate = LayerAreaMaxDelegate()
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        areaObject = try container.decode(Object?.self, forKey: .areaObject)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        try container.encode(areaObject, forKey: .areaObject)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIDropDown(self, variable: "status", title: "Status", items: ["Enabled", "Disabled"], index: 0)
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    /// Apply the control points to the objects profile array
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Success
+        
+        if properties["status"] != nil && properties["status"]! == 0 {
+            if let _ = root.objectRoot {
+            }
+        }
+        return playResult!
+    }
+}
+
+class LayerGravity : Node
+{
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override init()
+    {
+        super.init()
+        
+        name = "Gravity"
+    }
+    
+    override func setup()
+    {
+        type = "Layer Gravity"
+        brand = .Property
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIAngle(self, variable: "orientation", title: "", value: 90),
+            NodeUINumber(self, variable: "angle", title: "Angle", range: float2(0,360), value: 90),
+            NodeUINumber(self, variable: "strength", title: "Strength", range: float2(0,100), value: 50)
+        ]
+        
+        uiItems[1].linkedTo = uiItems[0]
+        uiItems[0].linkedTo = uiItems[1]
+        
+        if properties["defaultValue"] != nil {
+            let number = uiItems[1] as! NodeUINumber
+            number.defaultValue = properties["defaultValue"]!
+        }
+ 
+        super.setupUI(mmView: mmView)
+    }
+    
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Success
+        
+        let angle = properties["angle"]!
+        let strength = properties["strength"]!
+        let dir = float2(cos((360-angle) * Float.pi/180) * strength, sin((360-angle) * Float.pi/180) * strength)
+        
+        if let layer = root.layerRoot {
+            
+            layer.properties["physicsGravityX"] = dir.x
+            layer.properties["physicsGravityY"] = dir.y
+
+            return .Success
+        }
+        
+        return playResult!
+    }
+}
+
 class LayerRender : Node
 {
     override init()

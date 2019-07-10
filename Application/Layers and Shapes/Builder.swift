@@ -495,8 +495,6 @@ class Builder
         instance.objectMap[buildData.objectIndex] = object
         
         if physics {
-            // Init physics body and set point offset
-            object.body = Body(object)
             object.physicPointOffset = buildData.pointIndex
         } else {
             object.buildPointOffset = buildData.pointIndex

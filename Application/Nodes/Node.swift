@@ -514,6 +514,7 @@ enum NodeFamily: String, NodeClassFamily {
     case layer = "Layer"
     case layerArea = "Layer Area"
     case layerRender = "Layer Render"
+    case layerGravity = "Layer Gravity"
     case clickInLayerArea = "Click In Layer Area"
     case keyDown = "Key Down"
     case scene = "Scene"
@@ -564,6 +565,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ClickInLayerArea.self
             case .layerRender:
                 return LayerRender.self
+            case .layerGravity:
+                return LayerGravity.self
             
             case .scene:
                 return Scene.self

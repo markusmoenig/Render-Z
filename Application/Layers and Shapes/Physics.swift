@@ -121,8 +121,6 @@ class Physics
             let physicsMode = object.getPhysicsMode()
             if physicsMode == .Dynamic || physicsMode == .Static {
                 
-//                object.body = Body(object)
-
                 buildData.source +=
                 """
                 
@@ -538,7 +536,7 @@ class Body
     
     var orientation         : Float = 0
     
-    var angularVelocity     : Float = 0
+    var angularVelocity     : Float = 0.0000001
     var torque              : Float = 0
     
     var staticFriction      : Float = 0.5
@@ -554,12 +552,18 @@ class Body
     
     var shaderIndex         : Int = -1
     
-    init(_ object: Object)
+    var supportsRotation    : Bool = false
+    
+    init(_ object: Object,_ layer: Layer)
     {
         self.object = object
         
         orientation = toRadians(object.properties["rotate"]!)
 
+        if layer.properties["physicsGravityX"] != nil {
+            gravity = float2(layer.properties["physicsGravityX"]!, layer.properties["physicsGravityY"]!)
+        }
+        
         let physicsMode = object.getPhysicsMode()
         if physicsMode == .Dynamic {
             // Get parameters for dynamic objects, statics have a mass of 0
@@ -579,7 +583,11 @@ class Body
             }
             
             restitution = object.properties["physicsRestitution"]!
+            supportsRotation = object.properties["physicsSupportsRotation"]! == 1 ? true : false
         }
+        
+        dynamicFriction = object.properties["physicsFriction"]!
+        staticFriction = dynamicFriction + 0.2
     }
     
     func getPosition() -> float2
@@ -593,7 +601,9 @@ class Body
             return
         }
         velocity += (force * invMass + gravity) * (delta/2)
-        angularVelocity += torque * invInertia * (delta/2)
+        if supportsRotation {
+            angularVelocity += torque * invInertia * (delta/2)
+        }
     }
     
     func applyImpulse(_ impulse: float2,_ contactVector: float2)
@@ -604,7 +614,9 @@ class Body
         }
         
         velocity += invMass * impulse
-        angularVelocity += invInertia * Cross22( contactVector, impulse )
+        if supportsRotation {
+            angularVelocity += invInertia * Cross22( contactVector, impulse )
+        }
     }
     
     func applyToPosition(_ value: float2)
@@ -618,9 +630,10 @@ class Body
         object.properties["posX"] = object.properties["posX"]! + velocity.x
         object.properties["posY"] = object.properties["posY"]! + velocity.y
         
-        orientation += angularVelocity
-        object.properties["rotate"] = toDegrees(orientation)//.truncatingRemainder(dividingBy: 360))
-        //print(object.name, "rotate", object.properties["rotate"]! )
+        if supportsRotation {
+            orientation += angularVelocity
+            object.properties["rotate"] = toDegrees(orientation)//.truncatingRemainder(dividingBy: 360))
+        }
     }
 }
 

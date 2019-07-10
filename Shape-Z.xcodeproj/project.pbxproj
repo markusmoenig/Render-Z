@@ -60,8 +60,6 @@
 		2B639F1B221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
 		2B6D0035228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
 		2B6D0036228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
-		2B6D003722890AB500BEDCFD /* LayerArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0033228907E900BEDCFD /* LayerArea.swift */; };
-		2B6D003822890AB600BEDCFD /* LayerArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0033228907E900BEDCFD /* LayerArea.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
@@ -206,7 +204,6 @@
 		2B5FE42822C213690046A435 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		2B639F16221791F500576542 /* NodeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeList.swift; sourceTree = "<group>"; };
 		2B639F19221A32CD00576542 /* MMFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFile.swift; sourceTree = "<group>"; };
-		2B6D0033228907E900BEDCFD /* LayerArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerArea.swift; sourceTree = "<group>"; };
 		2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerAreaMaxDelegate.swift; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
@@ -455,7 +452,6 @@
 				2B4CC2292222301300A47812 /* LayerMaxDelegate.swift */,
 				2B4C380E2272AA2F0017361E /* ObjectProfile.swift */,
 				2B4C380F2272AA3A0017361E /* ObjectProfileMaxDelegate.swift */,
-				2B6D0033228907E900BEDCFD /* LayerArea.swift */,
 				2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */,
 				2BAC26D7226D652E00E20ADD /* Scene.swift */,
 				2BBF37DE2293845700DB6A01 /* SceneMaxDelegate.swift */,
@@ -673,7 +669,6 @@
 				2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */,
 				2B5F506D2298FD4C00D3B6C5 /* GameRegion.swift in Sources */,
 				2B039200228E5BC9002D62C9 /* LayerNodes.swift in Sources */,
-				2B6D003722890AB500BEDCFD /* LayerArea.swift in Sources */,
 				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BAC26E1226FEC7E00E20ADD /* DiskBuilder.swift in Sources */,
 				2BFBC58722D2C51300A27FAD /* ReferenceList.swift in Sources */,
@@ -755,7 +750,6 @@
 				2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */,
 				2B5F506E2298FD4D00D3B6C5 /* GameRegion.swift in Sources */,
 				2B039201228E5BC9002D62C9 /* LayerNodes.swift in Sources */,
-				2B6D003822890AB600BEDCFD /* LayerArea.swift in Sources */,
 				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */,
 				2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */,
