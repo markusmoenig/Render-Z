@@ -115,7 +115,7 @@ class LayerGravity : Node
         uiItems = [
             NodeUIAngle(self, variable: "orientation", title: "", value: 90),
             NodeUINumber(self, variable: "angle", title: "Angle", range: float2(0,360), value: 90),
-            NodeUINumber(self, variable: "strength", title: "Strength", range: float2(0,100), value: 50)
+            NodeUINumber(self, variable: "strength", title: "Strength", range: float2(0,10), value: 5)
         ]
         
         uiItems[1].linkedTo = uiItems[0]
@@ -135,7 +135,7 @@ class LayerGravity : Node
         
         let angle = properties["angle"]!
         let strength = properties["strength"]!
-        let dir = float2(cos((360-angle) * Float.pi/180) * strength, sin((360-angle) * Float.pi/180) * strength)
+        let dir = float2(cos((360-angle) * Float.pi/180) * strength * 10, sin((360-angle) * Float.pi/180) * strength * 10)
         
         if let layer = root.layerRoot {
             
