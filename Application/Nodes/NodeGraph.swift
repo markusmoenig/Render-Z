@@ -464,9 +464,24 @@ class NodeGraph : Codable
                     self.playToExecute.append(game)
                 }
                 
+                // -- Init behavior trees
                 for exe in self.playToExecute {
                     exe.behaviorRoot = BehaviorTreeRoot(exe)
-                    exe.behaviorTrees = self.getBehaviorTrees(for: exe)
+                    exe.behaviorTrees = []
+                    let trees = self.getBehaviorTrees(for: exe)
+                    
+                    for tree in trees {
+                        let status = tree.properties["status"]!
+                        
+                        if status == 0 {
+                            // Always execute
+                            exe.behaviorTrees!.append(tree)
+                        } else
+                        if status == 1 {
+                            // Execute all "On Startup" behavior trees
+                            _ = tree.execute(nodeGraph: self, root: exe.behaviorRoot!, parent: exe.behaviorRoot!.rootNode)
+                        }
+                    }
                 }
                 
                 self.playButton.addState(.Checked)
@@ -1847,9 +1862,7 @@ class NodeGraph : Codable
         for node in nodes {
             if masterNode.subset!.contains(node.uuid) {
                 if let treeNode = node as? BehaviorTree {
-                    if node.properties["status"] == 0 {
-                        trees.append(treeNode)
-                    }
+                    trees.append(treeNode)
                 }
             }
         }

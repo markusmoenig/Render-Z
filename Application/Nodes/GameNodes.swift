@@ -259,7 +259,21 @@ class GamePlayScene : Node
                 
                 for exe in toExecute {
                     exe.behaviorRoot = BehaviorTreeRoot(exe)
-                    exe.behaviorTrees = nodeGraph.getBehaviorTrees(for: exe)
+                    exe.behaviorTrees = []
+                    let trees = nodeGraph.getBehaviorTrees(for: exe)
+                    
+                    for tree in trees {
+                        let status = tree.properties["status"]!
+                        
+                        if status == 0 {
+                            // Always execute
+                            exe.behaviorTrees!.append(tree)
+                        } else
+                        if status == 1 {
+                            // Execute all "On Startup" behavior trees
+                            _ = tree.execute(nodeGraph: nodeGraph, root: exe.behaviorRoot!, parent: exe.behaviorRoot!.rootNode)
+                        }
+                    }
                 }
                 
                 root.runningNode = self

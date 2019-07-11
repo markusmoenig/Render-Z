@@ -407,7 +407,7 @@ class NodeUIDropTarget : NodeUI
         minItemWidth = max( contentLabel.rect.width + 15, 85 )
         
         rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + minItemWidth
-        rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height() + 2
+        rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -431,29 +431,32 @@ class NodeUIDropTarget : NodeUI
         if titleLabel!.scale != NodeUI.fontScale * scale {
             titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
         }
+        
+        itemHeight = (rect.height-2) * scale
+        let y : Float = rect.y - 1
+
         titleLabel!.isDisabled = isDisabled
-        titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
+        titleLabel!.drawRightCenteredY(x: rect.x, y: y, width: maxTitleSize.x * scale, height: itemHeight)
         
         let x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
         let width = node.uiMaxWidth * scale// minItemWidth * scale
-        itemHeight =  (rect.height-2) * scale
         
         let skin = mmView.skin.MenuWidget
         
         if hoverState == .Valid {
-            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.successColor)
+            mmView.drawBox.draw( x: x, y: y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.successColor)
         } else
         if hoverState == .Invalid || contentLabel!.text == "" {
-            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.failureColor)
+            mmView.drawBox.draw( x: x, y: y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.failureColor)
         } else {
-            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: skin.color)
+            mmView.drawBox.draw( x: x, y: y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: float4(skin.color.x, skin.color.y, skin.color.z, 0.3))
         }
         
         if contentLabel.scale != NodeUI.fontScale * scale {
             contentLabel.setText(contentLabel.text, scale: NodeUI.fontScale * scale)
         }
         
-        contentLabel.drawCentered(x: x, y: rect.y, width: width, height: itemHeight)
+        contentLabel.drawCentered(x: x, y: y, width: width, height: itemHeight)
     }
 }
 
@@ -801,13 +804,24 @@ class NodeUINumber : NodeUI
     func updateLinked()
     {
         if let linked = linkedTo as? NodeUIAngle {
-            linked.value = value
-            node.properties[linked.variable] = value
+            linked.setValue(value)
         }
     }
     
     override func update() {
         value = node.properties[variable]!
+    }
+    
+    func getValue() -> Float
+    {
+        return node.properties[variable]!
+    }
+    
+    func setValue(_ value: Float)
+    {
+        self.value = value
+        node.properties[variable] = value
+        updateLinked()
     }
     
     override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
@@ -918,6 +932,17 @@ class NodeUIAngle : NodeUI
     
     override func update() {
         value = node.properties[variable]!
+    }
+    
+    func getValue() -> Float
+    {
+        return node.properties[variable]!
+    }
+    
+    func setValue(_ value: Float)
+    {
+        self.value = value
+        node.properties[variable] = value
     }
     
     override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)

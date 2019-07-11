@@ -120,11 +120,6 @@ class LayerGravity : Node
         
         uiItems[1].linkedTo = uiItems[0]
         uiItems[0].linkedTo = uiItems[1]
-        
-        if properties["defaultValue"] != nil {
-            let number = uiItems[1] as! NodeUINumber
-            number.defaultValue = properties["defaultValue"]!
-        }
  
         super.setupUI(mmView: mmView)
     }
