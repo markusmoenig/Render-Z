@@ -95,6 +95,8 @@ class ObjectPhysics : Node
 /// Get/Set Object Prop.
 class GetSetObjectProperty : Node
 {
+    var recursionBlocker : Bool = false
+    
     override init()
     {
         super.init()
@@ -131,26 +133,41 @@ class GetSetObjectProperty : Node
             NodeUIDropDown(self, variable: "property", title: "Property", items: ["Position", "Rotation"], index: 0),
             NodeUIDropDown(self, variable: "mode", title: "Mode", items: ["Get", "Set"], index: 0),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIPositionVariableTarget(self, variable: "position", title: "Position", connection: uiConnections[1]),
-            NodeUIDirectionVariableTarget(self, variable: "direction", title: "Direction", connection: uiConnections[2]),
-            NodeUIValueVariableTarget(self, variable: "value", title: "Value", connection: uiConnections[3]),
+            NodeUIPositionVariableTarget(self, variable: "position", title: "Position", connection: uiConnections[1])
+            //NodeUIDirectionVariableTarget(self, variable: "direction", title: "Direction", connection: uiConnections[2]),
+            //NodeUIValueVariableTarget(self, variable: "value", title: "Value", connection: uiConnections[3]),
         ]
         super.setupUI(mmView: mmView)
     }
     
     override func updateUIState()
     {
+        if recursionBlocker == true { return }
+        recursionBlocker = true
         let property = Int(properties["property"]!)
         
         let posProperties : [Int] = [0]
         let dirProperties : [Int] = []
         let valueProperties : [Int] = [1]
 
-        uiItems[5].isDisabled = !posProperties.contains(property)
-        uiItems[6].isDisabled = !dirProperties.contains(property)
-        uiItems[7].isDisabled = !valueProperties.contains(property)
+        if posProperties.contains(property) && uiItems[5].role != .PositionVariableTarget {
+            uiItems.removeLast()
+            uiItems.append(NodeUIPositionVariableTarget(self, variable: "position", title: "Position", connection: uiConnections[1]))
+            computeUIArea(mmView: uiConnections[0].nodeGraph!.mmView)
+        } else
+        if dirProperties.contains(property) && uiItems[5].role != .DirectionVariableTarget {
+            uiItems.removeLast()
+            uiItems.append(NodeUIDirectionVariableTarget(self, variable: "direction", title: "Direction", connection: uiConnections[2]))
+            computeUIArea(mmView: uiConnections[0].nodeGraph!.mmView)
+        } else
+        if valueProperties.contains(property) && uiItems[5].role != .ValueVariableTarget {
+            uiItems.removeLast()
+            uiItems.append(NodeUIValueVariableTarget(self, variable: "value", title: "Value", connection: uiConnections[3]))
+            computeUIArea(mmView: uiConnections[0].nodeGraph!.mmView)
+        }
         
         super.updateUIState()
+        recursionBlocker = false
     }
     
     required init(from decoder: Decoder) throws
