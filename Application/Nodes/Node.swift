@@ -253,7 +253,7 @@ class Node : Codable, Equatable
 class UINodeConnection: Codable
 {
     enum ConnectionType: Int, Codable {
-        case Object, ObjectInstance, Animation, ValueVariable, DirectionVariable, LayerArea, Scene
+        case Object, ObjectInstance, Animation, ValueVariable, DirectionVariable, LayerArea, Scene, PositionVariable
     }
     
     var connectionType      : ConnectionType = .ValueVariable
@@ -502,6 +502,7 @@ enum NodeFamily: String, NodeClassFamily {
     case objectTouchLayerArea = "Object Touch Layer Area"
     case objectReset = "Object Reset"
     case objectDistanceTo = "Object Distance To"
+    case getSetObjectProperty = "Get Set Object Property"
     case sceneFinished = "Scene Finished"
     case gamePlatformOSX = "Platform OSX"
     case gamePlatformIPAD = "Platform IPAD"
@@ -521,6 +522,7 @@ enum NodeFamily: String, NodeClassFamily {
     case game = "Game"
     case valueVariable = "Value Variable"
     case directionVariable = "Direction Variable"
+    case positionVariable = "Position Variable"
     case addValueVariable = "Add Value Variable"
     case subtractValueVariable = "Subtract Value Variable"
     case resetValueVariable = "Reset Value Variable"
@@ -557,6 +559,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ResetObject.self
             case .objectDistanceTo:
                 return ObjectDistanceTo.self
+            case .getSetObjectProperty:
+                return GetSetObjectProperty.self
             
             case .layer:
                 return Layer.self
@@ -600,6 +604,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ValueVariable.self
             case .directionVariable:
                 return DirectionVariable.self
+            case .positionVariable:
+                return PositionVariable.self
             case .addValueVariable:
                 return AddValueVariable.self
             case .subtractValueVariable:

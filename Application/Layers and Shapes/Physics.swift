@@ -395,7 +395,6 @@ class Physics
                     var penetrationDepth : Float = 0
                     var shortestDistance : Float = 100000
                     var normal : float2 = float2()
-                    var normals : [float2] = []
                     let hitPenetration : Float = -0.2
                     
                     for (i, disk) in object.disks.enumerated() {
@@ -439,7 +438,6 @@ class Physics
                             //print(object.name, collisionObject.name, i, penetration)
                             
                             let localNormal = float2( result[diskOffset + 2], result[diskOffset + 3] )
-                            normals.append(localNormal)
                             
                             if penetration > penetrationDepth {
                                 penetrationDepth = penetration
@@ -466,20 +464,17 @@ class Physics
                     
                     if contacts.isEmpty == false {
                         //print("hit", object.name, collisionObject.name, contacts.count)
-                     
-                        /*
-                        normal = float2(0,0)
-                        for n in normals {
-                            normal += -n
+                        
+                        if object.body!.collisionsReflect == false {
+                            let manifold = Manifold(object.body!, collisionObject.body!, penetrationDepth: penetrationDepth, normal: normal, contacts: contacts)//instance.objectMap[Int(id)]!.body!)
+                            
+                            manifold.resolve()
+                            manifolds.append(manifold)
+                        } else {
+                            // --- Reflect
+                            object.body!.velocity = simd_reflect(object.body!.velocity, normal)
                         }
-                        normal /= Float(normals.count)*/
-                        
-                        let manifold = Manifold(object.body!, collisionObject.body!, penetrationDepth: penetrationDepth, normal: normal, contacts: contacts)//instance.objectMap[Int(id)]!.body!)
-                        
-                        manifold.resolve()
-                        manifolds.append(manifold)
                     }
-                    
                     offset += maxDisks * 4
                 }
             }
@@ -554,6 +549,8 @@ class Body
     
     var supportsRotation    : Bool = false
     
+    var collisionsReflect   : Bool = false
+    
     init(_ object: Object,_ layer: Layer)
     {
         self.object = object
@@ -584,6 +581,8 @@ class Body
             
             restitution = object.properties["physicsRestitution"]!
             supportsRotation = object.properties["physicsSupportsRotation"]! == 1 ? true : false
+            
+            collisionsReflect = object.properties["physicsCollisions"]! == 1 ? true : false
         }
         
         dynamicFriction = object.properties["physicsFriction"]!

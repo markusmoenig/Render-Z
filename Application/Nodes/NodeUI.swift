@@ -15,7 +15,7 @@ class NodeUI
     }
     
     enum Role {
-        case None, MasterPicker, AnimationPicker, ValueVariablePicker, DirectionVariablePicker, LayerAreaPicker, ValueVariableTarget, DirectionVariableTarget, ObjectInstanceTarget, LayerAreaTarget, AnimationTarget
+        case None, MasterPicker, AnimationPicker, ValueVariablePicker, DirectionVariablePicker, LayerAreaPicker, ValueVariableTarget, DirectionVariableTarget, ObjectInstanceTarget, LayerAreaTarget, AnimationTarget, PositionVariableTarget
     }
     
     var mmView      : MMView!
@@ -443,10 +443,10 @@ class NodeUIDropTarget : NodeUI
         
         let skin = mmView.skin.MenuWidget
         
-        if hoverState == .Valid {
+        if hoverState == .Valid && isDisabled == false {
             mmView.drawBox.draw( x: x, y: y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.successColor)
         } else
-        if hoverState == .Invalid || contentLabel!.text == "" {
+        if (hoverState == .Invalid || contentLabel!.text == "") && isDisabled == false {
             mmView.drawBox.draw( x: x, y: y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.failureColor)
         } else {
             mmView.drawBox.draw( x: x, y: y, width: width, height: itemHeight, round: 16 * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: float4(skin.color.x, skin.color.y, skin.color.z, 0.3))
@@ -456,6 +456,7 @@ class NodeUIDropTarget : NodeUI
             contentLabel.setText(contentLabel.text, scale: NodeUI.fontScale * scale)
         }
         
+        contentLabel.isDisabled = isDisabled
         contentLabel.drawCentered(x: x, y: y, width: width, height: itemHeight)
     }
 }
@@ -481,6 +482,18 @@ class NodeUIDirectionVariableTarget : NodeUIDropTarget
         uiConnection = connection
         uiConnection.uiTarget = self
         role = .DirectionVariableTarget
+    }
+}
+
+/// Position Variable Target derived from NodeUIDropTarget and with "Position Variable" drop ID
+class NodeUIPositionVariableTarget : NodeUIDropTarget
+{
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        super.init(node, variable: variable, title: title, targetID: "Position Variable")
+        uiConnection = connection
+        uiConnection.uiTarget = self
+        role = .PositionVariableTarget
     }
 }
 

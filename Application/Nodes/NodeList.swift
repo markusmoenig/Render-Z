@@ -126,6 +126,13 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Property, displayType: .Game)
         
+        // --- Position Value
+        item = NodeListItem("Variable: Position")
+        item.createNode = {
+            return PositionVariable()
+        }
+        addNodeItem(item, type: .Property, displayType: .All)
+        
         // --- Variable Value
         item = NodeListItem("Variable: Direction")
         item.createNode = {
@@ -192,6 +199,12 @@ class NodeList : MMWidget
         item = NodeListItem("Set Physic Property")
         item.createNode = {
             return SetObjectPhysics()
+        }
+        addNodeItem(item, type: .Function, displayType: .Object)
+        // --- Get Set Object Property
+        item = NodeListItem("Get Set Property")
+        item.createNode = {
+            return GetSetObjectProperty()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
         

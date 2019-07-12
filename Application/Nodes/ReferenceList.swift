@@ -60,7 +60,7 @@ class ReferenceList {
         refs = []
         for node in nodeGraph.nodes
         {
-            if node.type == "Value Variable" || node.type == "Direction Variable" {
+            if node.type == "Value Variable" || node.type == "Direction Variable" || node.type == "Position Variable" {
                 let item = ReferenceItem(nodeGraph.mmView)
                 
                 let name : String = node.name + " (" + node.type + ")"
@@ -331,7 +331,7 @@ class ReferenceList {
     func switchTo(id: String, selected: UUID? = nil)
     {
         isActive = true
-        if id == "Value Variable" || id == "Direction Variable" {
+        if id == "Value Variable" || id == "Direction Variable" || id == "Position Variable" {
             createVariableList()
             nodeGraph.previewInfoMenu.setText("Variables")
         }

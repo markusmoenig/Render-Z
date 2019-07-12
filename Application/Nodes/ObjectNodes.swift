@@ -35,7 +35,8 @@ class ObjectPhysics : Node
             NodeUINumber(self, variable: "physicsMass", title: "Mass", range: float2(0, 100), value: 1),
             NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 5), value: 0.2),
             NodeUINumber(self, variable: "physicsFriction", title: "Friction", range: float2(0, 1), value: 0.3),
-            NodeUIDropDown(self, variable: "physicsSupportsRotation", title: "Rotation", items: ["No", "Yes"], index: 1)
+            NodeUIDropDown(self, variable: "physicsSupportsRotation", title: "Rotation", items: ["No", "Yes"], index: 1),
+            NodeUIDropDown(self, variable: "physicsCollisions", title: "Collisions", items: ["Natural", "Reflect"], index: 0)
         ]
         
         super.setupUI(mmView: mmView)
@@ -44,11 +45,13 @@ class ObjectPhysics : Node
     override func updateUIState()
     {
         let mode = properties["physicsMode"]!
+        let collisions = properties["physicsCollisions"]!
 
         uiItems[1].isDisabled = mode == 0 || mode == 1
-        uiItems[2].isDisabled = mode == 0 || mode == 1
-        uiItems[3].isDisabled = mode == 0// || mode == 1
-        uiItems[4].isDisabled = mode == 0 || mode == 1
+        uiItems[2].isDisabled = mode == 0 || mode == 1 || collisions == 1
+        uiItems[3].isDisabled = mode == 0 || collisions == 1
+        uiItems[4].isDisabled = mode == 0 || mode == 1 || collisions == 1
+        uiItems[5].isDisabled = mode == 0 || mode == 1
 
         super.updateUIState()
     }
@@ -81,12 +84,127 @@ class ObjectPhysics : Node
             object.properties["physicsRestitution"] = properties["physicsRestitution"]!
             object.properties["physicsFriction"] = properties["physicsFriction"]!
             object.properties["physicsSupportsRotation"] = properties["physicsSupportsRotation"]!
+            object.properties["physicsCollisions"] = properties["physicsCollisions"]!
 
             return .Success
         }
         return .Failure
     }
 }
+
+/// Get/Set Object Prop.
+class GetSetObjectProperty : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Get Set Property"
+        uiConnections.append(UINodeConnection(.ObjectInstance))
+        uiConnections.append(UINodeConnection(.PositionVariable))
+        uiConnections.append(UINodeConnection(.DirectionVariable))
+        uiConnections.append(UINodeConnection(.ValueVariable))
+    }
+    
+    override func setup()
+    {
+        brand = .Function
+        type = "Get Set Object Property"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIObjectInstanceTarget(self, variable: "instance", title: "Of Instance", connection: uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "property", title: "Property", items: ["Position", "Rotation"], index: 0),
+            NodeUIDropDown(self, variable: "mode", title: "Mode", items: ["Get", "Set"], index: 0),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIPositionVariableTarget(self, variable: "position", title: "Position", connection: uiConnections[1]),
+            NodeUIDirectionVariableTarget(self, variable: "direction", title: "Direction", connection: uiConnections[2]),
+            NodeUIValueVariableTarget(self, variable: "value", title: "Value", connection: uiConnections[3]),
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    override func updateUIState()
+    {
+        let property = Int(properties["property"]!)
+        
+        let posProperties : [Int] = [0]
+        let dirProperties : [Int] = []
+        let valueProperties : [Int] = [1]
+
+        uiItems[5].isDisabled = !posProperties.contains(property)
+        uiItems[6].isDisabled = !dirProperties.contains(property)
+        uiItems[7].isDisabled = !valueProperties.contains(property)
+        
+        super.updateUIState()
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Execute the given animation
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        
+        if root.objectRoot != nil {
+            if uiConnections[0].connectedTo != nil {
+                if let inst = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
+                    let property = properties["property"]!
+                    let mode = properties["mode"]!
+
+                    let posVariable = uiConnections[1].target as? PositionVariable
+                    //let dirVariable = uiConnections[2].target as? DirectionVariable
+                    let valueVariable = uiConnections[3].target as? ValueVariable
+
+                    if property == 0 && posVariable != nil { // Position
+                        if mode == 0 {
+                            posVariable!.setValue(float2(inst.properties["posX"]!,inst.properties["posY"]!))
+                        }
+                        playResult = .Success
+                    }
+                    if property == 1 && valueVariable != nil { // Rotate
+                        if mode == 0 {
+                            valueVariable!.setValue(inst.properties["rotate"]!)
+                        }
+                        playResult = .Success
+                    }
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}
+
 
 /// Sets a physic property
 class SetObjectPhysics : Node

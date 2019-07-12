@@ -2555,6 +2555,25 @@ class NodeGraph : Codable
                 }
             }
             
+            // .PositionVariableTarget Drop Target
+            if item.role == .PositionVariableTarget {
+                if let target = item as? NodeUIPositionVariableTarget {
+                    let conn = target.uiConnection!
+
+                    if conn.connectedMaster != nil {
+                        conn.masterNode = getNodeForUUID(conn.connectedMaster!)
+                    }
+                    if conn.connectedTo != nil {
+                        if let target = getNodeForUUID(conn.connectedTo!) {
+                            conn.target = target
+                            conn.targetName = target.name
+                        }
+                    }
+                    validateConn(conn)
+                }
+                node.computeUIArea(mmView: mmView)
+            }
+            
             // .DirectionVariableTarget Drop Target
             if item.role == .DirectionVariableTarget {
                 if let target = item as? NodeUIDirectionVariableTarget {
@@ -2950,21 +2969,15 @@ class NodeGraph : Codable
     /// Accept a drag from the reference list to a NodeUIDropTarget
     func acceptDragSource(_ dragSource: MMDragSource)
     {
+        print("here1")
         let uiTarget = validHoverTarget!
         if let source = dragSource as? ReferenceListDrag {
-            
+            print("here2")
+
             let refItem = source.refItem!
             
             uiTarget.uiConnection.connectedMaster = refItem.classUUID
             uiTarget.uiConnection.connectedTo = refItem.uuid
-            
-            /*
-            uiTarget.uiConnection.masterNode = getNodeForUUID(refItem.classUUID)
-            
-            if let target = getNodeForUUID(refItem.uuid) {
-                uiTarget.uiConnection.target = target
-                uiTarget.uiConnection.targetName = target.name
-            }*/
             
             updateNode(uiTarget.node)
             uiTarget.hoverState = .None

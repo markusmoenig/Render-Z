@@ -198,6 +198,116 @@ class DirectionVariable : Node
     }
 }
 
+class PositionVariable : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Position"
+    }
+    
+    override func setup()
+    {
+        type = "Position Variable"
+        brand = .Property
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUINumber(self, variable: "x", title: "X", range: nil, value: 0),
+            NodeUINumber(self, variable: "y", title: "Y", range: nil, value: 0),
+        ]
+        
+        if properties["defaultValueX"] != nil {
+            let numberX = uiItems[0] as! NodeUINumber
+            numberX.defaultValue = properties["defaultValueX"]!
+        }
+        if properties["defaultValueY"] != nil {
+            let numberY = uiItems[1] as! NodeUINumber
+            numberY.defaultValue = properties["defaultValueY"]!
+        }
+        
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Execute Object physic properties
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
+    {
+        return .Success
+    }
+    
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
+    {
+        if variable == "x" {
+            let number = uiItems[0] as! NodeUINumber
+            number.defaultValue = newValue
+            properties["defaultValueX"] = newValue
+        } else
+        if variable == "y" {
+            let number = uiItems[1] as! NodeUINumber
+            number.defaultValue = newValue
+            properties["defaultValueY"] = newValue
+        }
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
+    /// Restore default value
+    override func finishExecution() {
+        let numberX = uiItems[0] as! NodeUINumber
+        let numberY = uiItems[1] as! NodeUINumber
+        properties["x"] = numberX.defaultValue
+        numberX.value = numberX.defaultValue
+        properties["y"] = numberY.defaultValue
+        numberY.value = numberY.defaultValue
+    }
+    
+    /// Returns the current value of the variable
+    func getValue() -> float2
+    {
+        return float2(properties["x"]!,properties["y"]!)
+    }
+    
+    /// Set a new value to the variable
+    func setValue(_ value: float2)
+    {
+        properties["x"] = value.x
+        properties["y"] = value.y
+
+        let numberX = uiItems[0] as! NodeUINumber
+        let numberY = uiItems[1] as! NodeUINumber
+        
+        numberX.value = value.x
+        numberY.value = value.y
+    }
+}
+
 class ResetValueVariable : Node
 {
     override init()
