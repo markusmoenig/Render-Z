@@ -205,6 +205,10 @@ class GetSetObjectProperty : Node
                     if property == 0 && posVariable != nil { // Position
                         if mode == 0 {
                             posVariable!.setValue(float2(inst.properties["posX"]!,inst.properties["posY"]!))
+                        } else {
+                            let value = posVariable!.getValue()
+                            inst.properties["posX"]! = value.x
+                            inst.properties["posY"]! = value.y
                         }
                         playResult = .Success
                     }

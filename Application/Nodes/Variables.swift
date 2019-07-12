@@ -699,3 +699,260 @@ class RandomDirection : Node
         return playResult!
     }
 }
+
+class AddPositionVariables : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Add Positions"
+        uiConnections.append(UINodeConnection(.PositionVariable))
+        uiConnections.append(UINodeConnection(.PositionVariable))
+        uiConnections.append(UINodeConnection(.PositionVariable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Add Position Variables"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIPositionVariableTarget(self, variable: "augend", title: "Add", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable: "", title: ""),
+            NodeUIPositionVariableTarget(self, variable: "addend", title: "Width", connection:  uiConnections[1]),
+            NodeUISeparator(self, variable: "", title: ""),
+            NodeUIPositionVariableTarget(self, variable: "sum", title: "Result", connection:  uiConnections[2])
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Subtract value from variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let augend = uiConnections[0].target as? PositionVariable {
+            if let addend = uiConnections[1].target as? PositionVariable {
+                if let result = uiConnections[2].target as? PositionVariable {
+                    let sum = augend.getValue() + addend.getValue()
+                    
+                    result.setValue(sum)
+                    playResult = .Success
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}
+
+
+class SubtractPositionVariables : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Subtract Positions"
+        uiConnections.append(UINodeConnection(.PositionVariable))
+        uiConnections.append(UINodeConnection(.PositionVariable))
+        uiConnections.append(UINodeConnection(.PositionVariable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Subtract Position Variables"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIPositionVariableTarget(self, variable: "subtrahend", title: "Subtract", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable: "", title: ""),
+            NodeUIPositionVariableTarget(self, variable: "minuend", title: "From", connection:  uiConnections[1]),
+            NodeUISeparator(self, variable: "", title: ""),
+            NodeUIPositionVariableTarget(self, variable: "difference", title: "Result", connection:  uiConnections[2])
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Subtract value from variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let subtrahend = uiConnections[0].target as? PositionVariable {
+            if let minuend = uiConnections[1].target as? PositionVariable {
+                if let result = uiConnections[2].target as? PositionVariable {
+                    let difference = minuend.getValue() - subtrahend.getValue()
+                    
+                    result.setValue(difference)
+                    playResult = .Success
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}
+
+class TestPositionVariable : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Test Position"
+        uiConnections.append(UINodeConnection(.PositionVariable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Test Position Variable"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIPositionVariableTarget(self, variable: "variable", title: "Variable", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "coordinate", title: "Coordinate", items: ["X", "Y"], index: 0),
+            NodeUIDropDown(self, variable: "mode", title: "Test", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
+            NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1)
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// test value from variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let variable = uiConnections[0].target as? PositionVariable {
+            
+            let position : float2 = variable.getValue()
+            let myCoordinate : Float = properties["coordinate"]!
+            let myMode : Float = properties["mode"]!
+            let myValue : Float = properties["value"]!
+            
+            var testValue : Float
+            
+            if myCoordinate == 0 {
+                testValue = position.x
+            } else {
+                testValue = position.y
+            }
+            
+            if myMode == 0 {
+                // Equal to
+                if testValue == myValue {
+                    playResult = .Success
+                }
+            } else
+            if myMode == 1 {
+                // Smaller as
+                if testValue < myValue {
+                    playResult = .Success
+                }
+            } else
+            if myMode == 2 {
+                // Bigger as
+                if testValue > myValue {
+                    playResult = .Success
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}

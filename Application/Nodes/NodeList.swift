@@ -266,6 +266,24 @@ class NodeList : MMWidget
         addNodeItem(item, type: .Behavior, displayType: .All)
 
         // --- Arithmetic
+        item = NodeListItem("Add Positions")
+        item.createNode = {
+            return AddPositionVariables()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
+        item = NodeListItem("Subtract Positions")
+        item.createNode = {
+            return SubtractPositionVariables()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
+        item = NodeListItem("Test Position")
+        item.createNode = {
+            return TestPositionVariable()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
         item = NodeListItem("Add Value")
         item.createNode = {
             return AddValueVariable()

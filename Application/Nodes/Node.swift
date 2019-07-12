@@ -528,6 +528,9 @@ enum NodeFamily: String, NodeClassFamily {
     case resetValueVariable = "Reset Value Variable"
     case testValueVariable = "Test Value Variable"
     case randomDirection = "Random Direction"
+    case addPositionVariables = "Add Position Variables"
+    case subtractPositionVariables = "Subtract Position Variables"
+    case testPositionVariable = "Test Position Variable"
 
     static var discriminator: NodeDiscriminator = .type
     
@@ -616,6 +619,13 @@ enum NodeFamily: String, NodeClassFamily {
                 return TestValueVariable.self
             case .randomDirection:
                 return RandomDirection.self
+            
+            case .addPositionVariables:
+                return AddPositionVariables.self
+            case .subtractPositionVariables:
+                return SubtractPositionVariables.self
+            case .testPositionVariable:
+                return TestPositionVariable.self
         }
     }
 }
