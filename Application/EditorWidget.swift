@@ -30,9 +30,9 @@ class EditorWidget      : MMWidget
         dropTargets.append( "AvailableObjectItem" )
         dropTargets.append( "AvailableLayerItem" )
         
-        dropTargets.append( "Value Variable" )
+        dropTargets.append( "Float Variable" )
         dropTargets.append( "Direction Variable" )
-        dropTargets.append( "Position Variable" )
+        dropTargets.append( "Float2 Variable" )
         dropTargets.append( "Object Instance" )
         dropTargets.append( "Layer Area" )
         dropTargets.append( "Animation" )

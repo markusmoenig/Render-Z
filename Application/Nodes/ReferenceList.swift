@@ -58,15 +58,25 @@ class ReferenceList {
     {
         currentMode = .Variables
         refs = []
+        var selfOffset : Int = 0
         for node in nodeGraph.nodes
         {
-            if node.type == "Value Variable" || node.type == "Direction Variable" || node.type == "Position Variable" {
+            if node.type == "Float Variable" || node.type == "Direction Variable" || node.type == "Float2 Variable" {
+                
+                let belongsToMaster = nodeGraph.currentMaster!.subset!.contains(node.uuid)
+                if node.properties["access"]! == 1 && !belongsToMaster {
+                    continue
+                }
+                
                 let item = ReferenceItem(nodeGraph.mmView)
                 
                 let name : String = node.name + " (" + node.type + ")"
                 
                 let master = nodeGraph.getMasterForNode(node)!
-                let category : String = master.type + ": " + master.name
+                var category : String = master.type + ": " + master.name
+                if belongsToMaster {
+                    category += " - Self"
+                }
                 
                 item.name.setText( name, scale: 0.4)
                 item.category.setText(category, scale: 0.3)
@@ -74,7 +84,12 @@ class ReferenceList {
                 item.uuid = node.uuid
                 item.classUUID = master.uuid
 
-                refs.append(item)
+                if belongsToMaster {
+                    refs.insert(item, at: selfOffset)
+                    selfOffset += 1
+                } else {
+                    refs.append(item)
+                }
             }
         }
     }
@@ -331,7 +346,7 @@ class ReferenceList {
     func switchTo(id: String, selected: UUID? = nil)
     {
         isActive = true
-        if id == "Value Variable" || id == "Direction Variable" || id == "Position Variable" {
+        if id == "Float Variable" || id == "Direction Variable" || id == "Float2 Variable" {
             createVariableList()
             nodeGraph.previewInfoMenu.setText("Variables")
         }

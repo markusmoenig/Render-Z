@@ -61,7 +61,7 @@ class Gizmo : MMWidget
     var gizmoVariableShape              : Shape? = nil
     var gizmoVariableConnection         : UINodeConnection? = nil
     var gizmoNodeUIMasterPicker         : NodeUIMasterPicker? = nil
-    var gizmoNodeUIValueVariablePicker  : NodeUIValueVariablePicker? = nil
+    var gizmoNodeUIFloatVariablePicker  : NodeUIFloatVariablePicker? = nil
     
     var gizmoPtPlusRect : MMRect = MMRect()
     var gizmoPtMinusRect: MMRect = MMRect()
@@ -200,7 +200,7 @@ class Gizmo : MMWidget
         gizmoNode.uiItems = []
         gizmoNode.uiConnections = []
         gizmoNodeUIMasterPicker = nil
-        gizmoNodeUIValueVariablePicker = nil
+        gizmoNodeUIFloatVariablePicker = nil
         gizmoVariableShape = nil
         gizmoVariableConnection = nil
         
@@ -257,7 +257,7 @@ class Gizmo : MMWidget
                 if shape.name == "Variable" {
                     gizmoVariableShape = shape
 
-                    gizmoVariableConnection = UINodeConnection(.ValueVariable)
+                    gizmoVariableConnection = UINodeConnection(.FloatVariable)
                     gizmoNode.uiConnections.append(gizmoVariableConnection!)
 
                     gizmoNodeUIMasterPicker = NodeUIMasterPicker(gizmoNode, variable: "master", title: "Class", connection: gizmoVariableConnection!)
@@ -265,9 +265,9 @@ class Gizmo : MMWidget
                         gizmoNodeUIMasterPicker!
                     )
                     
-                    gizmoNodeUIValueVariablePicker = NodeUIValueVariablePicker(gizmoNode, variable: "var", title: "Variable", connection: gizmoVariableConnection!)
+                    gizmoNodeUIFloatVariablePicker = NodeUIFloatVariablePicker(gizmoNode, variable: "var", title: "Variable", connection: gizmoVariableConnection!)
                     gizmoNode.uiItems.append(
-                        gizmoNodeUIValueVariablePicker!
+                        gizmoNodeUIFloatVariablePicker!
                     )
                     
                     if gizmoVariableShape!.customReference != nil {

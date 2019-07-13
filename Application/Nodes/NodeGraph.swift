@@ -2102,6 +2102,9 @@ class NodeGraph : Codable
 
             previewInfoMenu.setItems(items)
             previewNode = node
+            if refList != nil {
+                refList.update()
+            }
         }
     }
     
@@ -2316,13 +2319,13 @@ class NodeGraph : Codable
                                 }
                             }
                         } else
-                        if type == .ValueVariable {
+                        if type == .FloatVariable {
                             // Value Variable. Pick every master which has a value variable
                             for n in nodes {
                                 if n.subset != nil && n.uuid != master.uuid {
                                     let subs = getNodesOfMaster(for: n)
                                     for s in subs {
-                                        if s.type == "Value Variable" {
+                                        if s.type == "Float Variable" {
                                             picker.items.append(n.name)
                                             picker.uuids.append(n.uuid)
                                             break
@@ -2494,8 +2497,8 @@ class NodeGraph : Codable
             }
             
             // .ValueVariableTarget Drop Target
-            if item.role == .ValueVariableTarget {
-                if let target = item as? NodeUIValueVariableTarget {
+            if item.role == .FloatVariableTarget {
+                if let target = item as? NodeUIFloatVariableTarget {
                     let conn = target.uiConnection!
                     
                     if conn.connectedMaster != nil {
@@ -2513,8 +2516,8 @@ class NodeGraph : Codable
             }
             
             // ValueVariable picker, show the value variables of the master
-            if item.role == .ValueVariablePicker {
-                if let picker = item as? NodeUIValueVariablePicker {
+            if item.role == .FloatVariablePicker {
+                if let picker = item as? NodeUIFloatVariablePicker {
                     
                     let conn = picker.uiConnection
                     //let object = conn.masterNode as! Object
@@ -2527,7 +2530,7 @@ class NodeGraph : Codable
                     var index : Int = 0
                     var first : Node? = nil
                     for s in subs {
-                        if s.type == "Value Variable" {
+                        if s.type == "Float Variable" {
                             if first == nil {
                                 first = s
                             }
@@ -2556,8 +2559,8 @@ class NodeGraph : Codable
             }
             
             // .PositionVariableTarget Drop Target
-            if item.role == .PositionVariableTarget {
-                if let target = item as? NodeUIPositionVariableTarget {
+            if item.role == .Float2VariableTarget {
+                if let target = item as? NodeUIFloat2VariableTarget {
                     let conn = target.uiConnection!
 
                     if conn.connectedMaster != nil {
@@ -2969,12 +2972,24 @@ class NodeGraph : Codable
     /// Accept a drag from the reference list to a NodeUIDropTarget
     func acceptDragSource(_ dragSource: MMDragSource)
     {
-        print("here1")
         let uiTarget = validHoverTarget!
         if let source = dragSource as? ReferenceListDrag {
-            print("here2")
 
             let refItem = source.refItem!
+            
+            func targetDropped(_ oldMaster: UUID?,_ oldConnection: UUID?,_ newMaster: UUID?,_ newConnection: UUID?)
+            {
+                mmView.undoManager!.registerUndo(withTarget: self) { target in
+                    
+                    uiTarget.uiConnection.connectedMaster = newMaster
+                    uiTarget.uiConnection.connectedTo = newConnection
+                    
+                    self.updateNode(uiTarget.node)
+                    targetDropped(newMaster, newConnection, oldMaster, oldConnection)
+                }
+            }
+            
+            targetDropped(refItem.classUUID, refItem.uuid, uiTarget.uiConnection.connectedMaster, uiTarget.uiConnection.connectedTo)
             
             uiTarget.uiConnection.connectedMaster = refItem.classUUID
             uiTarget.uiConnection.connectedTo = refItem.uuid

@@ -126,10 +126,10 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Property, displayType: .Game)
         
-        // --- Position Value
-        item = NodeListItem("Variable: Position")
+        // --- Float2 Value
+        item = NodeListItem("Variable: Float2")
         item.createNode = {
-            return PositionVariable()
+            return Float2Variable()
         }
         addNodeItem(item, type: .Property, displayType: .All)
         
@@ -141,9 +141,9 @@ class NodeList : MMWidget
         addNodeItem(item, type: .Property, displayType: .All)
         
         // --- Variable Value
-        item = NodeListItem("Variable: Value")
+        item = NodeListItem("Variable: Float")
         item.createNode = {
-            return ValueVariable()
+            return FloatVariable()
         }
         addNodeItem(item, type: .Property, displayType: .All)
         
@@ -266,45 +266,51 @@ class NodeList : MMWidget
         addNodeItem(item, type: .Behavior, displayType: .All)
 
         // --- Arithmetic
-        item = NodeListItem("Add Positions")
+        item = NodeListItem("Float2 Plus Float2")
         item.createNode = {
-            return AddPositionVariables()
+            return AddFloat2Variables()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Subtract Positions")
+        item = NodeListItem("Float2 Minus Float2")
         item.createNode = {
-            return SubtractPositionVariables()
+            return SubtractFloat2Variables()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Test Position")
+        item = NodeListItem("Test Float2")
         item.createNode = {
-            return TestPositionVariable()
+            return TestFloat2Variable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Add Value")
+        item = NodeListItem("Limit Float2 Range")
         item.createNode = {
-            return AddValueVariable()
+            return LimitFloat2Range()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
+        item = NodeListItem("Float Plus Float")
+        item.createNode = {
+            return AddFloatVariables()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
 
-        item = NodeListItem("Subtract Value")
+        item = NodeListItem("Float Minus Float")
         item.createNode = {
-            return SubtractValueVariable()
+            return SubtractFloatVariables()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Reset Value")
+        item = NodeListItem("Reset Float")
         item.createNode = {
-            return ResetValueVariable()
+            return ResetFloatVariable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Test Value")
+        item = NodeListItem("Test Float")
         item.createNode = {
-            return TestValueVariable()
+            return TestFloatVariable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         

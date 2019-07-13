@@ -15,7 +15,7 @@ class NodeUI
     }
     
     enum Role {
-        case None, MasterPicker, AnimationPicker, ValueVariablePicker, DirectionVariablePicker, LayerAreaPicker, ValueVariableTarget, DirectionVariableTarget, ObjectInstanceTarget, LayerAreaTarget, AnimationTarget, PositionVariableTarget
+        case None, MasterPicker, AnimationPicker, FloatVariablePicker, DirectionVariablePicker, LayerAreaPicker, FloatVariableTarget, DirectionVariableTarget, ObjectInstanceTarget, LayerAreaTarget, AnimationTarget, Float2VariableTarget
     }
     
     var mmView      : MMView!
@@ -309,7 +309,7 @@ class NodeUIAnimationPicker : NodeUIDropDown
 }
 
 /// Value Variable picker derived from NodeUIDropDown and with .ValueVariablePicker role
-class NodeUIValueVariablePicker : NodeUIDropDown
+class NodeUIFloatVariablePicker : NodeUIDropDown
 {
     var uiConnection        : UINodeConnection
     var uuids               : [UUID] = []
@@ -319,7 +319,7 @@ class NodeUIValueVariablePicker : NodeUIDropDown
         uiConnection = connection
         super.init(node, variable: variable, title: title, items: [])
         uiConnection.uiPicker = self
-        role = .ValueVariablePicker
+        role = .FloatVariablePicker
     }
     
     override func internal_changed()
@@ -461,15 +461,15 @@ class NodeUIDropTarget : NodeUI
     }
 }
 
-/// Value Variable Target derived from NodeUIDropTarget and with "Value Variable" drop ID
-class NodeUIValueVariableTarget : NodeUIDropTarget
+/// Float Variable Target derived from NodeUIDropTarget and with "Float Variable" drop ID
+class NodeUIFloatVariableTarget : NodeUIDropTarget
 {
     init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
     {
-        super.init(node, variable: variable, title: title, targetID: "Value Variable")
+        super.init(node, variable: variable, title: title, targetID: "Float Variable")
         uiConnection = connection
         uiConnection.uiTarget = self
-        role = .ValueVariableTarget
+        role = .FloatVariableTarget
     }
 }
 
@@ -485,15 +485,15 @@ class NodeUIDirectionVariableTarget : NodeUIDropTarget
     }
 }
 
-/// Position Variable Target derived from NodeUIDropTarget and with "Position Variable" drop ID
-class NodeUIPositionVariableTarget : NodeUIDropTarget
+/// Float2 Variable Target derived from NodeUIDropTarget and with "Float2 Variable" drop ID
+class NodeUIFloat2VariableTarget : NodeUIDropTarget
 {
     init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
     {
-        super.init(node, variable: variable, title: title, targetID: "Position Variable")
+        super.init(node, variable: variable, title: title, targetID: "Float2 Variable")
         uiConnection = connection
         uiConnection.uiTarget = self
-        role = .PositionVariableTarget
+        role = .Float2VariableTarget
     }
 }
 

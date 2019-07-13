@@ -103,9 +103,9 @@ class GetSetObjectProperty : Node
         
         name = "Get Set Property"
         uiConnections.append(UINodeConnection(.ObjectInstance))
-        uiConnections.append(UINodeConnection(.PositionVariable))
+        uiConnections.append(UINodeConnection(.Float2Variable))
         uiConnections.append(UINodeConnection(.DirectionVariable))
-        uiConnections.append(UINodeConnection(.ValueVariable))
+        uiConnections.append(UINodeConnection(.FloatVariable))
     }
     
     override func setup()
@@ -130,10 +130,10 @@ class GetSetObjectProperty : Node
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Of Instance", connection: uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "property", title: "Property", items: ["Position", "Rotation"], index: 0),
+            NodeUIDropDown(self, variable: "property", title: "Property", items: ["Position", "Scale", "Rotation", "Active", "Opacity", "Velocity"], index: 0),
             NodeUIDropDown(self, variable: "mode", title: "Mode", items: ["Get", "Set"], index: 0),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIPositionVariableTarget(self, variable: "position", title: "Position", connection: uiConnections[1])
+            NodeUIFloat2VariableTarget(self, variable: "float2", title: "Float2", connection: uiConnections[1])
             //NodeUIDirectionVariableTarget(self, variable: "direction", title: "Direction", connection: uiConnections[2]),
             //NodeUIValueVariableTarget(self, variable: "value", title: "Value", connection: uiConnections[3]),
         ]
@@ -146,13 +146,13 @@ class GetSetObjectProperty : Node
         recursionBlocker = true
         let property = Int(properties["property"]!)
         
-        let posProperties : [Int] = [0]
-        let dirProperties : [Int] = []
-        let valueProperties : [Int] = [1]
+        let posProperties : [Int] = [0, 1]
+        let dirProperties : [Int] = [5]
+        let valueProperties : [Int] = [2, 3, 4]
 
-        if posProperties.contains(property) && uiItems[5].role != .PositionVariableTarget {
+        if posProperties.contains(property) && uiItems[5].role != .Float2VariableTarget {
             uiItems.removeLast()
-            uiItems.append(NodeUIPositionVariableTarget(self, variable: "position", title: "Position", connection: uiConnections[1]))
+            uiItems.append(NodeUIFloat2VariableTarget(self, variable: "float2", title: "Float2", connection: uiConnections[1]))
             computeUIArea(mmView: uiConnections[0].nodeGraph!.mmView)
         } else
         if dirProperties.contains(property) && uiItems[5].role != .DirectionVariableTarget {
@@ -160,9 +160,9 @@ class GetSetObjectProperty : Node
             uiItems.append(NodeUIDirectionVariableTarget(self, variable: "direction", title: "Direction", connection: uiConnections[2]))
             computeUIArea(mmView: uiConnections[0].nodeGraph!.mmView)
         } else
-        if valueProperties.contains(property) && uiItems[5].role != .ValueVariableTarget {
+        if valueProperties.contains(property) && uiItems[5].role != .FloatVariableTarget {
             uiItems.removeLast()
-            uiItems.append(NodeUIValueVariableTarget(self, variable: "value", title: "Value", connection: uiConnections[3]))
+            uiItems.append(NodeUIFloatVariableTarget(self, variable: "float", title: "Float", connection: uiConnections[3]))
             computeUIArea(mmView: uiConnections[0].nodeGraph!.mmView)
         }
         
@@ -198,9 +198,9 @@ class GetSetObjectProperty : Node
                     let property = properties["property"]!
                     let mode = properties["mode"]!
 
-                    let posVariable = uiConnections[1].target as? PositionVariable
+                    let posVariable = uiConnections[1].target as? Float2Variable
                     //let dirVariable = uiConnections[2].target as? DirectionVariable
-                    let valueVariable = uiConnections[3].target as? ValueVariable
+                    let valueVariable = uiConnections[3].target as? FloatVariable
 
                     if property == 0 && posVariable != nil { // Position
                         if mode == 0 {
@@ -211,12 +211,51 @@ class GetSetObjectProperty : Node
                             inst.properties["posY"]! = value.y
                         }
                         playResult = .Success
-                    }
-                    if property == 1 && valueVariable != nil { // Rotate
+                    } else
+                    if property == 1 && posVariable != nil { // Scale
                         if mode == 0 {
-                            valueVariable!.setValue(inst.properties["rotate"]!)
+                            posVariable!.setValue(float2(inst.properties["scaleX"]!,inst.properties["scaleY"]!))
+                        } else {
+                            let value = posVariable!.getValue()
+                            inst.properties["scaleX"]! = value.x
+                            inst.properties["scaleY"]! = value.y
                         }
                         playResult = .Success
+                    } else
+                    if property == 2 && valueVariable != nil { // Rotation
+                        if mode == 0 {
+                            valueVariable!.setValue(inst.properties["rotate"]!)
+                        } else {
+                            inst.properties["rotate"]! = valueVariable!.getValue()
+                        }
+                        playResult = .Success
+                    } else
+                    if property == 3 && valueVariable != nil { // Active
+                        if mode == 0 {
+                            //valueVariable!.setValue(inst.properties["rotate"]!)
+                        } else {
+                            //inst.properties["rotate"]! = valueVariable!.getValue()
+                        }
+                        playResult = .Success
+                    } else
+                    if property == 4 && valueVariable != nil { // Opacity
+                        if mode == 0 {
+                            //valueVariable!.setValue(inst.properties["rotate"]!)
+                        } else {
+                            //inst.properties["rotate"]! = valueVariable!.getValue()
+                        }
+                        playResult = .Success
+                    } else
+                    if property == 5 && posVariable != nil { // Velocity
+                        if let body = inst.body {
+                            if mode == 0 {
+                                posVariable!.setValue(body.velocity)
+                            } else {
+                                let value = posVariable!.getValue()
+                                body.velocity = value
+                            }
+                            playResult = .Success
+                        }
                     }
                 }
             }
@@ -675,7 +714,7 @@ class ObjectApplyForce : Node
         name = "Apply Force"
         
         uiConnections.append(UINodeConnection(.ObjectInstance))
-        uiConnections.append(UINodeConnection(.ValueVariable))
+        uiConnections.append(UINodeConnection(.FloatVariable))
     }
     
     override func setup()
@@ -701,7 +740,7 @@ class ObjectApplyForce : Node
             NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
 
-            NodeUIValueVariableTarget(self, variable: "power", title: "Force Value", connection: uiConnections[1]),
+            NodeUIFloatVariableTarget(self, variable: "power", title: "Force Value", connection: uiConnections[1]),
 
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
         ]
@@ -735,7 +774,7 @@ class ObjectApplyForce : Node
             
             var power : Float = 0
             
-            if let powerVariable = uiConnections[1].target as? ValueVariable {
+            if let powerVariable = uiConnections[1].target as? FloatVariable {
 //                let number = powerVariable.uiItems[0] as? NodeUINumber
                 power = powerVariable.properties["value"]! * scale
             }
@@ -770,7 +809,7 @@ class ObjectApplyDirectionalForce : Node
         name = "Apply Directional Force"
         
         uiConnections.append(UINodeConnection(.ObjectInstance))
-        uiConnections.append(UINodeConnection(.ValueVariable))
+        uiConnections.append(UINodeConnection(.FloatVariable))
         uiConnections.append(UINodeConnection(.DirectionVariable))
     }
     
@@ -797,7 +836,7 @@ class ObjectApplyDirectionalForce : Node
             NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
 
-            NodeUIValueVariableTarget(self, variable: "power", title: "Force Value", connection: uiConnections[1]),
+            NodeUIFloatVariableTarget(self, variable: "power", title: "Force Value", connection: uiConnections[1]),
 
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
             NodeUISeparator(self, variable:"", title: ""),
@@ -835,7 +874,7 @@ class ObjectApplyDirectionalForce : Node
             var power : Float = 0
             var dir : float2 = float2(0,0)
             
-            if let powerVariable = uiConnections[1].target as? ValueVariable {
+            if let powerVariable = uiConnections[1].target as? FloatVariable {
                 //                let number = powerVariable.uiItems[0] as? NodeUINumber
                 power = powerVariable.properties["value"]! * scale
             }

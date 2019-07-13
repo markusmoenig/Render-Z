@@ -8,17 +8,25 @@
 
 import Foundation
 
-class ValueVariable : Node
+class FloatVariable : Node
 {
     override init()
     {
         super.init()
         
-        name = "Value"
-        type = "Value Variable"
+        name = "Float"
+        type = "Float Variable"
         brand = .Property
         
         properties["defaultValue"] = 0
+    }
+    
+    override func setup()
+    {
+        type = "Float Variable"
+        brand = .Property
+        
+        //helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/overview"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -29,7 +37,8 @@ class ValueVariable : Node
     {
         uiItems = [
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: properties["defaultValue"]!),
-            //NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1),
         ]
         
         let number = uiItems[0] as! NodeUINumber
@@ -45,9 +54,6 @@ class ValueVariable : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-        
-        type = "Value Variable"
-        brand = .Property
     }
     
     override func encode(to encoder: Encoder) throws
@@ -117,8 +123,8 @@ class DirectionVariable : Node
         uiItems = [
             NodeUIAngle(self, variable: "orientation", title: "", value: 0),
             NodeUINumber(self, variable: "angle", title: "Angle", range: float2(0,360), value: 0),
-            //NodeUISeparator(self, variable:"", title: ""),
-            //NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1)
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1)
         ]
         
         uiItems[1].linkedTo = uiItems[0]
@@ -198,18 +204,18 @@ class DirectionVariable : Node
     }
 }
 
-class PositionVariable : Node
+class Float2Variable : Node
 {
     override init()
     {
         super.init()
         
-        name = "Position"
+        name = "Float2"
     }
     
     override func setup()
     {
-        type = "Position Variable"
+        type = "Float2 Variable"
         brand = .Property
     }
     
@@ -222,6 +228,8 @@ class PositionVariable : Node
         uiItems = [
             NodeUINumber(self, variable: "x", title: "X", range: nil, value: 0),
             NodeUINumber(self, variable: "y", title: "Y", range: nil, value: 0),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1)
         ]
         
         if properties["defaultValueX"] != nil {
@@ -308,22 +316,22 @@ class PositionVariable : Node
     }
 }
 
-class ResetValueVariable : Node
+class ResetFloatVariable : Node
 {
     override init()
     {
         super.init()
         
-        name = "Reset Value"
-        type = "Reset Value Variable"
+        name = "Reset Float"
+        type = "Reset Float Variable"
         
-        uiConnections.append(UINodeConnection(.ValueVariable))
+        uiConnections.append(UINodeConnection(.FloatVariable))
     }
     
     override func setup()
     {
         brand = .Arithmetic
-        type = "Reset Value Variable"
+        type = "Reset Float Variable"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -340,7 +348,7 @@ class ResetValueVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIValueVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0])
+            NodeUIFloatVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0])
         ]
         super.setupUI(mmView: mmView)
     }
@@ -367,7 +375,7 @@ class ResetValueVariable : Node
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
-        if let target = uiConnections[0].target as? ValueVariable {
+        if let target = uiConnections[0].target as? FloatVariable {
             let number = target.uiItems[0] as? NodeUINumber
             target.setValue(number!.defaultValue)
             
@@ -378,20 +386,20 @@ class ResetValueVariable : Node
     }
 }
 
-class AddValueVariable : Node
+class AddFloatVariables : Node
 {
     override init()
     {
         super.init()
         
-        name = "Add Value"
-        uiConnections.append(UINodeConnection(.ValueVariable))
+        name = "Float Plus Float"
+        uiConnections.append(UINodeConnection(.FloatVariable))
     }
     
     override func setup()
     {
         brand = .Arithmetic
-        type = "Add Value Variable"
+        type = "Add Float Variable"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -408,7 +416,7 @@ class AddValueVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIValueVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
+            NodeUIFloatVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1),
             NodeUINumber(self, variable: "max", title: "Max", range: nil, value: 100)
@@ -438,7 +446,7 @@ class AddValueVariable : Node
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
-        if let target = uiConnections[0].target as? ValueVariable {
+        if let target = uiConnections[0].target as? FloatVariable {
             
             var value : Float = target.getValue() + properties["value"]!
             value = min( value, properties["max"]! )
@@ -451,20 +459,20 @@ class AddValueVariable : Node
     }
 }
 
-class SubtractValueVariable : Node
+class SubtractFloatVariables : Node
 {
     override init()
     {
         super.init()
         
-        name = "Subtract Value"
-        uiConnections.append(UINodeConnection(.ValueVariable))
+        name = "Float Minus Float"
+        uiConnections.append(UINodeConnection(.FloatVariable))
     }
     
     override func setup()
     {
         brand = .Arithmetic
-        type = "Subtract Value Variable"
+        type = "Subtract Float Variable"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -481,7 +489,7 @@ class SubtractValueVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIValueVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
+            NodeUIFloatVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1),
             NodeUINumber(self, variable: "min", title: "Min", range: nil, value: 0)
@@ -511,7 +519,7 @@ class SubtractValueVariable : Node
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
-        if let target = uiConnections[0].target as? ValueVariable {
+        if let target = uiConnections[0].target as? FloatVariable {
             let number = target.uiItems[0] as? NodeUINumber
             
             var value : Float = target.properties["value"]! - properties["value"]!
@@ -528,20 +536,20 @@ class SubtractValueVariable : Node
     }
 }
 
-class TestValueVariable : Node
+class TestFloatVariable : Node
 {
     override init()
     {
         super.init()
         
-        name = "Test Value"
-        uiConnections.append(UINodeConnection(.ValueVariable))
+        name = "Test Float"
+        uiConnections.append(UINodeConnection(.FloatVariable))
     }
     
     override func setup()
     {
         brand = .Arithmetic
-        type = "Test Value Variable"
+        type = "Test Float Variable"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -558,7 +566,7 @@ class TestValueVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIValueVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
+            NodeUIFloatVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIDropDown(self, variable: "mode", title: "Test", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1)
@@ -588,7 +596,7 @@ class TestValueVariable : Node
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
-        if let target = uiConnections[0].target as? ValueVariable {
+        if let target = uiConnections[0].target as? FloatVariable {
             
             let valueVariable : Float = target.properties["value"]!
             let myMode : Float = properties["mode"]!
@@ -700,22 +708,22 @@ class RandomDirection : Node
     }
 }
 
-class AddPositionVariables : Node
+class AddFloat2Variables : Node
 {
     override init()
     {
         super.init()
         
-        name = "Add Positions"
-        uiConnections.append(UINodeConnection(.PositionVariable))
-        uiConnections.append(UINodeConnection(.PositionVariable))
-        uiConnections.append(UINodeConnection(.PositionVariable))
+        name = "Float2 Plus Float2"
+        uiConnections.append(UINodeConnection(.Float2Variable))
+        uiConnections.append(UINodeConnection(.Float2Variable))
+        uiConnections.append(UINodeConnection(.Float2Variable))
     }
     
     override func setup()
     {
         brand = .Arithmetic
-        type = "Add Position Variables"
+        type = "Add Float2 Variables"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -732,11 +740,11 @@ class AddPositionVariables : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIPositionVariableTarget(self, variable: "augend", title: "Add", connection:  uiConnections[0]),
+            NodeUIFloat2VariableTarget(self, variable: "augend", title: "Add", connection:  uiConnections[0]),
             NodeUISeparator(self, variable: "", title: ""),
-            NodeUIPositionVariableTarget(self, variable: "addend", title: "Width", connection:  uiConnections[1]),
+            NodeUIFloat2VariableTarget(self, variable: "addend", title: "To", connection:  uiConnections[1]),
             NodeUISeparator(self, variable: "", title: ""),
-            NodeUIPositionVariableTarget(self, variable: "sum", title: "Result", connection:  uiConnections[2])
+            NodeUIFloat2VariableTarget(self, variable: "sum", title: "Result", connection:  uiConnections[2])
         ]
         super.setupUI(mmView: mmView)
     }
@@ -763,9 +771,9 @@ class AddPositionVariables : Node
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
-        if let augend = uiConnections[0].target as? PositionVariable {
-            if let addend = uiConnections[1].target as? PositionVariable {
-                if let result = uiConnections[2].target as? PositionVariable {
+        if let augend = uiConnections[0].target as? Float2Variable {
+            if let addend = uiConnections[1].target as? Float2Variable {
+                if let result = uiConnections[2].target as? Float2Variable {
                     let sum = augend.getValue() + addend.getValue()
                     
                     result.setValue(sum)
@@ -778,23 +786,22 @@ class AddPositionVariables : Node
     }
 }
 
-
-class SubtractPositionVariables : Node
+class SubtractFloat2Variables : Node
 {
     override init()
     {
         super.init()
         
-        name = "Subtract Positions"
-        uiConnections.append(UINodeConnection(.PositionVariable))
-        uiConnections.append(UINodeConnection(.PositionVariable))
-        uiConnections.append(UINodeConnection(.PositionVariable))
+        name = "Float2 Minus Float2"
+        uiConnections.append(UINodeConnection(.Float2Variable))
+        uiConnections.append(UINodeConnection(.Float2Variable))
+        uiConnections.append(UINodeConnection(.Float2Variable))
     }
     
     override func setup()
     {
         brand = .Arithmetic
-        type = "Subtract Position Variables"
+        type = "Subtract Float2 Variables"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -811,11 +818,11 @@ class SubtractPositionVariables : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIPositionVariableTarget(self, variable: "subtrahend", title: "Subtract", connection:  uiConnections[0]),
+            NodeUIFloat2VariableTarget(self, variable: "subtrahend", title: "Subtract", connection:  uiConnections[0]),
             NodeUISeparator(self, variable: "", title: ""),
-            NodeUIPositionVariableTarget(self, variable: "minuend", title: "From", connection:  uiConnections[1]),
+            NodeUIFloat2VariableTarget(self, variable: "minuend", title: "From", connection:  uiConnections[1]),
             NodeUISeparator(self, variable: "", title: ""),
-            NodeUIPositionVariableTarget(self, variable: "difference", title: "Result", connection:  uiConnections[2])
+            NodeUIFloat2VariableTarget(self, variable: "difference", title: "Result", connection:  uiConnections[2])
         ]
         super.setupUI(mmView: mmView)
     }
@@ -842,9 +849,9 @@ class SubtractPositionVariables : Node
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
-        if let subtrahend = uiConnections[0].target as? PositionVariable {
-            if let minuend = uiConnections[1].target as? PositionVariable {
-                if let result = uiConnections[2].target as? PositionVariable {
+        if let subtrahend = uiConnections[0].target as? Float2Variable {
+            if let minuend = uiConnections[1].target as? Float2Variable {
+                if let result = uiConnections[2].target as? Float2Variable {
                     let difference = minuend.getValue() - subtrahend.getValue()
                     
                     result.setValue(difference)
@@ -857,20 +864,20 @@ class SubtractPositionVariables : Node
     }
 }
 
-class TestPositionVariable : Node
+class TestFloat2Variable : Node
 {
     override init()
     {
         super.init()
         
-        name = "Test Position"
-        uiConnections.append(UINodeConnection(.PositionVariable))
+        name = "Test Float2"
+        uiConnections.append(UINodeConnection(.Float2Variable))
     }
     
     override func setup()
     {
         brand = .Arithmetic
-        type = "Test Position Variable"
+        type = "Test Float2 Variable"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -887,7 +894,7 @@ class TestPositionVariable : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIPositionVariableTarget(self, variable: "variable", title: "Variable", connection:  uiConnections[0]),
+            NodeUIFloat2VariableTarget(self, variable: "variable", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIDropDown(self, variable: "coordinate", title: "Coordinate", items: ["X", "Y"], index: 0),
             NodeUIDropDown(self, variable: "mode", title: "Test", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
@@ -918,7 +925,7 @@ class TestPositionVariable : Node
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         playResult = .Failure
-        if let variable = uiConnections[0].target as? PositionVariable {
+        if let variable = uiConnections[0].target as? Float2Variable {
             
             let position : float2 = variable.getValue()
             let myCoordinate : Float = properties["coordinate"]!
@@ -951,6 +958,92 @@ class TestPositionVariable : Node
                     playResult = .Success
                 }
             }
+        }
+        
+        return playResult!
+    }
+}
+
+class LimitFloat2Range : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Limit Float2 Range"
+        uiConnections.append(UINodeConnection(.Float2Variable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Limit Float2 Range"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIFloat2VariableTarget(self, variable: "variable", title: "Variable", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "coordinate", title: "Coordinate", items: ["X", "Y"], index: 0),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUINumber(self, variable: "upper", title: "Upper", range: nil, value: 100),
+            NodeUINumber(self, variable: "lower", title: "Lower", range: nil, value: -100),
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// test value from variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let variable = uiConnections[0].target as? Float2Variable {
+            
+            var position : float2 = variable.getValue()
+            let myCoordinate : Float = properties["coordinate"]!
+            let upperBorder : Float = properties["upper"]!
+            let lowerBorder : Float = properties["lower"]!
+            
+            if myCoordinate == 0 {
+                position.x = max(lowerBorder, position.x)
+                position.x = min(upperBorder, position.x)
+            } else {
+                position.y = max(lowerBorder, position.y)
+                position.y = min(upperBorder, position.y)
+            }
+            
+            variable.setValue(position)
+            
+            playResult = .Success
         }
         
         return playResult!

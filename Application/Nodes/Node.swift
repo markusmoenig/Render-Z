@@ -253,10 +253,10 @@ class Node : Codable, Equatable
 class UINodeConnection: Codable
 {
     enum ConnectionType: Int, Codable {
-        case Object, ObjectInstance, Animation, ValueVariable, DirectionVariable, LayerArea, Scene, PositionVariable
+        case Object, ObjectInstance, Animation, FloatVariable, DirectionVariable, LayerArea, Scene, Float2Variable
     }
     
-    var connectionType      : ConnectionType = .ValueVariable
+    var connectionType      : ConnectionType = .FloatVariable
     
     var connectedMaster     : UUID? = nil
     var connectedTo         : UUID? = nil
@@ -521,16 +521,27 @@ enum NodeFamily: String, NodeClassFamily {
     case scene = "Scene"
     case game = "Game"
     case valueVariable = "Value Variable"
+    case floatVariable = "Float Variable"
     case directionVariable = "Direction Variable"
     case positionVariable = "Position Variable"
+    case float2Variable = "Float2 Variable"
     case addValueVariable = "Add Value Variable"
+    case addFloatVariable = "Add Float Variable"
     case subtractValueVariable = "Subtract Value Variable"
+    case subtractFloatVariable = "Subtract Float Variable"
     case resetValueVariable = "Reset Value Variable"
+    case resetFloatVariable = "Reset Float Variable"
     case testValueVariable = "Test Value Variable"
+    case testFloatVariable = "Test Float Variable"
     case randomDirection = "Random Direction"
     case addPositionVariables = "Add Position Variables"
+    case addFloat2Variables = "Add Float2 Variables"
     case subtractPositionVariables = "Subtract Position Variables"
+    case subtractFloat2Variables = "Subtract Float2 Variables"
     case testPositionVariable = "Test Position Variable"
+    case testFloat2Variable = "Test Float2 Variable"
+    case limitPositionRange = "Limit Position Range"
+    case limitFloat2Range = "Limit Float2 Range"
 
     static var discriminator: NodeDiscriminator = .type
     
@@ -603,29 +614,31 @@ enum NodeFamily: String, NodeClassFamily {
             case .keyDown:
                 return KeyDown.self
             
-            case .valueVariable:
-                return ValueVariable.self
+            case .valueVariable, .floatVariable:
+                return FloatVariable.self
             case .directionVariable:
                 return DirectionVariable.self
-            case .positionVariable:
-                return PositionVariable.self
-            case .addValueVariable:
-                return AddValueVariable.self
-            case .subtractValueVariable:
-                return SubtractValueVariable.self
-            case .resetValueVariable:
-                return ResetValueVariable.self
-            case .testValueVariable:
-                return TestValueVariable.self
+            case .positionVariable, .float2Variable:
+                return Float2Variable.self
+            case .limitPositionRange, .limitFloat2Range:
+                return LimitFloat2Range.self
+            case .addValueVariable, .addFloatVariable:
+                return AddFloatVariables.self
+            case .subtractValueVariable, .subtractFloatVariable:
+                return SubtractFloatVariables.self
+            case .resetValueVariable, .resetFloatVariable:
+                return ResetFloatVariable.self
+            case .testValueVariable, .testFloatVariable:
+                return TestFloatVariable.self
             case .randomDirection:
                 return RandomDirection.self
             
-            case .addPositionVariables:
-                return AddPositionVariables.self
-            case .subtractPositionVariables:
-                return SubtractPositionVariables.self
-            case .testPositionVariable:
-                return TestPositionVariable.self
+            case .addPositionVariables, .addFloat2Variables:
+                return AddFloat2Variables.self
+            case .subtractPositionVariables, .subtractFloat2Variables:
+                return SubtractFloat2Variables.self
+            case .testPositionVariable, .testFloat2Variable:
+                return TestFloat2Variable.self
         }
     }
 }
