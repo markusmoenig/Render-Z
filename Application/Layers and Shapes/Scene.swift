@@ -119,12 +119,12 @@ class Scene : Node
                 
                 var factor : Float = 1
 
-                if let size = platformSize {
-                    xFactor = nodeGraph.previewSize.x / size.x
-                    yFactor = nodeGraph.previewSize.y / size.y
+                //if let size = platformSize {
+                    xFactor = nodeGraph.previewSize.x / width
+                    yFactor = nodeGraph.previewSize.y / height
                     
                     factor = min(xFactor, yFactor)
-                }
+                //}
                 
                 gameCamera.zoom = factor
                 

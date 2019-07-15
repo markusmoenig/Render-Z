@@ -2950,6 +2950,8 @@ class NodeGraph : Codable
         #elseif os(iOS)
         if let ipad = getNodeOfType("Platform IPAD") as? GamePlatformIPAD {
             size = ipad.getScreenSize()
+        } else {
+            size = float2(mmView.renderer.cWidth, mmView.renderer.cHeight)
         }
         #endif
         return size
