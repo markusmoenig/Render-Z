@@ -13,7 +13,7 @@ class ObjectPhysics : Node
     override init()
     {
         super.init()
-        name = "Physics Properties"
+        name = "Physic Properties"
     }
     
     override func setup()
@@ -36,13 +36,13 @@ class ObjectPhysics : Node
             NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 5), value: 0.2),
             NodeUINumber(self, variable: "physicsFriction", title: "Friction", range: float2(0, 1), value: 0.3),
             NodeUIDropDown(self, variable: "physicsSupportsRotation", title: "Rotation", items: ["No", "Yes"], index: 1),
-            NodeUIDropDown(self, variable: "physicsCollisions", title: "Collisions", items: ["Natural", "Reflect"], index: 0)
+            NodeUIDropDown(self, variable: "physicsCollisions", title: "Collisions", items: ["Normal", "Reflect", "Custom"], index: 0)
         ]
         
         super.setupUI(mmView: mmView)
     }
     
-    override func updateUIState()
+    override func updateUIState(mmView: MMView)
     {
         let mode = properties["physicsMode"]!
         let collisions = properties["physicsCollisions"]!
@@ -53,7 +53,7 @@ class ObjectPhysics : Node
         uiItems[4].isDisabled = mode == 0 || mode == 1 || collisions == 1
         uiItems[5].isDisabled = mode == 0 || mode == 1
 
-        super.updateUIState()
+        super.updateUIState(mmView: mmView)
     }
     
     required init(from decoder: Decoder) throws
@@ -130,7 +130,7 @@ class GetSetObjectProperty : Node
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Of Instance", connection: uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "property", title: "Property", items: ["Position", "Scale", "Rotation", "Active", "Opacity", "Velocity"], index: 0),
+            NodeUIDropDown(self, variable: "property", title: "Property", items: ["Position", "Scale", "Rotation", "Active", "Opacity", "Mass", "Restitution", "Friction", "Velocity", "Collision Normal"], index: 0),
             NodeUIDropDown(self, variable: "mode", title: "Mode", items: ["Get", "Set"], index: 0),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIFloat2VariableTarget(self, variable: "float2", title: "Float2", connection: uiConnections[1])
@@ -140,33 +140,33 @@ class GetSetObjectProperty : Node
         super.setupUI(mmView: mmView)
     }
     
-    override func updateUIState()
+    override func updateUIState(mmView: MMView)
     {
         if recursionBlocker == true { return }
         recursionBlocker = true
         let property = Int(properties["property"]!)
         
-        let posProperties : [Int] = [0, 1]
-        let dirProperties : [Int] = [5]
-        let valueProperties : [Int] = [2, 3, 4]
+        let posProperties : [Int] = [0, 1, 8, 9]
+        let dirProperties : [Int] = []
+        let valueProperties : [Int] = [2, 3, 4, 5, 6, 7]
 
         if posProperties.contains(property) && uiItems[5].role != .Float2VariableTarget {
             uiItems.removeLast()
             uiItems.append(NodeUIFloat2VariableTarget(self, variable: "float2", title: "Float2", connection: uiConnections[1]))
-            computeUIArea(mmView: uiConnections[0].nodeGraph!.mmView)
+            computeUIArea(mmView: mmView)
         } else
         if dirProperties.contains(property) && uiItems[5].role != .DirectionVariableTarget {
             uiItems.removeLast()
             uiItems.append(NodeUIDirectionVariableTarget(self, variable: "direction", title: "Direction", connection: uiConnections[2]))
-            computeUIArea(mmView: uiConnections[0].nodeGraph!.mmView)
+            computeUIArea(mmView: mmView)
         } else
         if valueProperties.contains(property) && uiItems[5].role != .FloatVariableTarget {
             uiItems.removeLast()
             uiItems.append(NodeUIFloatVariableTarget(self, variable: "float", title: "Float", connection: uiConnections[3]))
-            computeUIArea(mmView: uiConnections[0].nodeGraph!.mmView)
+            computeUIArea(mmView: mmView)
         }
         
-        super.updateUIState()
+        super.updateUIState(mmView: mmView)
         recursionBlocker = false
     }
     
@@ -246,101 +246,80 @@ class GetSetObjectProperty : Node
                         }
                         playResult = .Success
                     } else
-                    if property == 5 && posVariable != nil { // Velocity
+                    if property == 5 && valueVariable != nil { // Mass
                         if let body = inst.body {
                             if mode == 0 {
-                                posVariable!.setValue(body.velocity)
+                                valueVariable!.setValue(body.mass)
                             } else {
-                                let value = posVariable!.getValue()
-                                body.velocity = value
+                                let value = valueVariable!.getValue()
+                                body.mass = value
+                                if value == 0 {
+                                    body.invMass = 0
+                                } else {
+                                    body.invMass = 1 / value
+                                }
                             }
                             playResult = .Success
                         }
-                    }
-                }
-            }
-        }
-        
-        return playResult!
-    }
-}
-
-
-/// Sets a physic property
-class SetObjectPhysics : Node
-{
-    override init()
-    {
-        super.init()
-        
-        name = "Set Physic Property"
-        uiConnections.append(UINodeConnection(.ObjectInstance))
-    }
-    
-    override func setup()
-    {
-        brand = .Function
-        type = "Set Object Physics"
-    }
-    
-    private enum CodingKeys: String, CodingKey {
-        case type
-    }
-    
-    override func setupTerminals()
-    {
-        terminals = [
-            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
-        ]
-    }
-    
-    override func setupUI(mmView: MMView)
-    {
-        uiItems = [
-            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
-            NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "property", title: "Property", items: ["Mass", "Restitution"], index: 0),
-            NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1),
-        ]
-        super.setupUI(mmView: mmView)
-    }
-    
-    required init(from decoder: Decoder) throws
-    {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        let superDecoder = try container.superDecoder()
-        try super.init(from: superDecoder)
-    }
-    
-    override func encode(to encoder: Encoder) throws
-    {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(type, forKey: .type)
-        
-        let superdecoder = container.superEncoder()
-        try super.encode(to: superdecoder)
-    }
-    
-    /// Execute the given animation
-    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
-    {
-        playResult = .Failure
-        
-        if root.objectRoot != nil {
-            if uiConnections[0].connectedTo != nil {
-                if let inst = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
-                    let property = properties["property"]!
-                    let value = properties["value"]!
-                    
-                    if let body = inst.body {
-                        if property == 0 {
-                            body.mass = value
-                        } else
-                        if property == 1 {
-                            body.restitution = value
+                    } else
+                    if property == 6 && valueVariable != nil { // Restitution
+                        if let body = inst.body {
+                            if mode == 0 {
+                                valueVariable!.setValue(body.restitution)
+                            } else {
+                                let value = valueVariable!.getValue()
+                                body.restitution = value
+                            }
+                            playResult = .Success
                         }
-                        playResult = .Success
+                    } else
+                    if property == 7 && valueVariable != nil { // Friction
+                        if let body = inst.body {
+                            if mode == 0 {
+                                valueVariable!.setValue(body.dynamicFriction)
+                            } else {
+                                let value = valueVariable!.getValue()
+                                body.dynamicFriction = value
+                                body.staticFriction = value + 0.2
+                                if value == 0 {
+                                    body.invMass = 0
+                                } else {
+                                    body.invMass = 1 / value
+                                }
+                            }
+                            playResult = .Success
+                        }
+                    } else
+                    if property == 8 && posVariable != nil { // Velocity
+                        if let body = inst.body {
+                            if mode == 0 {
+                                posVariable!.setValue(body.velocity)
+                                playResult = .Success
+                            } else {
+                                if body.collisionMode == 2 {
+                                    // Only set velocity when in custom collision mode
+                                    let value = posVariable!.getValue()
+                                    body.velocity = value
+                                    
+                                    let delta : Float = 1/60
+                                    body.integrateVelocity(delta)
+                                    body.integrateForces(delta)
+                                    
+                                    body.force = float2(0,0)
+                                    body.torque = 0
+                                    
+                                    playResult = .Success
+                                }
+                            }
+                        }
+                    } else
+                    if property == 9 && posVariable != nil { // Collision Normal
+                        if let body = inst.body {
+                            if mode == 0 {
+                                posVariable!.setValue(body.manifold != nil ? body.manifold!.normal : float2(0,0))
+                            }
+                            playResult = .Success
+                        }
                     }
                 }
             }
@@ -971,12 +950,19 @@ class ObjectCollisionAny : Node
                 if let instance = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
                     
                     if let body = instance.body {
-                        for (_, distance) in body.distanceInfos {
-                            if distance < 0 {
-                                playResult = .Success
-                            }
+                        if body.manifold != nil {
+                            playResult = .Success
                         }
                     }
+                
+                    //if let body = instance.body {
+                    //    for (_, distance) in body.distanceInfos {
+                    //        if distance < 0.2 {
+                    //            playResult = .Success
+                    //            print("yesyes")
+                    //        }
+                    //    }
+                    //}
                 }
             }
         }

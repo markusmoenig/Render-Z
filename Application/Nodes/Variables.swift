@@ -386,13 +386,13 @@ class ResetFloatVariable : Node
     }
 }
 
-class AddFloatVariables : Node
+class AddConstFloatVariable : Node
 {
     override init()
     {
         super.init()
         
-        name = "Float Plus Float"
+        name = "Const Plus Float"
         uiConnections.append(UINodeConnection(.FloatVariable))
     }
     
@@ -459,13 +459,13 @@ class AddFloatVariables : Node
     }
 }
 
-class SubtractFloatVariables : Node
+class SubtractConstFloatVariable : Node
 {
     override init()
     {
         super.init()
         
-        name = "Float Minus Float"
+        name = "Float Minus Const"
         uiConnections.append(UINodeConnection(.FloatVariable))
     }
     
@@ -1049,3 +1049,82 @@ class LimitFloat2Range : Node
         return playResult!
     }
 }
+
+class ReflectFloat2Variables : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Reflect"
+        uiConnections.append(UINodeConnection(.Float2Variable))
+        uiConnections.append(UINodeConnection(.Float2Variable))
+        uiConnections.append(UINodeConnection(.Float2Variable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Reflect Float2 Variables"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIFloat2VariableTarget(self, variable: "velocity", title: "Velocity", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable: "", title: ""),
+            NodeUIFloat2VariableTarget(self, variable: "normal", title: "Normal", connection:  uiConnections[1]),
+            NodeUISeparator(self, variable: "", title: ""),
+            NodeUIFloat2VariableTarget(self, variable: "result", title: "Result", connection:  uiConnections[2])
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Subtract value from variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let velocity = uiConnections[0].target as? Float2Variable {
+            if let normal = uiConnections[1].target as? Float2Variable {
+                if let result = uiConnections[2].target as? Float2Variable {
+                    let reflect = simd_reflect(velocity.getValue(), normal.getValue())
+                    
+                    result.setValue(reflect)
+                    playResult = .Success
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}
+

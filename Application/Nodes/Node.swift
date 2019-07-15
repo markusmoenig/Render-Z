@@ -165,11 +165,11 @@ class Node : Codable, Equatable
         for item in uiItems {
             item.update()
         }
-        updateUIState()
+        updateUIState(mmView: mmView)
     }
     
     /// Update the UI State
-    func updateUIState()
+    func updateUIState(mmView: MMView)
     {
     }
     
@@ -202,7 +202,7 @@ class Node : Codable, Equatable
         
         uiMaxWidth -= NodeUI.titleMargin.width() + NodeUI.titleSpacing
         
-        updateUIState()
+        updateUIState(mmView: mmView)
     }
     
     /// A UI Variable changed
@@ -224,7 +224,7 @@ class Node : Codable, Equatable
         if continuous == false {
             applyProperties(variable, newValue, oldValue)
         }
-        self.updateUIState()
+        self.updateUIState(mmView: self.nodeGraph!.mmView)
     }
     
     /// Executes the connected properties
@@ -492,7 +492,6 @@ enum NodeDiscriminator: String, CodingKey {
 enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
     case objectPhysics = "Object Physics"
-    case setObjectPhysics = "Set Object Physics"
     //case objectProfile = "3D Profile"
     case objectAnimation = "Object Animation"
     case objectAnimationState = "Object Animation State"
@@ -538,6 +537,7 @@ enum NodeFamily: String, NodeClassFamily {
     case addFloat2Variables = "Add Float2 Variables"
     case subtractPositionVariables = "Subtract Position Variables"
     case subtractFloat2Variables = "Subtract Float2 Variables"
+    case reflectFloat2Variables = "Reflect Float2 Variables"
     case testPositionVariable = "Test Position Variable"
     case testFloat2Variable = "Test Float2 Variable"
     case limitPositionRange = "Limit Position Range"
@@ -553,8 +553,6 @@ enum NodeFamily: String, NodeClassFamily {
                 return Object.self
             case .objectPhysics:
                 return ObjectPhysics.self
-            case .setObjectPhysics:
-                return SetObjectPhysics.self
             //case .objectProfile:
             //    return ObjectProfile.self
             case .objectAnimation:
@@ -623,9 +621,9 @@ enum NodeFamily: String, NodeClassFamily {
             case .limitPositionRange, .limitFloat2Range:
                 return LimitFloat2Range.self
             case .addValueVariable, .addFloatVariable:
-                return AddFloatVariables.self
+                return AddConstFloatVariable.self
             case .subtractValueVariable, .subtractFloatVariable:
-                return SubtractFloatVariables.self
+                return SubtractConstFloatVariable.self
             case .resetValueVariable, .resetFloatVariable:
                 return ResetFloatVariable.self
             case .testValueVariable, .testFloatVariable:
@@ -637,6 +635,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return AddFloat2Variables.self
             case .subtractPositionVariables, .subtractFloat2Variables:
                 return SubtractFloat2Variables.self
+            case .reflectFloat2Variables:
+                return ReflectFloat2Variables.self
             case .testPositionVariable, .testFloat2Variable:
                 return TestFloat2Variable.self
         }

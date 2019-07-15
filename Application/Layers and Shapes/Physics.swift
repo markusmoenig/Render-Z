@@ -384,11 +384,17 @@ class Physics
         
         let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 4)
         
+        for collisionObject in instance.collisionObjects {
+            collisionObject.body!.manifold = nil
+        }
+
         offset = 0
         var manifolds : [Manifold] = []
         for object in instance.dynamicObjects {
             
+            object.body!.manifold = nil
             for collisionObject in instance.collisionObjects {
+                
                 if collisionObject !== object {
                     
                     var contacts : [float4] = []
@@ -404,8 +410,8 @@ class Physics
                         let penetration : Float = result[diskOffset]
                         let distance : Float = result[diskOffset+1]
                         
-                        if distance < shortestDistance {
-                            shortestDistance = distance
+                        if distance - disk.distance < shortestDistance {
+                            shortestDistance = distance -  disk.distance
                         }
                         
                         func rotateCWWithPivot(_ pos : float2,_ angle: Float,_ pivot: float2 ) -> float2
@@ -431,10 +437,6 @@ class Physics
                         
                         if ( penetration > hitPenetration )
                         {
-                            //if object.disks.count > 1 && abs(penetration) < 5 {
-                            //    print(object.name, i, distance, penetration)
-                            //}
-                            
                             //print(object.name, collisionObject.name, i, penetration)
                             
                             let localNormal = float2( result[diskOffset + 2], result[diskOffset + 3] )
@@ -464,26 +466,36 @@ class Physics
                     
                     if contacts.isEmpty == false {
                         //print("hit", object.name, collisionObject.name, contacts.count)
-                        
-                        if object.body!.collisionsReflect == false {
-                            let manifold = Manifold(object.body!, collisionObject.body!, penetrationDepth: penetrationDepth, normal: normal, contacts: contacts)//instance.objectMap[Int(id)]!.body!)
-                            
+
+                        let manifold = Manifold(object.body!, collisionObject.body!, penetrationDepth: penetrationDepth, normal: normal, contacts: contacts)
+                        object.body!.manifold = manifold
+                        collisionObject.body!.manifold = manifold
+                        manifolds.append(manifold)
+
+                        if object.body!.collisionMode == 0 {
                             manifold.resolve()
-                            manifolds.append(manifold)
-                        } else {
+                        } else
+                        if object.body!.collisionMode == 1 {
                             // --- Reflect
                             object.body!.velocity = simd_reflect(object.body!.velocity, normal)
+                        } else
+                        if object.body!.collisionMode == 2 {
+                            // --- Custom
+                            print("collision", object.name, collisionObject.name, object.body!.distanceInfos[collisionObject.uuid]!)
                         }
                     }
                     offset += maxDisks * 4
                 }
             }
             
-            object.body!.integrateVelocity(delta)
-            object.body!.integrateForces(delta)
-            
-            object.body!.force = float2(0,0)
-            object.body!.torque = 0
+            if object.body!.collisionMode == 2 && object.body!.manifold != nil {
+            } else {
+                object.body!.integrateVelocity(delta)
+                object.body!.integrateForces(delta)
+                
+                object.body!.force = float2(0,0)
+                object.body!.torque = 0
+            }
         }
         //accumulator -= delta
         
@@ -549,7 +561,10 @@ class Body
     
     var supportsRotation    : Bool = false
     
-    var collisionsReflect   : Bool = false
+    var collisionMode       : Int = 0
+    
+    // Stores the last collision manifold for node reference
+    var manifold            : Manifold? = nil
     
     init(_ object: Object,_ layer: Layer)
     {
@@ -582,7 +597,7 @@ class Body
             restitution = object.properties["physicsRestitution"]!
             supportsRotation = object.properties["physicsSupportsRotation"]! == 1 ? true : false
             
-            collisionsReflect = object.properties["physicsCollisions"]! == 1 ? true : false
+            collisionMode = Int(object.properties["physicsCollisions"]!)
         }
         
         dynamicFriction = object.properties["physicsFriction"]!
@@ -661,7 +676,7 @@ class Manifold
         restitution = min(bodyA.restitution, bodyB.restitution)
         staticFriction = sqrt(bodyA.staticFriction * bodyB.staticFriction)
         dynamicFriction = sqrt(bodyA.dynamicFriction * bodyB.dynamicFriction)
-        
+
         //
         
         for contact in contacts {

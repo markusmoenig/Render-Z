@@ -195,12 +195,6 @@ class NodeList : MMWidget
             return ObjectTouchLayerArea()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
-        // --- Object Set Physics
-        item = NodeListItem("Set Physic Property")
-        item.createNode = {
-            return SetObjectPhysics()
-        }
-        addNodeItem(item, type: .Function, displayType: .Object)
         // --- Get Set Object Property
         item = NodeListItem("Get Set Property")
         item.createNode = {
@@ -266,55 +260,61 @@ class NodeList : MMWidget
         addNodeItem(item, type: .Behavior, displayType: .All)
 
         // --- Arithmetic
-        item = NodeListItem("Float2 Plus Float2")
+        item = NodeListItem("Add(Float2, Float2)")
         item.createNode = {
             return AddFloat2Variables()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Float2 Minus Float2")
+        item = NodeListItem("Sub(Float2, Float2)")
         item.createNode = {
             return SubtractFloat2Variables()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Test Float2")
+        item = NodeListItem("Reflect(Float2, Float2)")
+        item.createNode = {
+            return ReflectFloat2Variables()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
+        item = NodeListItem("Test(Float2)")
         item.createNode = {
             return TestFloat2Variable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Limit Float2 Range")
+        item = NodeListItem("Limit(Float2)")
         item.createNode = {
             return LimitFloat2Range()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Float Plus Float")
+        item = NodeListItem("Add(Const, Float)")
         item.createNode = {
-            return AddFloatVariables()
+            return AddConstFloatVariable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
 
-        item = NodeListItem("Float Minus Float")
+        item = NodeListItem("Sub(Const, Float)")
         item.createNode = {
-            return SubtractFloatVariables()
+            return SubtractConstFloatVariable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Reset Float")
+        item = NodeListItem("Reset(Float)")
         item.createNode = {
             return ResetFloatVariable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Test Float")
+        item = NodeListItem("Test(Float)")
         item.createNode = {
             return TestFloatVariable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Random Direction")
+        item = NodeListItem("Random -> Direction")
         item.createNode = {
             return RandomDirection()
         }
