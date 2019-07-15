@@ -149,9 +149,7 @@ class Shape : Codable
                 if name == "Text" {
                     code = code.replacingOccurrences(of: "__text_chars__", with: "&chars\(shapeIndex!)[0]")
                 } else {
-                    
                     code = code.replacingOccurrences(of: "sdVariable", with: "sdVariableConstant")
-                    
                     code = code.replacingOccurrences(of: "__text_chars__", with: "&\(mainDataName)variables[\(variableIndex!)].chars[0]")
                 }
             }

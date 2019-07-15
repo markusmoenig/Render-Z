@@ -36,6 +36,7 @@ class EditorWidget      : MMWidget
         dropTargets.append( "Object Instance" )
         dropTargets.append( "Layer Area" )
         dropTargets.append( "Animation" )
+        dropTargets.append( "Behavior Tree" )
     }
 
     override func keyDown(_ event: MMKeyEvent)

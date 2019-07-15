@@ -558,6 +558,10 @@ class Builder
             let distanceCode = "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, shapeIndex: buildData.shapeIndex, mainDataName: buildData.mainDataName, variableIndex: buildData.variableIndex) + ";\n"
             buildData.source += distanceCode
             
+            if shape.name == "Variable" {
+                buildData.variableIndex += 1
+            }
+            
             if shape.supportsRounding {
                 buildData.source += "newDist -= shape->rounding;\n"
             }
@@ -1028,6 +1032,7 @@ class Builder
                             instance.data![offset + 11] = 1
                         }
                     }
+                    variablesDataIndex += 1
                 }
                 
                 // Shape processing finished

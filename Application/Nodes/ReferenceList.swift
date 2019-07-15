@@ -27,7 +27,7 @@ class ReferenceItem {
 class ReferenceList {
     
     enum Mode {
-        case Variables, ObjectInstances, LayerAreas, Animations
+        case Variables, ObjectInstances, LayerAreas, Animations, BehaviorTrees
     }
     
     var currentMode         : Mode = .Variables
@@ -62,7 +62,6 @@ class ReferenceList {
         for node in nodeGraph.nodes
         {
             if node.type == "Float Variable" || node.type == "Direction Variable" || node.type == "Float2 Variable" {
-                
                 let belongsToMaster = nodeGraph.currentMaster!.subset!.contains(node.uuid)
                 if node.properties["access"]! == 1 && !belongsToMaster {
                     continue
@@ -84,6 +83,45 @@ class ReferenceList {
                 item.uuid = node.uuid
                 item.classUUID = master.uuid
 
+                if belongsToMaster {
+                    refs.insert(item, at: selfOffset)
+                    selfOffset += 1
+                } else {
+                    refs.append(item)
+                }
+            }
+        }
+    }
+    
+    func createBehaviorTreesList()
+    {
+        currentMode = .BehaviorTrees
+        refs = []
+        var selfOffset : Int = 0
+        for node in nodeGraph.nodes
+        {
+            if node.type == "Behavior Tree" {
+                let belongsToMaster = nodeGraph.currentMaster!.subset!.contains(node.uuid)
+                //if node.properties["access"]! == 1 && !belongsToMaster {
+                //    continue
+                //}
+                
+                let item = ReferenceItem(nodeGraph.mmView)
+                
+                let name : String = node.name
+                
+                let master = nodeGraph.getMasterForNode(node)!
+                var category : String = master.type + ": " + master.name
+                if belongsToMaster {
+                    category += " - Self"
+                }
+                
+                item.name.setText( name, scale: 0.4)
+                item.category.setText(category, scale: 0.3)
+                item.color = nodeGraph.mmView.skin.Node.behaviorColor
+                item.uuid = node.uuid
+                item.classUUID = master.uuid
+                
                 if belongsToMaster {
                     refs.insert(item, at: selfOffset)
                     selfOffset += 1
@@ -123,15 +161,21 @@ class ReferenceList {
     {
         currentMode = .ObjectInstances
         refs = []
+        var selfOffset : Int = 0
         for node in nodeGraph.nodes
         {
             if let layer = node as? Layer {
-                
+
                 for inst in layer.objectInstances {
+                    let belongsToMaster = nodeGraph.currentMaster!.uuid == inst.objectUUID
                     let item = ReferenceItem(nodeGraph.mmView)
                     
-                    let name : String = inst.name
+                    var name : String = inst.name
                     let category : String = layer.name
+                    
+                    if belongsToMaster {
+                        name += " - Self"
+                    }
                     
                     item.name.setText( name, scale: 0.4)
                     item.category.setText(category, scale: 0.3)
@@ -139,7 +183,12 @@ class ReferenceList {
                     item.uuid = inst.uuid
                     item.classUUID = layer.uuid
                     
-                    refs.append(item)
+                    if belongsToMaster {
+                        refs.insert(item, at: selfOffset)
+                        selfOffset += 1
+                    } else {
+                        refs.append(item)
+                    }
                 }
             }
         }
@@ -289,7 +338,7 @@ class ReferenceList {
         var name : String = ""
         var type : String = ""
         
-        if node != nil && (currentMode == .Variables || currentMode == .LayerAreas) {
+        if node != nil && (currentMode == .Variables || currentMode == .LayerAreas || currentMode == .BehaviorTrees) {
             name = node!.name
             type = node!.type
         } else
@@ -340,6 +389,9 @@ class ReferenceList {
         if currentMode == .Animations {
             createAnimationList()
         }
+        if currentMode == .BehaviorTrees {
+            createBehaviorTreesList()
+        }
     }
     
     /// Activates and switches to the given type
@@ -361,6 +413,10 @@ class ReferenceList {
         if id == "Animation" {
             createAnimationList()
             nodeGraph.previewInfoMenu.setText("Animations")
+        }
+        if id == "Behavior Tree" {
+            createBehaviorTreesList()
+            nodeGraph.previewInfoMenu.setText("Behavior Trees")
         }
         
         if selected != nil {

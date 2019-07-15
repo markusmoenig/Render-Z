@@ -217,7 +217,9 @@ class App
     {
         if nodeGraph.maximizedNode != nil {
             if let objectMaxDelegate = object.maxDelegate as? ObjectMaxDelegate {
-                objectMaxDelegate.update(true, updateLists: true)
+                if nodeGraph.maximizedNode === object { // ???
+                    objectMaxDelegate.update(true, updateLists: true)
+                }
             }
             /*
             else

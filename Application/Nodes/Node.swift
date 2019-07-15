@@ -253,7 +253,7 @@ class Node : Codable, Equatable
 class UINodeConnection: Codable
 {
     enum ConnectionType: Int, Codable {
-        case Object, ObjectInstance, Animation, FloatVariable, DirectionVariable, LayerArea, Scene, Float2Variable
+        case Object, ObjectInstance, Animation, FloatVariable, DirectionVariable, LayerArea, Scene, Float2Variable, BehaviorTree
     }
     
     var connectionType      : ConnectionType = .FloatVariable
@@ -498,6 +498,7 @@ enum NodeFamily: String, NodeClassFamily {
     case objectApplyForce = "Object Apply Force"
     case objectApplyDirectionalForce = "Object Apply Directional Force"
     case objectCollisionAny = "Object Collision (Any)"
+    case objectCollisionWith = "Object Collision With"
     case objectTouchLayerArea = "Object Touch Layer Area"
     case objectReset = "Object Reset"
     case objectDistanceTo = "Object Distance To"
@@ -507,6 +508,7 @@ enum NodeFamily: String, NodeClassFamily {
     case gamePlatformIPAD = "Platform IPAD"
     case gamePlayScene = "Game Play Scene"
     case behaviorTree = "Behavior Tree"
+    case executeBehaviorTree = "Execute Behavior Tree"
     case sequence = "Sequence"
     case selector = "Selector"
     case inverter = "Inverter"
@@ -537,6 +539,7 @@ enum NodeFamily: String, NodeClassFamily {
     case addFloat2Variables = "Add Float2 Variables"
     case subtractPositionVariables = "Subtract Position Variables"
     case subtractFloat2Variables = "Subtract Float2 Variables"
+    case multiplyConstFloat2 = "Multiply Const Float2"
     case reflectFloat2Variables = "Reflect Float2 Variables"
     case testPositionVariable = "Test Position Variable"
     case testFloat2Variable = "Test Float2 Variable"
@@ -565,6 +568,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectApplyDirectionalForce.self
             case .objectCollisionAny:
                 return ObjectCollisionAny.self
+            case .objectCollisionWith:
+                return ObjectCollisionWith.self
             case .objectTouchLayerArea:
                 return ObjectTouchLayerArea.self
             case .objectReset:
@@ -601,6 +606,8 @@ enum NodeFamily: String, NodeClassFamily {
             
             case .behaviorTree:
                 return BehaviorTree.self
+            case .executeBehaviorTree:
+                return ExecuteBehaviorTree.self
             case .inverter:
                 return Inverter.self
             case .sequence:
@@ -635,6 +642,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return AddFloat2Variables.self
             case .subtractPositionVariables, .subtractFloat2Variables:
                 return SubtractFloat2Variables.self
+            case .multiplyConstFloat2:
+                return MultiplyConstFloat2Variable.self
             case .reflectFloat2Variables:
                 return ReflectFloat2Variables.self
             case .testPositionVariable, .testFloat2Variable:

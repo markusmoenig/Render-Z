@@ -2070,6 +2070,16 @@ class NodeGraph : Codable
             }
             items.append(animationsItem)
             
+            // Behavior Trees
+            var behaviorTreesItem = MMMenuItem( text: "Behavior Trees", cb: {} )
+            behaviorTreesItem.cb = {
+                self.stopPreview()
+                self.refList.isActive = true
+                self.refList.createBehaviorTreesList()
+                self.previewInfoMenu.setText("Behavior Trees", 0.3)
+            }
+            items.append(behaviorTreesItem)
+            
             // Layer Areas
             var areasItem = MMMenuItem( text: "Layer Areas", cb: {} )
             areasItem.cb = {
@@ -2494,6 +2504,25 @@ class NodeGraph : Codable
                     
                     node.computeUIArea(mmView: mmView)
                 }
+            }
+            
+            // .BehaviorTreeTarget Drop Target
+            if item.role == .BehaviorTreeTarget {
+                if let target = item as? NodeUIBehaviorTreeTarget {
+                    let conn = target.uiConnection!
+                    
+                    if conn.connectedMaster != nil {
+                        conn.masterNode = getNodeForUUID(conn.connectedMaster!)
+                    }
+                    if conn.connectedTo != nil {
+                        if let target = getNodeForUUID(conn.connectedTo!) {
+                            conn.target = target
+                            conn.targetName = target.name
+                        }
+                    }
+                    validateConn(conn)
+                }
+                node.computeUIArea(mmView: mmView)
             }
             
             // .ValueVariableTarget Drop Target

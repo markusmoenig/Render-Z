@@ -864,6 +864,94 @@ class SubtractFloat2Variables : Node
     }
 }
 
+class MultiplyConstFloat2Variable : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Multiply Const Float2"
+        uiConnections.append(UINodeConnection(.Float2Variable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Multiply Const Float2"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIFloat2VariableTarget(self, variable: "variable", title: "Variable", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIDropDown(self, variable: "coordinate", title: "Coordinate", items: ["XY", "X", "Y"], index: 0),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUINumber(self, variable: "x", title: "X", range: nil, value: 1),
+            NodeUINumber(self, variable: "y", title: "Y", range: nil, value: 1),
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// test value from variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let variable = uiConnections[0].target as? Float2Variable {
+            
+            var value : float2 = variable.getValue()
+            let myCoordinate : Float = properties["coordinate"]!
+            let x : Float = properties["x"]!
+            let y : Float = properties["y"]!
+            
+            if myCoordinate == 0 {
+                value.x = value.x * x
+                value.y = value.y * y
+            } else
+            if myCoordinate == 1 {
+                value.x = value.x * x
+            } else
+            if myCoordinate == 2 {
+                value.y = value.y * y
+            }
+            
+            variable.setValue(value)
+            playResult = .Success
+        }
+        
+        return playResult!
+    }
+}
+
 class TestFloat2Variable : Node
 {
     override init()

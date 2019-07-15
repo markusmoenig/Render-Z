@@ -481,7 +481,7 @@ class Physics
                         } else
                         if object.body!.collisionMode == 2 {
                             // --- Custom
-                            print("collision", object.name, collisionObject.name, object.body!.distanceInfos[collisionObject.uuid]!)
+                            //print("collision", object.name, collisionObject.name, object.body!.distanceInfos[collisionObject.uuid]!)
                         }
                     }
                     offset += maxDisks * 4

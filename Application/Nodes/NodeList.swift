@@ -177,6 +177,12 @@ class NodeList : MMWidget
             return ObjectCollisionAny()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
+        // --- Instance Collision With
+        item = NodeListItem("Collision With")
+        item.createNode = {
+            return ObjectCollisionWith()
+        }
+        addNodeItem(item, type: .Function, displayType: .Object)
         // --- Instance Distance To
         item = NodeListItem("Distance To")
         item.createNode = {
@@ -220,6 +226,12 @@ class NodeList : MMWidget
         item = NodeListItem("Behavior Tree")
         item.createNode = {
             return BehaviorTree()
+        }
+        addNodeItem(item, type: .Behavior, displayType: .All)
+        // --- Behavior: Execute Behavior Tree
+        item = NodeListItem("Execute Tree")
+        item.createNode = {
+            return ExecuteBehaviorTree()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
         // --- Behavior: Inverter
@@ -269,6 +281,12 @@ class NodeList : MMWidget
         item = NodeListItem("Sub(Float2, Float2)")
         item.createNode = {
             return SubtractFloat2Variables()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
+        item = NodeListItem("Mult(Const, Float2)")
+        item.createNode = {
+            return MultiplyConstFloat2Variable()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         

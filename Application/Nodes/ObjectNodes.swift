@@ -885,7 +885,6 @@ class ObjectApplyDirectionalForce : Node
     }
 }
 
-
 /// Detects any collision
 class ObjectCollisionAny : Node
 {
@@ -963,6 +962,92 @@ class ObjectCollisionAny : Node
                     //        }
                     //    }
                     //}
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}
+
+/// Detects a collection with another instance
+class ObjectCollisionWith : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Collision With"
+        uiConnections.append(UINodeConnection(.ObjectInstance))
+        uiConnections.append(UINodeConnection(.ObjectInstance))
+    }
+    
+    override func setup()
+    {
+        brand = .Function
+        type = "Object Collision With"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUIObjectInstanceTarget(self, variable: "with", title: "With", connection: uiConnections[1])
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Check if we collide with anything
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        
+        if root.objectRoot != nil {
+            
+            if uiConnections[0].connectedTo != nil {
+                if let instance = nodeGraph.getInstance(uiConnections[0].connectedTo!) {
+                    if uiConnections[1].connectedTo != nil {
+                        if let withInstance = nodeGraph.getInstance(uiConnections[1].connectedTo!) {
+                            if let body = instance.body {
+                                if let distanceTo = body.distanceInfos[withInstance.uuid] {
+                                
+                                    if distanceTo < 0.2 {
+                                        playResult = .Success
+                                        //print("collision with", withInstance.name)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

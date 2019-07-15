@@ -52,11 +52,15 @@ class LayerAreaMaxDelegate : NodeMaxDelegate {
     
     var builder         : Builder? = nil
     var timeline        : MMTimeline!
+    
+    var mouseWasDown    : Bool = false
 
     override func activate(_ app: App)
     {
         self.app = app
         mmView = app.mmView
+        
+        mouseWasDown = false
         
         timeline = MMTimeline(mmView)
         
@@ -205,11 +209,14 @@ class LayerAreaMaxDelegate : NodeMaxDelegate {
     {
         mouseMoved(event)
         app.gizmo.mouseDown(event)
+        mouseWasDown = true
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        app.gizmo.mouseUp(event)
+        if mouseWasDown {
+            app.gizmo.mouseUp(event)
+        }
     }
     
     override func mouseMoved(_ event: MMMouseEvent)

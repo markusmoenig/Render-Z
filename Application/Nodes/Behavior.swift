@@ -360,3 +360,67 @@ class Restart : Node
         return playResult!
     }
 }
+
+class ExecuteBehaviorTree : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Execute Tree"
+        uiConnections.append(UINodeConnection(.BehaviorTree))
+    }
+    
+    override func setup()
+    {
+        brand = .Behavior
+        type = "Execute Behavior Tree"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIBehaviorTreeTarget(self, variable: "tree", title: "Tree", connection:  uiConnections[0])
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Reset the value variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let tree = uiConnections[0].target as? BehaviorTree {
+            playResult = tree.execute(nodeGraph: nodeGraph, root: root, parent: self)
+        }
+        return playResult!
+    }
+}

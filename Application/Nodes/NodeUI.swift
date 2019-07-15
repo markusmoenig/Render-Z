@@ -15,7 +15,7 @@ class NodeUI
     }
     
     enum Role {
-        case None, MasterPicker, AnimationPicker, FloatVariablePicker, DirectionVariablePicker, LayerAreaPicker, FloatVariableTarget, DirectionVariableTarget, ObjectInstanceTarget, LayerAreaTarget, AnimationTarget, Float2VariableTarget
+        case None, MasterPicker, AnimationPicker, FloatVariablePicker, DirectionVariablePicker, LayerAreaPicker, FloatVariableTarget, DirectionVariableTarget, ObjectInstanceTarget, LayerAreaTarget, AnimationTarget, Float2VariableTarget, BehaviorTreeTarget
     }
     
     var mmView      : MMView!
@@ -530,6 +530,18 @@ class NodeUIAnimationTarget : NodeUIDropTarget
         uiConnection = connection
         uiConnection.uiTarget = self
         role = .AnimationTarget
+    }
+}
+
+/// Behavior Tree Target derived from NodeUIDropTarget and with "Behavior Tree" drop ID
+class NodeUIBehaviorTreeTarget : NodeUIDropTarget
+{
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        super.init(node, variable: variable, title: title, targetID: "Behavior Tree")
+        uiConnection = connection
+        uiConnection.uiTarget = self
+        role = .BehaviorTreeTarget
     }
 }
 
