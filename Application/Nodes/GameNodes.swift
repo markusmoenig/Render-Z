@@ -94,8 +94,10 @@ class GamePlatformIPAD : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "type", title: "iPad", items: ["1536 x 2048", "2048 x 2732"], index: 0),
-            NodeUIDropDown(self, variable: "orientation", title: "Orientation", items: ["Vertical", "Horizontal"], index: 0),
+            //NodeUIDropDown(self, variable: "type", title: "iPad", items: ["1536 x 2048", "2048 x 2732"], index: 0),
+            //NodeUIDropDown(self, variable: "orientation", title: "Orientation", items: ["Vertical", "Horizontal"], index: 0),
+            NodeUINumber(self, variable: "width", title: "Width", range: float2(100, 4096), int: true, value: 800),
+            NodeUINumber(self, variable: "height", title: "Height", range: float2(100, 4096), int: true, value: 600)
         ]
         super.setupUI(mmView: mmView)
     }
@@ -122,6 +124,8 @@ class GamePlatformIPAD : Node
     
     func getScreenSize() -> float2
     {
+        return float2(properties["width"]!, properties["height"]!)
+        /*
         var width : Float = 0
         var height : Float = 0
         
@@ -144,7 +148,7 @@ class GamePlatformIPAD : Node
             width = temp
         }
         
-        return float2(width, height)
+        return float2(width, height)*/
     }
     
     /// Return Success if the selected key is currently down
@@ -158,11 +162,12 @@ class GamePlatformIPAD : Node
 
 class GamePlayScene : Node
 {
-    var currentlyPlaying : Scene? = nil
-    var gameNode         : Game? = nil
+    var currentlyPlaying        : Scene? = nil
+    var gameNode                : Game? = nil
 
-    var toExecute        : [Node] = []
-    
+    var toExecute               : [Node] = []
+    var layersWithPhysics       : [Layer] = []
+
     override init()
     {
         super.init()
@@ -239,6 +244,7 @@ class GamePlayScene : Node
                 camera = Camera()
 
                 toExecute = []
+                layersWithPhysics = []
                 
                 for layerUUID in scene.layers {
                     for n in nodeGraph.nodes {
@@ -248,6 +254,9 @@ class GamePlayScene : Node
                             layer.setupExecution(nodeGraph: nodeGraph)
                             for inst in layer.objectInstances {
                                 toExecute.append(inst.instance!)
+                            }
+                            if layer.physicsInstance != nil {
+                                layersWithPhysics.append(layer)
                             }
                             toExecute.append(layer)
                         }
@@ -282,6 +291,14 @@ class GamePlayScene : Node
             }
             
             playResult = .Running
+            
+            // --- Step the physics before executing the nodes
+            for physicsLayer in layersWithPhysics {
+                if physicsLayer.physicsInstance != nil {
+                    nodeGraph.physics.step(instance: physicsLayer.physicsInstance!)
+                }
+            }
+            // ---
             
             for exe in toExecute {
                 _ = exe.execute(nodeGraph: nodeGraph, root: exe.behaviorRoot!, parent: exe.behaviorRoot!.rootNode)

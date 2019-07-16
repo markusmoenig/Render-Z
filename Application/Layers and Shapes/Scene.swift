@@ -104,8 +104,13 @@ class Scene : Node
         
         x = properties[layer.uuid.uuidString + "_posX" ]!
         y = properties[layer.uuid.uuidString + "_posY" ]!
-        width = properties[layer.uuid.uuidString + "_width" ]!
-        height = properties[layer.uuid.uuidString + "_height" ]!
+        
+        if platformSize == nil {
+            platformSize = nodeGraph.getPlatformSize()
+        }
+        
+        width = platformSize!.x
+        height = platformSize!.y
         
         if let gameCamera = layer.gameCamera {
             
@@ -119,12 +124,10 @@ class Scene : Node
                 
                 var factor : Float = 1
 
-                //if let size = platformSize {
-                    xFactor = nodeGraph.previewSize.x / width
-                    yFactor = nodeGraph.previewSize.y / height
+                xFactor = nodeGraph.previewSize.x / width
+                yFactor = nodeGraph.previewSize.y / height
                     
-                    factor = min(xFactor, yFactor)
-                //}
+                factor = min(xFactor, yFactor)
                 
                 gameCamera.zoom = factor
                 
@@ -140,7 +143,12 @@ class Scene : Node
         layer.builderInstance?.layerGlobals?.normalSampling = layer.properties["renderSampling"]!
 
         layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
-        outputTextures.append(layer.previewTexture!)
+        layer.doubleBuffSwitch = layer.doubleBuffSwitch == false ? true : false
+        if layer.doubleBuffSwitch == false || layer.previewTexture2 == nil {
+            outputTextures.append(layer.previewTexture!)
+        } else {
+            outputTextures.append(layer.previewTexture2!)
+        }
     }
     
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)

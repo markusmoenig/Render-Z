@@ -24,6 +24,8 @@ class MMCompute {
     var threadsPerGrid          : MTLSize!
     var threadgroupsPerGrid     : MTLSize!
     
+    var commandBuffer           : MTLCommandBuffer!
+    
     init()
     {
         device = MTLCreateSystemDefaultDevice()!
@@ -102,7 +104,7 @@ class MMCompute {
     /// Run the given state
     func run(_ state: MTLComputePipelineState?, outTexture: MTLTexture? = nil, inBuffer: MTLBuffer? = nil, inTexture: MTLTexture? = nil )
     {
-        let commandBuffer = commandQueue!.makeCommandBuffer()!
+        commandBuffer = commandQueue!.makeCommandBuffer()!
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
         
         computeEncoder.setComputePipelineState( state! )
@@ -130,9 +132,9 @@ class MMCompute {
     }
 
     /// Run the given state
-    func runBuffer(_ state: MTLComputePipelineState?, outBuffer: MTLBuffer, inBuffer: MTLBuffer? = nil, size: float2? = nil, inTexture: MTLTexture? = nil )
+    func runBuffer(_ state: MTLComputePipelineState?, outBuffer: MTLBuffer, inBuffer: MTLBuffer? = nil, size: float2? = nil, inTexture: MTLTexture? = nil, wait: Bool = true )
     {
-        let commandBuffer = commandQueue!.makeCommandBuffer()!
+        commandBuffer = commandQueue!.makeCommandBuffer()!
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
         
         computeEncoder.setComputePipelineState( state! )
@@ -156,7 +158,9 @@ class MMCompute {
         computeEncoder.endEncoding()
         
         commandBuffer.commit()
-        commandBuffer.waitUntilCompleted()
+        if wait {
+            commandBuffer.waitUntilCompleted()
+        }
     }
     
     // Compute the threads and thread groups for the given state and texture

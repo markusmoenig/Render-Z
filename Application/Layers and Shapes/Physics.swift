@@ -32,6 +32,8 @@ class Physics
     var delta           : Float = 1 / 60
     
     let maxDisks        : Int = 10
+    var isReady         : Bool = false
+    
     
     init(_ nodeGraph: NodeGraph)
     {
@@ -298,6 +300,7 @@ class Physics
         accumulator = 0
         lastTime = getCurrentTime()
 
+        isReady = false
         return instance
     }
     
@@ -354,7 +357,7 @@ class Physics
         
         //builder.updateInstanceData(instance: builderInstance, camera: camera, doMaterials: false, frame: 0)
 
-        var offset : Int = instance.physicsOffset
+        let offset : Int = instance.physicsOffset
         for (index,object) in instance.dynamicObjects.enumerated() {
             
             let objectOffset = offset + index * 8 * maxDisks
@@ -380,15 +383,25 @@ class Physics
         //accumulator += getDeltaTime()
         //accumulator = simd_clamp( 0, 0.1, accumulator )
         
-        compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer, inTexture: nodeGraph.mmView.openSans!.atlas )
+        compute!.runBuffer( instance.state, outBuffer: instance.outBuffer!, inBuffer: instance.inBuffer, inTexture: nodeGraph.mmView.openSans!.atlas, wait: false )
+        isReady = true
+    }
+    
+    func step(instance: PhysicsInstance)
+    {
+        if !isReady {
+            // No render was called yet
+            return
+        }
         
+        compute!.commandBuffer.waitUntilCompleted()
         let result = instance.outBuffer!.contents().bindMemory(to: Float.self, capacity: 4)
         
         for collisionObject in instance.collisionObjects {
             collisionObject.body!.manifold = nil
         }
 
-        offset = 0
+        var offset = 0
         var manifolds : [Manifold] = []
         for object in instance.dynamicObjects {
             
