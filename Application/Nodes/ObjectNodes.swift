@@ -1171,7 +1171,7 @@ class ObjectTouchLayerArea : Node
                         
                         if nodeGraph.debugMode == .LayerAreas {
                             let pos = float2(object.properties["posX"]!, object.properties["posY"]!)
-                            let size = float2(20 * object.properties["scaleX"]!, 20 * object.properties["scaleY"]!)
+                            let size = float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
                             nodeGraph.debugInstance!.addBox(pos, size, 0, 0, float4(0.541, 0.098, 0.125, 0.8))
                         }
                     }

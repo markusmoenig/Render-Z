@@ -322,6 +322,7 @@ class Physics
         
         func parseObject(_ object: Object)
         {
+            var pointOffset : Int = 0
             for shape in object.shapes {
                 
                 for index in 0..<12 {
@@ -329,9 +330,10 @@ class Physics
                 }
         
                 for index in 0..<shape.pointCount {
-                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 4] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 4]
-                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index) * 4 + 1] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index) * 4 + 1]
+                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index+pointOffset) * 4] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index+pointOffset) * 4]
+                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index+pointOffset) * 4 + 1] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index+pointOffset) * 4 + 1]
                 }
+                pointOffset += shape.pointCount
             }
             
             // Object transform
