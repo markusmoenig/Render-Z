@@ -40,6 +40,23 @@ class DebugLine {
     }
 }
 
+class DebugBox {
+    var pos         : float2
+    var size        : float2
+    var rotation    : Float
+    var border      : Float
+    var color       : float4
+    
+    init(_ pos : float2,_ size: float2,_ rotation: Float,_ border: Float,_ color: float4)
+    {
+        self.pos = pos
+        self.size = size
+        self.rotation = rotation
+        self.border = border
+        self.color = color
+    }
+}
+
 class DebugBuilderInstance
 {
     var state           : MTLComputePipelineState? = nil
@@ -53,15 +70,20 @@ class DebugBuilderInstance
     // Offset of the line data
     var lineOffset      : Int = 0
     
+    // Offset of the box data
+    var boxOffset       : Int = 0
+    
     var texture         : MTLTexture? = nil
     
     var disks           : [DebugDisk] = []
     var lines           : [DebugLine] = []
+    var boxes           : [DebugBox] = []
 
     func clear()
     {
         disks = []
         lines = []
+        boxes = []
     }
     
     func addDisk(_ pos : float2,_ radius: Float,_ border: Float, _ color: float4)
@@ -73,6 +95,11 @@ class DebugBuilderInstance
     {
         lines.append(DebugLine(pos1, pos2, radius, border, color))
     }
+    
+    func addBox(_ pos : float2, _ size : float2,_ rotation: Float,_ border: Float, _ color: float4)
+    {
+        boxes.append(DebugBox(pos, size, rotation, border, color))
+    }
 }
 
 class DebugBuilder
@@ -81,6 +108,7 @@ class DebugBuilder
     var nodeGraph       : NodeGraph
     var maxDiskSize     : Int = 80
     var maxLineSize     : Int = 20
+    var maxBoxSize      : Int = 20
 
     init(_ nodeGraph: NodeGraph)
     {
@@ -122,6 +150,7 @@ class DebugBuilder
 
             float4      disks[\(maxDiskSize*2)];
             float4      lines[\(maxLineSize*3)];
+            float4      boxes[\(maxBoxSize*3)];
         } DEBUG_DATA;
         
         """
@@ -166,6 +195,26 @@ class DebugBuilder
             instance.data!.append( 0 )
         }
         
+        instance.boxOffset = instance.data!.count
+        
+        // Fill up the boxes
+        for _ in 0..<maxBoxSize {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
         source +=
         """
         
@@ -174,6 +223,12 @@ class DebugBuilder
             float2 l = pb-pa;
             float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
             return -(r-distance(o,l*h));
+        }
+        
+        float sdBox(float2 p, float2 b )
+        {
+            float2 d = abs(p)-b;
+            return length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
         }
         
         kernel void
@@ -221,6 +276,22 @@ class DebugBuilder
                         col = mix( col, debugData->lines[i*3+2], fillMask(dist) * debugData->lines[i*3+2].w );
                     else
                         col = mix( col, debugData->lines[i*3+2], borderMask(dist, border) * debugData->lines[i*3+2].w );
+                } else break;
+            }
+        
+            for(int i = 0; i < \(maxBoxSize); ++i)
+            {
+                float2 pos = float2(debugData->boxes[i*3].x, debugData->boxes[i*3].y);
+                float2 size = float2(debugData->boxes[i*3].z, debugData->boxes[i*3].w);
+                float rotation = debugData->boxes[i*3+1].x;
+                float border = debugData->boxes[i*3+1].y;
+        
+                if ( rotation >= 0.0 ) {
+                    float dist = sdBox(uv - pos, size);
+                    if ( border == 0.0 )
+                        col = mix( col, debugData->boxes[i*3+2], fillMask(dist) * debugData->boxes[i*3+2].w );
+                    else
+                        col = mix( col, debugData->boxes[i*3+2], borderMask(dist, border) * debugData->boxes[i*3+2].w );
                 } else break;
             }
 
@@ -299,6 +370,31 @@ class DebugBuilder
             instance.data![offset + index * 12 + 9] = line.color.y
             instance.data![offset + index * 12 + 10] = line.color.z
             instance.data![offset + index * 12 + 11] = line.color.w
+        }
+        
+        // Fill Boxes
+        offset = instance.boxOffset
+        
+        for index in 0..<maxBoxSize {
+            instance.data![offset + index * 12 + 4] = -1
+        }
+        
+        for (index,box) in instance.boxes.enumerated() {
+            if index >= maxBoxSize {
+                break;
+            }
+            instance.data![offset + index * 12] = box.pos.x
+            instance.data![offset + index * 12 + 1] = box.pos.y
+            instance.data![offset + index * 12 + 2] = box.size.x
+            instance.data![offset + index * 12 + 3] = box.size.y
+            
+            instance.data![offset + index * 12 + 4] = box.rotation
+            instance.data![offset + index * 12 + 5] = box.border
+            
+            instance.data![offset + index * 12 + 8] = box.color.x
+            instance.data![offset + index * 12 + 9] = box.color.y
+            instance.data![offset + index * 12 + 10] = box.color.z
+            instance.data![offset + index * 12 + 11] = box.color.w
         }
         
         // ---

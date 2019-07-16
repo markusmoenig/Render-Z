@@ -186,10 +186,14 @@ class ClickInLayerArea : Node
                     //print(area.name, object.properties["posX"]!, object.properties["posY"]!, dist)
                     if dist < 0 {
                         playResult = .Success
+                        
+                        if nodeGraph.debugMode == .LayerAreas {
+                            let pos = float2(object.properties["posX"]!, object.properties["posY"]!)
+                            let size = float2(20 * object.properties["scaleX"]!, 20 * object.properties["scaleY"]!)
+                            nodeGraph.debugInstance!.addBox(pos, size, 0, 0, float4(0.541, 0.098, 0.125, 0.8))
+                        }
                     }
                 }
-                
-                
             }
         }
         return playResult!

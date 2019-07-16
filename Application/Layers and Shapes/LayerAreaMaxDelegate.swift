@@ -113,8 +113,6 @@ class LayerAreaMaxDelegate : NodeMaxDelegate {
         }
         
         masterLayer.updatePreview(nodeGraph: app.nodeGraph, hard: true)
-        //layerArea.areaObject!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
-        update(true)
         
         app.gizmo.setObject(layerArea.areaObject!, context: .ObjectEditor, customDelegate: self)
     }
@@ -168,7 +166,7 @@ class LayerAreaMaxDelegate : NodeMaxDelegate {
             //drawPattern(region)
             
             //mmView.renderer.setClipRect(region.rect)
-            app!.mmView.drawBox.draw( x: region.rect.x, y: region.rect.y, width: region.rect.width, height: region.rect.height, round: 0, borderSize: 0, fillColor : float4(1, 1, 1, 1.000), borderColor: float4(repeating:0) )
+            //app!.mmView.drawBox.draw( x: region.rect.x, y: region.rect.y, width: region.rect.width, height: region.rect.height, round: 0, borderSize: 0, fillColor : float4(1, 1, 1, 1.000), borderColor: float4(repeating:0) )
             
             let region = app.editorRegion!
             if let instance = masterLayer.builderInstance {
@@ -182,8 +180,15 @@ class LayerAreaMaxDelegate : NodeMaxDelegate {
                 }
             }
             
-            update()
-            app.mmView.drawTexture.draw(previewTexture!, x: region.rect.x, y: region.rect.y)
+            let areaObject = layerArea.areaObject!
+
+            let pos = float2(areaObject.properties["posX"]!, areaObject.properties["posY"]!)
+            let size = float2(20 * areaObject.properties["scaleX"]!, 20 * areaObject.properties["scaleY"]!)
+            
+            app.nodeGraph.debugInstance!.clear()
+            app.nodeGraph.debugInstance!.addBox(pos, size, 0, 0, float4(0.541, 0.098, 0.125, 0.8))
+            app.nodeGraph.debugBuilder!.render(width: app.editorRegion!.rect.width, height: app.editorRegion!.rect.height, instance: app.nodeGraph.debugInstance!, camera: camera)
+            app!.mmView.drawTexture.draw(app.nodeGraph.debugInstance!.texture!, x: region.rect.x, y: region.rect.y, zoom: 1)
 
             app.gizmo.rect.copy(region.rect)
             app.gizmo.scale = camera.zoom
@@ -248,7 +253,6 @@ class LayerAreaMaxDelegate : NodeMaxDelegate {
             let region = app.editorRegion!
             app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera)
         }
-        update()
         
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -261,23 +265,6 @@ class LayerAreaMaxDelegate : NodeMaxDelegate {
         if app.mmView.maxFramerateLocks == 0 {
             app.mmView.lockFramerate()
         }
-    }
-    
-    /// Updates the preview. hard does a rebuild, otherwise just a render
-    override func update(_ hard: Bool = false, updateLists: Bool = false)
-    {
-        let size = float2(app.editorRegion!.rect.width, app!.editorRegion!.rect.height)
-        let areaObject = layerArea.areaObject!
-        
-        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
-            previewTexture = /*app.nodeGraph.*/builder!.compute!.allocateTexture(width: size.x, height: size.y, output: true)
-        }
-        
-        if builderInstance == nil || hard {
-            builderInstance = /*app.nodeGraph.*/builder!.buildObjects(objects: [areaObject], camera: camera, preview: false)
-        }
-        
-        /*app!.nodeGraph.*/builder!.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture)
     }
     
     /// Return the camera (used by Gizmo)

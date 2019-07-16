@@ -12,7 +12,7 @@ class NodeGraph : Codable
 {
     enum DebugMode
     {
-        case None, Physics
+        case None, Physics, LayerAreas
     }
     
     enum LeftRegionMode
@@ -517,6 +517,11 @@ class NodeGraph : Codable
             self.debugMode = .None
         } )
         behaviorItems.append(noDebugItem)
+        
+        let layerAreasDebugItem =  MMMenuItem( text: "Debug Info: Layer Areas", cb: {
+            self.debugMode = .LayerAreas
+        } )
+        behaviorItems.append(layerAreasDebugItem)
         
         let physicsDebugItem =  MMMenuItem( text: "Debug Info: Physics", cb: {
             self.debugMode = .Physics
@@ -1505,7 +1510,7 @@ class NodeGraph : Codable
             // Draw Debug
             
             if debugMode != .None {
-                let camera = createNodeCamera(node)
+                let camera = createNodeCamera(playNode != nil ? playNode! : node)
                 
                 debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)
                 app!.mmView.drawTexture.draw(debugInstance.texture!, x: x, y: y, zoom: 1)
