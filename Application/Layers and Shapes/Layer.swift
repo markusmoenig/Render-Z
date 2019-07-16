@@ -221,13 +221,17 @@ class Layer : Node
             return
         }
         
+        if physicsInstance != nil {
+            nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
+        }
+        
         if builderInstance != nil {
             builderInstance?.layerGlobals?.normalSampling = properties["renderSampling"]!
             nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture)
         }
         
         if physicsInstance != nil {
-            nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
+            nodeGraph.physics.step(instance: physicsInstance!)
         }
     }
     
@@ -270,12 +274,16 @@ class Layer : Node
             return
         }
         
+        if physicsInstance != nil {
+            nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
+        }
+        
         if builderInstance != nil {
             nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: doubleBuffSwitch == false ? previewTexture! : previewTexture2!)
         }
         
         if physicsInstance != nil {
-            nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
+            nodeGraph.physics.step(instance: physicsInstance!)
         }
     }
 }

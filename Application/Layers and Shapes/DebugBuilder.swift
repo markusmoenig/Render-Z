@@ -78,12 +78,36 @@ class DebugBuilderInstance
     var disks           : [DebugDisk] = []
     var lines           : [DebugLine] = []
     var boxes           : [DebugBox] = []
-
+    
+    var disksBackup     : [DebugDisk] = []
+    var linesBackup     : [DebugLine] = []
+    var boxesBackup     : [DebugBox] = []
+    
     func clear()
     {
         disks = []
         lines = []
         boxes = []
+    }
+    
+    func save() {
+        disksBackup = disks
+        linesBackup = lines
+        boxesBackup = boxes
+    }
+    
+    func restore() {
+        let t1 = disks
+        let t2 = lines
+        let t3 = boxes
+
+        disks = disksBackup
+        lines = linesBackup
+        boxes = boxesBackup
+        
+        disksBackup = t1
+        linesBackup = t2
+        boxesBackup = t3
     }
     
     func addDisk(_ pos : float2,_ radius: Float,_ border: Float, _ color: float4)

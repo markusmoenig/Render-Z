@@ -166,7 +166,6 @@ class GamePlayScene : Node
     var gameNode                : Game? = nil
 
     var toExecute               : [Node] = []
-    var layersWithPhysics       : [Layer] = []
 
     override init()
     {
@@ -244,7 +243,6 @@ class GamePlayScene : Node
                 camera = Camera()
 
                 toExecute = []
-                layersWithPhysics = []
                 
                 for layerUUID in scene.layers {
                     for n in nodeGraph.nodes {
@@ -254,9 +252,6 @@ class GamePlayScene : Node
                             layer.setupExecution(nodeGraph: nodeGraph)
                             for inst in layer.objectInstances {
                                 toExecute.append(inst.instance!)
-                            }
-                            if layer.physicsInstance != nil {
-                                layersWithPhysics.append(layer)
                             }
                             toExecute.append(layer)
                         }
@@ -291,14 +286,6 @@ class GamePlayScene : Node
             }
             
             playResult = .Running
-            
-            // --- Step the physics before executing the nodes
-            for physicsLayer in layersWithPhysics {
-                if physicsLayer.physicsInstance != nil {
-                    nodeGraph.physics.step(instance: physicsLayer.physicsInstance!)
-                }
-            }
-            // ---
             
             for exe in toExecute {
                 _ = exe.execute(nodeGraph: nodeGraph, root: exe.behaviorRoot!, parent: exe.behaviorRoot!.rootNode)

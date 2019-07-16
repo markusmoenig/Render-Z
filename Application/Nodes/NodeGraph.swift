@@ -45,7 +45,6 @@ class NodeGraph : Codable
     var previewNode     : Node? = nil
     var playNode        : Node? = nil
     var playToExecute   : [Node] = []
-    var playPhysicLayers: [Layer] = []
 
     var currentMaster   : Node? = nil
     var currentMasterUUID: UUID? = nil
@@ -421,7 +420,6 @@ class NodeGraph : Codable
                 
                 // --- Start Playing
                 self.playToExecute = []
-                self.playPhysicLayers = []
                 self.playNode = self.previewNode
                 self.mmScreen = MMScreen(self.mmView)
 
@@ -438,9 +436,6 @@ class NodeGraph : Codable
                     for inst in layer.objectInstances {
                         self.playToExecute.append(inst.instance!)
                     }
-                    if layer.physicsInstance != nil {
-                        self.playPhysicLayers.append(layer)
-                    }
                     self.playToExecute.append(layer)
                 } else
                 if node!.type == "Scene" {
@@ -455,9 +450,6 @@ class NodeGraph : Codable
                                 layer.setupExecution(nodeGraph: self)
                                 for inst in layer.objectInstances {
                                     self.playToExecute.append(inst.instance!)
-                                }
-                                if layer.physicsInstance != nil {
-                                    self.playPhysicLayers.append(layer)
                                 }
                                 self.playToExecute.append(layer)
                             }
@@ -1142,14 +1134,6 @@ class NodeGraph : Codable
                 for node in nodes {
                     node.playResult = .Unused
                 }
-                
-                // --- Step the physics in all physics based layers
-                for physicsLayer in playPhysicLayers {
-                    if physicsLayer.physicsInstance != nil {
-                        physics.step(instance: physicsLayer.physicsInstance!)
-                    }
-                }
-                // ---
                 
                 for exe in playToExecute {
                     let root = exe.behaviorRoot!
