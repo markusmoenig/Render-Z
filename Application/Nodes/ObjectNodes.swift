@@ -1158,11 +1158,11 @@ class ObjectTouchLayerArea : Node
                     var uv = float2(x, y)
                     
                     uv -= float2(object.properties["posX"]!, object.properties["posY"]!)
-                    uv /= float2(object.properties["scaleX"]!, object.properties["scaleY"]!)
+                    //uv /= float2(object.properties["scaleX"]!, object.properties["scaleY"]!)
                     
                     uv = rotateCW(uv, angle: object.properties["rotate"]! * Float.pi / 180 );
                     
-                    var d : float2 = simd_abs( uv ) - float2(shape.properties[shape.widthProperty]!, shape.properties[shape.heightProperty]!)
+                    var d : float2 = simd_abs( uv ) - float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
                     let dist : Float = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0)
                     
                     //print( dist, dist - radius )
