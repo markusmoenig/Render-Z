@@ -408,8 +408,8 @@ class EditorWidget      : MMWidget
 
                 if let camera = app.nodeGraph.currentMaster!.camera {
 
-                    node.xPos = event.x - rect.x - camera.xPos - drag.pWidgetOffset!.x
-                    node.yPos = event.y - rect.y - camera.yPos - drag.pWidgetOffset!.y
+                    node.xPos = (event.x - rect.x) / camera.zoom - camera.xPos / camera.zoom - drag.pWidgetOffset!.x
+                    node.yPos = (event.y - rect.y) / camera.zoom - camera.yPos / camera.zoom - drag.pWidgetOffset!.y
 
                     if node.type == "Object" {
                         let object = node as! Object
