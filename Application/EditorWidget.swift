@@ -275,17 +275,19 @@ class EditorWidget      : MMWidget
                     shape.properties["height"] = shape.properties["height"]!// * 700 / rect.width
                 }
                 
+                let camera = currentObject!.maxDelegate!.getCamera()!
+                
                 // --- Transform coordinates
-                xOff = (event.x - rect.x + xOff)// * 700 / rect.width
-                yOff = (event.y - rect.y + yOff)// * 700 / rect.width
+                xOff = (event.x - rect.x + xOff)
+                yOff = (event.y - rect.y + yOff)
                 
                 // --- Center
-                xOff -= rect.width / 2 - currentObject!.maxDelegate!.getCamera()!.xPos
-                yOff += currentObject!.maxDelegate!.getCamera()!.yPos
+                xOff -= rect.width / 2 - camera.xPos
+                yOff += camera.yPos
                 yOff -= rect.width / 2 * rect.height / rect.width
                 
-                shape.properties["posX"] = xOff
-                shape.properties["posY"] = -yOff
+                shape.properties["posX"] = xOff / camera.zoom
+                shape.properties["posY"] = -yOff / camera.zoom
                 
                 if shape.pointCount == 1 {
                     shape.properties["point_0_y"] = -shape.properties["point_0_y"]!
@@ -362,17 +364,19 @@ class EditorWidget      : MMWidget
                 //let deltaX = drag.pWidgetOffset!.x
                 //let deltaY = drag.pWidgetOffset!.y
                 
+                let camera = currentObject!.maxDelegate!.getCamera()!
+                
                 // --- Transform coordinates
-                xOff = (event.x - rect.x + xOff)// * 700 / rect.width
-                yOff = (event.y - rect.y + yOff)// * 700 / rect.width
+                xOff = (event.x - rect.x + xOff)
+                yOff = (event.y - rect.y + yOff)
                 
                 // --- Center
-                xOff -= rect.width / 2 - currentObject!.maxDelegate!.getCamera()!.xPos
-                yOff += currentObject!.maxDelegate!.getCamera()!.yPos
+                xOff -= rect.width / 2 - camera.xPos
+                yOff += camera.yPos
                 yOff -= rect.width / 2 * rect.height / rect.width
                 
-                material.properties["posX"] = xOff
-                material.properties["posY"] = -yOff
+                material.properties["posX"] = xOff / camera.zoom
+                material.properties["posY"] = -yOff / camera.zoom
             }
             currentObject!.maxDelegate?.update(true)
         } else
