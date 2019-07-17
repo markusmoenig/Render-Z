@@ -48,7 +48,7 @@ class ObjectPhysics : Node
         let collisions = properties["physicsCollisions"]!
 
         uiItems[1].isDisabled = mode == 0 || mode == 1
-        uiItems[2].isDisabled = mode == 0 || mode == 1 || collisions == 1
+        uiItems[2].isDisabled = mode == 0 /*|| mode == 1*/ || collisions == 1
         uiItems[3].isDisabled = mode == 0 || collisions == 1
         uiItems[4].isDisabled = mode == 0 || mode == 1 || collisions == 1
         uiItems[5].isDisabled = mode == 0 || mode == 1

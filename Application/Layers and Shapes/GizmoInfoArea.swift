@@ -87,10 +87,20 @@ class GizmoInfoArea {
             }
         } else
         if state == .xAxisMove {
-            addItem("X", "posX", transformed["posX"]!)
+            if gizmo.mode == .Point {
+                let point = "point_\(gizmo.pointIndex)_x"
+                addItem("X", point, transformed[point]!)
+            } else {
+                addItem("X", "posX", transformed["posX"]!)
+            }
         } else
         if state == .yAxisMove {
-            addItem("Y", "posY", transformed["posY"]!)
+            if gizmo.mode == .Point {
+                let point = "point_\(gizmo.pointIndex)_y"
+                addItem("Y", point, transformed[point]!)
+            } else {
+                addItem("Y", "posY", transformed["posY"]!)
+            }
         } else
         if state == .xAxisScale {
             let widthProperty = getProperty(.WidthProperty)

@@ -2892,19 +2892,27 @@ class NodeGraph : Codable
             items.append(helpNodeItem)
         }
         
-        /*
-        let duplicateNodeItem =  MMMenuItem( text: "Duplicate", cb: {
-            if node.type == "Object" {
-                
-                let encodedData = try? JSONEncoder().encode(node)
-                if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
-                {
-                    print( encodedObjectJsonString)
+        if node.type == "Object" {
+            let duplicateNodeItem =  MMMenuItem( text: "Duplicate", cb: {
+                if node.type == "Object" {
+                    let encodedData = try? JSONEncoder().encode(node)
+                    //print( encodedObjectJsonString)
+                    if let duplicate =  try? JSONDecoder().decode(Object.self, from: encodedData!) {
+
+                        duplicate.uuid = UUID()
+                        duplicate.name = "Copy of " + duplicate.name
+                        
+                        for seq in duplicate.sequences {
+                            seq.uuid = UUID()
+                        }
+                        
+                        duplicate.subset = []
+                        self.insertNode(duplicate)
+                    }
                 }
-            }
-        } )
-        items.append(duplicateNodeItem)
-        */
+            } )
+            items.append(duplicateNodeItem)
+        }
 
         let renameNodeItem =  MMMenuItem( text: "Rename", cb: {
             getStringDialog(view: self.mmView, title: "Rename Node", message: "Node name", defaultValue: node.name, cb: { (name) -> Void in
@@ -3034,6 +3042,40 @@ class NodeGraph : Codable
             
             updateNode(uiTarget.node)
             uiTarget.hoverState = .None
+        }
+    }
+    
+    func insertNode(_ node: Node, undo: Bool = true)
+    {
+        func nodeStatusChanged(_ node: Node,_ master: Node)
+        {
+            mmView.undoManager!.registerUndo(withTarget: self) { target in
+                
+                let index = self.nodes.firstIndex(where: { $0.uuid == node.uuid })
+                if index != nil {
+                    self.deleteNode(node)
+                } else {
+                    self.nodes.append(node)
+                    master.subset!.append(node.uuid)
+                    self.setCurrentNode()
+                    self.updateMasterNodes(self.currentMaster!)
+                    self.refList.update()
+                }
+                nodeStatusChanged(node, master)
+            }
+        }
+        
+        if currentMaster != nil {
+            nodeStatusChanged(node, currentMaster!)
+            
+            node.setupTerminals()
+            
+            nodes.append(node)
+            currentMaster?.subset!.append(node.uuid)
+            setCurrentNode(node)
+            updateNode(node)
+            updateMasterNodes(currentMaster!)
+            refList.update()
         }
     }
 }

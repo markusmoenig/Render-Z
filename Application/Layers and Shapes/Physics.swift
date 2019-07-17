@@ -609,12 +609,11 @@ class Body
                 invInertia = 1 / inertia
             }
             
-            restitution = object.properties["physicsRestitution"]!
             supportsRotation = object.properties["physicsSupportsRotation"]! == 1 ? true : false
-            
             collisionMode = Int(object.properties["physicsCollisions"]!)
         }
         
+        restitution = object.properties["physicsRestitution"]!
         dynamicFriction = object.properties["physicsFriction"]!
         staticFriction = dynamicFriction + 0.2
     }
@@ -688,7 +687,7 @@ class Manifold
         self.normal = normal
         self.contacts = contacts
         
-        restitution = min(bodyA.restitution, bodyB.restitution)
+        restitution = max(bodyA.restitution, bodyB.restitution)
         staticFriction = sqrt(bodyA.staticFriction * bodyB.staticFriction)
         dynamicFriction = sqrt(bodyA.dynamicFriction * bodyB.dynamicFriction)
 
