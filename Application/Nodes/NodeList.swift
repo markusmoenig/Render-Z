@@ -90,7 +90,7 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Property, displayType: .Object)*/
         // --- Object Physics
-        item = NodeListItem("Physics Properties")
+        item = NodeListItem("Physical Properties")
         item.createNode = {
             return ObjectPhysics()
         }

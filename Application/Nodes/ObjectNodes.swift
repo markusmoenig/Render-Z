@@ -13,7 +13,7 @@ class ObjectPhysics : Node
     override init()
     {
         super.init()
-        name = "Physic Properties"
+        name = "Physical Properties"
     }
     
     override func setup()
@@ -21,7 +21,7 @@ class ObjectPhysics : Node
         type = "Object Physics"
         brand = .Property
         
-        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/overview"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9109521/Physical+Properties"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -36,7 +36,7 @@ class ObjectPhysics : Node
             NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 5), value: 0.2),
             NodeUINumber(self, variable: "physicsFriction", title: "Friction", range: float2(0, 1), value: 0.3),
             NodeUIDropDown(self, variable: "physicsSupportsRotation", title: "Rotation", items: ["No", "Yes"], index: 1),
-            NodeUIDropDown(self, variable: "physicsCollisions", title: "Collisions", items: ["Normal", "Reflect", "Custom"], index: 0)
+            NodeUIDropDown(self, variable: "physicsCollisions", title: "Collisions", items: ["Natural", "Reflect", "Custom"], index: 0)
         ]
         
         super.setupUI(mmView: mmView)

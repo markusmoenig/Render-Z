@@ -91,6 +91,8 @@ class LayerGravity : Node
     {
         type = "Layer Gravity"
         brand = .Property
+        
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9142364/Gravity"
     }
     
     required init(from decoder: Decoder) throws
@@ -114,7 +116,7 @@ class LayerGravity : Node
     {
         uiItems = [
             NodeUIAngle(self, variable: "orientation", title: "", value: 90),
-            NodeUINumber(self, variable: "angle", title: "Angle", range: float2(0,360), value: 90),
+            NodeUINumber(self, variable: "angle", title: "Direction", range: float2(0,360), value: 90),
             NodeUINumber(self, variable: "strength", title: "Strength", range: float2(0,10), value: 5)
         ]
         

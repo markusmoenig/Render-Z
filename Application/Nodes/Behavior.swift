@@ -369,6 +369,8 @@ class ExecuteBehaviorTree : Node
         
         name = "Execute Tree"
         uiConnections.append(UINodeConnection(.BehaviorTree))
+        
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9109510/Execute+Tree"
     }
     
     override func setup()

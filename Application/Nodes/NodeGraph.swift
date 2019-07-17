@@ -2886,7 +2886,7 @@ class NodeGraph : Codable
         }
         
         if node.helpUrl != nil {
-            let helpNodeItem =  MMMenuItem( text: "Help for " + node.type, cb: {
+            let helpNodeItem =  MMMenuItem( text: "Help for Node", cb: {
                 showHelp(node.helpUrl)
             } )
             items.append(helpNodeItem)

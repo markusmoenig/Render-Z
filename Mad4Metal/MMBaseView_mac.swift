@@ -329,7 +329,7 @@ func showHelp(_ urlString: String? = nil)
     let url = urlString != nil ? URL(string: urlString!) : URL(string: "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5406721/Getting+Started")
     
     if appDelegate.webView.url != url {
-        let request = URLRequest(url:URL(string: "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5406721/Getting+Started")!)
+        let request = URLRequest(url:url!)
         appDelegate.webView.load(request)
     }
 }

@@ -449,6 +449,24 @@ class EditorWidget      : MMWidget
                     let instance = ObjectInstance(name: node.name + " Instance", objectUUID: node.uuid, properties: [:])
                     currentLayer!.objectInstances.append(instance)
                     
+                    if let camera = app.nodeGraph.maximizedNode!.maxDelegate!.getCamera() {
+                        // --- Transform coordinates
+                        var xOff : Float = (event.x - rect.x)
+                        var yOff : Float = (event.y - rect.y)
+                        
+                        // --- Center
+                        xOff -= rect.width / 2 - camera.xPos
+                        yOff += camera.yPos
+                        yOff -= rect.width / 2 * rect.height / rect.width
+                        
+                        instance.properties["posX"] = xOff / camera.zoom
+                        instance.properties["posY"] = -yOff / camera.zoom
+                        
+                        instance.properties["scaleX"] = 1
+                        instance.properties["scaleY"] = 1
+                        instance.properties["rotate"] = 0
+                    }
+                    
                     let layerDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! LayerMaxDelegate
                     layerDelegate.objectList!.rebuildList()
                     currentLayer!.selectedObjects = [instance.uuid]
