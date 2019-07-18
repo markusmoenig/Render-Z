@@ -63,7 +63,7 @@ class Object : Node
     // The render instance for this object, used for preview
     var instance        : BuilderInstance?
     
-    /// If this object is an instance, this uuid is the uuid of the original object
+    /// If this object is an instance, this points to the original object
     var instanceOf      : Object? = nil
     
     /// The instance of this object used for preview play in Object view
@@ -357,7 +357,7 @@ class Object : Node
             instance = nil
             DispatchQueue.main.async {
                 self.executeProperties(nodeGraph)
-                self.instance = nodeGraph.builder.buildObjects(objects: self.playInstance != nil ? [self.playInstance!] : [self], camera: self.camera!, preview: true)
+                self.instance = nodeGraph.builder.buildObjects(objects: self.playInstance != nil ? [self.playInstance!] : [self], camera: camera, preview: true)
                 self.updatePreview(nodeGraph: nodeGraph)
                 nodeGraph.mmView.update()
             }

@@ -3045,6 +3045,7 @@ class NodeGraph : Codable
         }
     }
     
+    /// Inserts a node into the graph
     func insertNode(_ node: Node, undo: Bool = true)
     {
         func nodeStatusChanged(_ node: Node,_ master: Node)
@@ -3077,5 +3078,19 @@ class NodeGraph : Codable
             updateMasterNodes(currentMaster!)
             refList.update()
         }
+    }
+    
+    /// Returns the layer for the given instance uuid
+    func getLayerOfInstance(_ uuid: UUID) -> Layer? {
+        for node in nodes {
+            if let layer = node as? Layer {
+                for inst in layer.objectInstances {
+                    if inst.uuid == uuid {
+                        return layer
+                    }
+                }
+            }
+        }
+        return nil
     }
 }

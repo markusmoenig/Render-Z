@@ -735,12 +735,34 @@ class Gizmo : MMWidget
                 func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
                 {
                     mmView.undoManager!.registerUndo(withTarget: self) { target in
-                        object.properties = old
+                        
+                        if object.instanceOf == nil {
+                            object.properties = old
+                        } else {
+                            if let layer = self.app.nodeGraph.getLayerOfInstance(object.uuid) {
+                                for inst in layer.objectInstances {
+                                    if inst.uuid == object.uuid {
+                                        inst.properties = old
+                                    }
+                                }
+                            }
+                        }
                         
                         applyProperties(object, new, old)
                     }
                     app.updateObjectPreview(rootObject!)
                     mmView.update()
+                }
+                
+                if object!.instanceOf != nil {
+                    // This is an instance, we need to update the instance properties
+                    if let layer = app.nodeGraph.getLayerOfInstance(object!.uuid) {
+                        for inst in layer.objectInstances {
+                            if inst.uuid == object!.uuid {
+                                inst.properties = object!.properties
+                            }
+                        }
+                    }
                 }
                 
                 applyProperties(object!, undoProperties, object!.properties)

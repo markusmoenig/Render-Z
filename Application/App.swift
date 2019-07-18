@@ -216,21 +216,38 @@ class App
     func updateObjectPreview(_ object: Object)
     {
         if nodeGraph.maximizedNode != nil {
-            if let objectMaxDelegate = object.maxDelegate as? ObjectMaxDelegate {
-                if nodeGraph.maximizedNode === object { // ???
-                    objectMaxDelegate.update(true, updateLists: true)
+            
+            if object.instanceOf == nil {
+                // --- This is an object
+                if let objectMaxDelegate = object.maxDelegate as? ObjectMaxDelegate {
+                    if nodeGraph.maximizedNode === object {
+                        // Make sure the currently maximized node is the object
+                        objectMaxDelegate.update(true, updateLists: true)
+                    }
+                }
+            } else {
+                // --- This is an instance, we need to update the layer of the instance
+                if let layer = nodeGraph.getLayerOfInstance(object.uuid) {
+                    if let layerMaxDelegate = layer.maxDelegate as? LayerMaxDelegate {
+                        if nodeGraph.maximizedNode === layer {
+                            layerMaxDelegate.update(true, updateLists: true)
+                        }
+                    }
                 }
             }
-            /*
-            else
-            if let layerMaxDelegate = object.maxDelegate as? LayerMaxDelegate {
-                layerMaxDelegate.update(true, updateLists: true)
-            }*/
         } else {
-            object.updatePreview(nodeGraph: nodeGraph, hard: true)
-            if let objectMaxDelegate = object.maxDelegate as? ObjectMaxDelegate {
-                objectMaxDelegate.shapeListChanged = true
-                objectMaxDelegate.materialListChanged = true
+            if object.instanceOf == nil {
+                // --- Object, updates its preview
+                object.updatePreview(nodeGraph: nodeGraph, hard: true)
+                if let objectMaxDelegate = object.maxDelegate as? ObjectMaxDelegate {
+                    objectMaxDelegate.shapeListChanged = true
+                    objectMaxDelegate.materialListChanged = true
+                }
+            } else {
+                // --- Instance, update the layer instance
+                if let layer = nodeGraph.getLayerOfInstance(object.uuid) {
+                    layer.updatePreview(nodeGraph: nodeGraph, hard: true)
+                }
             }
         }
         setChanged()
