@@ -143,12 +143,7 @@ class Scene : Node
         layer.builderInstance?.layerGlobals?.normalSampling = layer.properties["renderSampling"]!
 
         layer.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
-        layer.doubleBuffSwitch = layer.doubleBuffSwitch == false ? true : false
-        if layer.doubleBuffSwitch == false || layer.previewTexture2 == nil {
-            outputTextures.append(layer.previewTexture!)
-        } else {
-            outputTextures.append(layer.previewTexture2!)
-        }
+        outputTextures.append(layer.previewTexture!)
     }
     
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)

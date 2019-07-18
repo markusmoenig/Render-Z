@@ -64,9 +64,6 @@ class Layer : Node
     
     var builderInstance : BuilderInstance?
     var physicsInstance : PhysicsInstance?
-    
-    var previewTexture2 : MTLTexture? = nil
-    var doubleBuffSwitch: Bool = false
         
     private enum CodingKeys: String, CodingKey {
         case type
@@ -170,7 +167,6 @@ class Layer : Node
         
         builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: camera, preview: nodeGraph.app == nil ? false : false)
         physicsInstance = nodeGraph.physics.buildPhysics(objects: objects, builder: nodeGraph.builder, camera: camera)
-        doubleBuffSwitch = false
     }
     
     /// Execute the layer
@@ -192,7 +188,6 @@ class Layer : Node
         }
         gameCamera = nil
         physicsInstance = nil
-        previewTexture2 = nil
     }
     
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
@@ -239,14 +234,8 @@ class Layer : Node
     {
         let size = nodeGraph.previewSize
         
-        if doubleBuffSwitch == false {
-            if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
-                previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
-            }
-        } else {
-            if previewTexture2 == nil || Float(previewTexture2!.width) != size.x || Float(previewTexture2!.height) != size.y {
-                previewTexture2 = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
-            }
+        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
+            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
         }
         
         let camera : Camera
@@ -279,7 +268,7 @@ class Layer : Node
         }
         
         if builderInstance != nil {
-            nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: doubleBuffSwitch == false ? previewTexture! : previewTexture2!)
+            nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture!)
         }
         
         if physicsInstance != nil {

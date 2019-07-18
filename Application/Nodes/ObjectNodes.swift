@@ -134,8 +134,6 @@ class GetSetObjectProperty : Node
             NodeUIDropDown(self, variable: "mode", title: "Mode", items: ["Get", "Set"], index: 0),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIFloat2VariableTarget(self, variable: "float2", title: "Float2", connection: uiConnections[1])
-            //NodeUIDirectionVariableTarget(self, variable: "direction", title: "Direction", connection: uiConnections[2]),
-            //NodeUIValueVariableTarget(self, variable: "value", title: "Value", connection: uiConnections[3]),
         ]
         super.setupUI(mmView: mmView)
     }

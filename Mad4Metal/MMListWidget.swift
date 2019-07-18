@@ -233,14 +233,16 @@ class MMListWidget : MMWidget
         }
         """
         
-        let library = fragment!.createLibraryFromSource(source: source)
-        state = fragment!.createState(library: library, name: "listWidgetBuilder")
-        
-        if fragment!.width != width || fragment!.height != height {
-            fragment!.allocateTexture(width: width, height: height)
+        DispatchQueue.main.async {
+            let library = self.fragment!.createLibraryFromSource(source: source)
+            self.state = self.fragment!.createState(library: library, name: "listWidgetBuilder")
+            
+            if self.fragment!.width != self.width || self.fragment!.height != self.height {
+                self.fragment!.allocateTexture(width: self.width, height: self.height)
+            }
+            self.textureWidget.setTexture(self.fragment!.texture)
+            self.update()
         }
-        textureWidget.setTexture(fragment!.texture)
-        update()
     }
     
     override func update()
@@ -460,5 +462,27 @@ class MMListWidget : MMWidget
         }
         
         return texture
+    }
+    
+    /// Returns the item of the given uuid
+    func itemOfUUID(_ uuid: UUID) -> MMListWidgetItem?
+    {
+        for item in items {
+            if item.uuid == uuid {
+                return item
+            }
+        }
+        return nil
+    }
+    
+    /// Return the current item (index 0 in selected items)
+    func getCurrentItem() -> MMListWidgetItem?
+    {
+        if selectedItems.count == 0 {
+            return nil
+        }
+        
+        let uuid = selectedItems[0]
+        return itemOfUUID(uuid)
     }
 }

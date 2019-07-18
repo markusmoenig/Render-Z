@@ -426,13 +426,10 @@ class NodeList : MMWidget
         mouseIsDown = false
     }
     
-    /// Create a drag item for the given position
+    /// Create a drag item
     func createDragSource(_ x: Float,_ y: Float) -> NodeListDrag?
     {
-        let listItem = listWidget.itemAt(x, y, items: filteredItems)
-
-        if listItem != nil {
-            
+        if let listItem = listWidget.getCurrentItem() {
             let item = listItem as! NodeListItem
             var drag = NodeListDrag()
             
@@ -443,7 +440,7 @@ class NodeList : MMWidget
             
             drag.node = item.createNode!()
             
-            let texture = listWidget.createShapeThumbnail(item: listItem!)
+            let texture = listWidget.createShapeThumbnail(item: listItem)
             drag.previewWidget = MMTextureWidget(mmView, texture: texture)
             drag.previewWidget!.zoom = 2
             
