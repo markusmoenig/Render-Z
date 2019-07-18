@@ -100,6 +100,10 @@ class MMBaseView : MTKView
             dragSource!.sourceWidget?.dragTerminated()
             dragSource = nil
             update()
+            if let widget = focusWidget {
+                widget.removeState( .Clicked )
+            }
+            return // To prevent mouseUp event
         }
         // ---
         

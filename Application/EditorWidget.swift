@@ -471,6 +471,41 @@ class EditorWidget      : MMWidget
                     layerDelegate.objectList!.rebuildList()
                     currentLayer!.selectedObjects = [instance.uuid]
                     currentLayer!.maxDelegate?.update(true)
+                    
+                    func instanceStatusChanged(_ instance: ObjectInstance)
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            
+                            let index = currentLayer!.objectInstances.firstIndex(where: { $0.uuid == instance.uuid })
+                            if index != nil {
+                                currentLayer!.objectInstances.remove(at: index!)
+                                currentLayer!.selectedObjects = []
+                                
+                                if let maximized = self.app.nodeGraph.maximizedNode {
+                                    if let layerDelegate = maximized.maxDelegate as? LayerMaxDelegate {
+                                        layerDelegate.objectList!.rebuildList()
+                                    }
+                                } else {
+                                    currentLayer!.builderInstance = nil
+                                    currentLayer!.updatePreview(nodeGraph: self.app.nodeGraph)
+                                }
+                                currentLayer!.maxDelegate?.update(true)
+                            } else {
+                                currentLayer!.objectInstances.append(instance)
+                                currentLayer!.selectedObjects = [instance.uuid]
+                                if let maximized = self.app.nodeGraph.maximizedNode {
+                                    if let layerDelegate = maximized.maxDelegate as? LayerMaxDelegate {                                    layerDelegate.objectList!.rebuildList()
+                                    }
+                                } else {
+                                    currentLayer!.builderInstance = nil
+                                    currentLayer!.updatePreview(nodeGraph: self.app.nodeGraph)
+                                }
+                                currentLayer!.maxDelegate?.update(true)
+                            }
+                            instanceStatusChanged(instance)
+                        }
+                    }
+                    instanceStatusChanged(instance)
                 }
             }
         } else

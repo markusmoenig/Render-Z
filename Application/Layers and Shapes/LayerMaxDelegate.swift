@@ -86,6 +86,8 @@ class LayerMaxDelegate : NodeMaxDelegate {
         // Right Region
         if objectList == nil {
             objectList = ObjectList(app.mmView, app:app, delegate: self)
+        } else {
+            objectList!.rebuildList()
         }
         app.rightRegion!.rect.width = 300
 

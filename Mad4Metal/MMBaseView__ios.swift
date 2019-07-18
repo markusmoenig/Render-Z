@@ -135,6 +135,10 @@ class MMBaseView : MTKView
                 dragSource!.sourceWidget?.dragTerminated()
                 dragSource = nil
                 update()
+                if focusWidget != nil {
+                    focusWidget!.removeState( .Clicked )
+                }
+                return
             }
             // ---
             
