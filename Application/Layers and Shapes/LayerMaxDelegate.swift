@@ -418,6 +418,10 @@ class LayerMaxDelegate : NodeMaxDelegate {
                 app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentLayer!.builderInstance!, camera: camera)
             }
         }
+        
+        if updateLists {
+            objectList.rebuildList()
+        }
     }
     
     /// Return the camera (used by Gizmo)
@@ -432,132 +436,6 @@ class LayerMaxDelegate : NodeMaxDelegate {
         return timeline
     }
 }
-
-/*
-/// Sequence widget for the bottom timeline
-class SequenceWidget : MMWidget
-{
-    var app                 : App
-    var label               : MMTextLabel
-    var menuWidget          : MMMenuWidget
-    
-    var listWidget          : MMListWidget
-    var items               : [MMListWidgetItem] = []
-    
-    var delegate            : ObjectMaxDelegate
-    
-    init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
-    {
-        self.app = app
-        self.delegate = delegate
-        
-        label = MMTextLabel(view, font: view.openSans, text:"", scale: 0.44 )//color: float4(0.506, 0.506, 0.506, 1.000))
-        listWidget = MMListWidget(view)
-        
-        // ---  Menu
-        
-        let sequenceMenuItems = [
-            MMMenuItem( text: "Add", cb: {} ),
-            MMMenuItem( text: "Rename", cb: {} ),
-            MMMenuItem( text: "Delete", cb: {print("add child") } )
-        ]
-        menuWidget = MMMenuWidget( view, items: sequenceMenuItems )
-        
-        super.init(view)
-        
-        // ---
-        
-        menuWidget.items[0].cb = {
-            let object = self.delegate.currentObject!
-            let seq = MMTlSequence()
-            seq.name = "New Animation"
-            object.sequences.append(seq)
-            object.currentSequence = seq
-            self.listWidget.selectedItems = [seq.uuid]
-        }
-        
-        menuWidget.items[1].cb = {
-            var item = self.getCurrentItem()
-            if item != nil {
-                getStringDialog(view: view, title: "Rename Animation", message: "New name", defaultValue: item!.name, cb: { (name) -> Void in
-                    item!.name = name
-                } )
-            }
-        }
-        
-        menuWidget.items[2].cb = {
-            if self.items.count < 2 { return }
-
-            var item = self.getCurrentItem()
-
-            let object = self.delegate.currentObject!
-            object.sequences.remove(at: object.sequences.index(where: { $0.uuid == item!.uuid })!)
-            self.listWidget.selectedItems = [object.sequences[0].uuid]
-        }
-    }
-    
-    func build(items: [MMListWidgetItem])
-    {
-        self.items = items
-        listWidget.build(items: items)
-    }
-    
-    func getCurrentItem() -> MMListWidgetItem?
-    {
-        for item in items {
-            if listWidget.selectedItems.contains( item.uuid ) {
-                return item
-            }
-        }
-        return nil
-    }
-    
-    override func draw()
-    {
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
-        
-        label.setText("Animation Sequence")
-        label.drawYCentered( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
-        
-        menuWidget.rect.x = rect.x + rect.width - 30 - 1
-        menuWidget.rect.y = rect.y + 1
-        menuWidget.rect.width = 30
-        menuWidget.rect.height = 28
-        
-        if menuWidget.states.contains(.Opened) {
-            mmView.delayedDraws.append( menuWidget )
-        } else {
-            menuWidget.draw()
-            // --- Make focus area the size of the toolbar
-            menuWidget.rect.x = rect.x
-            menuWidget.rect.y = rect.y
-            menuWidget.rect.width = rect.width
-            menuWidget.rect.height = 30
-        }
-        
-        mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height - 30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
-
-        listWidget.rect.x = rect.x
-        listWidget.rect.y = rect.y + 30
-        listWidget.rect.width = rect.width
-        listWidget.rect.height = rect.height - 30
-        listWidget.draw()
-    }
-    
-    override func mouseDown(_ event: MMMouseEvent)
-    {
-        let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y) - 30, items: items)
-        if changed {
-            listWidget.build(items: items)
-        }
-    }
-    
-    override func mouseScrolled(_ event: MMMouseEvent)
-    {
-        listWidget.mouseScrolled(event)
-    }
-}
-*/
 
 class AvailableObjectListItem : MMListWidgetItem
 {
@@ -664,10 +542,7 @@ class AvailableObjectList : MMWidget
     /// Create a drag item for the given position
     func createDragSource(_ x: Float,_ y: Float) -> AvailableObjectListItemDrag?
     {
-        let listItem = listWidget.itemAt(x, y, items: items)
-        
-        if listItem != nil {
-            
+        if let listItem = listWidget.getCurrentItem() {
             let item = listItem as! AvailableObjectListItem
             var drag = AvailableObjectListItemDrag()
             
@@ -682,7 +557,7 @@ class AvailableObjectList : MMWidget
                 }
             }
             
-            let texture = listWidget.createShapeThumbnail(item: listItem!)
+            let texture = listWidget.createShapeThumbnail(item: listItem)
             drag.previewWidget = MMTextureWidget(mmView, texture: texture)
             drag.previewWidget!.zoom = 2
             
@@ -696,6 +571,8 @@ class AvailableObjectList : MMWidget
         listWidget.mouseScrolled(event)
     }
 }
+
+// Object Instance List on the Right
 
 class ObjectListItem : MMListWidgetItem
 {
@@ -737,12 +614,11 @@ class ObjectList : MMWidget
         rebuildList()
         // Rename Instance
         menuWidget.items[0].cb = {
-            var item = self.getCurrentItem()
-            if item != nil {
-                getStringDialog(view: view, title: "Rename Instance", message: "New name", defaultValue: item!.name, cb: { (name) -> Void in
+            if let item = self.listWidget.getCurrentItem() {
+                getStringDialog(view: view, title: "Rename Instance", message: "New name", defaultValue: item.name, cb: { (name) -> Void in
                     
                     for instance in delegate.currentLayer!.objectInstances {
-                        if instance.uuid == item!.uuid {
+                        if instance.uuid == item.uuid {
                             instance.name = name
                             break
                         }
@@ -753,11 +629,10 @@ class ObjectList : MMWidget
         }
         // Remove Instance
         menuWidget.items[1].cb = {
-            var item = self.getCurrentItem()
-            if item != nil {
+            if let item = self.listWidget.getCurrentItem() {
                 var foundIndex : Int? = nil
                 for (index,instance) in delegate.currentLayer!.objectInstances.enumerated() {
-                    if instance.uuid == item!.uuid {
+                    if instance.uuid == item.uuid {
                         foundIndex = index
                         break
                     }
@@ -785,18 +660,8 @@ class ObjectList : MMWidget
                 }
             }
         }
-        listWidget.build(items: items, fixedWidth: 300)
+        listWidget.build(items: items, fixedWidth: 300, supportsUpDown: false, supportsClose: true)
         mmView.update()
-    }
-    
-    func getCurrentItem() -> MMListWidgetItem?
-    {
-        for item in items {
-            if listWidget.selectedItems.contains( item.uuid ) {
-                return item
-            }
-        }
-        return nil
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -836,9 +701,45 @@ class ObjectList : MMWidget
     {
         let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y) - 30, items: items)
         if changed {
+            
+            if listWidget.hoverState == .Close && listWidget.hoverIndex >= 0 && listWidget.hoverIndex < items.count {
+                let uuid = listWidget.items[listWidget.hoverIndex].uuid
+                
+                let index = delegate.currentLayer!.objectInstances.firstIndex(where: { $0.uuid == uuid })
+                if index != nil {
+                    
+                    func instanceStatusChanged(_ instance: ObjectInstance)
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            
+                            if let index = self.delegate.currentLayer!.objectInstances.firstIndex(where: { $0.uuid == instance.uuid }) {
+                                self.delegate.currentLayer!.objectInstances.remove(at: index)
+                                self.listWidget.removeFromSelection(instance.uuid)
+
+                                self.delegate.currentLayer!.updatePreview(nodeGraph: self.delegate.app.nodeGraph, hard: true)
+                                self.delegate.update(true, updateLists: true)
+                            } else {
+                                self.delegate.currentLayer!.objectInstances.append(instance)
+                                self.listWidget.selectedItems = [instance.uuid]
+                                self.delegate.currentLayer!.updatePreview(nodeGraph: self.delegate.app.nodeGraph, hard: true)
+                                self.delegate.update(true, updateLists: true)
+                            }
+                            instanceStatusChanged(instance)
+                        }
+                    }
+                    
+                    let instance = delegate.currentLayer!.objectInstances[index!]
+                    instanceStatusChanged(instance)
+
+                    delegate.currentLayer!.objectInstances.remove(at: index!)
+                    delegate.update(true, updateLists: false)
+                }
+                listWidget.removeFromSelection(uuid)
+            }
+            
             delegate.currentLayer!.selectedObjects = listWidget.selectedItems
             rebuildList()
-            listWidget.build(items: items, fixedWidth: 300)
+            listWidget.build(items: items, fixedWidth: 300, supportsUpDown: false, supportsClose: true)
             delegate.updateGizmo()
         }
         mouseIsDown = true
@@ -846,8 +747,11 @@ class ObjectList : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if mouseIsDown {
-
+        if !mouseIsDown {
+            if listWidget.hoverAt(event.x - rect.x, (event.y - rect.y) - 30) {
+                listWidget.update()
+                mmView.update()
+            }
         }
     }
     

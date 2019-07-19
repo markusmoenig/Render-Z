@@ -250,6 +250,20 @@ class NodeGraph : Codable
             }
         }
         
+        func adjustVisibleButtons() {
+            self.app!.mmView.deregisterWidget(editButton)
+            self.app!.mmView.deregisterWidget(playButton)
+            self.app!.mmView.deregisterWidget(behaviorMenu)
+            self.app!.mmView.deregisterWidget(previewInfoMenu)
+            
+            if !self.overviewIsOn {
+                self.app!.mmView.widgets.insert(editButton, at: 0)
+                self.app!.mmView.widgets.insert(playButton, at: 0)
+                self.app!.mmView.widgets.insert(behaviorMenu, at: 0)
+                self.app!.mmView.widgets.insert(previewInfoMenu, at: 0)
+            }
+        }
+        
         objectsButton = MMButtonWidget(app.mmView, text: "Objects" )
         objectsButton.textYOffset = 1.5
         objectsButton.addState(.Checked)
@@ -281,6 +295,7 @@ class NodeGraph : Codable
                 self.contentType = .ObjectsOverview
                 self.setOverviewMaster()
             }
+            adjustVisibleButtons()
         }
         
         layersButton = MMButtonWidget(app.mmView, text: "Layers" )
@@ -313,6 +328,7 @@ class NodeGraph : Codable
                 self.contentType = .LayersOverview
                 self.setOverviewMaster()
             }
+            adjustVisibleButtons()
         }
         
         scenesButton = MMButtonWidget(app.mmView, text: "Scenes" )
@@ -345,6 +361,7 @@ class NodeGraph : Codable
                 self.contentType = .ScenesOverview
                 self.setOverviewMaster()
             }
+            adjustVisibleButtons()
         }
         
         gameButton = MMButtonWidget(app.mmView, text: "Game" )
@@ -366,6 +383,7 @@ class NodeGraph : Codable
                 self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
             }
             self.nodeList!.switchTo(.Game)
+            adjustVisibleButtons()
         }
         
         overviewButton = MMButtonWidget(app.mmView, text: "Overview" )
@@ -395,6 +413,7 @@ class NodeGraph : Codable
             if self.contentType == .Game {
                 self.gameButton._clicked(MMMouseEvent(0, 0))
             }
+            adjustVisibleButtons()
         }
         
         var smallButtonSkin = MMSkinButton()
@@ -2840,6 +2859,8 @@ class NodeGraph : Codable
     /// Deletes the given node
     func deleteNode(_ node: Node)
     {
+        let before = encodeJSON()
+        
         // Remove connections
         for t in node.terminals {
             for conn in t.connections {
@@ -2854,8 +2875,37 @@ class NodeGraph : Codable
         }
         // Remove from nodes
         nodes.remove(at: nodes.firstIndex(where: { $0.uuid == node.uuid })!)
+        
+        // If node is an object, remove it from all instances in layers
+        if let object = node as? Object {
+            for n in nodes {
+                if let layer = n as? Layer {
+                    while let index = layer.objectInstances.firstIndex(where: { $0.objectUUID == object.uuid }) {
+                        layer.objectInstances.remove(at: index)
+                    }
+                }
+            }
+        }
+        
+        let after = encodeJSON()
+        globalStateUndo(oldState: before, newState: after)
+        
         refList.update()
         mmView.update()
+    }
+    
+    /// Performs a global undo / redo by saving / loading the whole project
+    func globalStateUndo(oldState: String, newState: String)
+    {
+        func graphStatusChanged(_ oldState: String, _ newState: String)
+        {
+            mmView.undoManager!.registerUndo(withTarget: self) { target in
+                self.app?.loadFrom(oldState)
+                graphStatusChanged(newState, oldState)
+            }
+        }
+        
+        graphStatusChanged(oldState, newState)
     }
     
     func activateNodeDelegate(_ node: Node)
@@ -2876,8 +2926,6 @@ class NodeGraph : Codable
                 
                 if node.type == "Object" || node.type == "Layer" || node.type == "Scene" {
                     self.overviewButton.clicked!(MMMouseEvent(0,0))
-                    //self.overviewButton.removeState(.Checked)
-                    //self.overviewIsOn = false
                 } else {
                     self.activateNodeDelegate(node)
                 }

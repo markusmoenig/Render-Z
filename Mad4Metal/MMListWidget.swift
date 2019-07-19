@@ -211,7 +211,7 @@ class MMListWidget : MMWidget
             
             if supportsClose {
                 // --- Close Button
-                source += "uv -= float2( 65. * \(zoom), 0. );\n"
+                source += "uv -= float2( \(supportsUpDown ? "65." : "125.") * \(zoom), 0. );\n"
                 source += "dist = sdLineListWidget( uv, float2( -8* \(zoom), -8 ), float2( 8* \(zoom), 8), 2);\n"
                 source += "dist = min( dist, sdLineListWidget( uv, float2( -8* \(zoom), 8 ), float2( 8* \(zoom), -8), 2) );\n"
                 source += "if (\(index*3+2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
