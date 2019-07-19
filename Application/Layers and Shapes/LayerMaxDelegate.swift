@@ -619,7 +619,20 @@ class ObjectList : MMWidget
                     
                     for instance in delegate.currentLayer!.objectInstances {
                         if instance.uuid == item.uuid {
-                            instance.name = name
+                            if instance.name != name {
+                                
+                                func nameChanged(_ oldName: String,_ newName: String)
+                                {
+                                    self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                                        nameChanged(newName, oldName)
+                                        instance.name = newName
+                                        self.rebuildList()
+                                    }
+                                }
+                                
+                                nameChanged(name, instance.name)
+                                instance.name = name
+                            }
                             break
                         }
                     }
@@ -630,17 +643,8 @@ class ObjectList : MMWidget
         // Remove Instance
         menuWidget.items[1].cb = {
             if let item = self.listWidget.getCurrentItem() {
-                var foundIndex : Int? = nil
-                for (index,instance) in delegate.currentLayer!.objectInstances.enumerated() {
-                    if instance.uuid == item.uuid {
-                        foundIndex = index
-                        break
-                    }
-                }
-                if foundIndex != nil {
-                    delegate.currentLayer!.objectInstances.remove(at: foundIndex!)
-                    self.rebuildList()
-                    self.delegate.update(true, updateLists: false)
+                if let index = self.listWidget.items.firstIndex(where: {$0.uuid == item.uuid}) {
+                    self.deleteAt(index)
                 }
             }
         }
@@ -697,50 +701,59 @@ class ObjectList : MMWidget
         listWidget.draw()
     }
     
+    func deleteAt(_ itemIndex: Int)
+    {
+        if itemIndex >= 0 && itemIndex < items.count {
+            let uuid = listWidget.items[itemIndex].uuid
+            
+            if let index = delegate.currentLayer!.objectInstances.firstIndex(where: { $0.uuid == uuid }) {
+            
+                func instanceStatusChanged(_ instance: ObjectInstance)
+                {
+                    mmView.undoManager!.registerUndo(withTarget: self) { target in
+                        
+                        if let index = self.delegate.currentLayer!.objectInstances.firstIndex(where: { $0.uuid == instance.uuid }) {
+                            self.delegate.currentLayer!.objectInstances.remove(at: index)
+                            self.listWidget.removeFromSelection(instance.uuid)
+                            
+                            self.delegate.currentLayer!.updatePreview(nodeGraph: self.delegate.app.nodeGraph, hard: true)
+                            self.delegate.update(true, updateLists: true)
+                        } else {
+                            self.delegate.currentLayer!.objectInstances.append(instance)
+                            self.listWidget.selectedItems = [instance.uuid]
+                            self.delegate.currentLayer!.updatePreview(nodeGraph: self.delegate.app.nodeGraph, hard: true)
+                            self.delegate.update(true, updateLists: true)
+                        }
+                        instanceStatusChanged(instance)
+                    }
+                }
+                
+                let instance = delegate.currentLayer!.objectInstances[index]
+                instanceStatusChanged(instance)
+                
+                delegate.currentLayer!.objectInstances.remove(at: index)
+                delegate.update(true, updateLists: false)
+            }
+            listWidget.removeFromSelection(uuid)
+        }
+        delegate.currentLayer!.selectedObjects = listWidget.selectedItems
+        rebuildList()
+        listWidget.build(items: items, fixedWidth: 300, supportsUpDown: false, supportsClose: true)
+        delegate.updateGizmo()
+    }
+    
     override func mouseDown(_ event: MMMouseEvent)
     {
         let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y) - 30, items: items)
         if changed {
-            
-            if listWidget.hoverState == .Close && listWidget.hoverIndex >= 0 && listWidget.hoverIndex < items.count {
-                let uuid = listWidget.items[listWidget.hoverIndex].uuid
-                
-                let index = delegate.currentLayer!.objectInstances.firstIndex(where: { $0.uuid == uuid })
-                if index != nil {
-                    
-                    func instanceStatusChanged(_ instance: ObjectInstance)
-                    {
-                        mmView.undoManager!.registerUndo(withTarget: self) { target in
-                            
-                            if let index = self.delegate.currentLayer!.objectInstances.firstIndex(where: { $0.uuid == instance.uuid }) {
-                                self.delegate.currentLayer!.objectInstances.remove(at: index)
-                                self.listWidget.removeFromSelection(instance.uuid)
-
-                                self.delegate.currentLayer!.updatePreview(nodeGraph: self.delegate.app.nodeGraph, hard: true)
-                                self.delegate.update(true, updateLists: true)
-                            } else {
-                                self.delegate.currentLayer!.objectInstances.append(instance)
-                                self.listWidget.selectedItems = [instance.uuid]
-                                self.delegate.currentLayer!.updatePreview(nodeGraph: self.delegate.app.nodeGraph, hard: true)
-                                self.delegate.update(true, updateLists: true)
-                            }
-                            instanceStatusChanged(instance)
-                        }
-                    }
-                    
-                    let instance = delegate.currentLayer!.objectInstances[index!]
-                    instanceStatusChanged(instance)
-
-                    delegate.currentLayer!.objectInstances.remove(at: index!)
-                    delegate.update(true, updateLists: false)
-                }
-                listWidget.removeFromSelection(uuid)
+            if listWidget.hoverState == .Close {
+                deleteAt(listWidget.hoverIndex)
+            } else {
+                delegate.currentLayer!.selectedObjects = listWidget.selectedItems
+                rebuildList()
+                listWidget.build(items: items, fixedWidth: 300, supportsUpDown: false, supportsClose: true)
+                delegate.updateGizmo()
             }
-            
-            delegate.currentLayer!.selectedObjects = listWidget.selectedItems
-            rebuildList()
-            listWidget.build(items: items, fixedWidth: 300, supportsUpDown: false, supportsClose: true)
-            delegate.updateGizmo()
         }
         mouseIsDown = true
     }
