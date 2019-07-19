@@ -7,11 +7,14 @@
 //
 
 import UIKit
+import MobileCoreServices
 
 class ViewController: UIViewController, UIDocumentPickerDelegate {
 
-    var app : App!
-    var mmView : MMView!
+    var app         : App!
+    var mmView      : MMView!
+    
+    var stringData  : String = ""
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,9 +43,9 @@ class ViewController: UIViewController, UIDocumentPickerDelegate {
         self.present(documentPicker, animated: true, completion: nil)
     }
     
-    func exportFile() {
-        
-        let documentPicker: UIDocumentPickerViewController = UIDocumentPickerViewController(documentTypes: ["com.moenig.shapez.document"], in: UIDocumentPickerMode.exportToService)
+    func exportFile(_ stringData: String) {
+        self.stringData = stringData
+        let documentPicker: UIDocumentPickerViewController = UIDocumentPickerViewController(url: URL(string: kUTTypeText as String)!, in: UIDocumentPickerMode.exportToService)
         documentPicker.delegate = self
         
         self.present(documentPicker, animated: true, completion: nil)
@@ -63,6 +66,14 @@ class ViewController: UIViewController, UIDocumentPickerDelegate {
         if controller.documentPickerMode == UIDocumentPickerMode.exportToService {
             
             print( url )
+            
+            do {
+                try stringData.write(to: url, atomically: true, encoding: .utf8)
+                mmView.undoManager!.removeAllActions()
+            } catch
+            {
+                print(error.localizedDescription)
+            }
         }
     }
 }

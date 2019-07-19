@@ -102,7 +102,7 @@ class TopRegion: MMRegion
             self.saveButton.removeState(.Checked)
             
             let json = app.nodeGraph.encodeJSON()
-            app.mmFile.saveAs(json)
+            app.mmFile.saveAs(json, app)
         }
         
         playButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Play" )

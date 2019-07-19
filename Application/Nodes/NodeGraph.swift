@@ -137,6 +137,7 @@ class NodeGraph : Codable
     private enum CodingKeys: String, CodingKey {
         case nodes
         case currentMasterUUID
+        case overviewIsOn
         case previewSize
     }
     
@@ -176,6 +177,9 @@ class NodeGraph : Codable
         nodes = try container.decode([Node].self, ofFamily: NodeFamily.self, forKey: .nodes)
         currentMasterUUID = try container.decode(UUID?.self, forKey: .currentMasterUUID)
         previewSize = try container.decode(float2.self, forKey: .previewSize)
+        if let overview = try container.decodeIfPresent(Bool.self, forKey: .overviewIsOn) {
+            overviewIsOn = overview
+        }
         setCurrentMaster(uuid: currentMasterUUID)
         
         debugBuilder = DebugBuilder(self)
@@ -188,6 +192,7 @@ class NodeGraph : Codable
         try container.encode(nodes, forKey: .nodes)
         try container.encode(currentMasterUUID, forKey: .currentMasterUUID)
         try container.encode(previewSize, forKey: .previewSize)
+        try container.encode(overviewIsOn, forKey: .overviewIsOn)
     }
     
     /// Called when a new instance of the NodeGraph class was created, sets up all necessary dependencies.
@@ -251,16 +256,16 @@ class NodeGraph : Codable
         }
         
         func adjustVisibleButtons() {
-            self.app!.mmView.deregisterWidget(editButton)
-            self.app!.mmView.deregisterWidget(playButton)
-            self.app!.mmView.deregisterWidget(behaviorMenu)
-            self.app!.mmView.deregisterWidget(previewInfoMenu)
+            mmView.deregisterWidget(editButton)
+            mmView.deregisterWidget(playButton)
+            mmView.deregisterWidget(behaviorMenu)
+            mmView.deregisterWidget(previewInfoMenu)
             
-            if !self.overviewIsOn {
-                self.app!.mmView.widgets.insert(editButton, at: 0)
-                self.app!.mmView.widgets.insert(playButton, at: 0)
-                self.app!.mmView.widgets.insert(behaviorMenu, at: 0)
-                self.app!.mmView.widgets.insert(previewInfoMenu, at: 0)
+            if !overviewIsOn {
+                mmView.widgets.insert(editButton, at: 0)
+                mmView.widgets.insert(playButton, at: 0)
+                mmView.widgets.insert(behaviorMenu, at: 0)
+                mmView.widgets.insert(previewInfoMenu, at: 0)
             }
         }
         
@@ -544,9 +549,65 @@ class NodeGraph : Codable
         
         previewInfoMenu = MMMenuWidget(mmView, type: .LabelMenu)
         
-        updateNodes()
-        updateContent(.Objects)
+        // --- Set default view
+        if currentMasterUUID != nil{
+            setCurrentMaster(uuid: currentMasterUUID!)
+        } else {
+            self.contentType = .Objects
+            updateContent(self.contentType)
+        }
         
+        if currentMaster as? Object != nil {
+            if !overviewIsOn {
+                self.contentType = .Objects
+                updateContent(self.contentType)
+                nodeList!.switchTo(.Object)
+            } else {
+                self.contentType = .ObjectsOverview
+                updateContent(self.contentType)
+                nodeList!.switchTo(.ObjectOverview)
+            }
+        } else
+        if currentMaster as? Layer != nil {
+            objectsButton.removeState(.Checked)
+            layersButton.addState(.Checked)
+            if !overviewIsOn {
+                self.contentType = .Layers
+                updateContent(self.contentType)
+                nodeList!.switchTo(.Layer)
+            } else {
+                self.contentType = .LayersOverview
+                updateContent(self.contentType)
+                nodeList!.switchTo(.LayerOverview)
+            }
+        } else
+        if currentMaster as? Scene != nil {
+            objectsButton.removeState(.Checked)
+            scenesButton.addState(.Checked)
+            if !overviewIsOn {
+                self.contentType = .Scenes
+                updateContent(self.contentType)
+                nodeList!.switchTo(.Scene)
+            } else {
+                self.contentType = .ScenesOverview
+                updateContent(self.contentType)
+                nodeList!.switchTo(.SceneOverview)
+            }
+        } else
+        if currentMaster as? Game != nil {
+            objectsButton.removeState(.Checked)
+            gameButton.addState(.Checked)
+            self.contentType = .Game
+            updateContent(self.contentType)
+            overviewIsOn = false
+            nodeList!.switchTo(.Game)
+        }
+        
+        if overviewIsOn {
+            setOverviewMaster()
+        }
+        
+        //
         refList = ReferenceList(self)
         refList.createVariableList()
     }
@@ -554,11 +615,13 @@ class NodeGraph : Codable
     ///
     func activate()
     {
-        app?.mmView.registerWidgets(widgets: nodesButton, nodeList!, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton)
-        app?.mmView.widgets.insert(editButton, at: 0)
-        app?.mmView.widgets.insert(playButton, at: 0)
-        app?.mmView.widgets.insert(behaviorMenu, at: 0)
-        app?.mmView.widgets.insert(previewInfoMenu, at: 0)
+        mmView.registerWidgets(widgets: nodesButton, nodeList!, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton)
+        if !overviewIsOn {
+            mmView.widgets.insert(editButton, at: 0)
+            mmView.widgets.insert(playButton, at: 0)
+            mmView.widgets.insert(behaviorMenu, at: 0)
+            mmView.widgets.insert(previewInfoMenu, at: 0)
+        }
         if app!.properties["NodeGraphNodesOpen"] == nil || app!.properties["NodeGraphNodesOpen"]! == 1 {
             app!.leftRegion!.rect.width = 200
         } else {
@@ -570,7 +633,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        app?.mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu)
+        mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu)
         app!.properties["NodeGraphNodesOpen"] = leftRegionMode == .Closed ? 0 : 1
     }
     
@@ -869,12 +932,6 @@ class NodeGraph : Codable
             refList.mouseMoved(event)
             return
         }
-        
-        /*
-        if let dragSource = refList.dragSource {
-            
-            return
-        }*/
         
         if currentMaster == nil { return }
         var scale : Float = currentMaster!.camera!.zoom

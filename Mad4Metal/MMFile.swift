@@ -68,7 +68,7 @@ class MMFile
         }
     }
     
-    func saveAs(_ stringData: String)
+    func saveAs(_ stringData: String, _ app: App)
     {
         #if os(OSX)
 
@@ -92,17 +92,22 @@ class MMFile
         savePanel.beginSheetModal(for: self.mmView.window!) { (result) in
             if result == .OK {
                 save(url: savePanel.url!)
+                self.mmView.undoManager!.removeAllActions()
             }
         }
         
         #else
         
+        app.viewController?.exportFile(stringData)
+
+        /*
         do {
             try stringData.write(to: url()!, atomically: true, encoding: .utf8)
+            self.mmView.undoManager!.removeAllActions()
         } catch
         {
             print(error.localizedDescription)
-        }
+        }*/
         
         #endif
     }

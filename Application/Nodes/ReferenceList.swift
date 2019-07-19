@@ -62,7 +62,7 @@ class ReferenceList {
         for node in nodeGraph.nodes
         {
             if node.type == "Float Variable" || node.type == "Direction Variable" || node.type == "Float2 Variable" {
-                let belongsToMaster = nodeGraph.currentMaster!.subset!.contains(node.uuid)
+                let belongsToMaster = nodeGraph.currentMaster != nil ? nodeGraph.currentMaster!.subset!.contains(node.uuid) : false
                 if node.properties["access"]! == 1 && !belongsToMaster {
                     continue
                 }
@@ -101,7 +101,7 @@ class ReferenceList {
         for node in nodeGraph.nodes
         {
             if node.type == "Behavior Tree" {
-                let belongsToMaster = nodeGraph.currentMaster!.subset!.contains(node.uuid)
+                let belongsToMaster = nodeGraph.currentMaster != nil ? nodeGraph.currentMaster!.subset!.contains(node.uuid) : false
                 //if node.properties["access"]! == 1 && !belongsToMaster {
                 //    continue
                 //}
@@ -167,7 +167,7 @@ class ReferenceList {
             if let layer = node as? Layer {
 
                 for inst in layer.objectInstances {
-                    let belongsToMaster = nodeGraph.currentMaster!.uuid == inst.objectUUID
+                    let belongsToMaster = nodeGraph.currentMaster != nil ? nodeGraph.currentMaster!.subset!.contains(node.uuid) : false
                     let item = ReferenceItem(nodeGraph.mmView)
                     
                     var name : String = inst.name

@@ -164,8 +164,6 @@ class App
                 nodeGraph.setup(app: self)
                 nodeGraph.activate()
                 nodeGraph.updateNodes()
-
-                nodeGraph.objectsButton._clicked(MMMouseEvent(100, 0))
             }
         }
     }
