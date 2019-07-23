@@ -204,7 +204,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             setLeftRegionMode(.Shapes)
             
             timelineButton.addState( .Checked )
-            app.bottomRegion!.rect.height = 100
+            app.bottomRegion!.rect.height = 150
         } else {
             if leftRegionMode == .Closed {
                 app.leftRegion!.rect.width = 0
@@ -215,7 +215,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             if bottomRegionMode == .Closed {
                 app.bottomRegion!.rect.height = 0
             } else {
-                app.bottomRegion!.rect.height = 100
+                app.bottomRegion!.rect.height = 150
             }
             
             animating = true
@@ -1474,22 +1474,60 @@ class SequenceWidget : MMWidget
         
         // Add Animation
         menuWidget.items[0].cb = {
-            let object = self.delegate.currentObject!
-            let seq = MMTlSequence()
-            seq.name = "New Animation"
-            object.sequences.append(seq)
-            object.setSequence(sequence:seq, timeline: delegate.app!.timeline)
-            self.listWidget.selectedItems = [seq.uuid]
-            delegate.app!.nodeGraph.updateMasterNodes(object)
+            getStringDialog(view: view, title: "New Animation", message: "Animation name", defaultValue: "New Animation", cb: { (name) -> Void in
+                let object = self.delegate.currentObject!
+                let seq = MMTlSequence()
+                seq.name = name
+                object.sequences.append(seq)
+                object.setSequence(sequence:seq, timeline: delegate.app!.timeline)
+                self.listWidget.selectedItems = [seq.uuid]
+                delegate.app!.nodeGraph.updateMasterNodes(object)
+                
+                self.mmView.update()
+                
+                func seqStatusChanged(_ object: Object, _ seq: MMTlSequence)
+                {
+                    self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                        
+                        if let index = object.sequences.firstIndex(where: { $0.uuid == seq.uuid }) {
+                            object.sequences.remove(at: index)
+                            self.listWidget.selectedItems = object.sequences.count > 0 ? [object.sequences[0].uuid] : []
+                            delegate.app!.nodeGraph.updateMasterNodes(object)
+                            self.mmView.update()
+                        } else {
+                            object.sequences.append(seq)
+                            object.setSequence(sequence:seq, timeline: delegate.app!.timeline)
+                            self.listWidget.selectedItems = [seq.uuid]
+                            delegate.app!.nodeGraph.updateMasterNodes(object)
+                            self.mmView.update()
+                        }
+                        seqStatusChanged(object, seq)
+                    }
+                }
+                seqStatusChanged(object, seq)
+            } )
         }
         
         // Rename Animation
         menuWidget.items[1].cb = {
-            var item = self.getCurrentItem()
-            if item != nil {
-                getStringDialog(view: view, title: "Rename Animation", message: "New name", defaultValue: item!.name, cb: { (name) -> Void in
-                    item!.name = name
-                    self.delegate.app!.nodeGraph.updateMasterNodes( self.delegate.currentObject!)
+            if var item = self.getCurrentItem() {
+                getStringDialog(view: view, title: "Rename Animation", message: "New name", defaultValue: item.name, cb: { (name) -> Void in
+                    let oldName = item.name
+                    item.name = name
+                    self.delegate.app!.nodeGraph.updateMasterNodes(self.delegate.currentObject!)
+                    
+                    let object = self.delegate.currentObject!
+                    func seqNameChanged(_ oldName: String, _ newName: String)
+                    {
+                        self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            item.name = newName
+                            self.delegate.app!.nodeGraph.updateMasterNodes(object)
+                            self.mmView.update()
+                            seqNameChanged(oldName, name)
+                        }
+                    }
+                    seqNameChanged(name, oldName)
+                    self.mmView.update()
                 } )
             }
         }
@@ -1498,12 +1536,44 @@ class SequenceWidget : MMWidget
         menuWidget.items[2].cb = {
             if self.items.count < 2 { return }
 
-            var item = self.getCurrentItem()
-
-            let object = self.delegate.currentObject!
-            object.sequences.remove(at: object.sequences.firstIndex(where: { $0.uuid == item!.uuid })!)
-            self.listWidget.selectedItems = [object.sequences[0].uuid]
-            delegate.app!.nodeGraph.updateMasterNodes(object)
+            if let item = self.getCurrentItem() {
+                let object = self.delegate.currentObject!
+                
+                object.sequences.remove(at: object.sequences.firstIndex(where: { $0.uuid == item.uuid })!)
+                self.listWidget.selectedItems = [object.sequences[0].uuid]
+                delegate.app!.nodeGraph.updateMasterNodes(object)
+                self.mmView.update()
+                var sequence : MMTlSequence? = nil
+                
+                for s in object.sequences {
+                    if s.uuid == item.uuid {
+                        sequence = s
+                    }
+                }
+                
+                if let seq = sequence {
+                    func seqStatusChanged(_ object: Object, _ seq: MMTlSequence)
+                    {
+                        self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            
+                            if let index = object.sequences.firstIndex(where: { $0.uuid == seq.uuid }) {
+                                object.sequences.remove(at: index)
+                                self.listWidget.selectedItems = object.sequences.count > 0 ? [object.sequences[0].uuid] : []
+                                delegate.app!.nodeGraph.updateMasterNodes(object)
+                                self.mmView.update()
+                            } else {
+                                object.sequences.append(seq)
+                                object.setSequence(sequence:seq, timeline: delegate.app!.timeline)
+                                self.listWidget.selectedItems = [seq.uuid]
+                                delegate.app!.nodeGraph.updateMasterNodes(object)
+                                self.mmView.update()
+                            }
+                            seqStatusChanged(object, seq)
+                        }
+                    }
+                    seqStatusChanged(object, seq)
+                }
+            }
         }
     }
     

@@ -80,9 +80,9 @@ class MMTimeline : MMWidget
         view.registerIcon("timeline_play")
         view.registerIcon("timeline_delete")
 
-        recordButton = MMButtonWidget(view, iconName: "timeline_recording")
-        playButton = MMButtonWidget(view, iconName: "timeline_play")
-        deleteButton = MMButtonWidget(view, iconName: "timeline_delete")
+        recordButton = MMButtonWidget(view, text: "Rec")//iconName: "timeline_recording")
+        playButton = MMButtonWidget(view, text: "Play")//iconName: "timeline_play")
+        deleteButton = MMButtonWidget(view, text: "Del")//iconName: "timeline_delete")
 
         super.init(view)
 
@@ -448,12 +448,12 @@ class MMTimeline : MMWidget
         recordButton.rect.y = tlRect.y + 40
         recordButton.draw()
         
-        playButton.rect.x = tlRect.x + 50
+        playButton.rect.x = tlRect.x + 60
         playButton.rect.y = tlRect.y + 40
         playButton.draw()
         
         deleteButton.isDisabled = currentKey == nil
-        deleteButton.rect.x = tlRect.x + 100
+        deleteButton.rect.x = tlRect.x + 120
         deleteButton.rect.y = tlRect.y + 40
         deleteButton.draw()
     }
