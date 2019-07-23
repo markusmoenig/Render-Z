@@ -270,6 +270,12 @@ class NodeList : MMWidget
             return KeyDown()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
+        // --- Leaf: Accelerometer
+        item = NodeListItem("iOS: Accelerometer")
+        item.createNode = {
+            return Accelerometer()
+        }
+        addNodeItem(item, type: .Behavior, displayType: .All)
 
         // --- Arithmetic
         item = NodeListItem("Add(Float2, Float2)")

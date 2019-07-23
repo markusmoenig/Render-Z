@@ -972,34 +972,141 @@ class ObjectWidget : MMWidget
         objectListWidget = ObjectListWidget(view, app: app, delegate: delegate)
         
         // --- Object Menu
-        let objectMenuItems = [
-            MMMenuItem( text: "Add Child Object", cb: {
-                let object = delegate.selObject!
-                getStringDialog(view: view, title: "Add Child Object", message: "Object name", defaultValue: "New Object", cb: { (name) -> Void in
-                    let child = Object()
-                    child.name = name
-                    child.label?.setText(name)
-                    child.maxDelegate = delegate.currentObject!.maxDelegate
-                    object.childObjects.append(child)
-                    delegate.selObject = child
-                    delegate.shapeListChanged = true
-                    delegate.updateObjectHierarchy()
-                } )
-            } ),
-            MMMenuItem( text: "Rename Object", cb: {
-                let object = delegate.selObject!
-                getStringDialog(view: view, title: "Rename Object", message: "Enter new name", defaultValue: object.name, cb: { (name) -> Void in
-                    object.name = name
-                    object.label?.setText(name)
-                    delegate.app!.nodeGraph.updateMasterNodes(object)
-                    delegate.app!.nodeGraph.updateContent(.Objects)
-                } )
-            } ),
-            MMMenuItem( text: "Delete Object", cb: {print("delete child") } )
+        var objectMenuItems = [
+            MMMenuItem( text: "Add Child Object", cb: {} ),
+            MMMenuItem( text: "Rename Object", cb: {} ),
+            MMMenuItem( text: "Delete Object", cb: {} )
         ]
         menuWidget = MMMenuWidget( view, items: objectMenuItems )
         
         super.init(view)
+        
+        // Add Child CB
+        menuWidget.items[0].cb = {
+            let object = delegate.selObject!
+            getStringDialog(view: view, title: "Add Child Object", message: "Object name", defaultValue: "New Object", cb: { (name) -> Void in
+                let child = Object()
+                child.name = name
+                child.label?.setText(name)
+                child.maxDelegate = delegate.currentObject!.maxDelegate
+                object.childObjects.append(child)
+                delegate.selObject = child
+                delegate.shapeListChanged = true
+                delegate.updateObjectHierarchy()
+                
+                func objectStatusChanged(_ object: Object, _ child: Object)
+                {
+                    self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                        
+                        if let index = object.childObjects.firstIndex(where: { $0.uuid == child.uuid }) {
+                            object.childObjects.remove(at: index)
+                            delegate.selObject = delegate.currentObject!
+                            delegate.shapeListChanged = true
+                            delegate.updateObjectHierarchy()
+                            self.mmView.update()
+                        } else {
+                            object.childObjects.append(child)
+                            delegate.selObject = child
+                            delegate.shapeListChanged = true
+                            delegate.updateObjectHierarchy()
+                            self.mmView.update()
+                        }
+                        objectStatusChanged(object, child)
+                    }
+                }
+                objectStatusChanged(object, child)
+                self.mmView.update()
+            } )
+        }
+        
+        // Rename Child CB
+        menuWidget.items[1].cb = {
+            let object = delegate.selObject!
+            getStringDialog(view: view, title: "Rename Object", message: "Enter new name", defaultValue: object.name, cb: { (name) -> Void in
+                let oldName = object.name
+                object.name = name
+                object.label?.setText(name)
+                delegate.app!.nodeGraph.updateMasterNodes(object)
+                delegate.app!.nodeGraph.updateContent(.Objects)
+                
+                func objectNameChanged(_ oldName: String, _ newName: String)
+                {
+                    self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                        object.name = newName
+                        object.label?.setText(newName)
+                        delegate.app!.nodeGraph.updateMasterNodes(object)
+                        delegate.app!.nodeGraph.updateContent(.Objects)
+                        objectNameChanged(newName, oldName)
+                        self.mmView.update()
+                    }
+                }
+                objectNameChanged(name, oldName)
+                self.mmView.update()
+            } )
+        }
+        
+        // Delete Child CB
+        menuWidget.items[2].cb = {
+            let object = delegate.selObject!
+            if object.uuid != delegate.currentObject!.uuid {
+                
+                // --- Get Parent
+                var parentObject : Object? = nil
+                func checkParent(_ parent: Object)
+                {
+                    for child in parent.childObjects {
+                        if child.uuid == object.uuid {
+                            parentObject = parent
+                        } else {
+                            checkParent(child)
+                        }
+                    }
+                }
+                
+                let root = delegate.currentObject!
+                checkParent(root)
+                // ---
+                
+                if let parent = parentObject {
+                
+                    // Remove object from parent
+                    if let index = parent.childObjects.firstIndex(where: { $0.uuid == object.uuid }) {
+                        parent.childObjects.remove(at: index)
+                        delegate.selObject = delegate.currentObject!
+                        delegate.shapeListChanged = true
+                        delegate.updateObjectHierarchy()
+                        self.mmView.update()
+                    }
+                    
+                    // Undo / Redo
+                    func objectStatusChanged(_ object: Object, _ child: Object)
+                    {
+                        self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                     
+                            if let index = object.childObjects.firstIndex(where: { $0.uuid == child.uuid }) {
+                                object.childObjects.remove(at: index)
+                                delegate.selObject = delegate.currentObject!
+                                delegate.shapeListChanged = true
+                                delegate.updateObjectHierarchy()
+                                delegate.app.updateObjectPreview(root)
+                                self.mmView.update()
+                            } else {
+                                object.childObjects.append(child)
+                                delegate.selObject = child
+                                delegate.shapeListChanged = true
+                                delegate.updateObjectHierarchy()
+                                delegate.app.updateObjectPreview(root)
+                                self.mmView.update()
+                            }
+                            objectStatusChanged(object, child)
+                        }
+                    }
+                    objectStatusChanged(parent, object)
+                    delegate.app.updateObjectPreview(root)
+                    self.mmView.update()
+                }
+            }
+        }
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)

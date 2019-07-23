@@ -199,3 +199,111 @@ class ClickInLayerArea : Node
     }
 }
 
+#if os(iOS)
+import CoreMotion
+#endif
+
+/// Gyroscope
+class Accelerometer : Node
+{
+    #if os(iOS)
+    var motionManager   : CMMotionManager? = nil
+    #endif
+    var isValid         : Bool = false
+    
+    override init()
+    {
+        super.init()
+        
+        name = "iOS: Accelerometer"
+        uiConnections.append(UINodeConnection(.Float2Variable))
+    }
+    
+    override func setup()
+    {
+        type = "Accelerometer"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIFloat2VariableTarget(self, variable: "variable", title: "Float2", connection: uiConnections[0])
+        ]
+        
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Return Success if the selected key is currently down
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        
+        #if os(iOS)
+        if let float2Var = uiConnections[0].target as? Float2Variable {
+
+            if motionManager == nil {
+                
+                isValid = false
+                motionManager = CMMotionManager()
+                if motionManager!.isAccelerometerAvailable {
+                    motionManager!.accelerometerUpdateInterval = 1/60
+                    motionManager!.startAccelerometerUpdates()
+                    isValid = true
+                }
+            }
+            
+            if isValid {
+                
+                if let data = motionManager!.accelerometerData {
+                    let accelData = float2(Float(data.acceleration.x), Float(data.acceleration.y))
+                    print( accelData)
+                    float2Var.setValue(accelData)
+                    playResult = .Success
+                }
+            }
+        }
+        #endif
+        
+        return playResult!
+    }
+    
+    override func finishExecution() {
+        
+        #if os(iOS)
+        if motionManager != nil {
+            motionManager?.stopAccelerometerUpdates()
+            motionManager = nil
+        }
+        #endif
+    }
+}
+

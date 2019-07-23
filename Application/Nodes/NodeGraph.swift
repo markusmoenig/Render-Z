@@ -552,9 +552,6 @@ class NodeGraph : Codable
         // --- Set default view
         if currentMasterUUID != nil{
             setCurrentMaster(uuid: currentMasterUUID!)
-        } else {
-            self.contentType = .Objects
-            updateContent(self.contentType)
         }
         
         if currentMaster as? Object != nil {

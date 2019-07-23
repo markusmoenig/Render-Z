@@ -519,6 +519,7 @@ enum NodeFamily: String, NodeClassFamily {
     case layerGravity = "Layer Gravity"
     case clickInLayerArea = "Click In Layer Area"
     case keyDown = "Key Down"
+    case accelerometer = "Accelerometer"
     case scene = "Scene"
     case game = "Game"
     case valueVariable = "Value Variable"
@@ -618,6 +619,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return Restart.self
             case .keyDown:
                 return KeyDown.self
+            case .accelerometer:
+                return Accelerometer.self
             
             case .valueVariable, .floatVariable:
                 return FloatVariable.self
