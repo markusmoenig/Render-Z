@@ -399,6 +399,12 @@ class Gizmo : MMWidget
                         undoData = try? JSONEncoder().encode(rootObject!.sequences)
                     }
                 }
+            } else
+            if mode == .Normal && context == .ObjectEditor {
+                undoProperties = object!.properties
+                if isRecording() {
+                    undoData = try? JSONEncoder().encode(rootObject!.sequences)
+                }
             }
             return
         }
@@ -735,24 +741,7 @@ class Gizmo : MMWidget
             } else {
                 // Undo for shape based action when using the timeline
                 if selectedShapes.count == 1 && dragState != .Inactive && undoData != nil {
-                    
-                    let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: undoData!)
-                    let modifiedData = try? JSONEncoder().encode(rootObject!.sequences)
-                    let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
-
-                    func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
-                    {
-                        mmView.undoManager!.registerUndo(withTarget: self) { target in
-                            object.sequences = old
-                            if object.sequences.count > 0 {
-                                object.currentSequence = object.sequences[0]
-                            }
-                            applyTimelineData(object, new, old)
-                            self.app.updateObjectPreview(self.rootObject!)
-                        }
-                    }
-                    
-                    applyTimelineData(rootObject!, origSequences!, modifiedSequences!)
+                    undoTimelineAction()
                 }
             }
         } else
@@ -778,24 +767,7 @@ class Gizmo : MMWidget
             } else {
                 // Undo for material based action when using the timeline
                 if selectedMaterials.count == 1 && dragState != .Inactive && undoData != nil {
-                    
-                    let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: undoData!)
-                    let modifiedData = try? JSONEncoder().encode(rootObject!.sequences)
-                    let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
-                    
-                    func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
-                    {
-                        mmView.undoManager!.registerUndo(withTarget: self) { target in
-                            object.sequences = old
-                            if object.sequences.count > 0 {
-                                object.currentSequence = object.sequences[0]
-                            }
-                            applyTimelineData(object, new, old)
-                            self.app.updateObjectPreview(self.rootObject!)
-                        }
-                    }
-                    
-                    applyTimelineData(rootObject!, origSequences!, modifiedSequences!)
+                    undoTimelineAction()
                 }
             }
         } else
@@ -843,24 +815,7 @@ class Gizmo : MMWidget
             } else {
                 // Undo for object based action when using the timeline
                 if objects.count == 1 && undoData != nil {
-                    
-                    let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: undoData!)
-                    let modifiedData = try? JSONEncoder().encode(rootObject!.sequences)
-                    let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
-                    
-                    func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
-                    {
-                        mmView.undoManager!.registerUndo(withTarget: self) { target in
-                            object.sequences = old
-                            if object.sequences.count > 0 {
-                                object.currentSequence = object.sequences[0]
-                            }
-                            applyTimelineData(object, new, old)
-                            self.app.updateObjectPreview(self.rootObject!)
-                        }
-                    }
-                    
-                    applyTimelineData(rootObject!, origSequences!, modifiedSequences!)
+                    undoTimelineAction()
                 }
             }
         }
@@ -2539,6 +2494,30 @@ class Gizmo : MMWidget
         //print( properties )
         
         return properties
+    }
+    
+    /// Undo a timeline based action
+    func undoTimelineAction()
+    {
+        let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: undoData!)
+        let modifiedData = try? JSONEncoder().encode(rootObject!.sequences)
+        let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
+        
+        let object = rootObject!
+            
+        func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
+        {
+            mmView.undoManager!.registerUndo(withTarget: self) { target in
+                object.sequences = old
+                if object.sequences.count > 0 {
+                    object.currentSequence = object.sequences[0]
+                }
+                applyTimelineData(object, new, old)
+            }
+            self.app.updateObjectPreview(self.rootObject!)
+        }
+            
+        applyTimelineData(rootObject!, origSequences!, modifiedSequences!)
     }
 }
 

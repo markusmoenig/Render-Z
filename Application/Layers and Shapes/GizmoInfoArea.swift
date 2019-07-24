@@ -242,25 +242,7 @@ class GizmoInfoArea {
                     } else {
                         // Undo for shape based action when using the timeline
                         if selectedShapes.count == 1 && self.gizmo.undoData != nil {
-                            
-                            let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: self.gizmo.undoData!)
-                            let modifiedData = try? JSONEncoder().encode(self.gizmo.rootObject!.sequences)
-                            let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
-                            
-                            func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
-                            {
-                                self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                                    object.sequences = old
-                                    if object.sequences.count > 0 {
-                                        object.currentSequence = object.sequences[0]
-                                    }
-                                    applyTimelineData(object, new, old)
-                                }
-                                self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
-                                self.gizmo.mmView.update()
-                            }
-                            
-                            applyTimelineData(self.gizmo.rootObject!, origSequences!, modifiedSequences!)
+                            self.gizmo.undoTimelineAction()
                         }
                     }
                 } else
@@ -296,25 +278,7 @@ class GizmoInfoArea {
                     } else {
                         // Undo for material based action when using the timeline
                         if selectedMaterials.count == 1 && self.gizmo.undoData != nil {
-                            
-                            let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: self.gizmo.undoData!)
-                            let modifiedData = try? JSONEncoder().encode(self.gizmo.rootObject!.sequences)
-                            let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
-                            
-                            func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
-                            {
-                                self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                                    object.sequences = old
-                                    if object.sequences.count > 0 {
-                                        object.currentSequence = object.sequences[0]
-                                    }
-                                    applyTimelineData(object, new, old)
-                                }
-                                self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
-                                self.gizmo.mmView.update()
-                            }
-                            
-                            applyTimelineData(self.gizmo.rootObject!, origSequences!, modifiedSequences!)
+                            self.gizmo.undoTimelineAction()
                         }
                     }
                 } else
@@ -370,25 +334,7 @@ class GizmoInfoArea {
                     } else {
                         // Undo for object based action when using the timeline
                         if self.gizmo.objects.count == 1 && self.gizmo.undoData != nil {
-                            
-                            let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: self.gizmo.undoData!)
-                            let modifiedData = try? JSONEncoder().encode(self.gizmo.rootObject!.sequences)
-                            let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
-                            
-                            func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
-                            {
-                                self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                                    object.sequences = old
-                                    if object.sequences.count > 0 {
-                                        object.currentSequence = object.sequences[0]
-                                    }
-                                    applyTimelineData(object, new, old)
-                                }
-                                self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
-                                self.gizmo.mmView.update()
-                            }
-                            
-                            applyTimelineData(self.gizmo.rootObject!, origSequences!, modifiedSequences!)
+                            self.gizmo.undoTimelineAction()
                         }
                     }
                 }
