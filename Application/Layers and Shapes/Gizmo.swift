@@ -85,6 +85,7 @@ class Gizmo : MMWidget
     var maxDelegate     : NodeMaxDelegate? = nil
     
     var undoProperties  : [String:Float] = [:]
+    var undoData        : Data? = nil
 
     override required init(_ view : MMView)
     {
@@ -374,6 +375,7 @@ class Gizmo : MMWidget
         }
         #endif
         
+        undoData = nil
         // If shape editor has no shape, set to inactive
         if object!.selectedShapes.count == 0 && context == .ShapeEditor { hoverState = .Inactive; return }
         
@@ -384,12 +386,18 @@ class Gizmo : MMWidget
                 let selectedShapes = object!.getSelectedShapes()
                 if selectedShapes.count == 1 {
                     undoProperties = selectedShapes[0].properties
+                    if isRecording() {
+                        undoData = try? JSONEncoder().encode(rootObject!.sequences)
+                    }
                 }
             } else
             if mode == .Normal && context == .MaterialEditor {
                 let selectedMaterials = object!.getSelectedMaterials(materialType)
                 if selectedMaterials.count == 1 {
                     undoProperties = selectedMaterials[0].properties
+                    if isRecording() {
+                        undoData = try? JSONEncoder().encode(rootObject!.sequences)
+                    }
                 }
             }
             return
@@ -585,6 +593,9 @@ class Gizmo : MMWidget
                     initialValues[shape.uuid]![shape.heightProperty] = transformed[shape.heightProperty]!
                     
                     undoProperties = shape.properties
+                    if isRecording() {
+                        undoData = try? JSONEncoder().encode(rootObject!.sequences)
+                    }
                 }
             } else
             if mode == .Normal && context == .MaterialEditor {
@@ -609,6 +620,9 @@ class Gizmo : MMWidget
                     initialValues[material.uuid]![material.heightProperty] = transformed[material.heightProperty]!
                     
                     undoProperties = material.properties
+                    if isRecording() {
+                        undoData = try? JSONEncoder().encode(rootObject!.sequences)
+                    }
                 }
             } else
             if mode == .Normal && context == .ObjectEditor {
@@ -627,6 +641,9 @@ class Gizmo : MMWidget
                     initialValues[object.uuid]!["scaleY"] = transformed["scaleY"]!
                     
                     undoProperties = object.properties
+                    if isRecording() {
+                        undoData = try? JSONEncoder().encode(rootObject!.sequences)
+                    }
                 }
             } else
             if mode == .Point {
@@ -641,6 +658,9 @@ class Gizmo : MMWidget
                     initialValues[shape.uuid]!["posY"] = transformed["point_\(pointIndex)_y"]!
                     
                     undoProperties = shape.properties
+                    if isRecording() {
+                        undoData = try? JSONEncoder().encode(rootObject!.sequences)
+                    }
                     let properties : [String:Float] = [
                         "point_\(pointIndex)_x" : transformed["point_\(pointIndex)_x"]!,
                         "point_\(pointIndex)_y" : transformed["point_\(pointIndex)_y"]!
@@ -657,6 +677,9 @@ class Gizmo : MMWidget
                     initialValues[material.uuid]!["posY"] = transformed["point_\(pointIndex)_y"]!
                     
                     undoProperties = material.properties
+                    if isRecording() {
+                        undoData = try? JSONEncoder().encode(rootObject!.sequences)
+                    }
                     let properties : [String:Float] = [
                         "point_\(pointIndex)_x" : transformed["point_\(pointIndex)_x"]!,
                         "point_\(pointIndex)_y" : transformed["point_\(pointIndex)_y"]!
@@ -694,81 +717,153 @@ class Gizmo : MMWidget
                 shape.updateSize()
             }
             
-            // Undo for shape based action
-            if selectedShapes.count == 1 && dragState != .Inactive && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: undoProperties) {
-                func applyProperties(_ shape: Shape,_ old: [String:Float],_ new: [String:Float])
-                {
-                    mmView.undoManager!.registerUndo(withTarget: self) { target in
-                        shape.properties = old
-                        
-                        applyProperties(shape, new, old)
-                        self.app.updateObjectPreview(self.rootObject!)
+            if !isRecording() {
+                // Undo for shape based action when not using the timeline
+                if selectedShapes.count == 1 && dragState != .Inactive && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: undoProperties) {
+                    func applyProperties(_ shape: Shape,_ old: [String:Float],_ new: [String:Float])
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            shape.properties = old
+                            
+                            applyProperties(shape, new, old)
+                            self.app.updateObjectPreview(self.rootObject!)
+                        }
                     }
+                    
+                    applyProperties(selectedShapes[0], undoProperties, selectedShapes[0].properties)
                 }
-                
-                applyProperties(selectedShapes[0], undoProperties, selectedShapes[0].properties)
+            } else {
+                // Undo for shape based action when using the timeline
+                if selectedShapes.count == 1 && dragState != .Inactive && undoData != nil {
+                    
+                    let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: undoData!)
+                    let modifiedData = try? JSONEncoder().encode(rootObject!.sequences)
+                    let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
+
+                    func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            object.sequences = old
+                            if object.sequences.count > 0 {
+                                object.currentSequence = object.sequences[0]
+                            }
+                            applyTimelineData(object, new, old)
+                            self.app.updateObjectPreview(self.rootObject!)
+                        }
+                    }
+                    
+                    applyTimelineData(rootObject!, origSequences!, modifiedSequences!)
+                }
             }
         } else
         if object != nil && context == .MaterialEditor
         {
             let selectedMaterials = object!.getSelectedMaterials(materialType)
             
-            // Undo for material based action
-            if selectedMaterials.count == 1 && dragState != .Inactive && !NSDictionary(dictionary: selectedMaterials[0].properties).isEqual(to: undoProperties) {
-                func applyProperties(_ material: Material,_ old: [String:Float],_ new: [String:Float])
-                {
-                    mmView.undoManager!.registerUndo(withTarget: self) { target in
-                        material.properties = old
-                        
-                        applyProperties(material, new, old)
-                        self.app.updateObjectPreview(self.rootObject!)
+            if !isRecording() {
+                // Undo for material based action
+                if selectedMaterials.count == 1 && dragState != .Inactive && !NSDictionary(dictionary: selectedMaterials[0].properties).isEqual(to: undoProperties) {
+                    func applyProperties(_ material: Material,_ old: [String:Float],_ new: [String:Float])
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            material.properties = old
+                            
+                            applyProperties(material, new, old)
+                            self.app.updateObjectPreview(self.rootObject!)
+                        }
                     }
+                    
+                    applyProperties(selectedMaterials[0], undoProperties, selectedMaterials[0].properties)
                 }
-                
-                applyProperties(selectedMaterials[0], undoProperties, selectedMaterials[0].properties)
+            } else {
+                // Undo for material based action when using the timeline
+                if selectedMaterials.count == 1 && dragState != .Inactive && undoData != nil {
+                    
+                    let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: undoData!)
+                    let modifiedData = try? JSONEncoder().encode(rootObject!.sequences)
+                    let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
+                    
+                    func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            object.sequences = old
+                            if object.sequences.count > 0 {
+                                object.currentSequence = object.sequences[0]
+                            }
+                            applyTimelineData(object, new, old)
+                            self.app.updateObjectPreview(self.rootObject!)
+                        }
+                    }
+                    
+                    applyTimelineData(rootObject!, origSequences!, modifiedSequences!)
+                }
             }
         } else
         if object != nil && context == .ObjectEditor {
 
-            if objects.count == 1 && !NSDictionary(dictionary: object!.properties).isEqual(to: undoProperties) {
+            if !isRecording() {
+
+                if objects.count == 1 && !NSDictionary(dictionary: object!.properties).isEqual(to: undoProperties) {
                     
-                func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
-                {
-                    mmView.undoManager!.registerUndo(withTarget: self) { target in
-                        
-                        if object.instanceOf == nil {
-                            object.properties = old
-                        } else {
-                            if let layer = self.app.nodeGraph.getLayerOfInstance(object.uuid) {
-                                for inst in layer.objectInstances {
-                                    if inst.uuid == object.uuid {
-                                        inst.properties = old
+                    func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            
+                            if object.instanceOf == nil {
+                                object.properties = old
+                            } else {
+                                if let layer = self.app.nodeGraph.getLayerOfInstance(object.uuid) {
+                                    for inst in layer.objectInstances {
+                                        if inst.uuid == object.uuid {
+                                            inst.properties = old
+                                        }
                                     }
                                 }
                             }
+                            
+                            applyProperties(object, new, old)
                         }
-                        
-                        applyProperties(object, new, old)
+                        app.updateObjectPreview(rootObject!)
+                        mmView.update()
                     }
-                    app.updateObjectPreview(rootObject!)
-                    mmView.update()
-                }
-                
-                if object!.instanceOf != nil {
-                    // This is an instance, we need to update the instance properties
-                    if let layer = app.nodeGraph.getLayerOfInstance(object!.uuid) {
-                        for inst in layer.objectInstances {
-                            if inst.uuid == object!.uuid {
-                                inst.properties = object!.properties
+                    
+                    if object!.instanceOf != nil {
+                        // This is an instance, we need to update the instance properties
+                        if let layer = app.nodeGraph.getLayerOfInstance(object!.uuid) {
+                            for inst in layer.objectInstances {
+                                if inst.uuid == object!.uuid {
+                                    inst.properties = object!.properties
+                                }
                             }
                         }
                     }
+                    
+                    applyProperties(object!, undoProperties, object!.properties)
                 }
-                
-                applyProperties(object!, undoProperties, object!.properties)
+            } else {
+                // Undo for object based action when using the timeline
+                if objects.count == 1 && undoData != nil {
+                    
+                    let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: undoData!)
+                    let modifiedData = try? JSONEncoder().encode(rootObject!.sequences)
+                    let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
+                    
+                    func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            object.sequences = old
+                            if object.sequences.count > 0 {
+                                object.currentSequence = object.sequences[0]
+                            }
+                            applyTimelineData(object, new, old)
+                            self.app.updateObjectPreview(self.rootObject!)
+                        }
+                    }
+                    
+                    applyTimelineData(rootObject!, origSequences!, modifiedSequences!)
+                }
             }
         }
-        
         // Update the material list
         if object != nil && context == .MaterialEditor {
             maxDelegate!.update(false, updateLists: true)

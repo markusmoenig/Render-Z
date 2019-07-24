@@ -222,21 +222,46 @@ class GizmoInfoArea {
                     
                     self.gizmo.dragState = .Inactive
                     
-                    // Undo for shape based action
-                    if selectedShapes.count == 1 && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: self.gizmo.undoProperties) {
-                        
-                        func applyProperties(_ shape: Shape,_ old: [String:Float],_ new: [String:Float])
-                        {
-                            self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                                shape.properties = old
-                                
-                                applyProperties(shape, new, old)
+                    if !self.gizmo.isRecording() {
+                        // Undo for shape based action
+                        if selectedShapes.count == 1 && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: self.gizmo.undoProperties) {
+                            
+                            func applyProperties(_ shape: Shape,_ old: [String:Float],_ new: [String:Float])
+                            {
+                                self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                                    shape.properties = old
+                                    
+                                    applyProperties(shape, new, old)
+                                }
+                                self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
+                                self.gizmo.mmView.update()
                             }
-                            self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
-                            self.gizmo.mmView.update()
+                            
+                            applyProperties(selectedShapes[0], self.gizmo.undoProperties, selectedShapes[0].properties)
                         }
-                        
-                        applyProperties(selectedShapes[0], self.gizmo.undoProperties, selectedShapes[0].properties)
+                    } else {
+                        // Undo for shape based action when using the timeline
+                        if selectedShapes.count == 1 && self.gizmo.undoData != nil {
+                            
+                            let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: self.gizmo.undoData!)
+                            let modifiedData = try? JSONEncoder().encode(self.gizmo.rootObject!.sequences)
+                            let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
+                            
+                            func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
+                            {
+                                self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                                    object.sequences = old
+                                    if object.sequences.count > 0 {
+                                        object.currentSequence = object.sequences[0]
+                                    }
+                                    applyTimelineData(object, new, old)
+                                }
+                                self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
+                                self.gizmo.mmView.update()
+                            }
+                            
+                            applyTimelineData(self.gizmo.rootObject!, origSequences!, modifiedSequences!)
+                        }
                     }
                 } else
                 if object != nil && context == .MaterialEditor {
@@ -251,21 +276,46 @@ class GizmoInfoArea {
                     
                     self.gizmo.dragState = .Inactive
                     
-                    // Undo for shape based action
-                    if selectedMaterials.count == 1 && !NSDictionary(dictionary: selectedMaterials[0].properties).isEqual(to: self.gizmo.undoProperties) {
-                        
-                        func applyProperties(_ material: Material,_ old: [String:Float],_ new: [String:Float])
-                        {
-                            self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                                material.properties = old
-                                
-                                applyProperties(material, new, old)
+                    if !self.gizmo.isRecording() {
+                        // Undo for shape based action
+                        if selectedMaterials.count == 1 && !NSDictionary(dictionary: selectedMaterials[0].properties).isEqual(to: self.gizmo.undoProperties) {
+                            
+                            func applyProperties(_ material: Material,_ old: [String:Float],_ new: [String:Float])
+                            {
+                                self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                                    material.properties = old
+                                    
+                                    applyProperties(material, new, old)
+                                }
+                                self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
+                                self.gizmo.mmView.update()
                             }
-                            self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
-                            self.gizmo.mmView.update()
+                            
+                            applyProperties(selectedMaterials[0], self.gizmo.undoProperties, selectedMaterials[0].properties)
                         }
-                        
-                        applyProperties(selectedMaterials[0], self.gizmo.undoProperties, selectedMaterials[0].properties)
+                    } else {
+                        // Undo for material based action when using the timeline
+                        if selectedMaterials.count == 1 && self.gizmo.undoData != nil {
+                            
+                            let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: self.gizmo.undoData!)
+                            let modifiedData = try? JSONEncoder().encode(self.gizmo.rootObject!.sequences)
+                            let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
+                            
+                            func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
+                            {
+                                self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                                    object.sequences = old
+                                    if object.sequences.count > 0 {
+                                        object.currentSequence = object.sequences[0]
+                                    }
+                                    applyTimelineData(object, new, old)
+                                }
+                                self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
+                                self.gizmo.mmView.update()
+                            }
+                            
+                            applyTimelineData(self.gizmo.rootObject!, origSequences!, modifiedSequences!)
+                        }
                     }
                 } else
                 if object != nil && context == .ObjectEditor {
@@ -279,45 +329,69 @@ class GizmoInfoArea {
                     
                     self.gizmo.dragState = .Inactive
                     
-                    // Undo for shape based action
-                    if self.gizmo.objects.count == 1 && !NSDictionary(dictionary: object.properties).isEqual(to: self.gizmo.undoProperties) {
+                    if !self.gizmo.isRecording() {
                         
-                        func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
-                        {
-                            self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                                
-                                if object.instanceOf == nil {
-                                    object.properties = old
-                                } else {
-                                    if let layer = self.gizmo.app.nodeGraph.getLayerOfInstance(object.uuid) {
-                                        for inst in layer.objectInstances {
-                                            if inst.uuid == object.uuid {
-                                                inst.properties = old
+                        if self.gizmo.objects.count == 1 && !NSDictionary(dictionary: object.properties).isEqual(to: self.gizmo.undoProperties) {
+                            
+                            func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
+                            {
+                                self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                                    
+                                    if object.instanceOf == nil {
+                                        object.properties = old
+                                    } else {
+                                        if let layer = self.gizmo.app.nodeGraph.getLayerOfInstance(object.uuid) {
+                                            for inst in layer.objectInstances {
+                                                if inst.uuid == object.uuid {
+                                                    inst.properties = old
+                                                }
                                             }
                                         }
                                     }
+                                    applyProperties(object, new, old)
                                 }
-                                applyProperties(object, new, old)
+                                self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
+                                self.gizmo.mmView.update()
                             }
-                            self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
-                            self.gizmo.mmView.update()
-                        }
-                        
-                        if object.instanceOf != nil {
-                            // This is an instance, we need to update the instance properties
-                            if let layer = self.gizmo.app.nodeGraph.getLayerOfInstance(object.uuid) {
-                                for inst in layer.objectInstances {
-                                    if inst.uuid == object.uuid {
-                                        inst.properties = object.properties
+                            
+                            if object.instanceOf != nil {
+                                // This is an instance, we need to update the instance properties
+                                if let layer = self.gizmo.app.nodeGraph.getLayerOfInstance(object.uuid) {
+                                    for inst in layer.objectInstances {
+                                        if inst.uuid == object.uuid {
+                                            inst.properties = object.properties
+                                        }
                                     }
                                 }
                             }
+                            
+                            applyProperties(object, self.gizmo.undoProperties, object.properties)
                         }
-                        
-                        applyProperties(object, self.gizmo.undoProperties, object.properties)
+                    } else {
+                        // Undo for object based action when using the timeline
+                        if self.gizmo.objects.count == 1 && self.gizmo.undoData != nil {
+                            
+                            let origSequences = try? JSONDecoder().decode([MMTlSequence].self, from: self.gizmo.undoData!)
+                            let modifiedData = try? JSONEncoder().encode(self.gizmo.rootObject!.sequences)
+                            let modifiedSequences = try? JSONDecoder().decode([MMTlSequence].self, from: modifiedData!)
+                            
+                            func applyTimelineData(_ object: Object,_ old: [MMTlSequence],_ new: [MMTlSequence])
+                            {
+                                self.gizmo.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                                    object.sequences = old
+                                    if object.sequences.count > 0 {
+                                        object.currentSequence = object.sequences[0]
+                                    }
+                                    applyTimelineData(object, new, old)
+                                }
+                                self.gizmo.app.updateObjectPreview(self.gizmo.rootObject!)
+                                self.gizmo.mmView.update()
+                            }
+                            
+                            applyTimelineData(self.gizmo.rootObject!, origSequences!, modifiedSequences!)
+                        }
                     }
                 }
-                
             } )
         }
         return hoverItem != nil
