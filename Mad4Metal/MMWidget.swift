@@ -218,6 +218,8 @@ class MMButtonWidget : MMWidget
                 fColor = skin.color
             }
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fColor, borderColor: skin.borderColor )
+        } else {
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : float4(0,0,0,0), borderColor: float4(skin.borderColor.x, skin.borderColor.y, skin.borderColor.z, 0.2))
         }
         
         if label != nil {

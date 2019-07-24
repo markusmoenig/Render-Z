@@ -36,14 +36,14 @@ class MMTlSequence : Codable, MMListWidgetItem
 class MMTimeline : MMWidget
 {
     enum MMTimelineMode {
-        case Unused, Scrubbing, ScrubbingKey
+        case Unused, Scrubbing, ScrubbingKey, MovingBar, MoveLeftHandle, MoveRightHandle
     }
     
     var mode                    : MMTimelineMode
     
     var recordButton            : MMButtonWidget
     var playButton              : MMButtonWidget
-    var deleteButton              : MMButtonWidget
+    var deleteButton            : MMButtonWidget
 
     var isRecording             : Bool = false
     var isPlaying               : Bool = false
@@ -58,6 +58,7 @@ class MMTimeline : MMWidget
     // --- Timeline attributes
     
     var tlRect                  : MMRect
+    var barRect                 : MMRect
     var currentFrame            : Int
 
     var totalFrames             : Int = 100
@@ -67,6 +68,13 @@ class MMTimeline : MMWidget
     var visibleStartFrame       : Float = 0
     var barStartX               : Float = 0
     
+    var percentVisible          : Float = 0.8
+    let barHandleWidth          : Float = 18
+    
+    var dragStart               : float2 = float2()
+    var dragStartFrame          : Float = 0
+    var dragStartValue          : Float = 0
+
     override init(_ view: MMView )
     {
         mode = .Unused
@@ -74,15 +82,25 @@ class MMTimeline : MMWidget
         
         currentFrame = 0
         tlRect = MMRect()
+        barRect = MMRect()
         pixelsPerFrame = 40
         
         view.registerIcon("timeline_recording")
         view.registerIcon("timeline_play")
         view.registerIcon("timeline_delete")
 
-        recordButton = MMButtonWidget(view, text: "Rec")//iconName: "timeline_recording")
-        playButton = MMButtonWidget(view, text: "Play")//iconName: "timeline_play")
-        deleteButton = MMButtonWidget(view, text: "Del")//iconName: "timeline_delete")
+        var smallButtonSkin = MMSkinButton()
+        smallButtonSkin.height = 30
+        smallButtonSkin.fontScale = 0.4
+        smallButtonSkin.margin.left = 8
+        
+        recordButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Rec")//iconName: "timeline_recording")
+        playButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Play")//iconName: "timeline_play")
+        deleteButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Del")//iconName: "timeline_delete")
+        
+        recordButton.textYOffset = -1
+        playButton.textYOffset = -1
+        deleteButton.textYOffset = -1
 
         super.init(view)
 
@@ -132,76 +150,13 @@ class MMTimeline : MMWidget
         mmView.deregisterWidgets(widgets: recordButton, playButton, deleteButton)
     }
     
-    override func mouseDown(_ event: MMMouseEvent)
-    {
-        if tlRect.contains(event.x, event.y) {
-            
-            currentKey = nil
-
-            // --- Check if user clicked on a keyframe
-            if let sequence = currentSequence {
-                for(uuid,dict) in sequence.items {
-                    for(frame,key) in dict {
-                        let keyX = tlRect.x + Float(frame) * pixelsPerFrame
-                        if event.x >= keyX && event.x <= keyX + 12 {
-                            currentKey = key
-                            mode = .ScrubbingKey
-                            keyScrubPos = frame
-                            keyScrubUUID = uuid
-                            return
-                        }
-                    }
-                }
-            }
-            
-            let frame = frameAt(event.x,event.y)
-            if frame != currentFrame && frame >= 0 && frame < totalFrames {
-                currentFrame = frame
-                changedCB?(currentFrame)
-                mmView.update()
-            }
-            mode = .Scrubbing
-        }
-    }
-    
-    override func mouseUp(_ event: MMMouseEvent)
-    {
-        mode = .Unused
-    }
-    
-    override func mouseMoved(_ event: MMMouseEvent)
-    {
-        if mode == .Scrubbing {
-            let frame = frameAt(event.x,event.y)
-            if frame != currentFrame && frame >= 0 && frame < totalFrames {
-                currentFrame = frame
-                changedCB?(currentFrame)
-                mmView.update()
-            }
-        } else
-        if mode == .ScrubbingKey {
-            let frame = frameAt(event.x,event.y)
-            
-            if frame != keyScrubPos {
-                var dict = currentSequence!.items[keyScrubUUID]
-                if let entry = dict!.removeValue(forKey: keyScrubPos) {
-                    dict![frame] = entry
-                    keyScrubPos = frame
-                    changedCB?(currentFrame)
-                    mmView.update()
-                }
-                currentSequence!.items[keyScrubUUID] = dict
-            }
-        }
-    }
-    
     /// Returns the frame number for the given mouse position
     func frameAt(_ x: Float,_ y: Float) -> Int
     {
         var frame : Float = 0
         
-        let frameX = x - tlRect.x
-        frame = frameX / pixelsPerFrame
+        let frameX = max(x - tlRect.x, 0)
+        frame = visibleStartFrame + frameX / pixelsPerFrame
         
 //        print( Int(frame) )
         
@@ -339,6 +294,125 @@ class MMTimeline : MMWidget
         }
     }
     
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        if tlRect.contains(event.x, event.y) {
+            
+            currentKey = nil
+            
+            // --- Check if user clicked on a keyframe
+            if let sequence = currentSequence {
+                for(uuid,dict) in sequence.items {
+                    for(frame,key) in dict {
+                        let keyX = tlRect.x + (Float(frame)-visibleStartFrame) * pixelsPerFrame
+                        if event.x >= keyX && event.x <= keyX + 12 {
+                            currentKey = key
+                            mode = .ScrubbingKey
+                            keyScrubPos = frame
+                            keyScrubUUID = uuid
+                            mmView.mouseTrackWidget = self
+                            return
+                        }
+                    }
+                }
+            }
+            
+            let frame = frameAt(event.x,event.y)
+            if frame != currentFrame && frame >= 0 && frame < totalFrames {
+                currentFrame = frame
+                changedCB?(currentFrame)
+                mmView.update()
+            }
+            mode = .Scrubbing
+            mmView.mouseTrackWidget = self
+        } else
+        if barRect.contains(event.x, event.y)
+        {
+            if event.x - barRect.x < barHandleWidth {
+                dragStartFrame = percentVisible
+                dragStartValue = barStartX
+                mode = .MoveLeftHandle
+            } else
+            if barRect.right() - barHandleWidth < event.x {
+                dragStartFrame = Float(frameAt(event.x, event.y))
+                dragStartValue = percentVisible
+                mode = .MoveRightHandle
+            } else {
+                dragStartFrame = barStartX / pixelsPerFrame
+                mode = .MovingBar
+            }
+            dragStart = float2(event.x, event.y)
+            mmView.mouseTrackWidget = self
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        mode = .Unused
+        mmView.mouseTrackWidget = nil
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if mode == .Scrubbing {
+            let frame = frameAt(event.x,event.y)
+            if frame != currentFrame && frame >= 0 && frame < totalFrames {
+                currentFrame = frame
+                changedCB?(currentFrame)
+                mmView.update()
+            }
+        } else
+        if mode == .ScrubbingKey {
+            let frame = frameAt(event.x,event.y)
+            
+            if frame != keyScrubPos {
+                var dict = currentSequence!.items[keyScrubUUID]
+                if let entry = dict!.removeValue(forKey: keyScrubPos) {
+                    dict![frame] = entry
+                    keyScrubPos = frame
+                    changedCB?(currentFrame)
+                    mmView.update()
+                }
+                currentSequence!.items[keyScrubUUID] = dict
+            }
+        } else
+        if mode == .MovingBar {
+            let diff : float2 = float2(event.x, event.y) - dragStart
+            
+            var frame : Float = (dragStartFrame + diff.x / pixelsPerFrame)
+            
+            frame = max(0, frame)
+            barStartX = min(frame * pixelsPerFrame, tlRect.width - barRect.width)
+            mmView.update()
+        } else
+        if mode == .MoveRightHandle {
+            let diffPixels : float2 = float2(event.x, event.y) - dragStart
+            let diff : Float = (diffPixels.x / pixelsPerFrame) / percentVisible
+            let newPercent : Float = dragStartValue + diff / Float(totalFrames)
+
+            percentVisible = max(0.1, min(1 - visibleStartFrame / Float(totalFrames), newPercent))
+            mmView.update()
+        } else
+        if mode == .MoveLeftHandle {
+            let diffPixels : float2 = dragStart - float2(event.x, event.y)
+            let diff : Float = (diffPixels.x / pixelsPerFrame) / percentVisible
+            let newPercent : Float = dragStartFrame + diff / Float(totalFrames)
+            
+            let newBarStartX : Float = dragStartValue - diffPixels.x
+            
+            if newBarStartX >= 0 {
+                if newPercent > 0.1 {
+                    barStartX = newBarStartX
+                    percentVisible = newPercent//max(0.1, min(1 - visibleStartFrame / Float(totalFrames), newPercent))
+                }
+            } else {
+                percentVisible = max(0.1, min(1 - visibleStartFrame / Float(totalFrames), newPercent))
+                barStartX = 0
+            }
+            mmView.update()
+        }
+    }
+    
     func draw(_ sequence: MMTlSequence, uuid: UUID)
     {
         currentSequence = sequence
@@ -367,9 +441,11 @@ class MMTimeline : MMWidget
         
         mmView.drawBox.draw( x: x - 4, y: y - 4, width: tlRect.width + 8, height: tlRect.height, round: 4, borderSize: 2, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : float4(0.133, 0.133, 0.133, 1.000) )
         
-        pixelsPerFrame =  tlRect.width / Float(totalFrames)
+        pixelsPerFrame = tlRect.width / (Float(totalFrames)*percentVisible)
         visibleFrames = (tlRect.width - 7 - 2) / pixelsPerFrame
         
+        //m_totalBarLengthInPixel=((availableWidth * percent) / 100.0);
+
         let ratio = Float(totalFrames) / visibleFrames;
         let startFrame = barStartX / pixelsPerFrame * ratio
         visibleStartFrame = startFrame
@@ -431,30 +507,46 @@ class MMTimeline : MMWidget
         // --- Keys
         for(_,dict) in sequence.items {
             for(frame,key) in dict {
-                let keyX = tlRect.x + Float(frame) * pixelsPerFrame
+                let keyX = tlRect.x + (Float(frame) - visibleStartFrame) * pixelsPerFrame
                 drawMarker( x: keyX, color : float4(0.137, 0.620, 0.784, 1.000), frame: key === currentKey ? String(frame) : nil )
             }
         }
         
         // --- Marker
-        let markerX = tlRect.x + Float(currentFrame) * pixelsPerFrame
+        let markerX = tlRect.x + (Float(currentFrame) - visibleStartFrame) * pixelsPerFrame
         drawMarker( x: markerX, color : float4(0.675, 0.788, 0.184, 1.000), frame: currentKey === nil ? String(currentFrame) : nil )
         
         mmView.renderer.setClipRect()
         
+        // --- Bar
+        //let totalBarWidth : Float = tlRect.width
+        
+        barRect.x = tlRect.x + barStartX
+        barRect.y = tlRect.y + 40
+        barRect.width = ((Float(totalFrames) * percentVisible) * pixelsPerFrame) * percentVisible
+        barRect.height = 15
+
+        mmView.drawBox.draw( x: barRect.x, y: barRect.y - 1, width: barHandleWidth, height: 17, fillColor : float4(0.471, 0.471, 0.471, 1.000))
+
+        mmView.drawBox.draw( x: barRect.x + barHandleWidth, y: barRect.y, width: barRect.width - 2 * barHandleWidth, height: 15, fillColor : float4(0.376, 0.376, 0.376, 1.000))
+        
+        mmView.drawBox.draw( x: barRect.x + barRect.width - barHandleWidth, y: barRect.y - 1, width: 18, height: 17, fillColor : float4(0.471, 0.471, 0.471, 1.000))
+
         // Buttons
         
+        let buttonsY = tlRect.y + 65
+        
         recordButton.rect.x = tlRect.x
-        recordButton.rect.y = tlRect.y + 40
+        recordButton.rect.y = buttonsY
         recordButton.draw()
         
-        playButton.rect.x = tlRect.x + 60
-        playButton.rect.y = tlRect.y + 40
+        playButton.rect.x = tlRect.x + 50
+        playButton.rect.y = buttonsY
         playButton.draw()
         
         deleteButton.isDisabled = currentKey == nil
-        deleteButton.rect.x = tlRect.x + 120
-        deleteButton.rect.y = tlRect.y + 40
+        deleteButton.rect.x = tlRect.x + 105
+        deleteButton.rect.y = buttonsY
         deleteButton.draw()
     }
 }
