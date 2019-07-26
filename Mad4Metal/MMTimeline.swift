@@ -98,6 +98,10 @@ class MMTimeline : MMWidget
         playButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Play")//iconName: "timeline_play")
         deleteButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Del")//iconName: "timeline_delete")
         
+        if let textLabel = recordButton.label as? MMTextLabel {
+            textLabel.color = float4(0.678, 0.192, 0.204, 1.000)
+        }
+        
         recordButton.textYOffset = -1
         playButton.textYOffset = -1
         deleteButton.textYOffset = -1
@@ -116,7 +120,6 @@ class MMTimeline : MMWidget
                 self.isPlaying = false
                 self.mmView.unlockFramerate()
                 self.playButton.removeState(.Checked)
-
             }
         }
         
@@ -130,12 +133,30 @@ class MMTimeline : MMWidget
         }
         
         deleteButton.clicked = { (event) in
+            let oldItems = try? JSONEncoder().encode(self.currentSequence!.items)
+
             var dict = self.currentSequence!.items[self.keyScrubUUID]
             if let _ = dict!.removeValue(forKey: self.keyScrubPos) {
                 self.currentKey = nil
                 self.currentSequence!.items[self.keyScrubUUID] = dict
                 self.changedCB?(self.currentFrame)
                 self.mmView.update()
+                
+                let newItems = try? JSONEncoder().encode(self.currentSequence!.items)
+
+                func itemsChanged(_ oldItems: Data?,_ newItems: Data?)
+                {
+                    self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                        self.currentSequence!.items = try! JSONDecoder().decode([UUID: [Int:MMTlKey]].self, from: newItems!)
+
+                        self.changedCB?(self.currentFrame)
+                        self.mmView.update()
+                        
+                        itemsChanged(newItems, oldItems)
+                    }
+                }
+                
+                itemsChanged(newItems, oldItems)
             }
         }
     }

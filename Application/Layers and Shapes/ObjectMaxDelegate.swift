@@ -204,7 +204,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             setLeftRegionMode(.Shapes)
             
             timelineButton.addState( .Checked )
-            app.bottomRegion!.rect.height = 150
+            app.bottomRegion!.rect.height = 130
         } else {
             if leftRegionMode == .Closed {
                 app.leftRegion!.rect.width = 0
@@ -215,7 +215,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             if bottomRegionMode == .Closed {
                 app.bottomRegion!.rect.height = 0
             } else {
-                app.bottomRegion!.rect.height = 150
+                app.bottomRegion!.rect.height = 130
             }
             
             animating = true
