@@ -28,8 +28,40 @@ class MMTlSequence : Codable, MMListWidgetItem
     var uuid            : UUID = UUID()
     var name            : String = "Idle"
     var color           : float4? = nil
+    var totalFrames     : Int = 100
 
     var items           : [UUID: [Int:MMTlKey]] = [:]
+    
+    private enum CodingKeys: String, CodingKey {
+        case uuid
+        case name
+        case totalFrames
+        case items
+    }
+    
+    init()
+    {
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        uuid = try container.decode(UUID.self, forKey: .uuid)
+        name = try container.decode(String.self, forKey: .name)
+        if let frames = try container.decodeIfPresent(Int.self, forKey: .totalFrames) {
+            totalFrames = frames
+        }
+        items = try container.decode([UUID: [Int:MMTlKey]].self, forKey: .items)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(uuid, forKey: .uuid)
+        try container.encode(name, forKey: .name)
+        try container.encode(totalFrames, forKey: .totalFrames)
+        try container.encode(items, forKey: .items)
+    }
 }
 
 /// Draws the timeline for the given sequence
@@ -44,6 +76,9 @@ class MMTimeline : MMWidget
     var recordButton            : MMButtonWidget
     var playButton              : MMButtonWidget
     var deleteButton            : MMButtonWidget
+    
+    var topInfoArea             : MMInfoArea
+    var totalFramesItem         : MMInfoAreaItem
 
     var isRecording             : Bool = false
     var isPlaying               : Bool = false
@@ -98,6 +133,9 @@ class MMTimeline : MMWidget
         playButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Play")//iconName: "timeline_play")
         deleteButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Del")//iconName: "timeline_delete")
         
+        topInfoArea = MMInfoArea(view, scale: 0.36)
+        totalFramesItem = topInfoArea.addItem("Max. Frames", "totalFrames", 100, int: true, range: float2(0, 36000))
+        
         if let textLabel = recordButton.label as? MMTextLabel {
             textLabel.color = float4(0.678, 0.192, 0.204, 1.000)
         }
@@ -107,6 +145,11 @@ class MMTimeline : MMWidget
         deleteButton.textYOffset = -1
 
         super.init(view)
+        
+        totalFramesItem.cb = { (oldValue: Float, newValue: Float) -> Void in
+            self.totalFrames = Int(newValue)
+            self.currentSequence!.totalFrames = Int(newValue)
+        }
 
         playButton.clicked = { (event) in
             
@@ -163,12 +206,12 @@ class MMTimeline : MMWidget
     
     func activate()
     {
-        mmView.registerWidgets(widgets: recordButton, playButton, deleteButton)
+        mmView.registerWidgets(widgets: recordButton, playButton, deleteButton, topInfoArea)
     }
     
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: recordButton, playButton, deleteButton)
+        mmView.deregisterWidgets(widgets: recordButton, playButton, deleteButton, topInfoArea)
     }
     
     /// Returns the frame number for the given mouse position
@@ -437,6 +480,10 @@ class MMTimeline : MMWidget
     func draw(_ sequence: MMTlSequence, uuid: UUID)
     {
         currentSequence = sequence
+        if currentSequence?.totalFrames != totalFrames {
+            totalFramesItem.setValue(Float(currentSequence!.totalFrames))
+            totalFrames = currentSequence!.totalFrames
+        }
         
         mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor : float4(0.110, 0.110, 0.110, 1.000), borderColor: float4(repeating: 0) )// mmView.skin.Widget.borderColor )
         
@@ -569,5 +616,9 @@ class MMTimeline : MMWidget
         deleteButton.rect.x = tlRect.x + 105
         deleteButton.rect.y = buttonsY
         deleteButton.draw()
+        
+        topInfoArea.rect.x = rect.x + rect.width - topInfoArea.rect.width - 5
+        topInfoArea.rect.y = buttonsY
+        topInfoArea.draw()
     }
 }
