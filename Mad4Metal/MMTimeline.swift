@@ -80,6 +80,8 @@ class MMTimeline : MMWidget
     var topInfoArea             : MMInfoArea
     var totalFramesItem         : MMInfoAreaItem
 
+    var keyInfoArea             : MMInfoArea
+
     var isRecording             : Bool = false
     var isPlaying               : Bool = false
 
@@ -136,6 +138,8 @@ class MMTimeline : MMWidget
         topInfoArea = MMInfoArea(view, scale: 0.36)
         totalFramesItem = topInfoArea.addItem("Max. Frames", "totalFrames", 100, int: true, range: float2(0, 36000))
         
+        keyInfoArea = MMInfoArea(view, scale: 0.3, closeable: true)
+
         if let textLabel = recordButton.label as? MMTextLabel {
             textLabel.color = float4(0.678, 0.192, 0.204, 1.000)
         }
@@ -149,6 +153,31 @@ class MMTimeline : MMWidget
         totalFramesItem.cb = { (oldValue: Float, newValue: Float) -> Void in
             self.totalFrames = Int(newValue)
             self.currentSequence!.totalFrames = Int(newValue)
+        }
+        
+        keyInfoArea.closeCB = { (variable, value) in
+            
+            if let key = self.currentKey {
+            
+                func keyChanged()
+                {
+                    self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                        if key.values[variable] == nil {
+                            key.values[variable] = value
+                        } else {
+                            key.values.removeValue(forKey: variable)
+                        }
+                        keyChanged()
+                    }
+                    
+                    self.selectKey(key)
+                    self.changedCB?(self.currentFrame)
+                    self.mmView.update()
+                }
+                
+                key.values.removeValue(forKey: variable)
+                keyChanged()
+            }
         }
 
         playButton.clicked = { (event) in
@@ -181,6 +210,7 @@ class MMTimeline : MMWidget
             var dict = self.currentSequence!.items[self.keyScrubUUID]
             if let _ = dict!.removeValue(forKey: self.keyScrubPos) {
                 self.currentKey = nil
+                self.keyInfoArea.reset()
                 self.currentSequence!.items[self.keyScrubUUID] = dict
                 self.changedCB?(self.currentFrame)
                 self.mmView.update()
@@ -206,12 +236,12 @@ class MMTimeline : MMWidget
     
     func activate()
     {
-        mmView.registerWidgets(widgets: recordButton, playButton, deleteButton, topInfoArea)
+        mmView.registerWidgets(widgets: recordButton, playButton, deleteButton, topInfoArea, keyInfoArea)
     }
     
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: recordButton, playButton, deleteButton, topInfoArea)
+        mmView.deregisterWidgets(widgets: recordButton, playButton, deleteButton, topInfoArea, keyInfoArea)
     }
     
     /// Returns the frame number for the given mouse position
@@ -358,11 +388,46 @@ class MMTimeline : MMWidget
         }
     }
     
+    /// Selects the current key and displays its items in the keyInfoArea
+    func selectKey(_ newKey: MMTlKey? = nil)
+    {
+        currentKey = newKey
+        keyInfoArea.reset()
+
+        if let key = currentKey {
+            // Insert the keys into the info area
+            
+            for (variable, value) in key.values {
+                let item = keyInfoArea.addItem(variable, variable, value)
+                
+                item.cb = { (oldValue: Float, newValue: Float) -> Void in
+
+                    func keyChanged(_ oldValue: Float,_ newValue: Float)
+                    {
+                        self.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            key.values[variable] = newValue
+                            keyChanged(newValue, oldValue)
+                        }
+                        
+                        self.selectKey(key)
+                        self.changedCB?(self.currentFrame)
+                        self.mmView.update()
+                    }
+                    
+                    key.values[variable] = newValue
+                    keyChanged(newValue, oldValue)
+                }
+            }
+            keyInfoArea.sort()
+        }
+    }
+    
     override func mouseDown(_ event: MMMouseEvent)
     {
         if tlRect.contains(event.x, event.y) {
             
             currentKey = nil
+            selectKey()
             
             // --- Check if user clicked on a keyframe
             if let sequence = currentSequence {
@@ -370,7 +435,7 @@ class MMTimeline : MMWidget
                     for(frame,key) in dict {
                         let keyX = tlRect.x + (Float(frame)-visibleStartFrame) * pixelsPerFrame
                         if event.x >= keyX && event.x <= keyX + 12 {
-                            currentKey = key
+                            selectKey( key )
                             mode = .ScrubbingKey
                             keyScrubPos = frame
                             keyScrubUUID = uuid
@@ -479,6 +544,9 @@ class MMTimeline : MMWidget
     
     func draw(_ sequence: MMTlSequence, uuid: UUID)
     {
+        if sequence !== currentSequence {
+            selectKey()
+        }
         currentSequence = sequence
         if currentSequence?.totalFrames != totalFrames {
             totalFramesItem.setValue(Float(currentSequence!.totalFrames))
@@ -602,7 +670,7 @@ class MMTimeline : MMWidget
 
         // Buttons
         
-        let buttonsY = tlRect.y + 65
+        let buttonsY = tlRect.y + 64
         
         recordButton.rect.x = tlRect.x
         recordButton.rect.y = buttonsY
@@ -620,5 +688,9 @@ class MMTimeline : MMWidget
         topInfoArea.rect.x = rect.x + rect.width - topInfoArea.rect.width - 5
         topInfoArea.rect.y = buttonsY
         topInfoArea.draw()
+        
+        keyInfoArea.rect.x = tlRect.x
+        keyInfoArea.rect.y = buttonsY + 36
+        keyInfoArea.draw()
     }
 }

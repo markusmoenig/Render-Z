@@ -56,11 +56,16 @@ class MMInfoArea : MMWidget {
     
     var items           : [MMInfoAreaItem] = []
     var hoverItem       : MMInfoAreaItem? = nil
+    var closeItem       : MMInfoAreaItem? = nil
     var scale           : Float
+    var closeable       : Bool
     
-    init(_ mmView: MMView, scale: Float = 0.3)
+    var closeCB         : ((String, Float) -> ())?
+    
+    init(_ mmView: MMView, scale: Float = 0.3, closeable: Bool = false)
     {
         self.scale = scale
+        self.closeable = closeable
         super.init(mmView)
     }
     
@@ -68,6 +73,11 @@ class MMInfoArea : MMWidget {
     {
         items = []
         hoverItem = nil
+    }
+    
+    func sort()
+    {
+        items = items.sorted(by: { $0.variable.lowercased() < $1.variable.lowercased() })
     }
     
     func addItem(_ title: String,_ variable: String,_ value: Float, int: Bool = false, range: float2 = float2(-100000, 100000), cb: ((Float, Float) -> ())? = nil) -> MMInfoAreaItem
@@ -91,16 +101,23 @@ class MMInfoArea : MMWidget {
     override func mouseMoved(_ event: MMMouseEvent)
     {
         let oldHoverItem : MMInfoAreaItem? = hoverItem
+        let oldCloseItem : MMInfoAreaItem? = closeItem
         hoverItem = nil
+        closeItem = nil
         
         for item in items {
             if item.rect.contains(event.x, event.y) {
                 hoverItem = item
+                if closeable {
+                    if event.x > item.rect.right() - 18 {//}&& event.x < item.rect.right() - 5 {
+                        closeItem = item
+                    }
+                }
                 break
             }
         }
         
-        if oldHoverItem !== hoverItem {
+        if oldHoverItem !== hoverItem || oldCloseItem !== closeItem {
             mmView.update()
         }
     }
@@ -108,6 +125,11 @@ class MMInfoArea : MMWidget {
     override func mouseDown(_ event: MMMouseEvent)
     {
         _ = mouseMoved(event)
+        if let item = closeItem {
+            if let cb = closeCB {
+                cb(item.variable, item.value)
+            }
+        } else
         if let item = hoverItem {
             
             getNumberDialog(view: mmView, title: item.title, message: "Enter new value", defaultValue: item.value, cb: { (value) -> Void in
@@ -135,6 +157,9 @@ class MMInfoArea : MMWidget {
         for item in items {
             width += item.titleLabel.rect.width + 5
             width += item.valueLabel.rect.width + 10
+            if closeable {
+                width += 15
+            }
             
             height = max(item.valueLabel.rect.height, height)
         }
@@ -168,8 +193,18 @@ class MMInfoArea : MMWidget {
             item.valueLabel.rect.y = item.titleLabel.rect.y
             item.valueLabel.draw()
             
-            x += item.valueLabel.rect.width + 10
+            if closeable {
+                //if item === hoverItem
+                //{
+                    let xStart = x + item.valueLabel.rect.width + 4
+                    let color = item === closeItem ? float4(1,1,1,1) : float4(0.4,0.4,0.4,1)
+                    mmView.drawLine.draw(sx: xStart, sy: rect.y + 1, ex: xStart + 10, ey: rect.y + rect.height - 5, radius: 1, fillColor: color)
+                    mmView.drawLine.draw(sx: xStart, sy: rect.y + rect.height - 5, ex: xStart + 10, ey: rect.y + 1, radius: 1, fillColor: color)
+                //}
+                x += 15
+            }
             
+            x += item.valueLabel.rect.width + 10
             item.rect.width = x - item.rect.x - 6
         }
     }
