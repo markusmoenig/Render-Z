@@ -235,6 +235,11 @@ class Builder
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
         }
         
         instance.materialDataOffset = instance.data!.count
@@ -586,7 +591,9 @@ class Builder
                     {
                         float glowSize = \(buildData.mainDataName)objects[\(buildData.objectIndex)].glowSize;
                         float glow = 1.0 / (objectRC.x / glowSize);
-                        glowColor = float4(glow * float3(1.,0,.0), glow);
+                        float3 color = \(buildData.mainDataName)objects[\(buildData.objectIndex)].glowColor.xyz;
+                        float4 glowMixColor = float4(color, glow);
+                        glowColor = mix( glowColor, glowMixColor, glow );
                     }
                 
                 """
@@ -1009,14 +1016,18 @@ class Builder
             
             // --- Fill in Object Transformation Data
             //instance.data![instance.objectDataOffset + (objectIndex) * 4] = 0//unused, was objectProperties["border"]!
-            instance.data![instance.objectDataOffset + (objectIndex) * 8 + 1] = parentRotate * Float.pi / 180
-            instance.data![instance.objectDataOffset + (objectIndex) * 8 + 2] = parentScaleX
-            instance.data![instance.objectDataOffset + (objectIndex) * 8 + 3] = parentScaleY
-            instance.data![instance.objectDataOffset + (objectIndex) * 8 + 4] = parentPosX
-            instance.data![instance.objectDataOffset + (objectIndex) * 8 + 5] = parentPosY
+            instance.data![instance.objectDataOffset + (objectIndex) * 12 + 1] = parentRotate * Float.pi / 180
+            instance.data![instance.objectDataOffset + (objectIndex) * 12 + 2] = parentScaleX
+            instance.data![instance.objectDataOffset + (objectIndex) * 12 + 3] = parentScaleY
+            instance.data![instance.objectDataOffset + (objectIndex) * 12 + 4] = parentPosX
+            instance.data![instance.objectDataOffset + (objectIndex) * 12 + 5] = parentPosY
 
             if let glowSize = object.properties["glowSize"] {
-                instance.data![instance.objectDataOffset + (objectIndex) * 8 + 6] = glowSize
+                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 6] = glowSize
+
+                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 8] = object.properties["glowColor_r"]!
+                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 9] = object.properties["glowColor_g"]!
+                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 10] = object.properties["glowColor_b"]!
             }
 
             object.properties["trans_rotate"] = parentRotate
@@ -1672,6 +1683,7 @@ class Builder
             float2      pos;
             float       glowSize;
             float       fill;
+            float4      glowColor;
         } OBJECT_DATA;
 
         """

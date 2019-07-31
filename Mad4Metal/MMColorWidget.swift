@@ -9,7 +9,7 @@
 import MetalKit
 import simd
 
-class MMColorWidget : MMWidget
+class MMColorPopupWidget : MMWidget
 {
     var value       : float4
     var mouseIsDown : Bool = false
@@ -270,6 +270,269 @@ class MMColorWidget : MMWidget
             
             mmView.drawSphere.draw(x: rect.x + slDot.x + 5, y: rect.y + slDot.y + 5, radius: 6, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
         }
+    }
+}
+
+
+class MMColorWidget : MMWidget
+{
+    var value       : float3
+    var mouseIsDown : Bool = false
+    
+    var changed     : ((_ value: float3, _ continuous: Bool)->())?
+    
+    var h           : Float = 0
+    var s           : Float = 0
+    var l           : Float = 0
+    
+    var ls1Pt       : float2 = float2(0,0)
+    var ls2Pt       : float2 = float2(0,0)
+    var ls3Pt       : float2 = float2(0,0)
+    
+    var hueDot      : float2 = float2(0,0)
+    var slDot       : float2 = float2(0,0)
+    
+    var dotSize     : Float = 0
+    var insideOp    : Bool = false
+    
+    var lastSize    : float2 = float2(0,0)
+    
+    init(_ view: MMView, value: float3 = float3(0.5, 0.5, 0.5))
+    {
+        self.value = value
+        super.init(view)
+        
+        let hsl = toHSL(value.x, value.y, value.z)
+        h = hsl.0
+        s = hsl.1
+        l = hsl.2
+        
+        name = "MMColorWidget"
+        
+        computePoints()
+    }
+    
+    func setValue(color: float3)
+    {
+        self.value = color
+
+        let hsl = toHSL(color.x, color.y, color.z)
+        h = hsl.0
+        s = hsl.1
+        l = hsl.2
+
+        computePoints()
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        mouseIsDown = true
+        
+        calcColor(event, true, true)
+        
+        mmView.lockFramerate()
+        mmView.mouseTrackWidget = self
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        if mouseIsDown {
+            mouseIsDown = false
+            
+            calcColor(event, false)
+            
+            mmView.unlockFramerate()
+            mmView.mouseTrackWidget = nil
+        }
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if mouseIsDown {
+            calcColor(event, true)
+        }
+    }
+    
+    func computePoints()
+    {
+        let circleSize : Float = rect.width
+        
+        let center : float2 = float2(circleSize/2,circleSize/2)
+        var angle : Float = (h - 180) * Float.pi / 180
+        var dir : float2 = float2(sin(angle), cos(angle))
+        
+        dir = simd_normalize(dir)
+        
+        let sub : Float = dotSize * 1.4
+        
+        var ldir : float2 = dir
+        ldir *= circleSize/2 - dotSize * 1.4
+        
+        hueDot = center + ldir - dotSize
+        
+        ldir = dir
+        ldir *= circleSize/2 - sub * 2
+        
+        ls2Pt = center + ldir - dotSize
+        
+        angle = (h - 180 - 120) * Float.pi / 180
+        dir = float2(sin(angle), cos(angle))
+        dir = simd_normalize(dir)
+        dir *= circleSize/2 - sub * 2
+        ls1Pt = center + dir - dotSize
+        
+        angle = (h - 180 + 120) * Float.pi / 180
+        dir = float2(sin(angle), cos(angle))
+        dir = simd_normalize(dir)
+        dir *= circleSize/2 - sub * 2
+        ls3Pt = center + dir - dotSize
+        
+        let base : float2 = (ls3Pt - ls1Pt) * l
+        let up : float2 = ((ls3Pt + ls1Pt) * -0.5) + ls2Pt
+        let temp : Float = ((l < 0.5 ? l : 1 - l) * 2.0 * s )
+        slDot = base + up * temp + ls1Pt
+    }
+    
+    func calcColor(_ event: MMMouseEvent, _ continuous: Bool, _ newOp : Bool = false)
+    {
+        if newOp {
+            let x : Float = event.x - rect.x
+            let y : Float = event.y - rect.y
+            
+            //if x < 0 || x > 150 { return }
+            //if y < 0 || y > 150 { return }
+            
+            let circleSize : Float = rect.width
+            
+            let center : float2 = float2(circleSize/2,circleSize/2)
+            
+            let dist = simd_distance(center, float2(x,y))
+            if dist >= (rect.width * 0.75) / 2 {
+                insideOp = false
+            } else {
+                insideOp = true
+            }
+        }
+        
+        if !insideOp {
+            getHueAt(event, continuous)
+            computePoints()
+        } else {
+            getSLAt(event, continuous)
+            computePoints()
+        }
+    }
+    
+    func getSLAt(_ event: MMMouseEvent, _ continuous: Bool)
+    {
+        let x : Float = event.x - rect.x
+        let y : Float = event.y - rect.y
+        
+        if x < 0 || x > rect.width { return }
+        if y < 0 || y > rect.width { return }
+        
+        func signOf(_ p1 : float2,_ p2 : float2,_ p3 : float2) -> Float
+        {
+            return (p2.x-p1.x) * (p3.y-p1.y) - (p2.y-p1.y) * (p3.x-p1.x);
+        }
+        
+        func limit(_ v : Float) -> Float
+        {
+            if v<0 { return 0 }
+            if v>1 { return 1 }
+            return v
+        }
+        
+        var ev : float2 = float2(x,y)
+        
+        let b1 : Bool = signOf(ev, ls1Pt, ls2Pt) <= 0
+        let b2 : Bool = signOf(ev, ls2Pt, ls3Pt) <= 0
+        let b3 : Bool = signOf(ev, ls3Pt, ls1Pt) <= 0
+        
+        var fail : Bool = false
+        // in this case coordinate axis is clockwise
+        if b1 && b2 && b3 { // inside triangle
+            ev -= ls1Pt
+        } else if(b2 && b3) {
+            let line = ls2Pt - ls1Pt
+            ev -= ls1Pt
+            ev = line * limit(dot(line,ev)/(length(line)*length(line)))
+        } else
+            if b1 && b2 {
+                let line = ls3Pt - ls1Pt
+                ev -= ls1Pt
+                ev = line * limit(dot(line,ev)/(length(line)*length(line)))
+            } else
+                if b1 && b3 {
+                    let line = ls2Pt - ls3Pt
+                    ev -= ls3Pt
+                    ev = line * limit(dot(line,ev)/(length(line)*length(line)))
+                    ev += ls3Pt - ls1Pt
+                } else {
+                    fail = true
+        }
+        
+        if !fail {
+            let p3 : float2 = ls3Pt - ls1Pt
+            let side : Float = length(p3)
+            l = dot(ev, p3) / (side * side)
+            if l > 0.01 && l < 0.99 {
+                let up : float2 = ((ls3Pt + ls1Pt) * -0.5) + ls2Pt
+                let temp : Float = l < 0.5 ? l : 1 - l
+                s = dot(ev, up) / length(up) / length(up) * 0.5 / temp
+            }
+            let rgb = toRGB(h, s, l)
+            value.x = rgb.0
+            value.y = rgb.1
+            value.z = rgb.2
+            if changed != nil {
+                changed!(value,continuous)
+            }
+        }
+    }
+    
+    func getHueAt(_ event: MMMouseEvent, _ continuous: Bool)
+    {
+        let x : Float = event.x - rect.x
+        let y : Float = event.y - rect.y
+        
+        //if x < 0 || x > 150 { return }
+        //if y < 0 || y > 150 { return }
+        
+        let hsv = toHSL(value.x, value.y, value.z)
+        
+        let circleSize : Float = rect.width
+        
+        let center : float2 = float2(circleSize/2,circleSize/2)
+        var mouse : float2 = float2(x - center.x, y - center.y)
+        
+        mouse = simd_normalize(mouse)
+        
+        mouse *= circleSize/2 - (circleSize*0.75)/2
+        var v : float2 = center + mouse
+        let angle : Float = atan2(v.x - center.x, v.y - center.y) * 180 / Float.pi
+        let rgb = toRGB(angle + 180, hsv.1, hsv.2)
+        h = angle + 180
+        value.x = rgb.0
+        value.y = rgb.1
+        value.z = rgb.2
+        if changed != nil {
+            changed!(value,continuous)
+        }
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    {
+        dotSize = rect.width / 20
+        if lastSize.x != rect.width || lastSize.y != rect.height {
+            lastSize.x = rect.width
+            lastSize.y = rect.height
+            computePoints()
+        }
+        mmView.drawColorWheel.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, color: float4(h,s,l,1))
+            
+        mmView.drawSphere.draw(x: rect.x + hueDot.x, y: rect.y + hueDot.y, radius: dotSize, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
+        mmView.drawSphere.draw(x: rect.x + slDot.x, y: rect.y + slDot.y, radius: dotSize, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
     }
 }
 

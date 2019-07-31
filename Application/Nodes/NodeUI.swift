@@ -1105,3 +1105,115 @@ class NodeUIText : NodeUI
         mmView.drawText.drawTextCentered(mmView.openSans, text: value, x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: skin.textColor)
     }
 }
+
+/// Color class
+class NodeUIColor : NodeUI
+{
+    var value       : float3
+    var defaultValue: float3
+    var mouseIsDown : Bool = false
+    var x           : Float = 0
+    var width       : Float = 0
+    
+    var prevSize    : float2 = float2(80,90)
+    
+    var colorWidget : MMColorWidget? = nil
+    
+    init(_ node: Node, variable: String, title: String, value: float3 = float3(0,0,0))
+    {
+        self.value = value
+        self.defaultValue = value
+    
+        super.init(node, brand: .Number, variable: variable, title: title)
+
+        if node.properties[variable + "_r"] == nil {
+            setValue(value)
+        } else {
+            self.value = getValue()
+        }
+    }
+    
+    override func calcSize(mmView: MMView) {
+        self.mmView = mmView
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
+        
+        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + prevSize.x
+        rect.height = prevSize.y
+        
+        if colorWidget == nil {
+            colorWidget = MMColorWidget(mmView, value: value)
+            colorWidget?.changed = { (val, cont) in
+                self.setValue(val)
+                
+                if !cont {
+                    self.node.variableChanged(variable: self.variable, oldValue: 0, newValue: 1)
+                    mmView.update()
+                }
+            }
+        }
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        mouseIsDown = true
+        if let widget = colorWidget {
+            widget.mouseDown(event)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        if let widget = colorWidget {
+            widget.mouseUp(event)
+        }
+        mouseIsDown = false
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if let widget = colorWidget {
+            widget.mouseMoved(event)
+        }
+    }
+    
+    override func mouseLeave() {
+    }
+    
+    override func update() {
+        value = getValue()
+    }
+    
+    func getValue() -> float3
+    {
+        return float3(node.properties[variable + "_r"]!, node.properties[variable + "_g"]!, node.properties[variable + "_b"]!)
+    }
+    
+    func setValue(_ value: float3)
+    {
+        self.value = value
+        node.properties[variable + "_r"] = value.x
+        node.properties[variable + "_g"] = value.y
+        node.properties[variable + "_b"] = value.z
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    {
+        if titleLabel!.scale != NodeUI.fontScale * scale {
+            titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
+        }
+        
+        titleLabel!.isDisabled = isDisabled
+        titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
+        
+        x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale// + (maxWidth - prevSize.x) * scale / 2
+        
+        if let widget = colorWidget {
+            widget.rect.x = x
+            widget.rect.y = rect.y + 5 * scale
+            widget.rect.width = prevSize.x * scale
+            widget.rect.height = widget.rect.width
+            
+            widget.draw()
+        }
+    }
+}

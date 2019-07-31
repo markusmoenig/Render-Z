@@ -185,6 +185,11 @@ class Physics
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
+            
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
         }
         
         instance.variablesDataOffset = instance.data!.count
@@ -338,13 +343,13 @@ class Physics
             
             // Object transform
             
-            instance.data![instance.objectDataOffset + objectIndex * 8 + 1] = toRadians(object.properties["rotate"]!)
+            instance.data![instance.objectDataOffset + objectIndex * 12 + 1] = toRadians(object.properties["rotate"]!)
 
-            instance.data![instance.objectDataOffset + objectIndex * 8 + 2] = object.properties["scaleX"]!
-            instance.data![instance.objectDataOffset + objectIndex * 8 + 3] = object.properties["scaleY"]!
+            instance.data![instance.objectDataOffset + objectIndex * 12 + 2] = object.properties["scaleX"]!
+            instance.data![instance.objectDataOffset + objectIndex * 12 + 3] = object.properties["scaleY"]!
             
-            instance.data![instance.objectDataOffset + objectIndex * 8 + 4] = object.properties["posX"]!
-            instance.data![instance.objectDataOffset + objectIndex * 8 + 5] = object.properties["posY"]!
+            instance.data![instance.objectDataOffset + objectIndex * 12 + 4] = object.properties["posX"]!
+            instance.data![instance.objectDataOffset + objectIndex * 12 + 5] = object.properties["posY"]!
 
             //
             objectIndex += 1

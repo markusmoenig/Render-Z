@@ -114,6 +114,7 @@ class ObjectGlow : Node
     {
         uiItems = [
             NodeUIDropDown(self, variable: "glowMode", title: "Mode", items: ["Off", "On"], index: 1),
+            NodeUIColor(self, variable: "glowColor", title: "Color", value: float3(1,1,1)),
             NodeUINumber(self, variable: "glowSize", title: "Size", range: float2(0, 100), value: 10),
         ]
         
@@ -154,7 +155,10 @@ class ObjectGlow : Node
             let value = properties["glowMode"]!
             object.properties["glowMode"] = value
             object.properties["glowSize"] = properties["glowSize"]!
-            
+            object.properties["glowColor_r"] = properties["glowColor_r"]!
+            object.properties["glowColor_g"] = properties["glowColor_g"]!
+            object.properties["glowColor_b"] = properties["glowColor_b"]!
+
             return .Success
         }
         return .Failure

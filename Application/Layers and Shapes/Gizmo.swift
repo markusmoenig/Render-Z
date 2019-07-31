@@ -71,7 +71,7 @@ class Gizmo : MMWidget
     var hoverUITitle    : NodeUI?
     
     // --- MaterialEditor context
-    var colorWidget     : MMColorWidget!
+    var colorWidget     : MMColorPopupWidget!
     var floatWidget     : MMFloatPopUp!
 
     // --- For the point based gizmo
@@ -98,7 +98,7 @@ class Gizmo : MMWidget
         height = 260
         objects = []
         
-        colorWidget = MMColorWidget(view)
+        colorWidget = MMColorPopupWidget(view)
         floatWidget = MMFloatPopUp(view)
 
         super.init(view)
