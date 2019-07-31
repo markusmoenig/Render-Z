@@ -65,6 +65,7 @@ class BuildData
     var mainDataName        : String = "layerData->"
     var materialSource      : String = ""
     var materialNormalSource: String = ""
+    var objectSpecificSource: [Int:String] = [:]
     var source              : String = ""
     
     // Maximum values
@@ -94,9 +95,12 @@ class Camera : Codable
 
 class Builder
 {
-    var compute         : MMCompute?
-    var nodeGraph       : NodeGraph
-    var maxVarSize      : Int = 10
+    var compute                 : MMCompute?
+    var nodeGraph               : NodeGraph
+    var maxVarSize              : Int = 10
+    
+    var buildRootObjectIndex    : Int = 0
+    var buildRootObjectId       : Int = 0
     
     init(_ nodeGraph: NodeGraph)
     {
@@ -156,39 +160,54 @@ class Builder
         instance.data!.append( 0 )
         
         instance.headerOffset = instance.data!.count
-        
-        buildData.source +=
-        """
-        
-        float4 sdf( float2 uv, constant LAYER_DATA *layerData, texture2d<half, access::sample> fontTexture )
-        {
-            float2 tuv = uv, pAverage;
-        
-            float dist = 100000, newDist, objectDistance = 100000;
-            int materialId = -1, objectId  = -1;
-            constant SHAPE_DATA *shape;
-        
-        """
 
         // Global layer limiter
+        
+        /*
         buildData.source +=
         """
         
-            float2 d = abs(uv) - layerData->limiterSize;// * layerData->camera.z;
-            float ldist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
-            if ( ldist < 0.0 ) {
+            //float2 d = abs(uv) - layerData->limiterSize;// * layerData->camera.z;
+            //float ldist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            //if ( ldist < 0.0 )
+            //{
         
-        """
+        """*/
         
         /// Parse objects and their shapes
         
-        for object in objects {
+        for (index,object) in objects.enumerated() {
+            if object.shapes.count == 0 { continue }
+
             buildData.parentPosX = 0
             buildData.parentPosY = 0
             buildData.parentScaleX = 1
             buildData.parentScaleY = 1
             buildData.parentRotate = 0
+            
+            buildData.source +=
+            """
+            
+            float4 sdf\(index)( float2 uv, constant LAYER_DATA *layerData, texture2d<half, access::sample> fontTexture )
+            {
+                float2 tuv = uv, pAverage;
+            
+                float dist = 100000, newDist, objectDistance = 100000;
+                int materialId = -1, objectId  = -1;
+                constant SHAPE_DATA *shape;
+            
+            """
+            
+            buildRootObjectIndex = index
             parseObject(object, instance: instance, buildData: buildData)
+            
+            buildData.source +=
+            """
+            
+                return float4(dist, objectId, materialId, 0);
+            }
+            
+            """
         }
         
         instance.pointDataOffset = instance.data!.count
@@ -261,104 +280,6 @@ class Builder
             instance.data!.append( 0 )
         }
         
-        buildData.source +=
-        """
-        
-            }
-            return float4(dist, objectId, materialId, 0);
-        }
-        /*
-        float profile( float dist, constant float4 *profileData, int profileIndex)
-        {
-            dist = abs(dist);
-            int index = profileIndex;
-            float value = 0;
-        
-            bool finished = false;
-            while( !finished )
-            {
-                constant float4 *pt1 = &profileData[index];
-                if ( pt1->z == -1 ) {
-                    finished = true;
-                } else {
-        
-                    constant float4 *pt2 = &profileData[index+2];
-
-                    if (pt1->x <= dist && pt2->x >= dist) {
-        
-                        if ( pt1->z == 0 ) {
-                            // Linear
-                            value = mix( pt1->y, pt2->y, clamp( dist / (pt2->x - pt1->x), 0, 1 ) );
-                        } else
-                        if ( pt1->z == 3 ) {
-                            // Smoothstep
-                            value = mix( pt1->y, pt2->y, smoothstep(0, 1, dist / (pt2->x - pt1->x) ) );
-                        } else
-                        if ( pt1->z == 2 ) {
-                            // Bezier
-                            constant float4 *cp = &profileData[index+1];
-
-                            float t = dist / (pt2->x - pt1->x);
-        
-                          //  ax-bx ± √(bx2 - axcx)
-                          //= ----------------------
-                          //  ax(ax-2bx+cx)
-        
-                            float ax = pt1->x;
-                            float bx = cp->x;
-                            float cx = pt2->x;
-        
-                            float temp1 = (ax - bx) + sqrt(bx * bx - ax * cx);
-                            float temp2 = ax * (ax - 2 * bx + cx);
-                            t = temp1 / temp2;
-                            //t /= (pt2->x - pt1->x);
-        
-                            //float x = (1 - t) * (1 - t) * pt1->x + 2 * (1 - t) * t * cp->x + t * t * pt2->x;
-                            float y = (1 - t) * (1 - t) * pt1->y + 2 * (1 - t) * t * cp->y + t * t * pt2->y;
-
-                            value = y /  (pt2->x - pt1->x);
-
-                        } else
-                        if ( pt1->z == 1 ) {
-                            // Circle
-        
-                            float x = dist;// - pt1->x;
-                            float r = (pt2->x - pt1->x);
-                            float center = (pt2->x + pt1->x);
-                            float xM = x - center;
-                            value = mix( pt1->y, pt2->y, clamp( dist / (pt2->x - pt1->x), 0, 1 ) ) + sqrt( r * r - xM * xM );
-                        }
-        
-                        //var y=originY + radius * Math.sin( pt + offset );
-                        //var pt=Math.atan2(p.y - originY, p.x - originX );
-
-                        //float pt = atan2(pt2->y - pt1->y, pt2->x - pt1->x);
-                        //value = pt1->y + (pt2->x - pt1->x) / 2 *sin(pt + (dist - pt1->x) / ((pt2->x - pt1->x) ) );
-
-                        finished = true;
-                    } else {
-                        value = pt2->y;
-                    }
-                }
-        
-                index += 2;
-            }
-        
-            return value;
-        }
-        
-        float3 calculateNormal(float2 uv, float dist, constant LAYER_DATA *layerData, texture2d<half, access::sample> fontTexture, int profileIndex)
-        {
-            float p = layerData->general.y;//min(.3, .0005+.00005 * distance*distance);
-            float3 nor      = float3(0.0,            profile(min(dist,0.0), layerData->profileData, profileIndex), 0.0);
-            float3 v2        = nor-float3(p,        profile(min(sdf(uv+float2(p,0.0), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), 0.0);
-            float3 v3        = nor-float3(0.0,        profile(min(sdf(uv+float2(0.0,-p), layerData, fontTexture).x,0.0), layerData->profileData, profileIndex), -p);
-            nor = cross(v2, v3);
-            return normalize(nor);
-        }*/
-        
-        """
-        
         let headerSource = buildData.source
         
         buildData.source =
@@ -379,13 +300,30 @@ class Builder
             uv.y = -uv.y;
             uv *= layerData->camera.z;
         
-            float4 col = float4(0);
-
+            float4 col = float4(0), glowColor = float4(0);
+            float4 rc = float4(100000, -1, -1, -1), objectRC;
         """
+
         
+        for (index, object) in objects.enumerated() {
+            if object.shapes.count == 0 { continue }
+            buildData.source +=
+            """
+            
+                objectRC = sdf\(index)( uv, layerData, fontTexture );
+                if (objectRC.x < rc.x) rc = objectRC;
+
+            """
+            
+            // --- Object specific code like glow
+            
+            if buildData.objectSpecificSource[index] != nil {
+                buildData.source += buildData.objectSpecificSource[index]!
+            }
+        }
+            
         buildData.source +=
         """
-            float4 rc = sdf( uv, layerData, fontTexture );
         
             MATERIAL_DATA bodyMaterial;
             bodyMaterial.baseColor = float4(0.5, 0.5, 0.5, 1);
@@ -400,11 +338,12 @@ class Builder
             int objectId = (int) rc.y;
             int materialId = (int) rc.z;
             float2 tuv = uv;
-            
+        
         """
         
         buildData.source += buildData.materialSource
         
+        /*
         if preview {
             // Preview Pattern
             buildData.source +=
@@ -427,7 +366,7 @@ class Builder
             }
 
             """
-        }
+        }*/
         
         buildData.source +=
         """
@@ -453,6 +392,13 @@ class Builder
         
         """
         
+        buildData.source +=
+        """
+        
+            col = mix(glowColor, col, col.w);
+        
+        """
+
         /*
         if preview {
             // Preview border
@@ -484,7 +430,7 @@ class Builder
     }
     
     /// Recursively create the objects source code
-    func parseObject(_ object: Object, instance: BuilderInstance, buildData: BuildData, physics: Bool = false, buildMaterials: Bool = true)
+    func parseObject(_ object: Object, instance: BuilderInstance, buildData: BuildData, physics: Bool = false, buildMaterials: Bool = true, rootObject: Bool = true)
     {
         buildData.parentPosX += object.properties["posX"]!
         buildData.parentPosY += object.properties["posY"]!
@@ -498,6 +444,11 @@ class Builder
             object.physicPointOffset = buildData.pointIndex
         } else {
             object.buildPointOffset = buildData.pointIndex
+        }
+        
+        if rootObject {
+            // So that we always have a reference to the id of the current root object
+            buildRootObjectId = buildData.objectIndex
         }
         
         for shape in object.shapes {
@@ -621,12 +572,28 @@ class Builder
             buildData.pointIndex += shape.pointCount
         }
         
-        // --- Apply the physics object id
-//        if physics {
-            buildData.source += "if (dist < objectDistance) { objectId = \(buildData.objectIndex); objectDistance = dist; }\n"
-//        }
+        // --- Apply the object id
+        buildData.source += "if (dist < objectDistance) { objectId = \(buildData.objectIndex); objectDistance = dist; }\n"
     
         if !physics && buildMaterials {
+            // --- Outside Code
+            
+            if rootObject && object.properties["glowMode"] == 1 {
+                var outside = ""
+                outside +=
+                """
+                
+                    {
+                        float glowSize = \(buildData.mainDataName)objects[\(buildData.objectIndex)].glowSize;
+                        float glow = 1.0 / (objectRC.x / glowSize);
+                        glowColor = float4(glow * float3(1.,0,.0), glow);
+                    }
+                
+                """
+                
+                buildData.objectSpecificSource[buildRootObjectIndex] = outside
+            }
+            
             // --- Material Code
             func createMaterialCode(_ material: Material, _ materialName: String, normal: Bool = false) -> String
             {
@@ -772,9 +739,9 @@ class Builder
                 float p = layerData->general.y;//min(.3, .0005+.00005 * distance*distance);
                 float3 nor = float3(0.0, calculateBumpForObject\(buildData.objectIndex)(uv, layerData, dist*25, size), 0.0);
             
-                float3 v2 = nor - float3(p, calculateBumpForObject\(buildData.objectIndex)(uv+float2(p,0.0), layerData, sdf(uv+float2(p,0.0), layerData, fontTexture).x*25, size), 0.0);
+                float3 v2 = nor - float3(p, calculateBumpForObject\(buildData.objectIndex)(uv+float2(p,0.0), layerData, sdf\(buildRootObjectIndex)(uv+float2(p,0.0), layerData, fontTexture).x*25, size), 0.0);
             
-                float3 v3 = nor - float3(0.0, calculateBumpForObject\(buildData.objectIndex)(uv+float2(0.0,-p), layerData, sdf(uv+float2(0.0,-p), layerData, fontTexture).x*25, size), -p);
+                float3 v3 = nor - float3(0.0, calculateBumpForObject\(buildData.objectIndex)(uv+float2(0.0,-p), layerData, sdf\(buildRootObjectIndex)(uv+float2(0.0,-p), layerData, fontTexture).x*25, size), -p);
                 nor = cross(v2, v3);
                 return normalize(nor);
             }
@@ -815,7 +782,7 @@ class Builder
         buildData.objectIndex += 1
 
         for childObject in object.childObjects {
-            parseObject(childObject, instance: instance, buildData: buildData, physics: physics)
+            parseObject(childObject, instance: instance, buildData: buildData, physics: physics, rootObject: false)
         }
         
         buildData.parentPosX -= object.properties["posX"]!
@@ -1047,7 +1014,11 @@ class Builder
             instance.data![instance.objectDataOffset + (objectIndex) * 8 + 3] = parentScaleY
             instance.data![instance.objectDataOffset + (objectIndex) * 8 + 4] = parentPosX
             instance.data![instance.objectDataOffset + (objectIndex) * 8 + 5] = parentPosY
-            
+
+            if let glowSize = object.properties["glowSize"] {
+                instance.data![instance.objectDataOffset + (objectIndex) * 8 + 6] = glowSize
+            }
+
             object.properties["trans_rotate"] = parentRotate
 
             object.properties["trans_scaleX"] = parentScaleX
@@ -1699,7 +1670,8 @@ class Builder
             float       rotate;
             float2      scale;
             float2      pos;
-            float2      fill;
+            float       glowSize;
+            float       fill;
         } OBJECT_DATA;
 
         """

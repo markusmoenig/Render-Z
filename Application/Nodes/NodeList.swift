@@ -95,6 +95,12 @@ class NodeList : MMWidget
             return ObjectPhysics()
         }
         addNodeItem(item, type: .Property, displayType: .Object)
+        // --- Object Glow
+        item = NodeListItem("Glow Effect")
+        item.createNode = {
+            return ObjectGlow()
+        }
+        addNodeItem(item, type: .Property, displayType: .Object)
         // --- Layer Area
         item = NodeListItem("Area")
         item.createNode = {
