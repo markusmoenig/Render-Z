@@ -71,23 +71,15 @@ float opSmoothUnion( float d1, float d2, float k ) {
 fragment float4 drawNode(RasterizerData        in [[stage_in]],
                          constant NODE_DATA   *data [[ buffer(0) ]] )
 {
-//    float2 uv = in.textureCoordinate * data->size;
-//    uv -= float2( data->size / 2 );
-//    float2 tuv = uv, d;
-//    float dist;
     float4 color = float4( 0 ), finalColor = float4( 0 );
     float2 size = data->size;
     float scale = data->scale;
-    const float borderRound = data->borderRound;
+    const float borderRound = data->borderRound * scale;
 
-//    const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
-    float4 borderColor = float4(0.173, 0.173, 0.173, 1.000);
-    const float4 selBorderColor = float4(0.820, 0.820, 0.820, 1.000);
-//    const float4 centerColor = float4(0.702, 0.702, 0.702, 1.000);
-    //const float4 iconColor = float4(0.5, 0.5, 0.5, 1);
-    //const float4 iconHoverColor = float4(1);
+    float4 borderColor = float4(0.282, 0.286, 0.290, 1.000);//float4(0.173, 0.173, 0.173, 1.000);
+    const float4 selBorderColor = float4(0.953, 0.957, 0.961, 1.000);//float4(0.820, 0.820, 0.820, 1.000);
     
-    const float borderSize = 4 * scale;
+    const float borderSize = 2 * scale;
     const float tRadius = 7 * scale;
     const float tDiam = 14 * scale;
     const float tSpacing = 25 * scale;
@@ -111,8 +103,15 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
 
     uv -= float2( data->size / 2.0 + borderSize / 2.0 );
 
+    // Whole Body
     float2 d = abs( uv ) - data->size / 2 + borderRound + 5 * scale;
     float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - borderRound;
+    
+    // Inner Cutout
+    uv.y += 20 * scale;
+    float2 innerSize = data->size - float2(borderSize - 2, borderSize + 20 * scale * 2 - 2);
+    d = abs( uv ) - innerSize / 2 + borderRound + 5 * scale;
+    float innerDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - borderRound;
 
     float2 point = in.textureCoordinate * data->size;
     point.y = data->size.y - point.y;
@@ -154,6 +153,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     }
     
     // Top left decorator
+    /*
     {
         uv = uvCopy;
         uv -= float2( 24 * scale, data->size.y - 18 * scale );
@@ -161,15 +161,19 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
         float2 d = abs( uv ) - float2(20, 20) * scale;
         float localDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 4.0 * scale;
         dist = opSmoothUnion( dist, localDist, 3 );
-    }
+    }*/
     
-    // Body Color
-    color = float4(0.118, 0.118, 0.118, 1.000);
+    // Body Color (Brand)
+    color = data->brandColor;
     finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
     
+    // Inner Color
+    color = float4(0.165, 0.169, 0.173, 1.000);
+    finalColor = mix( finalColor, color, nodeFillMask( innerDist ) * color.w );
+
     // Brand Color
-    float s = nodeGradient_linear(point, float2( 80 * scale, 35 * scale ), float2( 5 * scale, 5 * scale ) );
-    finalColor = mix( finalColor, data->brandColor, nodeFillMask( dist ) * s);
+    //float s = nodeGradient_linear(point, float2( 80 * scale, 35 * scale ), float2( 5 * scale, 5 * scale ) );
+    //finalColor = mix( finalColor, data->brandColor, nodeFillMask( dist ) * s);
     
     color = data->selected == 1 ? selBorderColor : borderColor;
     finalColor = mix( finalColor, color, nodeBorderMask( dist, borderSize ) * color.w );

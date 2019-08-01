@@ -141,8 +141,8 @@ class MMListWidget : MMWidget
             float dist = 10000;
             float2 d;
         
-            float borderSize = 2.0;
-            float round = 4;
+            float borderSize = 0.;
+            float round = 0.;
         
             float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
             float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
@@ -421,7 +421,7 @@ class MMListWidget : MMWidget
             float4 scrollHoverColor = float4(1);
             float4 scrollActiveColor = float4(0.5, 0.5, 0.5, 1);
         
-            float4 finalCol = float4( 0 ), col = float4( 0 );
+            float4 finalCol = float4(0.141, 0.145, 0.149, 1.000), col = float4( 0 );
         """
         
         source += "uv = uvOrigin; uv.x += size.x / 2.0 - \(left) + borderSize/2; uv.y += size.y / 2.0 - \(top) + borderSize/2;\n"

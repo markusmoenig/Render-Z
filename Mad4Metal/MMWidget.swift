@@ -244,6 +244,77 @@ class MMButtonWidget : MMWidget
     }
 }
 
+/// Opens / Closes views
+class MMSideSliderWidget : MMWidget
+{
+    enum Mode {
+        case Left, Right, Animating
+    }
+    
+    var mode        : Mode
+    var opacity     : Float = 1
+    
+    override init( _ view: MMView)
+    {
+        mode = .Left
+        
+        super.init(view)
+        name = "MMSideSliderWidget"
+        
+        validStates = [.Checked]
+    }
+    
+    override func _clicked(_ event:MMMouseEvent)
+    {
+        if !isDisabled {
+            addState( .Checked )
+            if super.clicked != nil {
+                super.clicked!(event)
+            }
+        }
+    }
+    
+    func setMode(_ mode : Mode )
+    {
+        if self.mode == .Animating && mode != .Animating {
+            mmView.startAnimate( startValue: 0, endValue: 1, duration: 200, cb: { (value,finished) in
+                self.opacity = value
+                self.mmView.update()
+            } )
+        }
+        self.mode = mode
+        if mode == .Animating {
+            opacity = 0
+        }
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    {
+        mmView.drawSphere.draw( x: rect.x, y: rect.y, radius: rect.width / 2, borderSize: 0, fillColor : mmView.skin.Widget.color)
+        
+        if mode == .Animating {
+            return
+        }
+        
+        let middleY : Float = rect.y + rect.height / 2
+        let arrowUp : Float = 10
+        
+        var color = states.contains(.Hover) ? mmView.skin.ScrollButton.hoverColor : mmView.skin.ScrollButton.activeColor
+        color.w = opacity
+        
+        var left = rect.x + rect.width / 2 + 10
+        
+        if mode == .Left {
+            mmView.drawLine.draw(sx: left, sy: middleY, ex: left + arrowUp, ey: middleY + arrowUp, radius: 1.5, fillColor: color)
+            mmView.drawLine.draw(sx: left, sy: middleY, ex: left + arrowUp, ey: middleY - arrowUp, radius: 1.5, fillColor: color)
+        } else {
+            left += 2
+            mmView.drawLine.draw(sx: left + arrowUp, sy: middleY, ex: left, ey: middleY + arrowUp, radius: 1.5, fillColor: color)
+            mmView.drawLine.draw(sx: left + arrowUp, sy: middleY, ex: left, ey: middleY - arrowUp, radius: 1.5, fillColor: color)
+        }
+    }
+}
+
 struct MMMenuItem
 {
     var text        : String

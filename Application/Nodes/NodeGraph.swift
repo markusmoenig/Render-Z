@@ -21,7 +21,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, MasterNode, MenuHover, MenuOpen, OverviewEdit
+        case None, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, MasterNode, MenuHover, MenuOpen, OverviewEdit, SideSlider
     }
     
     enum ContentType : Int {
@@ -69,7 +69,6 @@ class NodeGraph : Codable
     var mousePos        : float2 = float2()
 
     var nodeHoverMode   : NodeHoverMode = .None
-    var nodesButton     : MMButtonWidget!
     
     var contentType     : ContentType = .Objects
     var overviewMaster  : Node = Node()
@@ -89,12 +88,13 @@ class NodeGraph : Codable
     var layersButton    : MMButtonWidget!
     var scenesButton    : MMButtonWidget!
     var gameButton      : MMButtonWidget!
-    
+
     var overviewButton  : MMButtonWidget!
 
     var editButton      : MMButtonWidget!
     var playButton      : MMButtonWidget!
 
+    var sideSliderButton: MMSideSliderWidget!
     var nodeList        : NodeList?
     var animating       : Bool = false
     var leftRegionMode  : LeftRegionMode = .Nodes
@@ -213,12 +213,6 @@ class NodeGraph : Codable
         function = renderer.defaultLibrary.makeFunction( name: "nodeGridPattern" )
         drawPatternState = renderer.createNewPipelineState( function! )
         
-        nodesButton = MMButtonWidget( app.mmView, text: "Nodes" )
-        nodesButton.clicked = { (event) -> Void in
-            self.setLeftRegionMode(.Nodes)
-        }
-        nodesButton.addState(.Checked)
-        
         /*
         typeScrollButton = MMScrollButton(app.mmView, items:["Objects", "Layers", "Scenes", "Game"])
         typeScrollButton.changed = { (index)->() in
@@ -270,7 +264,7 @@ class NodeGraph : Codable
         }
         
         objectsButton = MMButtonWidget(app.mmView, text: "Objects" )
-        objectsButton.textYOffset = 1.5
+        //objectsButton.textYOffset = 1.5
         objectsButton.addState(.Checked)
         objectsButton.clicked = { (event) -> Void in
             self.stopPreview()
@@ -305,6 +299,7 @@ class NodeGraph : Codable
         
         layersButton = MMButtonWidget(app.mmView, text: "Layers" )
         layersButton.rect.width = objectsButton.rect.width
+        layersButton.textYOffset = -1.5
         layersButton.clicked = { (event) -> Void in
             self.stopPreview()
             self.editButton.setText("Arrange...")
@@ -338,6 +333,7 @@ class NodeGraph : Codable
         
         scenesButton = MMButtonWidget(app.mmView, text: "Scenes" )
         scenesButton.rect.width = objectsButton.rect.width
+        scenesButton.textYOffset = -1.5
         scenesButton.clicked = { (event) -> Void in
             self.stopPreview()
             self.editButton.setText("Arrange...")
@@ -371,6 +367,7 @@ class NodeGraph : Codable
         
         gameButton = MMButtonWidget(app.mmView, text: "Game" )
         gameButton.rect.width = objectsButton.rect.width
+        gameButton.textYOffset = -1.5
         gameButton.clicked = { (event) -> Void in
             self.stopPreview()
             self.editButton.setText("Arrange...")
@@ -422,9 +419,9 @@ class NodeGraph : Codable
         }
         
         var smallButtonSkin = MMSkinButton()
-        smallButtonSkin.height = 30
-        smallButtonSkin.fontScale = 0.4
-        smallButtonSkin.margin.left = 8
+        smallButtonSkin.height = mmView.skin.Button.height
+        smallButtonSkin.round = mmView.skin.Button.round
+        smallButtonSkin.fontScale = mmView.skin.Button.fontScale
         
         editButton = MMButtonWidget(app.mmView, skinToUse: smallButtonSkin, text: "Shape..." )
         editButton.clicked = { (event) -> Void in
@@ -516,6 +513,7 @@ class NodeGraph : Codable
         }
         
         nodeList = NodeList(app.mmView, app:app)
+        sideSliderButton = MMSideSliderWidget(app.mmView)
         
         // --- Register icons at first time start
 //        if app.mmView.icons["execute"] == nil {
@@ -612,7 +610,7 @@ class NodeGraph : Codable
     ///
     func activate()
     {
-        mmView.registerWidgets(widgets: nodesButton, nodeList!, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton)
+        mmView.registerWidgets(widgets: nodeList!, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton)
         if !overviewIsOn {
             mmView.widgets.insert(editButton, at: 0)
             mmView.widgets.insert(playButton, at: 0)
@@ -630,7 +628,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: nodesButton, nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu)
+        mmView.deregisterWidgets(widgets: nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu)
         app!.properties["NodeGraphNodesOpen"] = leftRegionMode == .Closed ? 0 : 1
     }
     
@@ -682,22 +680,29 @@ class NodeGraph : Codable
         if animating { return }
         let leftRegion = app!.leftRegion!
         if self.leftRegionMode == mode && leftRegionMode != .Closed {
+            sideSliderButton.setMode(.Animating)
             app!.mmView.startAnimate( startValue: leftRegion.rect.width, endValue: 0, duration: 500, cb: { (value,finished) in
                 leftRegion.rect.width = value
+                self.app!.mmView.update()
                 if finished {
                     self.animating = false
                     self.leftRegionMode = .Closed
-                    self.nodesButton.removeState( .Checked )
-                }
+                    DispatchQueue.main.async {
+                        self.sideSliderButton.setMode(.Right)
+                    }                }
             } )
             animating = true
         } else if leftRegion.rect.width != 200 {
-            
+            sideSliderButton.setMode(.Animating)
             app!.mmView.startAnimate( startValue: leftRegion.rect.width, endValue: 200, duration: 500, cb: { (value,finished) in
                 if finished {
                     self.animating = false
+                    DispatchQueue.main.async {
+                        self.sideSliderButton.setMode(.Left)
+                    }
                 }
                 leftRegion.rect.width = value
+                self.app!.mmView.update()
             } )
             animating = true
         }
@@ -772,6 +777,17 @@ class NodeGraph : Codable
             mouseMoved( event )
         }
 //        #endif
+        
+        if nodeHoverMode == .SideSlider {
+            if hoverNode != nil {
+                setCurrentNode(hoverNode!)
+            }
+            
+            sideSliderButton.removeState(.Hover)
+            self.setLeftRegionMode(.Nodes)
+            nodeHoverMode = .None
+            return
+        }
 
         if nodeHoverMode == .OverviewEdit {
             setCurrentNode(hoverNode!)
@@ -930,6 +946,17 @@ class NodeGraph : Codable
             return
         }
         
+        // --- Side Slider
+        
+        let distToSideSlider : Float = simd_distance(float2(sideSliderButton.rect.x + sideSliderButton.rect.width/2, sideSliderButton.rect.y + sideSliderButton.rect.height/2), float2(event.x, event.y))
+        if distToSideSlider <=  sideSliderButton.rect.width/2 {
+            sideSliderButton.addState(.Hover)
+            nodeHoverMode = .SideSlider
+            return
+        } else {
+            sideSliderButton.removeState(.Hover)
+        }
+        
         if currentMaster == nil { return }
         var scale : Float = currentMaster!.camera!.zoom
         
@@ -956,6 +983,8 @@ class NodeGraph : Codable
             hoverNode!.menu!.mouseMoved(event)
             return
         }
+        
+        // ---
         
         if nodeHoverMode == .MenuHover {
             if let menu = hoverNode!.menu {
@@ -1257,6 +1286,14 @@ class NodeGraph : Codable
                 drawMasterNode( masterNode, region: region)
             }
             
+            // SideSlider
+            
+            sideSliderButton.rect.x = region.rect.x - 40
+            sideSliderButton.rect.y = region.rect.y + (region.rect.height - 70) / 2
+            sideSliderButton.rect.width = 70
+            sideSliderButton.rect.height = 70
+            sideSliderButton.draw()
+
             renderer.setClipRect()
         } else
         if region.type == .Left {
@@ -1265,16 +1302,12 @@ class NodeGraph : Codable
         } else
         if region.type == .Top {
             
-            region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: nodesButton)
-            //region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: playButton)
-            
-            contentScrollButton.rect.x = 200
+            contentScrollButton.rect.x = 10
             contentScrollButton.rect.y = 4 + 44
             contentScrollButton.draw()
             
-            region.layoutH( startX: 200 + contentScrollButton.rect.width + 15, startY: 4 + 44, spacing: 10, widgets: objectsButton, layersButton, scenesButton, gameButton)
+            region.layoutH( startX: 10 + contentScrollButton.rect.width + 15, startY: 4 + 44, spacing: 10, widgets: objectsButton, layersButton, scenesButton, gameButton)
 
-            nodesButton.draw()
             objectsButton.draw()
             layersButton.draw()
             scenesButton.draw()
@@ -1323,14 +1356,12 @@ class NodeGraph : Codable
         }
         
         if node.label == nil {
-            node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name, scale: 0.5 * scale)
+            node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name, scale: 0.5 * scale, color: mmView.skin.Node.titleColor)
         }
         
-        let iconWidth : Float = node.maxDelegate == nil ? 20 : 40
-        
         if let label = node.label {
-            if label.rect.width + (40+iconWidth) * scale > node.rect.width {
-                node.rect.width = label.rect.width + (40+iconWidth) * scale
+            if label.rect.width + 80 * scale > node.rect.width {
+                node.rect.width = label.rect.width + 80 * scale
             }
         }
 
@@ -1343,7 +1374,7 @@ class NodeGraph : Codable
         node.data.size.y = node.rect.height
         
         node.data.selected = selectedUUID.contains(node.uuid) ? 1 : 0
-        node.data.borderRound = 4
+        node.data.borderRound = 24
         
         if !overviewIsOn {
             if node.brand == .Behavior {
@@ -1437,7 +1468,10 @@ class NodeGraph : Codable
             if label.scale != 0.5 * scale {
                 label.setText(node.name, scale: 0.5 * scale)
             }
-            label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 23 * scale, width: node.rect.width - 50 * scale, height: label.rect.height)
+            label.rect.x = node.rect.x + 26 * scale
+            label.rect.y = node.rect.y + 18 * scale
+            label.draw()
+            //label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 23 * scale, width: node.rect.width - 50 * scale, height: label.rect.height)
         }
         
         if nodeHoverMode == .OverviewEdit && node === hoverNode {
