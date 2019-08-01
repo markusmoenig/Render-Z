@@ -115,7 +115,9 @@ class ObjectGlow : Node
         uiItems = [
             NodeUIDropDown(self, variable: "glowMode", title: "Mode", items: ["Off", "On"], index: 1),
             NodeUIColor(self, variable: "glowColor", title: "Color", value: float3(1,1,1)),
-            NodeUINumber(self, variable: "glowSize", title: "Size", range: float2(0, 100), value: 10),
+            NodeUINumber(self, variable: "glowOpacity", title: "Opacity", range: float2(0, 1), value: 1),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUINumber(self, variable: "glowSize", title: "Size", range: float2(0, 50), value: 10),
         ]
         
         super.setupUI(mmView: mmView)
@@ -126,7 +128,9 @@ class ObjectGlow : Node
         let mode = properties["glowMode"]!
         
         uiItems[1].isDisabled = mode == 0
-        
+        uiItems[2].isDisabled = mode == 0
+        uiItems[4].isDisabled = mode == 0
+
         super.updateUIState(mmView: mmView)
     }
     
@@ -158,6 +162,7 @@ class ObjectGlow : Node
             object.properties["glowColor_r"] = properties["glowColor_r"]!
             object.properties["glowColor_g"] = properties["glowColor_g"]!
             object.properties["glowColor_b"] = properties["glowColor_b"]!
+            object.properties["glowOpacity"] = properties["glowOpacity"]!
 
             return .Success
         }

@@ -1155,6 +1155,7 @@ class NodeUIColor : NodeUI
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if isDisabled { return }
         mouseIsDown = true
         if let widget = colorWidget {
             widget.mouseDown(event)
@@ -1163,6 +1164,7 @@ class NodeUIColor : NodeUI
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if isDisabled { return }
         if let widget = colorWidget {
             widget.mouseUp(event)
         }
@@ -1171,6 +1173,7 @@ class NodeUIColor : NodeUI
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        if isDisabled { return }
         if let widget = colorWidget {
             widget.mouseMoved(event)
         }
@@ -1212,6 +1215,7 @@ class NodeUIColor : NodeUI
             widget.rect.y = rect.y + 5 * scale
             widget.rect.width = prevSize.x * scale
             widget.rect.height = widget.rect.width
+            widget.isDisabled = isDisabled
             
             widget.draw()
         }

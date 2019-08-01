@@ -530,9 +530,11 @@ class MMColorWidget : MMWidget
             computePoints()
         }
         mmView.drawColorWheel.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, color: float4(h,s,l,1))
-            
-        mmView.drawSphere.draw(x: rect.x + hueDot.x, y: rect.y + hueDot.y, radius: dotSize, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
-        mmView.drawSphere.draw(x: rect.x + slDot.x, y: rect.y + slDot.y, radius: dotSize, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
+        
+        if !isDisabled {
+            mmView.drawSphere.draw(x: rect.x + hueDot.x, y: rect.y + hueDot.y, radius: dotSize, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
+            mmView.drawSphere.draw(x: rect.x + slDot.x, y: rect.y + slDot.y, radius: dotSize, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
+        }
     }
 }
 

@@ -591,9 +591,8 @@ class Builder
                     {
                         float glowSize = \(buildData.mainDataName)objects[\(buildData.objectIndex)].glowSize;
                         float glow = 1.0 / (objectRC.x / glowSize);
-                        float3 color = \(buildData.mainDataName)objects[\(buildData.objectIndex)].glowColor.xyz;
-                        float4 glowMixColor = float4(color, glow);
-                        glowColor = mix( glowColor, glowMixColor, glow );
+                        float4 color = \(buildData.mainDataName)objects[\(buildData.objectIndex)].glowColor;
+                        glowColor = mix( glowColor, color, glow );
                     }
                 
                 """
@@ -1028,6 +1027,7 @@ class Builder
                 instance.data![instance.objectDataOffset + (objectIndex) * 12 + 8] = object.properties["glowColor_r"]!
                 instance.data![instance.objectDataOffset + (objectIndex) * 12 + 9] = object.properties["glowColor_g"]!
                 instance.data![instance.objectDataOffset + (objectIndex) * 12 + 10] = object.properties["glowColor_b"]!
+                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 11] = object.properties["glowOpacity"]!
             }
 
             object.properties["trans_rotate"] = parentRotate
