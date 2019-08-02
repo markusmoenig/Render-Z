@@ -239,7 +239,7 @@ class MMButtonWidget : MMWidget
         }
         
         if customState != nil {
-            mmView.drawCustomState.draw(customState!, x: rect.x + skin.margin.left, y: rect.y + skin.margin.left, width: rect.width - skin.margin.width(), height: rect.height - skin.margin.height())
+            mmView.drawCustomState.draw(customState!, x: rect.x + skin.margin.left / 1.5, y: rect.y + skin.margin.left / 1.5, width: rect.width - skin.margin.width()/1.5, height: rect.width - skin.margin.width()/1.5)
         }
     }
 }
@@ -403,7 +403,7 @@ class MMMenuWidget : MMWidget
         }
         
         itemHeight = Int(maxHeight) + 6
-        menuRect.height = Float(items.count * itemHeight)// + Float(items.count-1) * skin.spacing
+        menuRect.height = Float(items.count * itemHeight) + Float(items.count-1) * skin.spacing
         
         menuRect.width += skin.margin.width()
         menuRect.height += skin.margin.height()
@@ -472,7 +472,7 @@ class MMMenuWidget : MMWidget
             let y : Int = Int(event.y - rect.y - rect.height - skin.margin.top)
             
             if  y >= 0 && Float(y) <= menuRect.height - skin.margin.height() && x >= 0 && x <= menuRect.width {
-                 selIndex = y / Int(itemHeight)
+                 selIndex = y / (Int(itemHeight) + Int(skin.spacing))
                 if oldSelIndex != selIndex {
                     mmView.update()
                 }
@@ -503,24 +503,22 @@ class MMMenuWidget : MMWidget
         
         if states.contains(.Opened) && items.count > 0 {
             
-            let x = rect.x + rect.width - menuRect.width
+            var x = rect.x + rect.width - menuRect.width
             var y = rect.y + rect.height
 
-            mmView.drawBox.draw( x: x, y: y, width: menuRect.width, height: menuRect.height, round: 0, borderSize: skin.borderSize, fillColor : float4( 0.5, 0.5, 0.5, 1), borderColor: skin.borderColor )
+            mmView.drawBox.draw( x: x, y: y, width: menuRect.width, height: menuRect.height, round: skin.round, borderSize: skin.borderSize, fillColor : skin.color, borderColor: skin.borderColor )
 
+            x += skin.margin.left//rect.width - menuRect.width
             y += skin.margin.top
             for (index,var item) in self.items.enumerated() {
 
                 if index == selIndex {
-                    /*
-                    mmView.drawBox.draw( x: x + skin.borderSize, y: y - skin.spacing, width: menuRect.width - 2 * skin.borderSize - 1, height: Float(itemHeight) + 2 * skin.spacing, round: 0, borderSize: 0, fillColor : skin.selectionColor, borderColor: skin.borderColor )*/
-                    
-                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x + skin.margin.left, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: float4(repeating: 1), textBuffer: item.textBuffer)
+                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: float4(repeating: 1), textBuffer: item.textBuffer)
                 } else {
-                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x + skin.margin.left, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: skin.textColor, textBuffer: item.textBuffer)
+                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: skin.textColor, textBuffer: item.textBuffer)
                 }
                 
-                y += Float(itemHeight)
+                y += Float(itemHeight) + skin.spacing
             }
         }
     }

@@ -127,9 +127,9 @@ class MMTimeline : MMWidget
         view.registerIcon("timeline_delete")
 
         var smallButtonSkin = MMSkinButton()
-        smallButtonSkin.height = 30
-        smallButtonSkin.fontScale = 0.4
-        smallButtonSkin.margin.left = 8
+        smallButtonSkin.height = view.skin.Button.height
+        smallButtonSkin.round = view.skin.Button.round
+        smallButtonSkin.fontScale = view.skin.Button.fontScale
         
         recordButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Rec")//iconName: "timeline_recording")
         playButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Play")//iconName: "timeline_play")
@@ -676,12 +676,12 @@ class MMTimeline : MMWidget
         recordButton.rect.y = buttonsY
         recordButton.draw()
         
-        playButton.rect.x = tlRect.x + 50
+        playButton.rect.x = tlRect.x + 70
         playButton.rect.y = buttonsY
         playButton.draw()
         
         deleteButton.isDisabled = currentKey == nil
-        deleteButton.rect.x = tlRect.x + 105
+        deleteButton.rect.x = tlRect.x + 145
         deleteButton.rect.y = buttonsY
         deleteButton.draw()
         

@@ -1527,8 +1527,8 @@ class NodeGraph : Codable
             createNodeMenu(node)
         }
         
-        node.menu!.rect.x = node.rect.x + node.rect.width - 48 * scale
-        node.menu!.rect.y = node.rect.y + 18 * scale
+        node.menu!.rect.x = node.rect.x + node.rect.width - 50 * scale
+        node.menu!.rect.y = node.rect.y + 16 * scale
         node.menu!.rect.width = 30 * scale
         node.menu!.rect.height = 28 * scale
         node.menu!.draw()
@@ -1594,6 +1594,9 @@ class NodeGraph : Codable
                 }
             }
             
+            // Preview Border
+            app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 20, borderSize: 0, fillColor: float4(0.067, 0.071, 0.075, 1.000), borderColor: float4(0, 0, 0, 1) )
+            
             for texture in textures {
                 app!.mmView.drawTexture.draw(texture, x: x, y: y, zoom: 1)
             }
@@ -1606,9 +1609,6 @@ class NodeGraph : Codable
                 debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)
                 app!.mmView.drawTexture.draw(debugInstance.texture!, x: x, y: y, zoom: 1)
             }
-            
-            // Preview Border
-            app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 0, borderSize: 1, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
         } else {
             // Visible reference list
             
