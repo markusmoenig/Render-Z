@@ -48,6 +48,15 @@ class MMRect
         return false;
     }
     
+    /// Returns true if the given point is inside the scaled rect
+    func contains( _ x : Float, _ y : Float, _ scale : Float ) -> Bool
+    {
+        if self.x <= x && self.y <= y && self.x + self.width * scale >= x && self.y + self.height * scale >= y {
+            return true;
+        }
+        return false;
+    }
+    
     /// Intersect the rects
     func intersect(_ rect: MMRect)
     {

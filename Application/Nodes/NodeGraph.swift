@@ -1111,18 +1111,17 @@ class NodeGraph : Codable
             
             if hoverNode !== currentMaster {
                 // --- Look for NodeUI item under the mouse, master has no UI
-                let uiItemX = hoverNode!.rect.x + (hoverNode!.rect.width - hoverNode!.uiArea.width*scale) / 2
+                let uiItemX = hoverNode!.rect.x + 35 * scale
                 var uiItemY = hoverNode!.rect.y + NodeGraph.bodyY * scale
                 let uiRect = MMRect()
-                let titleWidth : Float = (hoverNode!.uiMaxTitleSize.x + NodeUI.titleSpacing) * scale
                 validHoverTarget = nil
                 for uiItem in hoverNode!.uiItems {
                     
                     if uiItem.supportsTitleHover {
-                        uiRect.x = uiItemX
-                        uiRect.y = uiItemY
-                        uiRect.width = titleWidth - NodeUI.titleSpacing * scale
-                        uiRect.height = uiItem.rect.height * scale
+                        uiRect.x = uiItem.titleLabel!.rect.x - 2 * scale
+                        uiRect.y = uiItem.titleLabel!.rect.y - 2 * scale
+                        uiRect.width = uiItem.titleLabel!.rect.width + 4 * scale
+                        uiRect.height = uiItem.titleLabel!.rect.height + 6 * scale
                         
                         if uiRect.contains(event.x, event.y) {
                             uiItem.titleHover = true
@@ -1132,9 +1131,9 @@ class NodeGraph : Codable
                         }
                     }
                     
-                    uiRect.x = uiItemX + titleWidth
+                    uiRect.x = uiItemX
                     uiRect.y = uiItemY
-                    uiRect.width = uiItem.rect.width * scale - uiItem.titleLabel!.rect.width - NodeUI.titleMargin.width() - NodeUI.titleSpacing
+                    uiRect.width = uiItem.rect.width * scale
                     uiRect.height = uiItem.rect.height * scale
 
                     let dropTarget = uiItem as? NodeUIDropTarget
@@ -1485,7 +1484,7 @@ class NodeGraph : Codable
         }
         
         // --- UI
-        let uiItemX = node.rect.x + (node.rect.width - node.uiArea.width*scale) / 2 - 2.5 * scale
+        let uiItemX = node.rect.x + 35 * scale//(node.rect.width - node.uiArea.width*scale) / 2 - 2.5 * scale
         var uiItemY = node.rect.y + NodeGraph.bodyY * scale
 
         for uiItem in node.uiItems {

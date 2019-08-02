@@ -23,9 +23,17 @@ class MMTextLabel: MMLabel
     var font        : MMFont
     var text        : String
     var scale       : Float
-    var color       : float4
     var textBuffer  : MMTextBuffer?
     var textYOffset : Float = -1
+    
+    var color  : float4 {
+        
+        willSet(newValue) {
+            if newValue != color {
+                textBuffer = nil
+            }
+        }
+    }
     
     var isDisabled  : Bool {
         

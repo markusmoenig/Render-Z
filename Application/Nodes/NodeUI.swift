@@ -39,13 +39,26 @@ class NodeUI
     var linkedTo    : NodeUI? = nil
     
     var dropTarget  : String? = nil
+    
+    // Start of the content area
+    var contentY    : Float = 0
 
     // --- Statics
     
-    static let fontName = "Open Sans"
-    static let fontScale : Float = 0.4
-    static let titleMargin : MMMargin = MMMargin(0, 5, 5, 5)
-    static let titleSpacing : Float = 5
+    static let fontName             : String = "Open Sans"
+    static let titleFontScale       : Float = 0.34
+    static let fontScale            : Float = 0.4
+    static let titleMargin          : MMMargin = MMMargin(0, 5, 5, 5)
+    static let titleSpacing         : Float = 5
+    static let titleXOffset         : Float = 6
+    static let itemSpacing          : Float = 6
+    static let contentMargin        : Float = 8
+    static let contentRound         : Float = 22
+
+    static let titleTextColor       : float4 = float4(0.6, 0.6, 0.6, 1.0)
+    static let contentColor         : float4 = float4(0.404, 0.408, 0.412, 1.000)
+    static let contentColor2        : float4 = float4(0.243, 0.247, 0.251, 1.000)
+    static let contentTextColor     : float4 = float4(0.749, 0.753, 0.757, 1.000)
 
     init(_ node : Node, brand: Brand, variable: String, title: String)
     {
@@ -101,6 +114,17 @@ class NodeUI
     
     func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
     {
+        if titleLabel!.scale != NodeUI.titleFontScale * scale {
+            titleLabel!.setText(title, scale: NodeUI.titleFontScale * scale)
+        }
+        
+        titleLabel!.isDisabled = isDisabled
+        titleLabel!.rect.x = rect.x + NodeUI.titleXOffset * scale
+        titleLabel!.rect.y = rect.y
+        titleLabel!.color = (titleHover && isDisabled == false) ? float4(1,1,1,1) : NodeUI.contentTextColor
+        titleLabel!.draw()
+        
+        contentY = rect.y + titleLabel!.rect.height + NodeUI.titleSpacing * scale
     }
     
     /// Adjust color to disabled if necessary
@@ -130,22 +154,52 @@ class NodeUISeparator : NodeUI
     }
 }
 
+class NodeUISelectorItem
+{
+    var label       : MMTextLabel?
+    
+    init( _ view: MMView, text: String)
+    {
+        label = MMTextLabel(view, font: view.openSans, text: text, scale: NodeUI.fontScale, color: NodeUI.contentTextColor )
+    }
+}
+
 /// Drop down NodeUI class
 class NodeUIDropDown : NodeUI
 {
+    enum HoverMode {
+        case None, LeftArrow, RightArrow
+    }
+    
+    enum Animating {
+        case No, Left, Right
+    }
+    
     var items       : [String]
+    var scrollItems : [NodeUISelectorItem]
     var index       : Float
-    var open        : Bool = false
     var defaultValue: Float
     
-    var itemHeight  : Float = 0
-    var minItemWidth: Float = 85
+    let itemHeight  : Float = 26
+    let spacer      : Float = 60
     
+    var contentWidth: Float = 0
+    var maxItemWidth: Float = 0
+    
+    var hoverMode   : HoverMode = .None
+    var animating   : Animating = .No
+    
+    var animatingTo : Int = 0
+    var animOffset  : Float = 0
+    
+    var scale       : Float = 0
+
     var contentLabel: MMTextLabel!
     
     init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0)
     {
         self.items = items
+        self.scrollItems = []
         self.index = index
         self.defaultValue = index
         
@@ -158,100 +212,181 @@ class NodeUIDropDown : NodeUI
         super.init(node, brand: .DropDown, variable: variable, title: title)
     }
     
-    override func calcSize(mmView: MMView) {
-        self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
-        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale)
-
-        minItemWidth = 85
-        let itemRect = MMRect()
-        for item in items {
-            mmView.openSans.getTextRect(text: item, scale: NodeUI.fontScale, rectToUse: itemRect)
-            if itemRect.width + 10 > minItemWidth {
-                minItemWidth = itemRect.width + 10
-            }
+    func setItems(_ items: [String], fixedWidth: Float? = nil)
+    {
+        contentWidth = 0
+        maxItemWidth = 0
+        
+        self.scrollItems = []
+        for text in items {
+            let item = NodeUISelectorItem(mmView, text: text)
+            
+            contentWidth += item.label!.rect.width
+            maxItemWidth = max(maxItemWidth, item.label!.rect.width)
+            
+            self.scrollItems.append(item)
         }
         
-        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + minItemWidth
-        rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
+        contentWidth += Float((items.count - 1 ) * 10) // Add margin
+    }
+    
+    override func calcSize(mmView: MMView) {
+        self.mmView = mmView
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
+        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale, color: NodeUI.contentTextColor)
+        
+        self.setItems(items)
+
+        rect.width = maxItemWidth + spacer
+        rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + itemHeight + NodeUI.itemSpacing
     }
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        if isDisabled == false {
-            open = true
-            mouseMoved(event)
+        if isDisabled {
+            return
         }
+        startScrolling()
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        if open {
-            let oldValue = node.properties[variable]!
-            node.properties[variable] = index
-            node.variableChanged(variable: variable, oldValue: oldValue, newValue: index)
-            mmView.update()
-        }
-        open = false
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if open {
-            let y = event.y - rect.y
-            let index = Float(Int(y / itemHeight))
-            if index >= 0 && index < Float(items.count) {
-                self.index = index
-                internal_changed()
-                mmView.update()
+        if isDisabled {
+            return
+        }
+        let oldHoverMode = hoverMode
+        hoverMode = .None
+        
+        if items.count > 1 {
+            if rect.contains(event.x, event.y, scale) && event.x <= rect.x + 25 * scale && event.y > contentY {
+                hoverMode = .LeftArrow
+            }
+            if rect.contains(event.x, event.y, scale) && event.x >= rect.x + (maxItemWidth + spacer - 19) * scale && event.y > contentY {
+                hoverMode = .RightArrow
             }
         }
+        if oldHoverMode != hoverMode {
+            update()
+        }
+    }
+    
+    override func mouseLeave() {
+        hoverMode = .None
+        update()
     }
     
     override func update() {
         index = node.properties[variable]!
     }
     
+    func startScrolling()
+    {
+        let index : Int = Int(self.index)
+        if hoverMode == .RightArrow {
+            animatingTo = index == items.count - 1 ? 0 : index + 1
+            animating = .Right
+            animOffset = 0
+            mmView.startAnimate( startValue: 0, endValue: maxItemWidth + spacer / 2 * scale - (maxItemWidth * scale - scrollItems[animatingTo].label!.rect.width) / 2, duration: 300, cb: { (value,finished) in
+                if finished {
+                    self.animating = .No
+                    self.index = Float(self.animatingTo)
+
+                    let oldValue = self.node.properties[self.variable]!
+                    self.node.properties[self.variable] = self.index
+                    self.node.variableChanged(variable: self.variable, oldValue: oldValue, newValue: self.index)
+                }
+                self.animOffset = value
+                self.mmView.update()
+            } )
+        } else
+        if hoverMode == .LeftArrow {
+            animatingTo = index == 0 ? items.count - 1 : index - 1
+            animating = .Left
+            animOffset = 0
+            mmView.startAnimate( startValue: 0, endValue: maxItemWidth + spacer / 2 * scale + (maxItemWidth * scale - scrollItems[animatingTo].label!.rect.width) / 2, duration: 300, cb: { (value,finished) in
+                if finished {
+                    self.animating = .No
+                    self.index = Float(self.animatingTo)
+
+                    let oldValue = self.node.properties[self.variable]!
+                    self.node.properties[self.variable] = self.index
+                    self.node.variableChanged(variable: self.variable, oldValue: oldValue, newValue: self.index)
+                }
+                self.animOffset = value
+                self.mmView.update()
+            } )
+        }
+    }
+    
     override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
     {
-//        mmView.drawBox.draw( x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale, round: 0, borderSize: 1 * scale, fillColor : float4(0), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
+        super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
+        self.scale = scale
         
-        if titleLabel!.scale != NodeUI.fontScale * scale {
-            titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
+        mmView.drawBox.draw( x: rect.x, y: contentY, width: (maxItemWidth + spacer) * scale, height: itemHeight * scale, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : float4(0,0,0,0), borderColor: adjustColor(NodeUI.contentColor) )
+        
+        let middleY : Float = contentY + itemHeight / 2 * scale
+        let arrowUp : Float = 7 * scale
+        var left    : Float = rect.x + 10 * scale
+        
+        var color : float4 = hoverMode == .LeftArrow ? float4(1,1,1,1) : mmView.skin.ScrollButton.activeColor
+        if isDisabled { color.w = 0.2 }
+        mmView.drawLine.draw(sx: left, sy: middleY, ex: left + arrowUp, ey: middleY + arrowUp, radius: 1 * scale, fillColor: color)
+        mmView.drawLine.draw(sx: left, sy: middleY, ex: left + arrowUp, ey: middleY - arrowUp, radius: 1 * scale, fillColor: color)
+
+        left = rect.x + (maxItemWidth + spacer - 19) * scale
+        color = hoverMode == .RightArrow ? float4(1,1,1,1) : mmView.skin.ScrollButton.activeColor
+        if isDisabled { color.w = 0.2 }
+        mmView.drawLine.draw(sx: left + arrowUp, sy: middleY, ex: left, ey: middleY + arrowUp, radius: 1 * scale, fillColor: color)
+        mmView.drawLine.draw(sx: left + arrowUp, sy: middleY, ex: left, ey: middleY - arrowUp, radius: 1 * scale, fillColor: color)
+        
+        if items.count == 0 { return }
+        
+        let label = scrollItems[Int(index)].label!
+        
+        if  label.scale != NodeUI.fontScale * scale {
+            label.setText(label.text, scale: NodeUI.fontScale * scale)
         }
-        titleLabel!.isDisabled = isDisabled
-        titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
         
-        let x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
-        let width = minItemWidth * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
-        itemHeight =  rect.height * scale
-        
-        let skin = mmView.skin.MenuWidget
-        
-        if !open || items.count == 0 {
-            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : adjustColor(skin.color), borderColor: adjustColor(skin.borderColor))
-            
-            if items.count > 0 {
-                
-                if contentLabel.text != items[Int(index)] || contentLabel.scale != NodeUI.fontScale * scale {
-                    contentLabel.setText(items[Int(index)], scale: NodeUI.fontScale * scale)
-                }
-                
-                //mmView.drawText.drawTextCentered(mmView.openSans, text: items[Int(index)], x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
-                contentLabel.color = adjustColor(skin.textColor)
-                contentLabel.drawCentered(x: x, y: rect.y, width: width, height: itemHeight)
-            }
-        } else {
-            mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight * Float(items.count), round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
-            
-            var itemY : Float = rect.y
-            for (ind,item) in items.enumerated() {
-                
-                let textColor = Float(ind) == index ? float4(repeating: 1) : skin.textColor
-                mmView.drawText.drawTextCentered(mmView.openSans, text: item, x: x, y: itemY, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: textColor)
-                itemY += itemHeight
-            }
+        mmView.renderer.setClipRect(MMRect(rect.x + 20 * scale, rect.y, (maxItemWidth + 20) * scale, rect.height * scale))
+
+        label.isDisabled = isDisabled
+        label.rect.x = rect.x + spacer / 2 * scale + (maxItemWidth * scale - label.rect.width) / 2
+        label.rect.y = contentY + 5 * scale
+
+        if animating == .Right {
+            label.rect.x -= animOffset
+        } else
+        if animating == .Left {
+            label.rect.x += animOffset
         }
+        label.draw()
+        
+        if animating == .Right {
+            let animTolabel = scrollItems[animatingTo].label!
+            if  animTolabel.scale != NodeUI.fontScale * scale {
+                animTolabel.setText(animTolabel.text, scale: NodeUI.fontScale * scale)
+            }
+            
+            animTolabel.rect.x = rect.x + spacer / 2 * scale + maxItemWidth + spacer / 2 * scale - animOffset
+            animTolabel.rect.y = label.rect.y
+            animTolabel.draw()
+        } else
+        if animating == .Left {
+            let animTolabel = scrollItems[animatingTo].label!
+            if  animTolabel.scale != NodeUI.fontScale * scale {
+                animTolabel.setText(animTolabel.text, scale: NodeUI.fontScale * scale)
+            }
+            
+            animTolabel.rect.x = rect.x + spacer / 2 * scale - (maxItemWidth + spacer / 2 * scale) + animOffset
+            animTolabel.rect.y = label.rect.y
+            animTolabel.draw()
+        }
+        mmView.renderer.setClipRect()
     }
 }
 
@@ -739,11 +874,11 @@ class NodeUINumber : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
-        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale)
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
+        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: String(value), scale: NodeUI.fontScale, color: NodeUI.contentTextColor)
 
-        rect.width = titleLabel!.rect.width + NodeUI.titleMargin.width() + NodeUI.titleSpacing + 120
-        rect.height = titleLabel!.rect.height + NodeUI.titleMargin.height()
+        rect.width = 160
+        rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + contentLabel!.rect.height + NodeUI.contentMargin + NodeUI.itemSpacing
     }
     
     override func titleClicked()
@@ -851,30 +986,21 @@ class NodeUINumber : NodeUI
     
     override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
     {
-        if titleLabel!.scale != NodeUI.fontScale * scale {
-            titleLabel!.setText(title, scale: NodeUI.fontScale * scale)
-        }
+        super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
         
-        let skin = mmView.skin.MenuWidget
+        x = rect.x
+        width = 160 * scale
+        let itemHeight = contentLabel!.rect.height + NodeUI.contentMargin * scale
         
-        if titleHover && isDisabled == false {
-            mmView.drawBox.draw( x: rect.x, y: rect.y, width: maxTitleSize.x * scale + NodeUI.titleSpacing * scale, height: maxTitleSize.y * scale, round: 4, borderSize: 1, fillColor : float4(0.5, 0.5, 0.5, 1), borderColor: float4(repeating:0) )
-        }
-        
-        titleLabel!.isDisabled = isDisabled
-        titleLabel!.drawRightCenteredY(x: rect.x, y: rect.y, width: maxTitleSize.x * scale, height: maxTitleSize.y * scale)
-        
-        x = rect.x + maxTitleSize.x * scale + NodeUI.titleSpacing * scale
-        width = 120 * scale//rect.width * scale - maxTitleSize.x * scale - NodeUI.titleSpacing * scale
-        
-        let itemHeight =  rect.height * scale
-        
-        mmView.drawBox.draw( x: x, y: rect.y, width: width, height: itemHeight, round: 0, borderSize: 1, fillColor : adjustColor(skin.color), borderColor: adjustColor(skin.borderColor) )
+        mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : adjustColor(NodeUI.contentColor) )
         
         if range != nil {
             let offset = (width / (range!.y - range!.x)) * (value - range!.x)
-            
-            mmView.drawBox.draw( x: x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: adjustColor(skin.borderColor) )
+            if offset > 0 {
+                mmView.renderer.setClipRect(MMRect(x, contentY, offset, itemHeight))
+                mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : adjustColor(NodeUI.contentColor2))
+                mmView.renderer.setClipRect()
+            }
         }
         
         // --- Draw Text
@@ -886,10 +1012,9 @@ class NodeUINumber : NodeUI
             contentLabel.setText(contentText, scale: NodeUI.fontScale * scale)
         }
 
-        contentLabel.color = adjustColor(skin.textColor)
-        contentLabel.drawCentered(x: x, y: rect.y, width: width, height: itemHeight)
-        
-        //mmView.drawText.drawTextCentered(mmView.openSans, text: text, x: x, y: rect.y, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: adjustColor(skin.textColor))
+        contentLabel!.isDisabled = isDisabled
+        contentLabel.color = NodeUI.contentTextColor
+        contentLabel.drawCentered(x: x, y: contentY, width: width, height: itemHeight)
     }
 }
 
