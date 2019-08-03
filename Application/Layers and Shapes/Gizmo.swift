@@ -1707,10 +1707,10 @@ class Gizmo : MMWidget
                 for uiItem in gizmoNode.uiItems {
                     
                     if uiItem.supportsTitleHover {
-                        uiRect.x = uiItemX
-                        uiRect.y = uiItemY
-                        uiRect.width = titleWidth - NodeUI.titleSpacing
-                        uiRect.height = uiItem.rect.height
+                        uiRect.x = uiItem.titleLabel!.rect.x - 2
+                        uiRect.y = uiItem.titleLabel!.rect.y - 2
+                        uiRect.width = uiItem.titleLabel!.rect.width + 4
+                        uiRect.height = uiItem.titleLabel!.rect.height + 6
                         
                         if uiRect.contains(event.x, event.y) {
                             uiItem.titleHover = true
@@ -1720,9 +1720,9 @@ class Gizmo : MMWidget
                         }
                     }
 
-                    uiRect.x = uiItemX + titleWidth
+                    uiRect.x = uiItemX
                     uiRect.y = uiItemY
-                    uiRect.width = uiItem.rect.width - uiItem.titleLabel!.rect.width - NodeUI.titleMargin.width() - NodeUI.titleSpacing
+                    uiRect.width = uiItem.rect.width
                     uiRect.height = uiItem.rect.height
                     
                     if uiRect.contains(event.x, event.y) {

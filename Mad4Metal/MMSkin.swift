@@ -121,13 +121,15 @@ struct MMSkinNode
 
 struct MMSkin
 {
-    var Widget : MMSkinWidget = MMSkinWidget()
-    var ToolBar : MMSkinToolBar = MMSkinToolBar()
-    var ToolBarButton : MMSkinButton = MMSkinButton()
-    var Button : MMSkinSmallButton = MMSkinSmallButton()
-    var IconButton : MMSkinButton = MMSkinButton()
-    var MenuWidget : MMSkinMenuWidget = MMSkinMenuWidget()
-    var TimelineWidget : MMSkinTimeline = MMSkinTimeline()
-    var ScrollButton : MMSkinScrollButton = MMSkinScrollButton()
-    var Node : MMSkinNode = MMSkinNode()
+    var Widget          : MMSkinWidget = MMSkinWidget()
+    var ToolBar         : MMSkinToolBar = MMSkinToolBar()
+    var ToolBarButton   : MMSkinButton = MMSkinButton()
+    var Button          : MMSkinSmallButton = MMSkinSmallButton()
+    var IconButton      : MMSkinButton = MMSkinButton()
+    var MenuWidget      : MMSkinMenuWidget = MMSkinMenuWidget()
+    var TimelineWidget  : MMSkinTimeline = MMSkinTimeline()
+    var ScrollButton    : MMSkinScrollButton = MMSkinScrollButton()
+    var Node            : MMSkinNode = MMSkinNode()
+    
+    var disabledAlpha   : Float = 0.2
 }
