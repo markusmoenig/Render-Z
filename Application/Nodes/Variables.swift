@@ -38,7 +38,7 @@ class FloatVariable : Node
         uiItems = [
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: properties["defaultValue"]!),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1),
+            NodeUISelector(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1),
         ]
         
         let number = uiItems[0] as! NodeUINumber
@@ -124,7 +124,7 @@ class DirectionVariable : Node
             NodeUIAngle(self, variable: "orientation", title: "", value: 0),
             NodeUINumber(self, variable: "angle", title: "Angle", range: float2(0,360), value: 0),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1)
+            NodeUISelector(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1)
         ]
         
         uiItems[1].linkedTo = uiItems[0]
@@ -229,7 +229,7 @@ class Float2Variable : Node
             NodeUINumber(self, variable: "x", title: "X", range: nil, value: 0),
             NodeUINumber(self, variable: "y", title: "Y", range: nil, value: 0),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1)
+            NodeUISelector(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1)
         ]
         
         if properties["defaultValueX"] != nil {
@@ -568,7 +568,7 @@ class TestFloatVariable : Node
         uiItems = [
             NodeUIFloatVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "mode", title: "Test", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
+            NodeUISelector(self, variable: "mode", title: "Test", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1)
         ]
         super.setupUI(mmView: mmView)
@@ -896,7 +896,7 @@ class MultiplyConstFloat2Variable : Node
         uiItems = [
             NodeUIFloat2VariableTarget(self, variable: "variable", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "coordinate", title: "Coordinate", items: ["XY", "X", "Y"], index: 0),
+            NodeUISelector(self, variable: "coordinate", title: "Coordinate", items: ["XY", "X", "Y"], index: 0),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUINumber(self, variable: "x", title: "X", range: nil, value: 1),
             NodeUINumber(self, variable: "y", title: "Y", range: nil, value: 1),
@@ -984,8 +984,8 @@ class TestFloat2Variable : Node
         uiItems = [
             NodeUIFloat2VariableTarget(self, variable: "variable", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "coordinate", title: "Coordinate", items: ["X", "Y"], index: 0),
-            NodeUIDropDown(self, variable: "mode", title: "Test", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
+            NodeUISelector(self, variable: "coordinate", title: "Coordinate", items: ["X", "Y"], index: 0),
+            NodeUISelector(self, variable: "mode", title: "Test", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1)
         ]
         super.setupUI(mmView: mmView)
@@ -1084,7 +1084,7 @@ class LimitFloat2Range : Node
         uiItems = [
             NodeUIFloat2VariableTarget(self, variable: "variable", title: "Variable", connection:  uiConnections[0]),
             NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "coordinate", title: "Coordinate", items: ["X", "Y"], index: 0),
+            NodeUISelector(self, variable: "coordinate", title: "Coordinate", items: ["X", "Y"], index: 0),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUINumber(self, variable: "upper", title: "Upper", range: nil, value: 100),
             NodeUINumber(self, variable: "lower", title: "Lower", range: nil, value: -100),

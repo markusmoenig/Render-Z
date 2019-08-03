@@ -325,17 +325,17 @@ class Gizmo : MMWidget
                 if !material.isCompound {
                     gizmoNode.properties["channel"] = material.properties["channel"]
                     gizmoNode.uiItems.append(
-                        NodeUIDropDown(gizmoNode, variable: "channel", title: "Channel", items: ["Base Color", "Subsurface","Roughness", "Metallic", "Specular", "Specular Tint", "Clearcoat", "Clearc. Gloss", "Anisotropic", "Sheen", "Sheen Tint", "Border"], index: 0)
+                        NodeUISelector(gizmoNode, variable: "channel", title: "Channel", items: ["Base Color", "Subsurface","Roughness", "Metallic", "Specular", "Specular Tint", "Clearcoat", "Clearc. Gloss", "Anisotropic", "Sheen", "Sheen Tint", "Border"], index: 0)
                     )
                     
                     gizmoNode.properties["limiterType"] = material.properties["limiterType"]
                     gizmoNode.uiItems.append(
-                        NodeUIDropDown(gizmoNode, variable: "limiterType", title: "Limiter", items: ["None", "Rectangle", "Sphere", "Border"], index: 0)
+                        NodeUISelector(gizmoNode, variable: "limiterType", title: "Limiter", items: ["None", "Rectangle", "Sphere", "Border"], index: 0)
                     )
                     
                     gizmoNode.properties["bump"] = material.properties["bump"]
                     gizmoNode.uiItems.append(
-                        NodeUIDropDown(gizmoNode, variable: "bump", title: "Bump", items: ["Off", "On","Ignore Channel"], index: 0)
+                        NodeUISelector(gizmoNode, variable: "bump", title: "Bump", items: ["Off", "On","Ignore Channel"], index: 0)
                     )
                 }
                 

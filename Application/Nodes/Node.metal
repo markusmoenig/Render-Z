@@ -108,8 +108,8 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
     float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - borderRound;
     
     // Inner Cutout
-    uv.y += 20 * scale;
-    float2 innerSize = data->size - float2(borderSize - 2, borderSize + 20 * scale * 2 - 2);
+    uv.y += 16 * scale;
+    float2 innerSize = data->size - float2(borderSize - 2, borderSize + 16 * scale * 2 - 2);
     d = abs( uv ) - innerSize / 2 + borderRound + 5 * scale;
     float innerDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - borderRound;
 

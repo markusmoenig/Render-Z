@@ -130,7 +130,7 @@ class NodeGraph : Codable
     static var tRadius  : Float = 7 // Radius of terminals
     static var tDiam    : Float = 14 // Diameter of terminals
     
-    static var bodyY    : Float = 60 // Start of the y position of the body
+    static var bodyY    : Float = 50 // Start of the y position of the body
 
     // ---
     
@@ -1343,24 +1343,24 @@ class NodeGraph : Codable
             node.rect.x += (behaviorTree.rect.x + behaviorTree.rect.width / 2 - node.rect.x) * (1.0 - treeScale)
             node.rect.y += (behaviorTree.rect.y + behaviorTree.rect.height / 2 - node.rect.y) * (1.0 - treeScale)
             
-            node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
-            node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
+            node.rect.width = max(node.minimumSize.x, node.uiArea.width + 30) * scale
+            node.rect.height = (node.minimumSize.y + max(node.uiArea.height, 20)) * scale
             
             if behaviorTree.rect.contains(node.rect.x, node.rect.y) {
                 return
             }
         } else {
-            node.rect.width = max(node.minimumSize.x, node.uiArea.width + 50) * scale
-            node.rect.height = (node.minimumSize.y + node.uiArea.height) * scale
+            node.rect.width = max(node.minimumSize.x, node.uiArea.width + 30) * scale
+            node.rect.height = (node.minimumSize.y + max(node.uiArea.height, 20)) * scale
         }
         
         if node.label == nil {
-            node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name, scale: 0.5 * scale, color: mmView.skin.Node.titleColor)
+            node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name, scale: 0.42 * scale, color: mmView.skin.Node.titleColor)
         }
         
         if let label = node.label {
-            if label.rect.width + 80 * scale > node.rect.width {
-                node.rect.width = label.rect.width + 80 * scale
+            if label.rect.width + 85 * scale > node.rect.width {
+                node.rect.width = label.rect.width + 85 * scale
             }
         }
 
@@ -1464,11 +1464,11 @@ class NodeGraph : Codable
         
         // --- Label
         if let label = node.label {
-            if label.scale != 0.5 * scale {
-                label.setText(node.name, scale: 0.5 * scale)
+            if label.scale != 0.42 * scale {
+                label.setText(node.name, scale: 0.42 * scale)
             }
-            label.rect.x = node.rect.x + 26 * scale
-            label.rect.y = node.rect.y + 18 * scale
+            label.rect.x = node.rect.x + 27 * scale
+            label.rect.y = node.rect.y + 16 * scale
             label.draw()
             //label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 23 * scale, width: node.rect.width - 50 * scale, height: label.rect.height)
         }
@@ -1526,10 +1526,10 @@ class NodeGraph : Codable
             createNodeMenu(node)
         }
         
-        node.menu!.rect.x = node.rect.x + node.rect.width - 50 * scale
-        node.menu!.rect.y = node.rect.y + 16 * scale
-        node.menu!.rect.width = 30 * scale
-        node.menu!.rect.height = 28 * scale
+        node.menu!.rect.x = node.rect.x + node.rect.width - 54 * scale
+        node.menu!.rect.y = node.rect.y + 13 * scale
+        node.menu!.rect.width = 26 * scale //30 * scale
+        node.menu!.rect.height = 24 * scale //28 * scale
         node.menu!.draw()
     }
     
@@ -1719,7 +1719,7 @@ class NodeGraph : Codable
                 if t.connector == .Top {
                     if t.uuid == conn.terminal!.uuid {
                         x = node.rect.width / 2 - 6 * scale
-                        y = 3 * scale + NodeGraph.tRadius * scale
+                        y = 3 * scale// + NodeGraph.tRadius * scale / 2
                         
                         break;
                     }

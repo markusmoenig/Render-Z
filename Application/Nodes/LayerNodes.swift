@@ -56,7 +56,7 @@ class LayerArea : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "status", title: "Status", items: ["Enabled", "Disabled"], index: 0)
+            NodeUISelector(self, variable: "status", title: "Status", items: ["Enabled", "Disabled"], index: 0)
         ]
         super.setupUI(mmView: mmView)
     }
@@ -169,7 +169,7 @@ class LayerRender : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "renderMode", title: "Mode", items: ["Off", "PBR"], index: 1),
+            NodeUISelector(self, variable: "renderMode", title: "Mode", items: ["Off", "PBR"], index: 1),
             NodeUINumber(self, variable: "renderSampling", title: "Sampling", range: float2(0.1, 20), value: 0.1)
         ]
         
@@ -266,7 +266,7 @@ class LayerDirLight : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "status", title: "Status", items: ["Enabled", "Disabled"], index: 0)
+            NodeUISelector(self, variable: "status", title: "Status", items: ["Enabled", "Disabled"], index: 0)
         ]
         super.setupUI(mmView: mmView)
     }

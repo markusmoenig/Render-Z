@@ -11,7 +11,7 @@ import Foundation
 class NodeUI
 {
     enum Brand {
-        case Separator, DropDown, KeyDown, Number, Text, DropTarget
+        case Separator, Selector, KeyDown, Number, Text, DropTarget
     }
     
     enum Role {
@@ -146,7 +146,7 @@ class NodeUISeparator : NodeUI
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
         
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale)
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
         
         rect.width = 0
         rect.height = defaultValue
@@ -164,7 +164,7 @@ class NodeUISelectorItem
 }
 
 /// Drop down NodeUI class
-class NodeUIDropDown : NodeUI
+class NodeUISelector : NodeUI
 {
     enum HoverMode {
         case None, LeftArrow, RightArrow
@@ -208,7 +208,7 @@ class NodeUIDropDown : NodeUI
             self.index = node.properties[variable]!
         }
         
-        super.init(node, brand: .DropDown, variable: variable, title: title)
+        super.init(node, brand: .Selector, variable: variable, title: title)
     }
     
     func setItems(_ items: [String], fixedWidth: Float? = nil)
@@ -395,8 +395,8 @@ class NodeUIDropDown : NodeUI
     }
 }
 
-/// Animation picker derived from NodeUIDropDown and with .AnimationPicker role
-class NodeUIMasterPicker : NodeUIDropDown
+/// Animation picker derived from NodeUISelector and with .AnimationPicker role
+class NodeUIMasterPicker : NodeUISelector
 {
     var uiConnection        : UINodeConnection
     var uuids               : [UUID] = []
@@ -419,8 +419,8 @@ class NodeUIMasterPicker : NodeUIDropDown
     }
 }
 
-/// Animation picker derived from NodeUIDropDown and with .AnimationPicker role
-class NodeUIAnimationPicker : NodeUIDropDown
+/// Animation picker derived from NodeUISelector and with .AnimationPicker role
+class NodeUIAnimationPicker : NodeUISelector
 {
     var uiConnection        : UINodeConnection
     var uuids               : [UUID] = []
@@ -448,8 +448,8 @@ class NodeUIAnimationPicker : NodeUIDropDown
     }
 }
 
-/// Value Variable picker derived from NodeUIDropDown and with .ValueVariablePicker role
-class NodeUIFloatVariablePicker : NodeUIDropDown
+/// Value Variable picker derived from NodeUISelector and with .ValueVariablePicker role
+class NodeUIFloatVariablePicker : NodeUISelector
 {
     var uiConnection        : UINodeConnection
     var uuids               : [UUID] = []
@@ -469,8 +469,8 @@ class NodeUIFloatVariablePicker : NodeUIDropDown
     }
 }
 
-/// Direction Variable picker derived from NodeUIDropDown and with .DirectionVariablePicker role
-class NodeUIDirectionVariablePicker : NodeUIDropDown
+/// Direction Variable picker derived from NodeUISelector and with .DirectionVariablePicker role
+class NodeUIDirectionVariablePicker : NodeUISelector
 {
     var uiConnection        : UINodeConnection
     var uuids               : [UUID] = []
@@ -490,8 +490,8 @@ class NodeUIDirectionVariablePicker : NodeUIDropDown
     }
 }
 
-/// Layer area picker derived from NodeUIDropDown and with .LayerAreaPicker role
-class NodeUILayerAreaPicker : NodeUIDropDown
+/// Layer area picker derived from NodeUISelector and with .LayerAreaPicker role
+class NodeUILayerAreaPicker : NodeUISelector
 {
     var uiConnection        : UINodeConnection
     var uuids               : [UUID] = []
@@ -536,15 +536,16 @@ class NodeUIDropTarget : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
+        
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
         
         var text = ""
         if let name = uiConnection.targetName {
             text = name
         }
         
-        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: text, scale: NodeUI.fontScale)
-        minItemWidth = max( contentLabel.rect.width + 15, 85 )
+        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: text, scale: NodeUI.fontScale, color: NodeUI.contentTextColor)
+        minItemWidth = max( contentLabel.rect.width + 30, 85 )
         
         rect.width = minItemWidth
         rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + itemHeight + NodeUI.itemSpacing
@@ -571,17 +572,15 @@ class NodeUIDropTarget : NodeUI
         super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
         
         let x = rect.x
-        let width = node.uiMaxWidth * scale// minItemWidth * scale
-        
-        let skin = mmView.skin.MenuWidget
+        let width = minItemWidth * scale
         
         if hoverState == .Valid && isDisabled == false {
-            mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.successColor)
+            mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight * scale, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.successColor)
         } else
         if (hoverState == .Invalid || contentLabel!.text == "") && isDisabled == false {
-            mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.failureColor)
+            mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight * scale, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: mmView.skin.Node.failureColor)
         } else {
-            mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: float4(skin.color.x, skin.color.y, skin.color.z, mmView.skin.disabledAlpha))
+            mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight * scale, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : float4(repeating: 0), borderColor: float4(NodeUI.contentColor.x, NodeUI.contentColor.y, NodeUI.contentColor.z, mmView.skin.disabledAlpha))
         }
         
         if contentLabel.scale != NodeUI.fontScale * scale {
@@ -589,7 +588,7 @@ class NodeUIDropTarget : NodeUI
         }
         
         contentLabel.isDisabled = isDisabled
-        contentLabel.drawCentered(x: x, y: contentY, width: width, height: itemHeight)
+        contentLabel.drawCentered(x: x, y: contentY, width: width, height: itemHeight * scale)
     }
 }
 
@@ -778,7 +777,7 @@ class NodeUIKeyDown : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
         contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale)
 
         rect.width = 120
@@ -1035,7 +1034,7 @@ class NodeUIAngle : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
         
         rect.width = 40
         rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + 40 + NodeUI.itemSpacing
@@ -1143,7 +1142,7 @@ class NodeUIText : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
         
         rect.width = 160
         rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + 14 + NodeUI.contentMargin + NodeUI.itemSpacing
@@ -1232,7 +1231,7 @@ class NodeUIColor : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.fontScale)
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
         
         rect.width = prevSize.x
         rect.height = prevSize.y + 15 + NodeUI.itemSpacing

@@ -70,7 +70,7 @@ class Node : Codable, Equatable
     
     /// Static sizes
     static var NodeWithPreviewSize : float2 = float2(260,220)
-    static var NodeMinimumSize     : float2 = float2(240,75)
+    static var NodeMinimumSize     : float2 = float2(230,55)
 
     private enum CodingKeys: String, CodingKey {
         case name
@@ -268,7 +268,7 @@ class UINodeConnection: Codable
     var nodeGraph           : NodeGraph? = nil
     
     var uiMasterPicker      : NodeUIMasterPicker? = nil
-    var uiPicker            : NodeUIDropDown? = nil
+    var uiPicker            : NodeUISelector? = nil
     var uiTarget            : NodeUIDropTarget? = nil
 
     private enum CodingKeys: String, CodingKey {

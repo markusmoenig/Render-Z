@@ -31,12 +31,12 @@ class ObjectPhysics : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "Dynamic"], index: 1),
+            NodeUISelector(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "Dynamic"], index: 1),
             NodeUINumber(self, variable: "physicsMass", title: "Mass", range: float2(0, 100), value: 1),
             NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 5), value: 0.2),
             NodeUINumber(self, variable: "physicsFriction", title: "Friction", range: float2(0, 1), value: 0.3),
-            NodeUIDropDown(self, variable: "physicsSupportsRotation", title: "Rotation", items: ["No", "Yes"], index: 1),
-            NodeUIDropDown(self, variable: "physicsCollisions", title: "Collisions", items: ["Natural", "Reflect", "Custom"], index: 0)
+            NodeUISelector(self, variable: "physicsSupportsRotation", title: "Rotation", items: ["No", "Yes"], index: 1),
+            NodeUISelector(self, variable: "physicsCollisions", title: "Collisions", items: ["Natural", "Reflect", "Custom"], index: 0)
         ]
         
         super.setupUI(mmView: mmView)
@@ -113,10 +113,9 @@ class ObjectGlow : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "glowMode", title: "Mode", items: ["Off", "On"], index: 1),
+            NodeUISelector(self, variable: "glowMode", title: "Mode", items: ["Off", "On"], index: 1),
             NodeUIColor(self, variable: "glowColor", title: "Color", value: float3(1,1,1)),
             NodeUINumber(self, variable: "glowOpacity", title: "Opacity", range: float2(0, 1), value: 1),
-            NodeUISeparator(self, variable:"", title: ""),
             NodeUINumber(self, variable: "glowSize", title: "Size", range: float2(0, 50), value: 10),
         ]
         
@@ -129,7 +128,7 @@ class ObjectGlow : Node
         
         uiItems[1].isDisabled = mode == 0
         uiItems[2].isDisabled = mode == 0
-        uiItems[4].isDisabled = mode == 0
+        uiItems[3].isDisabled = mode == 0
 
         super.updateUIState(mmView: mmView)
     }
@@ -219,10 +218,8 @@ class GetSetObjectProperty : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Of Instance", connection: uiConnections[0]),
-            NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "property", title: "Property", items: ["Position", "Scale", "Rotation", "Active", "Opacity", "Mass", "Restitution", "Friction", "Velocity", "Collision Normal"], index: 0),
-            NodeUIDropDown(self, variable: "mode", title: "Mode", items: ["Get", "Set"], index: 0),
-            NodeUISeparator(self, variable:"", title: ""),
+            NodeUISelector(self, variable: "property", title: "Property", items: ["Position", "Scale", "Rotation", "Active", "Opacity", "Mass", "Restitution", "Friction", "Velocity", "Collision Normal"], index: 0),
+            NodeUISelector(self, variable: "mode", title: "Mode", items: ["Get", "Set"], index: 0),
             NodeUIFloat2VariableTarget(self, variable: "float2", title: "Float2", connection: uiConnections[1])
         ]
         super.setupUI(mmView: mmView)
@@ -238,17 +235,17 @@ class GetSetObjectProperty : Node
         let dirProperties : [Int] = []
         let valueProperties : [Int] = [2, 3, 4, 5, 6, 7]
 
-        if posProperties.contains(property) && uiItems[5].role != .Float2VariableTarget {
+        if posProperties.contains(property) && uiItems[3].role != .Float2VariableTarget {
             uiItems.removeLast()
             uiItems.append(NodeUIFloat2VariableTarget(self, variable: "float2", title: "Float2", connection: uiConnections[1]))
             computeUIArea(mmView: mmView)
         } else
-        if dirProperties.contains(property) && uiItems[5].role != .DirectionVariableTarget {
+        if dirProperties.contains(property) && uiItems[3].role != .DirectionVariableTarget {
             uiItems.removeLast()
             uiItems.append(NodeUIDirectionVariableTarget(self, variable: "direction", title: "Direction", connection: uiConnections[2]))
             computeUIArea(mmView: mmView)
         } else
-        if valueProperties.contains(property) && uiItems[5].role != .FloatVariableTarget {
+        if valueProperties.contains(property) && uiItems[3].role != .FloatVariableTarget {
             uiItems.removeLast()
             uiItems.append(NodeUIFloatVariableTarget(self, variable: "float", title: "Float", connection: uiConnections[3]))
             computeUIArea(mmView: mmView)
@@ -529,8 +526,7 @@ class ObjectAnimation : Node
     {
         uiItems = [
             NodeUIAnimationTarget(self, variable: "animation", title: "Animation", connection: uiConnections[0]),
-            NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "mode", title: "Mode", items: ["Loop", "Inverse Loop", "Goto Start", "Goto End"], index: 0),
+            NodeUISelector(self, variable: "mode", title: "Mode", items: ["Loop", "Inverse Loop", "Goto Start", "Goto End"], index: 0),
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 20), value: 1)
         ]
         super.setupUI(mmView: mmView)
@@ -622,8 +618,7 @@ class ObjectAnimationState : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
-            NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "state", title: "State", items: ["Not Animating", "At Start", "Going Forward", "Going Backward", "At End"], index: 0)
+            NodeUISelector(self, variable: "state", title: "State", items: ["Not Animating", "At Start", "Going Forward", "Going Backward", "At End"], index: 0)
         ]
         super.setupUI(mmView: mmView)
     }
@@ -700,11 +695,9 @@ class ObjectDistanceTo : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "from", title: "From", connection: uiConnections[0]),
-            NodeUISeparator(self, variable:"", title: ""),
             NodeUIObjectInstanceTarget(self, variable: "to", title: "To", connection: uiConnections[1]),
 
-            NodeUISeparator(self, variable:"", title: ""),
-            NodeUIDropDown(self, variable: "mode", title: "Distance", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
+            NodeUISelector(self, variable: "mode", title: "Distance", items: ["Equal To", "Smaller As", "Bigger As"], index: 0),
             NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1)
         ]
         super.setupUI(mmView: mmView)
@@ -805,10 +798,7 @@ class ObjectApplyForce : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
-            NodeUISeparator(self, variable:"", title: ""),
-
             NodeUIFloatVariableTarget(self, variable: "power", title: "Force Value", connection: uiConnections[1]),
-
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
         ]
         super.setupUI(mmView: mmView)
@@ -901,13 +891,8 @@ class ObjectApplyDirectionalForce : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
-            NodeUISeparator(self, variable:"", title: ""),
-
             NodeUIFloatVariableTarget(self, variable: "power", title: "Force Value", connection: uiConnections[1]),
-
             NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
-            NodeUISeparator(self, variable:"", title: ""),
-            
             NodeUIDirectionVariableTarget(self, variable: "direction", title: "Force Direction", connection: uiConnections[2]),
         ]
         super.setupUI(mmView: mmView)
@@ -1091,7 +1076,6 @@ class ObjectCollisionWith : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
-            NodeUISeparator(self, variable:"", title: ""),
             NodeUIObjectInstanceTarget(self, variable: "with", title: "With", connection: uiConnections[1])
         ]
         super.setupUI(mmView: mmView)
@@ -1177,7 +1161,6 @@ class ObjectTouchLayerArea : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
-            NodeUISeparator(self, variable:"", title: ""),
             NodeUILayerAreaTarget(self, variable: "layerArea", title: "Layer Area", connection: uiConnections[1])
         ]
         
