@@ -1491,11 +1491,6 @@ class NodeGraph : Codable
             uiItem.rect.x = uiItemX
             uiItem.rect.y = uiItemY
             
-            if nodeHoverMode == .NodeUIMouseLocked && node === hoverNode && uiItem === hoverUIItem! {
-                uiItemY += uiItem.rect.height * scale
-                continue
-            }
-            
             uiItem.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, maxWidth: node.uiMaxWidth, scale: scale)
             uiItemY += uiItem.rect.height * scale
         }
@@ -1513,11 +1508,6 @@ class NodeGraph : Codable
 
             // Preview Border
             app!.mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 3, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
-        }
-        
-        // Draw active UI item
-        if nodeHoverMode == .NodeUIMouseLocked && node === hoverNode {
-            hoverUIItem!.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, maxWidth: node.uiMaxWidth, scale: scale)
         }
         
         // Node Menu

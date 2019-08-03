@@ -1533,17 +1533,8 @@ class Gizmo : MMWidget
                         uiItem.rect.x = uiItemX
                         uiItem.rect.y = uiItemY
                         
-                        if hoverState == .GizmoUIMouseLocked && uiItem === hoverUIItem! {
-                            uiItemY += uiItem.rect.height
-                            continue
-                        }
-                        
                         uiItem.draw(mmView: mmView, maxTitleSize: gizmoNode.uiMaxTitleSize, maxWidth: gizmoNode.uiMaxWidth, scale: 1)
                         uiItemY += uiItem.rect.height
-                    }
-                    
-                    if hoverState == .GizmoUIMouseLocked {
-                        hoverUIItem!.draw(mmView: mmView, maxTitleSize: gizmoNode.uiMaxTitleSize, maxWidth: gizmoNode.uiMaxWidth, scale: 1)
                     }
                 }
             }

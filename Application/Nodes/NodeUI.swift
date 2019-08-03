@@ -298,7 +298,9 @@ class NodeUISelector : NodeUI
             mmView.startAnimate( startValue: 0, endValue: maxItemWidth + spacer / 2 * scale - (maxItemWidth * scale - animTolabel.rect.width) / 2, duration: 300, cb: { (value,finished) in
                 if finished {
                     self.animating = .No
+                    #if os(iOS)
                     self.hoverMode = .None
+                    #endif
                     self.index = Float(self.animatingTo)
 
                     let oldValue = self.node.properties[self.variable]!
@@ -322,7 +324,9 @@ class NodeUISelector : NodeUI
             mmView.startAnimate( startValue: 0, endValue: maxItemWidth + spacer / 2 * scale + (maxItemWidth * scale - animTolabel.rect.width) / 2, duration: 300, cb: { (value,finished) in
                 if finished {
                     self.animating = .No
+                    #if os(iOS)
                     self.hoverMode = .None
+                    #endif
                     self.index = Float(self.animatingTo)
 
                     let oldValue = self.node.properties[self.variable]!
@@ -815,11 +819,9 @@ class NodeUIKeyDown : NodeUI
         
         let x = rect.x
         let width = 120 * scale
-        let itemHeight = 14 + NodeUI.contentMargin * scale
-
-        let skin = mmView.skin.MenuWidget
+        let itemHeight = (14 + NodeUI.contentMargin) * scale
         
-        mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : adjustColor(skin.color) )
+        mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor: adjustColor(NodeUI.contentColor) )
         
         // Draw Text
         if contentLabel.text != keyText || contentLabel.scale != NodeUI.fontScale * scale {
@@ -866,10 +868,10 @@ class NodeUINumber : NodeUI
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
-        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: String(value), scale: NodeUI.fontScale, color: NodeUI.contentTextColor)
+        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale, color: NodeUI.contentTextColor)
 
         rect.width = 160
-        rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + contentLabel!.rect.height + NodeUI.contentMargin + NodeUI.itemSpacing
+        rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + 14 + NodeUI.contentMargin + NodeUI.itemSpacing
     }
     
     override func titleClicked()
@@ -981,7 +983,7 @@ class NodeUINumber : NodeUI
         
         x = rect.x
         width = 160 * scale
-        let itemHeight = contentLabel!.rect.height + NodeUI.contentMargin * scale
+        let itemHeight = round((14 + NodeUI.contentMargin) * scale)
         
         mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : adjustColor(NodeUI.contentColor) )
         
@@ -1194,7 +1196,7 @@ class NodeUIText : NodeUI
         x = rect.x
         width = 160 * scale
         
-        let itemHeight = 14 + NodeUI.contentMargin * scale
+        let itemHeight = (14 + NodeUI.contentMargin) * scale
 
         mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : NodeUI.contentColor)
         
