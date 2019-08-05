@@ -79,8 +79,8 @@ fragment float4 nodeGridPattern(RasterizerData in [[stage_in]],
                                 constant MODULO_PATTERN *data [[ buffer(0) ]] )
 {
     
-    float4 checkerColor1 = float4(0.149, 0.149, 0.149, 1.000);
-    float4 checkerColor2 = float4( 0.1, 0.1, 0.1, 1.0 );
+    float4 checkerColor1 = float4(0.110, 0.114, 0.118, 1.000);
+    float4 checkerColor2 = float4(0.094, 0.094, 0.098, 1.000);
     
     float2 uv = in.textureCoordinate * data->size;
     uv -= float2( data->size / 2 );
