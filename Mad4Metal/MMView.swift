@@ -23,6 +23,7 @@ class MMView : MMBaseView {
     // --- Drawables
     var drawSphere      : MMDrawSphere!
     var drawBox         : MMDrawBox!
+    var drawBoxPattern  : MMDrawBoxPattern!
     var drawBoxGradient : MMDrawBoxGradient!
     var drawBoxedMenu   : MMDrawBoxedMenu!
     var drawBoxedShape  : MMDrawBoxedShape!
@@ -91,6 +92,7 @@ class MMView : MMBaseView {
         // --- Drawables
         drawSphere = MMDrawSphere( renderer )
         drawBox = MMDrawBox( renderer )
+        drawBoxPattern = MMDrawBoxPattern( renderer )
         drawBoxGradient = MMDrawBoxGradient( renderer )
         drawBoxedMenu = MMDrawBoxedMenu( renderer )
         drawBoxedShape = MMDrawBoxedShape( renderer )

@@ -78,20 +78,20 @@ class KeyDown : Node
     }
 }
 
-/// Clicked in Layer Area
-class ClickInLayerArea : Node
+/// Clicked in Scene Area
+class ClickInSceneArea : Node
 {
     override init()
     {
         super.init()
         
-        name = "Click In Layer Area"
-        uiConnections.append(UINodeConnection(.LayerArea))
+        name = "Click In Area"
+        uiConnections.append(UINodeConnection(.SceneArea))
     }
     
     override func setup()
     {
-        type = "Click In Layer Area"
+        type = "Click In Scene Area"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -108,7 +108,7 @@ class ClickInLayerArea : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUILayerAreaTarget(self, variable: "layerArea", title: "Area", connection: uiConnections[0])
+            NodeUISceneAreaTarget(self, variable: "sceneArea", title: "Area", connection: uiConnections[0])
         ]
         
         super.setupUI(mmView: mmView)
@@ -139,8 +139,8 @@ class ClickInLayerArea : Node
         
         if uiConnections[0].masterNode == nil || uiConnections[0].target == nil { return playResult! }
         
-        if let layer = uiConnections[0].masterNode as? Layer {
-            if let area = uiConnections[0].target as? LayerArea {
+        if let layer = uiConnections[0].masterNode as? Scene {
+            if let area = uiConnections[0].target as? SceneArea {
                 if area.areaObject == nil || area.areaObject!.shapes.count == 0 { return playResult! }
                 
                 let screen = nodeGraph.mmScreen!
@@ -186,7 +186,7 @@ class ClickInLayerArea : Node
                     if dist < 0 {
                         playResult = .Success
                         
-                        if nodeGraph.debugMode == .LayerAreas {
+                        if nodeGraph.debugMode == .SceneAreas {
                             let pos = float2(object.properties["posX"]!, object.properties["posY"]!)
                             let size = float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
                             nodeGraph.debugInstance!.addBox(pos, size, 0, 0, float4(0.541, 0.098, 0.125, 0.8))
@@ -306,4 +306,3 @@ class Accelerometer : Node
         #endif
     }
 }
-

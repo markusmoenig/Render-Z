@@ -23,7 +23,8 @@ class BuilderInstance
     var objectMap       : [Int:Object] = [:]
     
     var state           : MTLComputePipelineState? = nil
-    
+    var fragmentState   : MTLRenderPipelineState? = nil
+
     var data            : [Float]? = []
     var buffer          : MTLBuffer? = nil
     
@@ -109,7 +110,7 @@ class Builder
     }
     
     /// Build the state for the given objects
-    func buildObjects(objects: [Object], camera: Camera, preview: Bool = false, layerGlobals: LayerGlobals = LayerGlobals() ) -> BuilderInstance
+    func buildObjects(objects: [Object], camera: Camera, fragment: MMFragment? = nil, layerGlobals: LayerGlobals = LayerGlobals() ) -> BuilderInstance
     {
         let instance = BuilderInstance()
         let buildData = BuildData()
@@ -287,17 +288,35 @@ class Builder
         
         let headerSource = buildData.source
         
-        buildData.source =
-        """
-        
-        kernel void
-        layerBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
+        if fragment == nil {
+            buildData.source =
+            """
+            
+            kernel void layerBuilder(
+            texture2d<half, access::write>  outTexture  [[texture(0)]],
             constant LAYER_DATA            *layerData   [[ buffer(1) ]],
             texture2d<half, access::sample>   fontTexture [[texture(2)]],
             uint2                           gid         [[thread_position_in_grid]])
-        {
-            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-            float2 fragCoord = float2( gid.x, gid.y );
+            {
+                float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+                float2 fragCoord = float2( gid.x, gid.y );
+            """
+        } else {
+            buildData.source =
+            """
+            
+            fragment float4 layerBuilder(RasterizerData in [[stage_in]],
+            constant LAYER_DATA            *layerData   [[ buffer(2) ]],
+            texture2d<half, access::sample>   fontTexture [[texture(1)]])
+            {
+                float2 size = float2(layerData->limiterSize.x, layerData->limiterSize.y);//float2( outTexture.get_width(), outTexture.get_height() );
+                float2 fragCoord = float2(in.textureCoordinate.x, 1. - in.textureCoordinate.y) * size;
+            """
+        }
+        
+        buildData.source +=
+        """
+
             float2 uv = fragCoord;
             
             float2 center = size / 2;
@@ -416,20 +435,38 @@ class Builder
             
             """
         }*/
+        
+        if fragment == nil {
+            buildData.source +=
+            """
+                outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
+            }
             
-        buildData.source +=
-        """
-            outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
+            """
+        } else {
+            buildData.source +=
+            """
+                return col;
+            }
+            
+            """
         }
         
-        """
+        //print( buildData.source)
         
         buildData.source = headerSource + buildData.materialNormalSource + buildData.source
         
-        instance.buffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
+        if fragment == nil {
+            instance.buffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
-        let library = compute!.createLibraryFromSource(source: buildData.source)
-        instance.state = compute!.createState(library: library, name: "layerBuilder")
+            let library = compute!.createLibraryFromSource(source: buildData.source)
+            instance.state = compute!.createState(library: library, name: "layerBuilder")
+        } else {
+            instance.buffer = fragment!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
+
+            let library = fragment!.createLibraryFromSource(source: buildData.source)
+            instance.fragmentState = fragment!.createState(library: library, name: "layerBuilder")
+        }
         
         return instance
     }
@@ -437,6 +474,10 @@ class Builder
     /// Recursively create the objects source code
     func parseObject(_ object: Object, instance: BuilderInstance, buildData: BuildData, physics: Bool = false, buildMaterials: Bool = true, rootObject: Bool = true)
     {
+        if rootObject {
+            object.builderData = instance.data
+        }
+        
         buildData.parentPosX += object.properties["posX"]!
         buildData.parentPosY += object.properties["posY"]!
         buildData.parentScaleX *= object.properties["scaleX"]!
@@ -799,7 +840,7 @@ class Builder
     }
     
     /// Render the layer
-    @discardableResult func render(width:Float, height:Float, instance: BuilderInstance, camera: Camera, outTexture: MTLTexture? = nil, frame: Int = 0) -> MTLTexture
+    @discardableResult func render(width: Float, height: Float, instance: BuilderInstance, camera: Camera, outTexture: MTLTexture? = nil, frame: Int = 0) -> MTLTexture
     {
         if outTexture == nil {
             if compute!.texture == nil || compute!.width != width || compute!.height != height {

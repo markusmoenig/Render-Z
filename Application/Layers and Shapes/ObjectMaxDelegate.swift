@@ -250,8 +250,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         
         let occurences = app!.nodeGraph.getOccurencesOf(currentObject!)
         for occ in occurences {
-            if let layer = occ as? Layer {
-                layer.builderInstance = nil
+            if let scene = occ as? Scene {
+                scene.builderInstance = nil
             }
         }
         

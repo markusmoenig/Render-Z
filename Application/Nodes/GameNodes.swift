@@ -195,7 +195,7 @@ class GamePlayScene : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIMasterPicker(self, variable: "scene", title: "Scene", connection:  uiConnections[0]),
+            NodeUISceneTarget(self, variable: "scene", title: "Scene", connection:  uiConnections[0]),
         ]
         super.setupUI(mmView: mmView)
     }
@@ -244,21 +244,10 @@ class GamePlayScene : Node
 
                 toExecute = []
                 
-                for layerUUID in scene.layers {
-                    for n in nodeGraph.nodes {
-                        if n.uuid == layerUUID
-                        {
-                            let layer = n as! Layer
-                            layer.setupExecution(nodeGraph: nodeGraph)
-                            for inst in layer.objectInstances {
-                                toExecute.append(inst.instance!)
-                            }
-                            toExecute.append(layer)
-                        }
-                    }
-                }
-                
                 scene.setupExecution(nodeGraph: nodeGraph)
+                for inst in scene.objectInstances {
+                    toExecute.append(inst.instance!)
+                }
                 toExecute.append(scene)
                 
                 for exe in toExecute {
@@ -300,6 +289,7 @@ class GamePlayScene : Node
                 game.currentScene = scene
             }
         }
+        
         return playResult!
     }
 }

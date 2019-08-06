@@ -325,9 +325,11 @@ class Physics
         
         var objectIndex : Int = 0
         
+        /*
         func parseObject(_ object: Object)
         {
             var pointOffset : Int = 0
+            
             for shape in object.shapes {
                 
                 for index in 0..<12 {
@@ -360,9 +362,9 @@ class Physics
         
         for object in instance.collisionObjects {
             parseObject(object)
-        }
+        }*/
         
-        //builder.updateInstanceData(instance: builderInstance, camera: camera, doMaterials: false, frame: 0)
+        nodeGraph.builder.updateInstanceData(instance: instance, camera: camera, doMaterials: false, frame: 0)
 
         let offset : Int = instance.physicsOffset
         for (index,object) in instance.dynamicObjects.enumerated() {
@@ -586,14 +588,14 @@ class Body
     // Stores the last collision manifold for node reference
     var manifold            : Manifold? = nil
     
-    init(_ object: Object,_ layer: Layer)
+    init(_ object: Object,_ scene: Scene)
     {
         self.object = object
         
         orientation = toRadians(object.properties["rotate"]!)
 
-        if layer.properties["physicsGravityX"] != nil {
-            gravity = float2(layer.properties["physicsGravityX"]!, layer.properties["physicsGravityY"]!)
+        if scene.properties["physicsGravityX"] != nil {
+            gravity = float2(scene.properties["physicsGravityX"]!, scene.properties["physicsGravityY"]!)
         }
         
         let physicsMode = object.getPhysicsMode()

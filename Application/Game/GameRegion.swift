@@ -44,15 +44,15 @@ class GameRegion: MMRegion
             _ = game.execute(nodeGraph: nodeGraph, root: game.behaviorRoot!, parent: game.behaviorRoot!.rootNode)
             
             if let scene = game.currentScene {
-                for texture in scene.outputTextures {
+                if let texture = nodeGraph.sceneRenderer.fragment.texture {
                     app.mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
                 }
                 
                 if nodeGraph.debugMode != .None {
 
-                    if scene.layerObjects != nil && scene.layerObjects!.count > 0 && scene.layerObjects![0].gameCamera != nil {
+                    if scene.objectInstances.count > 0 && scene.gameCamera != nil {
                         
-                        nodeGraph.debugBuilder.render(width: nodeGraph.previewSize.x, height: nodeGraph.previewSize.y, instance: nodeGraph.debugInstance, camera: scene.layerObjects![0].gameCamera! )
+                        nodeGraph.debugBuilder.render(width: nodeGraph.previewSize.x, height: nodeGraph.previewSize.y, instance: nodeGraph.debugInstance, camera: scene.gameCamera! )
                         app.mmView.drawTexture.draw(nodeGraph.debugInstance.texture!, x: rect.x, y: rect.y, zoom: 1)
                     }
                     nodeGraph.debugInstance.clear()
@@ -87,6 +87,7 @@ class GameRegion: MMRegion
         nodeGraph.builder = Builder(nodeGraph)
         nodeGraph.physics = Physics(nodeGraph)
         nodeGraph.diskBuilder = DiskBuilder(nodeGraph)
+        nodeGraph.sceneRenderer = SceneRenderer(mmView)
         
         nodeGraph.updateNodes()
         if let game = gameNode {

@@ -26,48 +26,53 @@ class Object : Node
         case Off, Static, Dynamic, CollisionOnly
     }
     
-    var shapes          : [Shape]
-    var bodyMaterials   : [Material]
-    var borderMaterials : [Material]
-    var childObjects    : [Object]
+    var builderData             : [Float]? = []
+
+    var shapes                  : [Shape]
+    var bodyMaterials           : [Material]
+    var borderMaterials         : [Material]
+    var childObjects            : [Object]
     
     /// The timeline sequences for this object
-    var animationMode   : AnimationMode = .Loop
-    var animationState  : AnimationState = .NotAnimating
+    var animationMode           : AnimationMode = .Loop
+    var animationState          : AnimationState = .NotAnimating
     
-    var sequences       : [MMTlSequence]
-    var currentSequence : MMTlSequence? = nil
+    var sequences               : [MMTlSequence]
+    var currentSequence         : MMTlSequence? = nil
     /// Animation related, the current animation frame plus the max frame for the current sequence
-    var frame           : Float = 0
-    var maxFrame        : Float = 0
-    var animationScale  : Float = 1
+    var frame                   : Float = 0
+    var maxFrame                : Float = 0
+    var animationScale          : Float = 1
 
-    var disks           : [Disk] = []
+    var disks                   : [Disk] = []
     
     // Physics Body
-    var body            : Body? = nil
+    var body                    : Body? = nil
     
     // Profile points (if any)
-    var profile         : [float4]? = nil
+    var profile                 : [float4]? = nil
     
     // Buil
-    var buildPointOffset: Int = 0
-    var physicPointOffset: Int = 0
+    var buildPointOffset        : Int = 0
+    var physicPointOffset       : Int = 0
     
-    var selectedShapes  : [UUID]
-    var selectedBodyMaterials: [UUID]
-    var selectedBorderMaterials: [UUID]
+    var selectedShapes          : [UUID]
+    var selectedBodyMaterials   : [UUID]
+    var selectedBorderMaterials : [UUID]
 
-    var pointConnections: [ObjectPointConnection] = []
+    var pointConnections        : [ObjectPointConnection] = []
     
     // The render instance for this object, used for preview
-    var instance        : BuilderInstance?
+    var instance                : BuilderInstance?
+    
+    // The fragment instance used by the Object Instances
+    var fragmentInstance        : BuilderInstance? = nil
     
     /// If this object is an instance, this points to the original object
-    var instanceOf      : Object? = nil
+    var instanceOf              : Object? = nil
     
     /// The instance of this object used for preview play in Object view
-    var playInstance    : Object? = nil
+    var playInstance            : Object? = nil
     
     private enum CodingKeys: String, CodingKey {
         case type
@@ -357,7 +362,7 @@ class Object : Node
             instance = nil
             DispatchQueue.main.async {
                 self.executeProperties(nodeGraph)
-                self.instance = nodeGraph.builder.buildObjects(objects: self.playInstance != nil ? [self.playInstance!] : [self], camera: camera, preview: true)
+                self.instance = nodeGraph.builder.buildObjects(objects: self.playInstance != nil ? [self.playInstance!] : [self], camera: camera)
                 self.updatePreview(nodeGraph: nodeGraph)
                 nodeGraph.mmView.update()
             }

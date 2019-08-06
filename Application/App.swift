@@ -142,7 +142,7 @@ class App
 //        print( json )
         if let jsonData = json.data(using: .utf8) {
             
-            /*
+            
             do {
                 if (try JSONDecoder().decode(NodeGraph.self, from: jsonData)) != nil {
                     print( "yes" )
@@ -150,7 +150,7 @@ class App
             }
             catch {
                 print("Error is : \(error)")
-            }*/
+            }
             
             if let graph =  try? JSONDecoder().decode(NodeGraph.self, from: jsonData) {
                 
@@ -161,6 +161,32 @@ class App
                 nodeGraph.deactivate()
                 
                 nodeGraph = graph
+                
+                /*
+                var nodes : [Node] = []
+                
+                for n in nodeGraph.nodes {
+                    if n.type != "Object" && n.type != "Scene" && n.type != "Game" {
+                        var found = false
+                        for nn in nodeGraph.nodes {
+                            if let subset = nn.subset {
+                                if subset.contains(n.uuid) {
+                                    found = true
+                                }
+                            }
+                        }
+                        if found == false {
+                            print("not found", n.name, n.type)
+                        } else {
+                            nodes.append(n)
+                        }
+                    } else {
+                        nodes.append(n)
+                    }
+                }
+                nodeGraph.nodes = nodes
+                */
+                
                 nodeGraph.setup(app: self)
                 nodeGraph.activate()
                 nodeGraph.updateNodes()
@@ -226,11 +252,11 @@ class App
                     }
                 }
             } else {
-                // --- This is an instance, we need to update the layer of the instance
-                if let layer = nodeGraph.getLayerOfInstance(object.uuid) {
-                    if let layerMaxDelegate = layer.maxDelegate as? LayerMaxDelegate {
-                        if nodeGraph.maximizedNode === layer {
-                            layerMaxDelegate.update(true, updateLists: true)
+                // --- This is an instance, we need to update the scene of the instance
+                if let scene = nodeGraph.getLayerOfInstance(object.uuid) {
+                    if let sceneMaxDelegate = scene.maxDelegate as? SceneMaxDelegate {
+                        if nodeGraph.maximizedNode === scene {
+                            sceneMaxDelegate.update(true, updateLists: true)
                         }
                     }
                 }

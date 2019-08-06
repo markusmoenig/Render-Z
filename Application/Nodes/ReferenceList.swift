@@ -27,7 +27,7 @@ class ReferenceItem {
 class ReferenceList {
     
     enum Mode {
-        case Variables, ObjectInstances, LayerAreas, Animations, BehaviorTrees
+        case Variables, ObjectInstances, Scenes, SceneAreas, Animations, BehaviorTrees
     }
     
     var currentMode         : Mode = .Variables
@@ -132,13 +132,38 @@ class ReferenceList {
         }
     }
     
-    func createLayerAreaList()
+    func createSceneList()
     {
-        currentMode = .LayerAreas
+        currentMode = .Scenes
         refs = []
         for node in nodeGraph.nodes
         {
-            if node.type == "Layer Area" {
+            if node.type == "Scene" {
+                let item = ReferenceItem(nodeGraph.mmView)
+                
+                let name : String = node.name + " (" + node.type + ")"
+                
+                let master = nodeGraph.getMasterForNode(node)!
+                let category : String = master.type + ": " + master.name
+                
+                item.name.setText( name, scale: 0.4)
+                item.category.setText(category, scale: 0.3)
+                item.color = nodeGraph.mmView.skin.Node.propertyColor
+                item.uuid = node.uuid
+                item.classUUID = master.uuid
+                
+                refs.append(item)
+            }
+        }
+    }
+    
+    func createSceneAreaList()
+    {
+        currentMode = .SceneAreas
+        refs = []
+        for node in nodeGraph.nodes
+        {
+            if node.type == "Scene Area" {
                 let item = ReferenceItem(nodeGraph.mmView)
                 
                 let name : String = node.name + " (" + node.type + ")"
@@ -164,14 +189,14 @@ class ReferenceList {
         var selfOffset : Int = 0
         for node in nodeGraph.nodes
         {
-            if let layer = node as? Layer {
+            if let scene = node as? Scene {
 
-                for inst in layer.objectInstances {
+                for inst in scene.objectInstances {
                     let belongsToMaster = nodeGraph.currentMaster != nil ? nodeGraph.currentMaster!.subset!.contains(node.uuid) : false
                     let item = ReferenceItem(nodeGraph.mmView)
                     
                     var name : String = inst.name
-                    let category : String = layer.name
+                    let category : String = scene.name
                     
                     if belongsToMaster {
                         name += " - Self"
@@ -181,7 +206,7 @@ class ReferenceList {
                     item.category.setText(category, scale: 0.3)
                     item.color = nodeGraph.mmView.skin.Node.functionColor
                     item.uuid = inst.uuid
-                    item.classUUID = layer.uuid
+                    item.classUUID = scene.uuid
                     
                     if belongsToMaster {
                         refs.insert(item, at: selfOffset)
@@ -200,9 +225,9 @@ class ReferenceList {
         refs = []
         for node in nodeGraph.nodes
         {
-            if let layer = node as? Layer {
+            if let scene = node as? Scene {
                 
-                for inst in layer.objectInstances {
+                for inst in scene.objectInstances {
                     
                     if let object = nodeGraph.getNodeForUUID(inst.objectUUID) as? Object {
                         for seq in object.sequences {
@@ -338,7 +363,7 @@ class ReferenceList {
         var name : String = ""
         var type : String = ""
         
-        if node != nil && (currentMode == .Variables || currentMode == .LayerAreas || currentMode == .BehaviorTrees) {
+        if node != nil && (currentMode == .Variables || currentMode == .SceneAreas || currentMode == .Scenes || currentMode == .BehaviorTrees) {
             name = node!.name
             type = node!.type
         } else
@@ -383,8 +408,11 @@ class ReferenceList {
         if currentMode == .ObjectInstances {
             createInstanceList()
         }
-        if currentMode == .LayerAreas {
-            createLayerAreaList()
+        if currentMode == .Scenes {
+            createSceneList()
+        }
+        if currentMode == .SceneAreas {
+            createSceneAreaList()
         }
         if currentMode == .Animations {
             createAnimationList()
@@ -406,9 +434,13 @@ class ReferenceList {
             createInstanceList()
             nodeGraph.previewInfoMenu.setText("Object Instances")
         }
-        if id == "Layer Area" {
-            createLayerAreaList()
-            nodeGraph.previewInfoMenu.setText("Layer Areas")
+        if id == "Scene" {
+            createSceneList()
+            nodeGraph.previewInfoMenu.setText("Scenes")
+        }
+        if id == "Scene Area" {
+            createSceneAreaList()
+            nodeGraph.previewInfoMenu.setText("Scene Areas")
         }
         if id == "Animation" {
             createAnimationList()

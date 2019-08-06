@@ -253,7 +253,7 @@ class Node : Codable, Equatable
 class UINodeConnection: Codable
 {
     enum ConnectionType: Int, Codable {
-        case Object, ObjectInstance, Animation, FloatVariable, DirectionVariable, LayerArea, Scene, Float2Variable, BehaviorTree
+        case Object, ObjectInstance, Animation, FloatVariable, DirectionVariable, SceneArea, Scene, Float2Variable, BehaviorTree
     }
     
     var connectionType      : ConnectionType = .FloatVariable
@@ -458,7 +458,6 @@ class BehaviorTreeRoot
 {
     var rootNode        : Node
     var objectRoot      : Object? = nil
-    var layerRoot       : Layer? = nil
     var sceneRoot       : Scene? = nil
     
     var runningNode     : Node? = nil
@@ -470,7 +469,6 @@ class BehaviorTreeRoot
     {
         rootNode = node
         objectRoot = node as? Object
-        layerRoot = node as? Layer
         sceneRoot = node as? Scene
     }
 }
@@ -500,7 +498,7 @@ enum NodeFamily: String, NodeClassFamily {
     case objectApplyDirectionalForce = "Object Apply Directional Force"
     case objectCollisionAny = "Object Collision (Any)"
     case objectCollisionWith = "Object Collision With"
-    case objectTouchLayerArea = "Object Touch Layer Area"
+    case objectTouchSceneArea = "Object Touch Scene Area"
     case objectReset = "Object Reset"
     case objectDistanceTo = "Object Distance To"
     case getSetObjectProperty = "Get Set Object Property"
@@ -514,14 +512,13 @@ enum NodeFamily: String, NodeClassFamily {
     case selector = "Selector"
     case inverter = "Inverter"
     case restart = "Restart"
-    case layer = "Layer"
-    case layerArea = "Layer Area"
-    case layerRender = "Layer Render"
-    case layerGravity = "Layer Gravity"
-    case clickInLayerArea = "Click In Layer Area"
     case keyDown = "Key Down"
     case accelerometer = "Accelerometer"
     case scene = "Scene"
+    case sceneArea = "Scene Area"
+    case sceneRender = "Scene Render"
+    case sceneGravity = "Scene Gravity"
+    case clickInSceneArea = "Click In Scene Area"
     case game = "Game"
     case valueVariable = "Value Variable"
     case floatVariable = "Float Variable"
@@ -574,8 +571,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectCollisionAny.self
             case .objectCollisionWith:
                 return ObjectCollisionWith.self
-            case .objectTouchLayerArea:
-                return ObjectTouchLayerArea.self
+            case .objectTouchSceneArea:
+                return ObjectTouchSceneArea.self
             case .objectReset:
                 return ResetObject.self
             case .objectDistanceTo:
@@ -583,21 +580,18 @@ enum NodeFamily: String, NodeClassFamily {
             case .getSetObjectProperty:
                 return GetSetObjectProperty.self
             
-            case .layer:
-                return Layer.self
-            case .layerArea:
-                return LayerArea.self
-            case .clickInLayerArea:
-                return ClickInLayerArea.self
-            case .layerRender:
-                return LayerRender.self
-            case .layerGravity:
-                return LayerGravity.self
-            
             case .scene:
                 return Scene.self
+            case .sceneArea:
+                return SceneArea.self
+            case .clickInSceneArea:
+                return ClickInSceneArea.self
             case .sceneFinished:
                 return SceneFinished.self
+            case .sceneGravity:
+                return SceneGravity.self
+            case .sceneRender:
+                return SceneRender.self
             
             case .game:
                 return Game.self

@@ -50,7 +50,7 @@ class ObjectInstance : Codable
     }
 }
 
-class Layer : Node
+class Scene : Node
 {
     var objectInstances : [ObjectInstance]
 
@@ -61,9 +61,13 @@ class Layer : Node
     var selectedObjects : [UUID]
     
     var gameCamera      : Camera? = nil
-    
+    var platformSize    : float2? = nil
+
     var builderInstance : BuilderInstance?
     var physicsInstance : PhysicsInstance?
+    
+    var runningInRoot   : BehaviorTreeRoot? = nil
+    var runBy           : UUID? = nil
         
     private enum CodingKeys: String, CodingKey {
         case type
@@ -86,8 +90,8 @@ class Layer : Node
     
     override func setup()
     {
-        type = "Layer"
-        maxDelegate = LayerMaxDelegate()
+        type = "Scene"
+        maxDelegate = SceneMaxDelegate()
         
         properties["renderMode"] = 1
         properties["renderSampling"] = 1
@@ -158,15 +162,18 @@ class Layer : Node
         properties["renderSampling"] = 0.1
         
         var camera = maxDelegate!.getCamera()!
-        if nodeGraph.app == nil || nodeGraph.currentMaster!.type == "Scene" || nodeGraph.currentMaster!.type == "Game" {
+        if nodeGraph.app == nil /*|| nodeGraph.currentMaster!.type == "Scene"*/ || nodeGraph.currentMaster!.type == "Game" {
             self.gameCamera = Camera()
             camera = self.gameCamera!
         } else {
             self.gameCamera = nil
         }
         
-        builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: camera, preview: nodeGraph.app == nil ? false : false)
+        //builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: camera)
+        builderInstance = nodeGraph.sceneRenderer.setup(nodeGraph: nodeGraph, instances: objects)
         physicsInstance = nodeGraph.physics.buildPhysics(objects: objects, builder: nodeGraph.builder, camera: camera)
+        
+        platformSize = nodeGraph.getPlatformSize()
     }
     
     /// Execute the layer
@@ -197,10 +204,31 @@ class Layer : Node
             previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
         }
         
-        let prevOffX = properties["prevOffX"]
-        let prevOffY = properties["prevOffY"]
-        let prevScale = properties["prevScale"]
-        let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
+        let camera : Camera
+        
+        if self.gameCamera == nil {
+            let prevOffX = properties["prevOffX"]
+            let prevOffY = properties["prevOffY"]
+            let prevScale = properties["prevScale"]
+            camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
+        } else {
+            camera = self.gameCamera!
+
+            let width = platformSize!.x
+            let height = platformSize!.y
+
+            let xFactor : Float = nodeGraph.previewSize.x / width
+            let yFactor : Float = nodeGraph.previewSize.y / height
+            let factor : Float = min(xFactor, yFactor)
+            
+            //layer.builderInstance?.layerGlobals?.position.x = x
+            //layer.builderInstance?.layerGlobals?.position.y = y
+            //layer.builderInstance?.layerGlobals?.limiterSize.x = width
+            //layer.builderInstance?.layerGlobals?.limiterSize.y = height
+            //layer.builderInstance?.layerGlobals?.normalSampling = layer.properties["renderSampling"]!
+            
+            gameCamera!.zoom = factor
+        }
         
         if builderInstance == nil || hard {
             DispatchQueue.main.async {
@@ -209,7 +237,8 @@ class Layer : Node
                 for instance in instances {
                     instance.executeProperties(nodeGraph)
                 }
-                self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera, preview: false)
+                //self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera)
+                self.builderInstance = nodeGraph.sceneRenderer.setup(nodeGraph: nodeGraph, instances: instances)
                 self.updatePreview(nodeGraph: nodeGraph)
                 nodeGraph.mmView.update()
             }
@@ -222,53 +251,8 @@ class Layer : Node
         
         if builderInstance != nil {
             builderInstance?.layerGlobals?.normalSampling = properties["renderSampling"]!
-            nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture)
-        }
-        
-        if physicsInstance != nil {
-            nodeGraph.physics.step(instance: physicsInstance!)
-        }
-    }
-    
-    func updatePreviewExt(nodeGraph: NodeGraph, hard: Bool = false, properties: [String:Float])
-    {
-        let size = nodeGraph.previewSize
-        
-        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
-            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
-        }
-        
-        let camera : Camera
-        
-        if self.gameCamera == nil {
-            let prevOffX = properties["prevOffX"]
-            let prevOffY = properties["prevOffY"]
-            let prevScale = properties["prevScale"]
-            camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
-        } else {
-            camera = self.gameCamera!
-        }
-        
-        if builderInstance == nil || hard {
-            DispatchQueue.main.async {
-                self.executeProperties(nodeGraph)
-                let instances = self.createInstances(nodeGraph: nodeGraph)
-                for instance in instances {
-                    instance.executeProperties(nodeGraph)
-                }
-                self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera, preview: false)
-                self.updatePreviewExt(nodeGraph: nodeGraph, hard: false, properties: properties)
-                nodeGraph.mmView.update()
-            }
-            return
-        }
-        
-        if physicsInstance != nil {
-            nodeGraph.physics.render(width: size.x, height: size.y, instance: physicsInstance!, builderInstance: builderInstance!, camera: camera)
-        }
-        
-        if builderInstance != nil {
-            nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture!)
+            //nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture)
+            nodeGraph.sceneRenderer.render(width: size.x, height: size.y, camera: camera)
         }
         
         if physicsInstance != nil {

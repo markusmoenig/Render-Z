@@ -11,7 +11,7 @@ import MetalKit
 class NodeListItem : MMListWidgetItem
 {
     enum DisplayType : Int {
-        case All, Object, Layer, Scene, Game, ObjectOverview, LayerOverview, SceneOverview
+        case All, Object, Scene, Game, ObjectOverview, SceneOverview
     }
     
     var name         : String = ""
@@ -67,13 +67,6 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Function, displayType: .ObjectOverview)
         
-        // --- Layer
-        item = NodeListItem("Layer")
-        item.createNode = {
-            return Layer()
-        }
-        addNodeItem(item, type: .Function, displayType: .LayerOverview)
-        
         // --- Scene
         item = NodeListItem("Scene")
         item.createNode = {
@@ -101,24 +94,24 @@ class NodeList : MMWidget
             return ObjectGlow()
         }
         addNodeItem(item, type: .Property, displayType: .Object)
-        // --- Layer Area
+        // --- Scene Area
         item = NodeListItem("Area")
         item.createNode = {
-            return LayerArea()
+            return SceneArea()
         }
-        addNodeItem(item, type: .Property, displayType: .Layer)
-        // --- Layer Gravity
+        addNodeItem(item, type: .Property, displayType: .Scene)
+        // --- Scene Gravity
         item = NodeListItem("Gravity")
         item.createNode = {
-            return LayerGravity()
+            return SceneGravity()
         }
-        addNodeItem(item, type: .Property, displayType: .Layer)
-        // --- Layer Render
+        addNodeItem(item, type: .Property, displayType: .Scene)
+        // --- Scene Render
         item = NodeListItem("Render Properties")
         item.createNode = {
-            return LayerRender()
+            return SceneRender()
         }
-        addNodeItem(item, type: .Property, displayType: .Layer)
+        addNodeItem(item, type: .Property, displayType: .Scene)
         // --- Game Platform OSX
         item = NodeListItem("Platform: OSX")
         item.createNode = {
@@ -196,15 +189,15 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Function, displayType: .Object)
         // --- Object Reset
-        item = NodeListItem("Reset Object")
+        item = NodeListItem("Reset Instance")
         item.createNode = {
             return ResetObject()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
         // --- Object Touch Layer Area
-        item = NodeListItem("Touch Layer Area ?")
+        item = NodeListItem("Touches Area ?")
         item.createNode = {
-            return ObjectTouchLayerArea()
+            return ObjectTouchSceneArea()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
         // --- Get Set Object Property
@@ -264,10 +257,10 @@ class NodeList : MMWidget
             return Restart()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
-        // --- Leaf: Click in Layer Area
-        item = NodeListItem("Click in Layer Area")
+        // --- Leaf: Click in Scene Area
+        item = NodeListItem("Click in Area")
         item.createNode = {
-            return ClickInLayerArea()
+            return ClickInSceneArea()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
         // --- Leaf: Key Down
@@ -378,7 +371,7 @@ class NodeList : MMWidget
     {
         filteredItems = []
         for item in items {
-            if (item.displayType == .All && displayType.rawValue <= 4 ) || item.displayType == displayType {
+            if (item.displayType == .All && displayType.rawValue < 4 ) || item.displayType == displayType {
                 filteredItems.append(item)
             }
         }

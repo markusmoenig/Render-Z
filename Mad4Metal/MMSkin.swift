@@ -13,8 +13,8 @@ struct MMSkinToolBar
     var height          : Float = 44
     var borderSize      : Float = 1
     var round           : Float = 0
-    var color           : float4 = float4(0.145, 0.145, 0.149, 1.000)
-    var borderColor     : float4 = float4(0.094, 0.098, 0.102, 1.000)
+    var color           : float4 = float4(0.165, 0.169, 0.173, 1.000)
+    var borderColor     : float4 = float4(0.106, 0.110, 0.114, 1.000)
 }
 
 struct MMSkinWidget

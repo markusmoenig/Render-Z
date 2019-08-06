@@ -194,6 +194,36 @@ fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],
     return col;
 }
 
+// --- Box Drawable
+fragment float4 m4mBoxPatternDrawable(RasterizerData in [[stage_in]],
+                               constant MM_BOX *data [[ buffer(0) ]] )
+{
+    float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0 );
+    uv -= float2( data->size / 2.0 + data->borderSize );
+    
+    float2 d = abs( uv ) - data->size / 2 + data->round;
+    float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - data->round;
+    
+    float4 checkerColor1 = data->fillColor;
+    float4 checkerColor2 = data->borderColor;
+    
+    //uv = fragCoord;
+    uv -= float2( data->size / 2 );
+    
+    float4 col = checkerColor1;
+    
+    float cWidth = 24.0;
+    float cHeight = 24.0;
+    
+    if ( fmod( floor( uv.x / cWidth ), 2.0 ) == 0.0 ) {
+        if ( fmod( floor( uv.y / cHeight ), 2.0 ) != 0.0 ) col=checkerColor2;
+    } else {
+        if ( fmod( floor( uv.y / cHeight ), 2.0 ) == 0.0 ) col=checkerColor2;
+    }
+    
+    return float4( col.xyz, m4mFillMask( dist ) );
+}
+
 // --- Box Gradient
 fragment float4 m4mBoxGradientDrawable(RasterizerData in [[stage_in]],
                                        constant MM_BOX_GRADIENT *data [[ buffer(0) ]] )

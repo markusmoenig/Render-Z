@@ -34,7 +34,8 @@ class EditorWidget      : MMWidget
         dropTargets.append( "Direction Variable" )
         dropTargets.append( "Float2 Variable" )
         dropTargets.append( "Object Instance" )
-        dropTargets.append( "Layer Area" )
+        dropTargets.append( "Scene Area" )
+        dropTargets.append( "Scene" )
         dropTargets.append( "Animation" )
         dropTargets.append( "Behavior Tree" )
     }
@@ -444,14 +445,14 @@ class EditorWidget      : MMWidget
             let node = drag.node!
             
             if node.type == "Object" {
-                if let currentLayer = app.nodeGraph.maximizedNode as? Layer {
+                if let currentScene = app.nodeGraph.maximizedNode as? Scene {
                     
                     var instanceName = node.name + " #"
                     var instanceCounter : Int = 1
                     // --- Compute the name of the instance by counting existing occurences
                     for n in app.nodeGraph.nodes {
-                        if let layer = n as? Layer {
-                            for inst in layer.objectInstances {
+                        if let scene = n as? Scene {
+                            for inst in scene.objectInstances {
                                 if inst.objectUUID == node.uuid {
                                     instanceCounter += 1
                                 }
@@ -461,7 +462,7 @@ class EditorWidget      : MMWidget
                     instanceName += String(instanceCounter)
                     // ---
                     let instance = ObjectInstance(name: instanceName, objectUUID: node.uuid, properties: [:])
-                    currentLayer.objectInstances.append(instance)
+                    currentScene.objectInstances.append(instance)
                     
                     if let camera = app.nodeGraph.maximizedNode!.maxDelegate!.getCamera() {
                         // --- Transform coordinates
@@ -481,67 +482,45 @@ class EditorWidget      : MMWidget
                         instance.properties["rotate"] = 0
                     }
                     
-                    let layerDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! LayerMaxDelegate
-                    layerDelegate.objectList!.rebuildList()
-                    currentLayer.selectedObjects = [instance.uuid]
-                    currentLayer.maxDelegate?.update(true)
+                    let sceneDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! SceneMaxDelegate
+                    sceneDelegate.objectList!.rebuildList()
+                    currentScene.selectedObjects = [instance.uuid]
+                    currentScene.maxDelegate?.update(true)
                     
                     func instanceStatusChanged(_ instance: ObjectInstance)
                     {
                         mmView.undoManager!.registerUndo(withTarget: self) { target in
                             
-                            let index = currentLayer.objectInstances.firstIndex(where: { $0.uuid == instance.uuid })
+                            let index = currentScene.objectInstances.firstIndex(where: { $0.uuid == instance.uuid })
                             if index != nil {
-                                currentLayer.objectInstances.remove(at: index!)
-                                currentLayer.selectedObjects = []
+                                currentScene.objectInstances.remove(at: index!)
+                                currentScene.selectedObjects = []
                                 
                                 if let maximized = self.app.nodeGraph.maximizedNode {
-                                    if let layerDelegate = maximized.maxDelegate as? LayerMaxDelegate {
-                                        layerDelegate.objectList!.rebuildList()
+                                    if let sceneDelegate = maximized.maxDelegate as? SceneMaxDelegate {
+                                        sceneDelegate.objectList!.rebuildList()
                                     }
                                 } else {
-                                    currentLayer.builderInstance = nil
-                                    currentLayer.updatePreview(nodeGraph: self.app.nodeGraph)
+                                    currentScene.builderInstance = nil
+                                    currentScene.updatePreview(nodeGraph: self.app.nodeGraph)
                                 }
-                                currentLayer.maxDelegate?.update(true)
+                                currentScene.maxDelegate?.update(true)
                             } else {
-                                currentLayer.objectInstances.append(instance)
-                                currentLayer.selectedObjects = [instance.uuid]
+                                currentScene.objectInstances.append(instance)
+                                currentScene.selectedObjects = [instance.uuid]
                                 if let maximized = self.app.nodeGraph.maximizedNode {
-                                    if let layerDelegate = maximized.maxDelegate as? LayerMaxDelegate {                                    layerDelegate.objectList!.rebuildList()
+                                    if let sceneDelegate = maximized.maxDelegate as? SceneMaxDelegate {                                    sceneDelegate.objectList!.rebuildList()
                                     }
                                 } else {
-                                    currentLayer.builderInstance = nil
-                                    currentLayer.updatePreview(nodeGraph: self.app.nodeGraph)
+                                    currentScene.builderInstance = nil
+                                    currentScene.updatePreview(nodeGraph: self.app.nodeGraph)
                                 }
-                                currentLayer.maxDelegate?.update(true)
+                                currentScene.maxDelegate?.update(true)
                             }
                             instanceStatusChanged(instance)
                         }
                     }
                     instanceStatusChanged(instance)
-                }
-            }
-        } else
-        if dragSource.id == "AvailableLayerItem"
-        {
-            // Scene editor, available layer drag to editor
-            
-            let drag = dragSource as! AvailableLayerListItemDrag
-            let node = drag.node!
-            
-            if node.type == "Layer" {
-                let currentScene = app.nodeGraph.maximizedNode as? Scene
-                if currentScene != nil {
-                    currentScene!.layers.append(node.uuid)
-                    
-                    currentScene!.properties[node.uuid.uuidString + "_posX"] = 0
-                    currentScene!.properties[node.uuid.uuidString + "_posY"] = 0
-                    
-                    let sceneDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! SceneMaxDelegate
-                    sceneDelegate.layerList!.rebuildList()
-                    currentScene!.selectedLayers = [node.uuid]
-                    currentScene!.maxDelegate?.update(true)
                 }
             }
         } else {

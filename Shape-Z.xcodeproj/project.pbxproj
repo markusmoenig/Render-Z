@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2B039200228E5BC9002D62C9 /* LayerNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */; };
-		2B039201228E5BC9002D62C9 /* LayerNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */; };
+		2B02B97622F7D1C100EFCC74 /* SceneRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */; };
+		2B02B97722F7D1C100EFCC74 /* SceneRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */; };
 		2B06710E22B1DCC200983A76 /* GizmoInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */; };
 		2B06710F22B1DCC200983A76 /* GizmoInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */; };
 		2B128761225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
@@ -76,8 +76,6 @@
 		2BA6163D2259805800638794 /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
 		2BAC26D5226D640300E20ADD /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D4226D640300E20ADD /* Game.swift */; };
 		2BAC26D6226D640300E20ADD /* Game.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D4226D640300E20ADD /* Game.swift */; };
-		2BAC26D8226D652F00E20ADD /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D7226D652E00E20ADD /* Scene.swift */; };
-		2BAC26D9226D652F00E20ADD /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26D7226D652E00E20ADD /* Scene.swift */; };
 		2BAC26DB226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */; };
 		2BAC26DC226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */; };
 		2BAC26DE226D6B8F00E20ADD /* GameNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */; };
@@ -150,8 +148,6 @@
 		2BBF120021F808B1001C94E9 /* Gizmo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FE21F808B1001C94E9 /* Gizmo.swift */; };
 		2BBF120221F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
 		2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
-		2BBF37DF2293845700DB6A01 /* SceneMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF37DE2293845700DB6A01 /* SceneMaxDelegate.swift */; };
-		2BBF37E02293845700DB6A01 /* SceneMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF37DE2293845700DB6A01 /* SceneMaxDelegate.swift */; };
 		2BCEC68E22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCEC68F22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCF5FA3227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
@@ -177,7 +173,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerNodes.swift; sourceTree = "<group>"; };
+		2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneRenderer.swift; sourceTree = "<group>"; };
 		2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GizmoInfoArea.swift; sourceTree = "<group>"; };
 		2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatPopUp.swift; sourceTree = "<group>"; };
 		2B333D12226043FF0008A8CF /* MMScrollButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScrollButton.swift; sourceTree = "<group>"; };
@@ -447,6 +443,7 @@
 			isa = PBXGroup;
 			children = (
 				2B5CCAFE2214F2FF005BAA2B /* Builder.swift */,
+				2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */,
 				2B501A5C22CC5426008D409F /* DebugBuilder.swift */,
 				2B4CC22F222F5D5C00A47812 /* Physics.swift */,
 				2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */,
@@ -491,7 +488,6 @@
 				2BE67101221259F500B95241 /* Node.swift */,
 				2B4CC22C2226669000A47812 /* NodeUI.swift */,
 				2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */,
-				2B0391FF228E5BC9002D62C9 /* LayerNodes.swift */,
 				2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */,
 				2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */,
 				2BF5D3642220D50D00EAAA76 /* Behavior.swift */,
@@ -647,6 +643,7 @@
 				2BBF11C121EADB46001C94E9 /* MMRenderer.swift in Sources */,
 				2BBF11A621EAD46B001C94E9 /* BottomRegion.swift in Sources */,
 				2BF5D3652220D50D00EAAA76 /* Behavior.swift in Sources */,
+				2B02B97622F7D1C100EFCC74 /* SceneRenderer.swift in Sources */,
 				2BBF11CD21EADB46001C94E9 /* MMBaseView_mac.swift in Sources */,
 				2BBF11F621F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */,
@@ -676,14 +673,12 @@
 				2BBF11E121EC1A92001C94E9 /* Shape.swift in Sources */,
 				2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */,
 				2B5F506D2298FD4C00D3B6C5 /* GameRegion.swift in Sources */,
-				2B039200228E5BC9002D62C9 /* LayerNodes.swift in Sources */,
 				2BBF11D121EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BAC26E1226FEC7E00E20ADD /* DiskBuilder.swift in Sources */,
 				2BFBC58722D2C51300A27FAD /* ReferenceList.swift in Sources */,
 				2B46E966224481AC0047A94A /* MaterialSelector.swift in Sources */,
 				2BAC26DB226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */,
 				2BED879D228B9D9C005CE147 /* MMScreen.swift in Sources */,
-				2BAC26D8226D652F00E20ADD /* Scene.swift in Sources */,
 				2BAC26D5226D640300E20ADD /* Game.swift in Sources */,
 				2B6D0036228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */,
 				2BA6163C2259805800638794 /* MMColorWidget.swift in Sources */,
@@ -706,7 +701,6 @@
 				2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BF5D361221D2B2400EAAA76 /* ObjectNodes.swift in Sources */,
 				2BBF11AE21EAD46B001C94E9 /* App.swift in Sources */,
-				2BBF37DF2293845700DB6A01 /* SceneMaxDelegate.swift in Sources */,
 				2B4CC22A2222301300A47812 /* LayerMaxDelegate.swift in Sources */,
 				2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */,
 				2B46E960224367AF0047A94A /* Material.swift in Sources */,
@@ -729,6 +723,7 @@
 				2BBF11DE21EADB46001C94E9 /* MMBaseView__ios.swift in Sources */,
 				2BBF11C221EADB46001C94E9 /* MMRenderer.swift in Sources */,
 				2BF5D3662220D50D00EAAA76 /* Behavior.swift in Sources */,
+				2B02B97722F7D1C100EFCC74 /* SceneRenderer.swift in Sources */,
 				2BBF11A721EAD46B001C94E9 /* BottomRegion.swift in Sources */,
 				2BBF11F721F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2B5CCB0322152EB6005BAA2B /* MMListWidget.swift in Sources */,
@@ -758,14 +753,12 @@
 				2BBF11E221EC1A92001C94E9 /* Shape.swift in Sources */,
 				2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */,
 				2B5F506E2298FD4D00D3B6C5 /* GameRegion.swift in Sources */,
-				2B039201228E5BC9002D62C9 /* LayerNodes.swift in Sources */,
 				2BBF11D221EADB46001C94E9 /* MMLabel.swift in Sources */,
 				2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */,
 				2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */,
 				2B46E967224481AC0047A94A /* MaterialSelector.swift in Sources */,
 				2BAC26DC226D6B6400E20ADD /* BehaviorLeaves.swift in Sources */,
 				2BED879E228B9D9C005CE147 /* MMScreen.swift in Sources */,
-				2BAC26D9226D652F00E20ADD /* Scene.swift in Sources */,
 				2BAC26D6226D640300E20ADD /* Game.swift in Sources */,
 				2B6D0035228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */,
 				2BA6163D2259805800638794 /* MMColorWidget.swift in Sources */,
@@ -788,7 +781,6 @@
 				2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */,
 				2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */,
 				2BBF11AF21EAD46B001C94E9 /* App.swift in Sources */,
-				2BBF37E02293845700DB6A01 /* SceneMaxDelegate.swift in Sources */,
 				2B4CC22B2222301300A47812 /* LayerMaxDelegate.swift in Sources */,
 				2BBF113121EAD38E001C94E9 /* ViewController.swift in Sources */,
 				2B46E961224367AF0047A94A /* Material.swift in Sources */,

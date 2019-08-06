@@ -12,7 +12,7 @@ class NodeGraph : Codable
 {
     enum DebugMode
     {
-        case None, Physics, LayerAreas
+        case None, Physics, SceneAreas
     }
     
     enum LeftRegionMode
@@ -25,7 +25,7 @@ class NodeGraph : Codable
     }
     
     enum ContentType : Int {
-        case Objects, Layers, Scenes, Game, ObjectsOverview, LayersOverview, ScenesOverview
+        case Objects, Scenes, Game, ObjectsOverview, ScenesOverview
     }
     
     var debugMode       : DebugMode = .None
@@ -75,7 +75,6 @@ class NodeGraph : Codable
     var overviewIsOn    : Bool = false
     
     var objectsOverCam  : Camera? = Camera()
-    var layersOverCam   : Camera? = Camera()
     var scenesOverCam   : Camera? = Camera()
 
     //var typeScrollButton: MMScrollButton!
@@ -85,7 +84,6 @@ class NodeGraph : Codable
     var currentContent  : [Node] = []
     
     var objectsButton   : MMButtonWidget!
-    var layersButton    : MMButtonWidget!
     var scenesButton    : MMButtonWidget!
     var gameButton      : MMButtonWidget!
 
@@ -105,11 +103,13 @@ class NodeGraph : Codable
     var diskBuilder     : DiskBuilder!
     var debugBuilder    : DebugBuilder!
     var debugInstance   : DebugBuilderInstance!
+    
+    var sceneRenderer   : SceneRenderer!
 
     var behaviorMenu    : MMMenuWidget!
     var previewInfoMenu : MMMenuWidget!
 
-    var previewSize     : float2 = float2(320, 200)
+    var previewSize     : float2 = float2(340, 200)
 
     var editLabel       : MMTextLabel!
     
@@ -205,6 +205,7 @@ class NodeGraph : Codable
         builder = Builder(self)
         physics = Physics(self)
         diskBuilder = DiskBuilder(self)
+        sceneRenderer = SceneRenderer(mmView)
 
         let renderer = app.mmView.renderer!
         
@@ -240,9 +241,6 @@ class NodeGraph : Codable
                 if self.contentType == .ObjectsOverview {
                     self.currentObjectUUID = node.uuid
                 } else
-                if self.contentType == .LayersOverview {
-                    self.currentLayerUUID = node.uuid
-                } else
                 if self.contentType == .ScenesOverview {
                     self.currentSceneUUID = node.uuid
                 }
@@ -272,7 +270,6 @@ class NodeGraph : Codable
             self.editButton.isDisabled = false
 
             self.objectsButton.addState(.Checked)
-            self.layersButton.removeState(.Checked)
             self.scenesButton.removeState(.Checked)
             self.gameButton.removeState(.Checked)
             self.overviewButton.isDisabled = false
@@ -297,40 +294,6 @@ class NodeGraph : Codable
             adjustVisibleButtons()
         }
         
-        layersButton = MMButtonWidget(app.mmView, text: "Layers" )
-        layersButton.rect.width = objectsButton.rect.width
-        layersButton.textYOffset = -1.5
-        layersButton.clicked = { (event) -> Void in
-            self.stopPreview()
-            self.editButton.setText("Arrange...")
-            self.editButton.isDisabled = false
-
-            self.objectsButton.removeState(.Checked)
-            self.layersButton.addState(.Checked)
-            self.scenesButton.removeState(.Checked)
-            self.gameButton.removeState(.Checked)
-            self.overviewButton.isDisabled = false
-
-            self.contentType = .Layers
-            self.updateContent(self.contentType)
-            
-            if self.currentContent.count == 0 || event.x != 0 {
-                self.overviewButton.addState(.Checked)
-                self.overviewIsOn = true
-            }
-            
-            if !self.overviewButton.states.contains(.Checked) {
-                if self.currentMaster != nil && self.currentContent.count > 0 {
-                    self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
-                }
-                self.nodeList!.switchTo(.Layer)
-            } else {
-                self.contentType = .LayersOverview
-                self.setOverviewMaster()
-            }
-            adjustVisibleButtons()
-        }
-        
         scenesButton = MMButtonWidget(app.mmView, text: "Scenes" )
         scenesButton.rect.width = objectsButton.rect.width
         scenesButton.textYOffset = -1.5
@@ -340,7 +303,6 @@ class NodeGraph : Codable
             self.editButton.isDisabled = false
 
             self.objectsButton.removeState(.Checked)
-            self.layersButton.removeState(.Checked)
             self.scenesButton.addState(.Checked)
             self.gameButton.removeState(.Checked)
             self.overviewButton.isDisabled = false
@@ -374,7 +336,6 @@ class NodeGraph : Codable
             self.editButton.isDisabled = true
 
             self.objectsButton.removeState(.Checked)
-            self.layersButton.removeState(.Checked)
             self.scenesButton.removeState(.Checked)
             self.gameButton.addState(.Checked)
             self.overviewButton.isDisabled = true
@@ -405,9 +366,6 @@ class NodeGraph : Codable
             
             if self.contentType == .Objects || self.contentType == .ObjectsOverview {
                 self.objectsButton._clicked(MMMouseEvent(0, 0))
-            }
-            if self.contentType == .Layers || self.contentType == .LayersOverview {
-                self.layersButton._clicked(MMMouseEvent(0, 0))
             }
             if self.contentType == .Scenes || self.contentType == .ScenesOverview {
                 self.scenesButton._clicked(MMMouseEvent(0, 0))
@@ -451,30 +409,11 @@ class NodeGraph : Codable
                     object = object.playInstance!
                     self.playToExecute.append(object)
                 } else
-                if node!.type == "Layer" {
-                    let layer = node as! Layer
-                    layer.setupExecution(nodeGraph: self)
-                    for inst in layer.objectInstances {
-                        self.playToExecute.append(inst.instance!)
-                    }
-                    self.playToExecute.append(layer)
-                } else
                 if node!.type == "Scene" {
                     let scene = node as! Scene
                     scene.setupExecution(nodeGraph: self)
-
-                    for layerUUID in scene.layers {
-                        for n in self.nodes {
-                            if n.uuid == layerUUID
-                            {
-                                let layer = n as! Layer
-                                layer.setupExecution(nodeGraph: self)
-                                for inst in layer.objectInstances {
-                                    self.playToExecute.append(inst.instance!)
-                                }
-                                self.playToExecute.append(layer)
-                            }
-                        }
+                    for inst in scene.objectInstances {
+                        self.playToExecute.append(inst.instance!)
                     }
                     self.playToExecute.append(scene)
                 } else
@@ -532,8 +471,8 @@ class NodeGraph : Codable
         } )
         behaviorItems.append(noDebugItem)
         
-        let layerAreasDebugItem =  MMMenuItem( text: "Debug Info: Layer Areas", cb: {
-            self.debugMode = .LayerAreas
+        let layerAreasDebugItem =  MMMenuItem( text: "Debug Info: Scene Areas", cb: {
+            self.debugMode = .SceneAreas
         } )
         behaviorItems.append(layerAreasDebugItem)
         
@@ -561,19 +500,6 @@ class NodeGraph : Codable
                 self.contentType = .ObjectsOverview
                 updateContent(self.contentType)
                 nodeList!.switchTo(.ObjectOverview)
-            }
-        } else
-        if currentMaster as? Layer != nil {
-            objectsButton.removeState(.Checked)
-            layersButton.addState(.Checked)
-            if !overviewIsOn {
-                self.contentType = .Layers
-                updateContent(self.contentType)
-                nodeList!.switchTo(.Layer)
-            } else {
-                self.contentType = .LayersOverview
-                updateContent(self.contentType)
-                nodeList!.switchTo(.LayerOverview)
             }
         } else
         if currentMaster as? Scene != nil {
@@ -610,7 +536,7 @@ class NodeGraph : Codable
     ///
     func activate()
     {
-        mmView.registerWidgets(widgets: nodeList!, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton)
+        mmView.registerWidgets(widgets: nodeList!, contentScrollButton, objectsButton, scenesButton, gameButton)
         if !overviewIsOn {
             mmView.widgets.insert(editButton, at: 0)
             mmView.widgets.insert(playButton, at: 0)
@@ -628,7 +554,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: nodeList!, playButton, contentScrollButton, objectsButton, layersButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu)
+        mmView.deregisterWidgets(widgets: nodeList!, playButton, contentScrollButton, objectsButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu)
         app!.properties["NodeGraphNodesOpen"] = leftRegionMode == .Closed ? 0 : 1
     }
     
@@ -643,23 +569,9 @@ class NodeGraph : Codable
             let object = node as! Object
             object.playInstance = nil
         } else
-        if self.playNode!.type == "Layer" {
-            let layer = self.playNode as! Layer
-            layer.physicsInstance = nil
-        } else
         if self.playNode!.type == "Scene" {
-            let scene = node as! Scene
-            
-            for layerUUID in scene.layers {
-                for n in self.nodes {
-                    if n.uuid == layerUUID
-                    {
-                        let layer = n as! Layer
-                        layer.physicsInstance = nil
-                        layer.builderInstance = nil
-                    }
-                }
-            }
+            let scene = self.playNode as! Scene
+            scene.physicsInstance = nil
         }
         
         // Send finish to all nodes
@@ -741,9 +653,6 @@ class NodeGraph : Codable
                     
                     if self.contentType == .ObjectsOverview {
                         self.currentObjectUUID = node.uuid
-                    } else
-                    if self.contentType == .LayersOverview {
-                        self.currentLayerUUID = node.uuid
                     } else
                     if self.contentType == .ScenesOverview {
                         self.currentSceneUUID = node.uuid
@@ -1025,11 +934,8 @@ class NodeGraph : Codable
             previewSize.x = floor(nodeDragStartPos.x - (event.x - dragStartPos.x))
             previewSize.y = floor(nodeDragStartPos.y + (event.y - dragStartPos.y))
             
-            previewSize.x = max(previewSize.x, 260)
+            previewSize.x = max(previewSize.x, 340)
             previewSize.y = max(previewSize.y, 80)
-            
-            previewSize.x = min(previewSize.x, app!.editorRegion!.rect.width - 50)
-            previewSize.y = min(previewSize.y, app!.editorRegion!.rect.height - 65)
 
             currentMaster!.updatePreview(nodeGraph: self)
             mmView.update()
@@ -1139,7 +1045,6 @@ class NodeGraph : Codable
                     let dropTarget = uiItem as? NodeUIDropTarget
                     
                     if dropTarget != nil {
-                        uiRect.width = hoverNode!.uiMaxWidth * scale
                         dropTarget!.hoverState = .None
                     }
                     
@@ -1305,10 +1210,9 @@ class NodeGraph : Codable
             contentScrollButton.rect.y = 4 + 44
             contentScrollButton.draw()
             
-            region.layoutH( startX: 10 + contentScrollButton.rect.width + 15, startY: 4 + 44, spacing: 10, widgets: objectsButton, layersButton, scenesButton, gameButton)
+            region.layoutH( startX: 10 + contentScrollButton.rect.width + 15, startY: 4 + 44, spacing: 10, widgets: objectsButton, scenesButton, gameButton)
 
             objectsButton.draw()
-            layersButton.draw()
             scenesButton.draw()
             gameButton.draw()
             
@@ -1526,24 +1430,24 @@ class NodeGraph : Codable
     /// Draw the master node
     func drawMasterNode(_ node: Node, region: MMRegion)
     {
-        if contentType == .ObjectsOverview || contentType == .LayersOverview || contentType == .ScenesOverview { return }
+        if contentType == .ObjectsOverview || contentType == .ScenesOverview { return }
         
-        previewSize.x = min(previewSize.x, app!.editorRegion!.rect.width - 50)
-        previewSize.y = min(previewSize.y, app!.editorRegion!.rect.height - 65)
+        previewSize.x = min(previewSize.x, app!.editorRegion!.rect.width - 40)
+        previewSize.y = min(previewSize.y, app!.editorRegion!.rect.height - 70)
         
-        node.rect.width = previewSize.x + 70
+        node.rect.width = previewSize.x + 2
         node.rect.height = previewSize.y + 64 + 25
         
         node.rect.x = region.rect.x + region.rect.width - node.rect.width + 11 + 10
         node.rect.y = region.rect.y - 22
         
-        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 16, borderSize: 8, fillColor: float4(0.118, 0.118, 0.118, 1.000), borderColor: float4(0.173, 0.173, 0.173, 1.000) )
+        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 32, borderSize: 2, fillColor: float4(0.165, 0.169, 0.173, 1.000), borderColor: float4(0.282, 0.286, 0.290, 1.000) )
         
         // --- Preview
         
         var textures : [MTLTexture] = []
         
-        let x : Float = node.rect.x + 34
+        let x : Float = node.rect.x + 2
         let y : Float = node.rect.y + 34 + 25
         
         if refList.isActive == false {
@@ -1554,26 +1458,26 @@ class NodeGraph : Codable
                 mmView.drawText.drawTextCentered(mmView.openSans, text: "Behavior Only", x: x, y: y, width: previewSize.x, height: previewSize.y, scale: 0.4, color: float4(1,1,1,1))
             }
             
-            if let scene = previewNode as? Scene {
-                if playNode != nil {
-                    textures = scene.outputTextures
-                } else {
-                    printBehaviorOnlyText()
-                }
-            } else
+            // Preview Border
+            app!.mmView.drawBoxPattern.draw( x: x, y: y, width: previewSize.x - 23, height: previewSize.y, round: 26, borderSize: 0, fillColor: float4(0.306, 0.310, 0.314, 1.000), borderColor: float4(0.216, 0.220, 0.224, 1.000) )
+            
             if let game = previewNode as? Game {
-                if let scene = game.currentScene {
-                    textures = scene.outputTextures
+                if let _ = game.currentScene {
+                    if let texture = sceneRenderer.fragment.texture {
+                        textures.append(texture)
+                    }
                 } else {
                     printBehaviorOnlyText()
                 }
             } else
-            if let layer = previewNode as? Layer {
+            if let _ = previewNode as? Scene {
+                textures.append(sceneRenderer.fragment.texture)
+                /*
                 if let texture = layer.previewTexture {
                     if layer.builderInstance != nil {
                         textures.append(texture)
                     }
-                }
+                }*/
             } else
             if let object = previewNode as? Object {
                 if let texture = object.previewTexture {
@@ -1582,9 +1486,6 @@ class NodeGraph : Codable
                     }
                 }
             }
-            
-            // Preview Border
-            app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x, height: previewSize.y, round: 20, borderSize: 0, fillColor: float4(0.067, 0.071, 0.075, 1.000), borderColor: float4(0, 0, 0, 1) )
             
             for texture in textures {
                 app!.mmView.drawTexture.draw(texture, x: x, y: y, zoom: 1)
@@ -1603,7 +1504,7 @@ class NodeGraph : Codable
             
             refList.rect.x = x
             refList.rect.y = y
-            refList.rect.width = previewSize.x
+            refList.rect.width = previewSize.x - 23
             refList.rect.height = previewSize.y
             
             refList.draw()
@@ -1620,7 +1521,7 @@ class NodeGraph : Codable
         
         // --- Buttons
         
-        editButton.rect.x = node.rect.x + 35
+        editButton.rect.x = node.rect.x + 15
         editButton.rect.y = node.rect.y + 25
         editButton.draw()
         
@@ -1635,7 +1536,7 @@ class NodeGraph : Codable
         behaviorMenu.draw()
         
         // --- Node Drag Handles
-        
+        /*
         let dragColor = nodeHoverMode == .MasterDrag || nodeHoverMode == .MasterDragging ? float4(repeating:1) : float4(0.5, 0.5, 0.5, 1)
         
         var sX: Float = node.rect.x + 20
@@ -1651,11 +1552,11 @@ class NodeGraph : Codable
         eY = node.rect.y + node.rect.height - 18
         
         app!.mmView.drawLine.draw(sx: sX, sy: sY, ex: eX, ey: eY, radius: 1.2, fillColor: dragColor)
-        
+        */
         // --- Preview Info Label
         
         previewInfoMenu.rect.x = node.rect.x + node.rect.width - previewInfoMenu.rect.width - 36
-        previewInfoMenu.rect.y = node.rect.y + node.rect.height - 28
+        previewInfoMenu.rect.y = node.rect.y + node.rect.height - 24
         previewInfoMenu.draw()
     }
     
@@ -2034,20 +1935,9 @@ class NodeGraph : Codable
                     currentContent.append(node)
                 }
             } else
-            if type == .Layers {
-                if let layer = node as? Layer {
-                    if layer.uuid == currentLayerUUID {
-                        index = items.count
-                        currentFound = true
-                        setCurrentMaster(node: node)
-                    }
-                    items.append(node.name)
-                    currentContent.append(node)
-                }
-            } else
             if type == .Scenes {
                 if let scene = node as? Scene {
-                    if scene.uuid == currentSceneUUID {
+                    if scene.uuid == currentLayerUUID {
                         index = items.count
                         currentFound = true
                         setCurrentMaster(node: node)
@@ -2090,9 +1980,6 @@ class NodeGraph : Codable
             currentMasterUUID = uuid
             if contentType == .Objects {
                 currentObjectUUID = uuid
-            } else
-            if contentType == .Layers {
-                currentLayerUUID = uuid
             } else
             if contentType == .Scenes {
                 currentSceneUUID = uuid
@@ -2181,16 +2068,6 @@ class NodeGraph : Codable
             }
             items.append(behaviorTreesItem)
             
-            // Layer Areas
-            var areasItem = MMMenuItem( text: "Layer Areas", cb: {} )
-            areasItem.cb = {
-                self.stopPreview()
-                self.refList.isActive = true
-                self.refList.createLayerAreaList()
-                self.previewInfoMenu.setText("Layer Areas", 0.3)
-            }
-            items.append(areasItem)
-            
             // Object Instances
             var instanceItem = MMMenuItem( text: "Object Instances", cb: {} )
             instanceItem.cb = {
@@ -2200,6 +2077,26 @@ class NodeGraph : Codable
                 self.previewInfoMenu.setText("Object Instances", 0.3)
             }
             items.append(instanceItem)
+            
+            // Scenes
+            var scenesItem = MMMenuItem( text: "Scenes", cb: {} )
+            scenesItem.cb = {
+                self.stopPreview()
+                self.refList.isActive = true
+                self.refList.createSceneList()
+                self.previewInfoMenu.setText("Scenes", 0.3)
+            }
+            items.append(scenesItem)
+            
+            // Scene Areas
+            var areasItem = MMMenuItem( text: "Scene Areas", cb: {} )
+            areasItem.cb = {
+                self.stopPreview()
+                self.refList.isActive = true
+                self.refList.createSceneAreaList()
+                self.previewInfoMenu.setText("Scene Areas", 0.3)
+            }
+            items.append(areasItem)
             
             // Variables
             var variablesItem = MMMenuItem( text: "Variables", cb: {} )
@@ -2236,22 +2133,11 @@ class NodeGraph : Codable
             }
             overviewMaster.camera = objectsOverCam
         } else
-        if contentType == .LayersOverview {
-            for node in nodes {
-                if let layer = node as? Layer {
-                    overviewMaster.subset!.append(node.uuid)
-                    if currentLayerUUID == layer.uuid {
-                        setCurrentNode(node)
-                    }
-                }
-            }
-            overviewMaster.camera = layersOverCam
-        } else
         if contentType == .ScenesOverview {
             for node in nodes {
                 if let scene = node as? Scene {
                     overviewMaster.subset!.append(node.uuid)
-                    if currentSceneUUID == scene.uuid {
+                    if currentLayerUUID == scene.uuid {
                         setCurrentNode(node)
                     }
                 }
@@ -2260,7 +2146,23 @@ class NodeGraph : Codable
         }
         
         currentMaster = overviewMaster
-        nodeList!.switchTo(NodeListItem.DisplayType(rawValue: contentType.rawValue+1)!)
+        
+        if contentType == .Objects {
+            nodeList?.switchTo(.Object)
+        }
+        if contentType == .Scenes {
+            nodeList?.switchTo(.Scene)
+        }
+        if contentType == .Game {
+            nodeList?.switchTo(.Game)
+        }
+        if contentType == .ObjectsOverview {
+            nodeList?.switchTo(.ObjectOverview)
+        }
+        if contentType == .ScenesOverview {
+            nodeList?.switchTo(.SceneOverview)
+        }
+        //nodeList!.switchTo(NodeListItem.DisplayType(rawValue: contentType.rawValue)!)
     }
     
     /// Hard updates the given node
@@ -2348,8 +2250,8 @@ class NodeGraph : Codable
                     }
                     
                     if conn.connectedMaster != nil && conn.connectedTo != nil {
-                        if let layer = conn.masterNode as? Layer {
-                            for inst in layer.objectInstances {
+                        if let scene = conn.masterNode as? Scene {
+                            for inst in scene.objectInstances {
                                 if inst.uuid == conn.connectedTo {
                                     conn.target = inst
                                     conn.targetName = inst.name
@@ -2375,21 +2277,21 @@ class NodeGraph : Codable
                         let conn = picker.uiConnection
                         let type = conn.connectionType
                         
-                        if type != .ObjectInstance && type != .LayerArea {
+                        if type != .ObjectInstance && type != .SceneArea {
                             if let _ = master as? Object {
                                 picker.items = ["Self"]
                                 picker.uuids = [master.uuid]
                             }
                         } else
-                        if type == .LayerArea {
-                            if let _ = master as? Layer {
+                        if type == .SceneArea {
+                            if let _ = master as? Scene {
                                 picker.items = ["Self"]
                                 picker.uuids = [master.uuid]
                             }
                         }
                         
                         if type == .Object || type == .Animation {
-                            // Animation: Only pick other Objects as Layers etc dont have animations
+                            // Animation: Only pick other Objects as Scenes etc dont have animations
                             for n in nodes {
                                 if n.subset != nil && n.uuid != master.uuid && (n as? Object) != nil {
                                     picker.items.append(n.name)
@@ -2398,29 +2300,18 @@ class NodeGraph : Codable
                             }
                         } else
                         if type == .ObjectInstance {
-                            // ObjectInstance: Only pick object instances in layers
+                            // ObjectInstance: Only pick object instances in scenes
                             for n in nodes {
-                                if let layer = n as? Layer {
-                                    for inst in layer.objectInstances {
-                                        picker.items.append(layer.name + ": " + inst.name)
+                                if let scene = n as? Scene {
+                                    for inst in scene.objectInstances {
+                                        picker.items.append(scene.name + ": " + inst.name)
                                         picker.uuids.append(inst.uuid)
                                     }
                                 }
                             }
                         } else
-                        if type == .LayerArea {
-                            // LayerArea: Only pick layers
-                            for n in nodes {
-                                if let layer = n as? Layer {
-                                    if n.uuid != master.uuid {
-                                        picker.items.append(layer.name)
-                                        picker.uuids.append(layer.uuid)
-                                    }
-                                }
-                            }
-                        } else
-                        if type == .Scene {
-                            // Scene: Only pick scenes ...
+                        if type == .SceneArea {
+                            // SceneArea: Only pick layers
                             for n in nodes {
                                 if let scene = n as? Scene {
                                     if n.uuid != master.uuid {
@@ -2486,17 +2377,12 @@ class NodeGraph : Codable
                                 
                                 let firstListNode = getNodeForUUID(picker.uuids[0])
                                 if firstListNode != nil {
-                                    if type == .LayerArea && (firstListNode as? Layer) != nil {
+                                    if type == .SceneArea && (firstListNode as? Scene) != nil {
                                         conn.connectedMaster = picker.uuids[0]
                                         conn.masterNode = firstListNode
                                         picker.index = 0
                                     } else
-                                    if type != .LayerArea && (firstListNode as? Object) != nil {
-                                        conn.connectedMaster = picker.uuids[0]
-                                        conn.masterNode = firstListNode
-                                        picker.index = 0
-                                    } else
-                                    if type == .Scene && (firstListNode as? Scene) != nil {
+                                    if type != .SceneArea && (firstListNode as? Object) != nil {
                                         conn.connectedMaster = picker.uuids[0]
                                         conn.masterNode = firstListNode
                                         picker.index = 0
@@ -2529,11 +2415,11 @@ class NodeGraph : Codable
                     
                     if conn.connectedMaster != nil {
                         for node in nodes {
-                            if let layer = node as? Layer {
-                                for inst in layer.objectInstances {
+                            if let scene = node as? Scene {
+                                for inst in scene.objectInstances {
                                     if inst.uuid == conn.connectedMaster {
                                         animInstance = inst
-                                        conn.masterNode = layer
+                                        conn.masterNode = scene
                                         break
                                     }
                                 }
@@ -2769,9 +2655,28 @@ class NodeGraph : Codable
                 }
             }
             
-            // .LayerAreaTarget Drop Target
-            if item.role == .LayerAreaTarget {
-                if let target = item as? NodeUILayerAreaTarget {
+            // .SceneAreaTarget Drop Target
+            if item.role == .SceneAreaTarget {
+                if let target = item as? NodeUISceneAreaTarget {
+                    let conn = target.uiConnection!
+                    
+                    if conn.connectedMaster != nil {
+                        conn.masterNode = getNodeForUUID(conn.connectedMaster!)
+                    }
+                    if conn.connectedTo != nil {
+                        if let target = getNodeForUUID(conn.connectedTo!) {
+                            conn.target = target
+                            conn.targetName = target.name
+                        }
+                    }
+                    validateConn(conn)
+                }
+                node.computeUIArea(mmView: mmView)
+            }
+            
+            // .SceneTarget Drop Target
+            if item.role == .SceneTarget {
+                if let target = item as? NodeUISceneTarget {
                     let conn = target.uiConnection!
                     
                     if conn.connectedMaster != nil {
@@ -2793,17 +2698,17 @@ class NodeGraph : Codable
                 if let picker = item as? NodeUILayerAreaPicker {
                     let conn = picker.uiConnection
                     if conn.masterNode != nil {
-                        let layer = conn.masterNode as! Layer
+                        let scene = conn.masterNode as! Scene
                         
                         picker.items = []
                         picker.uuids = []
                         
                         conn.target = nil
-                        let subs = getNodesOfMaster(for: layer)
+                        let subs = getNodesOfMaster(for: scene)
                         var index : Int = 0
                         var first : Node? = nil
                         for s in subs {
-                            if s.type == "Layer Area" {
+                            if s.type == "Scene Area" {
                                 if first == nil {
                                     first = s
                                 }
@@ -2903,8 +2808,8 @@ class NodeGraph : Codable
         var instances : [Object] = []
         
         for node in nodes {
-            if let layer = node as? Layer {
-                for inst in layer.objectInstances {
+            if let scene = node as? Scene {
+                for inst in scene.objectInstances {
                     if inst.objectUUID == uuid {
                         if inst.instance != nil {
                             instances.append(inst.instance!)
@@ -2921,8 +2826,8 @@ class NodeGraph : Codable
     func getInstance(_ uuid: UUID) -> Object?
     {
         for node in nodes {
-            if let layer = node as? Layer {
-                for inst in layer.objectInstances {
+            if let scene = node as? Scene {
+                for inst in scene.objectInstances {
                     if inst.uuid == uuid {
                         return inst.instance
                     }
@@ -2953,12 +2858,12 @@ class NodeGraph : Codable
         // Remove from nodes
         nodes.remove(at: nodes.firstIndex(where: { $0.uuid == node.uuid })!)
         
-        // If node is an object, remove it from all instances in layers
+        // If node is an object, remove it from all instances in scenes
         if let object = node as? Object {
             for n in nodes {
-                if let layer = n as? Layer {
-                    while let index = layer.objectInstances.firstIndex(where: { $0.objectUUID == object.uuid }) {
-                        layer.objectInstances.remove(at: index)
+                if let scene = n as? Scene {
+                    while let index = scene.objectInstances.firstIndex(where: { $0.objectUUID == object.uuid }) {
+                        scene.objectInstances.remove(at: index)
                     }
                 }
             }
@@ -3001,7 +2906,7 @@ class NodeGraph : Codable
         if node.maxDelegate != nil {
             let editNodeItem =  MMMenuItem( text: "Edit " + node.type, cb: {
                 
-                if node.type == "Object" || node.type == "Layer" || node.type == "Scene" {
+                if node.type == "Object" || node.type == "Scene" {
                     self.overviewButton.clicked!(MMMouseEvent(0,0))
                 } else {
                     self.activateNodeDelegate(node)
@@ -3050,10 +2955,6 @@ class NodeGraph : Codable
                         self.updateContent(.Objects)
                         self.setOverviewMaster()
                     } else
-                    if self.contentType == .LayersOverview {
-                        self.updateContent(.Layers)
-                        self.setOverviewMaster()
-                    } else
                     if self.contentType == .ScenesOverview {
                         self.updateContent(.Scenes)
                         self.setOverviewMaster()
@@ -3100,34 +3001,14 @@ class NodeGraph : Codable
     /// Returns all nodes which contain a reference of this node (objects in layers, layers in scenes).
     func getOccurencesOf(_ node: Node) -> [Node]
     {
-        var layers : [Node] = []
+        var scenes : [Node] = []
         
         // Find the occurenes of an object in the layers
         if node.type == "Object" {
             for n in nodes {
-                if let layer = n as? Layer {
-                    for inst in layer.objectInstances {
-                        if inst.objectUUID == node.uuid {
-                            if !layers.contains(layer) {
-                                layers.append(layer)
-                            }
-                        }
-                    }
-                }
-            }
-        } else
-        if node.type == "Layer" {
-            layers.append(node)
-        }
-        
-        var scenes : [Node] = []
-
-        // Find the occurenes of the layers in the scenes
-        for layer in layers {
-            for n in nodes {
                 if let scene = n as? Scene {
-                    for uuid in scene.layers {
-                        if uuid == layer.uuid {
+                    for inst in scene.objectInstances {
+                        if inst.objectUUID == node.uuid {
                             if !scenes.contains(scene) {
                                 scenes.append(scene)
                             }
@@ -3135,9 +3016,12 @@ class NodeGraph : Codable
                     }
                 }
             }
+        } else
+        if node.type == "Scene" {
+            scenes.append(node)
         }
 
-        return layers + scenes
+        return scenes
     }
     
     /// Accept a drag from the reference list to a NodeUIDropTarget
@@ -3205,13 +3089,13 @@ class NodeGraph : Codable
         }
     }
     
-    /// Returns the layer for the given instance uuid
-    func getLayerOfInstance(_ uuid: UUID) -> Layer? {
+    /// Returns the scene for the given instance uuid
+    func getLayerOfInstance(_ uuid: UUID) -> Scene? {
         for node in nodes {
-            if let layer = node as? Layer {
-                for inst in layer.objectInstances {
+            if let scene = node as? Scene {
+                for inst in scene.objectInstances {
                     if inst.uuid == uuid {
-                        return layer
+                        return scene
                     }
                 }
             }

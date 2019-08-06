@@ -421,7 +421,7 @@ class ResetObject : Node
     {
         super.init()
         
-        name = "Reset Object"
+        name = "Reset Instance"
         uiConnections.append(UINodeConnection(.ObjectInstance))
     }
     
@@ -1128,22 +1128,22 @@ class ObjectCollisionWith : Node
     }
 }
 
-/// Distance To Layer Area
-class ObjectTouchLayerArea : Node
+/// Distance To Scene Area
+class ObjectTouchSceneArea : Node
 {
     override init()
     {
         super.init()
         
-        name = "Touch Layer Area ?"
+        name = "Touch Area ?"
         uiConnections.append(UINodeConnection(.ObjectInstance))
-        uiConnections.append(UINodeConnection(.LayerArea))
+        uiConnections.append(UINodeConnection(.SceneArea))
     }
     
     override func setup()
     {
         brand = .Function
-        type = "Object Touch Layer Area"
+        type = "Object Touch Scene Area"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1161,7 +1161,7 @@ class ObjectTouchLayerArea : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
-            NodeUILayerAreaTarget(self, variable: "layerArea", title: "Layer Area", connection: uiConnections[1])
+            NodeUISceneAreaTarget(self, variable: "sceneArea", title: "Area", connection: uiConnections[1])
         ]
         
         super.setupUI(mmView: mmView)
@@ -1206,8 +1206,8 @@ class ObjectTouchLayerArea : Node
         
         if uiConnections[1].masterNode == nil || uiConnections[1].target == nil { return playResult! }
         
-        if let layer = uiConnections[1].masterNode as? Layer {
-            if let area = uiConnections[1].target as? LayerArea {
+        if let layer = uiConnections[1].masterNode as? Scene {
+            if let area = uiConnections[1].target as? SceneArea {
                 if area.areaObject == nil || area.areaObject!.shapes.count == 0 { return playResult! }
                 
                 if instanceObject!.disks.count > 0 {
@@ -1240,7 +1240,7 @@ class ObjectTouchLayerArea : Node
                     if dist < radius {
                         playResult = .Success
                         
-                        if nodeGraph.debugMode == .LayerAreas {
+                        if nodeGraph.debugMode == .SceneAreas {
                             let pos = float2(object.properties["posX"]!, object.properties["posY"]!)
                             let size = float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
                             nodeGraph.debugInstance!.addBox(pos, size, 0, 0, float4(0.541, 0.098, 0.125, 0.8))

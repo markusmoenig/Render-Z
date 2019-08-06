@@ -8,7 +8,7 @@
 
 import MetalKit
 import simd
-
+/*
 class SceneMaxDelegate : NodeMaxDelegate {
     
     enum LeftRegionMode
@@ -864,3 +864,5 @@ class LayerList : MMWidget
         listWidget.mouseScrolled(event)
     }
 }
+
+ */

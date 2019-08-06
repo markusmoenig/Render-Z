@@ -15,7 +15,7 @@ class NodeUI
     }
     
     enum Role {
-        case None, MasterPicker, AnimationPicker, FloatVariablePicker, DirectionVariablePicker, LayerAreaPicker, FloatVariableTarget, DirectionVariableTarget, ObjectInstanceTarget, LayerAreaTarget, AnimationTarget, Float2VariableTarget, BehaviorTreeTarget
+        case None, MasterPicker, AnimationPicker, FloatVariablePicker, DirectionVariablePicker, LayerAreaPicker, FloatVariableTarget, DirectionVariableTarget, ObjectInstanceTarget, SceneAreaTarget, AnimationTarget, Float2VariableTarget, BehaviorTreeTarget, SceneTarget
     }
     
     var mmView      : MMView!
@@ -644,15 +644,27 @@ class NodeUIObjectInstanceTarget : NodeUIDropTarget
     }
 }
 
-/// Layer Area Target derived from NodeUIDropTarget and with "Layer Area" drop ID
-class NodeUILayerAreaTarget : NodeUIDropTarget
+/// Scene Target derived from NodeUIDropTarget and with "Scene" drop ID
+class NodeUISceneTarget : NodeUIDropTarget
 {
     init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
     {
-        super.init(node, variable: variable, title: title, targetID: "Layer Area")
+        super.init(node, variable: variable, title: title, targetID: "Scene")
         uiConnection = connection
         uiConnection.uiTarget = self
-        role = .LayerAreaTarget
+        role = .SceneTarget
+    }
+}
+
+/// Scene Area Target derived from NodeUIDropTarget and with "Scene Area" drop ID
+class NodeUISceneAreaTarget : NodeUIDropTarget
+{
+    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
+    {
+        super.init(node, variable: variable, title: title, targetID: "Scene Area")
+        uiConnection = connection
+        uiConnection.uiTarget = self
+        role = .SceneAreaTarget
     }
 }
 

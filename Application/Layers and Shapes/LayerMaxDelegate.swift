@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class LayerMaxDelegate : NodeMaxDelegate {
+class SceneMaxDelegate : NodeMaxDelegate {
     
     enum LeftRegionMode
     {
@@ -45,7 +45,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
     var sequenceWidget  : SequenceWidget!
 
     // ---
-    var currentLayer    : Layer?
+    var currentScene    : Scene?
     var camera          : Camera = Camera()
     var patternState    : MTLRenderPipelineState?
     var dispatched      : Bool = false
@@ -53,7 +53,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
     override func activate(_ app: App)
     {
         self.app = app
-        currentLayer = app.nodeGraph.maximizedNode as? Layer
+        currentScene = app.nodeGraph.maximizedNode as? Scene
         
         // Top Region
         if objectsButton == nil {
@@ -123,7 +123,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
         
         app.mmView.registerWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList.menuWidget, objectList)
         
-        let cameraProperties = currentLayer!.properties
+        let cameraProperties = currentScene!.properties
         if cameraProperties["prevMaxOffX"] != nil {
             camera.xPos = cameraProperties["prevMaxOffX"]!
         }
@@ -140,13 +140,13 @@ class LayerMaxDelegate : NodeMaxDelegate {
     {
 //        timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList.menuWidget, objectList)
-        currentLayer!.updatePreview(nodeGraph: app.nodeGraph)
+        currentScene!.updatePreview(nodeGraph: app.nodeGraph)
         
-        for inst in currentLayer!.objectInstances {
+        for inst in currentScene!.objectInstances {
             inst.properties = inst.instance!.properties
         }
         
-        currentLayer!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
+        currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -184,7 +184,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
             app.gizmo.rect.copy(region.rect)
             drawPattern(region)
             
-            if let instance = currentLayer!.builderInstance {
+            if let instance = currentScene!.builderInstance {
             
                 if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
                     app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera)
@@ -284,7 +284,7 @@ class LayerMaxDelegate : NodeMaxDelegate {
         camera.zoom = scale
         camera.zoom = max(0.1, camera.zoom)
         camera.zoom = min(1, camera.zoom)
-        currentLayer!.properties["prevMaxScale"] = camera.zoom
+        currentScene!.properties["prevMaxScale"] = camera.zoom
         update()
         app.mmView.update()
     }
@@ -309,9 +309,9 @@ class LayerMaxDelegate : NodeMaxDelegate {
         }
         #endif
 
-        currentLayer!.properties["prevMaxOffX"] = camera.xPos
-        currentLayer!.properties["prevMaxOffY"] = camera.yPos
-        currentLayer!.properties["prevMaxScale"] = camera.zoom
+        currentScene!.properties["prevMaxOffX"] = camera.xPos
+        currentScene!.properties["prevMaxOffY"] = camera.yPos
+        currentScene!.properties["prevMaxScale"] = camera.zoom
         update()
         
         if !dispatched {
@@ -387,10 +387,10 @@ class LayerMaxDelegate : NodeMaxDelegate {
     /// Returns the current object which is the first object in the selectedObjects array
     func getCurrentObject() -> Object?
     {
-        if currentLayer!.selectedObjects.isEmpty { return nil }
+        if currentScene!.selectedObjects.isEmpty { return nil }
         
-        for inst in currentLayer!.objectInstances {
-            if inst.uuid == currentLayer!.selectedObjects[0] {
+        for inst in currentScene!.objectInstances {
+            if inst.uuid == currentScene!.selectedObjects[0] {
                 return inst.instance
             }
         }
@@ -408,14 +408,14 @@ class LayerMaxDelegate : NodeMaxDelegate {
     override func update(_ hard: Bool = false, updateLists: Bool = false)
     {
         if hard {
-            let objects = currentLayer!.createInstances(nodeGraph: app.nodeGraph)
+            let objects = currentScene!.createInstances(nodeGraph: app.nodeGraph)
             
-            currentLayer!.builderInstance = app.nodeGraph.builder.buildObjects(objects: objects, camera: camera)
+            currentScene!.builderInstance = app.nodeGraph.builder.buildObjects(objects: objects, camera: camera)
             updateGizmo()
         } else {
             let region = app.editorRegion!
-            if currentLayer!.builderInstance != nil {
-                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentLayer!.builderInstance!, camera: camera)
+            if currentScene!.builderInstance != nil {
+                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentScene!.builderInstance!, camera: camera)
             }
         }
         
@@ -592,9 +592,9 @@ class ObjectList : MMWidget
     var items               : [ObjectListItem] = []
     
     var mouseIsDown         : Bool = false
-    var delegate            : LayerMaxDelegate
+    var delegate            : SceneMaxDelegate
     
-    init(_ view: MMView, app: App, delegate: LayerMaxDelegate)
+    init(_ view: MMView, app: App, delegate: SceneMaxDelegate)
     {
         self.app = app
         self.delegate = delegate
@@ -617,7 +617,7 @@ class ObjectList : MMWidget
             if let item = self.listWidget.getCurrentItem() {
                 getStringDialog(view: view, title: "Rename Instance", message: "New name", defaultValue: item.name, cb: { (name) -> Void in
                     
-                    for instance in delegate.currentLayer!.objectInstances {
+                    for instance in delegate.currentScene!.objectInstances {
                         if instance.uuid == item.uuid {
                             if instance.name != name {
                                 
@@ -653,7 +653,7 @@ class ObjectList : MMWidget
     func rebuildList()
     {
         items = []
-        for instance in delegate.currentLayer!.objectInstances {
+        for instance in delegate.currentScene!.objectInstances {
             for node in app.nodeGraph.nodes {
                 if node.uuid == instance.objectUUID {
                     
@@ -706,37 +706,37 @@ class ObjectList : MMWidget
         if itemIndex >= 0 && itemIndex < items.count {
             let uuid = listWidget.items[itemIndex].uuid
             
-            if let index = delegate.currentLayer!.objectInstances.firstIndex(where: { $0.uuid == uuid }) {
+            if let index = delegate.currentScene!.objectInstances.firstIndex(where: { $0.uuid == uuid }) {
             
                 func instanceStatusChanged(_ instance: ObjectInstance)
                 {
                     mmView.undoManager!.registerUndo(withTarget: self) { target in
                         
-                        if let index = self.delegate.currentLayer!.objectInstances.firstIndex(where: { $0.uuid == instance.uuid }) {
-                            self.delegate.currentLayer!.objectInstances.remove(at: index)
+                        if let index = self.delegate.currentScene!.objectInstances.firstIndex(where: { $0.uuid == instance.uuid }) {
+                            self.delegate.currentScene!.objectInstances.remove(at: index)
                             self.listWidget.removeFromSelection(instance.uuid)
                             
-                            self.delegate.currentLayer!.updatePreview(nodeGraph: self.delegate.app.nodeGraph, hard: true)
+                            self.delegate.currentScene!.updatePreview(nodeGraph: self.delegate.app.nodeGraph, hard: true)
                             self.delegate.update(true, updateLists: true)
                         } else {
-                            self.delegate.currentLayer!.objectInstances.append(instance)
+                            self.delegate.currentScene!.objectInstances.append(instance)
                             self.listWidget.selectedItems = [instance.uuid]
-                            self.delegate.currentLayer!.updatePreview(nodeGraph: self.delegate.app.nodeGraph, hard: true)
+                            self.delegate.currentScene!.updatePreview(nodeGraph: self.delegate.app.nodeGraph, hard: true)
                             self.delegate.update(true, updateLists: true)
                         }
                         instanceStatusChanged(instance)
                     }
                 }
                 
-                let instance = delegate.currentLayer!.objectInstances[index]
+                let instance = delegate.currentScene!.objectInstances[index]
                 instanceStatusChanged(instance)
                 
-                delegate.currentLayer!.objectInstances.remove(at: index)
+                delegate.currentScene!.objectInstances.remove(at: index)
                 delegate.update(true, updateLists: false)
             }
             listWidget.removeFromSelection(uuid)
         }
-        delegate.currentLayer!.selectedObjects = listWidget.selectedItems
+        delegate.currentScene!.selectedObjects = listWidget.selectedItems
         rebuildList()
         listWidget.build(items: items, fixedWidth: 300, supportsUpDown: false, supportsClose: true)
         delegate.updateGizmo()
@@ -749,7 +749,7 @@ class ObjectList : MMWidget
             if listWidget.hoverState == .Close {
                 deleteAt(listWidget.hoverIndex)
             } else {
-                delegate.currentLayer!.selectedObjects = listWidget.selectedItems
+                delegate.currentScene!.selectedObjects = listWidget.selectedItems
                 rebuildList()
                 listWidget.build(items: items, fixedWidth: 300, supportsUpDown: false, supportsClose: true)
                 delegate.updateGizmo()
