@@ -323,9 +323,8 @@ class Physics
         instance.data![6] = 1/camera.zoom
         instance.data![7] = 0
         
-        var objectIndex : Int = 0
-        
         /*
+        var objectIndex : Int = 0
         func parseObject(_ object: Object)
         {
             var pointOffset : Int = 0

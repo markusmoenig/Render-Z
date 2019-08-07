@@ -367,31 +367,6 @@ class Builder
         
         buildData.source += buildData.materialSource
         
-        /*
-        if preview {
-            // Preview Pattern
-            buildData.source +=
-            """
-            float4 checkerColor1 = float4( 0.0, 0.0, 0.0, 1.0 );
-            float4 checkerColor2 = float4( 0.2, 0.2, 0.2, 1.0 );
-            
-            uv = fragCoord;
-            uv -= float2( size / 2  - 0.5);
-            
-            col = checkerColor1;
-            
-            float cWidth = 12.0;
-            float cHeight = 12.0;
-            
-            if ( fmod( floor( uv.x / cWidth ), 2.0 ) == 0.0 ) {
-                if ( fmod( floor( uv.y / cHeight ), 2.0 ) != 0.0 ) col=checkerColor2;
-            } else {
-                if ( fmod( floor( uv.y / cHeight ), 2.0 ) == 0.0 ) col=checkerColor2;
-            }
-
-            """
-        }*/
-        
         buildData.source +=
         """
         
@@ -422,19 +397,6 @@ class Builder
             col = mix(glowColor, col, col.w);
         
         """
-
-        /*
-        if preview {
-            // Preview border
-            source +=
-            """
-            
-            float2 d = abs( uv ) - float2( 100, 65 );
-            float borderDist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
-            col = mix( col, float4(0,0,0,1), borderMask( borderDist, 2 ) );
-            
-            """
-        }*/
         
         if fragment == nil {
             buildData.source +=

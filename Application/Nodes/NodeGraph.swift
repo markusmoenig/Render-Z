@@ -339,6 +339,7 @@ class NodeGraph : Codable
             self.scenesButton.removeState(.Checked)
             self.gameButton.addState(.Checked)
             self.overviewButton.isDisabled = true
+            self.overviewIsOn = false
             
             self.contentType = .Game
             self.updateContent(self.contentType)
