@@ -43,6 +43,7 @@ class Node : Codable, Equatable
     var previewTexture  : MTLTexture?
     
     var terminals       : [Terminal] = []
+    var bindings        : [Terminal] = []
     
     var uiItems         : [NodeUI] = []
     var uiConnections   : [UINodeConnection] = []
@@ -70,7 +71,7 @@ class Node : Codable, Equatable
     
     /// Static sizes
     static var NodeWithPreviewSize : float2 = float2(260,220)
-    static var NodeMinimumSize     : float2 = float2(230,60)
+    static var NodeMinimumSize     : float2 = float2(230,65)
 
     private enum CodingKeys: String, CodingKey {
         case name
@@ -171,6 +172,22 @@ class Node : Codable, Equatable
     /// Update the UI State
     func updateUIState(mmView: MMView)
     {
+        // Attach the active bindings for this node
+        bindings = []
+        for t in terminals {
+            if t.connector == .Right {
+                for (index, uiItem) in uiItems.enumerated() {
+                    if uiItem.variable == t.name {
+                        uiItem.isDisabled = t.connections.count == 1
+                        t.uiIndex = index
+                        if t.connections.count > 0 {
+                            bindings.append(t)
+                        }
+                        executeReadBinding(self.nodeGraph!, t)
+                    }
+                }
+            }
+        }
     }
     
     /// Setup
@@ -246,6 +263,16 @@ class Node : Codable, Equatable
     func livePreview(nodeGraph: NodeGraph, rect: MMRect)
     {
     }
+    
+    /// Read bindings for this terminal
+    func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+    }
+    
+    /// Write bindings for this terminal
+    func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+    }
 }
 
 /// Connects UI items to nodes of other objects, layers, etc
@@ -309,13 +336,21 @@ class Terminal : Codable
     }
     
     enum Brand : Int, Codable {
-        case All, Properties, Object, Layer, Material, Behavior
+        case All, Properties, Behavior, FloatVariable, Float2Variable, DirectionVariable, ColorVariable
     }
     
     var name            : String = ""
     var connector       : Connector = .Left
     var brand           : Brand = .All
     var uuid            : UUID!
+    
+    var uiIndex         : Int = -1
+    
+    var posX            : Float = 0
+    var posY            : Float = 0
+    
+    var readBinding     : ((Terminal) -> ())? = nil
+    var writeBinding    : ((Terminal) -> ())? = nil
 
     var connections     : [Connection] = []
     
@@ -490,6 +525,7 @@ enum NodeDiscriminator: String, CodingKey {
 enum NodeFamily: String, NodeClassFamily {
     case object = "Object"
     case objectPhysics = "Object Physics"
+    case objectInstanceProps = "Object Instance Props"
     case objectGlow = "Object Glow"
     //case objectProfile = "3D Profile"
     case objectAnimation = "Object Animation"
@@ -553,6 +589,8 @@ enum NodeFamily: String, NodeClassFamily {
         {
             case .object:
                 return Object.self
+            case .objectInstanceProps:
+                return ObjectInstanceProps.self
             case .objectPhysics:
                 return ObjectPhysics.self
             case .objectGlow:

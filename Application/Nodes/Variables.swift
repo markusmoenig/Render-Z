@@ -29,6 +29,13 @@ class FloatVariable : Node
         //helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/overview"
     }
     
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Left, brand: .FloatVariable, node: self)
+        ]
+    }
+    
     private enum CodingKeys: String, CodingKey {
         case type
     }
@@ -244,6 +251,13 @@ class Float2Variable : Node
         super.setupUI(mmView: mmView)
     }
     
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Left, brand: .Float2Variable, node: self)
+        ]
+    }
+    
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -275,11 +289,13 @@ class Float2Variable : Node
             let number = uiItems[0] as! NodeUINumber
             number.defaultValue = newValue
             properties["defaultValueX"] = newValue
+            setValue(float2(newValue, properties["y"]!))
         } else
         if variable == "y" {
             let number = uiItems[1] as! NodeUINumber
             number.defaultValue = newValue
             properties["defaultValueY"] = newValue
+            setValue(float2(properties["x"]!, newValue))
         }
         if noUndo == false {
             super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
@@ -303,16 +319,24 @@ class Float2Variable : Node
     }
     
     /// Set a new value to the variable
-    func setValue(_ value: float2)
+    func setValue(_ value: float2, adjustBinding: Bool = true)
     {
         properties["x"] = value.x
         properties["y"] = value.y
 
+        if uiItems.count == 0 { return }
         let numberX = uiItems[0] as! NodeUINumber
         let numberY = uiItems[1] as! NodeUINumber
         
         numberX.value = value.x
         numberY.value = value.y
+        
+        if adjustBinding && terminals[0].connections.count > 0 {
+            let conn = terminals[0].connections[0]
+            if let node = conn.toTerminal?.node {
+                node.executeWriteBinding(nodeGraph!, conn.toTerminal!)
+            }
+        }
     }
 }
 

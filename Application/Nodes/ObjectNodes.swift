@@ -8,12 +8,181 @@
 
 import Foundation
 
+class ObjectInstanceProps : Node
+{
+    override init()
+    {
+        super.init()
+        name = "Instance Props"
+        uiConnections.append(UINodeConnection(.ObjectInstance))
+    }
+    
+    override func setup()
+    {
+        type = "Object Instance Props"
+        brand = .Property
+        
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9109521/Physical+Properties"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
+            NodeUINumber(self, variable: "position", title: "X", range: nil, value: 0),
+            NodeUINumber(self, variable: "y", title: "Y", range: nil, value: 0),
+            NodeUINumber(self, variable: "opacity", title: "Opacity", range: float2(0, 1), value: 1),
+        ]
+        
+        super.setupUI(mmView: mmView)
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "position", connector: .Right, brand: .Float2Variable, node: self),
+            Terminal(name: "opacity", connector: .Right, brand: .FloatVariable, node: self)
+        ]
+    }
+    
+    override func updateUIState(mmView: MMView)
+    {
+        /*
+        let mode = properties["physicsMode"]!
+        let collisions = properties["physicsCollisions"]!
+        
+        uiItems[1].isDisabled = mode == 0 || mode == 1
+        uiItems[2].isDisabled = mode == 0 /*|| mode == 1*/ || collisions == 1
+        uiItems[3].isDisabled = mode == 0 || collisions == 1
+        uiItems[4].isDisabled = mode == 0 || mode == 1 || collisions == 1
+        uiItems[5].isDisabled = mode == 0 || mode == 1*/
+        
+        uiItems[2].isDisabled = terminals[0].connections.count > 0
+        
+        super.updateUIState(mmView: mmView)
+    }
+    
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
+    {
+        if let inst = uiConnections[0].target as? ObjectInstance {
+            if variable == "position" {
+                //let number = uiItems[0] as! NodeUINumber
+                //setValue(float2(newValue, properties["y"]!))
+                inst.properties["posX"] = newValue
+            } else
+            if variable == "y" {
+                //let number = uiItems[1] as! NodeUINumber
+                //setValue(float2(properties["x"]!, newValue))
+                inst.properties["posY"] = newValue
+            }
+        }
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
+    override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+        if terminal.name == "position" {
+            if let inst = uiConnections[0].target as? ObjectInstance {
+                
+                if terminal.connections.count == 0 {
+                    // Not connected, adjust my own vars
+                    setInternalPos(float2(inst.properties["posX"]!, inst.properties["posY"]!))
+                } else
+                if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                    if let object = inst.instance {
+                        variable.setValue(float2(object.properties["posX"]!, object.properties["posY"]!), adjustBinding: false)
+                        setInternalPos(float2(object.properties["posX"]!, object.properties["posY"]!))
+                    } else {
+                        variable.setValue(float2(inst.properties["posX"]!, inst.properties["posY"]!), adjustBinding: false)
+                        setInternalPos(float2(inst.properties["posX"]!, inst.properties["posY"]!))
+                    }
+                }
+            }
+        }
+    }
+    
+    override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+        if terminal.name == "position" {
+            if let inst = uiConnections[0].target as? ObjectInstance {
+                if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                    let value = variable.getValue()
+
+                    setInternalPos(value)
+                    if let object = inst.instance {
+                        object.properties["posX"] = value.x
+                        object.properties["posY"] = value.y
+                    } else {
+                        inst.properties["posX"] = value.x
+                        inst.properties["posY"] = value.y
+                    }
+                }
+            }
+        }
+    }
+    
+    // Adjusts the internal position
+    func setInternalPos(_ pos: float2)
+    {
+        if let item = uiItems[1] as? NodeUINumber {
+            item.value = pos.x
+        }
+        if let item = uiItems[2] as? NodeUINumber {
+            item.value = pos.y
+        }
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Execute Object physic properties
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
+    {
+        /*
+        if let object = root.objectRoot {
+            let value = properties["physicsMode"]!
+            object.properties["physicsMode"] = value
+            object.properties["physicsMass"] = properties["physicsMass"]!
+            object.properties["physicsRestitution"] = properties["physicsRestitution"]!
+            object.properties["physicsFriction"] = properties["physicsFriction"]!
+            object.properties["physicsSupportsRotation"] = properties["physicsSupportsRotation"]!
+            object.properties["physicsCollisions"] = properties["physicsCollisions"]!
+            
+            return .Success
+        }
+        */
+        return .Failure
+    }
+}
+
 class ObjectPhysics : Node
 {
     override init()
     {
         super.init()
-        name = "Physical Properties"
+        name = "Physical Props"
     }
     
     override func setup()
@@ -46,21 +215,21 @@ class ObjectPhysics : Node
     {
         let mode = properties["physicsMode"]!
         let collisions = properties["physicsCollisions"]!
-
+        
         uiItems[1].isDisabled = mode == 0 || mode == 1
         uiItems[2].isDisabled = mode == 0 /*|| mode == 1*/ || collisions == 1
         uiItems[3].isDisabled = mode == 0 || collisions == 1
         uiItems[4].isDisabled = mode == 0 || mode == 1 || collisions == 1
         uiItems[5].isDisabled = mode == 0 || mode == 1
-
+        
         super.updateUIState(mmView: mmView)
     }
     
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-//        test = try container.decode(Float.self, forKey: .test)
-
+        //        test = try container.decode(Float.self, forKey: .test)
+        
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
     }
@@ -69,7 +238,7 @@ class ObjectPhysics : Node
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(type, forKey: .type)
-
+        
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
     }
@@ -85,7 +254,7 @@ class ObjectPhysics : Node
             object.properties["physicsFriction"] = properties["physicsFriction"]!
             object.properties["physicsSupportsRotation"] = properties["physicsSupportsRotation"]!
             object.properties["physicsCollisions"] = properties["physicsCollisions"]!
-
+            
             return .Success
         }
         return .Failure
@@ -129,7 +298,7 @@ class ObjectGlow : Node
         uiItems[1].isDisabled = mode == 0
         uiItems[2].isDisabled = mode == 0
         uiItems[3].isDisabled = mode == 0
-
+        
         super.updateUIState(mmView: mmView)
     }
     
@@ -162,7 +331,7 @@ class ObjectGlow : Node
             object.properties["glowColor_g"] = properties["glowColor_g"]!
             object.properties["glowColor_b"] = properties["glowColor_b"]!
             object.properties["glowOpacity"] = properties["glowOpacity"]!
-
+            
             return .Success
         }
         return .Failure

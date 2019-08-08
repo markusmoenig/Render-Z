@@ -32,7 +32,7 @@ struct MMSkinButton
     var height :    Float = 40
     var fontScale : Float = 0.5
     var borderSize: Float = 1.5
-    var round:      Float = 34
+    var round:      Float = 40
     var color :     float4 = float4(0.392, 0.392, 0.392, 0.0 )
     var hoverColor: float4 = float4(0.502, 0.502, 0.502, 1.0 )
     var activeColor:float4 = float4(0.392, 0.392, 0.392, 1.0)

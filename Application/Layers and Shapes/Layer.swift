@@ -84,7 +84,7 @@ class Scene : Node
         
         super.init()
         
-        name = "New Layer"
+        name = "New Scene"
         subset = []
     }
     

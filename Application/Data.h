@@ -31,10 +31,10 @@ typedef struct
     
     float4   brandColor;
 
-    float4   leftTerminals[5];
+    float4   rightTerminals[10];
     
+    float4   leftTerminal;
     float4   topTerminal;
-    float4   rightTerminal;
     float4   bottomTerminal;
     
 } NODE_DATA;
