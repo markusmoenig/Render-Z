@@ -51,6 +51,7 @@ class ObjectInstanceProps : Node
     
     override func updateUIState(mmView: MMView)
     {
+        
         /*
         let mode = properties["physicsMode"]!
         let collisions = properties["physicsCollisions"]!
@@ -69,18 +70,43 @@ class ObjectInstanceProps : Node
     /// A UI Variable changed
     override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
     {
-        if let inst = uiConnections[0].target as? ObjectInstance {
-            if variable == "position" {
-                //let number = uiItems[0] as! NodeUINumber
-                //setValue(float2(newValue, properties["y"]!))
+        //print("objectNodes variableChanged", oldValue, newValue)
+        if variable == "position" {
+            let number = uiItems[1] as! NodeUINumber
+            number.setValue(newValue)
+            if let inst = uiConnections[0].target as? ObjectInstance {
                 inst.properties["posX"] = newValue
-            } else
-            if variable == "y" {
-                //let number = uiItems[1] as! NodeUINumber
-                //setValue(float2(properties["x"]!, newValue))
+                if let object = inst.instance {
+                    object.properties["posX"] = newValue
+                }
+            }
+        } else
+        if variable == "y" {
+            let number = uiItems[1] as! NodeUINumber
+            number.setValue(newValue)
+            if let inst = uiConnections[0].target as? ObjectInstance {
                 inst.properties["posY"] = newValue
+                if let object = inst.instance {
+                    object.properties["posY"] = newValue
+                }
+            }
+        } else
+        if variable == "opacity" {
+            let number = uiItems[2] as! NodeUINumber
+            number.setValue(newValue)
+            if let inst = uiConnections[0].target as? ObjectInstance {
+                inst.properties["opacity"] = newValue
+                if let object = inst.instance {
+                    object.properties["opacity"] = newValue
+                }
             }
         }
+        
+        // Update scene
+        if let scene = uiConnections[0].masterNode as? Scene {
+            scene.updateStatus = .NeedsUpdate
+        }
+        
         if noUndo == false {
             super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
         }
@@ -88,8 +114,9 @@ class ObjectInstanceProps : Node
     
     override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
-        if terminal.name == "position" {
-            if let inst = uiConnections[0].target as? ObjectInstance {
+        if let inst = uiConnections[0].target as? ObjectInstance {
+
+            if terminal.name == "position" {
                 
                 if terminal.connections.count == 0 {
                     // Not connected, adjust my own vars
@@ -104,14 +131,30 @@ class ObjectInstanceProps : Node
                         setInternalPos(float2(inst.properties["posX"]!, inst.properties["posY"]!))
                     }
                 }
+            } else
+            if terminal.name == "opacity" {
+                
+                if terminal.connections.count == 0 {
+                    // Not connected, adjust my own vars
+                    setInternalOpacity(inst.properties["opacity"]!)
+                } else
+                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                    if let object = inst.instance {
+                        variable.setValue(object.properties["opacity"]!, adjustBinding: false)
+                        setInternalOpacity(object.properties["opacity"]!)
+                    } else {
+                        variable.setValue(inst.properties["opacity"]!, adjustBinding: false)
+                        setInternalOpacity(inst.properties["opacity"]!)
+                    }
+                }
             }
         }
     }
     
     override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
-        if terminal.name == "position" {
-            if let inst = uiConnections[0].target as? ObjectInstance {
+        if let inst = uiConnections[0].target as? ObjectInstance {
+            if terminal.name == "position" {
                 if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
                     let value = variable.getValue()
 
@@ -125,6 +168,24 @@ class ObjectInstanceProps : Node
                     }
                 }
             }
+            
+            if terminal.name == "opacity" {
+                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                    let value = variable.getValue()
+                    
+                    setInternalOpacity(value)
+                    if let object = inst.instance {
+                        object.properties["opacity"] = value
+                    } else {
+                        inst.properties["opacity"] = value
+                    }
+                }
+            }
+        }
+        
+        // Update scene
+        if let scene = uiConnections[0].masterNode as? Scene {
+            scene.updateStatus = .NeedsUpdate
         }
     }
     
@@ -136,6 +197,14 @@ class ObjectInstanceProps : Node
         }
         if let item = uiItems[2] as? NodeUINumber {
             item.value = pos.y
+        }
+    }
+    
+    // Adjusts the internal opacity
+    func setInternalOpacity(_ opacity: Float)
+    {
+        if let item = uiItems[3] as? NodeUINumber {
+            item.value = opacity
         }
     }
     

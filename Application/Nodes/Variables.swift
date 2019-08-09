@@ -79,6 +79,7 @@ class FloatVariable : Node
             let number = uiItems[0] as! NodeUINumber
             number.defaultValue = newValue
             properties["defaultValue"] = newValue
+            setValue(newValue)
         }
         if noUndo == false {
             super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
@@ -99,13 +100,20 @@ class FloatVariable : Node
     }
 
     /// Set a new value to the variable
-    func setValue(_ value: Float)
+    func setValue(_ value: Float, adjustBinding: Bool = true)
     {
         properties["value"] = value
         
         if let number = uiItems[0] as? NodeUINumber {
             number.value = value
             number.updateLinked()
+        }
+        
+        if adjustBinding && terminals.count > 0 && terminals[0].connections.count > 0 {
+            let conn = terminals[0].connections[0]
+            if let node = conn.toTerminal?.node {
+                node.executeWriteBinding(nodeGraph!, conn.toTerminal!)
+            }
         }
     }
 }
@@ -331,7 +339,7 @@ class Float2Variable : Node
         numberX.value = value.x
         numberY.value = value.y
         
-        if adjustBinding && terminals[0].connections.count > 0 {
+        if adjustBinding && terminals.count > 0 && terminals[0].connections.count > 0 {
             let conn = terminals[0].connections[0]
             if let node = conn.toTerminal?.node {
                 node.executeWriteBinding(nodeGraph!, conn.toTerminal!)

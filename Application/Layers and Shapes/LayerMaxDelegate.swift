@@ -54,6 +54,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
     {
         self.app = app
         currentScene = app.nodeGraph.maximizedNode as? Scene
+        currentScene!.updateStatus = .NeedsHardUpdate
         
         // Top Region
         if objectsButton == nil {
@@ -133,7 +134,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
         if cameraProperties["prevMaxScale"] != nil {
             camera.zoom = cameraProperties["prevMaxScale"]!
         }
-        update(true)
+        //update(true)
     }
     
     override func deactivate()
@@ -184,6 +185,17 @@ class SceneMaxDelegate : NodeMaxDelegate {
             app.gizmo.rect.copy(region.rect)
             drawPattern(region)
             
+            if let texture = app.nodeGraph.sceneRenderer.fragment.texture {
+                //if currentScene!.updateStatus != .Valid {
+                //    currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: currentScene!.updateStatus == .NeedsHardUpdate)
+               // }
+                if Float(texture.width) != region.rect.x || Float(texture.height) != region.rect.y {
+                    app.nodeGraph.sceneRenderer.render(width: region.rect.x, height: region.rect.y, camera: camera)
+                }
+                app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
+            }
+            
+            /*
             if let instance = currentScene!.builderInstance {
             
                 if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
@@ -194,7 +206,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
                     
                     app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
                 }
-            }
+            }*/
             
             app.gizmo.scale = camera.zoom
             app.gizmo.draw()
@@ -407,6 +419,9 @@ class SceneMaxDelegate : NodeMaxDelegate {
     /// Updates the preview. hard does a rebuild, otherwise just a render
     override func update(_ hard: Bool = false, updateLists: Bool = false)
     {
+        //currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: hard)
+        ///updateGizmo()
+        /*
         if hard {
             let objects = currentScene!.createInstances(nodeGraph: app.nodeGraph)
             
@@ -417,7 +432,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
             if currentScene!.builderInstance != nil {
                 app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentScene!.builderInstance!, camera: camera)
             }
-        }
+        }*/
         
         if updateLists {
             objectList.rebuildList()

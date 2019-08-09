@@ -389,28 +389,8 @@ class EditorWidget      : MMWidget
 
             let drag = dragSource as! NodeListDrag
             let node = drag.node!
-            
-            func nodeStatusChanged(_ node: Node,_ master: Node)
-            {
-                mmView.undoManager!.registerUndo(withTarget: self) { target in
-                    
-                    let index = self.app.nodeGraph.nodes.firstIndex(where: { $0.uuid == node.uuid })
-                    if index != nil {
-                        self.app.nodeGraph.deleteNode(node)
-                    } else {
-                        self.app.nodeGraph.nodes.append(node)
-                        master.subset!.append(node.uuid)
-                        self.app.nodeGraph.setCurrentNode()
-                        self.app.nodeGraph.updateMasterNodes(self.app.nodeGraph.currentMaster!)
-                        self.app.nodeGraph.refList.update()
-                    }
-                    nodeStatusChanged(node, master)
-                }
-            }
                         
             if app.nodeGraph.currentMaster != nil {
-                nodeStatusChanged(node, self.app.nodeGraph.currentMaster!)
-
                 if let camera = app.nodeGraph.currentMaster!.camera {
 
                     node.xPos = (event.x - rect.x) / camera.zoom - camera.xPos / camera.zoom - drag.pWidgetOffset!.x
@@ -427,12 +407,17 @@ class EditorWidget      : MMWidget
                     node.setupTerminals()
 
                     if app.nodeGraph.currentMaster != nil {
+                        
+                        let before = app.nodeGraph.encodeJSON()
+
                         app.nodeGraph.nodes.append(node)
                         app.nodeGraph.currentMaster?.subset!.append(node.uuid)
                         app.nodeGraph.setCurrentNode(node)
-        //                app.nodeGraph.updateNode(node)
                         app.nodeGraph.updateMasterNodes(app.nodeGraph.currentMaster!)
                         app.nodeGraph.refList.update()
+                        
+                        let after = app.nodeGraph.encodeJSON()
+                        app.nodeGraph.globalStateUndo(oldState: before, newState: after, text: "Insert Node")
                     }
                 }
             }

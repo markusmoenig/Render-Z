@@ -387,7 +387,12 @@ class Builder
                 }
             }
         
-            if (fm != 0 || bm != 0) col = calculatePixelColor( fragCoord, bodyMaterial, normal );
+            if (fm != 0 || bm != 0) {
+                col = calculatePixelColor( fragCoord, bodyMaterial, normal );
+                if ( objectId >= 0 ) {
+                    col.w *= layerData->objects[objectId].opacity;
+                }
+            }
         
         """
         
@@ -1024,8 +1029,11 @@ class Builder
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 4] = parentPosX
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 5] = parentPosY
 
+            // Opacity
+            instance.data![instance.objectDataOffset + (objectIndex) * 12 + 6] = object.properties["opacity"] != nil ? object.properties["opacity"]! : 1.0
+
             if let glowSize = object.properties["glowSize"] {
-                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 6] = glowSize
+                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 7] = glowSize
 
                 instance.data![instance.objectDataOffset + (objectIndex) * 12 + 8] = object.properties["glowColor_r"]!
                 instance.data![instance.objectDataOffset + (objectIndex) * 12 + 9] = object.properties["glowColor_g"]!
@@ -1684,8 +1692,8 @@ class Builder
             float       rotate;
             float2      scale;
             float2      pos;
+            float       opacity;
             float       glowSize;
-            float       fill;
             float4      glowColor;
         } OBJECT_DATA;
 

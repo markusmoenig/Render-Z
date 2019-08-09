@@ -1327,6 +1327,18 @@ class NodeGraph : Codable
 
         node.data.scale = scale
         
+        // --- Parse UI Items to get the terminal positions
+        let uiItemX = node.rect.x + 35 * scale//(node.rect.width - node.uiArea.width*scale) / 2 - 2.5 * scale
+        var uiItemY = node.rect.y + NodeGraph.bodyY * scale
+        
+        for uiItem in node.uiItems {
+            uiItem.rect.x = uiItemX
+            uiItem.rect.y = uiItemY
+            uiItemY += uiItem.rect.height * scale
+        }
+        
+        // ---
+        
         var leftTerminalCount : Int = 0
         var topTerminalCount : Int = 0
         var rightTerminalCount : Int = 0
@@ -1418,16 +1430,10 @@ class NodeGraph : Codable
 //            editLabel.draw(x: node.rect.x + 10 * scale, y: node.rect.y + 10 * scale, width: node.rect.x + 40 * scale, height: editLabel.rect.height)
         }
         
-        // --- UI
-        let uiItemX = node.rect.x + 35 * scale//(node.rect.width - node.uiArea.width*scale) / 2 - 2.5 * scale
-        var uiItemY = node.rect.y + NodeGraph.bodyY * scale
-
+        // --- Draw UI, was parsed before
+        uiItemY = node.rect.y + NodeGraph.bodyY * scale
         for uiItem in node.uiItems {
-            uiItem.rect.x = uiItemX
-            uiItem.rect.y = uiItemY
-            
             uiItem.draw(mmView: app!.mmView, maxTitleSize: node.uiMaxTitleSize, maxWidth: node.uiMaxWidth, scale: scale)
-            uiItemY += uiItem.rect.height * scale
         }
         
         // --- Preview
@@ -1501,14 +1507,11 @@ class NodeGraph : Codable
                     printBehaviorOnlyText()
                 }
             } else
-            if let _ = previewNode as? Scene {
+            if let scene = previewNode as? Scene {
+                if scene.updateStatus != .Valid {
+                    scene.updatePreview(nodeGraph: self, hard: scene.updateStatus == .NeedsHardUpdate)
+                }
                 textures.append(sceneRenderer.fragment.texture)
-                /*
-                if let texture = layer.previewTexture {
-                    if layer.builderInstance != nil {
-                        textures.append(texture)
-                    }
-                }*/
             } else
             if let object = previewNode as? Object {
                 if let texture = object.previewTexture {
@@ -2849,7 +2852,7 @@ class NodeGraph : Codable
     }
     
     /// Deletes the given node
-    func deleteNode(_ node: Node)
+    func deleteNode(_ node: Node,_ undo: Bool = true)
     {
         let before = encodeJSON()
         
@@ -2879,21 +2882,26 @@ class NodeGraph : Codable
             }
         }
         
-        let after = encodeJSON()
-        globalStateUndo(oldState: before, newState: after)
+        if undo == true {
+            let after = encodeJSON()
+            globalStateUndo(oldState: before, newState: after, text: "Delete Node")
         
-        refList.update()
-        mmView.update()
+            refList.update()
+            mmView.update()
+        }
     }
     
     /// Performs a global undo / redo by saving / loading the whole project
-    func globalStateUndo(oldState: String, newState: String)
+    func globalStateUndo(oldState: String, newState: String, text: String? = nil)
     {
         func graphStatusChanged(_ oldState: String, _ newState: String)
         {
             mmView.undoManager!.registerUndo(withTarget: self) { target in
                 self.app?.loadFrom(oldState)
                 graphStatusChanged(newState, oldState)
+            }
+            if let undoText = text {
+                self.mmView.undoManager!.setActionName(undoText)
             }
         }
         
@@ -3008,7 +3016,7 @@ class NodeGraph : Codable
         return size
     }
     
-    /// Returns all nodes which contain a reference of this node (objects in layers, layers in scenes).
+    /// Returns all nodes which contain a reference of this node (objects in scenes).
     func getOccurencesOf(_ node: Node) -> [Node]
     {
         var scenes : [Node] = []

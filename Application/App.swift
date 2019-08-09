@@ -9,6 +9,9 @@
 import MetalKit
 //import CloudKit
 
+// Necessary for undo / redo situations
+var globalApp : App? = nil
+
 class App
 {
     var mmView          : MMView
@@ -135,6 +138,8 @@ class App
                 //print("Custom Field, deeplink: \(deeplink ?? "")")
             })
         }*/
+        
+        globalApp = self
     }
 
     func loadFrom(_ json: String)

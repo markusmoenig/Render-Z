@@ -29,6 +29,10 @@ class ObjectInstance : Codable
         uuid = UUID()
         self.objectUUID = objectUUID
         self.properties = properties
+        
+        self.properties["opacity"] = 1
+        self.properties["active"] = 1
+        self.properties["z-index"] = 0
     }
     
     required init(from decoder: Decoder) throws
@@ -38,6 +42,12 @@ class ObjectInstance : Codable
         uuid = try container.decode(UUID.self, forKey: .uuid)
         objectUUID = try container.decode(UUID.self, forKey: .objectUUID)
         properties = try container.decode([String:Float].self, forKey: .properties)
+        
+        if properties["opacity"] == nil {
+            properties["opacity"] = 1.0
+            properties["active"] = 1.0
+            properties["z-index"] = 0.0
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -52,6 +62,12 @@ class ObjectInstance : Codable
 
 class Scene : Node
 {
+    enum UpdateStatus {
+        case Valid, NeedsUpdate, NeedsHardUpdate
+    }
+    
+    var updateStatus    : UpdateStatus = .NeedsHardUpdate
+    
     var objectInstances : [ObjectInstance]
 
     /// The timeline sequences for this object
@@ -258,5 +274,7 @@ class Scene : Node
         if physicsInstance != nil {
             nodeGraph.physics.step(instance: physicsInstance!)
         }
+        
+        updateStatus = .Valid
     }
 }
