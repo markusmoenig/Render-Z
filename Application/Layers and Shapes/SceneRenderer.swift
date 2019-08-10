@@ -25,7 +25,6 @@ class SceneRenderer {
     
     func setup( nodeGraph: NodeGraph, instances: [Object] ) -> BuilderInstance?
     {
-        print("setup")
         self.instances = instances
         self.nodeGraph = nodeGraph
         
@@ -46,13 +45,11 @@ class SceneRenderer {
         }
         
         if fragment.encoderStart() {
-
-            for inst in instances {
-                
+            let sortedInstances = instances.sorted(by: { $0.properties["z-index"]! < $1.properties["z-index"]! })
+            for inst in sortedInstances {
                 updateInstance(width, height, inst, camera: camera)
                 fragment.encodeRun(inst.fragmentInstance!.fragmentState!, inBuffer: inst.fragmentInstance!.buffer, inTexture: mmView.openSans.atlas)
             }
-            
             fragment.encodeEnd()
         }
     }

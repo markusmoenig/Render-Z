@@ -29,6 +29,7 @@ class Gizmo : MMWidget
     var mode            : GizmoMode = .Normal
     var context         : GizmoContext = .ShapeEditor
     var materialType    : Object.MaterialType = .Body
+    var inSceneEditor   : Bool = false
 
     var hoverState      : GizmoState = .Inactive
     var dragState       : GizmoState = .Inactive
@@ -154,7 +155,7 @@ class Gizmo : MMWidget
     }
     
     // Set the object the gizmo will be working on
-    func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor, materialType: Object.MaterialType = .Body, customDelegate: NodeMaxDelegate? = nil)
+    func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor, materialType: Object.MaterialType = .Body, customDelegate: NodeMaxDelegate? = nil, inSceneEditor: Bool = false)
     {
         if self.object !== object {
             gizmoInfoArea.reset()
@@ -163,6 +164,7 @@ class Gizmo : MMWidget
         self.object = object
         self.context = context
         self.materialType = materialType
+        self.inSceneEditor = inSceneEditor
         
         if rootObject != nil {
             self.rootObject = rootObject
@@ -363,11 +365,20 @@ class Gizmo : MMWidget
             }
             
             gizmoNode.setupUI(mmView: mmView)
+        } else
+        if context == .ObjectEditor && inSceneEditor && self.object != nil {
+            gizmoNode.properties["z-index"] = self.object!.properties["z-index"]
+            gizmoNode.uiItems.append(
+                NodeUINumber(gizmoNode, variable: "z-index", title: "Z-Index", range: float2(-5, 5), int: true, value: 0.0)
+            )
+            gizmoNode.setupUI(mmView: mmView)
         }
     }
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if object == nil { return }
+
         #if os(OSX)
         if hoverUITitle != nil {
             hoverUITitle?.titleClicked()
@@ -1444,12 +1455,19 @@ class Gizmo : MMWidget
             // --- Render Bound Box
             
             let margin : Float = 70
-            gizmoRect.x = attributes["sizeMinX"]! - margin
-            gizmoRect.y = attributes["sizeMinY"]! - margin
-            gizmoRect.width = attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2 * margin
-            gizmoRect.height = attributes["sizeMaxY"]! - attributes["sizeMinY"]! + 2 * margin
+            if context == .ObjectEditor && inSceneEditor {
+                gizmoRect.x = screenSpace.x - 100
+                gizmoRect.y = screenSpace.y - 100
+                gizmoRect.width = 200
+                gizmoRect.height = 200
+            } else {
+                gizmoRect.x = attributes["sizeMinX"]! - margin
+                gizmoRect.y = attributes["sizeMinY"]! - margin
+                gizmoRect.width = attributes["sizeMaxX"]! - attributes["sizeMinX"]! + 2 * margin
+                gizmoRect.height = attributes["sizeMaxY"]! - attributes["sizeMinY"]! + 2 * margin
+            }
             
-            if context == .ShapeEditor {
+            if context == .ShapeEditor || (context == .ObjectEditor && inSceneEditor) {
                 mmView.drawBox.draw(x: gizmoRect.x, y: gizmoRect.y, width: gizmoRect.width, height: gizmoRect.height, round: 0, borderSize: 2, fillColor: float4(repeating: 0), borderColor: float4(0.5, 0.5, 0.5, 1))
             }
             
@@ -2565,7 +2583,14 @@ class GizmoNode : Node
                 gizmo!.processGizmoMaterialProperties(properties, material: material)
             }
             gizmo!.maxDelegate!.update(true, updateLists: true)
+        } else
+        if gizmo!.context == .ObjectEditor && gizmo!.inSceneEditor {
+            if let object = gizmo!.object {
+                object.properties[variable] = newValue
+                gizmo!.maxDelegate!.update(false, updateLists: false)
+            }
         }
+        
         if noUndo == false {
             super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
         }

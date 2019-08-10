@@ -82,7 +82,7 @@ class ObjectInstanceProps : Node
             }
         } else
         if variable == "y" {
-            let number = uiItems[1] as! NodeUINumber
+            let number = uiItems[2] as! NodeUINumber
             number.setValue(newValue)
             if let inst = uiConnections[0].target as? ObjectInstance {
                 inst.properties["posY"] = newValue
@@ -92,7 +92,7 @@ class ObjectInstanceProps : Node
             }
         } else
         if variable == "opacity" {
-            let number = uiItems[2] as! NodeUINumber
+            let number = uiItems[3] as! NodeUINumber
             number.setValue(newValue)
             if let inst = uiConnections[0].target as? ObjectInstance {
                 inst.properties["opacity"] = newValue

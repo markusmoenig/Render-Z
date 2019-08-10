@@ -54,7 +54,6 @@ class SceneMaxDelegate : NodeMaxDelegate {
     {
         self.app = app
         currentScene = app.nodeGraph.maximizedNode as? Scene
-        currentScene!.updateStatus = .NeedsHardUpdate
         
         // Top Region
         if objectsButton == nil {
@@ -108,19 +107,6 @@ class SceneMaxDelegate : NodeMaxDelegate {
             //sequenceWidget = SequenceWidget(app.mmView, app: app, delegate: self)
         }
         timeline.activate()
-
-        /*
-        sequenceWidget.listWidget.selectedItems = []//[currentObject!.sequences[0].uuid]
-        sequenceWidget.listWidget.selectionChanged = { (items:[MMListWidgetItem]) -> Void in
-            self.currentObject!.currentSequence = items[0] as? MMTlSequence
-            self.update()
-        }
-         
-        //timelineButton.addState( .Checked )
-        //app.bottomRegion!.rect.height = 100
-        
-        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, scrollArea, shapeListWidget, objectWidget.menuWidget, objectWidget.objectEditorWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, app.closeButton)
-        */
         
         app.mmView.registerWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList.menuWidget, objectList)
         
@@ -134,20 +120,22 @@ class SceneMaxDelegate : NodeMaxDelegate {
         if cameraProperties["prevMaxScale"] != nil {
             camera.zoom = cameraProperties["prevMaxScale"]!
         }
-        //update(true)
+        
+        //update()
+        updateGizmo()
     }
     
     override func deactivate()
     {
-//        timeline.deactivate()
+        timeline.deactivate()
         app.mmView.deregisterWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList.menuWidget, objectList)
-        currentScene!.updatePreview(nodeGraph: app.nodeGraph)
+        //currentScene!.updatePreview(nodeGraph: app.nodeGraph)
         
         for inst in currentScene!.objectInstances {
             inst.properties = inst.instance!.properties
         }
         
-        currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
+        currentScene!.updatePreview(nodeGraph: app.nodeGraph)
     }
     
     /// Called when the project changes (Undo / Redo)
@@ -186,13 +174,16 @@ class SceneMaxDelegate : NodeMaxDelegate {
             drawPattern(region)
             
             if let texture = app.nodeGraph.sceneRenderer.fragment.texture {
-                //if currentScene!.updateStatus != .Valid {
-                //    currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: currentScene!.updateStatus == .NeedsHardUpdate)
-               // }
-                if Float(texture.width) != region.rect.x || Float(texture.height) != region.rect.y {
-                    app.nodeGraph.sceneRenderer.render(width: region.rect.x, height: region.rect.y, camera: camera)
+                if currentScene!.updateStatus != .Valid {
+                    update(currentScene!.updateStatus == .NeedsHardUpdate)
+                    currentScene!.updateStatus = .Valid
                 }
-                app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
+                if Float(texture.width) != region.rect.width || Float(texture.height) != region.rect.height {
+                    app.nodeGraph.sceneRenderer.render(width: region.rect.width, height: region.rect.height, camera: camera)
+                    app.nodeGraph.mmView.update()
+                } else {
+                    app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
+                }
             }
             
             /*
@@ -413,26 +404,20 @@ class SceneMaxDelegate : NodeMaxDelegate {
     func updateGizmo()
     {
         let object = getCurrentObject()
-        app.gizmo.setObject(object, context: .ObjectEditor)
+        app.gizmo.setObject(object, context: .ObjectEditor, inSceneEditor: true)
     }
     
     /// Updates the preview. hard does a rebuild, otherwise just a render
     override func update(_ hard: Bool = false, updateLists: Bool = false)
     {
-        //currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: hard)
-        ///updateGizmo()
-        /*
-        if hard {
-            let objects = currentScene!.createInstances(nodeGraph: app.nodeGraph)
-            
-            currentScene!.builderInstance = app.nodeGraph.builder.buildObjects(objects: objects, camera: camera)
+        if hard == true {
+            let instances = currentScene!.createInstances(nodeGraph: app.nodeGraph)
+            currentScene!.builderInstance = app.nodeGraph.sceneRenderer.setup(nodeGraph: app.nodeGraph, instances: instances)
             updateGizmo()
-        } else {
-            let region = app.editorRegion!
-            if currentScene!.builderInstance != nil {
-                app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: currentScene!.builderInstance!, camera: camera)
-            }
-        }*/
+        }
+            
+        let region = app.editorRegion!
+        app.nodeGraph.sceneRenderer.render(width: region.rect.width, height: region.rect.height, camera: camera)
         
         if updateLists {
             objectList.rebuildList()
@@ -679,6 +664,7 @@ class ObjectList : MMWidget
                 }
             }
         }
+        listWidget.selectedItems = delegate.currentScene!.selectedObjects
         listWidget.build(items: items, fixedWidth: 300, supportsUpDown: false, supportsClose: true)
         mmView.update()
     }

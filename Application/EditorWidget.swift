@@ -424,7 +424,7 @@ class EditorWidget      : MMWidget
         } else
         if dragSource.id == "AvailableObjectItem"
         {
-            // Layer editor, available object drag to editor
+            // Scene editor, available object drag to editor
             
             let drag = dragSource as! AvailableObjectListItemDrag
             let node = drag.node!
@@ -470,7 +470,7 @@ class EditorWidget      : MMWidget
                     let sceneDelegate = app.nodeGraph.maximizedNode!.maxDelegate as! SceneMaxDelegate
                     sceneDelegate.objectList!.rebuildList()
                     currentScene.selectedObjects = [instance.uuid]
-                    currentScene.maxDelegate?.update(true)
+                    currentScene.maxDelegate?.update(true, updateLists: true)
                     
                     func instanceStatusChanged(_ instance: ObjectInstance)
                     {
