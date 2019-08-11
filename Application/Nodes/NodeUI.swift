@@ -282,6 +282,17 @@ class NodeUISelector : NodeUI
         index = node.properties[variable]!
     }
     
+    func getValue() -> Float
+    {
+        return node.properties[variable]!
+    }
+    
+    func setValue(_ value: Float)
+    {
+        self.index = value
+        node.properties[variable] = value
+    }
+    
     func startScrolling()
     {
         let index : Int = Int(self.index)

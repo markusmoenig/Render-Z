@@ -47,8 +47,10 @@ class SceneRenderer {
         if fragment.encoderStart() {
             let sortedInstances = instances.sorted(by: { $0.properties["z-index"]! < $1.properties["z-index"]! })
             for inst in sortedInstances {
-                updateInstance(width, height, inst, camera: camera)
-                fragment.encodeRun(inst.fragmentInstance!.fragmentState!, inBuffer: inst.fragmentInstance!.buffer, inTexture: mmView.openSans.atlas)
+                if inst.properties["active"] == 1 {
+                    updateInstance(width, height, inst, camera: camera)
+                    fragment.encodeRun(inst.fragmentInstance!.fragmentState!, inBuffer: inst.fragmentInstance!.buffer, inTexture: mmView.openSans.atlas)
+                }
             }
             fragment.encodeEnd()
         }

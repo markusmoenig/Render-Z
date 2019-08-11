@@ -228,13 +228,14 @@ class Node : Codable, Equatable
         func applyProperties(_ uuid: UUID, _ variable: String,_ old: Float,_ new: Float)
         {
             nodeGraph!.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                let node = globalApp!.nodeGraph.getNodeForUUID(uuid)!
-                node.properties[variable] = new
-                
-                applyProperties(uuid, variable, new, old)
-                node.updateUI(mmView: node.nodeGraph!.mmView)
-                node.variableChanged(variable: variable, oldValue: old, newValue: new, continuous: false, noUndo: true)
-                globalApp!.nodeGraph.mmView.update()
+                if let node = globalApp!.nodeGraph.getNodeForUUID(uuid) {
+                    node.properties[variable] = new
+                    
+                    applyProperties(uuid, variable, new, old)
+                    node.updateUI(mmView: node.nodeGraph!.mmView)
+                    node.variableChanged(variable: variable, oldValue: old, newValue: new, continuous: false, noUndo: true)
+                    globalApp!.nodeGraph.mmView.update()
+                }
             }
             nodeGraph!.mmView.undoManager!.setActionName("Node Property Changed")
         }

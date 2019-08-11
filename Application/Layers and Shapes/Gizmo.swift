@@ -367,9 +367,17 @@ class Gizmo : MMWidget
             gizmoNode.setupUI(mmView: mmView)
         } else
         if context == .ObjectEditor && inSceneEditor && self.object != nil {
+            gizmoNode.properties["opacity"] = self.object!.properties["opacity"]
+            gizmoNode.uiItems.append(
+                NodeUINumber(gizmoNode, variable: "opacity", title: "Opacity", range: float2(0, 1), value: 1.0)
+            )
             gizmoNode.properties["z-index"] = self.object!.properties["z-index"]
             gizmoNode.uiItems.append(
                 NodeUINumber(gizmoNode, variable: "z-index", title: "Z-Index", range: float2(-5, 5), int: true, value: 0.0)
+            )
+            gizmoNode.properties["active"] = self.object!.properties["active"]
+            gizmoNode.uiItems.append(
+                NodeUISelector(gizmoNode, variable: "active", title: "Active", items: ["No", "Yes"], index: 1)
             )
             gizmoNode.setupUI(mmView: mmView)
         }
@@ -583,7 +591,7 @@ class Gizmo : MMWidget
         // --- Gizmo Action
         if hoverState != .Inactive {
             mmView.mouseTrackWidget = self
-            dragState = hoverState
+            dragState = hoverState != .GizmoUIMouseLocked ? hoverState : .Inactive
             mmView.lockFramerate()
             
             dragStartOffset = convertToSceneSpace(x: event.x, y: event.y)
@@ -782,12 +790,9 @@ class Gizmo : MMWidget
                 }
             }
         } else
-        if object != nil && context == .ObjectEditor {
-
+        if object != nil && context == .ObjectEditor && dragState != .Inactive {
             if !isRecording() {
-
                 if objects.count == 1 && !NSDictionary(dictionary: object!.properties).isEqual(to: undoProperties) {
-                    
                     func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
                     {
                         mmView.undoManager!.registerUndo(withTarget: self) { target in
@@ -805,8 +810,8 @@ class Gizmo : MMWidget
                             }
                             
                             applyProperties(object, new, old)
+                            self.app.updateObjectPreview(self.rootObject!)
                         }
-                        app.updateObjectPreview(rootObject!)
                         mmView.update()
                     }
                     
@@ -2592,7 +2597,7 @@ class GizmoNode : Node
         }
         
         if noUndo == false {
-            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+            //super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
         }
     }
 }

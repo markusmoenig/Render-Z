@@ -36,6 +36,8 @@ class ObjectInstanceProps : Node
             NodeUINumber(self, variable: "position", title: "X", range: nil, value: 0),
             NodeUINumber(self, variable: "y", title: "Y", range: nil, value: 0),
             NodeUINumber(self, variable: "opacity", title: "Opacity", range: float2(0, 1), value: 1),
+            NodeUINumber(self, variable: "z-index", title: "Z-Index", range: float2(-5, 5), int: true, value: 0),
+            NodeUISelector(self, variable: "active", title: "Active", items: ["No", "Yes"], index: 1),
         ]
         
         super.setupUI(mmView: mmView)
@@ -45,7 +47,9 @@ class ObjectInstanceProps : Node
     {
         terminals = [
             Terminal(name: "position", connector: .Right, brand: .Float2Variable, node: self),
-            Terminal(name: "opacity", connector: .Right, brand: .FloatVariable, node: self)
+            Terminal(name: "opacity", connector: .Right, brand: .FloatVariable, node: self),
+            Terminal(name: "z-index", connector: .Right, brand: .FloatVariable, node: self),
+            Terminal(name: "active", connector: .Right, brand: .FloatVariable, node: self)
         ]
     }
     
@@ -100,6 +104,26 @@ class ObjectInstanceProps : Node
                     object.properties["opacity"] = newValue
                 }
             }
+        } else
+        if variable == "z-index" {
+            let number = uiItems[4] as! NodeUINumber
+            number.setValue(newValue)
+            if let inst = uiConnections[0].target as? ObjectInstance {
+                inst.properties["z-index"] = newValue
+                if let object = inst.instance {
+                    object.properties["z-index"] = newValue
+                }
+            }
+        } else
+        if variable == "active" {
+            let selector = uiItems[5] as! NodeUISelector
+            selector.setValue(newValue)
+            if let inst = uiConnections[0].target as? ObjectInstance {
+                inst.properties["active"] = newValue
+                if let object = inst.instance {
+                    object.properties["active"] = newValue
+                }
+            }
         }
         
         // Update scene
@@ -147,6 +171,38 @@ class ObjectInstanceProps : Node
                         setInternalOpacity(inst.properties["opacity"]!)
                     }
                 }
+            } else
+            if terminal.name == "z-index" {
+                
+                if terminal.connections.count == 0 {
+                    // Not connected, adjust my own vars
+                    setInternalZIndex(inst.properties["z-index"]!)
+                } else
+                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                    if let object = inst.instance {
+                        variable.setValue(object.properties["z-index"]!, adjustBinding: false)
+                        setInternalZIndex(object.properties["z-index"]!)
+                    } else {
+                        variable.setValue(inst.properties["z-index"]!, adjustBinding: false)
+                        setInternalZIndex(inst.properties["z-index"]!)
+                    }
+                }
+            } else
+            if terminal.name == "active" {
+                
+                if terminal.connections.count == 0 {
+                    // Not connected, adjust my own vars
+                    setInternalActive(inst.properties["active"]!)
+                } else
+                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                    if let object = inst.instance {
+                        variable.setValue(object.properties["active"]!, adjustBinding: false)
+                        setInternalActive(object.properties["active"]!)
+                    } else {
+                        variable.setValue(inst.properties["active"]!, adjustBinding: false)
+                        setInternalActive(inst.properties["active"]!)
+                    }
+                }
             }
         }
     }
@@ -167,8 +223,7 @@ class ObjectInstanceProps : Node
                         inst.properties["posY"] = value.y
                     }
                 }
-            }
-            
+            } else
             if terminal.name == "opacity" {
                 if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
                     let value = variable.getValue()
@@ -178,6 +233,30 @@ class ObjectInstanceProps : Node
                         object.properties["opacity"] = value
                     } else {
                         inst.properties["opacity"] = value
+                    }
+                }
+            } else
+            if terminal.name == "z-index" {
+                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                    let value = variable.getValue()
+                    
+                    setInternalZIndex(value)
+                    if let object = inst.instance {
+                        object.properties["z-index"] = value
+                    } else {
+                        inst.properties["z-index"] = value
+                    }
+                }
+            } else
+            if terminal.name == "active" {
+                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                    let value = variable.getValue()
+                    
+                    setInternalActive(value)
+                    if let object = inst.instance {
+                        object.properties["active"] = value
+                    } else {
+                        inst.properties["active"] = value
                     }
                 }
             }
@@ -205,6 +284,22 @@ class ObjectInstanceProps : Node
     {
         if let item = uiItems[3] as? NodeUINumber {
             item.value = opacity
+        }
+    }
+    
+    // Adjusts the internal z-index
+    func setInternalZIndex(_ zIndex: Float)
+    {
+        if let item = uiItems[4] as? NodeUINumber {
+            item.value = zIndex
+        }
+    }
+    
+    // Adjusts the internal z-index
+    func setInternalActive(_ active: Float)
+    {
+        if let item = uiItems[5] as? NodeUISelector {
+            item.index = active
         }
     }
     

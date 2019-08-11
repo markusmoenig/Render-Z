@@ -517,6 +517,7 @@ class NodeGraph : Codable
             scenesButton.addState(.Checked)
             if !overviewIsOn {
                 self.contentType = .Scenes
+                self.editButton.setText( "Arrange..." )
                 updateContent(self.contentType)
                 nodeList!.switchTo(.Scene)
             } else {
@@ -1376,12 +1377,24 @@ class NodeGraph : Codable
                 
                 terminal.posX = node.rect.width - NodeGraph.tRightY * scale + NodeGraph.tDiam * scale
                 terminal.posY = uiItem.rect.y - node.rect.y + titleHeaderHeight + (uiItem.rect.height * scale - titleHeaderHeight - NodeUI.itemSpacing * scale) / 2
-
+                
                 if rightTerminalCount == 0 {
                     node.data.rightTerminals.0 = float4( color.x, color.y, color.z, terminal.posY)
                 } else
                 if rightTerminalCount == 1 {
                     node.data.rightTerminals.1 = float4( color.x, color.y, color.z, terminal.posY)
+                }
+                if rightTerminalCount == 2 {
+                    node.data.rightTerminals.2 = float4( color.x, color.y, color.z, terminal.posY)
+                }
+                if rightTerminalCount == 3 {
+                    node.data.rightTerminals.3 = float4( color.x, color.y, color.z, terminal.posY)
+                }
+                if rightTerminalCount == 4 {
+                    node.data.rightTerminals.4 = float4( color.x, color.y, color.z, terminal.posY)
+                }
+                if rightTerminalCount == 5 {
+                    node.data.rightTerminals.5 = float4( color.x, color.y, color.z, terminal.posY)
                 }
                 rightTerminalCount += 1
             } else
