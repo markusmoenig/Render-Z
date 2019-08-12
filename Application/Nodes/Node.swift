@@ -246,6 +246,31 @@ class Node : Codable, Equatable
         self.updateUIState(mmView: self.nodeGraph!.mmView)
     }
     
+    func variableChanged(variable: String, oldValue: float3, newValue: float3, continuous: Bool = false, noUndo: Bool = false)
+    {
+        func applyProperties(_ uuid: UUID, _ variable: String,_ old: float3,_ new: float3)
+        {
+            nodeGraph!.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                if let node = globalApp!.nodeGraph.getNodeForUUID(uuid) {
+                    node.properties[variable + "_x"] = new.x
+                    node.properties[variable + "_y"] = new.y
+                    node.properties[variable + "_z"] = new.z
+
+                    applyProperties(uuid, variable, new, old)
+                    node.updateUI(mmView: node.nodeGraph!.mmView)
+                    node.variableChanged(variable: variable, oldValue: old, newValue: new, continuous: false, noUndo: true)
+                    globalApp!.nodeGraph.mmView.update()
+                }
+            }
+            nodeGraph!.mmView.undoManager!.setActionName("Node Property Changed")
+        }
+        
+        if continuous == false {
+            applyProperties(self.uuid, variable, newValue, oldValue)
+        }
+        self.updateUIState(mmView: self.nodeGraph!.mmView)
+    }
+    
     /// Executes the connected properties
     func executeProperties(_ nodeGraph: NodeGraph)
     {
@@ -293,6 +318,8 @@ class UINodeConnection: Codable
     var masterNode          : Node? = nil
     var target              : Any? = nil
     var targetName          : String? = nil
+    
+    var targets             : [Any] = []
 
     var nodeGraph           : NodeGraph? = nil
     

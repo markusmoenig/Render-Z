@@ -55,17 +55,6 @@ class ObjectInstanceProps : Node
     
     override func updateUIState(mmView: MMView)
     {
-        
-        /*
-        let mode = properties["physicsMode"]!
-        let collisions = properties["physicsCollisions"]!
-        
-        uiItems[1].isDisabled = mode == 0 || mode == 1
-        uiItems[2].isDisabled = mode == 0 /*|| mode == 1*/ || collisions == 1
-        uiItems[3].isDisabled = mode == 0 || collisions == 1
-        uiItems[4].isDisabled = mode == 0 || mode == 1 || collisions == 1
-        uiItems[5].isDisabled = mode == 0 || mode == 1*/
-        
         uiItems[2].isDisabled = terminals[0].connections.count > 0
         
         super.updateUIState(mmView: mmView)
@@ -78,50 +67,60 @@ class ObjectInstanceProps : Node
         if variable == "position" {
             let number = uiItems[1] as! NodeUINumber
             number.setValue(newValue)
-            if let inst = uiConnections[0].target as? ObjectInstance {
-                inst.properties["posX"] = newValue
-                if let object = inst.instance {
-                    object.properties["posX"] = newValue
+            for target in uiConnections[0].targets {
+                if let inst = target as? ObjectInstance {
+                    inst.properties["posX"] = newValue
+                    if let object = inst.instance {
+                        object.properties["posX"] = newValue
+                    }
                 }
             }
         } else
         if variable == "y" {
             let number = uiItems[2] as! NodeUINumber
             number.setValue(newValue)
-            if let inst = uiConnections[0].target as? ObjectInstance {
-                inst.properties["posY"] = newValue
-                if let object = inst.instance {
-                    object.properties["posY"] = newValue
+            for target in uiConnections[0].targets {
+                if let inst = target as? ObjectInstance {
+                    inst.properties["posY"] = newValue
+                    if let object = inst.instance {
+                        object.properties["posY"] = newValue
+                    }
                 }
             }
         } else
         if variable == "opacity" {
             let number = uiItems[3] as! NodeUINumber
             number.setValue(newValue)
-            if let inst = uiConnections[0].target as? ObjectInstance {
-                inst.properties["opacity"] = newValue
-                if let object = inst.instance {
-                    object.properties["opacity"] = newValue
+            for target in uiConnections[0].targets {
+                if let inst = target as? ObjectInstance {
+                    inst.properties["opacity"] = newValue
+                    if let object = inst.instance {
+                        object.properties["opacity"] = newValue
+                    }
                 }
             }
         } else
         if variable == "z-index" {
             let number = uiItems[4] as! NodeUINumber
             number.setValue(newValue)
-            if let inst = uiConnections[0].target as? ObjectInstance {
-                inst.properties["z-index"] = newValue
-                if let object = inst.instance {
-                    object.properties["z-index"] = newValue
+            for target in uiConnections[0].targets {
+                if let inst = target as? ObjectInstance {
+                    inst.properties["z-index"] = newValue
+                    if let object = inst.instance {
+                        object.properties["z-index"] = newValue
+                    }
                 }
             }
         } else
         if variable == "active" {
             let selector = uiItems[5] as! NodeUISelector
             selector.setValue(newValue)
-            if let inst = uiConnections[0].target as? ObjectInstance {
-                inst.properties["active"] = newValue
-                if let object = inst.instance {
-                    object.properties["active"] = newValue
+            for target in uiConnections[0].targets {
+                if let inst = target as? ObjectInstance {
+                    inst.properties["active"] = newValue
+                    if let object = inst.instance {
+                        object.properties["active"] = newValue
+                    }
                 }
             }
         }
@@ -138,69 +137,71 @@ class ObjectInstanceProps : Node
     
     override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
-        if let inst = uiConnections[0].target as? ObjectInstance {
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
 
-            if terminal.name == "position" {
-                
-                if terminal.connections.count == 0 {
-                    // Not connected, adjust my own vars
-                    setInternalPos(float2(inst.properties["posX"]!, inst.properties["posY"]!))
-                } else
-                if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
-                    if let object = inst.instance {
-                        variable.setValue(float2(object.properties["posX"]!, object.properties["posY"]!), adjustBinding: false)
-                        setInternalPos(float2(object.properties["posX"]!, object.properties["posY"]!))
-                    } else {
-                        variable.setValue(float2(inst.properties["posX"]!, inst.properties["posY"]!), adjustBinding: false)
+                if terminal.name == "position" {
+                    
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
                         setInternalPos(float2(inst.properties["posX"]!, inst.properties["posY"]!))
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                        if let object = inst.instance {
+                            variable.setValue(float2(object.properties["posX"]!, object.properties["posY"]!), adjustBinding: false)
+                            setInternalPos(float2(object.properties["posX"]!, object.properties["posY"]!))
+                        } else {
+                            variable.setValue(float2(inst.properties["posX"]!, inst.properties["posY"]!), adjustBinding: false)
+                            setInternalPos(float2(inst.properties["posX"]!, inst.properties["posY"]!))
+                        }
                     }
-                }
-            } else
-            if terminal.name == "opacity" {
-                
-                if terminal.connections.count == 0 {
-                    // Not connected, adjust my own vars
-                    setInternalOpacity(inst.properties["opacity"]!)
                 } else
-                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
-                    if let object = inst.instance {
-                        variable.setValue(object.properties["opacity"]!, adjustBinding: false)
-                        setInternalOpacity(object.properties["opacity"]!)
-                    } else {
-                        variable.setValue(inst.properties["opacity"]!, adjustBinding: false)
+                if terminal.name == "opacity" {
+                    
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
                         setInternalOpacity(inst.properties["opacity"]!)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["opacity"]!, adjustBinding: false)
+                            setInternalOpacity(object.properties["opacity"]!)
+                        } else {
+                            variable.setValue(inst.properties["opacity"]!, adjustBinding: false)
+                            setInternalOpacity(inst.properties["opacity"]!)
+                        }
                     }
-                }
-            } else
-            if terminal.name == "z-index" {
-                
-                if terminal.connections.count == 0 {
-                    // Not connected, adjust my own vars
-                    setInternalZIndex(inst.properties["z-index"]!)
                 } else
-                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
-                    if let object = inst.instance {
-                        variable.setValue(object.properties["z-index"]!, adjustBinding: false)
-                        setInternalZIndex(object.properties["z-index"]!)
-                    } else {
-                        variable.setValue(inst.properties["z-index"]!, adjustBinding: false)
+                if terminal.name == "z-index" {
+                    
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
                         setInternalZIndex(inst.properties["z-index"]!)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["z-index"]!, adjustBinding: false)
+                            setInternalZIndex(object.properties["z-index"]!)
+                        } else {
+                            variable.setValue(inst.properties["z-index"]!, adjustBinding: false)
+                            setInternalZIndex(inst.properties["z-index"]!)
+                        }
                     }
-                }
-            } else
-            if terminal.name == "active" {
-                
-                if terminal.connections.count == 0 {
-                    // Not connected, adjust my own vars
-                    setInternalActive(inst.properties["active"]!)
                 } else
-                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
-                    if let object = inst.instance {
-                        variable.setValue(object.properties["active"]!, adjustBinding: false)
-                        setInternalActive(object.properties["active"]!)
-                    } else {
-                        variable.setValue(inst.properties["active"]!, adjustBinding: false)
+                if terminal.name == "active" {
+                    
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
                         setInternalActive(inst.properties["active"]!)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["active"]!, adjustBinding: false)
+                            setInternalActive(object.properties["active"]!)
+                        } else {
+                            variable.setValue(inst.properties["active"]!, adjustBinding: false)
+                            setInternalActive(inst.properties["active"]!)
+                        }
                     }
                 }
             }
@@ -209,54 +210,56 @@ class ObjectInstanceProps : Node
     
     override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
-        if let inst = uiConnections[0].target as? ObjectInstance {
-            if terminal.name == "position" {
-                if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
-                    let value = variable.getValue()
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
+                if terminal.name == "position" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                        let value = variable.getValue()
 
-                    setInternalPos(value)
-                    if let object = inst.instance {
-                        object.properties["posX"] = value.x
-                        object.properties["posY"] = value.y
-                    } else {
-                        inst.properties["posX"] = value.x
-                        inst.properties["posY"] = value.y
+                        setInternalPos(value)
+                        if let object = inst.instance {
+                            object.properties["posX"] = value.x
+                            object.properties["posY"] = value.y
+                        } else {
+                            inst.properties["posX"] = value.x
+                            inst.properties["posY"] = value.y
+                        }
                     }
-                }
-            } else
-            if terminal.name == "opacity" {
-                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
-                    let value = variable.getValue()
-                    
-                    setInternalOpacity(value)
-                    if let object = inst.instance {
-                        object.properties["opacity"] = value
-                    } else {
-                        inst.properties["opacity"] = value
+                } else
+                if terminal.name == "opacity" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        let value = variable.getValue()
+                        
+                        setInternalOpacity(value)
+                        if let object = inst.instance {
+                            object.properties["opacity"] = value
+                        } else {
+                            inst.properties["opacity"] = value
+                        }
                     }
-                }
-            } else
-            if terminal.name == "z-index" {
-                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
-                    let value = variable.getValue()
-                    
-                    setInternalZIndex(value)
-                    if let object = inst.instance {
-                        object.properties["z-index"] = value
-                    } else {
-                        inst.properties["z-index"] = value
+                } else
+                if terminal.name == "z-index" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        let value = variable.getValue()
+                        
+                        setInternalZIndex(value)
+                        if let object = inst.instance {
+                            object.properties["z-index"] = value
+                        } else {
+                            inst.properties["z-index"] = value
+                        }
                     }
-                }
-            } else
-            if terminal.name == "active" {
-                if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
-                    let value = variable.getValue()
-                    
-                    setInternalActive(value)
-                    if let object = inst.instance {
-                        object.properties["active"] = value
-                    } else {
-                        inst.properties["active"] = value
+                } else
+                if terminal.name == "active" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        let value = variable.getValue()
+                        
+                        setInternalActive(value)
+                        if let object = inst.instance {
+                            object.properties["active"] = value
+                        } else {
+                            inst.properties["active"] = value
+                        }
                     }
                 }
             }
@@ -337,7 +340,7 @@ class ObjectInstanceProps : Node
             return .Success
         }
         */
-        return .Failure
+        return .Success
     }
 }
 
@@ -431,6 +434,7 @@ class ObjectGlow : Node
     {
         super.init()
         name = "Glow Effect"
+        uiConnections.append(UINodeConnection(.ObjectInstance))
     }
     
     override func setup()
@@ -446,7 +450,8 @@ class ObjectGlow : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUISelector(self, variable: "glowMode", title: "Mode", items: ["Off", "On"], index: 1),
+            NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
+            NodeUISelector(self, variable: "glowMode", title: "Mode", items: ["Off", "On"], index: 0),
             NodeUIColor(self, variable: "glowColor", title: "Color", value: float3(1,1,1)),
             NodeUINumber(self, variable: "glowOpacity", title: "Opacity", range: float2(0, 1), value: 1),
             NodeUINumber(self, variable: "glowSize", title: "Size", range: float2(0, 50), value: 10),
@@ -455,13 +460,22 @@ class ObjectGlow : Node
         super.setupUI(mmView: mmView)
     }
     
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "glowColor", connector: .Right, brand: .Float2Variable, node: self),
+            Terminal(name: "glowOpacity", connector: .Right, brand: .FloatVariable, node: self),
+            Terminal(name: "glowSize", connector: .Right, brand: .FloatVariable, node: self)
+        ]
+    }
+    
     override func updateUIState(mmView: MMView)
     {
         let mode = properties["glowMode"]!
         
-        uiItems[1].isDisabled = mode == 0
         uiItems[2].isDisabled = mode == 0
         uiItems[3].isDisabled = mode == 0
+        uiItems[4].isDisabled = mode == 0
         
         super.updateUIState(mmView: mmView)
     }
@@ -484,9 +498,206 @@ class ObjectGlow : Node
         try super.encode(to: superdecoder)
     }
     
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
+    {
+        //print("objectNodes variableChanged", oldValue, newValue)
+        if variable == "glowMode" {
+            let number = uiItems[1] as! NodeUISelector
+            number.setValue(newValue)
+            for target in uiConnections[0].targets {
+                if let inst = target as? ObjectInstance {
+                    inst.properties["glowMode"] = newValue
+                    if let object = inst.instance {
+                        object.properties["glowMode"] = newValue
+                    }
+                }
+            }
+        } else
+        if variable == "glowOpacity" {
+            let number = uiItems[3] as! NodeUINumber
+            number.setValue(newValue)
+            for target in uiConnections[0].targets {
+                if let inst = target as? ObjectInstance {
+                    inst.properties["glowOpacity"] = newValue
+                    if let object = inst.instance {
+                        object.properties["glowOpacity"] = newValue
+                    }
+                }
+            }
+        } else
+        if variable == "glowSize" {
+            let number = uiItems[4] as! NodeUINumber
+            number.setValue(newValue)
+            for target in uiConnections[0].targets {
+                if let inst = target as? ObjectInstance {
+                    inst.properties["glowSize"] = newValue
+                    if let object = inst.instance {
+                        object.properties["glowSize"] = newValue
+                    }
+                }
+            }
+        }
+        
+        // Update scene
+        if let scene = uiConnections[0].masterNode as? Scene {
+            scene.updateStatus = variable == "glowMode" ? .NeedsHardUpdate : .NeedsUpdate
+        }
+        
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
+    /// A UI Variable changed: float3
+    override func variableChanged(variable: String, oldValue: float3, newValue: float3, continuous: Bool = false, noUndo: Bool = false)
+    {
+        if variable == "glowColor" {
+            let color = uiItems[2] as! NodeUIColor
+            color.setValue(newValue)
+            for target in uiConnections[0].targets {
+                if let inst = target as? ObjectInstance {
+                    inst.properties["glowColor_x"] = newValue.x
+                    inst.properties["glowColor_y"] = newValue.y
+                    inst.properties["glowColor_z"] = newValue.z
+                    if let object = inst.instance {
+                        object.properties["glowColor_x"] = newValue.x
+                        object.properties["glowColor_y"] = newValue.y
+                        object.properties["glowColor_z"] = newValue.z
+                    }
+                }
+            }
+        }
+        
+        // Update scene
+        if let scene = uiConnections[0].masterNode as? Scene {
+            scene.updateStatus = .NeedsUpdate
+        }
+        
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
+    override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
+                
+                if terminal.name == "glowOpacity" {
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
+                        if inst.properties["glowOpacity"] == nil { inst.properties["glowOpacity"] = properties["glowOpacity"] }
+                        setInternalGlowOpacity(inst.properties["glowOpacity"]!)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["glowOpacity"]!, adjustBinding: false)
+                            setInternalGlowOpacity(object.properties["glowOpacity"]!)
+                        } else {
+                            variable.setValue(inst.properties["glowOpacity"]!, adjustBinding: false)
+                            setInternalGlowOpacity(inst.properties["glowOpacity"]!)
+                        }
+                    }
+                }
+                
+                if terminal.name == "glowColor" {
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
+                        if inst.properties["glowColor_x"] == nil {
+                            inst.properties["glowColor_x"] = properties["glowColor_x"]
+                            inst.properties["glowColor_y"] = properties["glowColor_y"]
+                            inst.properties["glowColor_z"] = properties["glowColor_z"]
+                        }
+                        setInternalGlowColor(inst.properties)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["glowSize"]!, adjustBinding: false)
+                            setInternalGlowSize(object.properties["glowSize"]!)
+                        } else {
+                            variable.setValue(inst.properties["glowSize"]!, adjustBinding: false)
+                            setInternalGlowSize(inst.properties["glowSize"]!)
+                        }
+                    }
+                }
+                
+                if terminal.name == "glowSize" {
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
+                        if inst.properties["glowSize"] == nil { inst.properties["glowSize"] = properties["glowSize"] }
+                        setInternalGlowSize(inst.properties["glowSize"]!)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["glowSize"]!, adjustBinding: false)
+                            setInternalGlowSize(object.properties["glowSize"]!)
+                        } else {
+                            variable.setValue(inst.properties["glowSize"]!, adjustBinding: false)
+                            setInternalGlowSize(inst.properties["glowSize"]!)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
+                if terminal.name == "glowOpacity" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        let value = variable.getValue()
+                        
+                        setInternalGlowOpacity(value)
+                        if let object = inst.instance {
+                            object.properties["glowOpacity"] = value
+                        } else {
+                            inst.properties["glowOpacity"] = value
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Update scene
+        if let scene = uiConnections[0].masterNode as? Scene {
+            scene.updateStatus = .NeedsUpdate
+        }
+    }
+    
+    // Adjusts the glow color
+    func setInternalGlowColor(_ props: [String:Float])
+    {
+        if let item = uiItems[2] as? NodeUIColor {
+            item.value = float3(props["glowColor_x"]!, props["glowColor_y"]!, props["glowColor_z"]!)
+            if let widget = item.colorWidget {
+                widget.setValue(color: item.value)
+            }
+        }
+    }
+    
+    // Adjusts the internal glow opacity
+    func setInternalGlowOpacity(_ mode: Float)
+    {
+        if let item = uiItems[3] as? NodeUINumber {
+            item.value = mode
+        }
+    }
+    
+    // Adjusts the glow size
+    func setInternalGlowSize(_ mode: Float)
+    {
+        if let item = uiItems[4] as? NodeUINumber {
+            item.value = mode
+        }
+    }
+    
     /// Execute Object physic properties
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
+        /*
         if let object = root.objectRoot {
             let value = properties["glowMode"]!
             object.properties["glowMode"] = value
@@ -497,20 +708,8 @@ class ObjectGlow : Node
             object.properties["glowOpacity"] = properties["glowOpacity"]!
             
             return .Success
-        }
-        return .Failure
-    }
-    
-    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
-    {
-        if let master = nodeGraph?.currentMaster as? Object {
-            master.updatePreview(nodeGraph: nodeGraph!, hard: true)//variable == "glowMode" )
-            nodeGraph?.mmView.update()
-        }
-        
-        if noUndo == false {
-            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
-        }
+        }*/
+        return .Success
     }
 }
 

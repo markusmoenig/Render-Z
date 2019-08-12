@@ -1035,9 +1035,9 @@ class Builder
             if let glowSize = object.properties["glowSize"] {
                 instance.data![instance.objectDataOffset + (objectIndex) * 12 + 7] = glowSize
 
-                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 8] = object.properties["glowColor_r"]!
-                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 9] = object.properties["glowColor_g"]!
-                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 10] = object.properties["glowColor_b"]!
+                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 8] = object.properties["glowColor_x"]!
+                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 9] = object.properties["glowColor_y"]!
+                instance.data![instance.objectDataOffset + (objectIndex) * 12 + 10] = object.properties["glowColor_z"]!
                 instance.data![instance.objectDataOffset + (objectIndex) * 12 + 11] = object.properties["glowOpacity"]!
             }
 

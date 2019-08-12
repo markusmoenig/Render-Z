@@ -543,6 +543,8 @@ class NodeUIDropTarget : NodeUI
     
     var contentLabel: MMTextLabel!
     
+    var supportsAll : Bool = false
+    
     init(_ node: Node, variable: String, title: String, targetID: String)
     {
         self.targetID = targetID
@@ -652,6 +654,7 @@ class NodeUIObjectInstanceTarget : NodeUIDropTarget
         uiConnection = connection
         uiConnection.uiTarget = self
         role = .ObjectInstanceTarget
+        supportsAll = true
     }
 }
 
@@ -1247,7 +1250,7 @@ class NodeUIColor : NodeUI
     
         super.init(node, brand: .Number, variable: variable, title: title)
 
-        if node.properties[variable + "_r"] == nil {
+        if node.properties[variable + "_x"] == nil {
             setValue(value)
         } else {
             self.value = getValue()
@@ -1264,10 +1267,13 @@ class NodeUIColor : NodeUI
         if colorWidget == nil {
             colorWidget = MMColorWidget(mmView, value: value)
             colorWidget?.changed = { (val, cont) in
-                self.setValue(val)
-                
+                self.value = val
+
                 if !cont {
-                    self.node.variableChanged(variable: self.variable, oldValue: 0, newValue: 1)
+                    let oldValue = self.getValue()
+                    self.setValue(val)
+
+                    self.node.variableChanged(variable: self.variable, oldValue: oldValue, newValue: self.getValue())
                     mmView.update()
                 }
             }
@@ -1309,15 +1315,20 @@ class NodeUIColor : NodeUI
     
     func getValue() -> float3
     {
-        return float3(node.properties[variable + "_r"]!, node.properties[variable + "_g"]!, node.properties[variable + "_b"]!)
+        return float3(node.properties[variable + "_x"]!, node.properties[variable + "_y"]!, node.properties[variable + "_z"]!)
     }
     
     func setValue(_ value: float3)
     {
         self.value = value
-        node.properties[variable + "_r"] = value.x
-        node.properties[variable + "_g"] = value.y
-        node.properties[variable + "_b"] = value.z
+        node.properties[variable + "_x"] = value.x
+        node.properties[variable + "_y"] = value.y
+        node.properties[variable + "_z"] = value.z
+        if let widget = colorWidget {
+            if widget.value != value {
+                widget.setValue(color: value)
+            }
+        }
     }
     
     override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)

@@ -800,7 +800,7 @@ class Gizmo : MMWidget
                             if object.instanceOf == nil {
                                 object.properties = old
                             } else {
-                                if let layer = self.app.nodeGraph.getLayerOfInstance(object.uuid) {
+                                if let layer = self.app.nodeGraph.getSceneOfInstance(object.uuid) {
                                     for inst in layer.objectInstances {
                                         if inst.uuid == object.uuid {
                                             inst.properties = old
@@ -817,7 +817,7 @@ class Gizmo : MMWidget
                     
                     if object!.instanceOf != nil {
                         // This is an instance, we need to update the instance properties
-                        if let layer = app.nodeGraph.getLayerOfInstance(object!.uuid) {
+                        if let layer = app.nodeGraph.getSceneOfInstance(object!.uuid) {
                             for inst in layer.objectInstances {
                                 if inst.uuid == object!.uuid {
                                     inst.properties = object!.properties

@@ -2066,7 +2066,7 @@ class NodeGraph : Codable
                     self.refList.isActive = false
                     if let node = item.custom! as? Node {
                         self.previewInfoMenu.setText(getPreviewClassText(node), 0.3)
-                        node.updatePreview(nodeGraph: self)
+                        node.updatePreview(nodeGraph: self, hard: true)
                         self.previewNode = node
                         self.mmView.update()
                     }
@@ -2261,6 +2261,7 @@ class NodeGraph : Codable
                 conn.masterNode = nil
                 conn.target = nil
                 conn.targetName = nil
+                conn.targets = []
             }
         }
         
@@ -2280,6 +2281,7 @@ class NodeGraph : Codable
                             for inst in scene.objectInstances {
                                 if inst.uuid == conn.connectedTo {
                                     conn.target = inst
+                                    conn.targets = [inst]
                                     conn.targetName = inst.name
                                     break
                                 }
@@ -3121,7 +3123,7 @@ class NodeGraph : Codable
     }
     
     /// Returns the scene for the given instance uuid
-    func getLayerOfInstance(_ uuid: UUID) -> Scene? {
+    func getSceneOfInstance(_ uuid: UUID) -> Scene? {
         for node in nodes {
             if let scene = node as? Scene {
                 for inst in scene.objectInstances {

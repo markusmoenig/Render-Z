@@ -303,7 +303,7 @@ class MMColorWidget : MMWidget
         super.init(view)
         
         let hsl = toHSL(value.x, value.y, value.z)
-        h = hsl.0
+        h = hsl.0 * 360
         s = hsl.1
         l = hsl.2
         
@@ -317,7 +317,7 @@ class MMColorWidget : MMWidget
         self.value = color
 
         let hsl = toHSL(color.x, color.y, color.z)
-        h = hsl.0
+        h = hsl.0 * 360
         s = hsl.1
         l = hsl.2
 

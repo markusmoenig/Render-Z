@@ -142,6 +142,8 @@ class Scene : Node
         try super.encode(to: superdecoder)
     }
 
+    ///
+    
     /// Creates the object instances contained in this layer
     @discardableResult func createInstances(nodeGraph: NodeGraph) -> [Object]
     {
@@ -159,7 +161,7 @@ class Scene : Node
         return objects
     }
     
-    /// Sets up the object instances for execution
+    /// Sets up the scene instances for execution
     func setupExecution(nodeGraph: NodeGraph)
     {
         let objects = createInstances(nodeGraph: nodeGraph)

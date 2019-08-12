@@ -258,7 +258,7 @@ class App
                 }
             } else {
                 // --- This is an instance, we need to update the scene of the instance
-                if let scene = nodeGraph.getLayerOfInstance(object.uuid) {
+                if let scene = nodeGraph.getSceneOfInstance(object.uuid) {
                     if let sceneMaxDelegate = scene.maxDelegate as? SceneMaxDelegate {
                         if nodeGraph.maximizedNode === scene {
                             sceneMaxDelegate.update(true, updateLists: true)
@@ -276,7 +276,7 @@ class App
                 }
             } else {
                 // --- Instance, update the layer instance
-                if let layer = nodeGraph.getLayerOfInstance(object.uuid) {
+                if let layer = nodeGraph.getSceneOfInstance(object.uuid) {
                     layer.updatePreview(nodeGraph: nodeGraph, hard: true)
                 }
             }

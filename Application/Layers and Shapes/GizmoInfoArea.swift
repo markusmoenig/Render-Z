@@ -304,7 +304,7 @@ class GizmoInfoArea {
                                     if object.instanceOf == nil {
                                         object.properties = old
                                     } else {
-                                        if let layer = self.gizmo.app.nodeGraph.getLayerOfInstance(object.uuid) {
+                                        if let layer = self.gizmo.app.nodeGraph.getSceneOfInstance(object.uuid) {
                                             for inst in layer.objectInstances {
                                                 if inst.uuid == object.uuid {
                                                     inst.properties = old
@@ -320,7 +320,7 @@ class GizmoInfoArea {
                             
                             if object.instanceOf != nil {
                                 // This is an instance, we need to update the instance properties
-                                if let layer = self.gizmo.app.nodeGraph.getLayerOfInstance(object.uuid) {
+                                if let layer = self.gizmo.app.nodeGraph.getSceneOfInstance(object.uuid) {
                                     for inst in layer.objectInstances {
                                         if inst.uuid == object.uuid {
                                             inst.properties = object.properties
