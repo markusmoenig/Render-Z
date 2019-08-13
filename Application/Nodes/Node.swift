@@ -307,7 +307,7 @@ class Node : Codable, Equatable
 class UINodeConnection: Codable
 {
     enum ConnectionType: Int, Codable {
-        case Object, ObjectInstance, Animation, FloatVariable, DirectionVariable, SceneArea, Scene, Float2Variable, BehaviorTree
+        case Object, ObjectInstance, Animation, FloatVariable, DirectionVariable, SceneArea, Scene, Float2Variable, BehaviorTree, Float3Variable
     }
     
     var connectionType      : ConnectionType = .FloatVariable
@@ -365,7 +365,7 @@ class Terminal : Codable
     }
     
     enum Brand : Int, Codable {
-        case All, Properties, Behavior, FloatVariable, Float2Variable, DirectionVariable, ColorVariable
+        case All, Properties, Behavior, FloatVariable, Float2Variable, DirectionVariable, Float3Variable
     }
     
     var name            : String = ""
@@ -585,11 +585,10 @@ enum NodeFamily: String, NodeClassFamily {
     case sceneGravity = "Scene Gravity"
     case clickInSceneArea = "Click In Scene Area"
     case game = "Game"
-    case valueVariable = "Value Variable"
     case floatVariable = "Float Variable"
     case directionVariable = "Direction Variable"
-    case positionVariable = "Position Variable"
     case float2Variable = "Float2 Variable"
+    case float3Variable = "Float3 Variable"
     case addValueVariable = "Add Value Variable"
     case addFloatVariable = "Add Float Variable"
     case subtractValueVariable = "Subtract Value Variable"
@@ -686,12 +685,14 @@ enum NodeFamily: String, NodeClassFamily {
             case .accelerometer:
                 return Accelerometer.self
             
-            case .valueVariable, .floatVariable:
+            case .floatVariable:
                 return FloatVariable.self
             case .directionVariable:
                 return DirectionVariable.self
-            case .positionVariable, .float2Variable:
+            case .float2Variable:
                 return Float2Variable.self
+            case .float3Variable:
+                return Float3Variable.self
             case .limitPositionRange, .limitFloat2Range:
                 return LimitFloat2Range.self
             case .addValueVariable, .addFloatVariable:

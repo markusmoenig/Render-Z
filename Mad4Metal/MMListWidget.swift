@@ -233,16 +233,14 @@ class MMListWidget : MMWidget
         }
         """
         
-        DispatchQueue.main.async {
-            let library = self.fragment!.createLibraryFromSource(source: source)
-            self.state = self.fragment!.createState(library: library, name: "listWidgetBuilder")
-            
-            if self.fragment!.width != self.width || self.fragment!.height != self.height {
-                self.fragment!.allocateTexture(width: self.width, height: self.height)
-            }
-            self.textureWidget.setTexture(self.fragment!.texture)
-            self.update()
+        let library = self.fragment!.createLibraryFromSource(source: source)
+        self.state = self.fragment!.createState(library: library, name: "listWidgetBuilder")
+        
+        if self.fragment!.width != self.width || self.fragment!.height != self.height {
+            self.fragment!.allocateTexture(width: self.width, height: self.height)
         }
+        self.textureWidget.setTexture(self.fragment!.texture)
+        self.update()
     }
     
     override func update()

@@ -3061,23 +3061,35 @@ class NodeGraph : Codable
     func acceptDragSource(_ dragSource: MMDragSource)
     {
         let uiTarget = validHoverTarget!
+        var connIndex : Int = -1
+        for (index,conn) in uiTarget.node.uiConnections.enumerated() {
+            if uiTarget.uiConnection === conn {
+                connIndex = index
+                break
+            }
+        }
+        
         if let source = dragSource as? ReferenceListDrag {
 
             let refItem = source.refItem!
             
-            func targetDropped(_ oldMaster: UUID?,_ oldConnection: UUID?,_ newMaster: UUID?,_ newConnection: UUID?)
+            func targetDropped(_ uuid: UUID,_ connIndex: Int,_ oldMaster: UUID?,_ oldConnection: UUID?,_ newMaster: UUID?,_ newConnection: UUID?)
             {
                 mmView.undoManager!.registerUndo(withTarget: self) { target in
                     
-                    uiTarget.uiConnection.connectedMaster = newMaster
-                    uiTarget.uiConnection.connectedTo = newConnection
+                    let node = globalApp!.nodeGraph.getNodeForUUID(uuid)!
+                    let conn = node.uiConnections[connIndex]
                     
-                    self.updateNode(uiTarget.node)
-                    targetDropped(newMaster, newConnection, oldMaster, oldConnection)
+                    conn.connectedMaster = newMaster
+                    conn.connectedTo = newConnection
+                    conn.target = nil
+                    
+                    globalApp!.nodeGraph.updateNode(node)
+                    targetDropped(uuid, connIndex, newMaster, newConnection, oldMaster, oldConnection)
                 }
             }
             
-            targetDropped(refItem.classUUID, refItem.uuid, uiTarget.uiConnection.connectedMaster, uiTarget.uiConnection.connectedTo)
+            targetDropped(uiTarget.node.uuid, connIndex, refItem.classUUID, refItem.uuid, uiTarget.uiConnection.connectedMaster, uiTarget.uiConnection.connectedTo)
             
             uiTarget.uiConnection.connectedMaster = refItem.classUUID
             uiTarget.uiConnection.connectedTo = refItem.uuid

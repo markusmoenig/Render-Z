@@ -463,7 +463,7 @@ class ObjectGlow : Node
     override func setupTerminals()
     {
         terminals = [
-            Terminal(name: "glowColor", connector: .Right, brand: .Float2Variable, node: self),
+            Terminal(name: "glowColor", connector: .Right, brand: .Float3Variable, node: self),
             Terminal(name: "glowOpacity", connector: .Right, brand: .FloatVariable, node: self),
             Terminal(name: "glowSize", connector: .Right, brand: .FloatVariable, node: self)
         ]
@@ -599,8 +599,7 @@ class ObjectGlow : Node
                             setInternalGlowOpacity(inst.properties["glowOpacity"]!)
                         }
                     }
-                }
-                
+                } else
                 if terminal.name == "glowColor" {
                     if terminal.connections.count == 0 {
                         // Not connected, adjust my own vars
@@ -611,17 +610,16 @@ class ObjectGlow : Node
                         }
                         setInternalGlowColor(inst.properties)
                     } else
-                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                    if let variable = terminal.connections[0].toTerminal!.node as? Float3Variable {
                         if let object = inst.instance {
-                            variable.setValue(object.properties["glowSize"]!, adjustBinding: false)
-                            setInternalGlowSize(object.properties["glowSize"]!)
+                            variable.setValue(float3(object.properties["glowColor_x"]!, object.properties["glowColor_y"]!, object.properties["glowColor_z"]!), adjustBinding: false)
+                            setInternalGlowColor(object.properties)
                         } else {
-                            variable.setValue(inst.properties["glowSize"]!, adjustBinding: false)
-                            setInternalGlowSize(inst.properties["glowSize"]!)
+                            variable.setValue(float3(inst.properties["glowColor_x"]!, inst.properties["glowColor_y"]!, inst.properties["glowColor_z"]!), adjustBinding: false)
+                            setInternalGlowColor(inst.properties)
                         }
                     }
-                }
-                
+                } else
                 if terminal.name == "glowSize" {
                     if terminal.connections.count == 0 {
                         // Not connected, adjust my own vars
@@ -646,6 +644,7 @@ class ObjectGlow : Node
     {
         for target in uiConnections[0].targets {
             if let inst = target as? ObjectInstance {
+                
                 if terminal.name == "glowOpacity" {
                     if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
                         let value = variable.getValue()
@@ -655,6 +654,42 @@ class ObjectGlow : Node
                             object.properties["glowOpacity"] = value
                         } else {
                             inst.properties["glowOpacity"] = value
+                        }
+                    }
+                } else
+                if terminal.name == "glowSize" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        let value = variable.getValue()
+                        
+                        setInternalGlowSize(value)
+                        if let object = inst.instance {
+                            object.properties["glowSize"] = value
+                        } else {
+                            inst.properties["glowSize"] = value
+                        }
+                    }
+                } else
+                if terminal.name == "glowColor" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? Float3Variable {
+                        let value = variable.getValue()
+                        
+                        if let item = uiItems[2] as? NodeUIColor {
+                            item.value = value
+                            if let widget = item.colorWidget {
+                                if widget.value != value {
+                                    widget.setValue(color:value)
+                                }
+                            }
+                        }
+                        
+                        if let object = inst.instance {
+                            object.properties["glowColor_x"] = value.x
+                            object.properties["glowColor_y"] = value.y
+                            object.properties["glowColor_z"] = value.z
+                        } else {
+                            inst.properties["glowColor_x"] = value.x
+                            inst.properties["glowColor_y"] = value.y
+                            inst.properties["glowColor_z"] = value.z
                         }
                     }
                 }

@@ -506,6 +506,8 @@ fragment float4 m4mColorWheelDrawable(RasterizerData in [[stage_in]],
         
         //col.xyz = pickedHueColor;
     }
+    
+    col.w *= data->color.w;
 
     return col;
 }

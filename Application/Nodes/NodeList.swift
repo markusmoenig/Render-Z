@@ -131,6 +131,13 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Property, displayType: .Game)
         
+        // --- Variable Value
+        item = NodeListItem("Variable: Float")
+        item.createNode = {
+            return FloatVariable()
+        }
+        addNodeItem(item, type: .Property, displayType: .All)
+        
         // --- Float2 Value
         item = NodeListItem("Variable: Float2")
         item.createNode = {
@@ -138,17 +145,17 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Property, displayType: .All)
         
-        // --- Variable Value
-        item = NodeListItem("Variable: Direction")
+        // --- Float3 Value
+        item = NodeListItem("Variable: Float3")
         item.createNode = {
-            return DirectionVariable()
+            return Float3Variable()
         }
         addNodeItem(item, type: .Property, displayType: .All)
         
         // --- Variable Value
-        item = NodeListItem("Variable: Float")
+        item = NodeListItem("Variable: Direction")
         item.createNode = {
-            return FloatVariable()
+            return DirectionVariable()
         }
         addNodeItem(item, type: .Property, displayType: .All)
         

@@ -1271,10 +1271,12 @@ class NodeUIColor : NodeUI
 
                 if !cont {
                     let oldValue = self.getValue()
-                    self.setValue(val)
+                    if oldValue != val {
+                        self.setValue(val)
 
-                    self.node.variableChanged(variable: self.variable, oldValue: oldValue, newValue: self.getValue())
-                    mmView.update()
+                        self.node.variableChanged(variable: self.variable, oldValue: oldValue, newValue: self.getValue())
+                        mmView.update()
+                    }
                 }
             }
         }
