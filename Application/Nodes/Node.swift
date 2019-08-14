@@ -300,6 +300,23 @@ class Node : Codable, Equatable
     func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
     }
+    
+    /// Called during variableChanged to check if a float variable has to be changed
+    func didConnectedFloatVariableChange(_ variable: String,_ variableName: String, uiItem: NodeUI, connection: UINodeConnection, newValue: Float)
+    {
+        if variable == variableName {
+            let number = uiItem as! NodeUINumber
+            number.setValue(newValue)
+            for target in connection.targets {
+                if let inst = target as? ObjectInstance {
+                    inst.properties[variableName] = newValue
+                    if let object = inst.instance {
+                        object.properties[variableName] = newValue
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// Connects UI items to nodes of other objects, layers, etc

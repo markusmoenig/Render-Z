@@ -35,6 +35,8 @@ class ObjectInstanceProps : Node
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
             NodeUINumber(self, variable: "position", title: "X", range: nil, value: 0),
             NodeUINumber(self, variable: "y", title: "Y", range: nil, value: 0),
+            NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 10), value: 1),
+            NodeUINumber(self, variable: "rotate", title: "Rotation", range: float2(0, 360), value: 0),
             NodeUINumber(self, variable: "opacity", title: "Opacity", range: float2(0, 1), value: 1),
             NodeUINumber(self, variable: "z-index", title: "Z-Index", range: float2(-5, 5), int: true, value: 0),
             NodeUISelector(self, variable: "active", title: "Active", items: ["No", "Yes"], index: 1),
@@ -47,6 +49,8 @@ class ObjectInstanceProps : Node
     {
         terminals = [
             Terminal(name: "position", connector: .Right, brand: .Float2Variable, node: self),
+            Terminal(name: "scale", connector: .Right, brand: .FloatVariable, node: self),
+            Terminal(name: "rotate", connector: .Right, brand: .FloatVariable, node: self),
             Terminal(name: "opacity", connector: .Right, brand: .FloatVariable, node: self),
             Terminal(name: "z-index", connector: .Right, brand: .FloatVariable, node: self),
             Terminal(name: "active", connector: .Right, brand: .FloatVariable, node: self)
@@ -60,10 +64,26 @@ class ObjectInstanceProps : Node
         super.updateUIState(mmView: mmView)
     }
     
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
     /// A UI Variable changed
     override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
     {
-        //print("objectNodes variableChanged", oldValue, newValue)
         if variable == "position" {
             let number = uiItems[1] as! NodeUINumber
             number.setValue(newValue)
@@ -87,33 +107,29 @@ class ObjectInstanceProps : Node
                     }
                 }
             }
-        } else
-        if variable == "opacity" {
-            let number = uiItems[3] as! NodeUINumber
-            number.setValue(newValue)
+        }
+        
+        if variable == "scale" {
+            let selector = uiItems[3] as! NodeUINumber
+            selector.setValue(newValue)
             for target in uiConnections[0].targets {
                 if let inst = target as? ObjectInstance {
-                    inst.properties["opacity"] = newValue
+                    inst.properties["scaleX"] = newValue
+                    inst.properties["scaleY"] = newValue
                     if let object = inst.instance {
-                        object.properties["opacity"] = newValue
+                        object.properties["scaleX"] = newValue
+                        object.properties["scaleY"] = newValue
                     }
                 }
             }
-        } else
-        if variable == "z-index" {
-            let number = uiItems[4] as! NodeUINumber
-            number.setValue(newValue)
-            for target in uiConnections[0].targets {
-                if let inst = target as? ObjectInstance {
-                    inst.properties["z-index"] = newValue
-                    if let object = inst.instance {
-                        object.properties["z-index"] = newValue
-                    }
-                }
-            }
-        } else
+        }
+
+        didConnectedFloatVariableChange(variable, "rotate", uiItem: uiItems[4], connection: uiConnections[0], newValue: newValue)
+        didConnectedFloatVariableChange(variable, "opacity", uiItem: uiItems[5], connection: uiConnections[0], newValue: newValue)
+        didConnectedFloatVariableChange(variable, "z-index", uiItem: uiItems[6], connection: uiConnections[0], newValue: newValue)
+        
         if variable == "active" {
-            let selector = uiItems[5] as! NodeUISelector
+            let selector = uiItems[7] as! NodeUISelector
             selector.setValue(newValue)
             for target in uiConnections[0].targets {
                 if let inst = target as? ObjectInstance {
@@ -153,6 +169,38 @@ class ObjectInstanceProps : Node
                         } else {
                             variable.setValue(float2(inst.properties["posX"]!, inst.properties["posY"]!), adjustBinding: false)
                             setInternalPos(float2(inst.properties["posX"]!, inst.properties["posY"]!))
+                        }
+                    }
+                } else
+                if terminal.name == "scale" {
+                    
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
+                        setInternalScale(inst.properties["scaleX"]!)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["scaleX"]!, adjustBinding: false)
+                            setInternalScale(object.properties["scaleX"]!)
+                        } else {
+                            variable.setValue(inst.properties["scaleX"]!, adjustBinding: false)
+                            setInternalScale(inst.properties["scaleX"]!)
+                        }
+                    }
+                } else
+                if terminal.name == "rotate" {
+                    
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
+                        setInternalRotate(inst.properties["rotate"]!)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["rotate"]!, adjustBinding: false)
+                            setInternalRotate(object.properties["rotate"]!)
+                        } else {
+                            variable.setValue(inst.properties["rotate"]!, adjustBinding: false)
+                            setInternalRotate(inst.properties["rotate"]!)
                         }
                     }
                 } else
@@ -227,6 +275,34 @@ class ObjectInstanceProps : Node
                         }
                     }
                 } else
+                if terminal.name == "scale" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        let value = variable.getValue()
+                        
+                        setInternalScale(value)
+                        if let object = inst.instance {
+                            object.properties["scaleX"] = value
+                            object.properties["scaleY"] = value
+                        }
+                        if nodeGraph.playNode == nil {
+                            inst.properties["scaleX"] = value
+                            inst.properties["scaleY"] = value
+                        }
+                    }
+                }
+                if terminal.name == "rotate" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        let value = variable.getValue()
+                        
+                        setInternalRotate(value)
+                        if let object = inst.instance {
+                            object.properties["rotate"] = value
+                        }
+                        if nodeGraph.playNode == nil {
+                            inst.properties["rotate"] = value
+                        }
+                    }
+                } else
                 if terminal.name == "opacity" {
                     if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
                         let value = variable.getValue()
@@ -286,10 +362,26 @@ class ObjectInstanceProps : Node
         }
     }
     
+    // Adjusts the internal scale
+    func setInternalScale(_ value: Float)
+    {
+        if let item = uiItems[3] as? NodeUINumber {
+            item.value = value
+        }
+    }
+    
+    // Adjusts the internal rotation
+    func setInternalRotate(_ value: Float)
+    {
+        if let item = uiItems[4] as? NodeUINumber {
+            item.value = value
+        }
+    }
+    
     // Adjusts the internal opacity
     func setInternalOpacity(_ opacity: Float)
     {
-        if let item = uiItems[3] as? NodeUINumber {
+        if let item = uiItems[5] as? NodeUINumber {
             item.value = opacity
         }
     }
@@ -297,7 +389,7 @@ class ObjectInstanceProps : Node
     // Adjusts the internal z-index
     func setInternalZIndex(_ zIndex: Float)
     {
-        if let item = uiItems[4] as? NodeUINumber {
+        if let item = uiItems[6] as? NodeUINumber {
             item.value = zIndex
         }
     }
@@ -305,27 +397,9 @@ class ObjectInstanceProps : Node
     // Adjusts the internal z-index
     func setInternalActive(_ active: Float)
     {
-        if let item = uiItems[5] as? NodeUISelector {
+        if let item = uiItems[7] as? NodeUISelector {
             item.index = active
         }
-    }
-    
-    required init(from decoder: Decoder) throws
-    {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        //        test = try container.decode(Float.self, forKey: .test)
-        
-        let superDecoder = try container.superDecoder()
-        try super.init(from: superDecoder)
-    }
-    
-    override func encode(to encoder: Encoder) throws
-    {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(type, forKey: .type)
-        
-        let superdecoder = container.superEncoder()
-        try super.encode(to: superdecoder)
     }
     
     /// Execute Object physic properties
@@ -362,6 +436,7 @@ class ObjectPhysics : Node
         brand = .Property
         
         helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9109521/Physical+Properties"
+        uiConnections.append(UINodeConnection(.ObjectInstance))
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -371,6 +446,7 @@ class ObjectPhysics : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
+            NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
             NodeUISelector(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "Dynamic"], index: 1),
             NodeUINumber(self, variable: "physicsMass", title: "Mass", range: float2(0, 100), value: 1),
             NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 5), value: 0.2),
@@ -382,18 +458,27 @@ class ObjectPhysics : Node
         super.setupUI(mmView: mmView)
     }
     
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "physicsMass", connector: .Right, brand: .FloatVariable, node: self),
+            Terminal(name: "physicsRestitution", connector: .Right, brand: .FloatVariable, node: self),
+            Terminal(name: "physicsFriction", connector: .Right, brand: .FloatVariable, node: self)
+        ]
+    }
+    
     override func updateUIState(mmView: MMView)
     {
         let mode = properties["physicsMode"]!
         let collisions = properties["physicsCollisions"]!
-        
-        uiItems[1].isDisabled = mode == 0 || mode == 1
-        uiItems[2].isDisabled = mode == 0 /*|| mode == 1*/ || collisions == 1
-        uiItems[3].isDisabled = mode == 0 || collisions == 1
-        uiItems[4].isDisabled = mode == 0 || mode == 1 || collisions == 1
-        uiItems[5].isDisabled = mode == 0 || mode == 1
-        
+    
         super.updateUIState(mmView: mmView)
+
+        uiItems[2].isDisabled = mode == 0 || mode == 1
+        uiItems[3].isDisabled = mode == 0 /*|| mode == 1*/ || collisions == 1
+        uiItems[4].isDisabled = mode == 0 || collisions == 1
+        uiItems[5].isDisabled = mode == 0 || mode == 1 || collisions == 1
+        uiItems[6].isDisabled = mode == 0 || mode == 1
     }
     
     required init(from decoder: Decoder) throws
@@ -414,21 +499,161 @@ class ObjectPhysics : Node
         try super.encode(to: superdecoder)
     }
     
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
+    {
+        didConnectedFloatVariableChange(variable, "physicsMass", uiItem: uiItems[2], connection: uiConnections[0], newValue: newValue)
+        didConnectedFloatVariableChange(variable, "physicsRestitution", uiItem: uiItems[3], connection: uiConnections[0], newValue: newValue)
+        didConnectedFloatVariableChange(variable, "physicsFriction", uiItem: uiItems[4], connection: uiConnections[0], newValue: newValue)
+        
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
+    override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
+                
+                if terminal.name == "physicsMass" {
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
+                        setInternalPhysicsMass(inst.properties["physicsMass"]!)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["physicsMass"]!, adjustBinding: false)
+                            setInternalPhysicsMass(object.properties["physicsMass"]!)
+                        } else {
+                            variable.setValue(inst.properties["physicsMass"]!, adjustBinding: false)
+                            setInternalPhysicsMass(inst.properties["physicsMass"]!)
+                        }
+                    }
+                } else
+                if terminal.name == "physicsRestitution" {
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
+                        setInternalPhysicsRestitution(inst.properties["physicsRestitution"]!)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["physicsRestitution"]!, adjustBinding: false)
+                            setInternalPhysicsRestitution(object.properties["physicsRestitution"]!)
+                        } else {
+                            variable.setValue(inst.properties["physicsRestitution"]!, adjustBinding: false)
+                            setInternalPhysicsRestitution(inst.properties["physicsRestitution"]!)
+                        }
+                    }
+                } else
+                if terminal.name == "physicsFriction" {
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
+                        setInternalPhysicsFriction(inst.properties["physicsFriction"]!)
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        if let object = inst.instance {
+                            variable.setValue(object.properties["physicsFriction"]!, adjustBinding: false)
+                            setInternalPhysicsFriction(object.properties["physicsFriction"]!)
+                        } else {
+                            variable.setValue(inst.properties["physicsFriction"]!, adjustBinding: false)
+                            setInternalPhysicsFriction(inst.properties["physicsFriction"]!)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
+                
+                if terminal.name == "physicsMass" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        let value = variable.getValue()
+                        
+                        setInternalPhysicsMass(value)
+                        if let object = inst.instance {
+                            object.properties["physicsMass"] = value
+                        }
+                        if nodeGraph.playNode == nil {
+                            inst.properties["physicsMass"] = value
+                        }
+                    }
+                } else
+                if terminal.name == "physicsRestitution" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        let value = variable.getValue()
+                        
+                        setInternalPhysicsRestitution(value)
+                        if let object = inst.instance {
+                            object.properties["physicsRestitution"] = value
+                        }
+                        if nodeGraph.playNode == nil {
+                            inst.properties["physicsRestitution"] = value
+                        }
+                    }
+                } else
+                if terminal.name == "physicsFriction" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                        let value = variable.getValue()
+                        
+                        setInternalPhysicsFriction(value)
+                        if let object = inst.instance {
+                            object.properties["physicsFriction"] = value
+                        }
+                        if nodeGraph.playNode == nil {
+                            inst.properties["physicsFriction"] = value
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     /// Execute Object physic properties
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
     {
-        if let object = root.objectRoot {
-            let value = properties["physicsMode"]!
-            object.properties["physicsMode"] = value
-            object.properties["physicsMass"] = properties["physicsMass"]!
-            object.properties["physicsRestitution"] = properties["physicsRestitution"]!
-            object.properties["physicsFriction"] = properties["physicsFriction"]!
-            object.properties["physicsSupportsRotation"] = properties["physicsSupportsRotation"]!
-            object.properties["physicsCollisions"] = properties["physicsCollisions"]!
-            
-            return .Success
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
+                if let object = inst.instance {
+                    object.properties["physicsMode"] = properties["physicsMode"]!
+                    object.properties["physicsMass"] = properties["physicsMass"]!
+                    object.properties["physicsRestitution"] = properties["physicsRestitution"]!
+                    object.properties["physicsFriction"] = properties["physicsFriction"]!
+                    object.properties["physicsSupportsRotation"] = properties["physicsSupportsRotation"]!
+                    object.properties["physicsCollisions"] = properties["physicsCollisions"]!
+                    return .Success
+                }
+            }
         }
         return .Failure
+    }
+    
+    // Adjusts the internal physics mass
+    func setInternalPhysicsMass(_ value: Float)
+    {
+        if let item = uiItems[2] as? NodeUINumber {
+            item.value = value
+        }
+    }
+    
+    // Adjusts the internal physics restitution
+    func setInternalPhysicsRestitution(_ value: Float)
+    {
+        if let item = uiItems[3] as? NodeUINumber {
+            item.value = value
+        }
+    }
+    
+    // Adjusts the internal physics friction
+    func setInternalPhysicsFriction(_ value: Float)
+    {
+        if let item = uiItems[4] as? NodeUINumber {
+            item.value = value
+        }
     }
 }
 
@@ -506,6 +731,10 @@ class ObjectGlow : Node
     override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
     {
         //print("objectNodes variableChanged", oldValue, newValue)
+        
+        didConnectedFloatVariableChange(variable, "glowOpacity", uiItem: uiItems[3], connection: uiConnections[0], newValue: newValue)
+        didConnectedFloatVariableChange(variable, "glowSize", uiItem: uiItems[4], connection: uiConnections[0], newValue: newValue)
+
         if variable == "glowMode" {
             let number = uiItems[1] as! NodeUISelector
             number.setValue(newValue)
@@ -514,30 +743,6 @@ class ObjectGlow : Node
                     inst.properties["glowMode"] = newValue
                     if let object = inst.instance {
                         object.properties["glowMode"] = newValue
-                    }
-                }
-            }
-        } else
-        if variable == "glowOpacity" {
-            let number = uiItems[3] as! NodeUINumber
-            number.setValue(newValue)
-            for target in uiConnections[0].targets {
-                if let inst = target as? ObjectInstance {
-                    inst.properties["glowOpacity"] = newValue
-                    if let object = inst.instance {
-                        object.properties["glowOpacity"] = newValue
-                    }
-                }
-            }
-        } else
-        if variable == "glowSize" {
-            let number = uiItems[4] as! NodeUINumber
-            number.setValue(newValue)
-            for target in uiConnections[0].targets {
-                if let inst = target as? ObjectInstance {
-                    inst.properties["glowSize"] = newValue
-                    if let object = inst.instance {
-                        object.properties["glowSize"] = newValue
                     }
                 }
             }

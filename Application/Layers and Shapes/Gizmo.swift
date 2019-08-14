@@ -1148,9 +1148,13 @@ class Gizmo : MMWidget
                         if value < 0 {
                             value = 0
                         }
-                        let properties : [String:Float] = [
+                        var properties : [String:Float] = [
                             "scaleX" : value,
                         ]
+                        // In the scene editor do uniform scaling
+                        if context == .ObjectEditor && inSceneEditor {
+                            properties["scaleY"] = value
+                        }
                         gizmoInfoArea.updateItems(properties)
                         processGizmoObjectProperties(properties, object: object)
                     }
@@ -1203,9 +1207,14 @@ class Gizmo : MMWidget
                         if value < 0 {
                             value = 0
                         }
-                        let properties : [String:Float] = [
+                        var properties : [String:Float] = [
                             "scaleY" : value,
                         ]
+                        // In the scene editor do uniform scaling
+                        if context == .ObjectEditor && inSceneEditor {
+                            properties["scaleX"] = value
+                        }
+                        
                         gizmoInfoArea.updateItems(properties)
                         processGizmoObjectProperties(properties, object: object)
                     }
@@ -1455,6 +1464,10 @@ class Gizmo : MMWidget
                         }
                     }
                 }
+            } else
+            if (hoverState == .xAxisScale || hoverState == .yAxisScale) && context == .ObjectEditor && inSceneEditor {
+                // Uniform scaling
+                data[3] = 1
             }
             
             // --- Render Bound Box
