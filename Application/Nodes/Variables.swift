@@ -116,6 +116,15 @@ class FloatVariable : Node
             }
         }
     }
+    
+    // --- Connect, set the default values
+    override func onConnect(myTerminal: Terminal, toTerminal: Terminal)
+    {
+        if let number = uiItems[0] as? NodeUINumber {
+            properties["defaultValue"] = properties["value"]!
+            number.defaultValue = properties["value"]!
+        }
+    }
 }
 
 class Float2Variable : Node
@@ -243,6 +252,19 @@ class Float2Variable : Node
             if let node = conn.toTerminal?.node {
                 node.executeWriteBinding(nodeGraph!, conn.toTerminal!)
             }
+        }
+    }
+    
+    // --- Connect, set the default values
+    override func onConnect(myTerminal: Terminal, toTerminal: Terminal)
+    {
+        if let number = uiItems[0] as? NodeUINumber {
+            properties["defaultValueX"] = properties["x"]!
+            number.defaultValue = properties["x"]!
+        }
+        if let number = uiItems[1] as? NodeUINumber {
+            properties["defaultValueY"] = properties["y"]!
+            number.defaultValue = properties["y"]!
         }
     }
 }
@@ -388,6 +410,23 @@ class Float3Variable : Node
             if let node = conn.toTerminal?.node {
                 node.executeWriteBinding(nodeGraph!, conn.toTerminal!)
             }
+        }
+    }
+    
+    // --- Connect, set the default values
+    override func onConnect(myTerminal: Terminal, toTerminal: Terminal)
+    {
+        if let number = uiItems[0] as? NodeUINumber {
+            properties["defaultValueX"] = properties["x"]!
+            number.defaultValue = properties["x"]!
+        }
+        if let number = uiItems[1] as? NodeUINumber {
+            properties["defaultValueY"] = properties["y"]!
+            number.defaultValue = properties["y"]!
+        }
+        if let number = uiItems[2] as? NodeUINumber {
+            properties["defaultValueZ"] = properties["z"]!
+            number.defaultValue = properties["z"]!
         }
     }
 }

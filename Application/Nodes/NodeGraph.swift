@@ -1785,6 +1785,51 @@ class NodeGraph : Codable
     /// Connects two terminals
     func connectTerminals(_ terminal1: Terminal,_ terminal2: Terminal)
     {
+        func applyUndo(_ terminal1_: UUID,_ terminal2_: UUID, connect: Bool)
+        {
+            mmView.undoManager!.registerUndo(withTarget: self) { target in
+                let terminal1 = globalApp!.nodeGraph.getTerminalOfUUID(terminal1_)
+                let terminal2 = globalApp!.nodeGraph.getTerminalOfUUID(terminal2_)
+
+                if terminal1 != nil && terminal2 != nil {
+                    
+                    let node1 = terminal1!.node!
+                    let node2 = terminal2!.node!
+
+                    if !connect {
+                        // Disconnect
+                        terminal1!.connections.removeAll{$0.toTerminalUUID == terminal2_}
+                        terminal2!.connections.removeAll{$0.toTerminalUUID == terminal1_}
+                        
+                        node1.onDisconnect(myTerminal: terminal1!, toTerminal: terminal2!)
+                        node2.onDisconnect(myTerminal: terminal2!, toTerminal: terminal1!)
+                    } else {
+                        // Connect
+                        let t1Connection = Connection(from: terminal1!, to: terminal2!)
+                        let t2Connection = Connection(from: terminal2!, to: terminal1!)
+                        
+                        t1Connection.toUUID = t2Connection.uuid
+                        t2Connection.toUUID = t1Connection.uuid
+                        
+                        terminal1!.connections.append(t1Connection)
+                        terminal2!.connections.append(t2Connection)
+                        
+                        terminal1!.node!.onConnect(myTerminal: terminal1!, toTerminal: terminal2!)
+                        terminal2!.node!.onConnect(myTerminal: terminal2!, toTerminal: terminal1!)
+                    }
+                    
+                    applyUndo(terminal1_, terminal2_, connect: !connect)
+                    
+                    globalApp!.nodeGraph.updateNode(node1)
+                    globalApp!.nodeGraph.updateNode(node2)
+                    globalApp!.nodeGraph.mmView.update()
+                }
+            }
+            mmView.undoManager!.setActionName("Connect Terminals")
+        }
+        
+        applyUndo(terminal1.uuid, terminal2.uuid, connect: false)
+        
         let t1Connection = Connection(from: terminal1, to: terminal2)
         let t2Connection = Connection(from: terminal2, to: terminal1)
         
@@ -1799,16 +1844,63 @@ class NodeGraph : Codable
     }
     
     /// Disconnects the connection
-    func disconnectConnection(_ conn: Connection)
+    func disconnectConnection(_ conn: Connection, undo: Bool = true)
     {
+        func applyUndo(_ terminal1_: UUID,_ terminal2_: UUID, connect: Bool)
+        {
+            mmView.undoManager!.registerUndo(withTarget: self) { target in
+                let terminal1 = globalApp!.nodeGraph.getTerminalOfUUID(terminal1_)
+                let terminal2 = globalApp!.nodeGraph.getTerminalOfUUID(terminal2_)
+                
+                if terminal1 != nil && terminal2 != nil {
+                    
+                    let node1 = terminal1!.node!
+                    let node2 = terminal2!.node!
+                    
+                    if !connect {
+                        // Disconnect
+                        terminal1!.connections.removeAll{$0.toTerminalUUID == terminal2_}
+                        terminal2!.connections.removeAll{$0.toTerminalUUID == terminal1_}
+                        
+                        node1.onDisconnect(myTerminal: terminal1!, toTerminal: terminal2!)
+                        node2.onDisconnect(myTerminal: terminal2!, toTerminal: terminal1!)
+                    } else {
+                        // Connect
+                        let t1Connection = Connection(from: terminal1!, to: terminal2!)
+                        let t2Connection = Connection(from: terminal2!, to: terminal1!)
+                        
+                        t1Connection.toUUID = t2Connection.uuid
+                        t2Connection.toUUID = t1Connection.uuid
+                        
+                        terminal1!.connections.append(t1Connection)
+                        terminal2!.connections.append(t2Connection)
+                        
+                        terminal1!.node!.onConnect(myTerminal: terminal1!, toTerminal: terminal2!)
+                        terminal2!.node!.onConnect(myTerminal: terminal2!, toTerminal: terminal1!)
+                    }
+                    
+                    applyUndo(terminal1_, terminal2_, connect: !connect)
+                    
+                    globalApp!.nodeGraph.updateNode(node1)
+                    globalApp!.nodeGraph.updateNode(node2)
+                    globalApp!.nodeGraph.mmView.update()
+                }
+            }
+            mmView.undoManager!.setActionName("Disconnect Terminals")
+        }
+        
         let terminal = conn.terminal!
         terminal.connections.removeAll{$0.uuid == conn.uuid}
 
         let toTerminal = conn.toTerminal!
         toTerminal.connections.removeAll{$0.uuid == conn.toUUID!}
         
-        terminal.node!.onConnect(myTerminal: terminal, toTerminal: toTerminal)
-        toTerminal.node!.onConnect(myTerminal: toTerminal, toTerminal: terminal)
+        if undo {
+            applyUndo(terminal.uuid, toTerminal.uuid, connect: true)
+        }
+
+        terminal.node!.onDisconnect(myTerminal: terminal, toTerminal: toTerminal)
+        toTerminal.node!.onDisconnect(myTerminal: toTerminal, toTerminal: terminal)
         
         updateNode(terminal.node!)
         updateNode(toTerminal.node!)
@@ -2194,19 +2286,6 @@ class NodeGraph : Codable
     /// Hard updates the given node
     func updateNode(_ node: Node)
     {
-        /// Returns the terminal of the given UUID
-        func getTerminalOfUUID(_ uuid: UUID) -> Terminal?
-        {
-            for node in nodes {
-                for terminal in node.terminals {
-                    if terminal.uuid == uuid {
-                        return terminal
-                    }
-                }
-            }
-            return nil
-        }
-        
         /// Recursively goes up the tree to find the root
         func getRootNode(_ node: Node) -> Node?
         {
@@ -2830,6 +2909,19 @@ class NodeGraph : Codable
         return nil
     }
     
+    /// Returns the terminal of the given UUID
+    func getTerminalOfUUID(_ uuid: UUID) -> Terminal?
+    {
+        for node in nodes {
+            for terminal in node.terminals {
+                if terminal.uuid == uuid {
+                    return terminal
+                }
+            }
+        }
+        return nil
+    }
+    
     /// Returns the instances of the given object
     func getInstancesOf(_ uuid: UUID) -> [Object]
     {
@@ -2874,7 +2966,7 @@ class NodeGraph : Codable
         // Remove connections
         for t in node.terminals {
             for conn in t.connections {
-                disconnectConnection(conn)
+                disconnectConnection(conn, undo: false)
             }
         }
         // Remove node from master subset

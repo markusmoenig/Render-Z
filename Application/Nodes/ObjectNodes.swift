@@ -220,7 +220,8 @@ class ObjectInstanceProps : Node
                         if let object = inst.instance {
                             object.properties["posX"] = value.x
                             object.properties["posY"] = value.y
-                        } else {
+                        }
+                        if nodeGraph.playNode == nil {
                             inst.properties["posX"] = value.x
                             inst.properties["posY"] = value.y
                         }
@@ -233,7 +234,8 @@ class ObjectInstanceProps : Node
                         setInternalOpacity(value)
                         if let object = inst.instance {
                             object.properties["opacity"] = value
-                        } else {
+                        }
+                        if nodeGraph.playNode == nil {
                             inst.properties["opacity"] = value
                         }
                     }
@@ -245,7 +247,8 @@ class ObjectInstanceProps : Node
                         setInternalZIndex(value)
                         if let object = inst.instance {
                             object.properties["z-index"] = value
-                        } else {
+                        }
+                        if nodeGraph.playNode == nil {
                             inst.properties["z-index"] = value
                         }
                     }
@@ -257,7 +260,8 @@ class ObjectInstanceProps : Node
                         setInternalActive(value)
                         if let object = inst.instance {
                             object.properties["active"] = value
-                        } else {
+                        }
+                        if nodeGraph.playNode == nil {
                             inst.properties["active"] = value
                         }
                     }
@@ -652,7 +656,8 @@ class ObjectGlow : Node
                         setInternalGlowOpacity(value)
                         if let object = inst.instance {
                             object.properties["glowOpacity"] = value
-                        } else {
+                        }
+                        if nodeGraph.playNode == nil {
                             inst.properties["glowOpacity"] = value
                         }
                     }
@@ -664,7 +669,8 @@ class ObjectGlow : Node
                         setInternalGlowSize(value)
                         if let object = inst.instance {
                             object.properties["glowSize"] = value
-                        } else {
+                        }
+                        if nodeGraph.playNode == nil {
                             inst.properties["glowSize"] = value
                         }
                     }
@@ -686,7 +692,8 @@ class ObjectGlow : Node
                             object.properties["glowColor_x"] = value.x
                             object.properties["glowColor_y"] = value.y
                             object.properties["glowColor_z"] = value.z
-                        } else {
+                        }
+                        if nodeGraph.playNode == nil {
                             inst.properties["glowColor_x"] = value.x
                             inst.properties["glowColor_y"] = value.y
                             inst.properties["glowColor_z"] = value.z
