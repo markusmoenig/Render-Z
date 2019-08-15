@@ -608,7 +608,7 @@ class AddConstFloatVariable : Node
     {
         super.init()
         
-        name = "Const Plus Float"
+        name = "Const + Float"
         uiConnections.append(UINodeConnection(.FloatVariable))
     }
     
@@ -681,7 +681,7 @@ class SubtractConstFloatVariable : Node
     {
         super.init()
         
-        name = "Float Minus Const"
+        name = "Float - Const"
         uiConnections.append(UINodeConnection(.FloatVariable))
     }
     
@@ -852,7 +852,7 @@ class RandomDirection : Node
     {
         super.init()
         
-        name = "Random Direction"
+        name = "Random Dir"
         uiConnections.append(UINodeConnection(.DirectionVariable))
     }
     
@@ -930,7 +930,7 @@ class AddFloat2Variables : Node
     {
         super.init()
         
-        name = "Float2 Plus Float2"
+        name = "Float2 + Float2"
         uiConnections.append(UINodeConnection(.Float2Variable))
         uiConnections.append(UINodeConnection(.Float2Variable))
         uiConnections.append(UINodeConnection(.Float2Variable))
@@ -1008,7 +1008,7 @@ class SubtractFloat2Variables : Node
     {
         super.init()
         
-        name = "Float2 Minus Float2"
+        name = "Float2 - Float2"
         uiConnections.append(UINodeConnection(.Float2Variable))
         uiConnections.append(UINodeConnection(.Float2Variable))
         uiConnections.append(UINodeConnection(.Float2Variable))
@@ -1086,7 +1086,7 @@ class MultiplyConstFloat2Variable : Node
     {
         super.init()
         
-        name = "Multiply Const Float2"
+        name = "Const * Float2"
         uiConnections.append(UINodeConnection(.Float2Variable))
     }
     
@@ -1274,7 +1274,7 @@ class LimitFloat2Range : Node
     {
         super.init()
         
-        name = "Limit Float2 Range"
+        name = "Limit Float2"
         uiConnections.append(UINodeConnection(.Float2Variable))
     }
     
@@ -1431,4 +1431,3 @@ class ReflectFloat2Variables : Node
         return playResult!
     }
 }
-

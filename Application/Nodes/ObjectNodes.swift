@@ -519,6 +519,7 @@ class ObjectPhysics : Node
                 if terminal.name == "physicsMass" {
                     if terminal.connections.count == 0 {
                         // Not connected, adjust my own vars
+                        if inst.properties["physicsMass"] == nil { inst.properties["physicsMass"] = 1 }
                         setInternalPhysicsMass(inst.properties["physicsMass"]!)
                     } else
                     if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
@@ -534,6 +535,7 @@ class ObjectPhysics : Node
                 if terminal.name == "physicsRestitution" {
                     if terminal.connections.count == 0 {
                         // Not connected, adjust my own vars
+                        if inst.properties["physicsRestitution"] == nil { inst.properties["physicsRestitution"] = 0.2 }
                         setInternalPhysicsRestitution(inst.properties["physicsRestitution"]!)
                     } else
                     if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
@@ -549,6 +551,7 @@ class ObjectPhysics : Node
                 if terminal.name == "physicsFriction" {
                     if terminal.connections.count == 0 {
                         // Not connected, adjust my own vars
+                        if inst.properties["physicsFriction"] == nil { inst.properties["physicsFriction"] = 0.3 }
                         setInternalPhysicsFriction(inst.properties["physicsFriction"]!)
                     } else
                     if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
@@ -637,6 +640,199 @@ class ObjectPhysics : Node
     {
         if let item = uiItems[2] as? NodeUINumber {
             item.value = value
+        }
+    }
+    
+    // Adjusts the internal physics restitution
+    func setInternalPhysicsRestitution(_ value: Float)
+    {
+        if let item = uiItems[3] as? NodeUINumber {
+            item.value = value
+        }
+    }
+    
+    // Adjusts the internal physics friction
+    func setInternalPhysicsFriction(_ value: Float)
+    {
+        if let item = uiItems[4] as? NodeUINumber {
+            item.value = value
+        }
+    }
+}
+
+class ObjectCollision : Node
+{
+    override init()
+    {
+        super.init()
+        name = "Collision Props"
+    }
+    
+    override func setup()
+    {
+        type = "Object Collision"
+        brand = .Property
+        
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9109521/Physical+Properties"
+        uiConnections.append(UINodeConnection(.ObjectInstance))
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
+            NodeUIAngle(self, variable: "collisionVelocity", title: "Velocity", value: 0),
+            NodeUIAngle(self, variable: "collisionNormal", title: "Normal", value: 0)
+        ]
+        
+        super.setupUI(mmView: mmView)
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "collisionVelocity", connector: .Right, brand: .Float2Variable, node: self),
+            Terminal(name: "collisionNormal", connector: .Right, brand: .Float2Variable, node: self)
+        ]
+    }
+    
+    override func updateUIState(mmView: MMView)
+    {
+        super.updateUIState(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
+    {
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
+    override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
+                
+                if terminal.name == "collisionVelocity" {
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
+                        if let object = inst.instance {
+                            if let body = object.body {
+                                setInternalVelocity(body.velocity)
+                            } else {
+                                setInternalVelocity()
+                            }
+                        }
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                        if let object = inst.instance {
+                            if let body = object.body {
+                                variable.setValue(body.velocity)
+                                setInternalVelocity(body.velocity)
+                            } else {
+                                setInternalVelocity()
+                            }
+                        } else {
+                            setInternalVelocity()
+                        }
+                    }
+                } else
+                if terminal.name == "collisionNormal" {
+                    if terminal.connections.count == 0 {
+                        // Not connected, adjust my own vars
+                        setInternalNormal()
+                    } else
+                    if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                        if let object = inst.instance {
+                            if let body = object.body {
+                                if let manifold = body.manifold {
+                                    variable.setValue(manifold.normal)
+                                    setInternalNormal(manifold.normal)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
+                
+                if terminal.name == "collisionVelocity" {
+                    if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                        let value = variable.getValue()
+                        
+                        setInternalVelocity(value)
+                        if let object = inst.instance {
+                            if let body = object.body {
+                                
+                                if body.collisionMode == 2 && body.velocity != value {
+                                    // Only set velocity when in custom collision mode
+                                    body.velocity = value
+                                
+                                    let delta : Float = 1/60
+                                    body.integrateVelocity(delta)
+                                    body.integrateForces(delta)
+                                
+                                    body.force = float2(0,0)
+                                    body.torque = 0
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /// Execute Object physic properties
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
+    {
+        return .Success
+    }
+    
+    // Adjusts the internal velocity
+    func setInternalVelocity(_ value: float2 = float2(0,0))
+    {
+        if let item = uiItems[1] as? NodeUIAngle {
+            let rad : Float = atan2(value.x, value.y)
+            item.value = toDegrees(rad) - 90
+        }
+    }
+    
+    // Adjusts the internal normal
+    func setInternalNormal(_ value: float2 = float2(0,0))
+    {
+        if let item = uiItems[2] as? NodeUIAngle {
+            let rad : Float = atan2(value.x, value.y)
+            item.value = toDegrees(rad) - 90
         }
     }
     

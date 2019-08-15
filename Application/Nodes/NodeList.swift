@@ -94,6 +94,12 @@ class NodeList : MMWidget
             return ObjectPhysics()
         }
         addNodeItem(item, type: .Property, displayType: .Object)
+        // --- Object Collisions
+        item = NodeListItem("Collision Props")
+        item.createNode = {
+            return ObjectCollision()
+        }
+        addNodeItem(item, type: .Property, displayType: .Object)
         // --- Object Glow
         item = NodeListItem("Glow Effect")
         item.createNode = {
