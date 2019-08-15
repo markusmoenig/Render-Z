@@ -166,6 +166,7 @@ class GamePlayScene : Node
     var gameNode                : Game? = nil
 
     var toExecute               : [Node] = []
+    var terminalBindings        : [Terminal] = []
 
     override init()
     {
@@ -250,6 +251,14 @@ class GamePlayScene : Node
                 }
                 toExecute.append(scene)
                 
+                // -- Collect bindings, TODO: Only use
+                terminalBindings = []
+                for node in nodeGraph.nodes {
+                    if node.bindings.count > 0 {
+                        terminalBindings.append(contentsOf: node.bindings)
+                    }
+                }
+                
                 for exe in toExecute {
                     exe.behaviorRoot = BehaviorTreeRoot(exe)
                     exe.behaviorTrees = []
@@ -275,6 +284,10 @@ class GamePlayScene : Node
             }
             
             playResult = .Running
+            
+            for terminal in terminalBindings {
+                terminal.node?.executeReadBinding(nodeGraph, terminal)
+            }
             
             for exe in toExecute {
                 _ = exe.execute(nodeGraph: nodeGraph, root: exe.behaviorRoot!, parent: exe.behaviorRoot!.rootNode)
