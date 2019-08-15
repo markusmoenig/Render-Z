@@ -313,6 +313,7 @@ class NodeUISelector : NodeUI
                     self.hoverMode = .None
                     #endif
                     self.index = Float(self.animatingTo)
+                    self.internal_changed()
 
                     let oldValue = self.node.properties[self.variable]!
                     self.node.properties[self.variable] = self.index
@@ -339,6 +340,7 @@ class NodeUISelector : NodeUI
                     self.hoverMode = .None
                     #endif
                     self.index = Float(self.animatingTo)
+                    self.internal_changed()
 
                     let oldValue = self.node.properties[self.variable]!
                     self.node.properties[self.variable] = self.index

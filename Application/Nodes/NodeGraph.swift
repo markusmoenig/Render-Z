@@ -1470,11 +1470,15 @@ class NodeGraph : Codable
             createNodeMenu(node)
         }
         
-        node.menu!.rect.x = node.rect.x + node.rect.width - 54 * scale
-        node.menu!.rect.y = node.rect.y + 13 * scale
-        node.menu!.rect.width = 26 * scale //30 * scale
-        node.menu!.rect.height = 24 * scale //28 * scale
-        node.menu!.draw()
+        if node.menu!.states.contains(.Opened) {
+            mmView.delayedDraws.append(node.menu!)
+        } else {
+            node.menu!.rect.x = node.rect.x + node.rect.width - 54 * scale
+            node.menu!.rect.y = node.rect.y + 13 * scale
+            node.menu!.rect.width = 26 * scale //30 * scale
+            node.menu!.rect.height = 24 * scale //28 * scale
+            node.menu!.draw()
+        }
     }
     
     /// Draw the master node
@@ -2647,7 +2651,7 @@ class NodeGraph : Codable
                     
                     picker.items = []
                     picker.uuids = []
-                    
+
                     conn.target = nil
                     let subs = getNodesOfMaster(for: conn.masterNode!)
                     var index : Int = 0
@@ -2988,6 +2992,26 @@ class NodeGraph : Codable
                 }
             }
         }
+        
+        // Remove all references to this node in the uiConnections
+        var nodesToUpdate : [Node] = []
+        for n in nodes {
+            for conn in n.uiConnections {
+                if conn.connectedMaster == node.uuid || conn.connectedTo == node.uuid {
+                    conn.connectedMaster = nil
+                    conn.connectedTo = nil
+                    conn.target = nil
+                    conn.masterNode = nil
+                    nodesToUpdate.append(n)
+                }
+            }
+        }
+        
+        for n in nodesToUpdate {
+            updateNode(n)
+        }
+        
+        // ---
         
         if undo == true {
             let after = encodeJSON()
