@@ -309,6 +309,136 @@ class Inverter : Node
     }
 }
 
+class Failure : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Failure"
+    }
+    
+    override func setup()
+    {
+        type = "Failure"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5537868/Inverter"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self),
+            
+            Terminal(name: "Behavior", connector: .Bottom, brand: .Behavior, node: self)
+        ]
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Return Success if all behavior outputs succeeded
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        for terminal in terminals {
+            
+            if terminal.connector == .Bottom {
+                for conn in terminal.connections {
+                    let toTerminal = conn.toTerminal!
+                    playResult = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
+                    playResult = .Failure
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}
+
+class Success : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Success"
+    }
+    
+    override func setup()
+    {
+        type = "Success"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5537868/Inverter"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self),
+            
+            Terminal(name: "Behavior", connector: .Bottom, brand: .Behavior, node: self)
+        ]
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Return Success if all behavior outputs succeeded
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Success
+        for terminal in terminals {
+            
+            if terminal.connector == .Bottom {
+                for conn in terminal.connections {
+                    let toTerminal = conn.toTerminal!
+                    playResult = toTerminal.node!.execute(nodeGraph: nodeGraph, root: root, parent: self)
+                    playResult = .Success
+                }
+            }
+        }
+        
+        return playResult!
+    }
+}
+
 class Restart : Node
 {
     private enum CodingKeys: String, CodingKey {

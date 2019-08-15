@@ -1080,6 +1080,77 @@ class SubtractFloat2Variables : Node
     }
 }
 
+class CopyFloat2Variables : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Float2 = Float2"
+        uiConnections.append(UINodeConnection(.Float2Variable))
+        uiConnections.append(UINodeConnection(.Float2Variable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Copy Float2 Variables"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIFloat2VariableTarget(self, variable: "copy", title: "Copy", connection:  uiConnections[0]),
+            NodeUIFloat2VariableTarget(self, variable: "to", title: "To", connection:  uiConnections[1]),
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Subtract value from variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let copy = uiConnections[0].target as? Float2Variable {
+            if let to = uiConnections[1].target as? Float2Variable {
+                
+                to.setValue(copy.getValue())
+                playResult = .Success
+            }
+        }
+        
+        return playResult!
+    }
+}
+
 class MultiplyConstFloat2Variable : Node
 {
     override init()

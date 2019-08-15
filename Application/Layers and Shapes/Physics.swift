@@ -60,7 +60,7 @@ class Physics
         let dynaCount = instance.dynamicObjects.count
         if dynaCount == 0 { return nil }
         
-        instance.objects = objects
+        instance.objects = []
         
         buildData.source += builder.getCommonCode()
         buildData.source += builder.getGlobalCode(objects: objects, includeMaterials: false)
@@ -123,6 +123,7 @@ class Physics
             let physicsMode = object.getPhysicsMode()
             if physicsMode == .Dynamic || physicsMode == .Static {
                 
+                instance.objects.append(object)
                 buildData.source +=
                 """
                 

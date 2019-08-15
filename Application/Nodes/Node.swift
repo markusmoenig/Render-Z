@@ -594,6 +594,8 @@ enum NodeFamily: String, NodeClassFamily {
     case sequence = "Sequence"
     case selector = "Selector"
     case inverter = "Inverter"
+    case success = "Success"
+    case failure = "Failure"
     case restart = "Restart"
     case keyDown = "Key Down"
     case accelerometer = "Accelerometer"
@@ -620,6 +622,7 @@ enum NodeFamily: String, NodeClassFamily {
     case addFloat2Variables = "Add Float2 Variables"
     case subtractPositionVariables = "Subtract Position Variables"
     case subtractFloat2Variables = "Subtract Float2 Variables"
+    case copyFloat2Variables = "Copy Float2 Variables"
     case multiplyConstFloat2 = "Multiply Const Float2"
     case reflectFloat2Variables = "Reflect Float2 Variables"
     case testPositionVariable = "Test Position Variable"
@@ -694,6 +697,10 @@ enum NodeFamily: String, NodeClassFamily {
                 return ExecuteBehaviorTree.self
             case .inverter:
                 return Inverter.self
+            case .failure:
+                return Failure.self
+            case .success:
+                return Success.self
             case .sequence:
                 return Sequence.self
             case .selector:
@@ -730,6 +737,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return AddFloat2Variables.self
             case .subtractPositionVariables, .subtractFloat2Variables:
                 return SubtractFloat2Variables.self
+            case .copyFloat2Variables:
+                return CopyFloat2Variables.self
             case .multiplyConstFloat2:
                 return MultiplyConstFloat2Variable.self
             case .reflectFloat2Variables:

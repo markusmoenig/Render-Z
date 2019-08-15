@@ -252,6 +252,12 @@ class NodeList : MMWidget
             return ExecuteBehaviorTree()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
+        // --- Behavior: Failure
+        item = NodeListItem("Failure")
+        item.createNode = {
+            return Failure()
+        }
+        addNodeItem(item, type: .Behavior, displayType: .All)
         // --- Behavior: Inverter
         item = NodeListItem("Inverter")
         item.createNode = {
@@ -268,6 +274,12 @@ class NodeList : MMWidget
         item = NodeListItem("Selector")
         item.createNode = {
             return Selector()
+        }
+        addNodeItem(item, type: .Behavior, displayType: .All)
+        // --- Behavior: Success
+        item = NodeListItem("Success")
+        item.createNode = {
+            return Success()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
         // --- Behavior: Restart
@@ -311,6 +323,12 @@ class NodeList : MMWidget
         item = NodeListItem("Mult(Const, Float2)")
         item.createNode = {
             return MultiplyConstFloat2Variable()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
+        item = NodeListItem("Copy(Float2, Float2)")
+        item.createNode = {
+            return CopyFloat2Variables()
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
