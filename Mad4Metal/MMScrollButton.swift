@@ -198,18 +198,18 @@ class MMScrollButton : MMWidget
         
         var color = hoverMode == .LeftArrow ? skin.hoverColor : skin.activeColor
 
-        mmView.drawLine.draw(sx: rect.x + skin.margin.left, sy: middleY, ex: rect.x + oneHalf, ey: rect.y + oneThird, radius: 1.5, fillColor: color)
+        mmView.drawLine.draw(sx: rect.x + 2 + skin.margin.left, sy: middleY - 1, ex: rect.x + 2 + oneHalf, ey: rect.y + oneThird - 1, radius: 1.5, fillColor: color)
         
-        mmView.drawLine.draw(sx: rect.x + skin.margin.left, sy: middleY, ex: rect.x + oneHalf, ey: rect.y + rect.height - oneThird, radius: 1.5, fillColor: color)
+        mmView.drawLine.draw(sx: rect.x + 2 + skin.margin.left, sy: middleY - 1, ex: rect.x + 2 + oneHalf, ey: rect.y + rect.height - oneThird - 1, radius: 1.5, fillColor: color)
         
         // Right Arrow
         
         let right = rect.x + rect.width
         color = hoverMode == .RightArrow ? skin.hoverColor : skin.activeColor
 
-        mmView.drawLine.draw(sx: right - skin.margin.right, sy: middleY, ex: right - oneHalf, ey: rect.y + oneThird, radius: 1.5, fillColor: color)
+        mmView.drawLine.draw(sx: right - skin.margin.right - 2, sy: middleY - 1, ex: right - oneHalf - 2, ey: rect.y + oneThird - 1, radius: 1.5, fillColor: color)
        
-        mmView.drawLine.draw(sx: right - skin.margin.right, sy: middleY, ex: right - oneHalf, ey: rect.y + rect.height - oneThird, radius: 1.5, fillColor: color)
+        mmView.drawLine.draw(sx: right - skin.margin.right - 2, sy: middleY - 1, ex: right - oneHalf - 2, ey: rect.y + rect.height - oneThird - 1, radius: 1.5, fillColor: color)
         
         if items.count == 0 { return }
         

@@ -360,17 +360,18 @@ class NodeUISelector : NodeUI
         let middleY : Float = contentY + itemHeight / 2 * scale
         let arrowUp : Float = 7 * scale
         var left    : Float = rect.x + 10 * scale
+        let oneScaled : Float = 1 * scale
         
         var color : float4 = hoverMode == .LeftArrow ? float4(1,1,1,1) : mmView.skin.ScrollButton.activeColor
         if isDisabled { color.w = 0.2 }
-        mmView.drawLine.draw(sx: left, sy: middleY, ex: left + arrowUp, ey: middleY + arrowUp, radius: 1 * scale, fillColor: color)
-        mmView.drawLine.draw(sx: left, sy: middleY, ex: left + arrowUp, ey: middleY - arrowUp, radius: 1 * scale, fillColor: color)
+        mmView.drawLine.draw(sx: left, sy: middleY - oneScaled, ex: left + arrowUp, ey: middleY + arrowUp - oneScaled, radius: oneScaled, fillColor: color)
+        mmView.drawLine.draw(sx: left, sy: middleY - oneScaled, ex: left + arrowUp, ey: middleY - arrowUp - oneScaled, radius: oneScaled, fillColor: color)
 
         left = rect.x + (maxItemWidth + spacer - 19) * scale
         color = hoverMode == .RightArrow ? float4(1,1,1,1) : mmView.skin.ScrollButton.activeColor
         if isDisabled { color.w = 0.2 }
-        mmView.drawLine.draw(sx: left + arrowUp, sy: middleY, ex: left, ey: middleY + arrowUp, radius: 1 * scale, fillColor: color)
-        mmView.drawLine.draw(sx: left + arrowUp, sy: middleY, ex: left, ey: middleY - arrowUp, radius: 1 * scale, fillColor: color)
+        mmView.drawLine.draw(sx: left + arrowUp, sy: middleY - oneScaled, ex: left, ey: middleY + arrowUp - oneScaled, radius: oneScaled, fillColor: color)
+        mmView.drawLine.draw(sx: left + arrowUp, sy: middleY - oneScaled, ex: left, ey: middleY - arrowUp - oneScaled, radius: oneScaled, fillColor: color)
         
         if items.count == 0 { return }
         
