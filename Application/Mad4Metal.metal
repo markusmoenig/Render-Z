@@ -511,3 +511,24 @@ fragment float4 m4mColorWheelDrawable(RasterizerData in [[stage_in]],
 
     return col;
 }
+
+fragment float4 m4mArcDrawable(RasterizerData in [[stage_in]],
+                                      constant MM_ARC *data [[ buffer(0) ]] )
+{
+    float ra = data->r.x;
+    float rb = data->r.y;
+    
+    float2 p = in.textureCoordinate * (ra+rb) * 2;
+    p -= float2(ra + rb);
+    
+    float2 sca = float2(sin(data->sc.x), cos(data->sc.x));
+    float2 scb = float2(sin(data->sc.y), cos(data->sc.y));
+
+    p *= float2x2(sca.x,sca.y,-sca.y,sca.x);
+    p.x = abs(p.x);
+    float k = (scb.y*p.x>scb.x*p.y) ? dot(p.xy,scb) : length(p.xy);
+    float dist = sqrt( dot(p,p) + ra*ra - 2.0*ra*k ) - rb;
+    
+    float4 col = float4( data->color.x, data->color.y, data->color.z, m4mFillMask( dist ) );
+    return col;
+}

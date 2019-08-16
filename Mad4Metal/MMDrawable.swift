@@ -661,3 +661,39 @@ class MMDrawColorWheel : MMDrawable
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
 }
+
+/// Draws an arc
+class MMDrawArc : MMDrawable
+{
+    let mmRenderer : MMRenderer
+    var state : MTLRenderPipelineState!
+    
+    required init( _ renderer : MMRenderer )
+    {
+        let function = renderer.defaultLibrary.makeFunction( name: "m4mArcDrawable" )
+        state = renderer.createNewPipelineState( function! )
+        mmRenderer = renderer
+    }
+    
+    func draw( x: Float, y: Float, sca: Float, scb: Float, ra: Float, rb: Float, fillColor: float4)
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        let settings: [Float] = [
+            sca, scb,
+            ra * scaleFactor, rb,
+            fillColor.x, fillColor.y, fillColor.z, fillColor.w,
+        ];
+        
+        let renderEncoder = mmRenderer.renderEncoder!
+        
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, ra * 2 + rb, ra * 2 + rb, scale: scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        renderEncoder.setRenderPipelineState( state! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+}

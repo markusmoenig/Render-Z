@@ -98,4 +98,12 @@ typedef struct
     
 } MM_COLORWHEEL;
 
+typedef struct
+{
+    float2 sc;
+    float2 r;
+    float4 color;
+    
+} MM_ARC;
+
 #endif /* Mad4Metal_types.h */

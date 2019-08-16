@@ -261,7 +261,7 @@ class NodeGraph : Codable
         }
         
         objectsButton = MMSwitchButtonWidget(app.mmView, text: "Object")
-        //objectsButton.textYOffset = 1.5
+        objectsButton.textYOffset = 1.0
         objectsButton.addState(.Checked)
         objectsButton.clicked = { (event) -> Void in
             self.stopPreview()
@@ -1593,23 +1593,10 @@ class NodeGraph : Codable
         behaviorMenu.draw()
         
         // --- Node Drag Handles
-        /*
+        
         let dragColor = nodeHoverMode == .MasterDrag || nodeHoverMode == .MasterDragging ? float4(repeating:1) : float4(0.5, 0.5, 0.5, 1)
+        app!.mmView.drawArc.draw(x: node.rect.x + 8, y: node.rect.y + node.rect.height - 28, sca: 3.14 * 1.75, scb: 3.14 * 0.25, ra: 10, rb: 2, fillColor: dragColor)
         
-        var sX: Float = node.rect.x + 20
-        var sY: Float = node.rect.y + node.rect.height - 30
-        var eX: Float = node.rect.x + 30
-        var eY: Float = node.rect.y + node.rect.height - 20
-
-        app!.mmView.drawLine.draw(sx: sX, sy: sY, ex: eX, ey: eY, radius: 1.2, fillColor: dragColor)
-        
-        sX = node.rect.x + 18
-        sY = node.rect.y + node.rect.height - 23
-        eX = node.rect.x + 23
-        eY = node.rect.y + node.rect.height - 18
-        
-        app!.mmView.drawLine.draw(sx: sX, sy: sY, ex: eX, ey: eY, radius: 1.2, fillColor: dragColor)
-        */
         // --- Preview Info Label
         
         previewInfoMenu.rect.x = node.rect.x + node.rect.width - previewInfoMenu.rect.width - 36
