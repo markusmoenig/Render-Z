@@ -1595,7 +1595,7 @@ class NodeGraph : Codable
         // --- Node Drag Handles
         
         let dragColor = nodeHoverMode == .MasterDrag || nodeHoverMode == .MasterDragging ? mmView.skin.ToolBarButton.hoverColor : mmView.skin.ToolBarButton.color
-        app!.mmView.drawArc.draw(x: node.rect.x + 8, y: node.rect.y + node.rect.height - 28, sca: 3.14 * 1.75, scb: 3.14 * 0.25, ra: 10, rb: 2, fillColor: dragColor)
+        app!.mmView.drawArc.draw(x: node.rect.x + 4.5, y: node.rect.y + node.rect.height - 26, sca: 3.14 * 1.75, scb: 3.14 * 0.25, ra: 10, rb: 2, fillColor: dragColor)
         
         // --- Preview Info Label
         
