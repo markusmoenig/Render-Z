@@ -825,7 +825,7 @@ class NodeGraph : Codable
         if nodeHoverMode == .OverviewEdit {
             #if os(iOS)
             if overviewIsOn {
-                self.overviewButton.clicked!(MMMouseEvent(0,0))
+                // TODO self.overviewButton.clicked!(MMMouseEvent(0,0))
                 nodeHoverMode = .None
             } else {
                 activateNodeDelegate(hoverNode!)

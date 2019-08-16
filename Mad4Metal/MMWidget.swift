@@ -589,6 +589,8 @@ class MMSwitchButtonWidget : MMWidget
     
     var space       : Float = 40
     
+    var fingerIsDown: Bool = false
+    
     init( _ view: MMView, skinToUse: MMSkinButton? = nil, text: String, dotSize : DotSize = .Small )
     {
         self.text = text
@@ -639,6 +641,7 @@ class MMSwitchButtonWidget : MMWidget
     override func _clicked(_ event:MMMouseEvent)
     {
         if !isDisabled {
+            
             if hoverMode == .Several {
                 state = .Several
             } else
@@ -655,9 +658,22 @@ class MMSwitchButtonWidget : MMWidget
         }
     }
     
+    override func mouseUp(_ event:MMMouseEvent)
+    {
+        #if os(iOS)
+        fingerIsDown = false
+        #endif
+    }
+    
+    override func mouseDown(_ event:MMMouseEvent)
+    {
+        #if os(iOS)
+        mouseMoved(event)
+        fingerIsDown = true
+        #endif
+    }
+    
     override func mouseMoved(_ event: MMMouseEvent) {
-        
-        
         func opIntersection( d1: Float, d2: Float ) -> Float { return max(d1,d2) }
 
         let oldHoverMode = hoverMode
@@ -730,7 +746,12 @@ class MMSwitchButtonWidget : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        // --- Draw the bigger box which is the one box
+        let checkedState : Bool = states.contains(.Checked)
+        #if os(iOS)
+        if checkedState == false && fingerIsDown == false {
+            hoverMode = .Outside
+        }
+        #endif
         
         if state == .Several {
         
@@ -744,7 +765,7 @@ class MMSwitchButtonWidget : MMWidget
             
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
             
-            fillColor = states.contains(.Checked) ? (hoverMode == .Several ? skin.hoverColor : skin.activeColor) : (hoverMode == .Several ? skin.hoverColor : mmView.skin.ToolBar.color)
+            fillColor = checkedState ? (hoverMode == .Several ? skin.hoverColor : skin.activeColor) : (hoverMode == .Several ? skin.hoverColor : mmView.skin.ToolBar.color)
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width - space, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
             
             label.rect.x = rect.x + space + 6
@@ -766,7 +787,7 @@ class MMSwitchButtonWidget : MMWidget
             
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
             
-            fillColor = states.contains(.Checked) ? (hoverMode == .One ? skin.hoverColor : skin.activeColor) : (hoverMode == .One ? skin.hoverColor : mmView.skin.ToolBar.color)
+            fillColor = checkedState ? (hoverMode == .One ? skin.hoverColor : skin.activeColor) : (hoverMode == .One ? skin.hoverColor : mmView.skin.ToolBar.color)
             mmView.drawBox.draw( x: rect.x + space, y: rect.y, width: rect.width - space, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
             
             label.rect.x = rect.x + space + 26
