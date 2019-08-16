@@ -331,6 +331,7 @@ class NodeGraph : Codable
         }
         
         gameButton = MMButtonWidget(app.mmView, text: "Game" )
+        gameButton.rect.width += 20
         gameButton.textYOffset = -1.5
         gameButton.clicked = { (event) -> Void in
             self.stopPreview()
