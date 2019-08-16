@@ -84,11 +84,9 @@ class NodeGraph : Codable
     // Current available class nodes (selectable master nodes)
     var currentContent  : [Node] = []
     
-    var objectsButton   : MMButtonWidget!
-    var scenesButton    : MMButtonWidget!
+    var objectsButton   : MMSwitchButtonWidget!
+    var scenesButton    : MMSwitchButtonWidget!
     var gameButton      : MMButtonWidget!
-
-    var overviewButton  : MMButtonWidget!
 
     var editButton      : MMButtonWidget!
     var playButton      : MMButtonWidget!
@@ -262,7 +260,7 @@ class NodeGraph : Codable
             }
         }
         
-        objectsButton = MMButtonWidget(app.mmView, text: "Objects" )
+        objectsButton = MMSwitchButtonWidget(app.mmView, text: "Object")
         //objectsButton.textYOffset = 1.5
         objectsButton.addState(.Checked)
         objectsButton.clicked = { (event) -> Void in
@@ -273,17 +271,23 @@ class NodeGraph : Codable
             self.objectsButton.addState(.Checked)
             self.scenesButton.removeState(.Checked)
             self.gameButton.removeState(.Checked)
-            self.overviewButton.isDisabled = false
 
-            self.contentType = .Objects
-            self.updateContent(self.contentType)
-            
-            if self.currentContent.count == 0 || event.x != 0 {
-                self.overviewButton.addState(.Checked)
+            if self.objectsButton.state == .Several {
+                self.contentType = .ObjectsOverview
+                self.updateContent(self.contentType)
                 self.overviewIsOn = true
+            } else {
+                self.contentType = .Objects
+                self.updateContent(self.contentType)
+                self.overviewIsOn = false
             }
             
-            if !self.overviewButton.states.contains(.Checked) {
+            //if self.currentContent.count == 0 || event.x != 0 {
+            //    self.overviewButton.addState(.Checked)
+            //    self.overviewIsOn = true
+            //}
+            
+            if self.overviewIsOn == false {
                 if self.currentMaster != nil && self.currentContent.count > 0 {
                     self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
                 }
@@ -295,7 +299,7 @@ class NodeGraph : Codable
             adjustVisibleButtons()
         }
         
-        scenesButton = MMButtonWidget(app.mmView, text: "Scenes" )
+        scenesButton = MMSwitchButtonWidget(app.mmView, text: "Scene", dotSize: .Large)
         scenesButton.rect.width = objectsButton.rect.width
         scenesButton.textYOffset = -1.5
         scenesButton.clicked = { (event) -> Void in
@@ -306,17 +310,15 @@ class NodeGraph : Codable
             self.objectsButton.removeState(.Checked)
             self.scenesButton.addState(.Checked)
             self.gameButton.removeState(.Checked)
-            self.overviewButton.isDisabled = false
 
             self.contentType = .Scenes
             self.updateContent(self.contentType)
             
             if self.currentContent.count == 0 || event.x != 0 {
-                self.overviewButton.addState(.Checked)
                 self.overviewIsOn = true
             }
             
-            if !self.overviewButton.states.contains(.Checked) {
+            if self.overviewIsOn == false {
                 if self.currentMaster != nil && self.currentContent.count > 0 {
                     self.currentMaster!.updatePreview(nodeGraph: self, hard: false)
                 }
@@ -329,7 +331,6 @@ class NodeGraph : Codable
         }
         
         gameButton = MMButtonWidget(app.mmView, text: "Game" )
-        gameButton.rect.width = objectsButton.rect.width
         gameButton.textYOffset = -1.5
         gameButton.clicked = { (event) -> Void in
             self.stopPreview()
@@ -339,7 +340,6 @@ class NodeGraph : Codable
             self.objectsButton.removeState(.Checked)
             self.scenesButton.removeState(.Checked)
             self.gameButton.addState(.Checked)
-            self.overviewButton.isDisabled = true
             self.overviewIsOn = false
             
             self.contentType = .Game
@@ -351,6 +351,7 @@ class NodeGraph : Codable
             adjustVisibleButtons()
         }
         
+        /*
         overviewButton = MMButtonWidget(app.mmView, text: "Overview" )
         overviewButton.clicked = { (event) -> Void in
             self.stopPreview()
@@ -377,6 +378,7 @@ class NodeGraph : Codable
             }
             adjustVisibleButtons()
         }
+        */
         
         var smallButtonSkin = MMSkinButton()
         smallButtonSkin.height = mmView.skin.Button.height
@@ -506,10 +508,12 @@ class NodeGraph : Codable
                 self.contentType = .Objects
                 updateContent(self.contentType)
                 nodeList!.switchTo(.Object)
+                objectsButton.setState(.One)
             } else {
                 self.contentType = .ObjectsOverview
                 updateContent(self.contentType)
                 nodeList!.switchTo(.ObjectOverview)
+                objectsButton.setState(.Several)
             }
         } else
         if currentMaster as? Scene != nil {
@@ -520,10 +524,12 @@ class NodeGraph : Codable
                 self.editButton.setText( "Arrange..." )
                 updateContent(self.contentType)
                 nodeList!.switchTo(.Scene)
+                scenesButton.setState(.One)
             } else {
                 self.contentType = .ScenesOverview
                 updateContent(self.contentType)
                 nodeList!.switchTo(.SceneOverview)
+                scenesButton.setState(.Several)
             }
         } else
         if currentMaster as? Game != nil {
@@ -713,7 +719,7 @@ class NodeGraph : Codable
             setCurrentNode(hoverNode!)
             #if os(OSX)
             if overviewIsOn {
-                self.overviewButton.clicked!(MMMouseEvent(0,0))
+                // TODO self.overviewButton.clicked!(MMMouseEvent(0,0))
                 nodeHoverMode = .None
             } else {
                 activateNodeDelegate(hoverNode!)
@@ -2046,7 +2052,7 @@ class NodeGraph : Codable
         var currentFound : Bool = false
         
         for node in nodes {
-            if type == .Objects {
+            if type == .Objects || type == .ObjectsOverview {
                 if let object = node as? Object {
                     if object.uuid == currentObjectUUID {
                         index = items.count
@@ -2057,7 +2063,7 @@ class NodeGraph : Codable
                     currentContent.append(node)
                 }
             } else
-            if type == .Scenes {
+            if type == .Scenes || type == .ScenesOverview {
                 if let scene = node as? Scene {
                     if scene.uuid == currentLayerUUID {
                         index = items.count
@@ -3056,7 +3062,7 @@ class NodeGraph : Codable
             let editNodeItem =  MMMenuItem( text: "Edit " + node.type, cb: {
                 
                 if node.type == "Object" || node.type == "Scene" {
-                    self.overviewButton.clicked!(MMMouseEvent(0,0))
+                    // TODO self.overviewButton.clicked!(MMMouseEvent(0,0))
                 } else {
                     self.activateNodeDelegate(node)
                 }

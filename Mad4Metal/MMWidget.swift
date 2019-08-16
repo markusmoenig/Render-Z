@@ -557,3 +557,233 @@ class MMTextureWidget : MMWidget
         mmView.drawTexture.draw(texture!, x: rect.x, y: rect.y, zoom: zoom);
     }
 }
+
+/// Switch Button widget class which handles all buttons
+class MMSwitchButtonWidget : MMWidget
+{
+    enum State {
+        case Several, One
+    }
+    
+    enum DotSize {
+        case Small, Large
+    }
+    
+    enum DotLocation {
+        case All, Middle, UpperLeft
+    }
+    
+    enum HoverMode {
+        case Outside, Several, One
+    }
+    
+    var state       : State = .Several
+    var dotSize     : DotSize
+    
+    var hoverMode   : HoverMode = .Outside
+    
+    var skin        : MMSkinButton
+    var label       : MMTextLabel!
+    var text        : String!
+    var textYOffset : Float = 0
+    
+    var space       : Float = 40
+    
+    init( _ view: MMView, skinToUse: MMSkinButton? = nil, text: String, dotSize : DotSize = .Small )
+    {
+        self.text = text
+        self.dotSize = dotSize
+        skin = skinToUse != nil ? skinToUse! : view.skin.ToolBarButton
+        super.init(view)
+        
+        name = "MMSwitchButtonWidget"
+        rect.height = skin.height
+        
+        validStates = [.Checked]
+        
+        label = MMTextLabel(view, font: view.openSans, text: text, scale: skin.fontScale )
+        //label.color = float4(0.933, 0.937, 0.941, 1.000)
+        rect.width = label.rect.width + space * 2 + skin.margin.width()
+        adjustToState()
+    }
+    
+    func setState(_ state: State)
+    {
+        self.state = state
+        adjustToState()
+        if super.clicked != nil {
+            super.clicked!(MMMouseEvent(0,0))
+        }
+    }
+    
+    func adjustToState()
+    {
+        if state == .Several {
+            label.setText(text + "s")
+        } else {
+            label.setText(text)
+        }
+    }
+    
+    func distanceToRRect(_ x: Float,_ y: Float,_ width: Float,_ height: Float, round: Float,_ mouseX: Float,_ mouseY: Float) -> Float
+    {
+        var uv : float2 = float2(mouseX - x, mouseY - y)
+        uv = uv - float2(rect.width / 2, rect.height / 2)
+        
+        let d : float2 = simd_abs(uv) - float2(width/2, height/2) + round / 2
+        let dist : Float = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0) - round / 2
+        
+        return dist
+    }
+    
+    override func _clicked(_ event:MMMouseEvent)
+    {
+        if !isDisabled {
+            if hoverMode == .Several {
+                state = .Several
+            } else
+            if hoverMode == .One {
+                state = .One
+            }
+            //state = state == .Several ? .One : .Several
+            adjustToState()
+
+            addState( .Checked )
+            if super.clicked != nil {
+                super.clicked!(event)
+            }
+        }
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent) {
+        
+        
+        func opIntersection( d1: Float, d2: Float ) -> Float { return max(d1,d2) }
+
+        let oldHoverMode = hoverMode
+        hoverMode = .Outside
+        let dist = distanceToRRect(rect.x, rect.y, rect.width, rect.height, round: skin.round, event.x, event.y)
+        if dist < 0 {
+            if state == .Several {
+                hoverMode = .Several
+                let oneDist = distanceToRRect(rect.x - space / 2, rect.y, rect.width - space, rect.height, round: skin.round, event.x, event.y)
+                let d = opIntersection(d1: oneDist, d2: dist)
+                
+                if d > 0 {
+                    hoverMode = .One
+                }
+            } else {
+                hoverMode = .One
+                let severalDist = distanceToRRect(rect.x + space - space / 2, rect.y, rect.width - space, rect.height, round: skin.round, event.x, event.y)
+                let d = opIntersection(d1: severalDist, d2: dist)
+
+                if d > 0 {
+                    hoverMode = .Several
+                }
+            }
+        }
+
+        if oldHoverMode != hoverMode {
+            mmView.update()
+        }
+    }
+    
+    override func mouseLeave(_ event: MMMouseEvent) {
+        let oldHoverMode = hoverMode
+        hoverMode = .Outside
+        
+        if oldHoverMode != hoverMode {
+            mmView.update()
+        }
+    }
+    
+    func drawDots(_ x: Float,_ y: Float, amount: Int, offset: Float, size: Float, dotLocation: DotLocation = .All)
+    {
+        if dotLocation == .All {
+            for h in 0...amount-1 {
+                for w in 0...amount-1 {
+                    
+                    let xOff : Float = x + Float(w) * offset
+                    let yOff : Float = y + Float(h) * offset
+
+                    mmView.drawSphere.draw( x: xOff, y: yOff, radius: size, borderSize: 0, fillColor : label.color)
+                }
+            }
+        } else
+        if dotLocation == .Middle {
+            let middle : Int = Int((amount - 1) / 2)
+            for h in 0...amount-1 {
+                for w in 0...amount-1 {
+                    
+                    let xOff : Float = x + Float(w) * offset
+                    let yOff : Float = y + Float(h) * offset
+                    
+                    if h == middle && w == middle {
+                        mmView.drawSphere.draw( x: xOff, y: yOff, radius: size, borderSize: 0, fillColor : label.color)
+                    } else {
+                        mmView.drawSphere.draw( x: xOff, y: yOff, radius: size, borderSize: 0, fillColor : float4(0.278, 0.282, 0.286, 1.000))
+                    }
+                }
+            }
+        }
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    {
+        // --- Draw the bigger box which is the one box
+        
+        if state == .Several {
+        
+            var fillColor    : float4 = hoverMode == .One ? skin.hoverColor : float4(0,0,0,0)
+            var borderColor  : float4 = skin.borderColor
+            
+            if isDisabled {
+                fillColor.w = mmView.skin.disabledAlpha
+                borderColor.w = mmView.skin.disabledAlpha
+            }
+            
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
+            
+            fillColor = states.contains(.Checked) ? (hoverMode == .Several ? skin.hoverColor : skin.activeColor) : (hoverMode == .Several ? skin.hoverColor : mmView.skin.ToolBar.color)
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width - space, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
+            
+            label.rect.x = rect.x + space + 6
+            label.rect.y = rect.y + textYOffset + (rect.height - label.rect.height) / 2
+            
+            if label.isDisabled != isDisabled {
+                label.isDisabled = isDisabled
+            }
+            label.draw()
+        } else {
+            
+            var fillColor    : float4 = hoverMode == .Several ? skin.hoverColor : float4(0,0,0,0)
+            var borderColor  : float4 = skin.borderColor
+            
+            if isDisabled {
+                fillColor.w = mmView.skin.disabledAlpha
+                borderColor.w = mmView.skin.disabledAlpha
+            }
+            
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
+            
+            fillColor = states.contains(.Checked) ? (hoverMode == .One ? skin.hoverColor : skin.activeColor) : (hoverMode == .One ? skin.hoverColor : mmView.skin.ToolBar.color)
+            mmView.drawBox.draw( x: rect.x + space, y: rect.y, width: rect.width - space, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
+            
+            label.rect.x = rect.x + space + 26
+            label.rect.y = rect.y + textYOffset + (rect.height - label.rect.height) / 2
+            
+            if label.isDisabled != isDisabled {
+                label.isDisabled = isDisabled
+            }
+            label.draw()
+        }
+        
+        if dotSize == .Small {
+            drawDots(rect.x + 15, rect.y + 10, amount: 3, offset: 7, size: 2.5)
+            drawDots(rect.x + rect.width - space + 8, rect.y + 10, amount: 3, offset: 7, size: 2.5, dotLocation: .Middle)
+        } else {
+            drawDots(rect.x + 15, rect.y + 11, amount: 2, offset: 11, size: 3.5)
+            drawDots(rect.x + rect.width - space + 8, rect.y + 11, amount: 2, offset: 11, size: 3.5, dotLocation: .Middle)
+        }
+    }
+}
