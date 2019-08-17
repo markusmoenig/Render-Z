@@ -109,8 +109,6 @@ class NodeGraph : Codable
     var previewInfoMenu : MMMenuWidget!
 
     var previewSize     : float2 = float2(340, 200)
-
-    var editLabel       : MMTextLabel!
     
     var refList         : ReferenceList!
     var validHoverTarget: NodeUIDropTarget? = nil
@@ -310,12 +308,15 @@ class NodeGraph : Codable
             self.objectsButton.removeState(.Checked)
             self.scenesButton.addState(.Checked)
             self.gameButton.removeState(.Checked)
-
-            self.contentType = .Scenes
-            self.updateContent(self.contentType)
             
-            if self.currentContent.count == 0 || event.x != 0 {
+            if self.scenesButton.state == .Several {
+                self.contentType = .ScenesOverview
+                self.updateContent(self.contentType)
                 self.overviewIsOn = true
+            } else {
+                self.contentType = .Scenes
+                self.updateContent(self.contentType)
+                self.overviewIsOn = false
             }
             
             if self.overviewIsOn == false {
@@ -351,35 +352,6 @@ class NodeGraph : Codable
             self.nodeList!.switchTo(.Game)
             adjustVisibleButtons()
         }
-        
-        /*
-        overviewButton = MMButtonWidget(app.mmView, text: "Overview" )
-        overviewButton.clicked = { (event) -> Void in
-            self.stopPreview()
-            
-            if !self.overviewIsOn {
-                self.overviewButton.addState(.Checked)
-                self.overviewIsOn = true
-            } else {
-                self.overviewButton.removeState(.Checked)
-                self.overviewIsOn = false
-            }
-            
-            self.overviewButton.removeState(.Checked)
-            self.overviewIsOn = false
-            
-            if self.contentType == .Objects || self.contentType == .ObjectsOverview {
-                self.objectsButton._clicked(MMMouseEvent(0, 0))
-            }
-            if self.contentType == .Scenes || self.contentType == .ScenesOverview {
-                self.scenesButton._clicked(MMMouseEvent(0, 0))
-            }
-            if self.contentType == .Game {
-                self.gameButton._clicked(MMMouseEvent(0, 0))
-            }
-            adjustVisibleButtons()
-        }
-        */
         
         var smallButtonSkin = MMSkinButton()
         smallButtonSkin.height = mmView.skin.Button.height
@@ -473,8 +445,6 @@ class NodeGraph : Codable
 //        } else {
 //            executeIcon = app.mmView.icons["execute"]
 //        }
-        
-        editLabel = MMTextLabel(mmView, font: mmView.openSans, text: "EDIT", scale: 0.3)
         
         // Behavior Menu (Debug Options)
         var behaviorItems : [MMMenuItem] = []
@@ -720,10 +690,14 @@ class NodeGraph : Codable
             setCurrentNode(hoverNode!)
             #if os(OSX)
             if overviewIsOn {
-                // TODO self.overviewButton.clicked!(MMMouseEvent(0,0))
+                if hoverNode!.type == "Object" {
+                    objectsButton.setState(.One)
+                    objectsButton.clicked!(MMMouseEvent(0,0))
+                } else {
+                    scenesButton.setState(.One)
+                    scenesButton.clicked!(MMMouseEvent(0,0))
+                }
                 nodeHoverMode = .None
-            } else {
-                activateNodeDelegate(hoverNode!)
             }
             #endif
             return
@@ -826,10 +800,13 @@ class NodeGraph : Codable
         if nodeHoverMode == .OverviewEdit {
             #if os(iOS)
             if overviewIsOn {
-                // TODO self.overviewButton.clicked!(MMMouseEvent(0,0))
-                nodeHoverMode = .None
-            } else {
-                activateNodeDelegate(hoverNode!)
+                if hoverNode!.type == "Object" {
+                    objectsButton.setState(.One)
+                    objectsButton.clicked!(MMMouseEvent(0,0))
+                } else {
+                    scenesButton.setState(.One)
+                    scenesButton.clicked!(MMMouseEvent(0,0))
+                }
             }
             return
             #endif
@@ -1017,10 +994,8 @@ class NodeGraph : Codable
                 mmView.update()
                 return
             }
-            
-            // Check for top left edit area
-            
-            if event.x > hoverNode!.rect.x + 8 * scale && event.y > hoverNode!.rect.y + 12 * scale && event.x <= hoverNode!.rect.x + 45 * scale && event.y <= hoverNode!.rect.y + 40 * scale {
+
+            if overviewIsOn && event.x > hoverNode!.rect.x + hoverNode!.rect.width - 62 * scale && event.y > hoverNode!.rect.y + 15 * scale && event.x <= hoverNode!.rect.x + hoverNode!.rect.width - (62-16) * scale && event.y <= hoverNode!.rect.y + (15 + 20) * scale {
                 if overviewIsOn || (overviewIsOn == false && hoverNode!.maxDelegate != nil) {
                     nodeHoverMode = .OverviewEdit
                     mmView.update()
@@ -1029,7 +1004,6 @@ class NodeGraph : Codable
             } else
             if nodeHoverMode == .OverviewEdit
             {
-                //print("no")
                 mmView.update()
             }
             
@@ -1287,8 +1261,25 @@ class NodeGraph : Codable
         
         app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.height, height: node.rect.height, round: 46 * scale, borderSize: 2, fillColor: float4(0,0,0,1), borderColor: borderColor)
         
-        // Node Menu
+        // --- Edit Button
         
+        let editColor = nodeHoverMode == .OverviewEdit ? float4(1,1,1,1) : float4(0.9,0.9,0.9,1)
+        
+        let editX : Float = node.rect.x + node.rect.width - 64 * scale
+        let editY : Float = node.rect.y + 17 * scale
+        let editSize : Float = 14 * scale
+        let editRadius : Float = 0.9 * scale
+        
+        mmView.drawLine.draw(sx: editX, sy: editY + editSize / 2, ex: editX, ey: editY, radius: editRadius, fillColor: editColor)
+        mmView.drawLine.draw(sx: editX, sy: editY, ex: editX + editSize, ey: editY, radius: editRadius, fillColor: editColor)
+        mmView.drawLine.draw(sx: editX + editSize, sy: editY, ex: editX + editSize , ey: editY + editSize, radius: editRadius, fillColor: editColor)
+        mmView.drawLine.draw(sx: editX + editSize / 2, sy: editY + editSize, ex: editX + editSize, ey: editY + editSize, radius: editRadius, fillColor: editColor)
+        mmView.drawLine.draw(sx: editX, sy: editY + editSize, ex: editX + editSize * 0.7, ey: editY + editSize * 0.3, radius: editRadius, fillColor: editColor)
+
+        mmView.drawLine.draw(sx: editX + editSize * 0.7 - 5 * scale, sy: editY + editSize * 0.3, ex: editX + editSize * 0.7, ey: editY + editSize * 0.3, radius: editRadius, fillColor: editColor)
+        mmView.drawLine.draw(sx: editX + editSize * 0.7, sy: editY + editSize * 0.3, ex: editX + editSize * 0.7, ey: editY + editSize * 0.3 + 5 * scale, radius: editRadius, fillColor: editColor)
+
+        // Node Menu
         if node.menu == nil {
             createNodeMenu(node)
         }
@@ -1499,16 +1490,6 @@ class NodeGraph : Codable
             label.rect.y = node.rect.y + 16 * scale
             label.draw()
             //label.drawCentered(x: node.rect.x + 10 * scale, y: node.rect.y + 23 * scale, width: node.rect.width - 50 * scale, height: label.rect.height)
-        }
-        
-        if nodeHoverMode == .OverviewEdit && node === hoverNode {
-            if editLabel.scale != 0.3 * scale {
-                editLabel.setText("EDIT", scale: 0.3 * scale)
-            }
-            editLabel.rect.x = node.rect.x + 10 * scale
-            editLabel.rect.y = node.rect.y + 20 * scale
-            editLabel.draw()
-//            editLabel.draw(x: node.rect.x + 10 * scale, y: node.rect.y + 10 * scale, width: node.rect.x + 40 * scale, height: editLabel.rect.height)
         }
         
         // --- Draw UI, was parsed before
@@ -3110,10 +3091,13 @@ class NodeGraph : Codable
         if node.maxDelegate != nil {
             let editNodeItem =  MMMenuItem( text: "Edit " + node.type, cb: {
                 
-                if node.type == "Object" || node.type == "Scene" {
-                    // TODO self.overviewButton.clicked!(MMMouseEvent(0,0))
-                } else {
-                    self.activateNodeDelegate(node)
+                if node.type == "Object" {
+                    self.objectsButton.setState(.One)
+                    self.objectsButton.clicked!(MMMouseEvent(10,10))
+                } else
+                if node.type == "Scene" {
+                    self.scenesButton.setState(.One)
+                    self.scenesButton.clicked!(MMMouseEvent(10,10))
                 }
             } )
             items.append(editNodeItem)
