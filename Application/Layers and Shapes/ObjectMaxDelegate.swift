@@ -1271,14 +1271,17 @@ class MaterialListScrollArea: MMScrollArea
         var borderlessSkin = MMSkinButton()
         borderlessSkin.margin = MMMargin( 4, 4, 4, 4 )
         borderlessSkin.borderSize = 0
-        borderlessSkin.height = 23
+        borderlessSkin.height = view.skin.Button.height
         borderlessSkin.fontScale = 0.44
+        borderlessSkin.round = 24
         
         bodyButton = MMButtonWidget(view, skinToUse: borderlessSkin, text: "Interior" )
         bodyButton.addState(.Checked)
+        bodyButton.rect.width += 10
         
         borderButton = MMButtonWidget(view, skinToUse: borderlessSkin, text: "Border" )
-        
+        borderButton.rect.width += 10
+
         super.init(view, orientation:.Vertical)
         
         bodyButton.clicked = { (event) -> Void in
@@ -1426,13 +1429,13 @@ class MaterialListScrollArea: MMScrollArea
         
         bodyButton.rect.x = rect.x + 10
         bodyButton.rect.y = rect.y + 3
-        bodyButton.rect.width = 75
+        bodyButton.rect.width = 85
         bodyButton.rect.height = 24
         bodyButton.draw()
         
         borderButton.rect.copy( bodyButton.rect )
         borderButton.rect.x += bodyButton.rect.width + 10
-        borderButton.rect.width = 70
+        borderButton.rect.width = 80
         borderButton.draw()
         
         mmView.drawBox.draw( x: rect.x, y: rect.y + height, width: rect.width, height: rect.height + 1 - height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )

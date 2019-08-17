@@ -1183,8 +1183,14 @@ class NodeGraph : Codable
 
                 let toDraw = getNodesOfMaster(for: currentMaster!)
                 
-                for node in toDraw {
-                    drawNode( node, region: region)
+                if overviewIsOn == false {
+                    for node in toDraw {
+                        drawNode( node, region: region)
+                    }
+                } else {
+                    for node in toDraw {
+                        drawOverviewNode( node, region: region)
+                    }
                 }
                 
                 // --- Ongoing Node connection attempt ?
@@ -1253,7 +1259,62 @@ class NodeGraph : Codable
         }
     }
     
-    /// Draw a single node
+    /// Draw an overview node
+    func drawOverviewNode(_ node: Node, region: MMRegion)
+    {
+        let scale : Float = currentMaster!.camera!.zoom
+        
+        node.rect.x = region.rect.x + node.xPos * scale + currentMaster!.camera!.xPos
+        node.rect.y = region.rect.y + node.yPos * scale + currentMaster!.camera!.yPos
+        
+        node.rect.width = 266 * scale
+        node.rect.height = 116 * scale
+    
+        if node.label == nil {
+            node.label = MMTextLabel(app!.mmView, font: app!.mmView.openSans, text: node.name, scale: 0.42 * scale, color: mmView.skin.Node.titleColor)
+        }
+        
+        if let label = node.label {
+            if label.rect.width > 110 {
+                node.rect.width += label.rect.width - 110
+            }
+        }
+        
+        let nodeColor = float4(0.165, 0.169, 0.173, 1.000)
+        let borderColor = selectedUUID.contains(node.uuid) ? float4(0.953, 0.957, 0.961, 1.000) : float4(0.282, 0.286, 0.290, 1.000)
+        
+        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 46 * scale, borderSize: 2, fillColor: nodeColor, borderColor: borderColor)
+        
+        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.height, height: node.rect.height, round: 46 * scale, borderSize: 2, fillColor: float4(0,0,0,1), borderColor: borderColor)
+        
+        // Node Menu
+        
+        if node.menu == nil {
+            createNodeMenu(node)
+        }
+        
+        if node.menu!.states.contains(.Opened) {
+            mmView.delayedDraws.append(node.menu!)
+        } else {
+            node.menu!.rect.x = node.rect.x + node.rect.width - 40 * scale
+            node.menu!.rect.y = node.rect.y + 13 * scale
+            node.menu!.rect.width = 26 * scale //30 * scale
+            node.menu!.rect.height = 24 * scale //28 * scale
+            node.menu!.draw()
+        }
+        
+        // --- Label
+        if let label = node.label {
+            if label.scale != 0.42 * scale {
+                label.setText(node.name, scale: 0.42 * scale)
+            }
+            label.rect.x = node.rect.x + 130 * scale
+            label.rect.y = node.rect.y + node.rect.height - 30 * scale
+            label.draw()
+        }
+    }
+    
+    /// Draw a node
     func drawNode(_ node: Node, region: MMRegion)
     {
         let renderer = app!.mmView.renderer!

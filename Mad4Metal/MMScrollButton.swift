@@ -219,7 +219,7 @@ class MMScrollButton : MMWidget
         mmView.renderer.setClipRect(MMRect(rect.x + MMScrollButton.halfSpacer, rect.y, rect.width-MMScrollButton.halfSpacer*2, rect.height))
 
         label!.rect.x = rect.x + skin.margin.left + MMScrollButton.halfSpacer + (maxItemWidth - label!.rect.width) / 2
-        label!.rect.y = rect.y + 11
+        label!.rect.y = rect.y + 9
         
         if animating == .Right {
             label!.rect.x -= animOffset

@@ -405,8 +405,8 @@ class MMListWidget : MMWidget
             float dist = 10000;
             float2 d;
         
-            float borderSize = 2.0;
-            float round = 4;
+            float borderSize = 0;
+            float round = 0;
         
             float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
             float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
@@ -428,7 +428,7 @@ class MMListWidget : MMWidget
         source += "d = abs( uv ) - float2( \((width)/2) - borderSize - 2, \(unitSize/2) - borderSize ) + float2( round );\n"
         source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
         
-        source += "col = float4( \(skin.selectionColor.x), \(skin.selectionColor.y), \(skin.selectionColor.z), fillMask( dist ) * \(skin.selectionColor.w) );\n"
+        source += "col = float4( \(item.color!.x), \(item.color!.y), \(item.color!.z), fillMask( dist ) * \(item.color!.w) );\n"
         
         source += "col = mix( col, borderColor, borderMask( dist, borderSize) );\n"
         source += "finalCol = mix( finalCol, col, col.a );\n"

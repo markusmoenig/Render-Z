@@ -37,7 +37,7 @@ class ReferenceList {
     var rect                : MMRect = MMRect()
     var offsetY             : Float = 0
     var isActive            : Bool = false
-    var itemHeight          : Float = 48
+    var itemHeight          : Float = 58
 
     var refs                : [ReferenceItem] = []
     
@@ -48,6 +48,9 @@ class ReferenceList {
 
     var dragSource          : ReferenceListDrag? = nil
     var mouseIsDown         : Bool = false
+
+    let color               : float4 = float4(0.243, 0.247, 0.251, 1.000)
+    let selColor            : float4 = float4(0.388, 0.392, 0.396, 1.000)
 
     init(_ nodeGraph: NodeGraph)
     {
@@ -252,7 +255,10 @@ class ReferenceList {
     
     func draw()
     {
-        let mmView = nodeGraph.mmView
+        let mmView = nodeGraph.mmView!
+        
+        // Preview Border
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 26, borderSize: 0, fillColor: float4(0.094, 0.098, 0.102, 1.000))
         
         if offsetY < -(Float(refs.count) * itemHeight - rect.height) {
             offsetY = -(Float(refs.count) * itemHeight - rect.height)
@@ -266,7 +272,7 @@ class ReferenceList {
         
         let scrollRect = MMRect(rect)
         scrollRect.shrink(2,2)
-        mmView?.renderer.setClipRect(scrollRect)
+        mmView.renderer.setClipRect(scrollRect)
         
         for item in refs {
          
@@ -277,16 +283,14 @@ class ReferenceList {
             
             let isSelected = selectedUUID == item.uuid
             
-            mmView?.drawBox.draw(x: scrollRect.x, y: y, width: scrollRect.width, height: itemHeight, round: 12, fillColor: isSelected ? shadeColor(item.color, 0.25) : item.color)
+            mmView.drawBox.draw(x: scrollRect.x, y: y, width: scrollRect.width, height: itemHeight - 1, round: 26, fillColor: isSelected ? selColor : color)
             
-            item.name.drawRightCenteredY(x: scrollRect.x, y: y, width: scrollRect.width - 5, height: 30)
-            item.category.drawRightCenteredY(x: scrollRect.x, y: y + 20, width: scrollRect.width - 5, height: 30)
+            item.name.drawCenteredY(x: scrollRect.x + 10, y: y + 5, width: scrollRect.width - 5, height: 30)
+            item.category.drawCenteredY(x: scrollRect.x + 10, y: y + 25, width: scrollRect.width - 5, height: 30)
 
             y += itemHeight
         }
-        mmView?.renderer.setClipRect()
-
-        mmView?.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: float4(0.173, 0.173, 0.173, 1.000))
+        mmView.renderer.setClipRect()
     }
     
     func mouseDown(_ event: MMMouseEvent)
@@ -490,7 +494,7 @@ class ReferenceThumb : MMWidget {
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0) {
         
-        var color : float4 = item.color
+        var color : float4 = float4(0.388, 0.392, 0.396, 1.000)
         color.w = 0.5
 
         mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 12, fillColor: color)
