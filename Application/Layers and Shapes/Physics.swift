@@ -486,7 +486,7 @@ class Physics
                     // Set the shortest distance of the object to the collision object for future reference via nodes
                     object.body!.distanceInfos[collisionObject.uuid] = shortestDistance
                     
-                    if contacts.isEmpty == false {
+                    if contacts.isEmpty == false && normal != float2(0,0) {
                         //print("hit", object.name, collisionObject.name, contacts.count)
 
                         let manifold = Manifold(object.body!, collisionObject.body!, penetrationDepth: penetrationDepth, normal: normal, contacts: contacts)
@@ -693,6 +693,8 @@ class Manifold
         self.penetrationDepth = penetrationDepth
         self.normal = normal
         self.contacts = contacts
+        
+        print("Manifold", normal)
         
         restitution = max(bodyA.restitution, bodyB.restitution)
         staticFriction = sqrt(bodyA.staticFriction * bodyB.staticFriction)
