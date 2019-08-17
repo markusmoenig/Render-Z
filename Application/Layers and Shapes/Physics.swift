@@ -693,9 +693,7 @@ class Manifold
         self.penetrationDepth = penetrationDepth
         self.normal = normal
         self.contacts = contacts
-        
-        print("Manifold", normal)
-        
+                
         restitution = max(bodyA.restitution, bodyB.restitution)
         staticFriction = sqrt(bodyA.staticFriction * bodyB.staticFriction)
         dynamicFriction = sqrt(bodyA.dynamicFriction * bodyB.dynamicFriction)
