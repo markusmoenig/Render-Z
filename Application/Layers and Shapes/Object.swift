@@ -45,7 +45,8 @@ class Object : Node
     var animationScale          : Float = 1
 
     var disks                   : [Disk] = []
-    
+    var objectRect              : ObjectRect? = nil
+
     // Physics Body
     var body                    : Body? = nil
     
@@ -87,6 +88,7 @@ class Object : Node
         case pointConnections
         case subset
         case disks
+        case objectRect
     }
     
     override init()
@@ -184,6 +186,7 @@ class Object : Node
         sequences = try container.decode([MMTlSequence].self, forKey: .sequences)
         pointConnections = try container.decode([ObjectPointConnection].self, forKey: .pointConnections)
         disks = try container.decode([Disk].self, forKey: .disks)
+        objectRect = try container.decodeIfPresent(ObjectRect.self, forKey: .objectRect)
 
         if sequences.count > 0 {
             currentSequence = sequences[0]
@@ -207,6 +210,7 @@ class Object : Node
         try container.encode(sequences, forKey: .sequences)
         try container.encode(pointConnections, forKey: .pointConnections)
         try container.encode(disks, forKey: .disks)
+        try container.encode(objectRect, forKey: .objectRect)
 
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
@@ -494,3 +498,31 @@ class Disk : Codable
         self.distance = distance
     }
 }
+
+/// Stores the rect of the object
+class ObjectRect : Codable
+{
+    var xPos            : Float
+    var yPos            : Float
+    var width           : Float
+    var height          : Float
+    var scale           : Float
+
+    private enum CodingKeys: String, CodingKey {
+        case xPos
+        case yPos
+        case width
+        case height
+        case scale
+    }
+    
+    init(_ xPos: Float,_ yPos: Float,_ width: Float,_ height: Float,_ scale: Float)
+    {
+        self.xPos = xPos
+        self.yPos = yPos
+        self.width = width
+        self.height = height
+        self.scale = scale
+    }
+}
+

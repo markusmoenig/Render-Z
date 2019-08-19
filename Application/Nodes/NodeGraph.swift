@@ -250,7 +250,9 @@ class NodeGraph : Codable
             mmView.deregisterWidget(behaviorMenu)
             mmView.deregisterWidget(previewInfoMenu)
             
-            if !overviewIsOn {
+            let isGame : Bool = currentMaster != nil && currentMaster!.type == "Game"
+            
+            if !overviewIsOn && !isGame {
                 mmView.widgets.insert(editButton, at: 0)
                 mmView.widgets.insert(playButton, at: 0)
                 mmView.widgets.insert(behaviorMenu, at: 0)
@@ -1190,7 +1192,12 @@ class NodeGraph : Codable
                         }
                     }
                 }
-                drawMasterNode( masterNode, region: region)
+                
+                // --- Draw the master
+                let isGame : Bool = currentMaster != nil && currentMaster!.type == "Game"
+                if !isGame {
+                    drawMasterNode( masterNode, region: region)
+                }
             }
             
             // SideSlider
@@ -1255,11 +1262,57 @@ class NodeGraph : Codable
         }
         
         let nodeColor = float4(0.165, 0.169, 0.173, 1.000)
-        let borderColor = selectedUUID.contains(node.uuid) ? float4(0.953, 0.957, 0.961, 1.000) : float4(0.282, 0.286, 0.290, 1.000)
+        let isSelected = selectedUUID.contains(node.uuid)
+        let borderColor = isSelected ? float4(0.953, 0.957, 0.961, 1.000) : float4(0.282, 0.286, 0.290, 1.000)
         
         app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 46 * scale, borderSize: 2, fillColor: nodeColor, borderColor: borderColor)
         
-        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.height, height: node.rect.height, round: 46 * scale, borderSize: 2, fillColor: float4(0,0,0,1), borderColor: borderColor)
+        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.height, height: node.rect.height, round: 46 * scale, borderSize: 2, fillColor: float4(0,0,0,1), borderColor: float4(0.282, 0.286, 0.290, 1.000))
+        
+        if isSelected {
+            app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 46 * scale, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: float4(0.953, 0.957, 0.961, 1.000))
+        }
+        
+        // --- Preview
+        
+        var previewTexture : MTLTexture? = nil
+        let prevSize :Float = 94 * scale
+
+        if let object = node as? Object {
+
+            if object.previewTexture == nil {
+                object.updatePreview(nodeGraph: self)
+            } else
+            if object.instance != nil {
+                previewTexture = object.previewTexture
+            }
+        } else
+        if let scene = node as? Scene {
+            if scene.updateStatus != .Valid {
+                sceneRenderer.render(width: prevSize, height: prevSize, camera: scene.camera!)
+            }
+            previewTexture = sceneRenderer.fragment!.texture
+        }
+        
+        if let texture = previewTexture {
+            
+            let xFactor : Float = previewSize.x / prevSize
+            let yFactor : Float = previewSize.y / prevSize
+            let factor : Float = min(xFactor, yFactor)
+            
+            var topX : Float = node.rect.x + 12 * scale
+            var topY : Float = node.rect.y + 11 * scale
+
+            if xFactor < yFactor {
+                topY += ((prevSize * factor) - (prevSize * yFactor)) / 2 * scale / factor
+            } else {
+                topX += ((prevSize * factor) - (prevSize * xFactor)) / 2 * scale / factor
+            }
+            
+            mmView.renderer.setClipRect(MMRect(node.rect.x + 12 * scale, node.rect.y + 11 * scale, prevSize, prevSize))
+            mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor)
+            mmView.renderer.setClipRect()
+        }
         
         // --- Edit Button
         

@@ -242,8 +242,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         app!.nodeGraph.diskBuilder.getDisksFor(currentObject!, builder: app!.nodeGraph.builder, async: {
             let disks = self.currentObject!.disks
             if disks.count > 0 {
-                //self.currentObject!.properties["prevOffX"] = disks[0].xPos
-                //self.currentObject!.properties["prevOffY"] = -disks[0].yPos
+                if let objectRect = self.currentObject!.objectRect {
+                    self.currentObject!.properties["prevOffX"] = objectRect.xPos + objectRect.width / 2
+                    self.currentObject!.properties["prevOffY"] = -objectRect.yPos + objectRect.height / 2
+                }
             }
             self.currentObject!.updatePreview(nodeGraph: self.app.nodeGraph, hard: true)
         })

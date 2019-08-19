@@ -288,6 +288,12 @@ class DiskBuilder
         var smallest : Float = 10000
         var x : Int = 0
         var y : Int = 0
+        
+        var smallX : Int = 10000
+        var smallY : Int = 10000
+        var bigX   : Int = 0
+        var bigY   : Int = 0
+
         for h in 0..<800 {
             for w in 0..<800 {
                 let off = h * 800 + w
@@ -295,6 +301,21 @@ class DiskBuilder
                     smallest = result[off]
                     x = w
                     y = h
+                }
+                
+                if pass == 0 && result[off] < 0 {
+                    if w < smallX {
+                        smallX = w
+                    }
+                    if h < smallY {
+                        smallY = h
+                    }
+                    if w > bigX {
+                        bigX = w
+                    }
+                    if h > bigY {
+                        bigY = h
+                    }
                 }
             }
         }
@@ -305,6 +326,16 @@ class DiskBuilder
         instance.data![offset] = Float(x)
         instance.data![offset+1] = Float(y)
         instance.data![offset+2] = radius
+        
+        if pass == 0 {
+            let objectRect = ObjectRect(Float(smallX) - width / 2, Float(smallY) - height / 2 + Float(bigY - smallY), Float(bigX - smallX), Float(bigY - smallY), 1)
+            //print( "ObjectRect", objectRect.xPos, objectRect.yPos, objectRect.width, objectRect.height)
+            if objectRect.width != -10000 && objectRect.height != -10000 && objectRect.xPos > -400 && objectRect.yPos > -400 {
+                object.objectRect = objectRect
+                //print("assign")
+            }
+        }
+        
         
         if radius < 1 {
             return false
