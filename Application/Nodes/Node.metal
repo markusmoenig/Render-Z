@@ -203,7 +203,7 @@ fragment float4 drawNode(RasterizerData        in [[stage_in]],
             uv -= float2( left, 8 * scale );
             dist = length( uv ) - tRadius;
             
-            color = float4( data->bottomTerminal.xyz, 1);
+            color = float4( data->bottomTerminals[i].xyz, 1);
             finalColor = mix( finalColor, color, nodeFillMask( dist ) * color.w );
             left += tSpacing + tDiam;
         }

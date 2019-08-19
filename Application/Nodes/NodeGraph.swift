@@ -1460,12 +1460,12 @@ class NodeGraph : Codable
         var color : float3 = float3()
         for terminal in node.terminals {
             color = getColorForTerminal(terminal)
+            
             if terminal.connector == .Left {
                 
                 terminal.posX = NodeGraph.tRadius * scale
                 terminal.posY = NodeGraph.tOffY * scale
                 
-                //node.data.leftTerminals.0 = float4( color.x, color.y, color.z, terminal.posY)
                 node.data.leftTerminal = float4( color.x, color.y, color.z, terminal.posY)
 
                 leftTerminalCount += 1
@@ -1478,8 +1478,6 @@ class NodeGraph : Codable
                 topTerminalCount += 1
             } else
             if terminal.connector == .Right {
-                
-                color = getColorForTerminal(terminal)
                 
                 if terminal.uiIndex == -1 {
                     continue
@@ -1495,25 +1493,37 @@ class NodeGraph : Codable
                 } else
                 if rightTerminalCount == 1 {
                     node.data.rightTerminals.1 = float4( color.x, color.y, color.z, terminal.posY)
-                }
+                } else
                 if rightTerminalCount == 2 {
                     node.data.rightTerminals.2 = float4( color.x, color.y, color.z, terminal.posY)
-                }
+                } else
                 if rightTerminalCount == 3 {
                     node.data.rightTerminals.3 = float4( color.x, color.y, color.z, terminal.posY)
-                }
+                } else
                 if rightTerminalCount == 4 {
                     node.data.rightTerminals.4 = float4( color.x, color.y, color.z, terminal.posY)
-                }
+                } else
                 if rightTerminalCount == 5 {
                     node.data.rightTerminals.5 = float4( color.x, color.y, color.z, terminal.posY)
                 }
                 rightTerminalCount += 1
             } else
             if terminal.connector == .Bottom {
-                
-                node.data.bottomTerminal = float4( color.x, color.y, color.z, 10 * scale)
-
+                if bottomTerminalCount == 0 {
+                    node.data.bottomTerminals.0 = float4( color.x, color.y, color.z, 10 * scale)
+                } else
+                if bottomTerminalCount == 1 {
+                    node.data.bottomTerminals.1 = float4( color.x, color.y, color.z, 10 * scale)
+                } else
+                if bottomTerminalCount == 2 {
+                    node.data.bottomTerminals.2 = float4( color.x, color.y, color.z, 10 * scale)
+                } else
+                if bottomTerminalCount == 3 {
+                    node.data.bottomTerminals.3 = float4( color.x, color.y, color.z, 10 * scale)
+                } else
+                if bottomTerminalCount == 4 {
+                    node.data.bottomTerminals.4 = float4( color.x, color.y, color.z, 10 * scale)
+                }
                 bottomTerminalCount += 1
             }
         }
@@ -2004,6 +2014,7 @@ class NodeGraph : Codable
     {
         var color : float3
         
+        /*
         switch(terminal.brand)
         {
             case .Properties:
@@ -2012,15 +2023,21 @@ class NodeGraph : Codable
                 color = float3(0.129, 0.216, 0.612)
             default:
                 color = float3()
+        }*/
+        
+        if terminal.connections.isEmpty {
+            color = float3(0.678, 0.682, 0.686)
+        } else {
+            color = float3(0.278, 0.482, 0.675)
         }
         
         if playNode != nil {
             if terminal.node!.playResult != nil {
                 if terminal.node!.playResult! == .Success {
-                    color = float3(0.192, 0.573, 0.478);
+                    color = float3(0.278, 0.549, 0.224)
                 } else
                 if terminal.node!.playResult! == .Failure {
-                    color = float3(0.988, 0.129, 0.188);
+                    color = float3(0.729, 0.263, 0.239)
                 } else
                 if terminal.node!.playResult! == .Running {
                     color = float3(0.620, 0.506, 0.165)
