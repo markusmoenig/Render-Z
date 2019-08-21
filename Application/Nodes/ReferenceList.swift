@@ -6,7 +6,7 @@
 //  Copyright © 2562 Markus Moenig. All rights reserved.
 //
 
-import Foundation
+import MetalKit
 
 class ReferenceItem {
     
@@ -15,7 +15,9 @@ class ReferenceItem {
 
     var name                : MMTextLabel
     var category            : MMTextLabel
-    var color               : float4 = float4()
+    
+    var previewObject       : Object? = nil
+    var previewScene        : Scene? = nil
 
     init(_ mmView: MMView)
     {
@@ -82,7 +84,6 @@ class ReferenceList {
                 
                 item.name.setText( name, scale: 0.4)
                 item.category.setText(category, scale: 0.3)
-                item.color = nodeGraph.mmView.skin.Node.propertyColor
                 item.uuid = node.uuid
                 item.classUUID = master.uuid
 
@@ -121,7 +122,6 @@ class ReferenceList {
                 
                 item.name.setText( name, scale: 0.4)
                 item.category.setText(category, scale: 0.3)
-                item.color = nodeGraph.mmView.skin.Node.behaviorColor
                 item.uuid = node.uuid
                 item.classUUID = master.uuid
                 
@@ -151,9 +151,10 @@ class ReferenceList {
                 
                 item.name.setText( name, scale: 0.4)
                 item.category.setText(category, scale: 0.3)
-                item.color = nodeGraph.mmView.skin.Node.propertyColor
                 item.uuid = node.uuid
                 item.classUUID = master.uuid
+                
+                item.previewScene = nodeGraph.getNodeForUUID(master.uuid) as? Scene
                 
                 refs.append(item)
             }
@@ -176,7 +177,6 @@ class ReferenceList {
                 
                 item.name.setText( name, scale: 0.4)
                 item.category.setText(category, scale: 0.3)
-                item.color = nodeGraph.mmView.skin.Node.propertyColor
                 item.uuid = node.uuid
                 item.classUUID = master.uuid
                 
@@ -207,9 +207,10 @@ class ReferenceList {
                     
                     item.name.setText( name, scale: 0.4)
                     item.category.setText(category, scale: 0.3)
-                    item.color = nodeGraph.mmView.skin.Node.functionColor
                     item.uuid = inst.uuid
                     item.classUUID = scene.uuid
+                    
+                    item.previewObject = nodeGraph.getNodeForUUID(inst.objectUUID) as? Object
                     
                     if belongsToMaster {
                         refs.insert(item, at: selfOffset)
@@ -241,7 +242,6 @@ class ReferenceList {
                         
                             item.name.setText( name, scale: 0.4)
                             item.category.setText(category, scale: 0.3)
-                            item.color = nodeGraph.mmView.skin.Node.functionColor
                             item.uuid = seq.uuid
                             item.classUUID = inst.uuid
                         
@@ -285,8 +285,53 @@ class ReferenceList {
             
             mmView.drawBox.draw(x: scrollRect.x, y: y, width: scrollRect.width, height: itemHeight - 1, round: 26, fillColor: isSelected ? selColor : color)
             
-            item.name.drawCenteredY(x: scrollRect.x + 10, y: y + 5, width: scrollRect.width - 5, height: 30)
-            item.category.drawCenteredY(x: scrollRect.x + 10, y: y + 25, width: scrollRect.width - 5, height: 30)
+            let x : Float = item.previewScene == nil && item.previewObject == nil ? scrollRect.x + 10 : scrollRect.x + 70
+            
+            if item.previewObject != nil || item.previewScene != nil {
+                mmView.drawBox.draw(x: scrollRect.x + 2, y: y + 2.5, width: itemHeight - 5, height: itemHeight - 5, round: 26, fillColor: float4(0,0,0,1))
+                
+                var previewTexture : MTLTexture? = nil
+                let prevSize :Float = itemHeight - 5
+                
+                if let object = item.previewObject {
+                    
+                    if object.previewTexture == nil {
+                        object.updatePreview(nodeGraph: nodeGraph)
+                    } else
+                        if object.instance != nil {
+                            previewTexture = object.previewTexture
+                    }
+                } else
+                    if let scene = item.previewScene {
+                        if scene.updateStatus != .Valid {
+                            nodeGraph.sceneRenderer.render(width: prevSize, height: prevSize, camera: scene.camera!)
+                        }
+                        previewTexture = nodeGraph.sceneRenderer.fragment!.texture
+                }
+                
+                if let texture = previewTexture {
+                    
+                    let xFactor : Float = nodeGraph.previewSize.x / prevSize
+                    let yFactor : Float = nodeGraph.previewSize.y / prevSize
+                    let factor : Float = min(xFactor, yFactor)
+                    
+                    var topX : Float = scrollRect.x + 4
+                    var topY : Float = y + 3
+                    
+                    if xFactor < yFactor {
+                        topY += ((prevSize * factor) - (prevSize * yFactor)) / 2 / factor
+                    } else {
+                        topX += ((prevSize * factor) - (prevSize * xFactor)) / 2 / factor
+                    }
+                    
+                    mmView.renderer.setClipRect(MMRect(scrollRect.x + 4, y + 3, prevSize, prevSize))
+                    mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor)
+                    mmView.renderer.setClipRect()
+                }
+            }
+            
+            item.name.drawCenteredY(x: x, y: y + 5, width: scrollRect.width - 5, height: 30)
+            item.category.drawCenteredY(x: x, y: y + 25, width: scrollRect.width - 5, height: 30)
 
             y += itemHeight
         }

@@ -51,7 +51,6 @@ class NodeGraph : Codable
     var currentMasterUUID: UUID? = nil
     
     var currentObjectUUID: UUID? = nil
-    var currentLayerUUID: UUID? = nil
     var currentSceneUUID: UUID? = nil
 
     var hoverUIItem     : NodeUI?
@@ -251,8 +250,9 @@ class NodeGraph : Codable
             mmView.deregisterWidget(previewInfoMenu)
             
             let isGame : Bool = currentMaster != nil && currentMaster!.type == "Game"
-            
-            if !overviewIsOn && !isGame {
+            editButton.isDisabled = isGame
+
+            if !overviewIsOn {
                 mmView.widgets.insert(editButton, at: 0)
                 mmView.widgets.insert(playButton, at: 0)
                 mmView.widgets.insert(behaviorMenu, at: 0)
@@ -508,6 +508,8 @@ class NodeGraph : Codable
         if currentMaster as? Game != nil {
             objectsButton.removeState(.Checked)
             gameButton.addState(.Checked)
+            self.editButton.setText( "Arrange..." )
+            editButton.isDisabled = true
             self.contentType = .Game
             updateContent(self.contentType)
             overviewIsOn = false
@@ -697,6 +699,7 @@ class NodeGraph : Codable
                     objectsButton.clicked!(MMMouseEvent(0,0))
                 } else {
                     scenesButton.setState(.One)
+                    currentSceneUUID = hoverNode!.uuid
                     scenesButton.clicked!(MMMouseEvent(0,0))
                 }
                 nodeHoverMode = .None
@@ -807,6 +810,7 @@ class NodeGraph : Codable
                     objectsButton.clicked!(MMMouseEvent(0,0))
                 } else {
                     scenesButton.setState(.One)
+                    currentSceneUUID = hoverNode!.uuid
                     scenesButton.clicked!(MMMouseEvent(0,0))
                 }
             }
@@ -1156,7 +1160,7 @@ class NodeGraph : Codable
             // --- Draw Nodes
 
             if let masterNode = currentMaster {
-
+                
                 let toDraw = getNodesOfMaster(for: currentMaster!)
                 
                 if overviewIsOn == false {
@@ -1194,10 +1198,7 @@ class NodeGraph : Codable
                 }
                 
                 // --- Draw the master
-                let isGame : Bool = currentMaster != nil && currentMaster!.type == "Game"
-                if !isGame {
-                    drawMasterNode( masterNode, region: region)
-                }
+                drawMasterNode( masterNode, region: region)
             }
             
             // SideSlider
@@ -1288,10 +1289,15 @@ class NodeGraph : Codable
             }
         } else
         if let scene = node as? Scene {
-            if scene.updateStatus != .Valid {
+            if scene.updateStatus != .Valid && scene.camera != nil {
                 sceneRenderer.render(width: prevSize, height: prevSize, camera: scene.camera!)
             }
-            previewTexture = sceneRenderer.fragment!.texture
+            
+            if scene.objectInstances.count > 0 {
+                if let texture = sceneRenderer.fragment!.texture {
+                    previewTexture = texture
+                }
+            }
         }
         
         if let texture = previewTexture {
@@ -1640,7 +1646,9 @@ class NodeGraph : Codable
                 if scene.updateStatus != .Valid {
                     scene.updatePreview(nodeGraph: self, hard: scene.updateStatus == .NeedsHardUpdate)
                 }
-                textures.append(sceneRenderer.fragment.texture)
+                if let texture = sceneRenderer.fragment.texture {
+                    textures.append(texture)
+                }
             } else
             if let object = previewNode as? Object {
                 if let texture = object.previewTexture {
@@ -2165,7 +2173,7 @@ class NodeGraph : Codable
             } else
             if type == .Scenes || type == .ScenesOverview {
                 if let scene = node as? Scene {
-                    if scene.uuid == currentLayerUUID {
+                    if scene.uuid == currentSceneUUID {
                         index = items.count
                         currentFound = true
                         setCurrentMaster(node: node)
@@ -2176,12 +2184,7 @@ class NodeGraph : Codable
             } else
             if type == .Game {
                 if let game = node as? Game {
-                    if game.uuid == currentLayerUUID {
-                        index = items.count
-                        currentFound = true
-                        setCurrentMaster(node: node)
-                    }
-                    items.append(node.name)
+                    items.append(game.name)
                     currentContent.append(node)
                 }
             }
@@ -2365,7 +2368,7 @@ class NodeGraph : Codable
             for node in nodes {
                 if let scene = node as? Scene {
                     overviewMaster.subset!.append(node.uuid)
-                    if currentLayerUUID == scene.uuid {
+                    if currentSceneUUID == scene.uuid {
                         setCurrentNode(node)
                     }
                 }
@@ -3167,7 +3170,11 @@ class NodeGraph : Codable
                 } else
                 if node.type == "Scene" {
                     self.scenesButton.setState(.One)
+                    self.currentSceneUUID = node.uuid
                     self.scenesButton.clicked!(MMMouseEvent(10,10))
+                } else
+                if node.maxDelegate != nil {
+                    self.activateNodeDelegate(node)
                 }
             } )
             items.append(editNodeItem)

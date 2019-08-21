@@ -330,7 +330,6 @@ class SceneFinished : Node
     {
         playResult = .Success
         
-        /*
         if let scene = root.sceneRoot {
             if scene.runningInRoot != nil && scene.runBy != nil {
                 scene.runningInRoot!.hasRun.append(scene.runBy!)
@@ -341,7 +340,7 @@ class SceneFinished : Node
                 nodeGraph.stopPreview()
             }
         }
-         */
+
         return playResult!
     }
 }

@@ -254,11 +254,6 @@ class SceneAreaMaxDelegate : NodeMaxDelegate {
         layerArea.properties["prevOffY"] = camera.yPos
         layerArea.properties["prevScale"] = camera.zoom
         
-        if let instance = masterLayer.builderInstance {
-            let region = app.editorRegion!
-            app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera)
-        }
-        
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.app.mmView.unlockFramerate()

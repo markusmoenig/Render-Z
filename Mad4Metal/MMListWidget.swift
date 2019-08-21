@@ -428,8 +428,12 @@ class MMListWidget : MMWidget
         source += "d = abs( uv ) - float2( \((width)/2) - borderSize - 2, \(unitSize/2) - borderSize ) + float2( round );\n"
         source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
         
-        source += "col = float4( \(item.color!.x), \(item.color!.y), \(item.color!.z), fillMask( dist ) * \(item.color!.w) );\n"
-        
+        if item.color != nil {
+            source += "col = float4( \(item.color!.x), \(item.color!.y), \(item.color!.z), fillMask( dist ) * \(item.color!.w) );\n"
+        } else {
+            source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
+        }
+                
         source += "col = mix( col, borderColor, borderMask( dist, borderSize) );\n"
         source += "finalCol = mix( finalCol, col, col.a );\n"
         

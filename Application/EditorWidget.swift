@@ -141,7 +141,7 @@ class EditorWidget      : MMWidget
                 #if os(OSX)
                 if mmView.commandIsDown && event.deltaY! != 0 {
                     prevScale += event.deltaY! * 0.003
-                    prevScale = max(0.2, prevScale)
+                    prevScale = max(0.1, prevScale)
                 } else {
                     prevOffX += event.deltaX!
                     prevOffY += event.deltaY!
@@ -389,7 +389,7 @@ class EditorWidget      : MMWidget
 
             let drag = dragSource as! NodeListDrag
             let node = drag.node!
-                        
+                                    
             if app.nodeGraph.currentMaster != nil {
                 if let camera = app.nodeGraph.currentMaster!.camera {
 
