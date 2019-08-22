@@ -584,7 +584,6 @@ enum NodeFamily: String, NodeClassFamily {
     case objectTouchSceneArea = "Object Touch Scene Area"
     case objectReset = "Object Reset"
     case objectDistanceTo = "Object Distance To"
-    case getSetObjectProperty = "Get Set Object Property"
     case sceneFinished = "Scene Finished"
     case gamePlatformOSX = "Platform OSX"
     case gamePlatformIPAD = "Platform IPAD"
@@ -609,27 +608,19 @@ enum NodeFamily: String, NodeClassFamily {
     case directionVariable = "Direction Variable"
     case float2Variable = "Float2 Variable"
     case float3Variable = "Float3 Variable"
-    case addValueVariable = "Add Value Variable"
     case addFloatVariable = "Add Float Variable"
-    case subtractValueVariable = "Subtract Value Variable"
     case subtractFloatVariable = "Subtract Float Variable"
-    case resetValueVariable = "Reset Value Variable"
     case resetFloatVariable = "Reset Float Variable"
-    case testValueVariable = "Test Value Variable"
     case copyFloatVariables = "Copy Float Variables"
     case setFloatVariable = "Set Float Variable"
     case testFloatVariable = "Test Float Variable"
     case randomDirection = "Random Direction"
-    case addPositionVariables = "Add Position Variables"
     case addFloat2Variables = "Add Float2 Variables"
-    case subtractPositionVariables = "Subtract Position Variables"
     case subtractFloat2Variables = "Subtract Float2 Variables"
     case copyFloat2Variables = "Copy Float2 Variables"
     case multiplyConstFloat2 = "Multiply Const Float2"
     case reflectFloat2Variables = "Reflect Float2 Variables"
-    case testPositionVariable = "Test Position Variable"
     case testFloat2Variable = "Test Float2 Variable"
-    case limitPositionRange = "Limit Position Range"
     case limitFloat2Range = "Limit Float2 Range"
 
     static var discriminator: NodeDiscriminator = .type
@@ -668,8 +659,6 @@ enum NodeFamily: String, NodeClassFamily {
                 return ResetObject.self
             case .objectDistanceTo:
                 return ObjectDistanceTo.self
-            case .getSetObjectProperty:
-                return GetSetObjectProperty.self
             
             case .scene:
                 return Scene.self
@@ -722,15 +711,15 @@ enum NodeFamily: String, NodeClassFamily {
                 return Float2Variable.self
             case .float3Variable:
                 return Float3Variable.self
-            case .limitPositionRange, .limitFloat2Range:
+            case .limitFloat2Range:
                 return LimitFloat2Range.self
-            case .addValueVariable, .addFloatVariable:
+            case .addFloatVariable:
                 return AddConstFloatVariable.self
-            case .subtractValueVariable, .subtractFloatVariable:
+            case .subtractFloatVariable:
                 return SubtractConstFloatVariable.self
-            case .resetValueVariable, .resetFloatVariable:
+            case .resetFloatVariable:
                 return ResetFloatVariable.self
-            case .testValueVariable, .testFloatVariable:
+            case .testFloatVariable:
                 return TestFloatVariable.self
             case .randomDirection:
                 return RandomDirection.self
@@ -739,9 +728,9 @@ enum NodeFamily: String, NodeClassFamily {
             case .setFloatVariable:
                 return SetFloatVariable.self
             
-            case .addPositionVariables, .addFloat2Variables:
+            case .addFloat2Variables:
                 return AddFloat2Variables.self
-            case .subtractPositionVariables, .subtractFloat2Variables:
+            case .subtractFloat2Variables:
                 return SubtractFloat2Variables.self
             case .copyFloat2Variables:
                 return CopyFloat2Variables.self
@@ -749,7 +738,7 @@ enum NodeFamily: String, NodeClassFamily {
                 return MultiplyConstFloat2Variable.self
             case .reflectFloat2Variables:
                 return ReflectFloat2Variables.self
-            case .testPositionVariable, .testFloat2Variable:
+            case .testFloat2Variable:
                 return TestFloat2Variable.self
         }
     }

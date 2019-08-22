@@ -219,12 +219,6 @@ class NodeList : MMWidget
             return ObjectTouchSceneArea()
         }
         addNodeItem(item, type: .Function, displayType: .Object)
-        // --- Get Set Object Property
-        item = NodeListItem("Get Set Property")
-        item.createNode = {
-            return GetSetObjectProperty()
-        }
-        addNodeItem(item, type: .Function, displayType: .Object)
         
         // --- Scene Finished
         item = NodeListItem("Finished")
