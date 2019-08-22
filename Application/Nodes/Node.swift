@@ -616,6 +616,8 @@ enum NodeFamily: String, NodeClassFamily {
     case resetValueVariable = "Reset Value Variable"
     case resetFloatVariable = "Reset Float Variable"
     case testValueVariable = "Test Value Variable"
+    case copyFloatVariables = "Copy Float Variables"
+    case setFloatVariable = "Set Float Variable"
     case testFloatVariable = "Test Float Variable"
     case randomDirection = "Random Direction"
     case addPositionVariables = "Add Position Variables"
@@ -732,6 +734,10 @@ enum NodeFamily: String, NodeClassFamily {
                 return TestFloatVariable.self
             case .randomDirection:
                 return RandomDirection.self
+            case .copyFloatVariables:
+                return CopyFloatVariables.self
+            case .setFloatVariable:
+                return SetFloatVariable.self
             
             case .addPositionVariables, .addFloat2Variables:
                 return AddFloat2Variables.self

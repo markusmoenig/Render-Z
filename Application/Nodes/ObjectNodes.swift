@@ -472,13 +472,13 @@ class ObjectPhysics : Node
         let mode = properties["physicsMode"]!
         let collisions = properties["physicsCollisions"]!
     
-        super.updateUIState(mmView: mmView)
-
         uiItems[2].isDisabled = mode == 0 || mode == 1
         uiItems[3].isDisabled = mode == 0 /*|| mode == 1*/ || collisions == 1
         uiItems[4].isDisabled = mode == 0 || collisions == 1
         uiItems[5].isDisabled = mode == 0 || mode == 1 || collisions == 1
         uiItems[6].isDisabled = mode == 0 || mode == 1
+        
+        super.updateUIState(mmView: mmView)
     }
     
     required init(from decoder: Decoder) throws
@@ -580,6 +580,15 @@ class ObjectPhysics : Node
                         setInternalPhysicsMass(value)
                         if let object = inst.instance {
                             object.properties["physicsMass"] = value
+                            if let body = object.body {
+                                let physicsMode = object.getPhysicsMode()
+                                if physicsMode == .Dynamic {
+                                    body.mass = value
+                                    if body.mass != 0 {
+                                        body.invMass = 1 / value
+                                    }
+                                }
+                            }
                         }
                         if nodeGraph.playNode == nil {
                             inst.properties["physicsMass"] = value
@@ -593,6 +602,9 @@ class ObjectPhysics : Node
                         setInternalPhysicsRestitution(value)
                         if let object = inst.instance {
                             object.properties["physicsRestitution"] = value
+                            if let body = object.body {
+                                body.restitution = value
+                            }
                         }
                         if nodeGraph.playNode == nil {
                             inst.properties["physicsRestitution"] = value
@@ -606,6 +618,10 @@ class ObjectPhysics : Node
                         setInternalPhysicsFriction(value)
                         if let object = inst.instance {
                             object.properties["physicsFriction"] = value
+                            if let body = object.body {
+                                body.dynamicFriction = value
+                                body.staticFriction = value + 0.2
+                            }
                         }
                         if nodeGraph.playNode == nil {
                             inst.properties["physicsFriction"] = value

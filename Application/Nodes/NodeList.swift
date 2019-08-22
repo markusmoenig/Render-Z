@@ -368,6 +368,18 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
+        item = NodeListItem("Copy(Const, Float)")
+        item.createNode = {
+            return SetFloatVariable()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
+        item = NodeListItem("Copy(Float, Float)")
+        item.createNode = {
+            return CopyFloatVariables()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
         item = NodeListItem("Test(Float)")
         item.createNode = {
             return TestFloatVariable()

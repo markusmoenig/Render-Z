@@ -370,16 +370,17 @@ class Builder
         buildData.source +=
         """
         
-            float fm = fillMask( dist ) * bodyMaterial.baseColor.w;
+        float fm = fillMask( dist );// * bodyMaterial.baseColor.w;
             float bm = 0;
             bodyMaterial.baseColor.w = fm;
             float border = bodyMaterial.border * 30;
         
-            if ( materialId >= 0 && border > 0 )//layerData->objects[materialId].border > 0 )
+            if ( materialId >= 0 && border > 0 )
             {
-                bm = borderMask( dist, border );//layerData->objects[materialId].border );
+                bm = borderMask( dist, border );
+                borderMaterial.baseColor.w = 1;
                 if ( bm > 0.0 ) {
-                    bodyMaterial.baseColor = mix( bodyMaterial.baseColor, borderMaterial.baseColor, bm * borderMaterial.baseColor.w );
+                    bodyMaterial.baseColor = mix( bodyMaterial.baseColor, borderMaterial.baseColor, bm );
                     bodyMaterial.subsurface = mix( bodyMaterial.subsurface, borderMaterial.subsurface, bm );
                     bodyMaterial.roughness = mix( bodyMaterial.roughness, borderMaterial.roughness, bm );
                     bodyMaterial.metallic = mix( bodyMaterial.metallic, borderMaterial.metallic, bm );

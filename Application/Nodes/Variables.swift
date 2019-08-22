@@ -104,6 +104,10 @@ class FloatVariable : Node
     {
         properties["value"] = value
         
+        if uiItems.count == 0 {
+            return
+        }
+        
         if let number = uiItems[0] as? NodeUINumber {
             number.value = value
             number.updateLinked()
@@ -836,6 +840,148 @@ class TestFloatVariable : Node
                     playResult = .Success
                 }
             }
+        }
+        
+        return playResult!
+    }
+}
+
+class CopyFloatVariables : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Float = Float"
+        uiConnections.append(UINodeConnection(.FloatVariable))
+        uiConnections.append(UINodeConnection(.FloatVariable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Copy Float Variables"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIFloatVariableTarget(self, variable: "copy", title: "Copy", connection:  uiConnections[0]),
+            NodeUIFloatVariableTarget(self, variable: "to", title: "To", connection:  uiConnections[1]),
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Subtract value from variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let copy = uiConnections[0].target as? FloatVariable {
+            if let to = uiConnections[1].target as? FloatVariable {
+                
+                to.setValue(copy.getValue())
+                playResult = .Success
+            }
+        }
+        
+        return playResult!
+    }
+}
+
+class SetFloatVariable : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Float = Const"
+        uiConnections.append(UINodeConnection(.FloatVariable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Set Float Variable"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIFloatVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
+            NodeUISeparator(self, variable:"", title: ""),
+            NodeUINumber(self, variable: "value", title: "Value", range: nil, value: 1)
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Add value to variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        if let target = uiConnections[0].target as? FloatVariable {
+            
+            let value : Float = properties["value"]!
+            target.setValue(value)
+            
+            playResult = .Success
         }
         
         return playResult!
