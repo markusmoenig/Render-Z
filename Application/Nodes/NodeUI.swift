@@ -146,7 +146,10 @@ class NodeUISeparator : NodeUI
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
         
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
+        if titleLabel == nil {
+            let scale : Float = node.nodeGraph!.currentMaster!.camera!.zoom
+            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+        }
         
         rect.width = 0
         rect.height = defaultValue
@@ -231,8 +234,12 @@ class NodeUISelector : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
-        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale, color: NodeUI.contentTextColor)
+        
+        if titleLabel == nil {
+            let scale : Float = node.nodeGraph!.currentMaster!.camera!.zoom
+            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+            contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
+        }
         
         self.setItems(items)
 
@@ -557,7 +564,10 @@ class NodeUIDropTarget : NodeUI
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
         
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
+        if titleLabel == nil {
+            let scale : Float = node.nodeGraph!.currentMaster!.camera!.zoom
+            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+        }
         
         var text = ""
         if let name = uiConnection.targetName {
@@ -810,8 +820,12 @@ class NodeUIKeyDown : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
-        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale)
+        
+        if titleLabel == nil {
+            let scale : Float = node.nodeGraph!.currentMaster!.camera!.zoom
+            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+            contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale * scale)
+        }
 
         rect.width = 120
         rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + 14 + NodeUI.contentMargin + NodeUI.itemSpacing
@@ -896,8 +910,12 @@ class NodeUINumber : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
-        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale, color: NodeUI.contentTextColor)
+        
+        if titleLabel == nil {
+            let scale : Float = node.nodeGraph!.currentMaster!.camera!.zoom
+            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+            contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
+        }
 
         rect.width = 160
         rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + 14 + NodeUI.contentMargin + NodeUI.itemSpacing
@@ -1065,7 +1083,11 @@ class NodeUIAngle : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
+        
+        if titleLabel == nil {
+            let scale : Float = node.nodeGraph!.currentMaster!.camera!.zoom
+            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+        }
         
         rect.width = 40
         rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + 40 + NodeUI.itemSpacing
@@ -1173,7 +1195,11 @@ class NodeUIText : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
+        
+        if titleLabel == nil {
+            let scale : Float = node.nodeGraph!.currentMaster!.camera!.zoom
+            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+        }
         
         rect.width = 160
         rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + 14 + NodeUI.contentMargin + NodeUI.itemSpacing
@@ -1262,7 +1288,11 @@ class NodeUIColor : NodeUI
     
     override func calcSize(mmView: MMView) {
         self.mmView = mmView
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale, color: NodeUI.titleTextColor)
+        
+        if titleLabel == nil {
+            let scale : Float = node.nodeGraph!.currentMaster!.camera!.zoom
+            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+        }
         
         rect.width = prevSize.x
         rect.height = prevSize.y + 15 + NodeUI.itemSpacing
