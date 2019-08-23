@@ -593,7 +593,8 @@ class NodeGraph : Codable
                     self.leftRegionMode = .Closed
                     DispatchQueue.main.async {
                         self.sideSliderButton.setMode(.Right)
-                    }                }
+                    }
+                }
             } )
             animating = true
         } else if leftRegion.rect.width != 200 {

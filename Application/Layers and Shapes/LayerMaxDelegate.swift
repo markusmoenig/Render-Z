@@ -10,6 +10,11 @@ import MetalKit
 
 class SceneMaxDelegate : NodeMaxDelegate {
     
+    enum HoverMode
+    {
+        case None, SideSlider
+    }
+    
     enum LeftRegionMode
     {
         case Closed, Objects
@@ -21,10 +26,15 @@ class SceneMaxDelegate : NodeMaxDelegate {
     }
     
     var app             : App!
+    var mmView          : MMView!
+
+    var hoverMode       : HoverMode = .None
     
     // Top Region
-    var objectsButton   : MMButtonWidget!
     var timelineButton  : MMButtonWidget!
+    
+    var screenButton    : MMScrollButton!
+    var screenSize      : float2? = nil
 
     // Left Region
     var leftRegionMode  : LeftRegionMode = .Objects
@@ -41,6 +51,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
     // Bottom Region
     var bottomRegionMode: BottomRegionMode = .Open
     
+    var sideSliderButton: MMSideSliderWidget!
     var timeline        : MMTimeline!
     var sequenceWidget  : SequenceWidget!
 
@@ -49,19 +60,32 @@ class SceneMaxDelegate : NodeMaxDelegate {
     var camera          : Camera = Camera()
     var patternState    : MTLRenderPipelineState?
     var dispatched      : Bool = false
+    
+    var screenList      : [Node?] = []
 
     override func activate(_ app: App)
     {
         self.app = app
+        self.mmView = app.mmView
         currentScene = app.nodeGraph.maximizedNode as? Scene
         
         // Top Region
-        if objectsButton == nil {
-            objectsButton = MMButtonWidget( app.mmView, text: "Objects" )
+        if timelineButton == nil {
             timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
         }
-        objectsButton.clicked = { (event) -> Void in
-            self.setLeftRegionMode(.Objects)
+        
+        screenSize = nil
+        screenButton = MMScrollButton(app.mmView, items: getScreenList(), index: 0)
+        screenButton.changed = { (index)->() in
+            if let osx = self.screenList[index] as? GamePlatformOSX {
+                self.screenSize = osx.getScreenSize()
+            } else
+                if let ipad = self.screenList[index] as? GamePlatformIPAD {
+                    self.screenSize = ipad.getScreenSize()
+                } else {
+                    self.screenSize = nil
+            }
+            self.mmView.update()
         }
 
         timelineButton.clicked = { (event) -> Void in
@@ -80,7 +104,6 @@ class SceneMaxDelegate : NodeMaxDelegate {
         
         avObjectList = AvailableObjectList(app.mmView, app:app)
         
-        objectsButton.addState( .Checked )
         app.leftRegion!.rect.width = 200
         
         // Right Region
@@ -95,6 +118,8 @@ class SceneMaxDelegate : NodeMaxDelegate {
         if patternState == nil {
             let function = app.mmView.renderer!.defaultLibrary.makeFunction( name: "moduloPattern" )
             patternState = app.mmView.renderer!.createNewPipelineState( function! )
+            
+            sideSliderButton = MMSideSliderWidget(app.mmView)
         }
         
         // Bottom Region
@@ -108,7 +133,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
         }
         timeline.activate()
         
-        app.mmView.registerWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList.menuWidget, objectList)
+        app.mmView.registerWidgets( widgets: timelineButton, app.closeButton, screenButton, avObjectList, objectList.menuWidget, objectList)
         
         let cameraProperties = currentScene!.properties
         if cameraProperties["prevMaxOffX"] != nil {
@@ -128,7 +153,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
     override func deactivate()
     {
         timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: objectsButton, timelineButton, app.closeButton, avObjectList, objectList.menuWidget, objectList)
+        app.mmView.deregisterWidgets( widgets: timelineButton, app.closeButton, screenButton, avObjectList, objectList.menuWidget, objectList)
         //currentScene!.updatePreview(nodeGraph: app.nodeGraph)
         
         for inst in currentScene!.objectInstances {
@@ -186,31 +211,36 @@ class SceneMaxDelegate : NodeMaxDelegate {
                 }
             }
             
-            /*
-            if let instance = currentScene!.builderInstance {
-            
-                if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
-                    app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera)
-                }
+            if let screen = screenSize {
+                let x: Float = region.rect.x + region.rect.width / 2 - (camera.xPos + screen.x/2 * camera.zoom)
+                let y: Float = region.rect.y + region.rect.height / 2 - (camera.yPos + screen.y/2 * camera.zoom)
                 
-                if let texture = instance.texture {
-                    
-                    app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
-                }
-            }*/
+                mmView.renderer!.setClipRect(region.rect)
+                mmView.drawBox.draw( x: x, y: y, width: screen.x * camera.zoom, height: screen.y * camera.zoom, round: 0, borderSize: 2, fillColor : float4(0.161, 0.165, 0.188, 0.5), borderColor: float4(0.5, 0.5, 0.5, 0.5) )
+                mmView.renderer.setClipRect()
+            }
             
             app.gizmo.scale = camera.zoom
             app.gizmo.draw()
             app.changed = false
             
+            // SideSlider
+            sideSliderButton.rect.x = region.rect.x - 40
+            sideSliderButton.rect.y = region.rect.y + (region.rect.height - 70) / 2
+            sideSliderButton.rect.width = 70
+            sideSliderButton.rect.height = 70
+            sideSliderButton.draw()
         } else
         if region.type == .Top {
-            region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: objectsButton )
+            //region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: objectsButton )
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton, app.closeButton)
             
-            objectsButton.draw()
             timelineButton.draw()
             app.closeButton.draw()
+            
+            screenButton.rect.x = region.rect.x + 10
+            screenButton.rect.y = 4 + 44
+            screenButton.draw()
         } else
         if region.type == .Left {
             let leftRegion = app.leftRegion!
@@ -259,17 +289,16 @@ class SceneMaxDelegate : NodeMaxDelegate {
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        app.gizmo.mouseDown(event)
-        /*
-        if app.gizmo.hoverState == .Inactive && currentObject!.instance != nil {
-            let editorRegion = app.editorRegion!
-//            app.layerManager.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, multiSelect: app.mmView.shiftIsDown)
+        if hoverMode == .SideSlider {
             
-//            func getShapeAt( x: Float, y: Float, width: Float, height: Float, multiSelect: Bool = false, instance: BuilderInstance, camera: Camera, timeline: MMTimeline)
+            sideSliderButton.removeState(.Hover)
+            self.setLeftRegionMode(.Objects)
 
-            app.builder.getShapeAt(x: event.x - editorRegion.rect.x, y: event.y - editorRegion.rect.y, width: editorRegion.rect.width, height: editorRegion.rect.height, multiSelect: app.mmView.shiftIsDown, instance: currentObject!.instance!, camera: camera, timeline: timeline)
-            update()
-        }*/
+            hoverMode = .None
+            return
+        } else {
+            app.gizmo.mouseDown(event)
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -279,6 +308,17 @@ class SceneMaxDelegate : NodeMaxDelegate {
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        // --- Side Slider
+        let distToSideSlider : Float = simd_distance(float2(sideSliderButton.rect.x + sideSliderButton.rect.width/2, sideSliderButton.rect.y + sideSliderButton.rect.height/2), float2(event.x, event.y))
+        if distToSideSlider <=  sideSliderButton.rect.width/2 {
+            sideSliderButton.addState(.Hover)
+            hoverMode = .SideSlider
+            return
+        } else {
+            sideSliderButton.removeState(.Hover)
+        }
+        
+        //
         app.gizmo.mouseMoved(event)
     }
     
@@ -336,20 +376,26 @@ class SceneMaxDelegate : NodeMaxDelegate {
         if animating { return }
         let leftRegion = app.leftRegion!
         if self.leftRegionMode == mode && leftRegionMode != .Closed {
+            sideSliderButton.setMode(.Animating)
             app.mmView.startAnimate( startValue: leftRegion.rect.width, endValue: 0, duration: 500, cb: { (value,finished) in
                 leftRegion.rect.width = value
                 if finished {
                     self.animating = false
                     self.leftRegionMode = .Closed
-                    self.objectsButton.removeState( .Checked )
+                    DispatchQueue.main.async {
+                        self.sideSliderButton.setMode(.Right)
+                    }
                 }
             } )
             animating = true
         } else if leftRegion.rect.width != 200 {
-            
+            sideSliderButton.setMode(.Animating)
             app.mmView.startAnimate( startValue: leftRegion.rect.width, endValue: 200, duration: 500, cb: { (value,finished) in
                 if finished {
                     self.animating = false
+                    DispatchQueue.main.async {
+                        self.sideSliderButton.setMode(.Left)
+                    }
                 }
                 leftRegion.rect.width = value
             } )
@@ -399,6 +445,25 @@ class SceneMaxDelegate : NodeMaxDelegate {
         }
         
         return nil
+    }
+    
+    /// Creates a list of the available screens in the game
+    func getScreenList() -> [String]
+    {
+        var list = ["Screen: None"]
+        screenList = [nil]
+        
+        if let osx = app.nodeGraph.getNodeOfType("Platform OSX") as? GamePlatformOSX {
+            screenList.append(osx)
+            list.append("Screen: OSX")
+        }
+        
+        if let ipad = app.nodeGraph.getNodeOfType("Platform IPAD") as? GamePlatformIPAD {
+            screenList.append(ipad)
+            list.append("Screen: iPad")
+        }
+        
+        return list
     }
     
     func updateGizmo()
