@@ -176,13 +176,17 @@ class ShapeList
             }
             
             if shape.name == "Text" || shape.name == "Variable" {
-                source += "uv /= 8; uv -= float2( 1.2, -0.2 );"
+                source += "uv /= 6;"
                 source += createStaticTextSource(mmView.openSans, shape.name == "Text" ? "Abc" : "123", varCounter: index)
             }
             if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" || shape.name == "Noise" {
                 source += "uv.y = -uv.y;\n"
             }
             source += "dist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformPropertySize(shape: shape, size: 12), shapeIndex: index) + ";"
+            
+            if shape.name == "Text" || shape.name == "Variable" {
+                source += "uv *= 6;"
+            }
             
             source +=
             """
@@ -194,18 +198,9 @@ class ShapeList
             
             """
             
-            if shape.name == "Text" || shape.name == "Variable" {
-                source += "uv -= float2( -1.2, 0.2  ); uv *= 8;"
-            }
-            
             if shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1 {
                 // Inverse
                 source += "dist = -dist;\n"
-                //source += "{\n"
-                //source += "  float2 d = abs(uv - float2(3,0)) - float2(\(unitSize/2-2)) + float2( 16. );\n"
-                //source += "  float limit = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 16.;\n"
-                //source += "  if ( limit >= 0 ) dist = 1000;"
-                //source += "}\n"
             }
             
             source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( limit ) * fillMask( dist ) * primitiveColor.w );\n"
@@ -260,11 +255,6 @@ class ShapeList
             source += "dist = min( dist, sdLineScroller( uv, float2( -8, 8 ), float2( 8, -8), 2) );\n"
             source += "if (\(index*3+2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
-            
-            // ---
-            
-//            source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
-//            source += "finalCol = mix( finalCol, col, col.a );\n"
             
             top += unitSize + spacing
         }

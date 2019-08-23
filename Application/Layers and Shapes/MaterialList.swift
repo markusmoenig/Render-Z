@@ -242,12 +242,7 @@ class MaterialList
             source += "dist = min( dist, sdLineScroller( uv, float2( -8, 8 ), float2( 8, -8), 2) );\n"
             source += "if (\(index*3+2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
-            
-            // ---
-            
-//            source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
-//            source += "finalCol = mix( finalCol, col, col.a );\n"
-            
+                        
             top += (unitSize + spacing) * zoom
         }
         
