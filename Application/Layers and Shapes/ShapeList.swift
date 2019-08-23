@@ -44,7 +44,7 @@ class ShapeList
         compute!.allocateTexture(width: 10, height: 10)
         
         spacing = 0
-        unitSize = 40
+        unitSize = 45
         
         currentObject = nil
         
@@ -124,13 +124,13 @@ class ShapeList
         {
             float2 uvOrigin = float2( gid.x - outTexture.get_width() / 2.,
                                       gid.y - outTexture.get_height() / 2. );
-            float2 uv;
+            float2 uv, uv2;
 
             float dist = 10000;
             float2 d;
         
-            float borderSize = 2;
-            float round = 4;
+            float borderSize = 0;
+            float round = 18;
         
             float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
             float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
@@ -156,20 +156,20 @@ class ShapeList
         for (index, shape) in object.shapes.enumerated() {
 
             source += "uv = uvOrigin; uv.x += outTexture.get_width() / 2.0 - \(left) + borderSize/2; uv.y += outTexture.get_height() / 2.0 - \(top) + borderSize/2;\n"
-            //source += "dist = merge( dist, " + shape.createDistanceCode(uvName: "uv") + ");"
             
-            source += "d = abs( uv ) - float2( \((width)/2) - borderSize, \(unitSize/2) - borderSize ) + float2( round );\n"
+            source += "d = abs( uv ) - float2( \((width)/2) - borderSize - 2, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
 
             if object.selectedShapes.contains( shape.uuid ) {
-                source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
+                //source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
+                source += "col = float4(0.354, 0.358, 0.362, fillMask( dist ) );\n"
             } else {
                 source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
             }
-            source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
+            //source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
-            source += "uv -= float2( -128., 0. );\n"
+            source += "uv -= float2( -125.5, 0. );\n"
             
             if shape.pointsVariable {
                 source += shape.createPointsVariableCode(shapeIndex: index, transProperties: transformPropertySize(shape: shape, size: 12), maxPoints: 3)
@@ -186,9 +186,10 @@ class ShapeList
             
             source +=
             """
-            
-            limitD = abs(uv) - float2(\(unitSize/2-8));
-            limit = length(max(limitD,float2(0))) + min(max(limitD.x,limitD.y),0.0);
+
+            limitD = abs(uv - float2(3-2.5,0)) - float2(\(unitSize/2-2)) + float2( 16. );
+            limit = length(max(limitD,float2(0))) + min(max(limitD.x,limitD.y),0.0) - 16.;
+            finalCol = mix( finalCol, float4(0,0,0,1), fillMask( limit ) );
             dist = max(limit,dist);
             
             """
@@ -200,14 +201,14 @@ class ShapeList
             if shape.properties["inverse"] != nil && shape.properties["inverse"]! == 1 {
                 // Inverse
                 source += "dist = -dist;\n"
-                source += "{\n"
-                source += "  float2 d = abs(uv)-float2(14,14);\n"
-                source += "  float limit = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
-                source += "  if ( limit > 0 ) dist = 1000;"
-                source += "}\n"
+                //source += "{\n"
+                //source += "  float2 d = abs(uv - float2(3,0)) - float2(\(unitSize/2-2)) + float2( 16. );\n"
+                //source += "  float limit = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - 16.;\n"
+                //source += "  if ( limit >= 0 ) dist = 1000;"
+                //source += "}\n"
             }
             
-            source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
+            source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( limit ) * fillMask( dist ) * primitiveColor.w );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
             // --- Modes

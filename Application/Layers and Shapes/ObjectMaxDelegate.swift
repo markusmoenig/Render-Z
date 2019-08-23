@@ -358,6 +358,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         if region.type == .Right {
             let rightRegion = app.rightRegion!
 
+            app.mmView.drawBox.draw( x: rightRegion.rect.x, y: rightRegion.rect.y, width: rightRegion.rect.width, height: rightRegion.rect.height, round: 0, borderSize: 0, fillColor : float4(0.169, 0.169, 0.169, 1.000), borderColor: float4(0.286, 0.286, 0.286, 1.000) )
+            
             rightRegion.rect.width = 300
             rightRegion.rect.x = app.mmView.renderer.cWidth - rightRegion.rect.width
             
@@ -366,6 +368,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             
             shapeListWidget.rect.width = rightRegion.rect.width
             shapeListWidget.rect.height = rightRegion.rect.height * 2/3
+            
+            app.mmView.drawBox.draw( x: rightRegion.rect.x, y: rightRegion.rect.y + objectWidget.rect.height + 30, width: rightRegion.rect.width - 1, height: shapeListWidget.rect.height - 32, round: 40, borderSize: 1, fillColor : float4(0,0,0,0), borderColor: float4(0.286, 0.286, 0.286, 1.000) )
             
             materialListWidget.rect.width = rightRegion.rect.width
             materialListWidget.rect.height = rightRegion.rect.height * 2/3
@@ -400,9 +404,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             }
             
             if activeRegionMode == .Shapes {
-                shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x, shapeListWidget.rect.y+1+30, shapeListWidget.rect.width, shapeListWidget.rect.height-2-30) )
+                shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x - 1, shapeListWidget.rect.y + 31, shapeListWidget.rect.width, shapeListWidget.rect.height - 35) )
             } else {
-                materialListWidget.build(widget: materialList.textureWidget, area: MMRect( materialListWidget.rect.x, materialListWidget.rect.y+1+30, materialListWidget.rect.width, materialListWidget.rect.height-2-30) )
+                materialListWidget.build(widget: materialList.textureWidget, area: MMRect( materialListWidget.rect.x - 1, materialListWidget.rect.y + 31, materialListWidget.rect.width, materialListWidget.rect.height - 35) )
             }
         } else
         if region.type == .Bottom {
@@ -900,12 +904,12 @@ class ObjectListWidget : MMWidget
     func draw(object: Object)
     {
         // Background
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 40, borderSize: 1,  fillColor : float4(0.098, 0.098, 0.098, 1.000), borderColor: float4(0.286, 0.286, 0.286, 1.000) )
         
         //
         
         mmView.renderer.setClipRect(rect)
-        var y : Float = 5
+        var y : Float = 20
         
         func drawRow(items: [ObjectTreeItem])
         {
@@ -915,27 +919,26 @@ class ObjectListWidget : MMWidget
             for item in items
             {
                 let fillColor : float4
-                
+                let textColor : float4
+
                 item.rect.x = rect.x + x + xOffset
                 item.rect.y = rect.y + y + yOffset
                 item.rect.width = objectSize.x
                 item.rect.height = objectSize.y
 
                 if delegate.selObject!.uuid == item.object.uuid {
-                    if delegate.selObjectActive {
-                        fillColor = app.mmView.skin.Widget.selectionColor
-                    } else {
-                        fillColor = float4( 0.5, 0.5, 0.5, 1 )
-                    }
+                    fillColor = float4(0.537, 0.537, 0.537, 1.000)
+                    textColor = float4(0,0,0,1)
                 } else {
                     fillColor = float4(repeating: 0)
+                    textColor = float4(0.537, 0.537, 0.537, 1.000)
                 }
                 
-                let borderSize : Float = 2
+                let borderSize : Float = 1
                 
-                mmView.drawBox.draw( x: item.rect.x + 1, y: item.rect.y, width: objectSize.x, height: objectSize.y, round: 6, borderSize: borderSize,  fillColor : fillColor, borderColor: float4( repeating: 1 ) )
+                mmView.drawBox.draw( x: item.rect.x + 1, y: item.rect.y, width: objectSize.x, height: objectSize.y, round: 6, borderSize: borderSize, fillColor: fillColor, borderColor: float4(0.537, 0.537, 0.537, 1.000) )
                 
-                mmView.drawText.drawTextCentered(mmView.openSans, text: item.parentItem != nil ? item.object.name : "Root", x: item.rect.x, y: item.rect.y, width: objectSize.x, height: objectSize.y, scale: 0.3, color: float4(0,0,0,1))
+                mmView.drawText.drawTextCentered(mmView.openSans, text: item.parentItem != nil ? item.object.name : "Root", x: item.rect.x, y: item.rect.y, width: objectSize.x, height: objectSize.y, scale: 0.3, color: textColor)
                 
                 if item.parentItem != nil {
                     let pRect = item.parentItem!.rect
@@ -1113,21 +1116,21 @@ class ObjectWidget : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
         if let object = delegate.selObject {
             label.setText(object.name)
-            label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
+            label.drawCenteredY( x: rect.x + 14, y: rect.y, width: rect.width, height: 30 )
             
             objectListWidget.rect.x = rect.x
             objectListWidget.rect.y = rect.y + 30
-            objectListWidget.rect.width = rect.width
+            objectListWidget.rect.width = rect.width - 1
             objectListWidget.rect.height = rect.height - 30
             
             objectListWidget.draw(object: object)
         }
         
-        menuWidget.rect.x = rect.x + rect.width - 30 - 1
+        menuWidget.rect.x = rect.x + rect.width - 45
         menuWidget.rect.y = rect.y + 1
         menuWidget.rect.width = 30
         menuWidget.rect.height = 28
@@ -1238,11 +1241,11 @@ class ShapeListScrollArea: MMScrollArea
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
         label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height + 1 - 30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height + 1 - 30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
     }
 }
 
@@ -1305,38 +1308,6 @@ class MaterialListScrollArea: MMScrollArea
             
             delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
         }
-        
-        /*
-        floatWidget.changed = { (value) -> Void in
-            
-            let selObject = self.delegate.selObject!
-            let rootObject = self.delegate.currentObject!
-            let timeline = delegate.getTimeline()!
-
-            func apply(_ object: Object,_ old: Float,_ new: Float,_ isRecording: Bool)
-            {
-                self.mmView.undoManager!.registerUndo(withTarget: self) { target in
-                    if !isRecording {
-                        self.delegate.selObject!.properties["border"] = new
-                    } else {
-                        let uuid = self.delegate.selObject!.uuid
-                        timeline.addKeyProperties(sequence: self.delegate.currentObject!.currentSequence!, uuid: uuid, properties: ["border":new])
-                    }
-                    self.floatWidget.value = new
-                    apply(object, new, old, isRecording)
-                    self.app.updateObjectPreview(rootObject)
-                }
-            }
-            apply(selObject, value, selObject.properties["border"]!, timeline.isRecording)
-            
-            if !timeline.isRecording {
-                selObject.properties["border"] = value
-            } else {
-                let uuid = self.delegate.selObject!.uuid
-                timeline.addKeyProperties(sequence: self.delegate.currentObject!.currentSequence!, uuid: uuid, properties: ["border":value])
-            }
-            self.delegate.update()
-        }*/
     }
     
     override func mouseDown(_ event: MMMouseEvent) {
@@ -1425,9 +1396,9 @@ class MaterialListScrollArea: MMScrollArea
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        let height : Float = 30//delegate.materialMode == .Body ? 30 : 60
+        //let height : Float = 30//delegate.materialMode == .Body ? 30 : 60
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: height, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: height, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
         bodyButton.rect.x = rect.x + 10
         bodyButton.rect.y = rect.y + 3
@@ -1440,7 +1411,7 @@ class MaterialListScrollArea: MMScrollArea
         borderButton.rect.width = 80
         borderButton.draw()
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y + height, width: rect.width, height: rect.height + 1 - height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y + height, width: rect.width, height: rect.height + 1 - height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
     }
 }
 

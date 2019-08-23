@@ -47,7 +47,7 @@ class MaterialList
         fragment!.allocateTexture(width: 10, height: 10)
 
         spacing = 0
-        unitSize = 40
+        unitSize = 45
         
         currentObject = nil
         
@@ -125,11 +125,11 @@ class MaterialList
             float2 uvOrigin = float2( in.textureCoordinate.x * size.x - size.x / 2., size.y - in.textureCoordinate.y * size.y - size.y / 2. );
             float2 uv;
 
-            float dist = 10000;
-            float2 d;
+            float dist = 10000, limit;
+            float2 d, limitD;
         
-            float borderSize = 2;
-            float round = 4;
+            float borderSize = 0;
+            float round = 18;
         
             float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
             float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
@@ -158,18 +158,19 @@ class MaterialList
             source += "uv = uvOrigin; uv.x += size.x / 2.0 - \(left) + borderSize/2; uv.y += size.y / 2.0 - \(top) + borderSize/2;\n"
             source += "uv /= \(zoom);\n"
             
-            source += "d = abs( uv ) - float2( \((width)/2) - borderSize, \(unitSize/2) - borderSize ) + float2( round );\n"
+            source += "d = abs( uv ) - float2( \((width)/2) - borderSize - 2, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
 
             if selectedMaterials.contains( material.uuid ) {
-                source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
+//                source += "col = float4( \(mmView.skin.Widget.selectionColor.x), \(mmView.skin.Widget.selectionColor.y), \(mmView.skin.Widget.selectionColor.z), fillMask( dist ) * \(mmView.skin.Widget.selectionColor.w) );\n"
+                source += "col = float4(0.354, 0.358, 0.362, fillMask( dist ) );\n"
             } else {
                 source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
             }
-            source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
+            //source += "col = mix( col, borderColor, borderMask( dist, 1.5 ) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
-            source += "uv -= float2( -128., 0. );\n"
+            source += "uv -= float2( -125.5, 0. );\n"
             
             if !material.isCompound {
                 if material.properties["channel"]! == 0 {
@@ -181,11 +182,21 @@ class MaterialList
                 source += material.createCode(uvName: "uv", materialName: "material") + ";\n"
                 source += "primitiveColor = material.baseColor;\n"
             }
+            
+            source +=
+            """
+            
+            limitD = abs(uv - float2(3-2.5,0)) - float2(\(unitSize/2-2)) + float2( 16. );
+            limit = length(max(limitD,float2(0))) + min(max(limitD.x,limitD.y),0.0) - 16.;
+            finalCol = mix( finalCol, float4(0,0,0,1), fillMask( limit ) );
+            dist = max(limit,dist);
+            
+            """
 
             source += "col = float4( primitiveColor.x, primitiveColor.y, primitiveColor.z, fillMask( dist ) * primitiveColor.w );\n"
             
-            source += "d = abs(uv)-float2(14,14);\n"
-            source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
+            //source += "d = abs(uv)-float2(14,14);\n"
+            //source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);\n"
             source += "if ( dist <= 0 ) "
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
@@ -270,8 +281,8 @@ class MaterialList
 
             let materials : [Material] = currentType == .Body ? currentObject!.bodyMaterials : currentObject!.borderMaterials
                         
-            let left : Float = 22 * zoom
-            var top : Float = 5 * zoom
+            let left : Float = 26 * zoom
+            var top : Float = 6 * zoom
             let fontScale : Float = 0.22
             
             var fontRect = MMRect()
