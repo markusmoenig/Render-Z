@@ -121,19 +121,15 @@ class MMTimeline : MMWidget
         tlRect = MMRect()
         barRect = MMRect()
         pixelsPerFrame = 40
-        
-        view.registerIcon("timeline_recording")
-        view.registerIcon("timeline_play")
-        view.registerIcon("timeline_delete")
 
         var smallButtonSkin = MMSkinButton()
         smallButtonSkin.height = view.skin.Button.height
         smallButtonSkin.round = view.skin.Button.round
         smallButtonSkin.fontScale = view.skin.Button.fontScale
         
-        recordButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Rec")//iconName: "timeline_recording")
-        playButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Play")//iconName: "timeline_play")
-        deleteButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Del")//iconName: "timeline_delete")
+        recordButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Rec")
+        playButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Play")
+        deleteButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Del")
         
         topInfoArea = MMInfoArea(view, scale: 0.36)
         totalFramesItem = topInfoArea.addItem("Max. Frames", "totalFrames", 100, int: true, range: float2(0, 36000))

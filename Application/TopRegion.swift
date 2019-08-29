@@ -10,6 +10,7 @@ import MetalKit
 
 class TopRegion: MMRegion
 {
+    var logoTexture     : MTLTexture? = nil
     var undoButton      : MMButtonWidget!
     var redoButton      : MMButtonWidget!
     var newButton       : MMButtonWidget!
@@ -24,6 +25,9 @@ class TopRegion: MMRegion
     {
         self.app = app
         super.init( view, type: .Top )
+        
+        view.registerIcon("sz")
+        logoTexture = view.icons["sz"]
         
         var borderlessSkin = MMSkinButton()
         borderlessSkin.margin = MMMargin( 8, 4, 8, 4 )
@@ -113,7 +117,7 @@ class TopRegion: MMRegion
             app.play()
         }
         
-        layoutH( startX: 10, startY: 8, spacing: 10, widgets: undoButton, redoButton)
+        layoutH( startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
         layoutH( startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton )
         registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, playButton )
     }
@@ -123,13 +127,15 @@ class TopRegion: MMRegion
         mmView.drawBox.draw( x: 1, y: 0, width: mmView.renderer.width - 1, height: mmView.skin.ToolBar.height, round: 0, borderSize: mmView.skin.ToolBar.borderSize, fillColor : mmView.skin.ToolBar.color, borderColor: mmView.skin.ToolBar.borderColor )
         //mmView.drawBoxGradient.draw( x: 1, y: 0, width: mmView.renderer.width - 1, height: 44, round: 0, borderSize: 1, uv1: float2( 0, 0 ), uv2: float2( 0, 1 ), gradientColor1 : float4(0.275, 0.275, 0.275, 1.000), gradientColor2 : float4(0.153, 0.153, 0.153, 1.000), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
         
-        mmView.drawBox.draw( x: 149, y: 8, width: 1, height: 30, round: 0, borderSize: 0, fillColor : float4(0.125, 0.125, 0.125, 1.000) )
-        mmView.drawBox.draw( x: 150, y: 8, width: 1, height: 30, round: 0, borderSize: 0, fillColor : float4(0.247, 0.243, 0.247, 1.000) )
+        mmView.drawBox.draw( x: 149 + 55, y: 8, width: 1, height: 30, round: 0, borderSize: 0, fillColor : float4(0.125, 0.125, 0.125, 1.000) )
+        mmView.drawBox.draw( x: 150 + 55, y: 8, width: 1, height: 30, round: 0, borderSize: 0, fillColor : float4(0.247, 0.243, 0.247, 1.000) )
 
         mmView.drawBox.draw( x: 1, y: mmView.skin.ToolBar.height, width: mmView.renderer.width - 1, height: mmView.skin.ToolBar.height + 3, round: 0, borderSize: mmView.skin.ToolBar.borderSize, fillColor : mmView.skin.ToolBar.color, borderColor: mmView.skin.ToolBar.borderColor )
         //mmView.drawBoxGradient.draw( x: 1, y: 44, width: mmView.renderer.width-1, height: 48, round: 0, borderSize: 1, uv1: float2( 0, 0 ), uv2: float2( 0, 1 ), gradientColor1 : float4( 0.082, 0.082, 0.082, 1), gradientColor2 : float4( 0.169, 0.173, 0.169, 1), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
         rect.height = mmView.skin.ToolBar.height + 4 + mmView.skin.ToolBar.height
-        
+     
+        mmView.drawTexture.draw(logoTexture!, x: 10, y: 4)
+
         undoButton.isDisabled = !mmView.window!.undoManager!.canUndo
         undoButton.draw()
         
