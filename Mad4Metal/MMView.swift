@@ -177,8 +177,15 @@ class MMView : MMBaseView {
             }
         }
         
-        // --- Delayed Draws
+        // --- Dialog
         
+        if let dialog = self.dialog {
+            dialog.rect.x = dialogXPos
+            dialog.rect.y = dialogYPos
+            dialog.draw()
+        }
+        
+        // --- Delayed Draws
         for widget in delayedDraws {
             widget.draw()
         }
@@ -278,5 +285,22 @@ class MMView : MMBaseView {
         let anim = MMAnimate(startValue: startValue, endValue: endValue, duration: duration, cb: cb)
         animate.append(anim)
         lockFramerate()
+    }
+    
+    ///
+    func showDialog(_ dialog: MMDialog)
+    {
+        self.dialog = dialog
+        dialogXPos = (renderer.cWidth - dialog.rect.width) / 2
+        dialogYPos = -dialog.rect.height
+        
+        widgetsBackup = widgets
+        widgets = dialog.widgets
+        
+        startAnimate( startValue: dialogYPos, endValue: 0, duration: 500, cb: { (value,finished) in
+            self.dialogYPos = value
+            if finished {
+            }
+        } )
     }
 }

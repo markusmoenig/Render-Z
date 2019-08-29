@@ -82,6 +82,11 @@ class TopRegion: MMRegion
         openButton.isDisabled = false
         openButton.textYOffset = -2
         openButton.clicked = { (event) -> Void in
+            
+            let dialog = MMTemplateChooser(self.mmView)
+            self.mmView.showDialog(dialog)
+            return
+            
             self.openButton.removeState(.Checked)
 //            view.undoManager?.undo()
 

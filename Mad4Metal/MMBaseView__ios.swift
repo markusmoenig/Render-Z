@@ -14,6 +14,11 @@ class MMBaseView : MTKView
     var hoverWidget     : MMWidget?
     var focusWidget     : MMWidget?
     
+    var dialog          : MMDialog? = nil
+    var widgetsBackup   : [MMWidget] = []
+    var dialogXPos      : Float = 0
+    var dialogYPos      : Float = 0
+
     var widgetForMouse  : MMWidget? = nil
     
     var lastX, lastY    : Float?

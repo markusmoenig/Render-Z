@@ -142,6 +142,8 @@
 		2BBF120021F808B1001C94E9 /* Gizmo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FE21F808B1001C94E9 /* Gizmo.swift */; };
 		2BBF120221F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
 		2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
+		2BC5DCE4231794050081A018 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
+		2BC5DCE5231794050081A018 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
 		2BCEC68E22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCEC68F22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCF5FA3227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
@@ -256,6 +258,7 @@
 		2BBF11FE21F808B1001C94E9 /* Gizmo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gizmo.swift; sourceTree = "<group>"; };
 		2BBF120121F80B32001C94E9 /* Gizmo.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Gizmo.metal; sourceTree = "<group>"; };
 		2BBF37DE2293845700DB6A01 /* SceneMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneMaxDelegate.swift; sourceTree = "<group>"; };
+		2BC5DCE3231794050081A018 /* Dialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dialogs.swift; sourceTree = "<group>"; };
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
 		2BE67101221259F500B95241 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
@@ -369,6 +372,7 @@
 			isa = PBXGroup;
 			children = (
 				2BBF119F21EAD46B001C94E9 /* App.swift */,
+				2BC5DCE3231794050081A018 /* Dialogs.swift */,
 				2BBF119821EAD46B001C94E9 /* LeftRegion.swift */,
 				2BBF119721EAD46B001C94E9 /* TopRegion.swift */,
 				2BBF119C21EAD46B001C94E9 /* RightRegion.swift */,
@@ -641,6 +645,7 @@
 				2B5F506F2298FD5D00D3B6C5 /* GameWidget.swift in Sources */,
 				2BBF11C921EADB46001C94E9 /* MMUtils.swift in Sources */,
 				2BE67109221291D300B95241 /* Node.metal in Sources */,
+				2BC5DCE4231794050081A018 /* Dialogs.swift in Sources */,
 				2BBF11A221EAD46B001C94E9 /* LeftRegion.swift in Sources */,
 				2B3AC54C22EBD67F0013A60E /* MMInfoArea.swift in Sources */,
 				2BBF11AC21EAD46B001C94E9 /* Mad4Metal.metal in Sources */,
@@ -721,6 +726,7 @@
 				2B5F50702298FD5D00D3B6C5 /* GameWidget.swift in Sources */,
 				2BBF11CA21EADB46001C94E9 /* MMUtils.swift in Sources */,
 				2BE67108221291D300B95241 /* Node.metal in Sources */,
+				2BC5DCE5231794050081A018 /* Dialogs.swift in Sources */,
 				2BBF11A321EAD46B001C94E9 /* LeftRegion.swift in Sources */,
 				2B3AC54D22EBD67F0013A60E /* MMInfoArea.swift in Sources */,
 				2BBF11AD21EAD46B001C94E9 /* Mad4Metal.metal in Sources */,

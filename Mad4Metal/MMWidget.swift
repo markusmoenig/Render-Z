@@ -156,6 +156,77 @@ class MMWidget
     }
 }
 
+/// Generic Dialog class, derive from this
+
+class MMDialog : MMWidget
+{
+    var title           : String = ""
+    var titleLabel      : MMTextLabel!
+
+    var cancelButton    : MMButtonWidget? = nil
+    var okButton        : MMButtonWidget
+    
+    var widgets         : [MMWidget] = []
+
+    init(_ view: MMView, title: String, cancelText: String, okText: String) {
+        
+        var smallButtonSkin = MMSkinButton()
+        smallButtonSkin.height = view.skin.Button.height
+        smallButtonSkin.round = view.skin.Button.round
+        smallButtonSkin.fontScale = view.skin.Button.fontScale
+        
+        if !cancelText.isEmpty {
+            cancelButton = MMButtonWidget( view, skinToUse: smallButtonSkin, text: cancelText )
+            widgets.append(cancelButton!)
+        }
+        okButton = MMButtonWidget( view, skinToUse: smallButtonSkin, text: okText )
+
+        widgets.append(okButton)
+
+        super.init(view)
+        name = "MMDialog"
+        
+        titleLabel = MMTextLabel(view, font: view.openSans, text: title, scale: 0.4)
+        
+        okButton.clicked = { (event) -> Void in
+            self.ok()
+        }
+    }
+    
+    func cancel()
+    {
+        close()
+    }
+    
+    func ok()
+    {
+        close()
+    }
+    
+    func close()
+    {
+        mmView.widgets = []
+        
+        mmView.startAnimate( startValue: rect.y, endValue: rect.y - rect.height, duration: 500, cb: { (value,finished) in
+            self.mmView.dialogYPos = value
+            if finished {
+                self.mmView.widgets = self.mmView.widgetsBackup
+            }
+        } )
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    {
+        mmView.drawBox.draw( x: rect.x, y: rect.y - yOffset, width: rect.width, height: rect.height, round: 40, borderSize: 1, fillColor: float4(0.165, 0.169, 0.173, 1.000), borderColor: float4(0.267, 0.271, 0.275, 1.000) )
+        
+        titleLabel.drawCentered(x: rect.x, y: rect.y - yOffset, width: rect.width, height: 35)
+        
+        okButton.rect.x = rect.x + rect.width - okButton.rect.width - 20
+        okButton.rect.y = rect.y + rect.height - 40 - yOffset
+        okButton.draw()
+    }
+}
+
 /// Button widget class which handles all buttons
 class MMButtonWidget : MMWidget
 {
