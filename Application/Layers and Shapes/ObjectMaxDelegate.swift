@@ -611,7 +611,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     override func update(_ hard: Bool = false, updateLists: Bool = false)
     {
         if hard {
-            app.gizmo.setObject(selObject, rootObject: currentObject, context: gizmoContext, materialType: materialType)
+            //fix? app.gizmo.setObject(selObject, rootObject: currentObject, context: gizmoContext, materialType: materialType)
             currentObject!.instance = app.nodeGraph.builder.buildObjects(objects: [currentObject!], camera: camera)
         }
         

@@ -318,6 +318,7 @@ class GizmoInfoArea {
                                 self.gizmo.mmView.update()
                             }
                             
+                            
                             if object.instanceOf != nil {
                                 // This is an instance, we need to update the instance properties
                                 if let layer = self.gizmo.app.nodeGraph.getSceneOfInstance(object.uuid) {
@@ -352,12 +353,16 @@ class GizmoInfoArea {
         
         for item in items {
             
+            let color : float4
             if item === hoverItem {
-                gizmo.mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height, round: 4, borderSize: 0, fillColor : gizmo.mmView.skin.ToolBarButton.hoverColor )
+                color = float4(1,1,1,1)
+            } else {
+                color = float4(0.761, 0.761, 0.761, 1.000)
             }
             
             item.titleLabel.rect.x = x
             item.titleLabel.rect.y = rect.y + rect.height - 15
+            item.titleLabel.color = color
             item.titleLabel.draw()
             
             item.rect.x = x - 4
@@ -368,6 +373,7 @@ class GizmoInfoArea {
             
             item.valueLabel.rect.x = x
             item.valueLabel.rect.y = item.titleLabel.rect.y
+            item.valueLabel.color = color
             item.valueLabel.draw()
             
             x += item.valueLabel.rect.width + 10

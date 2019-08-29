@@ -109,7 +109,7 @@ class MMInfoArea : MMWidget {
             if item.rect.contains(event.x, event.y) {
                 hoverItem = item
                 if closeable {
-                    if event.x > item.rect.right() - 18 {//}&& event.x < item.rect.right() - 5 {
+                    if event.x > item.rect.right() - 28 && event.x < item.rect.right() - 8 {
                         closeItem = item
                     }
                 }
@@ -156,7 +156,7 @@ class MMInfoArea : MMWidget {
         
         for item in items {
             width += item.titleLabel.rect.width + 5
-            width += item.valueLabel.rect.width + 10
+            width += item.valueLabel.rect.width + 20
             if closeable {
                 width += 15
             }
@@ -175,12 +175,16 @@ class MMInfoArea : MMWidget {
         
         for item in items {
             
+            let color : float4
             if item === hoverItem {
-                mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height, round: 4, borderSize: 0, fillColor : mmView.skin.ToolBarButton.hoverColor )
+                color = float4(1,1,1,1)
+            } else {
+                color = float4(0.761, 0.761, 0.761, 1.000)
             }
             
             item.titleLabel.rect.x = x
             item.titleLabel.rect.y = rect.y
+            item.titleLabel.color = color
             item.titleLabel.draw()
             
             item.rect.x = x - 4
@@ -191,20 +195,21 @@ class MMInfoArea : MMWidget {
             
             item.valueLabel.rect.x = x
             item.valueLabel.rect.y = item.titleLabel.rect.y
+            item.valueLabel.color = color
             item.valueLabel.draw()
             
             if closeable {
-                //if item === hoverItem
-                //{
-                    let xStart = x + item.valueLabel.rect.width + 4
-                    let color = item === closeItem ? float4(1,1,1,1) : float4(0.4,0.4,0.4,1)
-                    mmView.drawLine.draw(sx: xStart, sy: rect.y + 1, ex: xStart + 10, ey: rect.y + rect.height - 5, radius: 1, fillColor: color)
-                    mmView.drawLine.draw(sx: xStart, sy: rect.y + rect.height - 5, ex: xStart + 10, ey: rect.y + 1, radius: 1, fillColor: color)
-                //}
+                let xStart = x + item.valueLabel.rect.width + 4
+                let color = item === closeItem ? float4(1,1,1,1) : float4(0.4,0.4,0.4,1)
+                
+                mmView.drawSphere.draw(x: xStart - 2, y: rect.y - 1, radius: 8, borderSize: 1, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor: color)
+                mmView.drawLine.draw(sx: xStart, sy: rect.y + 1, ex: xStart + 10, ey: rect.y + rect.height - 5, radius: 1, fillColor: color)
+                mmView.drawLine.draw(sx: xStart, sy: rect.y + rect.height - 5, ex: xStart + 10, ey: rect.y + 1, radius: 1, fillColor: color)
+                
                 x += 15
             }
             
-            x += item.valueLabel.rect.width + 10
+            x += item.valueLabel.rect.width + 20
             item.rect.width = x - item.rect.x - 6
         }
     }

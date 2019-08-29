@@ -158,7 +158,10 @@ class Gizmo : MMWidget
     func setObject(_ object:Object?, rootObject: Object?=nil, context: GizmoContext = .ShapeEditor, materialType: Object.MaterialType = .Body, customDelegate: NodeMaxDelegate? = nil, inSceneEditor: Bool = false)
     {
         if self.object !== object {
-            gizmoInfoArea.reset()
+            if self.object != nil && object != nil && self.object!.uuid == object!.uuid {
+            } else {
+                gizmoInfoArea.reset()
+            }
         }
         
         self.object = object
