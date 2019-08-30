@@ -74,11 +74,15 @@ class TopRegion: MMRegion
                 app.mmView.showDialog(dialog)
             }
             
-            askUserToSave(view: self.mmView, cb: { (rc) -> Void in
-                if rc == true {
-                    new()
-                }
-            })
+            if self.mmView.undoManager!.canUndo {
+                askUserToSave(view: self.mmView, cb: { (rc) -> Void in
+                    if rc == true {
+                        new()
+                    }
+                })
+            } else {
+                new()
+            }
         }
         
         openButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Open" )
@@ -146,7 +150,7 @@ class TopRegion: MMRegion
         redoButton.isDisabled = !mmView.window!.undoManager!.canRedo
         redoButton.draw()
 
-        newButton.isDisabled = !mmView.window!.undoManager!.canUndo
+        //newButton.isDisabled = !mmView.window!.undoManager!.canUndo
         newButton.draw()
         
         openButton.draw()
