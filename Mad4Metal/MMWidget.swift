@@ -205,20 +205,23 @@ class MMDialog : MMWidget
     
     func close()
     {
-        mmView.widgets = []
-        
+        self.mmView.widgets = self.mmView.widgetsBackup
+
         mmView.startAnimate( startValue: rect.y, endValue: rect.y - rect.height, duration: 500, cb: { (value,finished) in
             self.mmView.dialogYPos = value
             if finished {
-                self.mmView.widgets = self.mmView.widgetsBackup
             }
         } )
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y - yOffset, width: rect.width, height: rect.height, round: 40, borderSize: 1, fillColor: float4(0.165, 0.169, 0.173, 1.000), borderColor: float4(0.267, 0.271, 0.275, 1.000) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y - yOffset, width: rect.width, height: 20, round: 0, borderSize: 1, fillColor: float4(0.165, 0.169, 0.173, 1.000), borderColor: float4(0.267, 0.271, 0.275, 1.000) )
         
+        mmView.renderer.setClipRect(MMRect(rect.x, rect.y + 19 - yOffset, rect.width, rect.height))
+        mmView.drawBox.draw( x: rect.x, y: rect.y - yOffset, width: rect.width, height: rect.height, round: 40, borderSize: 1, fillColor: float4(0.165, 0.169, 0.173, 1.000), borderColor: float4(0.267, 0.271, 0.275, 1.000) )
+        mmView.renderer.setClipRect()
+
         titleLabel.drawCentered(x: rect.x, y: rect.y - yOffset, width: rect.width, height: 35)
         
         okButton.rect.x = rect.x + rect.width - okButton.rect.width - 20

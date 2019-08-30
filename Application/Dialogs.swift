@@ -20,7 +20,7 @@ class TemplateChooserItem {
     init(_ mmView: MMView,_ title: String, _ fileName: String = "", _ description: String = "")
     {
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title)
-        descriptionLabel = MMTextLabel(mmView, font: mmView.openSans, text: description, scale: 0.36)
+        descriptionLabel = MMTextLabel(mmView, font: mmView.openSans, text: description, scale: 0.36, color: float4(mmView.skin.Item.textColor))
         self.fileName = fileName
     }
 }

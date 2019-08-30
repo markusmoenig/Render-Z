@@ -29,7 +29,7 @@ struct MMSkinItem
 {
     var color           : float4 = float4(0.282, 0.286, 0.290, 1.000)
     var selectionColor  : float4 = float4(0.278, 0.553, 0.722, 1.000)
-    var textColor       : float4 = float4(0.957, 0.957, 0.957, 1.0)
+    var textColor       : float4 = float4(0.773, 0.776, 0.780, 1.000)
     var borderColor     : float4 = float4(0.267, 0.271, 0.275, 1.000)
 }
 
