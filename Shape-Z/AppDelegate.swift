@@ -43,6 +43,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         //getSampleProject(view: app.mmView, title: "New Project", message: "Select the project type", sampleProjects: ["Empty Project"], cb: { (index) -> () in
         //    print("Result", index)
         //} )
+        
+        let dialog = MMTemplateChooser(app.mmView)
+        app.mmView.showDialog(dialog)
     }
     
     func applicationWillTerminate(_ aNotification: Notification) {

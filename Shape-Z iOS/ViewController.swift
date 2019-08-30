@@ -29,6 +29,9 @@ class ViewController: UIViewController, UIDocumentPickerDelegate {
         //getSampleProject(view: app.mmView, title: "New Project", message: "Select the project type", sampleProjects: ["Empty Project", "Pinball"], cb: { (index) -> () in
            // print("Result", index)
         //} )
+        
+        let dialog = MMTemplateChooser(app.mmView)
+        app.mmView.showDialog(dialog)
     }
     
     override var prefersStatusBarHidden: Bool {

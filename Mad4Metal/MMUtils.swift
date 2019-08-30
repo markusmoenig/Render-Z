@@ -32,6 +32,11 @@ class MMRect
         width = rect.width; height = rect.height
     }
     
+    func set( _ x : Float, _ y : Float, _ width: Float, _ height : Float, scale: Float = 1 )
+    {
+        self.x = x * scale; self.y = y * scale; self.width = width * scale; self.height = height * scale
+    }
+    
     /// Copy the content of the given rect
     func copy(_ rect : MMRect)
     {

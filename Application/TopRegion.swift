@@ -69,6 +69,9 @@ class TopRegion: MMRegion
                 self.app.nodeGraph.setup(app: self.app)
                 self.app.nodeGraph.activate()
                 self.app.nodeGraph.updateNodes()
+                
+                let dialog = MMTemplateChooser(app.mmView)
+                app.mmView.showDialog(dialog)
             }
             
             askUserToSave(view: self.mmView, cb: { (rc) -> Void in
@@ -82,10 +85,6 @@ class TopRegion: MMRegion
         openButton.isDisabled = false
         openButton.textYOffset = -2
         openButton.clicked = { (event) -> Void in
-            
-            let dialog = MMTemplateChooser(self.mmView)
-            self.mmView.showDialog(dialog)
-            return
             
             self.openButton.removeState(.Checked)
 //            view.undoManager?.undo()
@@ -139,7 +138,7 @@ class TopRegion: MMRegion
         //mmView.drawBoxGradient.draw( x: 1, y: 44, width: mmView.renderer.width-1, height: 48, round: 0, borderSize: 1, uv1: float2( 0, 0 ), uv2: float2( 0, 1 ), gradientColor1 : float4( 0.082, 0.082, 0.082, 1), gradientColor2 : float4( 0.169, 0.173, 0.169, 1), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
         rect.height = mmView.skin.ToolBar.height + 4 + mmView.skin.ToolBar.height
      
-        mmView.drawTexture.draw(logoTexture!, x: 10, y: 4)
+        mmView.drawTexture.draw(logoTexture!, x: 10, y: 7)
 
         undoButton.isDisabled = !mmView.window!.undoManager!.canUndo
         undoButton.draw()
