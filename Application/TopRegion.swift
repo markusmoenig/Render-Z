@@ -26,8 +26,7 @@ class TopRegion: MMRegion
         self.app = app
         super.init( view, type: .Top )
         
-        view.registerIcon("sz")
-        logoTexture = view.icons["sz"]
+        logoTexture = view.icons["sz_toolbar"]
         
         var borderlessSkin = MMSkinButton()
         borderlessSkin.margin = MMMargin( 8, 4, 8, 4 )
@@ -94,7 +93,12 @@ class TopRegion: MMRegion
 //            view.undoManager?.undo()
 
             func load() {
+                #if os(iOS)
+                let dialog = MMFileDialog(app.mmView)
+                app.mmView.showDialog(dialog)
+                #else
                 app.mmFile.chooseFile(app: app)
+                #endif                
             }
 
             if self.mmView.undoManager!.canUndo {
@@ -113,9 +117,14 @@ class TopRegion: MMRegion
         saveButton.textYOffset = -2
         saveButton.clicked = { (event) -> Void in
             self.saveButton.removeState(.Checked)
-            
+        
+            #if os(iOS)
+            let dialog = MMFileDialog(app.mmView, .Save)
+            app.mmView.showDialog(dialog)
+            #else
             let json = app.nodeGraph.encodeJSON()
             app.mmFile.saveAs(json, app)
+            #endif
         }
         
         playButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Play" )
@@ -142,7 +151,7 @@ class TopRegion: MMRegion
         //mmView.drawBoxGradient.draw( x: 1, y: 44, width: mmView.renderer.width-1, height: 48, round: 0, borderSize: 1, uv1: float2( 0, 0 ), uv2: float2( 0, 1 ), gradientColor1 : float4( 0.082, 0.082, 0.082, 1), gradientColor2 : float4( 0.169, 0.173, 0.169, 1), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
         rect.height = mmView.skin.ToolBar.height + 4 + mmView.skin.ToolBar.height
      
-        mmView.drawTexture.draw(logoTexture!, x: 10, y: 7)
+        mmView.drawTexture.draw(logoTexture!, x: 10, y: 7, zoom: 1.5)
 
         undoButton.isDisabled = !mmView.window!.undoManager!.canUndo
         undoButton.draw()

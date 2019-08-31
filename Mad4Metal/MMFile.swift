@@ -111,6 +111,20 @@ class MMFile
         
         #endif
     }
+    
+    func loadJSON(url: URL) -> String
+    {
+        var string : String = ""
+        
+        do {
+            string = try String(contentsOf: url, encoding: .utf8)
+        }
+        catch {
+            print(error.localizedDescription)
+        }
+        
+        return string
+    }
 
     ///
     func chooseFile(app: App)
@@ -150,6 +164,8 @@ class MMFile
                 
                 app.mmView.window!.title = self.name
                 app.mmView.window!.representedURL = self.url()
+                
+                app.mmView.undoManager!.removeAllActions()
             }
             openPanel.close()
         }

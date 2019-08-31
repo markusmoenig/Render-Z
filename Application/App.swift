@@ -53,6 +53,10 @@ class App
         
         nodeGraph = NodeGraph()
         
+        mmView.registerIcon("sz_toolbar")
+        mmView.registerIcon("sz_ui_blue")
+        mmView.registerIcon("sz_ui_grey")
+
         // --- Reusable buttons
         
         // Close Button
