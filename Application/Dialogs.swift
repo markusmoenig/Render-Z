@@ -93,14 +93,14 @@ class MMTemplateChooser : MMDialog {
     override func draw(xOffset: Float = 0, yOffset: Float = 0) {
         super.draw(xOffset: xOffset, yOffset: yOffset)
         
-        let itemSize : Float = (rect.width - 2 - 6) / 3
+        let itemSize : Float = (rect.width - 4 - 6) / 3
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y + 35, width: rect.width, height: rect.height - 90 - 40, round: 26, borderSize: 1, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
+        mmView.drawBox.draw( x: rect.x, y: rect.y + 35, width: rect.width, height: rect.height - 90 - 40, round: 30, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
         
         for (index,item) in items.enumerated() {
             
-            var x : Float = rect.x + 2
-            let y : Float = rect.y + 37
+            var x : Float = rect.x + 3
+            let y : Float = rect.y + 38
             
             let borderColor = selItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
             let textColor = selItem === item ? mmView.skin.Item.selectionColor : float4(1,1,1,1)
@@ -110,19 +110,19 @@ class MMTemplateChooser : MMDialog {
             mmView.drawBox.draw( x: x, y: y, width: itemSize, height: itemSize, round: 26, borderSize: 2, fillColor: mmView.skin.Item.color, borderColor: borderColor)
             
             if selItem === item {
-                mmView.drawTexture.draw(blueTexture!, x: x + (itemSize - Float(blueTexture!.width)*0.8) / 2, y: y + 50, zoom: 1.2)
+                mmView.drawTexture.draw(blueTexture!, x: x + (itemSize - Float(blueTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
             } else {
-                mmView.drawTexture.draw(greyTexture!, x: x + (itemSize - Float(greyTexture!.width)*0.8) / 2, y: y + 50, zoom: 1.2)
+                mmView.drawTexture.draw(greyTexture!, x: x + (itemSize - Float(greyTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
             }
             
             item.rect.set(x, y, itemSize, itemSize)
             item.titleLabel.color = textColor
-            item.titleLabel.drawCentered(x: x, y: y + itemSize - 50, width: itemSize, height: 35)
+            item.titleLabel.drawCentered(x: x, y: y + itemSize - 59, width: itemSize, height: 35)
         }
         
         let y : Float = rect.y + 35 + rect.height - 90 - 30
         
-        mmView.drawBox.draw( x: rect.x + 10, y: y, width: rect.width - 20, height: 30, round: 26, borderSize: 1, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
+        mmView.drawBox.draw( x: rect.x + 10, y: y, width: rect.width - 20, height: 30, round: 26, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
         if let item = selItem {
             item.descriptionLabel.drawCentered(x: rect.x + 10, y: y, width: rect.width - 20, height: 30)
         }
@@ -154,10 +154,7 @@ class MMFileDialogItem {
 
             date = dateFormatter.string(from: values!.contentModificationDate!)
         }
-        //catch {
-//            print(error.localizedDescription)
-//        }
-        
+
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: 0.36, color: float4(mmView.skin.Item.textColor))
         dateLabel = MMTextLabel(mmView, font: mmView.openSans, text: date, scale: 0.36, color: float4(mmView.skin.Item.textColor))
     }
@@ -323,15 +320,15 @@ class MMFileDialog : MMDialog {
     override func draw(xOffset: Float = 0, yOffset: Float = 0) {
         super.draw(xOffset: xOffset, yOffset: yOffset)
         
-        let itemWidth : Float = (rect.width - 2 - 2)
+        let itemWidth : Float = (rect.width - 4 - 2)
         let itemHeight : Float = 30
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y + 35, width: rect.width, height: rect.height - 90 - 40, round: 26, borderSize: 1, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
+        mmView.drawBox.draw( x: rect.x, y: rect.y + 35, width: rect.width, height: rect.height - 90 - 40, round: 30, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
         
-        var y : Float = rect.y + 37
+        var y : Float = rect.y + 38
         for item in items {
             
-            let x : Float = rect.x + 2
+            let x : Float = rect.x + 3
             
             let borderColor = selItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
             let textColor = selItem === item ? mmView.skin.Item.selectionColor : float4(1,1,1,1)
@@ -355,11 +352,12 @@ class MMFileDialog : MMDialog {
         nameRect.width = rect.width - 20
         nameRect.height = 30
         
-        mmView.drawBox.draw( x: nameRect.x, y: nameRect.y, width: nameRect.width, height: nameRect.height, round: 26, borderSize: 1, fillColor: float4(0,0,0,0), borderColor: hasTextFocus ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor)
+        mmView.drawBox.draw( x: nameRect.x, y: nameRect.y, width: nameRect.width, height: nameRect.height, round: 26, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: hasTextFocus ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor)
         
         var drawTitle : Bool = true
         #if os(iOS)
         if mode == .Save {
+            fileNameLabel.color = mmView.skin.Item.selectionColor
             fileNameLabel.drawCenteredY(x: rect.x + 20, y: y, width: rect.width - 20, height: 30)
             drawTitle = false
         }

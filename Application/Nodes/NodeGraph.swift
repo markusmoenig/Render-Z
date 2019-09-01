@@ -633,6 +633,8 @@ class NodeGraph : Codable
     {
         if refList.isActive && refList.rect.contains(event.x, event.y){
             refList.mouseDown(event)
+            nodeHoverMode = .Preview
+            hoverNode = currentMaster!
             return
         }
         
@@ -854,6 +856,8 @@ class NodeGraph : Codable
     {
         if refList.isActive && refList.mouseIsDown == true && refList.rect.contains(event.x, event.y){
             refList.mouseMoved(event)
+            nodeHoverMode = .Preview
+            hoverNode = currentMaster!
             return
         }
         
