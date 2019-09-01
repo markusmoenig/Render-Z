@@ -300,6 +300,7 @@ class MMView : MMBaseView {
         startAnimate( startValue: dialogYPos, endValue: 0, duration: 500, cb: { (value,finished) in
             self.dialogYPos = value
             if finished {
+                dialog.scrolledIn()
             }
         } )
     }

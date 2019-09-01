@@ -173,6 +173,11 @@ class MMFileDialog : MMDialog {
     var selItem         : MMFileDialogItem? = nil
     var nameRect        : MMRect = MMRect()
     
+    var scrollOffset    : Float = 0
+    var dispatched      : Bool = false
+
+    var alpha           : Float = 0
+    
     var hasTextFocus    : Bool = false
 
     #if os(iOS)
@@ -317,6 +322,45 @@ class MMFileDialog : MMDialog {
     }
     #endif
     
+    override func mouseScrolled(_ event: MMMouseEvent)
+    {
+        scrollOffset += event.deltaY! * 4
+        
+        if !dispatched {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.mmView.unlockFramerate()
+                self.dispatched = false
+            }
+            dispatched = true
+        }
+        
+        if mmView.maxFramerateLocks == 0 {
+            mmView.lockFramerate()
+        }
+    }
+    
+    override func scrolledIn() {
+        DispatchQueue.main.async {
+            self.mmView.startAnimate( startValue: 0, endValue: 1, duration: 200, cb: { (value,finished) in
+                self.alpha = value
+                if finished {
+                }
+            } )
+        }
+    }
+    
+    override func cleanup(finished:@escaping ()->())
+    {
+        DispatchQueue.main.async {
+            self.mmView.startAnimate( startValue: 1, endValue: 0, duration: 200, cb: { (value,hasFinished) in
+                self.alpha = value
+                if hasFinished {
+                    finished()
+                }
+            } )
+        }
+    }
+    
     override func draw(xOffset: Float = 0, yOffset: Float = 0) {
         super.draw(xOffset: xOffset, yOffset: yOffset)
         
@@ -326,23 +370,49 @@ class MMFileDialog : MMDialog {
         mmView.drawBox.draw( x: rect.x, y: rect.y + 35, width: rect.width, height: rect.height - 90 - 40, round: 30, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
         
         var y : Float = rect.y + 38
-        for item in items {
+        if rect.y == 0 {
+            let scrollHeight : Float = rect.height - 90 - 46
+            let scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
+            mmView.renderer.setClipRect(scrollRect)
             
-            let x : Float = rect.x + 3
+            var maxHeight : Float = Float(items.count) * itemHeight
+            if items.count > 0 {
+                maxHeight += 2 * Float(items.count-1)
+            }
             
-            let borderColor = selItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
-            let textColor = selItem === item ? mmView.skin.Item.selectionColor : float4(1,1,1,1)
+            if scrollOffset < -(maxHeight - scrollHeight) {
+                scrollOffset = -(maxHeight - scrollHeight)
+            }
             
-            mmView.drawBox.draw( x: x, y: y, width: itemWidth, height: itemHeight, round: 26, borderSize: 2, fillColor: mmView.skin.Item.color, borderColor: borderColor)
+            if scrollOffset > 0 {
+                scrollOffset = 0
+            }
             
-            item.rect.set(x, y, itemWidth, itemHeight)
-            item.titleLabel.color = textColor
-            item.titleLabel.drawCenteredY(x: x + 10, y: y, width: itemWidth, height: itemHeight)
+            y += scrollOffset
+            var fillColor = mmView.skin.Item.color
+            fillColor.w = alpha
             
-            item.dateLabel.color = textColor
-            item.dateLabel.drawCenteredY(x: x + itemWidth - 10 - item.dateLabel.rect.width, y: y, width: itemWidth, height: itemHeight)
-            
-            y += itemHeight + 2
+            for item in items {
+                
+                let x : Float = rect.x + 3
+                
+                var borderColor = selItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
+                var textColor = selItem === item ? mmView.skin.Item.selectionColor : float4(1,1,1,1)
+                borderColor.w = alpha
+                textColor.w = alpha
+
+                mmView.drawBox.draw( x: x, y: y, width: itemWidth, height: itemHeight, round: 26, borderSize: 2, fillColor: fillColor, borderColor: borderColor)
+                
+                item.rect.set(x, y, itemWidth, itemHeight)
+                item.titleLabel.color = textColor
+                item.titleLabel.drawCenteredY(x: x + 10, y: y, width: itemWidth, height: itemHeight)
+                
+                item.dateLabel.color = textColor
+                item.dateLabel.drawCenteredY(x: x + itemWidth - 10 - item.dateLabel.rect.width, y: y, width: itemWidth, height: itemHeight)
+                
+                y += itemHeight + 2
+            }
+            mmView.renderer.setClipRect()
         }
         
         y = rect.y + 35 + rect.height - 90 - 30

@@ -200,24 +200,41 @@ class MMDialog : MMWidget
         }
     }
     
+    func scrolledIn()
+    {
+    }
+    
+    func cleanup(finished:@escaping ()->())
+    {
+        finished()
+    }
+    
     func _cancel()
     {
-        self.mmView.widgets = self.mmView.widgetsBackup
-        mmView.startAnimate( startValue: rect.y, endValue: rect.y - rect.height, duration: 500, cb: { (value,finished) in
-            self.mmView.dialogYPos = value
-            if finished {
-                self.cancel()
+        cleanup(finished: {
+            DispatchQueue.main.async {
+                self.mmView.widgets = self.mmView.widgetsBackup
+                self.mmView.startAnimate( startValue: self.rect.y, endValue: self.rect.y - self.rect.height, duration: 500, cb: { (value,finished) in
+                    self.mmView.dialogYPos = value
+                    if finished {
+                        self.cancel()
+                    }
+                } )
             }
         } )
     }
     
     func _ok()
     {
-        self.mmView.widgets = self.mmView.widgetsBackup
-        mmView.startAnimate( startValue: rect.y, endValue: rect.y - rect.height, duration: 500, cb: { (value,finished) in
-            self.mmView.dialogYPos = value
-            if finished {
-                self.ok()
+        cleanup(finished: {
+            DispatchQueue.main.async {
+                self.mmView.widgets = self.mmView.widgetsBackup
+                self.mmView.startAnimate( startValue: self.rect.y, endValue: self.rect.y - self.rect.height, duration: 500, cb: { (value,finished) in
+                    self.mmView.dialogYPos = value
+                    if finished {
+                        self.ok()
+                    }
+                } )
             }
         } )
     }
@@ -228,6 +245,11 @@ class MMDialog : MMWidget
     
     func cancel()
     {
+    }
+    
+    func doCancel()
+    {
+        
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
