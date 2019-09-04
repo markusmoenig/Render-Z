@@ -364,15 +364,19 @@ class MMDrawTexture : MMDrawable
 {
     let mmRenderer : MMRenderer
     var state : MTLRenderPipelineState!
-    
+    var statePrem : MTLRenderPipelineState!
+
     required init( _ renderer : MMRenderer )
     {
-        let function = renderer.defaultLibrary.makeFunction( name: "m4mTextureDrawable" )
+        var function = renderer.defaultLibrary.makeFunction( name: "m4mTextureDrawable" )
         state = renderer.createNewPipelineState( function! )
+        
+        function = renderer.defaultLibrary.makeFunction( name: "m4mTextureDrawablePrem" )
+        statePrem = renderer.createNewPipelineState( function! )
         mmRenderer = renderer
     }
     
-    func draw( _ texture: MTLTexture, x: Float, y: Float, zoom: Float = 1 )
+    func draw( _ texture: MTLTexture, x: Float, y: Float, zoom: Float = 1, fragment: MMFragment? = nil, prem: Bool = false)
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let width : Float = Float(texture.width)
@@ -384,9 +388,12 @@ class MMDrawTexture : MMDrawable
             width * scaleFactor, height * scaleFactor
         ];
         
-        let renderEncoder = mmRenderer.renderEncoder!
+        let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
 
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
+        let vertexBuffer = fragment == nil ?
+            mmRenderer.createVertexBuffer( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
+            : fragment!.createVertexBuffer( MMRect( x, y, width/zoom, height/zoom, scale: scaleFactor ) )
+
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
 
         let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
@@ -394,7 +401,7 @@ class MMDrawTexture : MMDrawable
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
         renderEncoder.setFragmentTexture(texture, index: 1)
         
-        renderEncoder.setRenderPipelineState( state! )
+        renderEncoder.setRenderPipelineState( prem ? statePrem! : state! )
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
 }
@@ -542,7 +549,7 @@ class MMDrawText : MMDrawable
         mmRenderer = renderer
     }
     
-    @discardableResult func drawChar( _ font: MMFont, char: BMChar, x: Float, y: Float, color: float4, scale: Float = 1.0, fragment: MMFragment? = nil ) -> MMCharBuffer
+    @discardableResult func drawChar( _ font: MMFont, char: BMChar, x: Float, y: Float, color: float4, scale: Float = 1.0, fragment: MMFragment? = nil) -> MMCharBuffer
     {
         let scaleFactor : Float = fragment == nil ? mmRenderer.mmView.scaleFactor : 2
         let adjScale : Float = scale / 2

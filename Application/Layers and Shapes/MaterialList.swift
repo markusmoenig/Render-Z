@@ -237,7 +237,7 @@ class MaterialList
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
             // --- Close Button
-            source += "uv -= float2( 65., 0. );\n"
+            source += "uv -= float2( 60., 0. );\n"
             source += "dist = sdLineScroller( uv, float2( -8, -8 ), float2( 8, 8), 2);\n"
             source += "dist = min( dist, sdLineScroller( uv, float2( -8, 8 ), float2( 8, -8), 2) );\n"
             source += "if (\(index*3+2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
@@ -248,7 +248,8 @@ class MaterialList
         
         source +=
         """
-                return finalCol;
+                //return finalCol;
+                return float4( finalCol.x / finalCol.w, finalCol.y / finalCol.w, finalCol.z / finalCol.w, finalCol.w);
             }
         """
         
@@ -381,7 +382,7 @@ class MaterialList
                 }
             }
             
-            if x >= 262 && x <= 291 {
+            if x >= 260 && x <= 288 {
                 hoverData[0] = Float(hoverIndex*3+2)
                 hoverState = .Close
             }

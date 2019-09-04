@@ -185,7 +185,7 @@ class ShapeSelector
         
                 float4 col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );
                 col = mix( col, borderColor, borderMask( dist, 2 ) );
-                return col;
+                return float4(col.x / col.w, col.y / col.w, col.z / col.w, col.w);
             }
         """
         

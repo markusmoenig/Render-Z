@@ -574,6 +574,10 @@ class NodeUIDropTarget : NodeUI
             text = name
         }
         
+        if role == .ObjectInstanceTarget && text.isEmpty && uiConnection.connectedTo == nil {
+            text = "All"
+        }
+        
         contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: text, scale: NodeUI.fontScale, color: NodeUI.contentTextColor)
         minItemWidth = max( contentLabel.rect.width + 30, 85 )
         

@@ -130,10 +130,14 @@ class Physics
                 float2 object\(objectCounter)( float2 uv, constant PHYSICS_DATA *physicsData, texture2d<half, access::sample> fontTexture )
                 {
                     float2 tuv = uv, pAverage;
-                    float dist = 100000, newDist, objectDistance = 100000;
-                
+                    float newDist, objectDistance = 100000;
+                    float dist[2];
+
                     int materialId = -1, objectId = -1;
                     constant SHAPE_DATA *shape;
+                    int shapeLayer = -1;
+                
+                    dist[0] = 100000; dist[1] = 100000;
                 
                 """
                 

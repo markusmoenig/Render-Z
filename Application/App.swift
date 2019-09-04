@@ -56,7 +56,19 @@ class App
         mmView.registerIcon("sz_toolbar")
         mmView.registerIcon("sz_ui_blue")
         mmView.registerIcon("sz_ui_grey")
+        
+        mmView.registerIcon("union_off")
+        mmView.registerIcon("union_on")
+        
+        mmView.registerIcon("intersection_off")
+        mmView.registerIcon("intersection_on")
 
+        mmView.registerIcon("substract_off")
+        mmView.registerIcon("substract_on")
+        
+        mmView.registerIcon("background")
+        mmView.registerIcon("foreground")
+        
         // --- Reusable buttons
         
         // Close Button

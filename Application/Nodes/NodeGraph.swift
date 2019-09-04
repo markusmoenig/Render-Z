@@ -2488,6 +2488,27 @@ class NodeGraph : Codable
                         }
                     }
                     validateConn(conn)
+                    
+                    // --- If not connected, list all instances of the master object of this node
+                    if conn.target == nil {
+                        let masterNode = getMasterForNode(node)
+                        if let masterObject = masterNode as? Object {
+                            for n in nodes {
+                                if let scene = n as? Scene {
+                                    for inst in scene.objectInstances {
+                                        if inst.objectUUID == masterObject.uuid {
+                                            if conn.target == nil {
+                                                conn.masterNode = scene // This only updates the first found scene in the preview
+                                                conn.connectedMaster = scene.uuid
+                                                conn.target = inst
+                                            }
+                                            conn.targets.append(inst)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
                 node.computeUIArea(mmView: mmView)
             }

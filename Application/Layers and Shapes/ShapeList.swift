@@ -18,9 +18,9 @@ class ShapeList
     
     var mmView          : MMView
     
-    var compute         : MMCompute?
-    var state           : MTLComputePipelineState?
-    
+    var fragment        : MMFragment?
+    var state           : MTLRenderPipelineState?
+
     var width, height   : Float
     var spacing         : Float
     var unitSize        : Float
@@ -40,18 +40,18 @@ class ShapeList
         width = 0
         height = 0
         
-        compute = MMCompute()
-        compute!.allocateTexture(width: 10, height: 10)
+        fragment = MMFragment(view)
+        fragment!.allocateTexture(width: 10, height: 10)
         
         spacing = 0
         unitSize = 45
         
         currentObject = nil
         
-        textureWidget = MMTextureWidget( view, texture: compute!.texture )
+        textureWidget = MMTextureWidget( view, texture: fragment!.texture )
         
         hoverData = [-1,0]
-        hoverBuffer = compute!.device.makeBuffer(bytes: hoverData, length: hoverData.count * MemoryLayout<Float>.stride, options: [])!
+        hoverBuffer = fragment!.device.makeBuffer(bytes: hoverData, length: hoverData.count * MemoryLayout<Float>.stride, options: [])!
 
         // ---
     }
@@ -116,14 +116,14 @@ class ShapeList
         source +=
         """
 
-        kernel void
-        shapeListBuilder(texture2d<half, access::write>  outTexture  [[texture(0)]],
-                         constant SHAPELIST_HOVER_DATA  *hoverData   [[ buffer(1) ]],
-                       texture2d<half, access::sample>   fontTexture [[texture(2)]],
-                         uint2                           gid         [[thread_position_in_grid]])
+        fragment float4
+        shapeListBuilder(RasterizerData                     in [[stage_in]],
+                         texture2d<half, access::write>     outTexture  [[texture(0)]],
+                         constant SHAPELIST_HOVER_DATA     *hoverData   [[ buffer(2) ]],
+                         texture2d<half, access::sample>    fontTexture [[texture(1)]])
         {
-            float2 uvOrigin = float2( gid.x - outTexture.get_width() / 2.,
-                                      gid.y - outTexture.get_height() / 2. );
+            float2 uvOrigin = float2( in.textureCoordinate.x * \(width) - outTexture.get_width() / 2.,
+                                      \(height) - in.textureCoordinate.y * \(height) - outTexture.get_height() / 2. );
             float2 uv, uv2;
 
             float dist = 10000;
@@ -210,21 +210,21 @@ class ShapeList
             
             // --- Merge
             source += "uv -= float2( 50., 0. );\n"
-            source += "dist = min( length(uv) - 10, length(uv - float2(10,0)) - 10);"
-            source += shape.mode == .Merge ? "col = float4( modeActiveColor.xyz, fillMask( dist ) * modeActiveColor.w );\n" : "col = float4( modeInactiveColor.xyz, fillMask( dist ) * modeInactiveColor.w );\n"
-            source += "finalCol = mix( finalCol, col, col.a );\n"
+//            source += "dist = min( length(uv) - 10, length(uv - float2(10,0)) - 10);"
+//            source += shape.mode == .Merge ? "col = float4( modeActiveColor.xyz, fillMask( dist ) * modeActiveColor.w );\n" : "col = float4( modeInactiveColor.xyz, fillMask( dist ) * modeInactiveColor.w );\n"
+//            source += "finalCol = mix( finalCol, col, col.a );\n"
             
             // --- Subtract
             source += "uv -= float2( 25., 0. );\n"
-            source += "dist = max( -(length(uv) - 10), length(uv - float2(10,0)) - 10);"
-            source += shape.mode == .Subtract ? "col = float4( modeActiveColor.xyz, fillMask( dist ) * modeActiveColor.w );\n" : "col = float4( modeInactiveColor.xyz, fillMask( dist ) * modeInactiveColor.w );\n"
-            source += "finalCol = mix( finalCol, col, col.a );\n"
+//            source += "dist = max( -(length(uv) - 10), length(uv - float2(10,0)) - 10);"
+//            source += shape.mode == .Subtract ? "col = float4( modeActiveColor.xyz, fillMask( dist ) * modeActiveColor.w );\n" : "col = float4( modeInactiveColor.xyz, fillMask( dist ) * modeInactiveColor.w );\n"
+//            source += "finalCol = mix( finalCol, col, col.a );\n"
             
             // --- Intersect
             source += "uv -= float2( 30., 0. );\n"
-            source += "dist = max( length(uv) - 10, length(uv - float2(10,0)) - 10);"
-            source += shape.mode == .Intersect ? "col = float4( modeActiveColor.xyz, fillMask( dist ) * modeActiveColor.w );\n" : "col = float4( modeInactiveColor.xyz, fillMask( dist ) * modeInactiveColor.w );\n"
-            source += "finalCol = mix( finalCol, col, col.a );\n"
+//            source += "dist = max( length(uv) - 10, length(uv - float2(10,0)) - 10);"
+//            source += shape.mode == .Intersect ? "col = float4( modeActiveColor.xyz, fillMask( dist ) * modeActiveColor.w );\n" : "col = float4( modeInactiveColor.xyz, fillMask( dist ) * modeInactiveColor.w );\n"
+//            source += "finalCol = mix( finalCol, col, col.a );\n"
             
             // --- Up / Down Arrows
             
@@ -250,7 +250,7 @@ class ShapeList
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
             // --- Close Button
-            source += "uv -= float2( 65., 0. );\n"
+            source += "uv -= float2( 60., 0. );\n"
             source += "dist = sdLineScroller( uv, float2( -8, -8 ), float2( 8, 8), 2);\n"
             source += "dist = min( dist, sdLineScroller( uv, float2( -8, 8 ), float2( 8, -8), 2) );\n"
             source += "if (\(index*3+2) == hoverData->hoverOffset ) col = float4( scrollHoverColor.xyz, fillMask( dist ) * scrollHoverColor.w ); else col = float4( scrollActiveColor.xyz, fillMask( dist ) * scrollActiveColor.w );\n"
@@ -261,17 +261,17 @@ class ShapeList
         
         source +=
         """
-        
-                outTexture.write(half4(finalCol.x, finalCol.y, finalCol.z, finalCol.w), gid);
+                //return finalCol;
+                return float4( finalCol.x / finalCol.w, finalCol.y / finalCol.w, finalCol.z / finalCol.w, finalCol.w);
             }
         """
         
-        let library = compute!.createLibraryFromSource(source: source)
-        state = compute!.createState(library: library, name: "shapeListBuilder")
+        let library = fragment!.createLibraryFromSource(source: source)
+        state = fragment!.createState(library: library, name: "shapeListBuilder")
         
-        if compute!.width != width || compute!.height != height {
-            compute!.allocateTexture(width: width, height: height)
-            textureWidget.setTexture(compute!.texture)
+        if fragment!.width != width || fragment!.height != height {
+            fragment!.allocateTexture(width: width, height: height)
+            textureWidget.setTexture(fragment!.texture)
         }
         
         currentObject = object
@@ -282,7 +282,37 @@ class ShapeList
     func update()
     {
         memcpy(hoverBuffer?.contents(), hoverData, hoverData.count * MemoryLayout<Float>.stride)
-        compute!.run(state, inBuffer: hoverBuffer, inTexture: mmView.openSans.atlas)
+        //compute!.run(state, inBuffer: hoverBuffer, inTexture: mmView.openSans.atlas)
+        if fragment!.encoderStart() {
+            fragment!.encodeRun(state, inBuffer: hoverBuffer, inTexture: mmView.openSans.atlas)
+            
+            let zoom : Float = 1
+            var top : Float = 3 * zoom
+            
+            let iconZoom : Float = 4
+            
+            for shape in currentObject!.shapes {
+                
+                var iconName : String = ""
+                
+                if shape.mode == .Merge {
+                    iconName = "union_on"
+                } else
+                if shape.mode == .Subtract {
+                    iconName = "substract_on"
+                } else
+                if shape.mode == .Intersect {
+                    iconName = "intersection_on"
+                }
+                
+                mmView.drawTexture.draw(mmView.icons[iconName]!, x: 32, y: top, zoom: iconZoom, fragment: fragment!, prem: true)
+                mmView.drawTexture.draw(mmView.icons[shape.layer == .Foreground ? "foreground" : "background"]!, x: 57, y: top, zoom: iconZoom, fragment: fragment!, prem: true)
+
+                top += (unitSize / 2) * zoom
+            }
+
+            fragment!.encodeEnd()
+        }
     }
     
     /// Selected the shape at the given relative mouse position
@@ -303,14 +333,23 @@ class ShapeList
 
                     if sameShapeSelected {
                     
-                        if x >= 60 && x <= 92 {
-                            shape.mode = .Merge
+                        if x >= 32 * 2 && x <= (32 + 18) * 2 {
+                            if shape.mode == .Merge {
+                                shape.mode = .Subtract
+                            } else
+                            if shape.mode == .Subtract {
+                                shape.mode = .Intersect
+                            } else
+                            if shape.mode == .Intersect {
+                                shape.mode = .Merge
+                            }
                         } else
-                        if x >= 95 && x <= 119 {
-                            shape.mode = .Subtract
-                        } else
-                        if x >= 122 && x <= 139 {
-                            shape.mode = .Intersect
+                        if x >= 57 * 2 && x <= (57+18) * 2 {
+                            if shape.layer == .Foreground {
+                                shape.layer = .Background
+                            } else {
+                                shape.layer = .Foreground
+                            }
                         } else if x < 35 {
                             // Switch inverse state
                             if shape.properties["inverse"] == nil || shape.properties["inverse"]! == 0 {
@@ -351,7 +390,7 @@ class ShapeList
                 }
             }
             
-            if x >= 262 && x <= 291 {
+            if x >= 260 && x <= 288 {
                 hoverData[0] = Float(hoverIndex*3+2)
                 hoverState = .Close
             }

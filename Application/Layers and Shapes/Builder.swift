@@ -193,9 +193,13 @@ class Builder
             {
                 float2 tuv = uv, pAverage;
             
-                float dist = 100000, newDist, objectDistance = 100000;
+                float dist[2];
+                float newDist, objectDistance = 100000;
                 int materialId = -1, objectId  = -1;
                 constant SHAPE_DATA *shape;
+                int shapeLayer = -1;
+            
+                dist[0] = 100000; dist[1] = 100000;
             
             """
             
@@ -205,7 +209,7 @@ class Builder
             buildData.source +=
             """
             
-                return float4(dist, objectId, materialId, 0);
+                return float4(dist[0], objectId, materialId, dist[1]);
             }
             
             """
@@ -325,7 +329,7 @@ class Builder
             uv *= layerData->camera.z;
         
             float4 col = float4(0), glowColor = float4(0);
-            float4 rc = float4(100000, -1, -1, -1), objectRC;
+            float4 rc = float4(100000, -1, -1, 100000), objectRC;
         """
 
         
@@ -335,7 +339,7 @@ class Builder
             """
             
                 objectRC = sdf\(index)( uv, layerData, fontTexture );
-                if (objectRC.x < rc.x) rc = objectRC;
+                if (objectRC.x < rc.x || objectRC.w < rc.w) rc = objectRC;
 
             """
             
@@ -359,6 +363,7 @@ class Builder
             float3 normal = float3(0,1,0);
 
             float dist = rc.x;
+            float backDist = rc.w;
             int objectId = (int) rc.y;
             int materialId = (int) rc.z;
             float2 tuv = uv;
@@ -370,7 +375,12 @@ class Builder
         buildData.source +=
         """
         
-        float fm = fillMask( dist );// * bodyMaterial.baseColor.w;
+            float4 foreground = float4(0);
+            float4 background = float4(0);
+
+            // --- Foreground
+        
+            float fm = fillMask( dist );// * bodyMaterial.baseColor.w;
             float bm = 0;
             bodyMaterial.baseColor.w = fm;
             float border = bodyMaterial.border * 30;
@@ -389,11 +399,40 @@ class Builder
             }
         
             if (fm != 0 || bm != 0) {
-                col = calculatePixelColor( fragCoord, bodyMaterial, normal );
+                foreground = calculatePixelColor( fragCoord, bodyMaterial, normal );
                 if ( objectId >= 0 ) {
-                    col.w *= layerData->objects[objectId].opacity;
+                    foreground.w *= layerData->objects[objectId].opacity;
                 }
             }
+        
+            // --- Background
+        
+            fm = fillMask( backDist );// * bodyMaterial.baseColor.w;
+            bm = 0;
+            bodyMaterial.baseColor.w = fm;
+            border = bodyMaterial.border * 30;
+        
+            if ( materialId >= 0 && border > 0 )
+            {
+                bm = borderMask( backDist, border );
+                borderMaterial.baseColor.w = 1;
+                if ( bm > 0.0 ) {
+                    bodyMaterial.baseColor = mix( bodyMaterial.baseColor, borderMaterial.baseColor, bm );
+                    bodyMaterial.subsurface = mix( bodyMaterial.subsurface, borderMaterial.subsurface, bm );
+                    bodyMaterial.roughness = mix( bodyMaterial.roughness, borderMaterial.roughness, bm );
+                    bodyMaterial.metallic = mix( bodyMaterial.metallic, borderMaterial.metallic, bm );
+                    bodyMaterial.specular = mix( bodyMaterial.specular, borderMaterial.specular, bm );
+                }
+            }
+        
+            if (fm != 0 || bm != 0) {
+                background = calculatePixelColor( fragCoord, bodyMaterial, normal );
+                if ( objectId >= 0 ) {
+                    background.w *= layerData->objects[objectId].opacity;
+                }
+            }
+        
+            col = mix(background, foreground, foreground.w);
         
         """
         
@@ -414,7 +453,8 @@ class Builder
         } else {
             buildData.source +=
             """
-                return col;
+                //return col;
+                return float4(col.x / col.w, col.y / col.w, col.z / col.w, col.w);
             }
             
             """
@@ -475,6 +515,7 @@ class Builder
             }
 
             buildData.source += "shape = &\(buildData.mainDataName)shapes[\(buildData.shapeIndex)];\n"
+            buildData.source += "shapeLayer = int(shape->properties.x);\n"
 
             // Object transforms
             buildData.source += "tuv = translate( uv, \(buildData.mainDataName)objects[\(buildData.objectIndex)].pos);"
@@ -541,18 +582,17 @@ class Builder
             
             // --- Apply the material id to the closest shape regardless of boolean mode
             if !physics {
-                buildData.source += "if (newDist < dist) materialId = \(buildData.objectIndex);\n"
+                buildData.source += "if (newDist < dist[shapeLayer]) materialId = \(buildData.objectIndex);\n"
             }
             
             if booleanCode != "subtract" {
                 buildData.source += "if ( shape->smoothBoolean == 0.0 )"
-                buildData.source += "  dist = \(booleanCode)( dist, newDist );"
-                buildData.source += "  else dist = \(booleanCode)Smooth( dist, newDist, shape->smoothBoolean );\n"
+                buildData.source += "  dist[shapeLayer] = \(booleanCode)( dist[shapeLayer], newDist );"
+                buildData.source += "  else dist[shapeLayer] = \(booleanCode)Smooth( dist[shapeLayer], newDist, shape->smoothBoolean );\n"
             } else {
-                
                 buildData.source += "if ( shape->smoothBoolean == 0.0 )"
-                buildData.source += "  dist = \(booleanCode)( dist, newDist );"
-                buildData.source += "  else dist = \(booleanCode)Smooth( newDist, dist, shape->smoothBoolean );\n"
+                buildData.source += "  dist[shapeLayer] = \(booleanCode)( dist[shapeLayer], newDist );"
+                buildData.source += "  else dist[shapeLayer] = \(booleanCode)Smooth( newDist, dist[shapeLayer], shape->smoothBoolean );\n"
             }
             
             let posX = properties["posX"]! + buildData.parentPosX
@@ -580,6 +620,11 @@ class Builder
             instance.data!.append( 0 )
             instance.data!.append( 0 )
             instance.data!.append( 0 )
+            // Properties x = layer
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
             // --
             
             buildData.shapeIndex += 1
@@ -587,7 +632,7 @@ class Builder
         }
         
         // --- Apply the object id
-        buildData.source += "if (dist < objectDistance) { objectId = \(buildData.objectIndex); objectDistance = dist; }\n"
+        buildData.source += "if (dist[shapeLayer] < objectDistance) { objectId = \(buildData.objectIndex); objectDistance = dist[shapeLayer]; }\n"
     
         if !physics && buildMaterials {
             // --- Outside Code
@@ -862,7 +907,7 @@ class Builder
         var parentRotate : Float = 0
         var parentScaleX : Float = 1
         var parentScaleY : Float = 1
-        let itemSize : Int = 12
+        let shapeSize : Int = 16
         var rootObject : Object!
         var currentFrame : Int = frame
         
@@ -891,27 +936,32 @@ class Builder
                     properties = shape.properties
                 }
                 
-                instance.data![offset + index * itemSize] = properties["posX"]!
-                instance.data![offset + index * itemSize+1] = properties["posY"]!
-                instance.data![offset + index * itemSize+2] = properties[shape.widthProperty]!
-                instance.data![offset + index * itemSize+3] = properties[shape.heightProperty]!
+                instance.data![offset + index * shapeSize] = properties["posX"]!
+                instance.data![offset + index * shapeSize+1] = properties["posY"]!
+                instance.data![offset + index * shapeSize+2] = properties[shape.widthProperty]!
+                instance.data![offset + index * shapeSize+3] = properties[shape.heightProperty]!
                 
-                instance.data![offset + index * itemSize+4] = properties["rotate"]! * Float.pi / 180
+                instance.data![offset + index * shapeSize+4] = properties["rotate"]! * Float.pi / 180
                 
                 let minSize : Float = min(shape.properties["sizeX"]!,shape.properties["sizeY"]!)
                 
-                instance.data![offset + index * itemSize+5] = properties["rounding"]! * minSize / 2
-                instance.data![offset + index * itemSize+6] = properties["annular"]! * minSize / 3.5
-                instance.data![offset + index * itemSize+7] = properties["smoothBoolean"]! * minSize
+                instance.data![offset + index * shapeSize+5] = properties["rounding"]! * minSize / 2
+                instance.data![offset + index * shapeSize+6] = properties["annular"]! * minSize / 3.5
+                instance.data![offset + index * shapeSize+7] = properties["smoothBoolean"]! * minSize
                 
                 // --- Custom shape properties
                 for (customIndex,value) in shape.customProperties.enumerated() {
                     if customIndex > 3 {
                         break
                     }
-                    instance.data![offset + index * itemSize + 8 + customIndex] = properties[value]!
+                    instance.data![offset + index * shapeSize + 8 + customIndex] = properties[value]!
                 }
+                
+                // --- Properties
+                // Layer
+                instance.data![offset + index * shapeSize + 12] = Float(shape.layer!.rawValue)
 
+                //
                 for i in 0..<shape.pointCount {
                     let ptConn = object.getPointConnections(shape: shape, index: i)
                     
@@ -1685,6 +1735,7 @@ class Builder
             float       annular;
             float       smoothBoolean;
             float4      customProperties;
+            float4      properties; // .x == layer
         } SHAPE_DATA;
         
         typedef struct

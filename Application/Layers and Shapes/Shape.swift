@@ -14,12 +14,17 @@ class Shape : Codable
         case Merge, Subtract, Intersect
     }
     
+    enum ShapeLayer : Int, Codable {
+        case Foreground, Background
+    }
+    
     var name            : String
     var properties      : [String: Float]
     var uuid            : UUID
     
     var mode            : ShapeMode = .Merge
-    
+    var layer           : ShapeLayer? = .Foreground
+
     var distanceCode    : String = ""
     var globalCode      : String = ""
     var dynamicCode     : String? = nil
@@ -47,6 +52,7 @@ class Shape : Codable
     private enum CodingKeys: String, CodingKey {
         case name
         case mode
+        case layer
         case properties
         case uuid
         case distanceCode
@@ -83,6 +89,7 @@ class Shape : Codable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
         mode = try container.decode(ShapeMode.self, forKey: .mode)
+        layer = try container.decodeIfPresent(ShapeLayer.self, forKey: .layer)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         properties = try container.decode([String: Float].self, forKey: .properties)
         distanceCode = try container.decode(String.self, forKey: .distanceCode)
@@ -96,6 +103,10 @@ class Shape : Codable
         supportsRounding = try container.decode(Bool.self, forKey: .supportsRounding)
         customText = try container.decodeIfPresent(String.self, forKey: .customText)
         customReference = try container.decodeIfPresent(UUID.self, forKey: .customReference)
+        
+        if layer == nil {
+            layer = .Foreground
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -104,6 +115,7 @@ class Shape : Codable
 
         try container.encode(name, forKey: .name)
         try container.encode(mode, forKey: .mode)
+        try container.encode(layer, forKey: .layer)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(properties, forKey: .properties)
         try container.encode(distanceCode, forKey: .distanceCode)
