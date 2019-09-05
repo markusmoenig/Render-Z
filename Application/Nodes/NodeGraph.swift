@@ -1803,22 +1803,59 @@ class NodeGraph : Codable
             return nil
         }
         
+        /// Draws a connection using two splines
         func drawIt(_ from: (Float,Float), _ to: (Float, Float), _ color: float3)
         {
-            //let dist = simd_distance(float2(from.0, from.1), float2(to.0, to.1)) / 4
+            let color : float4 = float4(color.x,color.y,color.z,1)
+
+            let mx = (from.0 + to.0 ) / 2
+            let my = (from.1 + to.1 ) / 2
             
-            let cx = from.0// > to.0 ? from.0 - dist : from.0  dist
-            let cy = (from.1 + to.1 ) / 2
+            var cx : Float
+            var cy : Float
+            var cx2 : Float
+            var cy2 : Float
             
-            app!.mmView.drawSpline.draw( sx: from.0, sy: from.1, cx: cx, cy: cy, ex: to.0, ey: to.1, radius: 2 * scale, fillColor : float4(color.x,color.y,color.z,1) )
+            if conn.terminal!.brand == .Behavior {
+                if from.1 < to.1 {
+                    cx = from.0
+                    cx2 = to.0
+
+                    let mdist : Float = my - from.1
+                    cy = from.1 + min( mdist, 40 )
+                    cy2 = to.1 - min( mdist, 40 )
+                } else {
+                    cx = from.0
+                    cx2 = to.0
+
+                    let mdist : Float = my - to.1
+                    cy = from.1 - min( mdist, 40 )
+                    cy2 = to.1 + min( mdist, 40 )
+                }
+            } else {
+                if from.0 < to.0 {
+                    cy = from.1
+                    cy2 = to.1
+                    
+                    let mdist : Float = mx - from.0
+                    cx = from.0 + min( mdist, 40 )
+                    cx2 = to.0 - min( mdist, 40 )
+                } else {
+                    cy = from.1
+                    cy2 = to.1
+                    
+                    let mdist : Float = mx - to.0
+                    cx = from.0 - min( mdist, 40 )
+                    cx2 = to.0 + min( mdist, 40 )
+                }
+            }
+            app!.mmView.drawSpline.draw( sx: from.0, sy: from.1, cx: cx, cy: cy, ex: mx, ey: my, radius: 1.5 * scale, fillColor : color )
+            app!.mmView.drawSpline.draw( sx: mx, sy: my, cx: cx2, cy: cy2, ex: to.0, ey: to.1, radius: 1.5 * scale, fillColor : color )
         }
         
         let fromTuple = getPointForConnection(conn)
-        
         let toConnection = getConnectionInTerminal(conn.toTerminal!, uuid: conn.toUUID)
-        
         let toTuple = getPointForConnection(toConnection!)
-
         let color = getColorForTerminal(conn.terminal!)
         
         if fromTuple != nil && toTuple != nil {
