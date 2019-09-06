@@ -273,7 +273,7 @@ class Physics
                             float rotate = physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].rotate;
                             float2 offset = physicsData->dynamicObjects[i+\(objectCounter*maxDisks)].offset;
                     
-                            pos = rotateCWWithPivot(pos+offset, rotate, pos);
+                            pos = rotateCCWWithPivot(pos+offset, rotate, pos);
                     
                             hit = object\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
                     
@@ -327,46 +327,6 @@ class Physics
         instance.data![5] = camera.yPos
         instance.data![6] = 1/camera.zoom
         instance.data![7] = 0
-        
-        /*
-        var objectIndex : Int = 0
-        func parseObject(_ object: Object)
-        {
-            var pointOffset : Int = 0
-            
-            for shape in object.shapes {
-                
-                for index in 0..<12 {
-                    instance.data![shape.physicShapeOffset+index] = builderInstance.data![shape.buildShapeOffset+index]
-                }
-        
-                for index in 0..<shape.pointCount {
-                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index+pointOffset) * 4] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index+pointOffset) * 4]
-                    instance.data![instance.pointDataOffset + (object.physicPointOffset+index+pointOffset) * 4 + 1] = builderInstance.data![builderInstance.pointDataOffset + (object.buildPointOffset+index+pointOffset) * 4 + 1]
-                }
-                pointOffset += shape.pointCount
-            }
-            
-            // Object transform
-            
-            instance.data![instance.objectDataOffset + objectIndex * 12 + 1] = toRadians(object.properties["rotate"]!)
-
-            instance.data![instance.objectDataOffset + objectIndex * 12 + 2] = object.properties["scaleX"]!
-            instance.data![instance.objectDataOffset + objectIndex * 12 + 3] = object.properties["scaleY"]!
-            
-            instance.data![instance.objectDataOffset + objectIndex * 12 + 4] = object.properties["posX"]!
-            instance.data![instance.objectDataOffset + objectIndex * 12 + 5] = object.properties["posY"]!
-
-            //
-            objectIndex += 1
-            for childObject in object.childObjects {
-                parseObject(childObject)
-            }
-        }
-        
-        for object in instance.collisionObjects {
-            parseObject(object)
-        }*/
         
         nodeGraph.builder.updateInstanceData(instance: instance, camera: camera, doMaterials: false, frame: 0)
 
@@ -455,10 +415,11 @@ class Physics
                         let objectPos : float2 = float2(object.properties["posX"]!, object.properties["posY"]!)
                         let diskPos : float2 = float2(disk.xPos, disk.yPos)
                         
-                        var contact = rotateCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
+                        var contact = rotateCCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
 
                         if nodeGraph.debugMode == .Physics {
-                            nodeGraph.debugInstance.addDisk(float2(contact.x,contact.y), disk.distance, 4, penetration > hitPenetration ? float4(1,0,0,1) : float4(1,1,0,1) )
+                            var visualContact = rotateCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
+                            nodeGraph.debugInstance.addDisk(float2(visualContact.x,visualContact.y), disk.distance, 4, penetration > hitPenetration ? float4(1,0,0,1) : float4(1,1,0,1) )
                         }
                         
                         if ( penetration > hitPenetration )
@@ -472,12 +433,15 @@ class Physics
                                 normal = -localNormal
                             }
                             
-                            let contactOrigin = contact
                             contact += -localNormal * distance
                             
                             if nodeGraph.debugMode == .Physics {
                                 // Visualize contact point
-                                nodeGraph.debugInstance.addDisk(contact, 8, 0, float4(0,1,0,1) )
+                                var visualContact = rotateCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
+                                let contactOrigin = visualContact
+                                visualContact += -localNormal * distance
+
+                                nodeGraph.debugInstance.addDisk(visualContact, 8, 0, float4(0,1,0,1) )
                                 
                                 // Visualize normal
                                 nodeGraph.debugInstance.addLine(contactOrigin + localNormal * distance * 4, contactOrigin + -localNormal * distance * 4, 3, 0, float4(0,0,1,1) )
@@ -596,7 +560,7 @@ class Body
     {
         self.object = object
         
-        orientation = toRadians(object.properties["rotate"]!)
+        orientation = -toRadians(object.properties["rotate"]!)
 
         if scene.properties["physicsGravityX"] != nil {
             gravity = float2(scene.properties["physicsGravityX"]!, scene.properties["physicsGravityY"]!)
@@ -671,7 +635,7 @@ class Body
         
         if supportsRotation {
             orientation += angularVelocity
-            object.properties["rotate"] = toDegrees(orientation)//.truncatingRemainder(dividingBy: 360))
+            object.properties["rotate"] = -toDegrees(orientation)//.truncatingRemainder(dividingBy: 360))
         }
     }
 }
