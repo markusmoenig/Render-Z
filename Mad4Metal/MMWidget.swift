@@ -575,7 +575,9 @@ class MMMenuWidget : MMWidget
             
             mmView.mouseTrackWidget = nil
         }
- 
+        
+        removeState( .Clicked )
+        
         firstClick = false
         #endif
     }

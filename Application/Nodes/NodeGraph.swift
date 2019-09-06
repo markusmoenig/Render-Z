@@ -943,7 +943,9 @@ class NodeGraph : Codable
             previewSize.x = max(previewSize.x, 340)
             previewSize.y = max(previewSize.y, 80)
 
-            currentMaster!.updatePreview(nodeGraph: self)
+            DispatchQueue.main.async {
+                self.currentMaster!.updatePreview(nodeGraph: self)
+            }
             mmView.update()
             return
         }

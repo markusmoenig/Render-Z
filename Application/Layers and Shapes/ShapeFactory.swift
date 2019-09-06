@@ -299,10 +299,28 @@ class ShapeFactory
         """
         float sdEllipse( float2 p, float2 e )
         {
-            float k0 = length(p/e);
-            float k1 = length(p/(e*e));
-            return k0*(k0-1.0)/k1;
+            p = abs( p );
+            if( e.x<e.y ) { p = p.yx; e = e.yx; }
+        
+            float2 r = e*e;
+            float2 z = p/e;
+            float2 n = r*z;
+        
+            float g = dot(z,z) - 1.0;
+            float s0 = z.y - 1.0;
+            float s1 = (g<0.0) ? 0.0 : length( n )/r.y - 1.0;
+            float s = 0.0;
+            for( int i=0; i<64; i++ )
+            {
+                s = 0.5*(s0+s1);
+                float2 ratio = n / ( r.y*s + r );
+                g = dot(ratio,ratio) - 1.0;
+                if( g>0.0 ) s0=s; else s1=s;
+            }
+            float2 q = p * r / ( r.y*s + r );
+            return length( p-q ) * sign( p.y - q.y );
         }
+
         """
         def.properties["width"] = 35.00
         def.properties["height"] = 20.00
