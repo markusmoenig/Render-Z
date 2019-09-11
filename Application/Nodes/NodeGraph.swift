@@ -271,6 +271,10 @@ class NodeGraph : Codable
             self.objectsButton.addState(.Checked)
             self.scenesButton.removeState(.Checked)
             self.gameButton.removeState(.Checked)
+            
+            if self.currentNode != nil && self.currentNode!.type == "Object" {
+                self.currentObjectUUID = self.currentNode!.uuid
+            }
 
             if self.objectsButton.state == .Several {
                 self.contentType = .ObjectsOverview
@@ -310,6 +314,10 @@ class NodeGraph : Codable
             self.objectsButton.removeState(.Checked)
             self.scenesButton.addState(.Checked)
             self.gameButton.removeState(.Checked)
+            
+            if self.currentNode != nil && self.currentNode!.type == "Scene" {
+                self.currentSceneUUID = self.currentNode!.uuid
+            }
             
             if self.scenesButton.state == .Several {
                 self.contentType = .ScenesOverview
@@ -699,6 +707,7 @@ class NodeGraph : Codable
             if overviewIsOn {
                 if hoverNode!.type == "Object" {
                     objectsButton.setState(.One)
+                    currentObjectUUID = hoverNode!.uuid
                     objectsButton.clicked!(MMMouseEvent(0,0))
                 } else {
                     scenesButton.setState(.One)
@@ -1768,7 +1777,7 @@ class NodeGraph : Codable
                 } else
                 if t.connector == .Top {
                     if t.uuid == conn.terminal!.uuid {
-                        x = node.rect.width / 2 - 6 * scale
+                        x = node.rect.width / 2 - 3 * scale
                         y = 3 * scale// + NodeGraph.tRadius * scale / 2
                         
                         break;

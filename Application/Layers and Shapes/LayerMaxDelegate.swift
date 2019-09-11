@@ -160,6 +160,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
             inst.properties = inst.instance!.properties
         }
         
+        app.nodeGraph.updateNodes()
         currentScene!.updatePreview(nodeGraph: app.nodeGraph)
     }
     

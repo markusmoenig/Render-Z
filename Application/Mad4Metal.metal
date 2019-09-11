@@ -361,7 +361,6 @@ fragment float4 m4mBoxedMinusDrawable(RasterizerData in [[stage_in]],
     return col;
 }
 
-
 /// Texture drawable
 fragment float4 m4mTextureDrawable(RasterizerData in [[stage_in]],
                                 constant MM_TEXTURE *data [[ buffer(0) ]],

@@ -263,7 +263,7 @@ class MMFileDialog : MMDialog {
 
             do {
                 let json = globalApp!.nodeGraph.encodeJSON()
-                try json.write(to: path, atomically: true, encoding: .utf8)
+                try json.write(to: path, atomically: false, encoding: .utf8)
             } catch
             {
                 print(error.localizedDescription)
