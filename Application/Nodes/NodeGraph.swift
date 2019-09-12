@@ -1305,12 +1305,20 @@ class NodeGraph : Codable
             }
         } else
         if let scene = node as? Scene {
-            if scene.updateStatus != .Valid && scene.camera != nil {
-                sceneRenderer.render(width: prevSize, height: prevSize, camera: scene.camera!)
-            }
-            
-            if scene.objectInstances.count > 0 {
-                if let texture = sceneRenderer.fragment!.texture {
+            if overviewIsOn == false {
+                if scene.updateStatus != .Valid && scene.camera != nil && scene.builderInstance != nil {
+                    sceneRenderer.render(width: prevSize, height: prevSize, camera: scene.camera!, instance: scene.builderInstance!)
+                }
+                if scene.objectInstances.count > 0 {
+                    if let texture = sceneRenderer.fragment!.texture {
+                        previewTexture = texture
+                    }
+                }
+            } else {
+                if scene.previewTexture == nil || Float(scene.previewTexture!.width) != previewSize.x || Float(scene.previewTexture!.height) != previewSize.y {
+                    scene.createIconPreview(nodeGraph: self, size: float2(previewSize.x, previewSize.y))
+                }
+                if let texture = scene.previewTexture {
                     previewTexture = texture
                 }
             }
@@ -2233,6 +2241,9 @@ class NodeGraph : Codable
                     }
                     items.append(node.name)
                     currentContent.append(node)
+                    if type == .ScenesOverview {
+                        scene.previewTexture = nil
+                    }
                 }
             } else
             if type == .Game {
@@ -2291,7 +2302,10 @@ class NodeGraph : Codable
             if currentMaster!.camera == nil {
                 currentMaster!.camera = Camera()
             }
-            currentMaster!.updatePreview(nodeGraph: self)
+            
+            if overviewIsOn == false {
+                currentMaster!.updatePreview(nodeGraph: self)
+            }
             
             // --- Update the previewInfoMenu
             

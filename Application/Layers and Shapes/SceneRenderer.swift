@@ -6,7 +6,7 @@
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
-import Foundation
+import MetalKit
 
 class SceneRenderer {
     
@@ -14,9 +14,7 @@ class SceneRenderer {
     var mmView          : MMView
     
     var nodeGraph       : NodeGraph!
-    
-    var instances       : [Object] = []
-    
+        
     init(_ view : MMView )
     {
         mmView = view
@@ -25,7 +23,6 @@ class SceneRenderer {
     
     func setup( nodeGraph: NodeGraph, instances: [Object] ) -> BuilderInstance?
     {
-        self.instances = instances
         self.nodeGraph = nodeGraph
         
         for inst in instances {
@@ -38,14 +35,21 @@ class SceneRenderer {
         return builderInstance
     }
     
-    func render( width: Float, height: Float, camera: Camera )
+    func render( width: Float, height: Float, camera: Camera, instance: BuilderInstance, outTexture: MTLTexture? = nil )
     {
-        if fragment.width != width || fragment.height != height {
-            fragment.allocateTexture(width: width, height: height)
+        let texture : MTLTexture
+        
+        if outTexture == nil {
+            if fragment.width != width || fragment.height != height {
+                fragment.allocateTexture(width: width, height: height)
+            }
+            texture = fragment.texture
+        } else {
+            texture = outTexture!
         }
         
-        if fragment.encoderStart() {
-            let sortedInstances = instances.sorted(by: { $0.properties["z-index"]! < $1.properties["z-index"]! })
+        if fragment.encoderStart(outTexture: texture) {
+            let sortedInstances = instance.objects.sorted(by: { $0.properties["z-index"]! < $1.properties["z-index"]! })
             for inst in sortedInstances {
                 if inst.properties["active"] == 1 && inst.shapes.count > 0 {
                     updateInstance(width, height, inst, camera: camera)

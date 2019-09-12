@@ -215,12 +215,40 @@ class Scene : Node
         physicsInstance = nil
     }
     
+    /// Creates a preview of the scene inside the preview texture (which is otherwise unused)
+    func createIconPreview(nodeGraph: NodeGraph, size: float2)
+    {
+        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
+            previewTexture = nodeGraph.sceneRenderer.fragment.allocateTexture(width: size.x, height: size.y, output: true)
+        }
+
+        let camera = Camera()
+        let platformSize = nodeGraph.getPlatformSize()
+
+        let width = platformSize.x
+        let height = platformSize.y
+        
+        let xFactor : Float = size.x / width
+        let yFactor : Float = size.y / height
+        let factor : Float = min(xFactor, yFactor)
+        
+        camera.zoom = factor
+        
+        //self.executeProperties(nodeGraph)
+        let instances = self.createInstances(nodeGraph: nodeGraph)
+        for instance in instances {
+            instance.executeProperties(nodeGraph)
+        }
+        let builderInstance = nodeGraph.sceneRenderer.setup(nodeGraph: nodeGraph, instances: instances)
+        nodeGraph.sceneRenderer.render(width: size.x, height: size.y, camera: camera, instance: builderInstance!, outTexture: previewTexture!)
+    }
+    
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)
     {
         let size = nodeGraph.previewSize
-        if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
-            previewTexture = nodeGraph.builder.compute!.allocateTexture(width: size.x, height: size.y, output: true)
-        }
+        //if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
+        //    previewTexture = nodeGraph.sceneRenderer.fragment.allocateTexture(width: size.x, height: size.y, output: true)
+        //}
         
         let camera : Camera
         
@@ -270,7 +298,7 @@ class Scene : Node
         if builderInstance != nil {
             builderInstance?.layerGlobals?.normalSampling = properties["renderSampling"]!
             //nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture)
-            nodeGraph.sceneRenderer.render(width: size.x, height: size.y, camera: camera)
+            nodeGraph.sceneRenderer.render(width: size.x, height: size.y, camera: camera, instance: self.builderInstance!)
         }
         
         if physicsInstance != nil {

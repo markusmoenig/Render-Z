@@ -182,7 +182,7 @@ class SceneAreaMaxDelegate : NodeMaxDelegate {
                 }
             }*/
             
-            app.nodeGraph.sceneRenderer!.render(width: region.rect.width, height: region.rect.height, camera: camera)
+            app.nodeGraph.sceneRenderer!.render(width: region.rect.width, height: region.rect.height, camera: camera, instance: masterLayer!.builderInstance!)
             app.mmView.drawTexture.draw(app.nodeGraph.sceneRenderer!.fragment.texture, x: region.rect.x, y: region.rect.y)
 
             let areaObject = layerArea.areaObject!

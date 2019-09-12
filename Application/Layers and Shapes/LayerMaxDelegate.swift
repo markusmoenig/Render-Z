@@ -205,7 +205,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
                     currentScene!.updateStatus = .Valid
                 }
                 if Float(texture.width) != region.rect.width || Float(texture.height) != region.rect.height {
-                    app.nodeGraph.sceneRenderer.render(width: region.rect.width, height: region.rect.height, camera: camera)
+                    app.nodeGraph.sceneRenderer.render(width: region.rect.width, height: region.rect.height, camera: camera, instance: currentScene!.builderInstance!)
                     app.nodeGraph.mmView.update()
                 } else {
                     app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
@@ -483,7 +483,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
         }
             
         let region = app.editorRegion!
-        app.nodeGraph.sceneRenderer.render(width: region.rect.width, height: region.rect.height, camera: camera)
+        app.nodeGraph.sceneRenderer.render(width: region.rect.width, height: region.rect.height, camera: camera, instance: currentScene!.builderInstance!)
         
         if updateLists {
             objectList.rebuildList()

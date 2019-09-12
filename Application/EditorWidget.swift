@@ -110,7 +110,7 @@ class EditorWidget      : MMWidget
     override func mouseScrolled(_ event: MMMouseEvent)
     {        
         if app.nodeGraph.maximizedNode == nil {
-            if app.nodeGraph.hoverNode != nil && app.nodeGraph.nodeHoverMode == .Preview {
+            if app.nodeGraph.hoverNode != nil && app.nodeGraph.nodeHoverMode == .Preview && app.nodeGraph.overviewIsOn == false {
                 
                 #if os(iOS)
                 // Prevent scrolling over several areas
