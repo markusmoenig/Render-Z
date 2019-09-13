@@ -66,8 +66,13 @@ class Scene : Node
         case Valid, NeedsUpdate, NeedsHardUpdate
     }
     
-    var updateStatus    : UpdateStatus = .NeedsHardUpdate
+    enum PreviewStatus {
+        case Valid, NeedsUpdate, InProgress
+    }
     
+    var updateStatus    : UpdateStatus = .NeedsHardUpdate
+    var previewStatus   : PreviewStatus = .NeedsUpdate
+
     var objectInstances : [ObjectInstance]
 
     /// The timeline sequences for this object
@@ -228,19 +233,32 @@ class Scene : Node
         let width = platformSize.x
         let height = platformSize.y
         
-        let xFactor : Float = size.x / width
-        let yFactor : Float = size.y / height
+        let xFactor : Float = nodeGraph.previewSize.x / width
+        let yFactor : Float = nodeGraph.previewSize.y / height
         let factor : Float = min(xFactor, yFactor)
-        
         camera.zoom = factor
+        
+        /*
+        let prevOffX = properties["prevOffX"]
+        let prevOffY = properties["prevOffY"]
+        let prevScale = properties["prevScale"]
+        let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
+        */
+        
+        previewStatus = .InProgress
         
         //self.executeProperties(nodeGraph)
         let instances = self.createInstances(nodeGraph: nodeGraph)
         for instance in instances {
             instance.executeProperties(nodeGraph)
         }
-        let builderInstance = nodeGraph.sceneRenderer.setup(nodeGraph: nodeGraph, instances: instances)
-        nodeGraph.sceneRenderer.render(width: size.x, height: size.y, camera: camera, instance: builderInstance!, outTexture: previewTexture!)
+        
+        DispatchQueue.main.async {
+            let builderInstance = nodeGraph.sceneRenderer.setup(nodeGraph: nodeGraph, instances: instances)
+            nodeGraph.sceneRenderer.render(width: size.x, height: size.y, camera: camera, instance: builderInstance!, outTexture: self.previewTexture!)
+            self.previewStatus = .Valid
+            nodeGraph.mmView.update()
+        }
     }
     
     override func updatePreview(nodeGraph: NodeGraph, hard: Bool = false)

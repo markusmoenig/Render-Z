@@ -1087,15 +1087,17 @@ class NodeGraph : Codable
             
             // --- Check if mouse is over the preview area
             // --- Preview
-            if let texture = hoverNode!.previewTexture {
+            if overviewIsOn == false && contentType != .Game {
                 
                 let rect = MMRect()
                 if hoverNode !== currentMaster {
                     
                     rect.x = hoverNode!.rect.x + (hoverNode!.rect.width - 200*scale) / 2
                     rect.y = hoverNode!.rect.y + NodeGraph.bodyY * scale + hoverNode!.uiArea.height * scale
-                    rect.width = Float(texture.width) * scale
-                    rect.height = Float(texture.height) * scale
+                    if let texture = hoverNode!.previewTexture {
+                        rect.width = Float(texture.width) * scale
+                        rect.height = Float(texture.height) * scale
+                    }
                 } else {
                     // master
                     rect.x = hoverNode!.rect.x + 34
@@ -1281,22 +1283,22 @@ class NodeGraph : Codable
         let nodeColor = float4(0.165, 0.169, 0.173, 1.000)
         let isSelected = selectedUUID.contains(node.uuid)
         let borderColor = isSelected ? float4(0.953, 0.957, 0.961, 1.000) : float4(0.282, 0.286, 0.290, 1.000)
+        let round : Float = 46 * scale
+        let prevSize : Float = node.rect.height - 4 * scale
+
+        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: round, borderSize: 2 * scale, fillColor: nodeColor, borderColor: borderColor)
         
-        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 46 * scale, borderSize: 2, fillColor: nodeColor, borderColor: borderColor)
-        
-        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.height, height: node.rect.height, round: 46 * scale, borderSize: 2, fillColor: float4(0,0,0,1), borderColor: float4(0.282, 0.286, 0.290, 1.000))
+        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.height, height: node.rect.height, round: round, borderSize: 2 * scale, fillColor: float4(0,0,0,1), borderColor: float4(0.282, 0.286, 0.290, 1.000))
         
         if isSelected {
-            app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 46 * scale, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: float4(0.953, 0.957, 0.961, 1.000))
+            app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: round, borderSize: 2 * scale, fillColor: float4(0,0,0,0), borderColor: float4(0.953, 0.957, 0.961, 1.000))
         }
         
         // --- Preview
         
         var previewTexture : MTLTexture? = nil
-        let prevSize :Float = 94 * scale
-
+        
         if let object = node as? Object {
-
             if object.previewTexture == nil {
                 object.updatePreview(nodeGraph: self)
             } else
@@ -1305,19 +1307,10 @@ class NodeGraph : Codable
             }
         } else
         if let scene = node as? Scene {
-            if overviewIsOn == false {
-                if scene.updateStatus != .Valid && scene.camera != nil && scene.builderInstance != nil {
-                    sceneRenderer.render(width: prevSize, height: prevSize, camera: scene.camera!, instance: scene.builderInstance!)
-                }
-                if scene.objectInstances.count > 0 {
-                    if let texture = sceneRenderer.fragment!.texture {
-                        previewTexture = texture
-                    }
-                }
-            } else {
-                if scene.previewTexture == nil || Float(scene.previewTexture!.width) != previewSize.x || Float(scene.previewTexture!.height) != previewSize.y {
-                    scene.createIconPreview(nodeGraph: self, size: float2(previewSize.x, previewSize.y))
-                }
+            if scene.previewTexture == nil || Float(scene.previewTexture!.width) != previewSize.x || Float(scene.previewTexture!.height) != previewSize.y || scene.previewStatus == .NeedsUpdate {
+                scene.createIconPreview(nodeGraph: self, size: previewSize)//float2(previewSize, prevSize))
+            }
+            if scene.previewStatus == .Valid {
                 if let texture = scene.previewTexture {
                     previewTexture = texture
                 }
@@ -1325,23 +1318,19 @@ class NodeGraph : Codable
         }
         
         if let texture = previewTexture {
-            
             let xFactor : Float = previewSize.x / prevSize
             let yFactor : Float = previewSize.y / prevSize
             let factor : Float = min(xFactor, yFactor)
             
-            var topX : Float = node.rect.x + 12 * scale
-            var topY : Float = node.rect.y + 11 * scale
+            var topX : Float = node.rect.x + 2 * scale
+            var topY : Float = node.rect.y + 2 * scale
 
-            if xFactor < yFactor {
-                topY += ((prevSize * factor) - (prevSize * yFactor)) / 2 * scale / factor
-            } else {
-                topX += ((prevSize * factor) - (prevSize * xFactor)) / 2 * scale / factor
-            }
+            topY += ((prevSize * factor) - (prevSize * yFactor)) / 2 * scale / factor / scale
+            topX += ((prevSize * factor) - (prevSize * xFactor)) / 2 * scale / factor / scale
             
-            mmView.renderer.setClipRect(MMRect(node.rect.x + 12 * scale, node.rect.y + 11 * scale, prevSize, prevSize))
-            mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor)
-            mmView.renderer.setClipRect()
+            //mmView.renderer.setClipRect(MMRect(node.rect.x + 12 * scale, node.rect.y + 11 * scale, prevSize, prevSize))
+            mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor, round: 42 * scale * factor, roundingSize: float2(prevSize*factor,prevSize*factor))
+            //mmView.renderer.setClipRect()
         }
         
         // --- Edit Button
@@ -2242,7 +2231,7 @@ class NodeGraph : Codable
                     items.append(node.name)
                     currentContent.append(node)
                     if type == .ScenesOverview {
-                        scene.previewTexture = nil
+                        scene.previewStatus = .NeedsUpdate
                     }
                 }
             } else

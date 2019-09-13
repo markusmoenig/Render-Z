@@ -375,24 +375,22 @@ fragment float4 m4mTextureDrawable(RasterizerData in [[stage_in]],
     const half4 colorSample = inTexture.sample (textureSampler, uv );
         
     float4 sample = float4( colorSample );
-    return sample;
-}
 
-/// Texture drawable
-fragment float4 m4mTextureDrawablePrem(RasterizerData in [[stage_in]],
-                                   constant MM_TEXTURE *data [[ buffer(0) ]],
-                                   texture2d<half> inTexture [[ texture(1) ]])
-{
-    constexpr sampler textureSampler (mag_filter::linear,
-                                      min_filter::linear);
+    if (data->round > 0) {
+        float2 uv = in.textureCoordinate * data->size;
+        uv -= float2( data->size / 2.0 );
+        
+        float2 d = abs( uv ) - data->roundingSize + data->round;
+        float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - data->round;
+        
+        sample.w *= m4mFillMask(dist);
+    }
     
-    float2 uv = in.textureCoordinate;// * data->screenSize;
-    uv.y = 1 - uv.y;
-    
-    const half4 colorSample = inTexture.sample (textureSampler, uv );
-    
-    float4 sample = float4( colorSample );
-    return float4(sample.x / sample.w, sample.y / sample.w, sample.z / sample.w, sample.w);
+    if (data->prem == 1) {
+        return float4(sample.x / sample.w, sample.y / sample.w, sample.z / sample.w, sample.w);
+    } else {
+        return sample;
+    }
 }
 
 float m4mMedian(float r, float g, float b) {

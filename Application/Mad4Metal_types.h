@@ -77,10 +77,13 @@ typedef struct
 
 typedef struct
 {
-    vector_float2 screenSize;
-    vector_float2 pos;
-    vector_float2 size;
-    
+    float2 screenSize;
+    float2 pos;
+    float2 size;
+    float  prem;
+    float  round;
+    float2 roundingSize;
+
 } MM_TEXTURE;
 
 typedef struct

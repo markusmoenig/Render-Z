@@ -368,15 +368,12 @@ class MMDrawTexture : MMDrawable
 
     required init( _ renderer : MMRenderer )
     {
-        var function = renderer.defaultLibrary.makeFunction( name: "m4mTextureDrawable" )
+        let function = renderer.defaultLibrary.makeFunction( name: "m4mTextureDrawable" )
         state = renderer.createNewPipelineState( function! )
-        
-        function = renderer.defaultLibrary.makeFunction( name: "m4mTextureDrawablePrem" )
-        statePrem = renderer.createNewPipelineState( function! )
         mmRenderer = renderer
     }
     
-    func draw( _ texture: MTLTexture, x: Float, y: Float, zoom: Float = 1, fragment: MMFragment? = nil, prem: Bool = false)
+    func draw( _ texture: MTLTexture, x: Float, y: Float, zoom: Float = 1, fragment: MMFragment? = nil, prem: Bool = false, round: Float = 0, roundingSize: float2 = float2(0,0))
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let width : Float = Float(texture.width)
@@ -385,7 +382,9 @@ class MMDrawTexture : MMDrawable
         let settings: [Float] = [
             mmRenderer.width, mmRenderer.height,
             x, y,
-            width * scaleFactor, height * scaleFactor
+            width * scaleFactor, height * scaleFactor,
+            prem == true ? 1 : 0, round,
+            roundingSize.x, roundingSize.y
         ];
         
         let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
@@ -401,7 +400,7 @@ class MMDrawTexture : MMDrawable
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
         renderEncoder.setFragmentTexture(texture, index: 1)
         
-        renderEncoder.setRenderPipelineState( prem ? statePrem! : state! )
+        renderEncoder.setRenderPipelineState(state!)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
 }
