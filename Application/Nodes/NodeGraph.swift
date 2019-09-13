@@ -1244,12 +1244,6 @@ class NodeGraph : Codable
             objectsButton.draw()
             scenesButton.draw()
             gameButton.draw()
-            
-            /*
-            overviewButton.rect.x = gameButton.rect.x + gameButton.rect.width + 20
-            overviewButton.rect.y = gameButton.rect.y
-            overviewButton.isDisabled = contentType == .Game
-            overviewButton.draw()*/
         } else
         if region.type == .Right {
             region.rect.width = 0
@@ -1325,12 +1319,10 @@ class NodeGraph : Codable
             var topX : Float = node.rect.x + 2 * scale
             var topY : Float = node.rect.y + 2 * scale
 
-            topY += ((prevSize * factor) - (prevSize * yFactor)) / 2 * scale / factor / scale
             topX += ((prevSize * factor) - (prevSize * xFactor)) / 2 * scale / factor / scale
+            topY += ((prevSize * factor) - (prevSize * yFactor)) / 2 * scale / factor / scale
             
-            //mmView.renderer.setClipRect(MMRect(node.rect.x + 12 * scale, node.rect.y + 11 * scale, prevSize, prevSize))
             mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor, round: 42 * scale * factor, roundingSize: float2(prevSize*factor,prevSize*factor))
-            //mmView.renderer.setClipRect()
         }
         
         // --- Edit Button
