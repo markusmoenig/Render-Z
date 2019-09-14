@@ -1322,7 +1322,7 @@ class NodeGraph : Codable
             topX += ((prevSize * factor) - (prevSize * xFactor)) / 2 * scale / factor / scale
             topY += ((prevSize * factor) - (prevSize * yFactor)) / 2 * scale / factor / scale
             
-            mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor, round: 42 * scale * factor, roundingSize: float2(prevSize*factor,prevSize*factor))
+            mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor, round: 42 * scale * factor, roundingRect: float4(0,0,prevSize*factor,prevSize*factor))
         }
         
         // --- Edit Button
@@ -1664,7 +1664,7 @@ class NodeGraph : Codable
             }
             
             for texture in textures {
-                app!.mmView.drawTexture.draw(texture, x: x, y: y, zoom: 1)
+                app!.mmView.drawTexture.draw(texture, x: x - 23, y: y, zoom: 1, round: 26, roundingRect: float4(23, 0, previewSize.x - 23, previewSize.y))
             }
             
             // Draw Debug
@@ -1673,7 +1673,7 @@ class NodeGraph : Codable
                 let camera = createNodeCamera(playNode != nil ? playNode! : node)
                 
                 debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)
-                app!.mmView.drawTexture.draw(debugInstance.texture!, x: x, y: y, zoom: 1)
+                app!.mmView.drawTexture.draw(debugInstance.texture!, x: x, y: y, zoom: 1, round: 26, roundingRect: float4(23, 0, previewSize.x - 23, previewSize.y))
             }
         } else {
             // Visible reference list

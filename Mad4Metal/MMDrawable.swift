@@ -373,7 +373,7 @@ class MMDrawTexture : MMDrawable
         mmRenderer = renderer
     }
     
-    func draw( _ texture: MTLTexture, x: Float, y: Float, zoom: Float = 1, fragment: MMFragment? = nil, prem: Bool = false, round: Float = 0, roundingSize: float2 = float2(0,0))
+    func draw( _ texture: MTLTexture, x: Float, y: Float, zoom: Float = 1, fragment: MMFragment? = nil, prem: Bool = false, round: Float = 0, roundingRect: float4 = float4(0,0,0,0))
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let width : Float = Float(texture.width)
@@ -384,7 +384,7 @@ class MMDrawTexture : MMDrawable
             x, y,
             width * scaleFactor, height * scaleFactor,
             prem == true ? 1 : 0, round,
-            roundingSize.x, roundingSize.y
+            roundingRect.x, roundingRect.y, roundingRect.z, roundingRect.w
         ];
         
         let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!

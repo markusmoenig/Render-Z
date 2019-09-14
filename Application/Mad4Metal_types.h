@@ -82,7 +82,7 @@ typedef struct
     float2 size;
     float  prem;
     float  round;
-    float2 roundingSize;
+    float4 roundingRect;
 
 } MM_TEXTURE;
 

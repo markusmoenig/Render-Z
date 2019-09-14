@@ -378,9 +378,9 @@ fragment float4 m4mTextureDrawable(RasterizerData in [[stage_in]],
 
     if (data->round > 0) {
         float2 uv = in.textureCoordinate * data->size;
-        uv -= float2( data->size / 2.0 );
+        uv -= float2( data->size / 2.0 ) + data->roundingRect.xy;
         
-        float2 d = abs( uv ) - data->roundingSize + data->round;
+        float2 d = abs( uv ) - data->roundingRect.zw + data->round;
         float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - data->round;
         
         sample.w *= m4mFillMask(dist);
