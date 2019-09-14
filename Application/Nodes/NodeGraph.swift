@@ -1685,8 +1685,7 @@ class NodeGraph : Codable
             
             refList.draw()
         }
-            
-        
+
         // If previewing fill in the screen dimensions
         if let screen = mmScreen {
             screen.rect.x = x

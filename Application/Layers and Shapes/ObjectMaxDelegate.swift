@@ -1219,6 +1219,7 @@ class ShapeListScrollArea: MMScrollArea
         
         if delegate.shapeListChanged {
             delegate.update(true)
+            delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject, context: delegate.gizmoContext, materialType: delegate.materialType)
         }
     }
     
