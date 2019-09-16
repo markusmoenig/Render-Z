@@ -85,11 +85,20 @@ class MMFloatWidget : MMWidget
         
         let skin = mmView.skin.MenuWidget
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: itemHeight, round: 0, borderSize: 1, fillColor : skin.color, borderColor: skin.borderColor )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: itemHeight, round: itemHeight, borderSize: 0, fillColor : skin.color, borderColor: NodeUI.contentColor)
         
-        let offset = (rect.width / (range.y - range.x)) * (value - range.x)
+        //let offset = (rect.width / (range.y - range.x)) * (value - range.x)
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: skin.borderColor )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: skin.borderColor )
+        
+        if range != nil {
+            let offset = (rect.width / (range!.y - range!.x)) * (value - range!.x)
+            if offset > 0 {
+                mmView.renderer.setClipRect(MMRect(rect.x, rect.y, offset, itemHeight))
+                mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: itemHeight, round: itemHeight, borderSize: 0, fillColor : NodeUI.contentColor2)
+                mmView.renderer.setClipRect()
+            }
+        }
         
         mmView.drawText.drawTextCentered(mmView.openSans, text: int ? String(Int(value)) : String(format: "%.02f", value), x: rect.x, y: rect.y, width: rect.width, height: itemHeight, scale: 0.44, color: skin.textColor)
     }

@@ -1265,6 +1265,7 @@ class MaterialListScrollArea: MMScrollArea
     
     var bodyButton          : MMButtonWidget!
     var borderButton        : MMButtonWidget!
+    var floatWidget         : MMFloatWidget!
     
     init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
     {
@@ -1287,6 +1288,8 @@ class MaterialListScrollArea: MMScrollArea
         
         borderButton = MMButtonWidget(view, skinToUse: borderlessSkin, text: "Border" )
         borderButton.rect.width += 10
+        
+        floatWidget = MMFloatWidget(view, range: float2(0, 10), int: true, value: 2)
 
         super.init(view, orientation:.Vertical)
         
@@ -1308,6 +1311,11 @@ class MaterialListScrollArea: MMScrollArea
             self.delegate.materialListChanged = true
             
             delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
+        }
+        
+        floatWidget.changed = { (value) -> Void in
+            delegate.selObject!.properties["border"] = value
+            delegate.update()
         }
     }
     
@@ -1387,20 +1395,16 @@ class MaterialListScrollArea: MMScrollArea
     
     func registerWidgets()
     {
-        mmView.registerWidgets(widgets: bodyButton, borderButton)
+        mmView.registerWidgets(widgets: bodyButton, borderButton, floatWidget)
     }
     
     func deregisterWidgets()
     {
-        mmView.deregisterWidgets(widgets: bodyButton, borderButton)
+        mmView.deregisterWidgets(widgets: bodyButton, borderButton, floatWidget)
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        //let height : Float = 30//delegate.materialMode == .Body ? 30 : 60
-        
-        //mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: height, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
-        
         bodyButton.rect.x = rect.x + 10
         bodyButton.rect.y = rect.y + 3
         bodyButton.rect.width = 85
@@ -1412,7 +1416,10 @@ class MaterialListScrollArea: MMScrollArea
         borderButton.rect.width = 80
         borderButton.draw()
         
-        //mmView.drawBox.draw( x: rect.x, y: rect.y + height, width: rect.width, height: rect.height + 1 - height, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        floatWidget.rect.copy( borderButton.rect )
+        floatWidget.rect.x += borderButton.rect.width + 10
+        floatWidget.rect.width = 90
+        floatWidget.draw()
     }
 }
 

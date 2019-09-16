@@ -359,7 +359,8 @@ class Builder
             MATERIAL_DATA borderMaterial;
             borderMaterial.baseColor = float4(1);
             clearMaterial( &borderMaterial );
-        
+            
+            bodyMaterial.border = layerData->objects[0].border / 30.;
             float3 normal = float3(0,1,0);
 
             float dist = rc.x;
@@ -1073,7 +1074,7 @@ class Builder
             }
             
             // --- Fill in Object Transformation Data
-            //instance.data![instance.objectDataOffset + (objectIndex) * 4] = 0//unused, was objectProperties["border"]!
+            instance.data![instance.objectDataOffset + (objectIndex) * 4] = objectProperties["border"]!
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 1] = parentRotate * Float.pi / 180
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 2] = parentScaleX
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 3] = parentScaleY
