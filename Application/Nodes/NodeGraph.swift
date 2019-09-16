@@ -3351,7 +3351,7 @@ class NodeGraph : Codable
             }
         } else
         if node.type == "Scene" {
-            scenes.append(node)
+            //scenes.append(node)
         }
 
         return scenes
