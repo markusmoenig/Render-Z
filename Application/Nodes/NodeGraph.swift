@@ -2294,6 +2294,9 @@ class NodeGraph : Codable
                 return "Preview: " + node.name + " (" + node.type + (node === currentMaster ? " - Self)" : ")")
             }
             
+            if refList != nil {
+                refList.isActive = false
+            }
             previewInfoMenu.setText(getPreviewClassText(currentMaster!), 0.3)
             
             var items : [MMMenuItem] = []
