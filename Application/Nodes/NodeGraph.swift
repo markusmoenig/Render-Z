@@ -1673,7 +1673,7 @@ class NodeGraph : Codable
                 let camera = createNodeCamera(playNode != nil ? playNode! : node)
                 
                 debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)
-                app!.mmView.drawTexture.draw(debugInstance.texture!, x: x, y: y, zoom: 1, round: 26, roundingRect: float4(23, 0, previewSize.x - 23, previewSize.y))
+                app!.mmView.drawTexture.draw(debugInstance.texture!, x: x - 23, y: y, zoom: 1, round: 26, roundingRect: float4(23, 0, previewSize.x - 23, previewSize.y))
             }
         } else {
             // Visible reference list

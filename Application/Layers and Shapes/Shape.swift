@@ -38,9 +38,6 @@ class Shape : Codable
     var pointsScale     : Bool = false
     var supportsRounding: Bool = false
     
-    // Build data offsets to be able to reuse data
-    var buildShapeOffset: Int = 0
-    var physicShapeOffset: Int = 0
     // Build data table for custom property names
     var customProperties: [String] = []
     

@@ -53,10 +53,6 @@ class Object : Node
     // Profile points (if any)
     var profile                 : [float4]? = nil
     
-    // Buil
-    var buildPointOffset        : Int = 0
-    var physicPointOffset       : Int = 0
-    
     var selectedShapes          : [UUID]
     var selectedBodyMaterials   : [UUID]
     var selectedBorderMaterials : [UUID]

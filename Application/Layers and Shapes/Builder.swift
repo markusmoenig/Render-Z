@@ -322,7 +322,7 @@ class Builder
         """
 
             float2 uv = fragCoord;
-            
+        
             float2 center = size / 2;
             uv = translate(uv, center - float2( layerData->position.x + layerData->camera.x, layerData->position.y + layerData->camera.y ) );
             uv.y = -uv.y;
@@ -349,7 +349,7 @@ class Builder
                 buildData.source += buildData.objectSpecificSource[index]!
             }
         }
-            
+        
         buildData.source +=
         """
         
@@ -359,8 +359,7 @@ class Builder
             MATERIAL_DATA borderMaterial;
             borderMaterial.baseColor = float4(1);
             clearMaterial( &borderMaterial );
-            
-            bodyMaterial.border = layerData->objects[0].border / 30.;
+        
             float3 normal = float3(0,1,0);
 
             float dist = rc.x;
@@ -454,8 +453,8 @@ class Builder
         } else {
             buildData.source +=
             """
-                return col;
-                //return float4(col.x / col.w, col.y / col.w, col.z / col.w, col.w);
+                //return col;
+                return float4(col.x / col.w, col.y / col.w, col.z / col.w, col.w);
             }
             
             """
@@ -494,12 +493,6 @@ class Builder
         buildData.parentRotate += object.properties["rotate"]!
         
         instance.objectMap[buildData.objectIndex] = object
-        
-        if physics {
-            object.physicPointOffset = buildData.pointIndex
-        } else {
-            object.buildPointOffset = buildData.pointIndex
-        }
         
         if rootObject {
             // So that we always have a reference to the id of the current root object
@@ -601,12 +594,6 @@ class Builder
             let sizeX = properties[shape.widthProperty]!
             let sizeY = properties[shape.heightProperty]!
             let rotate = (properties["rotate"]!+buildData.parentRotate) * Float.pi / 180
-            
-            if !physics {
-                shape.buildShapeOffset = instance.data!.count
-            } else {
-                shape.physicShapeOffset = instance.data!.count
-            }
             
             instance.data!.append( posX )
             instance.data!.append( posY )
@@ -1074,7 +1061,7 @@ class Builder
             }
             
             // --- Fill in Object Transformation Data
-            instance.data![instance.objectDataOffset + (objectIndex) * 4] = objectProperties["border"]!
+            //instance.data![instance.objectDataOffset + (objectIndex) * 4] = 0//unused, was objectProperties["border"]!
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 1] = parentRotate * Float.pi / 180
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 2] = parentScaleX
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 3] = parentScaleY
