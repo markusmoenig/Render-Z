@@ -454,8 +454,8 @@ class Builder
         } else {
             buildData.source +=
             """
-                //return col;
-                return float4(col.x / col.w, col.y / col.w, col.z / col.w, col.w);
+                return col;
+                //return float4(col.x / col.w, col.y / col.w, col.z / col.w, col.w);
             }
             
             """

@@ -22,7 +22,7 @@ class ObjectInstanceProps : Node
         type = "Object Instance Props"
         brand = .Property
         
-        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9109521/Physical+Properties"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19791919/Instance+Properties"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -691,7 +691,7 @@ class ObjectCollision : Node
         type = "Object Collision"
         brand = .Property
         
-        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9109521/Physical+Properties"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19791995/Collision+Properties"
         uiConnections.append(UINodeConnection(.ObjectInstance))
     }
     
@@ -878,6 +878,8 @@ class ObjectGlow : Node
         super.init()
         name = "Glow Effect"
         uiConnections.append(UINodeConnection(.ObjectInstance))
+        
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19595480/Glow+Properties"
     }
     
     override func setup()
