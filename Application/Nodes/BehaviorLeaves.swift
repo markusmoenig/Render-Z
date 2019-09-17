@@ -21,6 +21,7 @@ class KeyDown : Node
     override func setup()
     {
         type = "Key Down"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20250714/OSX+Key+Down"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -92,6 +93,7 @@ class ClickInSceneArea : Node
     override func setup()
     {
         type = "Click In Scene Area"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20348968/Click+in+Area"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -222,6 +224,7 @@ class Accelerometer : Node
     override func setup()
     {
         type = "Accelerometer"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19988601/iOS+Accelerometer"
     }
     
     private enum CodingKeys: String, CodingKey {

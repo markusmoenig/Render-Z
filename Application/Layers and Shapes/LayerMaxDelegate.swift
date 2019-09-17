@@ -212,13 +212,12 @@ class SceneMaxDelegate : NodeMaxDelegate {
                 }
             }
             
+            mmView.renderer!.setClipRect(region.rect)
             if let screen = screenSize {
                 let x: Float = region.rect.x + region.rect.width / 2 - (camera.xPos + screen.x/2 * camera.zoom)
                 let y: Float = region.rect.y + region.rect.height / 2 - (camera.yPos + screen.y/2 * camera.zoom)
                 
-                mmView.renderer!.setClipRect(region.rect)
                 mmView.drawBox.draw( x: x, y: y, width: screen.x * camera.zoom, height: screen.y * camera.zoom, round: 0, borderSize: 2, fillColor : float4(0.161, 0.165, 0.188, 0.5), borderColor: float4(0.5, 0.5, 0.5, 0.5) )
-                mmView.renderer.setClipRect()
             }
             
             app.gizmo.scale = camera.zoom
@@ -231,6 +230,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
             sideSliderButton.rect.width = 70
             sideSliderButton.rect.height = 70
             sideSliderButton.draw()
+            mmView.renderer.setClipRect()
         } else
         if region.type == .Top {
             //region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: objectsButton )

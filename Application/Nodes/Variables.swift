@@ -26,7 +26,7 @@ class FloatVariable : Node
         type = "Float Variable"
         brand = .Property
         
-        //helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/overview"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5734416/Variables"
     }
     
     override func setupTerminals()
@@ -143,6 +143,7 @@ class Float2Variable : Node
     override func setup()
     {
         type = "Float2 Variable"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5734416/Variables"
         brand = .Property
     }
     
@@ -285,6 +286,7 @@ class Float3Variable : Node
     override func setup()
     {
         type = "Float3 Variable"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5734416/Variables"
         brand = .Property
     }
     
@@ -442,7 +444,12 @@ class DirectionVariable : Node
         super.init()
         
         name = "Direction"
+    }
+    
+    override func setup()
+    {
         type = "Direction Variable"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5734416/Variables"
         brand = .Property
     }
     
@@ -477,9 +484,6 @@ class DirectionVariable : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
-
-        type = "Direction Variable"
-        brand = .Property
     }
     
     override func encode(to encoder: Encoder) throws
@@ -552,6 +556,7 @@ class ResetFloatVariable : Node
     {
         brand = .Arithmetic
         type = "Reset Float Variable"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20349033/Reset+Float"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -620,6 +625,7 @@ class AddConstFloatVariable : Node
     {
         brand = .Arithmetic
         type = "Add Float Variable"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19988641/Add+Const+Float"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -693,6 +699,7 @@ class SubtractConstFloatVariable : Node
     {
         brand = .Arithmetic
         type = "Subtract Float Variable"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20316316/Sub+Const+Float"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -770,6 +777,7 @@ class TestFloatVariable : Node
     {
         brand = .Arithmetic
         type = "Test Float Variable"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20086922/Test+Float"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -861,6 +869,7 @@ class CopyFloatVariables : Node
     {
         brand = .Arithmetic
         type = "Copy Float Variables"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20152454/Copy+Float+Float"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -931,6 +940,7 @@ class SetFloatVariable : Node
     {
         brand = .Arithmetic
         type = "Set Float Variable"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20250762/Copy+Const+Float"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1006,6 +1016,7 @@ class RandomDirection : Node
     {
         type = "Random Direction"
         brand = .Arithmetic
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20381763/Random+Direction"
     }
     
     required init(from decoder: Decoder) throws
@@ -1086,6 +1097,7 @@ class AddFloat2Variables : Node
     {
         brand = .Arithmetic
         type = "Add Float2 Variables"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20381734/Add+Float2+Float2+-+Float2+Float2"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1164,6 +1176,7 @@ class SubtractFloat2Variables : Node
     {
         brand = .Arithmetic
         type = "Subtract Float2 Variables"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19955810/Sub+Float2+Float2"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1241,6 +1254,7 @@ class CopyFloat2Variables : Node
     {
         brand = .Arithmetic
         type = "Copy Float2 Variables"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20381741/Copy+Float2+Float2"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1311,6 +1325,7 @@ class MultiplyConstFloat2Variable : Node
     {
         brand = .Arithmetic
         type = "Multiply Const Float2"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19988626/Mult+Const+Float2"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1399,6 +1414,7 @@ class TestFloat2Variable : Node
     {
         brand = .Arithmetic
         type = "Test Float2 Variable"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20021351/Test+Float2"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1499,6 +1515,7 @@ class LimitFloat2Range : Node
     {
         brand = .Arithmetic
         type = "Limit Float2 Range"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20054129/Limit+Float2"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1587,6 +1604,7 @@ class ReflectFloat2Variables : Node
     {
         brand = .Arithmetic
         type = "Reflect Float2 Variables"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20152425/Reflect+Float2+Float2"
     }
     
     private enum CodingKeys: String, CodingKey {

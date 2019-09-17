@@ -1191,6 +1191,7 @@ class ResetObject : Node
     {
         brand = .Function
         type = "Object Reset"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20316206/Reset+Instance"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1271,6 +1272,7 @@ class ObjectAnimation : Node
     {
         brand = .Function
         type = "Object Animation"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9207830/Play+Animation"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1363,6 +1365,7 @@ class ObjectAnimationState : Node
     {
         brand = .Function
         type = "Object Animation State"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20054029/Get+Animation+State"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1440,6 +1443,7 @@ class ObjectDistanceTo : Node
     {
         brand = .Function
         type = "Object Distance To"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19988526/Distance+To"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1543,6 +1547,7 @@ class ObjectApplyForce : Node
     {
         brand = .Function
         type = "Object Apply Force"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20217859/Apply+Force"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1636,6 +1641,7 @@ class ObjectApplyDirectionalForce : Node
     {
         brand = .Function
         type = "Object Apply Directional Force"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19988503/Apply+Directional+Force"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1735,6 +1741,7 @@ class ObjectCollisionAny : Node
     {
         brand = .Function
         type = "Object Collision (Any)"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20217880/Collision+Any"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1821,6 +1828,7 @@ class ObjectCollisionWith : Node
     {
         brand = .Function
         type = "Object Collision With"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20185109/Collision+With"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1906,6 +1914,7 @@ class ObjectTouchSceneArea : Node
     {
         brand = .Function
         type = "Object Touch Scene Area"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19988547/Touches+Area"
     }
     
     private enum CodingKeys: String, CodingKey {

@@ -321,7 +321,7 @@ class Failure : Node
     override func setup()
     {
         type = "Failure"
-        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5537868/Inverter"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20054079/Failure"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -386,7 +386,7 @@ class Success : Node
     override func setup()
     {
         type = "Success"
-        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5537868/Inverter"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20381701/Success"
     }
     
     private enum CodingKeys: String, CodingKey {

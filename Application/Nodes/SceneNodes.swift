@@ -29,7 +29,7 @@ class SceneArea : Node
     {
         type = "Scene Area"
         brand = .Property
-        
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9207837/Area"
         //minimumSize = Node.NodeWithPreviewSize
         maxDelegate = SceneAreaMaxDelegate()
     }

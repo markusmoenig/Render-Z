@@ -380,7 +380,7 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
-        item = NodeListItem("Random -> Direction")
+        item = NodeListItem("Random(Direction)")
         item.createNode = {
             return RandomDirection()
         }
