@@ -21,6 +21,7 @@ class GamePlatformOSX : Node
     {
         type = "Platform OSX"
         brand = .Property
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19955853/Platform+OSX"
     }
     
     
@@ -85,6 +86,7 @@ class GamePlatformIPAD : Node
     {
         type = "Platform IPAD"
         brand = .Property
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19955863/Platform+iPAD"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -180,6 +182,7 @@ class GamePlayScene : Node
         brand = .Function
         type = "Game Play Scene"
         uiConnections.append(UINodeConnection(.Scene))
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20086957/Play+Scene"
     }
     
     private enum CodingKeys: String, CodingKey {
