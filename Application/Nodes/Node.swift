@@ -594,8 +594,9 @@ enum NodeFamily: String, NodeClassFamily {
     case selector = "Selector"
     case inverter = "Inverter"
     case success = "Success"
-    case failure = "Failure"
+    case succeeder = "Succeeder"
     case restart = "Restart"
+    case repeater = "Repeater"
     case keyDown = "Key Down"
     case accelerometer = "Accelerometer"
     case scene = "Scene"
@@ -688,16 +689,14 @@ enum NodeFamily: String, NodeClassFamily {
                 return ExecuteBehaviorTree.self
             case .inverter:
                 return Inverter.self
-            case .failure:
-                return Failure.self
-            case .success:
-                return Success.self
+            case .success, .succeeder:
+                return Succeeder.self
             case .sequence:
                 return Sequence.self
             case .selector:
                 return Selector.self
-            case .restart:
-                return Restart.self
+            case .repeater, .restart:
+                return Repeater.self
             case .keyDown:
                 return KeyDown.self
             case .accelerometer:

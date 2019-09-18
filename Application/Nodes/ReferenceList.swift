@@ -304,9 +304,9 @@ class ReferenceList {
                 } else
                     if let scene = item.previewScene {
                         if scene.updateStatus != .Valid {
-                            nodeGraph.sceneRenderer.render(width: prevSize, height: prevSize, camera: scene.camera!, instance: scene.builderInstance!)
+                            //nodeGraph.sceneRenderer.render(width: prevSize, height: prevSize, camera: scene.camera!, instance: scene.builderInstance!)
                         }
-                        previewTexture = nodeGraph.sceneRenderer.fragment!.texture
+                        //previewTexture = nodeGraph.sceneRenderer.fragment!.texture
                 }
                 
                 if let texture = previewTexture {

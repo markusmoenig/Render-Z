@@ -246,12 +246,6 @@ class NodeList : MMWidget
             return ExecuteBehaviorTree()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
-        // --- Behavior: Failure
-        item = NodeListItem("Failure")
-        item.createNode = {
-            return Failure()
-        }
-        addNodeItem(item, type: .Behavior, displayType: .All)
         // --- Behavior: Inverter
         item = NodeListItem("Inverter")
         item.createNode = {
@@ -270,16 +264,16 @@ class NodeList : MMWidget
             return Selector()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
-        // --- Behavior: Success
-        item = NodeListItem("Success")
+        // --- Behavior: Succeeder
+        item = NodeListItem("Succeeder")
         item.createNode = {
-            return Success()
+            return Succeeder()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
-        // --- Behavior: Restart
-        item = NodeListItem("Restart")
+        // --- Behavior: Repeater
+        item = NodeListItem("Repeater")
         item.createNode = {
-            return Restart()
+            return Repeater()
         }
         addNodeItem(item, type: .Behavior, displayType: .All)
         // --- Leaf: Click in Scene Area
