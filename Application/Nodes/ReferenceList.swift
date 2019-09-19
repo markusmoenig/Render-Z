@@ -302,11 +302,15 @@ class ReferenceList {
                             previewTexture = object.previewTexture
                     }
                 } else
-                    if let scene = item.previewScene {
-                        if scene.updateStatus != .Valid {
-                            //nodeGraph.sceneRenderer.render(width: prevSize, height: prevSize, camera: scene.camera!, instance: scene.builderInstance!)
+                if let scene = item.previewScene {
+                    if scene.previewTexture == nil || Float(scene.previewTexture!.width) != nodeGraph.previewSize.x || Float(scene.previewTexture!.height) != nodeGraph.previewSize.y || scene.previewStatus == .NeedsUpdate {
+                        scene.createIconPreview(nodeGraph: nodeGraph, size: nodeGraph.previewSize)
+                    }
+                    if scene.previewStatus == .Valid {
+                        if let texture = scene.previewTexture {
+                            previewTexture = texture
                         }
-                        //previewTexture = nodeGraph.sceneRenderer.fragment!.texture
+                    }
                 }
                 
                 if let texture = previewTexture {
@@ -315,18 +319,14 @@ class ReferenceList {
                     let yFactor : Float = nodeGraph.previewSize.y / prevSize
                     let factor : Float = min(xFactor, yFactor)
                     
-                    var topX : Float = scrollRect.x + 4
-                    var topY : Float = y + 3
+                    var topX : Float = scrollRect.x + 2
+                    var topY : Float = y + 2
+                    let scale : Float = 1
                     
-                    if xFactor < yFactor {
-                        topY += ((prevSize * factor) - (prevSize * yFactor)) / 2 / factor
-                    } else {
-                        topX += ((prevSize * factor) - (prevSize * xFactor)) / 2 / factor
-                    }
+                    topX += ((prevSize * factor) - (prevSize * xFactor)) / 2 * scale / factor / scale
+                    topY += ((prevSize * factor) - (prevSize * yFactor)) / 2 * scale / factor / scale
                     
-                    mmView.renderer.setClipRect(MMRect(scrollRect.x + 4, y + 3, prevSize, prevSize))
-                    mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor)
-                    mmView.renderer.setClipRect()
+                    mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor, round: 26 * scale * factor, roundingRect: float4(0,0,prevSize*factor,prevSize*factor))
                 }
             }
             
