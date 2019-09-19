@@ -1700,7 +1700,7 @@ class ObjectApplyDirectionalForce : Node
             }
             
             if let dirVariable = uiConnections[2].target as? DirectionVariable {
-                let angle = dirVariable.properties["angle"]!
+                let angle = dirVariable.getValue()
                 //print("angle", angle)
                 dir.x = cos((360-angle) * Float.pi/180)
                 dir.y = sin((360-angle) * Float.pi/180)

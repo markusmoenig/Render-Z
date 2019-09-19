@@ -361,6 +361,7 @@ class Builder
             clearMaterial( &borderMaterial );
         
             float3 normal = float3(0,1,0);
+            bodyMaterial.border = layerData->objects[0].border / 30.;
 
             float dist = rc.x;
             float backDist = rc.w;
@@ -1061,7 +1062,9 @@ class Builder
             }
             
             // --- Fill in Object Transformation Data
-            //instance.data![instance.objectDataOffset + (objectIndex) * 4] = 0//unused, was objectProperties["border"]!
+            if doMaterials {
+                instance.data![instance.objectDataOffset + (objectIndex) * 4] = object.properties["border"]!
+            }
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 1] = parentRotate * Float.pi / 180
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 2] = parentScaleX
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 3] = parentScaleY

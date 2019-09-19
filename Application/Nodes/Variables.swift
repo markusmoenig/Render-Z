@@ -462,6 +462,7 @@ class DirectionVariable : Node
         uiItems = [
             NodeUIAngle(self, variable: "orientation", title: "", value: 0),
             NodeUINumber(self, variable: "angle", title: "Angle", range: float2(0,360), value: 0),
+            NodeUINumber(self, variable: "random", title: "Random", range: float2(0,100), value: 0),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUISelector(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1)
         ]
@@ -525,7 +526,8 @@ class DirectionVariable : Node
     /// Returns the current value of the variable
     func getValue() -> Float
     {
-        return properties["angle"]!
+        let randomDir : Float = properties["random"]!
+        return properties["angle"]! + Float.random(in: 0...randomDir) - randomDir / 2
     }
     
     /// Set a new value to the variable
@@ -747,14 +749,10 @@ class SubtractConstFloatVariable : Node
     {
         playResult = .Failure
         if let target = uiConnections[0].target as? FloatVariable {
-            let number = target.uiItems[0] as? NodeUINumber
             
             var value : Float = target.properties["value"]! - properties["value"]!
-            value = max( value, properties["min"]! )
-            
-            target.properties["value"] = value
-            number?.value = value
-            number?.updateLinked()
+            value = max( value, properties["min"]! )            
+            target.setValue(value)
             
             playResult = .Success
         }
