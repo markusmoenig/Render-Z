@@ -205,6 +205,79 @@ class MaterialFactory
         def.heightProperty = "scale"
         materials.append( def )
         
+        // --- Polar Bricks
+        def = MaterialDefinition()
+        def.name = "C. Bricks"
+        def.globalCode =
+        """
+        float4 polarBricksMaterial( float2 uv, float4 value, float2 size, float2 screenSize, float bevel, float gap, float rounding, float center) {
+            float CELL = round(size.y);//20;
+            float RATIO = round(size.x); //3
+            float2  CYCLE = float2( round(CELL / RATIO), CELL );
+        
+            float HOLLOW = center;
+        
+            float2 U = uv / screenSize.y;
+        
+            float l = length(U)*CELL, a = atan2(U.y,U.x), k;
+            U = float2( a*(floor(l)+.5), l );             // polar bands
+            if (U.y<HOLLOW) gap = 1.;                 // empty center
+            k = 6.28*(floor(l)+.5)/RATIO;
+            U.x *= (floor(k)) / k;    // integer #cells
+
+            float2 BEVEL = bevel;
+            float2 GAP  = float2(gap);//float2(.5)/8.;
+            float ROUND  = rounding;//float2(.5)/8.;
+        
+            float2 W = float2(RATIO,1);
+            U /= W;
+        
+            U.x += .5* fmod(floor(U.y),2.);
+        
+            float2 S = W* (fract(U) - 1./2.);
+        
+            float2 A = W/2.-GAP - abs(S);
+            float2 B = A * 2. / BEVEL;
+            float m = min(B.x,B.y);
+            if (A.x<ROUND && A.y<ROUND)
+            m = (ROUND-length(ROUND-A)) *2./dot(BEVEL,normalize(ROUND-A));
+        
+            float alpha = clamp( gap == 0. ? 0 : m,0.,1.);
+            return float4( value.xyz, alpha);
+        }
+        """
+        def.code = "polarBricksMaterial(__uv__, __value__, __size__, __screenSize__, __custom_bevel__,__custom_gap__,__custom_round__, __custom_center__)"
+        def.properties["value_x"] = 0.3
+        def.properties["value_y"] = 0.3
+        def.properties["value_z"] = 0.3
+        def.properties["value_w"] = 1
+        
+        def.properties["custom_bevel"] = 0.2
+        def.properties["bevel_min"] = 0
+        def.properties["bevel_max"] = 1
+        def.properties["bevel_int"] = 0
+        
+        def.properties["custom_gap"] = 0.1
+        def.properties["gap_min"] = 0
+        def.properties["gap_max"] = 1
+        def.properties["gap_int"] = 0
+        
+        def.properties["custom_round"] = 0.1
+        def.properties["round_min"] = 0
+        def.properties["round_max"] = 1
+        def.properties["round_int"] = 0
+        
+        def.properties["custom_center"] = 1
+        def.properties["center_min"] = 1
+        def.properties["center_max"] = 10
+        def.properties["center_int"] = 1
+        
+        def.properties["ratio"] = 2
+        def.properties["scale"] = 40
+        def.widthProperty = "ratio"
+        def.heightProperty = "scale"
+        materials.append( def )
+        
         // --- Value Noise
         def = MaterialDefinition()
         def.name = "Noise #1"

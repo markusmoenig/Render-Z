@@ -303,8 +303,11 @@ class EditorWidget      : MMWidget
                     shape.properties["point_2_y"] = -shape.properties["point_2_y"]!
                 }
             }
-            
             currentObject!.maxDelegate?.update(true)
+            // Update the Gizmo properly
+            if let delegate = currentObject!.maxDelegate as? ObjectMaxDelegate {
+                app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject, context: delegate.gizmoContext, materialType: delegate.materialType)
+            }
         } else
         if dragSource.id == "MaterialSelectorItem" {
             // Object Editor, shape drag to editor
@@ -380,6 +383,10 @@ class EditorWidget      : MMWidget
                 material.properties["posY"] = -yOff / camera.zoom
             }
             currentObject!.maxDelegate?.update(true)
+            // Update the Gizmo properly
+            if let delegate = currentObject!.maxDelegate as? ObjectMaxDelegate {
+                app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject, context: delegate.gizmoContext, materialType: delegate.materialType)
+            }
         } else
 
             
