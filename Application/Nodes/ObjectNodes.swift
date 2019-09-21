@@ -1010,6 +1010,7 @@ class ObjectGlow : Node
             if let inst = target as? ObjectInstance {
                 
                 if terminal.name == "glowOpacity" {
+                    if inst.properties["glowOpacity"] == nil { inst.properties["glowOpacity"] = properties["glowOpacity"] }
                     if terminal.connections.count == 0 {
                         // Not connected, adjust my own vars
                         if inst.properties["glowOpacity"] == nil { inst.properties["glowOpacity"] = properties["glowOpacity"] }
@@ -1017,6 +1018,7 @@ class ObjectGlow : Node
                     } else
                     if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
                         if let object = inst.instance {
+                            if object.properties["glowOpacity"] == nil { object.properties["glowOpacity"] = properties["glowOpacity"] }
                             variable.setValue(object.properties["glowOpacity"]!, adjustBinding: false)
                             setInternalGlowOpacity(object.properties["glowOpacity"]!)
                         } else {
@@ -1046,13 +1048,14 @@ class ObjectGlow : Node
                     }
                 } else
                 if terminal.name == "glowSize" {
+                    if inst.properties["glowSize"] == nil { inst.properties["glowSize"] = properties["glowSize"] }
                     if terminal.connections.count == 0 {
                         // Not connected, adjust my own vars
-                        if inst.properties["glowSize"] == nil { inst.properties["glowSize"] = properties["glowSize"] }
                         setInternalGlowSize(inst.properties["glowSize"]!)
                     } else
                     if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
                         if let object = inst.instance {
+                            if object.properties["glowSize"] == nil { object.properties["glowSize"] = properties["glowSize"] }
                             variable.setValue(object.properties["glowSize"]!, adjustBinding: false)
                             setInternalGlowSize(object.properties["glowSize"]!)
                         } else {
