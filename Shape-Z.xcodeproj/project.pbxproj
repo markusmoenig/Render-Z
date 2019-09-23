@@ -15,6 +15,10 @@
 		2B035155231A196100ACBB78 /* sz_toolbar.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B035151231A076700ACBB78 /* sz_toolbar.tiff */; };
 		2B06710E22B1DCC200983A76 /* GizmoInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */; };
 		2B06710F22B1DCC200983A76 /* GizmoInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */; };
+		2B0C6A612338A3CB0073EF18 /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B0C6A5F2338A3CA0073EF18 /* Pinball.shape-z */; };
+		2B0C6A632338A4950073EF18 /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B0C6A5F2338A3CA0073EF18 /* Pinball.shape-z */; };
+		2B0C6A652338A5B40073EF18 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B0C6A642338A5B40073EF18 /* Pong.shape-z */; };
+		2B0C6A662338A5B40073EF18 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B0C6A642338A5B40073EF18 /* Pong.shape-z */; };
 		2B128761225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
 		2B128762225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
 		2B333D13226043FF0008A8CF /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
@@ -96,10 +100,6 @@
 		2BAC26DF226D6B8F00E20ADD /* GameNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */; };
 		2BAC26E1226FEC7E00E20ADD /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
 		2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
-		2BB6B0542318AFC20067B217 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B0532318AFC20067B217 /* Pong.shape-z */; };
-		2BB6B0552318AFC20067B217 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B0532318AFC20067B217 /* Pong.shape-z */; };
-		2BB6B0562318B0C70067B217 /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B0522318AFB50067B217 /* Pinball.shape-z */; };
-		2BB6B0582318B7B40067B217 /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B0522318AFB50067B217 /* Pinball.shape-z */; };
 		2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B05F231A069A0067B217 /* sz_ui_grey.tiff */; };
 		2BB6B063231A069A0067B217 /* sz_ui_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */; };
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
@@ -198,6 +198,8 @@
 		2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneRenderer.swift; sourceTree = "<group>"; };
 		2B035151231A076700ACBB78 /* sz_toolbar.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_toolbar.tiff; sourceTree = "<group>"; };
 		2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GizmoInfoArea.swift; sourceTree = "<group>"; };
+		2B0C6A5F2338A3CA0073EF18 /* Pinball.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
+		2B0C6A642338A5B40073EF18 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
 		2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatPopUp.swift; sourceTree = "<group>"; };
 		2B333D12226043FF0008A8CF /* MMScrollButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScrollButton.swift; sourceTree = "<group>"; };
 		2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMInfoArea.swift; sourceTree = "<group>"; };
@@ -243,8 +245,6 @@
 		2BAC26DA226D6B6400E20ADD /* BehaviorLeaves.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorLeaves.swift; sourceTree = "<group>"; };
 		2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameNodes.swift; sourceTree = "<group>"; };
 		2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskBuilder.swift; sourceTree = "<group>"; };
-		2BB6B0522318AFB50067B217 /* Pinball.shape-z */ = {isa = PBXFileReference; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
-		2BB6B0532318AFC20067B217 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
 		2BB6B05F231A069A0067B217 /* sz_ui_grey.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_grey.tiff; sourceTree = "<group>"; };
 		2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_blue.tiff; sourceTree = "<group>"; };
 		2BBF0F4B225C397A009950E3 /* Renderer.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Renderer.metal; sourceTree = "<group>"; };
@@ -367,8 +367,8 @@
 		2BB6B0512318AF640067B217 /* Templates */ = {
 			isa = PBXGroup;
 			children = (
-				2BB6B0522318AFB50067B217 /* Pinball.shape-z */,
-				2BB6B0532318AFC20067B217 /* Pong.shape-z */,
+				2B0C6A5F2338A3CA0073EF18 /* Pinball.shape-z */,
+				2B0C6A642338A5B40073EF18 /* Pong.shape-z */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -659,20 +659,20 @@
 				2B6CCE55231F5A4500ECA35B /* intersection_on.tiff in Resources */,
 				2B6CCE49231F4FE200ECA35B /* union_on.tiff in Resources */,
 				2B6CCE46231F4FD600ECA35B /* union_off.tiff in Resources */,
+				2B0C6A612338A3CB0073EF18 /* Pinball.shape-z in Resources */,
 				2BB6B063231A069A0067B217 /* sz_ui_blue.tiff in Resources */,
 				2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */,
 				2B8BBA8A22A4AA4600E541B9 /* OpenSans.json in Resources */,
 				2B6CCE59231F5E5F00ECA35B /* background.tiff in Resources */,
 				2B6CCE5B231F5E5F00ECA35B /* foreground.tiff in Resources */,
-				2BB6B0562318B0C70067B217 /* Pinball.shape-z in Resources */,
 				2B035152231A076700ACBB78 /* sz_toolbar.tiff in Resources */,
 				2B6CCE4D231F59E700ECA35B /* substract_on.tiff in Resources */,
 				2B5FE42322C0A96F0046A435 /* Assets.xcassets in Resources */,
 				2B6CCE53231F5A4500ECA35B /* intersection_off.tiff in Resources */,
-				2BB6B0542318AFC20067B217 /* Pong.shape-z in Resources */,
 				2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */,
 				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
 				2B6CCE4F231F59E700ECA35B /* substract_off.tiff in Resources */,
+				2B0C6A652338A5B40073EF18 /* Pong.shape-z in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -684,7 +684,6 @@
 				2B6CCE5C231F5E5F00ECA35B /* foreground.tiff in Resources */,
 				2B035153231A195A00ACBB78 /* sz_ui_grey.tiff in Resources */,
 				2BBF113C21EAD38E001C94E9 /* LaunchScreen.storyboard in Resources */,
-				2BB6B0552318AFC20067B217 /* Pong.shape-z in Resources */,
 				2B8BBA8922A4AA4600E541B9 /* OpenSans.tiff in Resources */,
 				2B6CCE54231F5A4500ECA35B /* intersection_off.tiff in Resources */,
 				2B6CCE5A231F5E5F00ECA35B /* background.tiff in Resources */,
@@ -694,9 +693,10 @@
 				2B6CCE4E231F59E700ECA35B /* substract_on.tiff in Resources */,
 				2BBF113421EAD38E001C94E9 /* Main.storyboard in Resources */,
 				2B6CCE4A231F4FE200ECA35B /* union_on.tiff in Resources */,
-				2BB6B0582318B7B40067B217 /* Pinball.shape-z in Resources */,
 				2B6CCE50231F59E700ECA35B /* substract_off.tiff in Resources */,
 				2B6CCE56231F5A4500ECA35B /* intersection_on.tiff in Resources */,
+				2B0C6A632338A4950073EF18 /* Pinball.shape-z in Resources */,
+				2B0C6A662338A5B40073EF18 /* Pong.shape-z in Resources */,
 				2B035155231A196100ACBB78 /* sz_toolbar.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1026,6 +1026,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MARKETING_VERSION = 0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "";
@@ -1050,6 +1051,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				MARKETING_VERSION = 0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "";
@@ -1066,6 +1068,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Shape-Z iOS/Shape-Z iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				INFOPLIST_FILE = "Shape-Z iOS/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
@@ -1073,6 +1076,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapezios;
 				PRODUCT_NAME = "Shape-Z";
 				SDKROOT = iphoneos;
@@ -1092,6 +1096,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Shape-Z iOS/Shape-Z iOS.entitlements";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				INFOPLIST_FILE = "Shape-Z iOS/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
@@ -1099,6 +1104,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapezios;
 				PRODUCT_NAME = "Shape-Z";
 				SDKROOT = iphoneos;
