@@ -1468,7 +1468,7 @@ class NodeGraph : Codable
         var rightTerminalCount : Int = 0
         var bottomTerminalCount : Int = 0
 
-        var color : float3 = float3()
+        var color : SIMD3<Float> = SIMD3<Float>()
         for terminal in node.terminals {
             color = getColorForTerminal(terminal)
             
@@ -1803,7 +1803,7 @@ class NodeGraph : Codable
         }
         
         /// Draws a connection using two splines
-        func drawIt(_ from: (Float,Float), _ to: (Float, Float), _ color: float3)
+        func drawIt(_ from: (Float,Float), _ to: (Float, Float), _ color: SIMD3<Float>)
         {
             let color : float4 = float4(color.x,color.y,color.z,1)
 
@@ -2059,9 +2059,9 @@ class NodeGraph : Codable
     }
     
     /// Returns the color for the given terminal
-    func getColorForTerminal(_ terminal: Terminal) -> float3
+    func getColorForTerminal(_ terminal: Terminal) -> SIMD3<Float>
     {
-        var color : float3
+        var color : SIMD3<Float>
         
         /*
         switch(terminal.brand)
@@ -2075,21 +2075,21 @@ class NodeGraph : Codable
         }*/
         
         if terminal.connections.isEmpty {
-            color = float3(0.678, 0.682, 0.686)
+            color = SIMD3<Float>(0.678, 0.682, 0.686)
         } else {
-            color = float3(0.278, 0.482, 0.675)
+            color = SIMD3<Float>(0.278, 0.482, 0.675)
         }
         
         if playNode != nil {
             if terminal.node!.playResult != nil {
                 if terminal.node!.playResult! == .Success {
-                    color = float3(0.278, 0.549, 0.224)
+                    color = SIMD3<Float>(0.278, 0.549, 0.224)
                 } else
                 if terminal.node!.playResult! == .Failure {
-                    color = float3(0.729, 0.263, 0.239)
+                    color = SIMD3<Float>(0.729, 0.263, 0.239)
                 } else
                 if terminal.node!.playResult! == .Running {
-                    color = float3(0.620, 0.506, 0.165)
+                    color = SIMD3<Float>(0.620, 0.506, 0.165)
                 }
             }
         }

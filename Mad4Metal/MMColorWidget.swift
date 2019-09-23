@@ -243,7 +243,7 @@ class MMColorPopupWidget : MMWidget
         mouse = simd_normalize(mouse)
         
         mouse *= circleSize/2 - (circleSize*0.75)/2
-        var v : float2 = center + mouse
+        let v : float2 = center + mouse
         let angle : Float = atan2(v.x - center.x, v.y - center.y) * 180 / Float.pi
         let rgb = toRGB(angle + 180, hsv.1, hsv.2)
         h = angle + 180
@@ -276,10 +276,10 @@ class MMColorPopupWidget : MMWidget
 
 class MMColorWidget : MMWidget
 {
-    var value       : float3
+    var value       : SIMD3<Float>
     var mouseIsDown : Bool = false
     
-    var changed     : ((_ value: float3, _ continuous: Bool)->())?
+    var changed     : ((_ value: SIMD3<Float>, _ continuous: Bool)->())?
     
     var h           : Float = 0
     var s           : Float = 0
@@ -297,7 +297,7 @@ class MMColorWidget : MMWidget
     
     var lastSize    : float2 = float2(0,0)
     
-    init(_ view: MMView, value: float3 = float3(0.5, 0.5, 0.5))
+    init(_ view: MMView, value: SIMD3<Float> = SIMD3<Float>(0.5, 0.5, 0.5))
     {
         self.value = value
         super.init(view)
@@ -312,7 +312,7 @@ class MMColorWidget : MMWidget
         computePoints()
     }
     
-    func setValue(color: float3)
+    func setValue(color: SIMD3<Float>)
     {
         self.value = color
 
@@ -509,7 +509,7 @@ class MMColorWidget : MMWidget
         mouse = simd_normalize(mouse)
         
         mouse *= circleSize/2 - (circleSize*0.75)/2
-        var v : float2 = center + mouse
+        let v : float2 = center + mouse
         let angle : Float = atan2(v.x - center.x, v.y - center.y) * 180 / Float.pi
         let rgb = toRGB(angle + 180, hsv.1, hsv.2)
         h = angle + 180

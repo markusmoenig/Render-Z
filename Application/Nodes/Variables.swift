@@ -357,19 +357,19 @@ class Float3Variable : Node
             let number = uiItems[0] as! NodeUINumber
             number.defaultValue = newValue
             properties["defaultValueX"] = newValue
-            setValue(float3(newValue, properties["y"]!, properties["z"]!))
+            setValue(SIMD3<Float>(newValue, properties["y"]!, properties["z"]!))
         } else
         if variable == "y" {
             let number = uiItems[1] as! NodeUINumber
             number.defaultValue = newValue
             properties["defaultValueY"] = newValue
-            setValue(float3(properties["x"]!, newValue, properties["z"]!))
+            setValue(SIMD3<Float>(properties["x"]!, newValue, properties["z"]!))
         } else
         if variable == "z" {
             let number = uiItems[2] as! NodeUINumber
             number.defaultValue = newValue
             properties["defaultValueZ"] = newValue
-            setValue(float3(properties["x"]!, properties["y"]!, newValue))
+            setValue(SIMD3<Float>(properties["x"]!, properties["y"]!, newValue))
         }
         if noUndo == false {
             super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
@@ -390,13 +390,13 @@ class Float3Variable : Node
     }
     
     /// Returns the current value of the variable
-    func getValue() -> float3
+    func getValue() -> SIMD3<Float>
     {
-        return float3(properties["x"]!, properties["y"]!, properties["z"]!)
+        return SIMD3<Float>(properties["x"]!, properties["y"]!, properties["z"]!)
     }
     
     /// Set a new value to the variable
-    func setValue(_ value: float3, adjustBinding: Bool = true)
+    func setValue(_ value: SIMD3<Float>, adjustBinding: Bool = true)
     {
         properties["x"] = value.x
         properties["y"] = value.y

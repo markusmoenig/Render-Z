@@ -418,7 +418,7 @@ class Physics
                         var contact = rotateCCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
 
                         if nodeGraph.debugMode == .Physics {
-                            var visualContact = rotateCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
+                            let visualContact = rotateCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
                             nodeGraph.debugInstance.addDisk(float2(visualContact.x,visualContact.y), disk.distance, 4, penetration > hitPenetration ? float4(1,0,0,1) : float4(1,1,0,1) )
                         }
                         

@@ -182,7 +182,7 @@ class ClickInSceneArea : Node
                     
                     uv = rotateCW(uv, angle: object.properties["rotate"]! * Float.pi / 180 );
 
-                    var d : float2 = simd_abs( uv ) - float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
+                    let d : float2 = simd_abs( uv ) - float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
                     let dist : Float = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0)
 
                     if dist < 0 {

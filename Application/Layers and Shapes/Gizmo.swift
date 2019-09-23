@@ -1333,7 +1333,7 @@ class Gizmo : MMWidget
             hoverState.rawValue, 0
         ];
         
-        var attributes = getCurrentGizmoAttributes()
+        let attributes = getCurrentGizmoAttributes()
         let posX : Float = attributes["posX"]!
         let posY : Float = attributes["posY"]!
         

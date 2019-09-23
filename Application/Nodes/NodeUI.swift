@@ -1266,8 +1266,8 @@ class NodeUIText : NodeUI
 /// Color class
 class NodeUIColor : NodeUI
 {
-    var value       : float3
-    var defaultValue: float3
+    var value       : SIMD3<Float>
+    var defaultValue: SIMD3<Float>
     var mouseIsDown : Bool = false
     var x           : Float = 0
     var width       : Float = 0
@@ -1276,7 +1276,7 @@ class NodeUIColor : NodeUI
     
     var colorWidget : MMColorWidget? = nil
     
-    init(_ node: Node, variable: String, title: String, value: float3 = float3(0,0,0))
+    init(_ node: Node, variable: String, title: String, value: SIMD3<Float> = SIMD3<Float>(0,0,0))
     {
         self.value = value
         self.defaultValue = value
@@ -1352,12 +1352,12 @@ class NodeUIColor : NodeUI
         value = getValue()
     }
     
-    func getValue() -> float3
+    func getValue() -> SIMD3<Float>
     {
-        return float3(node.properties[variable + "_x"]!, node.properties[variable + "_y"]!, node.properties[variable + "_z"]!)
+        return SIMD3<Float>(node.properties[variable + "_x"]!, node.properties[variable + "_y"]!, node.properties[variable + "_z"]!)
     }
     
-    func setValue(_ value: float3)
+    func setValue(_ value: SIMD3<Float>)
     {
         self.value = value
         node.properties[variable + "_x"] = value.x

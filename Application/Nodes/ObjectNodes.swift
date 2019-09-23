@@ -897,7 +897,7 @@ class ObjectGlow : Node
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
             NodeUISelector(self, variable: "glowMode", title: "Mode", items: ["Off", "On"], index: 0),
-            NodeUIColor(self, variable: "glowColor", title: "Color", value: float3(1,1,1)),
+            NodeUIColor(self, variable: "glowColor", title: "Color", value: SIMD3<Float>(1,1,1)),
             NodeUINumber(self, variable: "glowOpacity", title: "Opacity", range: float2(0, 1), value: 1),
             NodeUINumber(self, variable: "glowSize", title: "Size", range: float2(0, 50), value: 10),
         ]
@@ -975,7 +975,7 @@ class ObjectGlow : Node
     }
     
     /// A UI Variable changed: float3
-    override func variableChanged(variable: String, oldValue: float3, newValue: float3, continuous: Bool = false, noUndo: Bool = false)
+    override func variableChanged(variable: String, oldValue: SIMD3<Float>, newValue: SIMD3<Float>, continuous: Bool = false, noUndo: Bool = false)
     {
         if variable == "glowColor" {
             let color = uiItems[2] as! NodeUIColor
@@ -1039,10 +1039,10 @@ class ObjectGlow : Node
                     } else
                     if let variable = terminal.connections[0].toTerminal!.node as? Float3Variable {
                         if let object = inst.instance {
-                            variable.setValue(float3(object.properties["glowColor_x"]!, object.properties["glowColor_y"]!, object.properties["glowColor_z"]!), adjustBinding: false)
+                            variable.setValue(SIMD3<Float>(object.properties["glowColor_x"]!, object.properties["glowColor_y"]!, object.properties["glowColor_z"]!), adjustBinding: false)
                             setInternalGlowColor(object.properties)
                         } else {
-                            variable.setValue(float3(inst.properties["glowColor_x"]!, inst.properties["glowColor_y"]!, inst.properties["glowColor_z"]!), adjustBinding: false)
+                            variable.setValue(SIMD3<Float>(inst.properties["glowColor_x"]!, inst.properties["glowColor_y"]!, inst.properties["glowColor_z"]!), adjustBinding: false)
                             setInternalGlowColor(inst.properties)
                         }
                     }
@@ -1137,7 +1137,7 @@ class ObjectGlow : Node
     func setInternalGlowColor(_ props: [String:Float])
     {
         if let item = uiItems[2] as? NodeUIColor {
-            item.value = float3(props["glowColor_x"]!, props["glowColor_y"]!, props["glowColor_z"]!)
+            item.value = SIMD3<Float>(props["glowColor_x"]!, props["glowColor_y"]!, props["glowColor_z"]!)
             if let widget = item.colorWidget {
                 widget.setValue(color: item.value)
             }
@@ -2007,7 +2007,7 @@ class ObjectTouchSceneArea : Node
                     
                     uv = rotateCW(uv, angle: object.properties["rotate"]! * Float.pi / 180 );
                     
-                    var d : float2 = simd_abs( uv ) - float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
+                    let d : float2 = simd_abs( uv ) - float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
                     let dist : Float = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0)
                     
                     //print( dist, dist - radius )

@@ -246,9 +246,9 @@ class Node : Codable, Equatable
         self.updateUIState(mmView: self.nodeGraph!.mmView)
     }
     
-    func variableChanged(variable: String, oldValue: float3, newValue: float3, continuous: Bool = false, noUndo: Bool = false)
+    func variableChanged(variable: String, oldValue: SIMD3<Float>, newValue: SIMD3<Float>, continuous: Bool = false, noUndo: Bool = false)
     {
-        func applyProperties(_ uuid: UUID, _ variable: String,_ old: float3,_ new: float3)
+        func applyProperties(_ uuid: UUID, _ variable: String,_ old: SIMD3<Float>,_ new: SIMD3<Float>)
         {
             nodeGraph!.mmView.undoManager!.registerUndo(withTarget: self) { target in
                 if let node = globalApp!.nodeGraph.getNodeForUUID(uuid) {
