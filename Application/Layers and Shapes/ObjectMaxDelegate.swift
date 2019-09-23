@@ -1373,6 +1373,7 @@ class MaterialListScrollArea: MMScrollArea
         
         if delegate.materialListChanged {
             delegate.update(true)
+            delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject, context: delegate.gizmoContext, materialType: delegate.materialType)
         }
     }
     

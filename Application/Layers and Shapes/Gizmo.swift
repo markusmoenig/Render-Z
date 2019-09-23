@@ -163,7 +163,7 @@ class Gizmo : MMWidget
                 gizmoInfoArea.reset()
             }
         }
-        
+                
         self.object = object
         self.context = context
         self.materialType = materialType
@@ -1537,12 +1537,12 @@ class Gizmo : MMWidget
             if context == .MaterialEditor && selectedMaterials.count == 1 && selectedMaterials[0].properties["channel"]! == 0 && selectedMaterials[0].pointCount == 0 {
                 colorWidget.rect.x = gizmoRect.x + 5
                 colorWidget.rect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
-                mmView.delayedDraws.append(colorWidget)
+                colorWidget.draw()
             } else
             if context == .MaterialEditor && selectedMaterials.count == 1 && selectedMaterials[0].properties["channel"]! != 0 && selectedMaterials[0].pointCount == 0 {
                 floatWidget.rect.x = gizmoRect.x + 5
                 floatWidget.rect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
-                mmView.delayedDraws.append(floatWidget)
+                floatWidget.draw()
             }
             
             // --- Render Menu
