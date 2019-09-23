@@ -594,9 +594,9 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 }
             } )
             animating = true
-        } else if bottomRegion.rect.height != 100 {
+        } else if bottomRegion.rect.height != 130 {
             
-            app.mmView.startAnimate( startValue: bottomRegion.rect.height, endValue: 100, duration: 500, cb: { (value,finished) in
+            app.mmView.startAnimate( startValue: bottomRegion.rect.height, endValue: 130, duration: 500, cb: { (value,finished) in
                 if finished {
                     self.animating = false
                     self.bottomRegionMode = .Open

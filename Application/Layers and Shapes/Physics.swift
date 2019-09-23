@@ -302,6 +302,7 @@ class Physics
         
         instance.inBuffer = compute!.device.makeBuffer(bytes: instance.data!, length: instance.data!.count * MemoryLayout<Float>.stride, options: [])!
         
+        totalCollisionChecks = max(totalCollisionChecks,1) // fixme?
         instance.outBuffer = compute!.device.makeBuffer(length: totalCollisionChecks * 4 * MemoryLayout<Float>.stride, options: [])!
         
         let library = compute!.createLibraryFromSource(source: buildData.source)
