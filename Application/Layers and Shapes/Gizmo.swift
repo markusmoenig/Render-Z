@@ -1537,12 +1537,20 @@ class Gizmo : MMWidget
             if context == .MaterialEditor && selectedMaterials.count == 1 && selectedMaterials[0].properties["channel"]! == 0 && selectedMaterials[0].pointCount == 0 {
                 colorWidget.rect.x = gizmoRect.x + 5
                 colorWidget.rect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
-                colorWidget.draw()
+                if colorWidget.states.contains(.Opened) {
+                    mmView.delayedDraws.append(colorWidget)
+                } else {
+                    colorWidget.draw()
+                }
             } else
             if context == .MaterialEditor && selectedMaterials.count == 1 && selectedMaterials[0].properties["channel"]! != 0 && selectedMaterials[0].pointCount == 0 {
                 floatWidget.rect.x = gizmoRect.x + 5
                 floatWidget.rect.y = gizmoRect.y + gizmoRect.height - gizmoUIMenuRect.height - 3
-                floatWidget.draw()
+                if floatWidget.states.contains(.Opened) {
+                    mmView.delayedDraws.append(floatWidget)
+                } else {
+                    floatWidget.draw()
+                }
             }
             
             // --- Render Menu
