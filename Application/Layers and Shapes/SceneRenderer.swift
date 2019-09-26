@@ -83,20 +83,18 @@ class SceneRenderer {
                             honorBBox = true
                         }
                         
-                        if let objectRect = inst.objectRect, honorBBox {
+                        if let objectRect = inst.objectRect, nodeGraph.playButton == nil, honorBBox {
                                                                             
                             var res = convertToScreenSpace(x: (inst.properties["posX"]!) * camera.zoom, y: (inst.properties["posY"]!) * camera.zoom, screenWidth: width, screenHeight: height, camera: camera)
                             
-                            let bBoxBorder : Float = inst.properties["bBoxBorder"]!
+                            let bBoxBorder : Float = inst.properties["bBoxBorder"]! + 2
                                                         
                             let objectMidX : Float = objectRect.xPos + objectRect.width / 2
                             let objectMidY : Float = -objectRect.yPos + objectRect.height / 2
 
                             res.x -= objectRect.width/2 * camera.zoom + bBoxBorder * camera.zoom - objectMidX * camera.zoom
-                            res.y = height - res.y - objectRect.height/2 * camera.zoom - bBoxBorder * camera.zoom + objectMidY * camera.zoom
-
-                            //print(inst.name, /*res.x, res.y, camera.xPos, camera.yPos, width, height,*/ objectRect.xPos, objectRect.yPos, objectRect.width, objectRect.height, objectMidX, objectMidY)
-                                                        
+                            res.y -= objectRect.height/2 * camera.zoom + bBoxBorder * camera.zoom - objectMidY * camera.zoom
+                                                      
                             renderIt = fragment.applyClipRect(MMRect(res.x, res.y, (objectRect.width+bBoxBorder*2) * camera.zoom, (objectRect.height + bBoxBorder*2) * camera.zoom))
                             clipRectApplied = renderIt
                         }
@@ -166,8 +164,8 @@ class SceneRenderer {
     {
         var result : float2 = float2()
                 
-        result.x = (x - camera.xPos + 0.5)// / 700 * rect.width
-        result.y = (y - camera.yPos + 0.5)// / 700 * rect.width
+        result.x = x - camera.xPos
+        result.y = camera.yPos - y
         
         result.x += screenWidth/2
         result.y += screenWidth/2 * screenHeight / screenWidth
