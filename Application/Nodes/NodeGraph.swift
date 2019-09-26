@@ -1327,7 +1327,7 @@ class NodeGraph : Codable
         
         // --- Edit Button
         
-        let editColor = nodeHoverMode == .OverviewEdit ? float4(1,1,1,1) : float4(0.9,0.9,0.9,1)
+        let editColor = (nodeHoverMode == .OverviewEdit && node === hoverNode) ? float4(1,1,1,1) : float4(0.8,0.8,0.8,1)
         
         let editX : Float = node.rect.x + node.rect.width - 64 * scale
         let editY : Float = node.rect.y + 17 * scale

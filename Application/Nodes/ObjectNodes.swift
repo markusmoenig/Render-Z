@@ -704,7 +704,7 @@ class ObjectRender : Node
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
             NodeUISelector(self, variable: "renderMode", title: "Mode", items: ["Color", "PBR"], index: 1),
-            NodeUISelector(self, variable: "bBox", title: "Bounding Box", items: ["Screen", "Size"], index: 0),
+            NodeUISelector(self, variable: "bBox", title: "Bounding Box", items: ["Screen", "Object Size"], index: 0),
             NodeUINumber(self, variable: "bBoxBorder", title: "Bounding Border", range: float2(0, 500), value: 0)
         ]
         
