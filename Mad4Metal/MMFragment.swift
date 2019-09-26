@@ -112,7 +112,9 @@ class MMFragment {
     /// Allocate the output texture, optionally can be used to create an arbitray texture by setting output to false
     @discardableResult func allocateTexture( width: Float, height: Float, output: Bool? = true ) -> MTLTexture?
     {
-        self.texture = nil
+        if output! {
+            self.texture = nil
+        }
         
         let textureDescriptor = MTLTextureDescriptor()
         textureDescriptor.textureType = MTLTextureType.type2D
@@ -207,5 +209,41 @@ class MMFragment {
             ]
         
         return device.makeBuffer(bytes: quadVertices, length: quadVertices.count * MemoryLayout<Float>.stride, options: [])!
+    }
+    
+    @discardableResult func applyClipRect(_ rect: MMRect ) -> Bool
+    {
+        let x : Int = Int(rect.x)// * mmView.scaleFactor)
+        let y : Int = Int(rect.y)// * mmView.scaleFactor)
+        
+        var width : Int = Int(rect.width)// * mmView.scaleFactor)
+        var height : Int = Int(rect.height)// * mmView.scaleFactor )
+        
+        if x + width < 0 {
+            return false
+        }
+        
+        if x > Int(self.width) {
+            return false
+        }
+        
+        if y + height < 0 {
+            return false
+        }
+        
+        if y > Int(self.height) {
+            return false
+        }
+                
+        if x + width > Int(self.width) {
+            width -= x + width - Int(self.width)
+        }
+        
+        if y + height > Int(self.height) {
+            height -= y + height - Int(self.height)
+        }
+                
+        renderEncoder!.setScissorRect( MTLScissorRect(x: x, y: y, width: width, height: height ) )
+        return true
     }
 }

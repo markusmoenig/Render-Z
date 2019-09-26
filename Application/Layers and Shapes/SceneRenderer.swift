@@ -26,7 +26,17 @@ class SceneRenderer {
         self.nodeGraph = nodeGraph
         
         for inst in instances {
-            inst.fragmentInstance = nodeGraph.builder.buildObjects(objects: [inst], camera: Camera(), fragment: fragment)
+            var renderDirectly : Bool = true
+            if inst.properties["updateMode"] != nil && inst.properties["updateMode"] == 1 {
+                renderDirectly = false
+            }
+            if renderDirectly {
+                let renderMode : Builder.RenderMode = inst.properties["renderMode"] != nil && inst.properties["renderMode"]! == 0 ? .Color : .PBR
+                inst.fragmentInstance = nodeGraph.builder.buildObjects(objects: [inst], camera: Camera(), fragment: fragment, renderMode: renderMode)
+            } else {
+                // Render to texture
+                inst.instance = nodeGraph.builder.buildObjects(objects: [inst], camera: Camera())
+            }
         }
         
         let builderInstance = BuilderInstance()
@@ -52,8 +62,76 @@ class SceneRenderer {
             let sortedInstances = instance.objects.sorted(by: { $0.properties["z-index"]! < $1.properties["z-index"]! })
             for inst in sortedInstances {
                 if inst.properties["active"] == 1 && inst.shapes.count > 0 {
-                    updateInstance(width, height, inst, camera: camera)
-                    fragment.encodeRun(inst.fragmentInstance!.fragmentState!, inBuffer: inst.fragmentInstance!.buffer, inTexture: mmView.openSans.atlas)
+                    
+                    var renderDirectly : Bool = true
+
+                    if inst.properties["updateMode"] != nil && inst.properties["updateMode"] == 1 {
+                        // Render to texture first
+                        //print("render to texture for", inst.name)
+                        renderDirectly = false
+                    }
+                    
+                    if renderDirectly == true {
+                        // Render directly
+                        updateInstance(width, height, inst, camera: camera)
+                        
+                        var honorBBox : Bool = false
+                        var clipRectApplied : Bool = false
+                        var renderIt : Bool = true
+                        
+                        if inst.properties["bBox"] != nil && inst.properties["bBox"] == 1 {
+                            honorBBox = true
+                        }
+                        
+                        if let objectRect = inst.objectRect, honorBBox {
+                                                                            
+                            var res = convertToScreenSpace(x: (inst.properties["posX"]!) * camera.zoom, y: (inst.properties["posY"]!) * camera.zoom, screenWidth: width, screenHeight: height, camera: camera)
+                            
+                            let bBoxBorder : Float = inst.properties["bBoxBorder"]!
+                                                        
+                            let objectMidX : Float = objectRect.xPos + objectRect.width / 2
+                            let objectMidY : Float = -objectRect.yPos + objectRect.height / 2
+
+                            res.x -= objectRect.width/2 * camera.zoom + bBoxBorder * camera.zoom - objectMidX * camera.zoom
+                            res.y = height - res.y - objectRect.height/2 * camera.zoom - bBoxBorder * camera.zoom + objectMidY * camera.zoom
+
+                            //print(inst.name, /*res.x, res.y, camera.xPos, camera.yPos, width, height,*/ objectRect.xPos, objectRect.yPos, objectRect.width, objectRect.height, objectMidX, objectMidY)
+                                                        
+                            renderIt = fragment.applyClipRect(MMRect(res.x, res.y, (objectRect.width+bBoxBorder*2) * camera.zoom, (objectRect.height + bBoxBorder*2) * camera.zoom))
+                            clipRectApplied = renderIt
+                        }
+                        
+                        if renderIt {
+                            fragment.encodeRun(inst.fragmentInstance!.fragmentState!, inBuffer: inst.fragmentInstance!.buffer, inTexture: mmView.openSans.atlas)
+                        }
+                        
+                        if clipRectApplied {
+                            fragment.renderEncoder!.setScissorRect( MTLScissorRect(x:0, y:0, width:Int(width), height:Int(height) ) )
+                        }
+                    } else {
+                        // Render to texture
+                        var texNeedsUpdate : Bool = false
+                        let computeInst = inst.instance!
+                        
+                        let realWidth : Float = width//Float(Int(width / camera.zoom))
+                        let realHeight : Float = height//Float(Int(height / camera.zoom))
+
+                        if computeInst.texture == nil || Float(computeInst.texture!.width) != realWidth || Float(computeInst.texture!.height) != realHeight {
+                            texNeedsUpdate = true
+                            computeInst.texture = fragment.allocateTexture(width: realWidth, height: realHeight, output: false)
+                            print("New Texture", realWidth, realHeight)
+                        }
+                        
+                        if let texture = computeInst.texture {
+                            if texNeedsUpdate == true {
+                                print("Update", camera.zoom)
+                                nodeGraph.builder.updateInstanceData(instance: computeInst, camera: camera, frame: 0)
+                                nodeGraph.builder.render(width: realWidth, height: realHeight, instance: computeInst, camera: camera, outTexture: texture)
+                            }
+                            
+                            mmView.drawTexture.draw(texture, x: 0, y: 0, zoom: 1/camera.zoom, fragment: fragment, prem: false)
+                        }
+                    }
                 }
             }
             fragment.encodeEnd()
@@ -82,5 +160,18 @@ class SceneRenderer {
         nodeGraph.builder.updateInstanceData(instance: instance, camera: camera, frame: 0)
         
         memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
+    }
+    
+    func convertToScreenSpace(x: Float, y: Float, screenWidth: Float, screenHeight: Float, camera: Camera) -> float2
+    {
+        var result : float2 = float2()
+                
+        result.x = (x - camera.xPos + 0.5)// / 700 * rect.width
+        result.y = (y - camera.yPos + 0.5)// / 700 * rect.width
+        
+        result.x += screenWidth/2
+        result.y += screenWidth/2 * screenHeight / screenWidth
+        
+        return result
     }
 }

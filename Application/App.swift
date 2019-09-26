@@ -299,6 +299,15 @@ class App
         }
         setChanged()
     }
+    
+    /// Updates the preview for the current object
+    func updatePreview()
+    {
+        if let object = nodeGraph.currentMaster as? Object {
+            object.updatePreview(nodeGraph: nodeGraph, hard: true)
+            mmView.update()
+        }
+    }
 }
 
 

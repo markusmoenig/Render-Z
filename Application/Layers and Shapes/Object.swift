@@ -144,6 +144,7 @@ class Object : Node
         self.name = "Instance of " + instanceFor.name
         self.subset = instanceFor.subset
         self.disks = instanceFor.disks
+        self.objectRect = instanceFor.objectRect
         self.profile = instanceFor.profile
 
         if properties["posX"] == nil {
@@ -362,7 +363,8 @@ class Object : Node
             instance = nil
             DispatchQueue.main.async {
                 self.executeProperties(nodeGraph)
-                self.instance = nodeGraph.builder.buildObjects(objects: self.playInstance != nil ? [self.playInstance!] : [self], camera: camera)
+                let renderMode : Builder.RenderMode = self.properties["renderMode"] != nil && self.properties["renderMode"]! == 0 ? .Color : .PBR
+                self.instance = nodeGraph.builder.buildObjects(objects: self.playInstance != nil ? [self.playInstance!] : [self], camera: camera, renderMode: renderMode)
                 self.updatePreview(nodeGraph: nodeGraph)
                 nodeGraph.mmView.update()
             }

@@ -17,6 +17,7 @@ class TopRegion: MMRegion
     var openButton      : MMButtonWidget!
     var saveButton      : MMButtonWidget!
     
+    var helpButton      : MMButtonWidget!
     var playButton      : MMButtonWidget!
     
     var app             : App
@@ -127,6 +128,14 @@ class TopRegion: MMRegion
             #endif
         }
         
+        helpButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Help" )
+        helpButton.isDisabled = false
+        helpButton.textYOffset = -2
+        helpButton.clicked = { (event) -> Void in
+            self.helpButton.removeState(.Checked)
+            showHelp()
+        }
+        
         playButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Play" )
         playButton.isDisabled = false
         playButton.textYOffset = -2
@@ -136,7 +145,7 @@ class TopRegion: MMRegion
         
         layoutH( startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
         layoutH( startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton )
-        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, playButton )
+        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, helpButton, playButton )
     }
     
     override func build()
@@ -165,8 +174,9 @@ class TopRegion: MMRegion
         openButton.draw()
         saveButton.draw()
         
-        layoutHFromRight(startX: rect.x + rect.width - 10, startY: 8, spacing: 10, widgets: playButton)
+        layoutHFromRight(startX: rect.x + rect.width - 10, startY: 8, spacing: 10, widgets: helpButton, playButton)
         
+        helpButton.draw()
         playButton.draw()
 
         #if os(OSX)

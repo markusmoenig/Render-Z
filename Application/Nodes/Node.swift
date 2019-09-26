@@ -574,6 +574,7 @@ enum NodeFamily: String, NodeClassFamily {
     case objectCollision = "Object Collision"
     case objectInstanceProps = "Object Instance Props"
     case objectGlow = "Object Glow"
+    case objectRender = "Object Render"
     //case objectProfile = "3D Profile"
     case objectAnimation = "Object Animation"
     case objectAnimationState = "Object Animation State"
@@ -640,6 +641,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return ObjectCollision.self
             case .objectGlow:
                 return ObjectGlow.self
+            case .objectRender:
+                return ObjectRender.self
             //case .objectProfile:
             //    return ObjectProfile.self
             case .objectAnimation:

@@ -96,10 +96,14 @@ class Camera : Codable
 
 class Builder
 {
+    enum RenderMode {
+        case Color, PBR
+    }
+    
     var compute                 : MMCompute?
     var nodeGraph               : NodeGraph
     var maxVarSize              : Int = 10
-    
+
     var buildRootObjectIndex    : Int = 0
     var buildRootObjectId       : Int = 0
     
@@ -110,7 +114,7 @@ class Builder
     }
     
     /// Build the state for the given objects
-    func buildObjects(objects: [Object], camera: Camera, fragment: MMFragment? = nil, layerGlobals: LayerGlobals = LayerGlobals() ) -> BuilderInstance
+    func buildObjects(objects: [Object], camera: Camera, fragment: MMFragment? = nil, layerGlobals: LayerGlobals = LayerGlobals(), renderMode: RenderMode = .PBR ) -> BuilderInstance
     {
         let instance = BuilderInstance()
         let buildData = BuildData()
@@ -372,6 +376,7 @@ class Builder
         """
         
         buildData.source += buildData.materialSource
+        let renderModeText : String = renderMode == .PBR ? "calculatePixelColor_PBR" : "calculatePixelColor_Color"
         
         buildData.source +=
         """
@@ -400,7 +405,7 @@ class Builder
             }
         
             if (fm != 0 || bm != 0) {
-                foreground = calculatePixelColor( fragCoord, bodyMaterial, normal );
+                foreground = \(renderModeText)( fragCoord, bodyMaterial, normal );
                 if ( objectId >= 0 ) {
                     foreground.w *= layerData->objects[objectId].opacity;
                 }
@@ -427,7 +432,7 @@ class Builder
             }
         
             if (fm != 0 || bm != 0) {
-                background = calculatePixelColor( fragCoord, bodyMaterial, normal );
+                background = \(renderModeText)( fragCoord, bodyMaterial, normal );
                 if ( objectId >= 0 ) {
                     background.w *= layerData->objects[objectId].opacity;
                 }
@@ -873,7 +878,9 @@ class Builder
             compute!.run( instance.state, inBuffer: instance.buffer, inTexture: nodeGraph.mmView.openSans.atlas )
             return compute!.texture
         } else {
-            compute!.run( instance.state, outTexture: outTexture, inBuffer: instance.buffer, inTexture: nodeGraph.mmView.openSans.atlas )
+            if let state = instance.state {
+                compute!.run( state, outTexture: outTexture, inBuffer: instance.buffer, inTexture: nodeGraph.mmView.openSans.atlas )
+            }
             return outTexture!
         }
     }
@@ -2171,7 +2178,7 @@ class Builder
             return Ld;
         }
 
-        float4 calculatePixelColor(const float2 uv, MaterialInfo material, float3 normal)
+        float4 calculatePixelColor_PBR(const float2 uv, MaterialInfo material, float3 normal)
         {
             material.baseColor = float4(pow(material.baseColor.xyz, 2.2),material.baseColor.w);//float4(1);
             
@@ -2219,6 +2226,11 @@ class Builder
             //L += diffuseColor * Irradiance_SphericalHarmonics(interaction.normal)/3.14;
 
             return float4(clamp(pow(L, 0.4545), 0, 1), material.baseColor.w);
+        }
+
+        float4 calculatePixelColor_Color(const float2 uv, MaterialInfo material, float3 normal)
+        {
+            return material.baseColor;
         }
 
         """

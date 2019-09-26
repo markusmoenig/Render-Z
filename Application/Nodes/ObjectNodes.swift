@@ -678,6 +678,107 @@ class ObjectPhysics : Node
     }
 }
 
+class ObjectRender : Node
+{
+    override init()
+    {
+        super.init()
+        name = "Render Props"
+    }
+    
+    override func setup()
+    {
+        type = "Object Render"
+        brand = .Property
+        
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/21659649/Render+Properties"
+        uiConnections.append(UINodeConnection(.ObjectInstance))
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
+            NodeUISelector(self, variable: "renderMode", title: "Mode", items: ["Color", "PBR"], index: 1),
+            NodeUISelector(self, variable: "bBox", title: "Bounding Box", items: ["Screen", "Size"], index: 0),
+            NodeUINumber(self, variable: "bBoxBorder", title: "Bounding Border", range: float2(0, 500), value: 0)
+        ]
+        
+        super.setupUI(mmView: mmView)
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            //Terminal(name: "updateMode", connector: .Right, brand: .FloatVariable, node: self),
+        ]
+    }
+    
+    override func updateUIState(mmView: MMView)
+    {
+        let mode = properties["bBox"]!
+        uiItems[3].isDisabled = mode == 0
+        
+        super.updateUIState(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
+    {
+        if variable == "renderMode" {
+            // Update scene
+            if let scene = uiConnections[0].masterNode as? Scene {
+                scene.updateStatus = .NeedsHardUpdate
+            }
+            if let object = globalApp!.nodeGraph.currentMaster as? Object {
+                object.properties[variable] = newValue
+                object.updatePreview(nodeGraph: globalApp!.nodeGraph, hard: true)
+                globalApp!.mmView.update()
+            }
+        }
+    
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
+    /// Execute Object physic properties
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
+    {
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
+                if let object = inst.instance {
+                    object.properties["renderMode"] = properties["renderMode"]!
+                    object.properties["bBox"] = properties["bBox"]!
+                    object.properties["bBoxBorder"] = properties["bBoxBorder"]!
+                    return .Success
+                }
+            }
+        }
+        return .Failure
+    }
+}
+
 class ObjectCollision : Node
 {
     override init()
