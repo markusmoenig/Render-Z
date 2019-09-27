@@ -462,23 +462,21 @@ class ShapeFactory
         
                 if (uv.x >= fontPos.x / atlasSize.x && uv.x <= (fontPos.x + fontSize.x / scale) / atlasSize.x && uv.y >= fontPos.y / atlasSize.y && uv.y <= (fontPos.y + fontSize.y / scale) / atlasSize.y)
                 {
-        
                     const half3 colorSample = texture.sample(textureSampler, uv ).xyz;
         
-                    float3 sample = float3( colorSample );// * float3(40 / size.x);
+                    float3 sample = float3( colorSample );
         
-                    float dist = max(min(sample.r, sample.g), min(max(sample.r, sample.g), sample.b));// - 0.5;// - 0.5 + 0.3;
-                    //dist = clamp(dist, 0.0, 0.9);
-                    dist = dist - 0.5 + thickness;
-                    //dist *= dot(text->charSize/atlasSize, 0.5/(abs(uv.x/scale)+abs(uv.y/scale)));
+                    float dist = max(min(sample.r, sample.g), min(max(sample.r, sample.g), sample.b));// - 0.5 + 0.3;
+                    float b = dist;
+                    dist += thickness;
+                    dist = (0.5 - dist);
         
-        
-                    dist = 0 - ((dist)*10) / scale;
-        
+                    if (dist < 0.0)
+                        dist *= smoothstep(0, 1, b) * 10;
+                    else
+                    if (b < 0.2) dist = 100000;
+                
                     d = min(d, dist);
-
-                    //float d = 1.0;//m4mMedian(sample.r, sample.g, sample.b) - 0.5;
-                    //float w = clamp(d/fwidth(d) + 0.5, 0.0, 1.0);
                 }
         
                 xAdvance += text->charAdvance.x;
@@ -534,18 +532,20 @@ class ShapeFactory
                 {
                     const half3 colorSample = texture.sample(textureSampler, uv ).xyz;
         
-                    float3 sample = float3( colorSample );// * float3(40 / size.x);
+                    float3 sample = float3( colorSample );
         
                     float dist = max(min(sample.r, sample.g), min(max(sample.r, sample.g), sample.b));// - 0.5 + 0.3;
-                    //dist = clamp(dist, 0.0, 0.9);
-                    dist = dist - 0.5 + thickness;
+                    float b = dist;
+                    //dist = clamp(dist + thickness, 0.0, 1.0);
+                    dist += thickness;
+                    dist = (0.5 - dist);
         
-                    dist = 0 - (dist*10) / scale;
-        
+                    if (dist < 0.0)
+                        dist *= smoothstep(0, 1, b) * 10;
+                    else
+                    if (b < 0.2) dist = 100000;
+                
                     d = min(d, dist);
-        
-                    //float d = 1.0;//m4mMedian(sample.r, sample.g, sample.b) - 0.5;
-                    //float w = clamp(d/fwidth(d) + 0.5, 0.0, 1.0);
                 }
         
                 xAdvance += text->charAdvance.x;
@@ -582,18 +582,20 @@ class ShapeFactory
                 {
                     const half3 colorSample = texture.sample(textureSampler, uv ).xyz;
         
-                    float3 sample = float3( colorSample );// * float3(40 / size.x);
+                    float3 sample = float3( colorSample );
         
                     float dist = max(min(sample.r, sample.g), min(max(sample.r, sample.g), sample.b));// - 0.5 + 0.3;
-                    //dist = clamp(dist, 0.0, 0.9);
-                    dist = dist - 0.5 + thickness;
+                    float b = dist;
+                    //dist = clamp(dist + thickness, 0.0, 1.0);
+                    dist += thickness;
+                    dist = (0.5 - dist);
         
-                    dist = 0 - (dist*10) / scale;
-        
+                    if (dist < 0.0)
+                        dist *= smoothstep(0, 1, b) * 10;
+                    else
+                    if (b < 0.2) dist = 100000;
+                
                     d = min(d, dist);
-        
-                    //float d = 1.0;//m4mMedian(sample.r, sample.g, sample.b) - 0.5;
-                    //float w = clamp(d/fwidth(d) + 0.5, 0.0, 1.0);
                 }
         
                 xAdvance += text->charAdvance.x;
@@ -947,5 +949,20 @@ class ShapeFactory
         shape.updateSize()
         
         return shape
+    }
+    
+    /// Shape definition
+    func getShapeDef(_ name: String) -> ShapeDefinition?
+    {
+        var shapeDef : ShapeDefinition? = nil
+        
+        for sh in shapes {
+            if sh.name == name {
+                shapeDef = sh
+                break
+            }
+        }
+        
+        return shapeDef
     }
 }

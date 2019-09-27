@@ -154,7 +154,6 @@ class Scene : Node
     {
         var objects : [Object] = []
         for inst in objectInstances {
-            
             for node in nodeGraph.nodes {
                 if node.uuid == inst.objectUUID {
                     inst.instance = Object(instanceFor: node as! Object, instanceUUID: inst.uuid, instanceProperties: inst.properties)
