@@ -578,13 +578,13 @@ class Gizmo : MMWidget
                 }
                 return
             } else
-                if floatWidget.states.contains(.Opened) {
-                    if floatWidget.rect.contains(event.x, event.y) {
-                        floatWidget.mouseDown(event)
-                    } else {
-                        floatWidget.setState(.Closed)
-                    }
-                    return
+            if floatWidget.states.contains(.Opened) {
+                if floatWidget.rect.contains(event.x, event.y) {
+                    floatWidget.mouseDown(event)
+                } else {
+                    floatWidget.setState(.Closed)
+                }
+                return
             }
         }
         
@@ -2456,7 +2456,8 @@ class Gizmo : MMWidget
             
             if !isRecording() {
                 // Undo for shape based action when not using the timeline
-                if selectedShapes.count == 1 && dragState != .Inactive && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: undoProperties) {
+                if selectedShapes.count == 1 && (dragState != .Inactive || ignoreDragState) && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: undoProperties) {
+                    
                     func applyProperties(_ shape: Shape,_ old: [String:Float],_ new: [String:Float])
                     {
                         mmView.undoManager!.registerUndo(withTarget: self) { target in
@@ -2465,6 +2466,7 @@ class Gizmo : MMWidget
                             applyProperties(shape, new, old)
                             self.app.updateObjectPreview(self.rootObject!)
                         }
+                        self.gizmoNode.updateUIItems(new)
                     }
                     
                     applyProperties(selectedShapes[0], undoProperties, selectedShapes[0].properties)
@@ -2491,6 +2493,7 @@ class Gizmo : MMWidget
                             applyProperties(material, new, old)
                             self.app.updateObjectPreview(self.rootObject!)
                         }
+                        self.gizmoNode.updateUIItems(new)
                     }
                     
                     applyProperties(selectedMaterials[0], undoProperties, selectedMaterials[0].properties)
@@ -2502,7 +2505,7 @@ class Gizmo : MMWidget
                 }
             }
         } else
-        if object != nil && context == .ObjectEditor && dragState != .Inactive {
+        if object != nil && context == .ObjectEditor && (dragState != .Inactive || ignoreDragState) {
             if !isRecording() {
                 if objects.count == 1 && !NSDictionary(dictionary: object!.properties).isEqual(to: undoProperties) {
                     func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
@@ -2525,6 +2528,7 @@ class Gizmo : MMWidget
                             self.app.updateObjectPreview(self.rootObject!)
                         }
                         mmView.update()
+                        self.gizmoNode.updateUIItems(new)
                     }
                     
                     if object!.instanceOf != nil {
@@ -2582,6 +2586,8 @@ class Gizmo : MMWidget
 class GizmoNode : Node
 {
     var gizmo       : Gizmo?
+    var undoVar     : String = ""
+    var undoProps   : [String:Float] = [:]
     
     init(_ gizmo: Gizmo)
     {
@@ -2601,10 +2607,16 @@ class GizmoNode : Node
         
         gizmo?.app.nodeGraph.updateNode(gizmo!.gizmoNode)
         gizmo?.gizmoVariableShape?.customReference = gizmo?.gizmoVariableConnection!.connectedTo
-
+        
         if gizmo!.context == .ShapeEditor
         {
             let selectedShapes = gizmo!.object!.getSelectedShapes()
+            
+            if undoVar != variable {
+                undoVar = variable
+                undoProps = selectedShapes[0].properties
+            }
+            
             if variable == "text" && selectedShapes.count == 1 {
                 let shape = selectedShapes[0]
                 
@@ -2627,6 +2639,12 @@ class GizmoNode : Node
         {
             let selectedMaterials = gizmo!.object!.getSelectedMaterials(gizmo!.materialType)
             let properties : [String:Float] = [variable:newValue]
+            
+            if undoVar != variable {
+                undoVar = variable
+                undoProps = selectedMaterials[0].properties
+            }
+            
             for material in selectedMaterials {
                 gizmo!.processGizmoMaterialProperties(properties, material: material)
             }
@@ -2634,13 +2652,34 @@ class GizmoNode : Node
         } else
         if gizmo!.context == .ObjectEditor && gizmo!.inSceneEditor {
             if let object = gizmo!.object {
+                
+                if undoVar != variable {
+                    undoVar = variable
+                    undoProps = object.properties
+                }
+                
                 object.properties[variable] = newValue
                 gizmo!.maxDelegate!.update(false, updateLists: false)
             }
         }
         
+        // Undo
+        if !continuous && !noUndo {
+            gizmo!.undoProperties = undoProps
+            self.gizmo!.performUndo(ignoreDragState: true)
+            undoVar = ""
+        }
+        
         if noUndo == false {
             //super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
+    /// On undo restore the properties of the ui items
+    func updateUIItems(_ properties: [String:Float]) {
+        self.properties = properties
+        for item in uiItems {
+            item.update()
         }
     }
 }
