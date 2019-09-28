@@ -66,13 +66,12 @@ class MMFloatPopUp : MMWidget
             mouseIsDown = false
             
             let perPixel = (range.y - range.x) / rect.width
-            let oldValue = value
             
             value = range.x + perPixel * (event.x - rect.x)
             value = max( value, range.x)
             value = min( value, range.y)
             
-            if changed != nil && oldValue != value {
+            if changed != nil {
                 changed!(value, false)
             }
         }

@@ -124,8 +124,13 @@ class Gizmo : MMWidget
                 props["pointvalue_\(self.pointIndex)_z"] = color.z
                 props["pointvalue_\(self.pointIndex)_w"] = color.w
             }
+            
             for material in selectedMaterials {
                 self.processGizmoMaterialProperties(props, material: material)
+            }
+            if !continuous {
+                self.performUndo(ignoreDragState: true)
+                self.undoProperties = selectedMaterials[0].properties
             }
             self.rootObject!.maxDelegate!.update(false, updateLists: !continuous)
         }
@@ -141,14 +146,19 @@ class Gizmo : MMWidget
                 props["value_z"] = value
                 props["value_w"] = 1
             } else
-                if self.mode == .Point {
-                    props["pointvalue_\(self.pointIndex)_x"] = value
-                    props["pointvalue_\(self.pointIndex)_y"] = value
-                    props["pointvalue_\(self.pointIndex)_z"] = value
-                    props["pointvalue_\(self.pointIndex)_w"] = 1
+            if self.mode == .Point {
+                props["pointvalue_\(self.pointIndex)_x"] = value
+                props["pointvalue_\(self.pointIndex)_y"] = value
+                props["pointvalue_\(self.pointIndex)_z"] = value
+                props["pointvalue_\(self.pointIndex)_w"] = 1
             }
             for material in selectedMaterials {
                 self.processGizmoMaterialProperties(props, material: material)
+            }
+            if !continuous {
+                print("invoke undo")
+                self.performUndo(ignoreDragState: true)
+                self.undoProperties = selectedMaterials[0].properties
             }
             self.rootObject!.maxDelegate!.update(false, updateLists: !continuous)
         }
@@ -581,11 +591,19 @@ class Gizmo : MMWidget
         //  Open Color or Float Widget ?
         if hoverState == .ColorWidgetClosed {
             colorWidget.setState(.Opened)
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+            if selectedMaterials.count > 0 {
+                undoProperties = selectedMaterials[0].properties
+            }
             return
         } else
-            if hoverState == .FloatWidgetClosed {
-                floatWidget.setState(.Opened)
-                return
+        if hoverState == .FloatWidgetClosed {
+            floatWidget.setState(.Opened)
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+            if selectedMaterials.count > 0 {
+                undoProperties = selectedMaterials[0].properties
+            }
+            return
         }
         
         // --- Gizmo Action
@@ -735,110 +753,9 @@ class Gizmo : MMWidget
             floatWidget.mouseUp(event)
             return
         }
-        
-        if object != nil && context == .ShapeEditor {
-            let selectedShapes = object!.getSelectedShapes()
-            for shape in selectedShapes {
-                shape.updateSize()
-            }
-            
-            if !isRecording() {
-                // Undo for shape based action when not using the timeline
-                if selectedShapes.count == 1 && dragState != .Inactive && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: undoProperties) {
-                    func applyProperties(_ shape: Shape,_ old: [String:Float],_ new: [String:Float])
-                    {
-                        mmView.undoManager!.registerUndo(withTarget: self) { target in
-                            shape.properties = old
-                            
-                            applyProperties(shape, new, old)
-                            self.app.updateObjectPreview(self.rootObject!)
-                        }
-                    }
-                    
-                    applyProperties(selectedShapes[0], undoProperties, selectedShapes[0].properties)
-                }
-            } else {
-                // Undo for shape based action when using the timeline
-                if selectedShapes.count == 1 && dragState != .Inactive && undoData != nil {
-                    undoTimelineAction()
-                }
-            }
-        } else
-        if object != nil && context == .MaterialEditor
-        {
-            let selectedMaterials = object!.getSelectedMaterials(materialType)
-            
-            if !isRecording() {
-                // Undo for material based action
-                if selectedMaterials.count == 1 && dragState != .Inactive && !NSDictionary(dictionary: selectedMaterials[0].properties).isEqual(to: undoProperties) {
-                    func applyProperties(_ material: Material,_ old: [String:Float],_ new: [String:Float])
-                    {
-                        mmView.undoManager!.registerUndo(withTarget: self) { target in
-                            material.properties = old
-                            
-                            applyProperties(material, new, old)
-                            self.app.updateObjectPreview(self.rootObject!)
-                        }
-                    }
-                    
-                    applyProperties(selectedMaterials[0], undoProperties, selectedMaterials[0].properties)
-                }
-            } else {
-                // Undo for material based action when using the timeline
-                if selectedMaterials.count == 1 && dragState != .Inactive && undoData != nil {
-                    undoTimelineAction()
-                }
-            }
-        } else
-        if object != nil && context == .ObjectEditor && dragState != .Inactive {
-            if !isRecording() {
-                if objects.count == 1 && !NSDictionary(dictionary: object!.properties).isEqual(to: undoProperties) {
-                    func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
-                    {
-                        mmView.undoManager!.registerUndo(withTarget: self) { target in
-                            
-                            if object.instanceOf == nil {
-                                object.properties = old
-                            } else {
-                                if let layer = self.app.nodeGraph.getSceneOfInstance(object.uuid) {
-                                    for inst in layer.objectInstances {
-                                        if inst.uuid == object.uuid {
-                                            inst.properties = old
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            applyProperties(object, new, old)
-                            self.app.updateObjectPreview(self.rootObject!)
-                        }
-                        mmView.update()
-                    }
-                    
-                    if object!.instanceOf != nil {
-                        // This is an instance, we need to update the instance properties
-                        if let layer = app.nodeGraph.getSceneOfInstance(object!.uuid) {
-                            for inst in layer.objectInstances {
-                                if inst.uuid == object!.uuid {
-                                    inst.properties = object!.properties
-                                }
-                            }
-                        }
-                    }
-                    
-                    applyProperties(object!, undoProperties, object!.properties)
-                }
-            } else {
-                // Undo for object based action when using the timeline
-                if objects.count == 1 && undoData != nil {
-                    undoTimelineAction()
-                }
-            }
-        }
-        // Update the material list
-        if object != nil && context == .MaterialEditor {
-            maxDelegate!.update(false, updateLists: true)
-        }
+
+        // Undo
+        performUndo()
 
         if hoverState == .GizmoUIMouseLocked {
             hoverUIItem!.mouseUp(event)
@@ -2526,6 +2443,114 @@ class Gizmo : MMWidget
         //print( properties )
         
         return properties
+    }
+    
+    /// Perform Undo
+    func performUndo(ignoreDragState : Bool = false)
+    {
+        if object != nil && context == .ShapeEditor {
+            let selectedShapes = object!.getSelectedShapes()
+            for shape in selectedShapes {
+                shape.updateSize()
+            }
+            
+            if !isRecording() {
+                // Undo for shape based action when not using the timeline
+                if selectedShapes.count == 1 && dragState != .Inactive && !NSDictionary(dictionary: selectedShapes[0].properties).isEqual(to: undoProperties) {
+                    func applyProperties(_ shape: Shape,_ old: [String:Float],_ new: [String:Float])
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            shape.properties = old
+                            
+                            applyProperties(shape, new, old)
+                            self.app.updateObjectPreview(self.rootObject!)
+                        }
+                    }
+                    
+                    applyProperties(selectedShapes[0], undoProperties, selectedShapes[0].properties)
+                }
+            } else {
+                // Undo for shape based action when using the timeline
+                if selectedShapes.count == 1 && dragState != .Inactive && undoData != nil {
+                    undoTimelineAction()
+                }
+            }
+        } else
+        if object != nil && context == .MaterialEditor
+        {
+            let selectedMaterials = object!.getSelectedMaterials(materialType)
+            
+            if !isRecording() {
+                // Undo for material based action
+                if selectedMaterials.count == 1 && (dragState != .Inactive || ignoreDragState) && !NSDictionary(dictionary: selectedMaterials[0].properties).isEqual(to: undoProperties) {
+                    func applyProperties(_ material: Material,_ old: [String:Float],_ new: [String:Float])
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            material.properties = old
+                            
+                            applyProperties(material, new, old)
+                            self.app.updateObjectPreview(self.rootObject!)
+                        }
+                    }
+                    
+                    applyProperties(selectedMaterials[0], undoProperties, selectedMaterials[0].properties)
+                }
+            } else {
+                // Undo for material based action when using the timeline
+                if selectedMaterials.count == 1 && dragState != .Inactive && undoData != nil {
+                    undoTimelineAction()
+                }
+            }
+        } else
+        if object != nil && context == .ObjectEditor && dragState != .Inactive {
+            if !isRecording() {
+                if objects.count == 1 && !NSDictionary(dictionary: object!.properties).isEqual(to: undoProperties) {
+                    func applyProperties(_ object: Object,_ old: [String:Float],_ new: [String:Float])
+                    {
+                        mmView.undoManager!.registerUndo(withTarget: self) { target in
+                            
+                            if object.instanceOf == nil {
+                                object.properties = old
+                            } else {
+                                if let layer = self.app.nodeGraph.getSceneOfInstance(object.uuid) {
+                                    for inst in layer.objectInstances {
+                                        if inst.uuid == object.uuid {
+                                            inst.properties = old
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            applyProperties(object, new, old)
+                            self.app.updateObjectPreview(self.rootObject!)
+                        }
+                        mmView.update()
+                    }
+                    
+                    if object!.instanceOf != nil {
+                        // This is an instance, we need to update the instance properties
+                        if let layer = app.nodeGraph.getSceneOfInstance(object!.uuid) {
+                            for inst in layer.objectInstances {
+                                if inst.uuid == object!.uuid {
+                                    inst.properties = object!.properties
+                                }
+                            }
+                        }
+                    }
+                    
+                    applyProperties(object!, undoProperties, object!.properties)
+                }
+            } else {
+                // Undo for object based action when using the timeline
+                if objects.count == 1 && undoData != nil {
+                    undoTimelineAction()
+                }
+            }
+        }
+        // Update the material list
+        if object != nil && context == .MaterialEditor {
+            maxDelegate!.update(false, updateLists: true)
+        }
     }
     
     /// Undo a timeline based action
