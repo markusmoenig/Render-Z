@@ -1179,9 +1179,7 @@ class ShapeListScrollArea: MMScrollArea
         mouseDownPos.x = event.x - rect.x
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
-        
-        let oldSelection = delegate.selObject!.selectedShapes
-        
+
         let shapeList = delegate.shapeList!
         
         delegate.shapeListChanged = shapeList.selectAt(mouseDownPos.x,mouseDownPos.y, multiSelect: mmView.shiftIsDown)
@@ -1198,17 +1196,8 @@ class ShapeListScrollArea: MMScrollArea
                     object!.shapes.insert(shape, at: shapeList.hoverIndex + 1)
             } else
             if shapeList.hoverState == .Close && shapeList.hoverIndex >= 0 && shapeList.hoverIndex < object!.shapes.count {
-                let shape = object!.shapes.remove(at: shapeList.hoverIndex)
-                if oldSelection.contains( shape.uuid ) {
-                    delegate.selObject!.selectedShapes = []
-                } else {
-                    delegate.selObject!.selectedShapes = oldSelection
-                }
-                delegate.shapeListChanged = true
-                delegate.app.gizmo.setObject(delegate.selObject!, context: .ShapeEditor)
+                deleteAtIndex(index: shapeList.hoverIndex)
                 delegate.shapeList.hoverAt(event.x - rect.x, event.y - rect.y)
-                delegate.update(true)
-                mmView.update()
                 return
             }
             
@@ -1238,6 +1227,52 @@ class ShapeListScrollArea: MMScrollArea
     
     override func dragTerminated() {
         dragSource = nil
+    }
+    
+    func deleteAtIndex(index: Int)
+    {
+        let oldSelection = delegate.selObject!.selectedShapes
+        let object = delegate.currentObject!
+        let shape = object.shapes[index]
+
+        func shapeStatusChanged(_ objectUUID: UUID,_ shape: Shape,_ index: Int)
+        {
+            let object = globalApp!.nodeGraph.getNodeForUUID(objectUUID) as! Object
+            mmView.undoManager!.registerUndo(withTarget: self) { target in
+                
+                let localIndex = object.shapes.firstIndex(where: { $0.uuid == shape.uuid })
+                if localIndex != nil {
+                    object.shapes.remove(at: localIndex!)
+                    object.selectedShapes = []
+                    
+                    self.delegate.shapeListChanged = true
+                    self.delegate.app.gizmo.setObject(self.delegate.selObject!, context: .ShapeEditor)
+                    self.delegate.update(true)
+                    self.mmView.update()
+                } else {
+                    object.shapes.insert(shape, at: index)
+                    object.selectedShapes = [shape.uuid]
+                    
+                    self.delegate.shapeListChanged = true
+                    self.delegate.app.gizmo.setObject(self.delegate.selObject!, context: .ShapeEditor)
+                    self.delegate.update(true)
+                    self.mmView.update()
+                }
+                shapeStatusChanged(object.uuid, shape, index)
+                self.app.updateObjectPreview(object)
+            }
+            globalApp!.nodeGraph.mmView.undoManager!.setActionName("Shape Removed")
+        }
+        
+        shapeStatusChanged(object.uuid, shape, index)
+        
+        object.shapes.remove(at: index)
+        object.selectedShapes = []
+        
+        self.delegate.shapeListChanged = true
+        self.delegate.app.gizmo.setObject(self.delegate.selObject!, context: .ShapeEditor)
+        self.delegate.update(true)
+        self.mmView.update()
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -1327,8 +1362,6 @@ class MaterialListScrollArea: MMScrollArea
         mouseDownPos.y = event.y - rect.y
         mouseIsDown = true
         
-        let oldSelection = delegate.materialType == .Body ? delegate.selObject!.selectedBodyMaterials : delegate.selObject!.selectedBorderMaterials
-        
         let materialList = delegate.materialList!
         
         delegate.materialListChanged = delegate.materialList.selectAt(mouseDownPos.x,mouseDownPos.y, multiSelect: mmView.shiftIsDown)
@@ -1339,31 +1372,15 @@ class MaterialListScrollArea: MMScrollArea
                 let material = delegate.removeMaterial(at: materialList.hoverIndex)
                 delegate.insertMaterial(material, at: materialList.hoverIndex - 1)
             } else
-                if materialList.hoverState == .HoverDown && delegate.materialCount() > 1 && materialList.hoverIndex < delegate.materialCount()-1 {
-                    let material = delegate.removeMaterial(at: materialList.hoverIndex)
-                    delegate.insertMaterial(material, at: materialList.hoverIndex + 1)
-                } else
-                    if materialList.hoverState == .Close && materialList.hoverIndex >= 0 && materialList.hoverIndex < delegate.materialCount()
-                    {
-                        let material = delegate.removeMaterial(at: materialList.hoverIndex)
-                        if oldSelection.contains( material.uuid ) {
-                            if delegate.materialType == .Body {
-                                delegate.selObject!.selectedBodyMaterials = []
-                            } else {
-                                delegate.selObject!.selectedBorderMaterials = []
-                            }
-                        } else {
-                            if delegate.materialType == .Body {
-                                delegate.selObject!.selectedBodyMaterials = oldSelection
-                            } else {
-                                delegate.selObject!.selectedBorderMaterials = oldSelection
-                            }
-                        }
-                        delegate.materialListChanged = true
-                        delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
-                        delegate.materialList.hoverAt(event.x - rect.x, event.y - rect.y)
-                        delegate.update(true)
-                        return
+            if materialList.hoverState == .HoverDown && delegate.materialCount() > 1 && materialList.hoverIndex < delegate.materialCount()-1 {
+                let material = delegate.removeMaterial(at: materialList.hoverIndex)
+                delegate.insertMaterial(material, at: materialList.hoverIndex + 1)
+            } else
+            if materialList.hoverState == .Close && materialList.hoverIndex >= 0 && materialList.hoverIndex < delegate.materialCount()
+            {
+                deleteAtIndex(index: materialList.hoverIndex)
+                delegate.materialList.hoverAt(event.x - rect.x, event.y - rect.y)
+                return
             }
             
             materialList.hoverData[0] = -1
@@ -1375,6 +1392,71 @@ class MaterialListScrollArea: MMScrollArea
             delegate.update(true)
             delegate.app.gizmo.setObject(delegate.selObject, rootObject: delegate.currentObject, context: delegate.gizmoContext, materialType: delegate.materialType)
         }
+    }
+    
+    func deleteAtIndex(index: Int)
+    {
+        let object = delegate.currentObject!
+        let materialType = delegate.materialType
+        
+        let material : Material
+        if materialType == .Body {
+            material = object.bodyMaterials[index]
+        } else {
+            material = object.borderMaterials[index]
+        }
+        
+        func update()
+        {
+            delegate.materialListChanged = true
+            delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
+            delegate.update(true)
+            
+            self.app.updateObjectPreview(object)
+        }
+
+        func materialStatusChanged(_ objectUUID: UUID, _ material: Material,_ index: Int, _ materialType: Object.MaterialType)
+        {
+            let object = globalApp!.nodeGraph.getNodeForUUID(objectUUID) as! Object
+            
+            mmView.undoManager!.registerUndo(withTarget: self) { target in
+                
+                if materialType == .Body {
+                    let localIndex = object.bodyMaterials.firstIndex(where: { $0.uuid == material.uuid })
+                    if localIndex != nil {
+                        object.bodyMaterials.remove(at: localIndex!)
+                        object.selectedBodyMaterials = []
+                    } else {
+                        object.bodyMaterials.insert(material, at: index)
+                        object.selectedBodyMaterials = [material.uuid]
+                    }
+                } else
+                if materialType == .Border {
+                    let localIndex = object.borderMaterials.firstIndex(where: { $0.uuid == material.uuid })
+                    if localIndex != nil {
+                        object.borderMaterials.remove(at: localIndex!)
+                        object.selectedBorderMaterials = []
+                    } else {
+                        object.borderMaterials.insert(material, at: index)
+                        object.selectedBorderMaterials = [material.uuid]
+                    }
+                }
+                materialStatusChanged(objectUUID, material, index, materialType)
+                update()
+            }
+        }
+        
+        materialStatusChanged(object.uuid, material, index, materialType)
+        
+        if materialType == .Body {
+            object.bodyMaterials.remove(at: index)
+            object.selectedBodyMaterials = []
+        } else {
+            object.borderMaterials.remove(at: index)
+            object.selectedBorderMaterials = []
+        }
+        
+        update()
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {
