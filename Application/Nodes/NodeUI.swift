@@ -1288,6 +1288,7 @@ class NodeUIColor : NodeUI
         } else {
             self.value = getValue()
         }
+        supportsTitleHover = true
     }
     
     override func calcSize(mmView: MMView) {
@@ -1317,6 +1318,18 @@ class NodeUIColor : NodeUI
                 }
             }
         }
+    }
+    
+    override func titleClicked()
+    {
+        let old = value
+        getStringDialog(view: mmView, title: title, message: "Enter new value", defaultValue: toHex(value), cb: { (string) -> Void in
+            self.setValue(fromHex(hexString: string))
+            self.titleHover = false
+            self.mmView.update()
+            self.node.variableChanged(variable: self.variable, oldValue: old, newValue: self.value, continuous: false)
+        } )
+        return
     }
     
     override func mouseDown(_ event: MMMouseEvent)

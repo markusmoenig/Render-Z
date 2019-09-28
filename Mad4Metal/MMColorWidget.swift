@@ -28,23 +28,24 @@ class MMColorPopupWidget : MMWidget
     var slDot       : float2 = float2(0,0)
     
     var insideOp    : Bool = false
+    
+    let hexLabel    : MMTextLabel
+    var hexHover    : Bool = false
 
     init(_ view: MMView, value: float4 = float4(0.5, 0.5, 0.5, 1))
     {
         self.value = value
+        
+        hexLabel = MMTextLabel(view, font: view.openSans, text: toHex(SIMD3<Float>(value.x, value.y, value.z)), scale: 0.4)
+
         super.init(view)
         
-        let hsl = toHSL(value.x, value.y, value.z)
-        h = hsl.0
-        s = hsl.1
-        l = hsl.2
-
         name = "MMColorWidget"
         
         rect.width = 30
         rect.height = 28
-        
-        computePoints()
+
+        setValue(color: SIMD3<Float>(value.x, value.y, value.z))
     }
     
     func setState(_ state: MMWidgetStates)
@@ -55,13 +56,33 @@ class MMColorPopupWidget : MMWidget
             removeState(.Opened)
         } else {
             rect.width = 230
-            rect.height = 170
+            rect.height = 170 + 30
             addState(.Opened)
         }
     }
     
+    func setValue(color: SIMD3<Float>)
+    {
+        self.value = SIMD4<Float>(color.x, color.y, color.z, 1)
+
+        let hsl = toHSL(color.x, color.y, color.z)
+        h = hsl.0 * 360
+        s = hsl.1
+        l = hsl.2
+
+        computePoints()
+        hexLabel.setText(toHex(SIMD3(value.x, value.y, value.z)))
+    }
+    
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if hexHover {
+            getStringDialog(view: mmView, title: "Color Value", message: "Enter new value", defaultValue: hexLabel.text, cb: { (string) -> Void in
+                self.setValue(color: fromHex(hexString: string))
+                self.mmView.update()
+            } )
+            return
+        }
         mouseIsDown = true
         
         calcColor(event, true, true)
@@ -84,6 +105,16 @@ class MMColorPopupWidget : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        let oldHexHover = hexHover
+        if hexLabel.rect.contains(event.x, event.y) {
+            hexHover = true
+        } else {
+            hexHover = false
+        }
+        if oldHexHover != hexHover {
+            mmView.update()
+        }
+        
         if mouseIsDown {
             calcColor(event, true)
         }
@@ -219,6 +250,7 @@ class MMColorPopupWidget : MMWidget
             value.x = rgb.0
             value.y = rgb.1
             value.z = rgb.2
+            hexLabel.setText(toHex(SIMD3(value.x, value.y, value.z)))
             if changed != nil {
                 changed!(value,continuous)
             }
@@ -250,6 +282,7 @@ class MMColorPopupWidget : MMWidget
         value.x = rgb.0
         value.y = rgb.1
         value.z = rgb.2
+        hexLabel.setText(toHex(SIMD3(value.x, value.y, value.z)))
         if changed != nil {
             changed!(value,continuous)
         }
@@ -269,6 +302,11 @@ class MMColorPopupWidget : MMWidget
             mmView.drawSphere.draw(x: rect.x + hueDot.x + 5, y: rect.y + hueDot.y + 5, radius: 6, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
             
             mmView.drawSphere.draw(x: rect.x + slDot.x + 5, y: rect.y + slDot.y + 5, radius: 6, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
+            
+            hexLabel.rect.x = rect.x + 15
+            hexLabel.rect.y = rect.y + rect.height - 28
+            hexLabel.color = hexHover ? SIMD4<Float>(1,1,1,1) : SIMD4<Float>(0.8,0.8,0.8,1)
+            hexLabel.draw()
         }
     }
 }

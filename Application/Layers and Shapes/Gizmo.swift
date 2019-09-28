@@ -186,10 +186,7 @@ class Gizmo : MMWidget
             if selectedMaterials.count > 0 {
                 let material = selectedMaterials[0]
                 if material.pointCount == 0 {
-                    colorWidget.value.x = material.properties["value_x"]!
-                    colorWidget.value.y = material.properties["value_y"]!
-                    colorWidget.value.z = material.properties["value_z"]!
-                    colorWidget.value.w = material.properties["value_w"]!
+                    colorWidget.setValue(color: SIMD3<Float>(material.properties["value_x"]!, material.properties["value_y"]!, material.properties["value_z"]!))
                     floatWidget.value = material.properties["value_x"]!
                 }
             }
@@ -1704,10 +1701,7 @@ class Gizmo : MMWidget
             if context == .MaterialEditor && pointMaterial!.properties["channel"] == 0 {
                 colorWidget.rect.x = screenSpace.x - 55
                 colorWidget.rect.y = screenSpace.y + 22
-                colorWidget.value.x = pointMaterial!.properties["pointvalue_\(pointIndex)_x"]!
-                colorWidget.value.y = pointMaterial!.properties["pointvalue_\(pointIndex)_y"]!
-                colorWidget.value.z = pointMaterial!.properties["pointvalue_\(pointIndex)_z"]!
-                colorWidget.value.w = pointMaterial!.properties["pointvalue_\(pointIndex)_w"]!
+                colorWidget.setValue(color: SIMD3<Float>(pointMaterial!.properties["pointvalue_\(pointIndex)_x"]!, pointMaterial!.properties["pointvalue_\(pointIndex)_y"]!, pointMaterial!.properties["pointvalue_\(pointIndex)_z"]!))
                 colorWidget.draw()
             } else
             if context == .MaterialEditor && pointMaterial!.properties["channel"] != 0 {

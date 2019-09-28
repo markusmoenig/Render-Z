@@ -6,7 +6,7 @@
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
-import Foundation
+import MetalKit
 
 /// MMRect class
 class MMRect
@@ -235,6 +235,31 @@ func toRGB(_ h: Float, _ s: Float, _ l: Float) -> (Float, Float, Float)
     }
     
     return (r,g,b)
+}
+
+func toHex(_ color: SIMD3<Float> ) -> String
+{
+    return "#" +  String(format: "%02lX%02lX%02lX", lroundf(color.x * 255), lroundf(color.y * 255), lroundf(color.z * 255))
+}
+
+func fromHex(hexString: String) -> SIMD3<Float>
+{
+    let hex = hexString.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+    var int = UInt32()
+    Scanner(string: hex).scanHexInt32(&int)
+    let a, r, g, b: UInt32
+    switch hex.count {
+    case 3: // RGB (12-bit)
+        (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+    case 6: // RGB (24-bit)
+        (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+    case 8: // ARGB (32-bit)
+        (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+    default:
+        (a, r, g, b) = (255, 0, 0, 0)
+    }
+    _ = Float(a) / 255
+    return SIMD3<Float>(Float(r) / 255, Float(g) / 255, Float(b) / 255)//, alpha: CGFloat(a) / 255)
 }
 
 func createNodeCamera(_ node: Node) -> Camera
