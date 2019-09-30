@@ -330,7 +330,8 @@ class Builder
                 case 1: AA = 2; break;
                 case 2: AA = 3; break;
                 default: AA = 1; break;
-           }
+            }
+            //print("aa level for", objects[0].name, AA)
         }
         
         buildData.source +=

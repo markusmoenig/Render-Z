@@ -723,7 +723,7 @@ class ObjectRender : Node
     override func updateUIState(mmView: MMView)
     {
         let mode = properties["bBox"]!
-        uiItems[3].isDisabled = mode == 0
+        uiItems[4].isDisabled = mode == 0
         
         super.updateUIState(mmView: mmView)
     }
