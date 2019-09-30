@@ -146,6 +146,83 @@ class MaterialFactory
         def.heightProperty = "size"
         materials.append( def )
         
+        // --- Hex
+        def = MaterialDefinition()
+        def.name = "Hex"
+        def.globalCode =
+        """
+        
+        // { 2d cell id, distance to border, distnace to center )
+        float4 hexPatternMaterial( float2 p )
+        {
+            float2 q = float2( p.x*2.0*0.5773503, p.y + p.x*0.5773503 );
+            
+            float2 pi = floor(q);
+            float2 pf = fract(q);
+
+            float v = fmod(pi.x + pi.y, 3.0);
+
+            float ca = step(1.0,v);
+            float cb = step(2.0,v);
+            float2  ma = step(pf.xy,pf.yx);
+            
+            // distance to borders
+            float e = dot( ma, 1.0-pf.yx + ca*(pf.x+pf.y-1.0) + cb*(pf.yx-2.0*pf.xy) );
+
+            // distance to center
+            p = float2( q.x + floor(0.5+p.y/1.5), 4.0*p.y/3.0 )*0.5 + 0.5;
+            float f = length( (fract(p) - 0.5)*float2(1.0,0.85) );
+            
+            return float4( pi + ca - cb*ma, e, f );
+        }
+        
+        float4 hexMaterial( float2 uv, float4 value, float2 size, float s) {
+            uv = abs(uv / size.x);
+        
+            /*
+            // Tiling
+        
+            float2 d = float2(1.0, sqrt(3.0));
+            float2 h = 0.5*d;
+            float2 a = fmod(uv, d) - h;
+            float2 b = fmod(uv + h, d) - h;
+            float2 p = dot(a, a) < dot(b, b)? a: b;
+        
+            //tile_id = p - uv;
+            s /= 2;
+        
+            p = abs(p);
+        
+            float shape = smoothstep(p.x, p.x+0.01, s);
+            float hd = dot(p, normalize(float2(1.0, 1.73)));
+            shape *= smoothstep(hd, hd+0.01, s);
+                
+            return mix( float4(0), value, shape );
+            */
+        
+            float4 rc = hexPatternMaterial(uv);
+        
+            s = 1.0 - s;
+            return mix( float4(0), value, smoothstep( s, s + 0.01, rc.z ) );
+        }
+        """
+        def.code = "hexMaterial(__uv__, __value__, __size__,__custom_gap__)"
+        def.properties["value_x"] = 0.3
+        def.properties["value_y"] = 0.3
+        def.properties["value_z"] = 0.3
+        def.properties["value_w"] = 1
+        
+        def.properties["custom_gap"] = 0.9
+        def.properties["gap_min"] = 0
+        def.properties["gap_max"] = 1
+        def.properties["gap_int"] = 0
+        
+        def.properties["size"] = defaultSize / 2
+        def.properties["size"] = defaultSize / 2
+        def.widthProperty = "size"
+        def.heightProperty = "size"
+        materials.append( def )
+        
         // --- Bricks
         def = MaterialDefinition()
         def.name = "Bricks"

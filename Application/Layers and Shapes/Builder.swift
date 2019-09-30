@@ -322,11 +322,30 @@ class Builder
             """
         }
         
+        // Get the Anti-Aliasing Level
+        var AA : Int = 1
+        if objects.count > 0 && objects[0].properties["aaLevel"] != nil {
+            let aaLevel = objects[0].properties["aaLevel"]!
+            switch(aaLevel) {
+                case 1: AA = 2; break;
+                case 2: AA = 3; break;
+                default: AA = 1; break;
+           }
+        }
+        
         buildData.source +=
         """
 
-            float2 uv = fragCoord;
+            float4 total = float4(0);
+            int AA = \(AA);
         
+            for( int mm=0; mm<AA; mm++ )
+            for( int nn=0; nn<AA; nn++ )
+            {
+            float2 uv = fragCoord;
+            float2 off = float2(mm,nn)/float(AA);
+            uv += off;
+
             float2 center = size / 2;
             uv = translate(uv, center - float2( layerData->position.x + layerData->camera.x, layerData->position.y + layerData->camera.y ) );
             uv.y = -uv.y;
@@ -336,7 +355,6 @@ class Builder
             float4 rc = float4(100000, -1, -1, 100000), objectRC;
         """
 
-        
         for (index, object) in objects.enumerated() {
             if object.shapes.count == 0 { continue }
             buildData.source +=
@@ -446,13 +464,16 @@ class Builder
         """
         
             col = mix(glowColor, col, col.w);
+            total += col;
+            }
+            total = total/float(AA*AA);
         
         """
         
         if fragment == nil {
             buildData.source +=
             """
-                outTexture.write(half4(col.x, col.y, col.z, col.w), gid);
+                outTexture.write(half4(total.x, total.y, total.z, total.w), gid);
             }
             
             """
@@ -460,7 +481,7 @@ class Builder
             buildData.source +=
             """
                 //return col;
-                return float4(col.x / col.w, col.y / col.w, col.z / col.w, col.w);
+                return float4(total.x / total.w, total.y / total.w, total.z / total.w, total.w);
             }
             
             """

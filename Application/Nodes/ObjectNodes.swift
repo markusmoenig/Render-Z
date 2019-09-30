@@ -704,6 +704,8 @@ class ObjectRender : Node
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
             NodeUISelector(self, variable: "renderMode", title: "Mode", items: ["Color", "PBR"], index: 1),
+            NodeUISelector(self, variable: "aaLevel", title: "Anti-Aliasing", items: ["None", "Good", "Best"], index: 0),
+
             NodeUISelector(self, variable: "bBox", title: "Bounding Box", items: ["Screen", "Object Size"], index: 0),
             NodeUINumber(self, variable: "bBoxBorder", title: "Bounding Border", range: float2(0, 500), value: 0)
         ]
@@ -745,7 +747,7 @@ class ObjectRender : Node
     /// A UI Variable changed
     override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
     {
-        if variable == "renderMode" {
+        if variable == "renderMode" || variable == "aaLevel" {
             // Update scene
             if let scene = uiConnections[0].masterNode as? Scene {
                 scene.updateStatus = .NeedsHardUpdate
@@ -769,6 +771,7 @@ class ObjectRender : Node
             if let inst = target as? ObjectInstance {
                 if let object = inst.instance {
                     object.properties["renderMode"] = properties["renderMode"]!
+                    object.properties["aaLevel"] = properties["aaLevel"]!
                     object.properties["bBox"] = properties["bBox"]!
                     object.properties["bBoxBorder"] = properties["bBoxBorder"]!
                     return .Success
@@ -804,8 +807,9 @@ class ObjectCollision : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
-            NodeUIAngle(self, variable: "collisionVelocity", title: "Velocity", value: 0),
-            NodeUIAngle(self, variable: "collisionNormal", title: "Normal", value: 0)
+            NodeUISelector(self, variable: "collisionMode", title: "Collision Mode", items: ["Body", "Inside Border"], index: 0),
+            NodeUIAngle(self, variable: "collisionVelocity", title: "Collision Velocity", value: 0),
+            NodeUIAngle(self, variable: "collisionNormal", title: "Collision Normal", value: 0)
         ]
         
         super.setupUI(mmView: mmView)
@@ -934,6 +938,13 @@ class ObjectCollision : Node
     /// Execute Object physic properties
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
     {
+        for target in uiConnections[0].targets {
+            if let inst = target as? ObjectInstance {
+                if let object = inst.instance {
+                    object.properties["collisionMode"] = properties["collisionMode"]!
+                }
+            }
+        }
         return .Success
     }
     

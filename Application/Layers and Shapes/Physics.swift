@@ -394,8 +394,8 @@ class Physics
                         
                         let diskOffset : Int = offset + i * 4
                         
-                        let penetration : Float = result[diskOffset]
-                        let distance : Float = result[diskOffset+1]
+                        var penetration : Float = result[diskOffset]
+                        var distance : Float = result[diskOffset+1]
                         
                         if distance - disk.distance < shortestDistance {
                             shortestDistance = distance -  disk.distance
@@ -421,6 +421,18 @@ class Physics
                         if nodeGraph.debugMode == .Physics {
                             let visualContact = rotateCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
                             nodeGraph.debugInstance.addDisk(float2(visualContact.x,visualContact.y), disk.distance, 4, penetration > hitPenetration ? float4(1,0,0,1) : float4(1,1,0,1) )
+                        }
+                        
+                        if collisionObject.properties["collisionMode"] != nil && collisionObject.properties["collisionMode"]! == 1 {
+                            // Inverse collision mode, collide with the border from the inside
+                    
+                            let borderWidth : Float = collisionObject.properties["border"]!
+                            let borderDistance = distance + disk.distance + borderWidth
+                                                                                    
+                            penetration = borderDistance
+                            distance = -distance
+                            result[diskOffset + 2] = -result[diskOffset + 2]
+                            result[diskOffset + 3] = -result[diskOffset + 3]
                         }
                         
                         if ( penetration > hitPenetration )
