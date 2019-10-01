@@ -31,6 +31,8 @@ class BuilderInstance
     var profileDataOffset : Int = 0
     // Offset to the variables
     var variablesDataOffset : Int = 0
+    // Offset to the lights
+    var lightsDataOffset : Int = 0
     
     var texture         : MTLTexture? = nil
 }
@@ -122,7 +124,7 @@ class Builder
             float4      camera;
             float2      position;
             float2      limiterSize;
-            float4      general; // .x == time, .y == renderSampling
+            float4      general; // .x == time, .y == normalSampling, .z numberOfLights
 
             SHAPE_DATA  shapes[\(max(buildData.maxShapes, 1))];
             float4      points[\(max(buildData.maxPoints, 1))];
@@ -130,6 +132,7 @@ class Builder
             float4      materialData[\(max(buildData.maxMaterialData, 1))];
             float4      profileData[\(max(buildData.maxProfileData, 1))];
             VARIABLE    variables[\(max(buildData.maxVariables, 1))];
+            LIGHT_INFO  lights[5];
         } LAYER_DATA;
         
         """
@@ -169,7 +172,7 @@ class Builder
         
         """*/
         
-        /// Parse objects and their shapes
+        // Parse objects and their shapes
         
         for (index,object) in objects.enumerated() {
             if object.shapes.count == 0 { continue }
@@ -284,6 +287,16 @@ class Builder
             instance.data!.append( 0 )
         }
         
+        instance.lightsDataOffset = instance.data!.count
+        
+        // Lights
+        for _ in 0..<(6 * 4) {
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+            instance.data!.append( 0 )
+        }
+        
         let headerSource = buildData.source
         
         if fragment == nil {
@@ -389,10 +402,21 @@ class Builder
         
         buildData.source +=
         """
+            LightInfo lights[5];
+        
+            int numberOfLights = int(layerData->general.z);
+            for( int i = 0; i < 5; ++i) {
+                lights[i].L = layerData->lights[i].L.xyz;
+                lights[i].position = layerData->lights[i].position.xyz;
+                lights[i].direction = layerData->lights[i].direction.xyz;
+                lights[i].radius = layerData->lights[i].radiusTypeEnabled.x;
+                lights[i].type = layerData->lights[i].radiusTypeEnabled.y;
+                lights[i].enabled = layerData->lights[i].radiusTypeEnabled.z;
+            }
         
             float4 foreground = float4(0);
             float4 background = float4(0);
-
+        
             // --- Foreground
         
             float fm = fillMask( dist );// * bodyMaterial.baseColor.w;
@@ -414,7 +438,7 @@ class Builder
             }
         
             if (fm != 0 || bm != 0) {
-                foreground = \(renderModeText)( fragCoord, bodyMaterial, normal );
+                foreground = \(renderModeText)( fragCoord, bodyMaterial, normal, lights );
                 if ( objectId >= 0 ) {
                     foreground.w *= layerData->objects[objectId].opacity;
                 }
@@ -441,7 +465,7 @@ class Builder
             }
         
             if (fm != 0 || bm != 0) {
-                background = \(renderModeText)( fragCoord, bodyMaterial, normal );
+                background = \(renderModeText)( fragCoord, bodyMaterial, normal, lights );
                 if ( objectId >= 0 ) {
                     background.w *= layerData->objects[objectId].opacity;
                 }
@@ -881,6 +905,7 @@ class Builder
         
         instance.data![8] = instance.data![8] + (1000/60) / 1000 // Time
         instance.data![9] = 0.1 // Sampling
+        instance.data![10] = 1 // Number of lights
 
         updateInstanceData(instance: instance, camera: camera, frame: frame)
         
@@ -898,8 +923,40 @@ class Builder
     }
     
     /// Update the instance data of the builder instance for the given frame
-    func updateInstanceData(instance: BuilderInstance, camera: Camera, doMaterials: Bool = true, frame: Int = 0)
+    func updateInstanceData(instance: BuilderInstance, camera: Camera, doMaterials: Bool = true, renderScene: Scene? = nil, frame: Int = 0)
     {
+        //light.L = float3(3.15);//float3(1.38);//float3(3.15);
+        //light.position = float3(10, -100, 0);
+        //light.direction = normalize(float3(0, 0, 0)-light.position);//normalize(float3(0,1,0));//normalize(float3(-1.,1.,1.));
+        
+        // Set the lights
+        
+        if doMaterials {
+            
+            func setLight(offset: Int, L: SIMD3<Float>, pos: SIMD3<Float>, dir: SIMD3<Float>, radius: Float, type: Int, enabled: Bool)
+            {
+                instance.data![offset] = L.x
+                instance.data![offset + 1] = L.y
+                instance.data![offset + 2] = L.z
+                
+                instance.data![offset + 4] = pos.x
+                instance.data![offset + 5] = pos.y
+                instance.data![offset + 6] = pos.z
+                
+                instance.data![offset + 8] = dir.x
+                instance.data![offset + 9] = dir.y
+                instance.data![offset + 10] = dir.z
+                
+                instance.data![offset + 12] = radius
+                instance.data![offset + 13] = type == 0 ? 0.0 : 1.0
+                instance.data![offset + 14] = enabled ? 1 : 0
+            }
+            
+            let pos : SIMD3<Float> = SIMD3<Float>(10, -100, 0)
+            let dir : SIMD3<Float> = simd_normalize(SIMD3<Float>(0, 0, 0) - pos)
+            setLight(offset: instance.lightsDataOffset, L: SIMD3<Float>(repeating: 3.15), pos: pos, dir: dir, radius: 0, type: 1, enabled: true)
+        }
+        
         let offset : Int = instance.headerOffset
         var index : Int = 0
         var pointIndex : Int = 0
@@ -1758,6 +1815,14 @@ class Builder
             float       glowSize;
             float4      glowColor;
         } OBJECT_DATA;
+        
+        typedef struct
+        {
+            float4      L;
+            float4      position;
+            float4      direction;
+            float4      radiusTypeEnabled;
+        } LIGHT_INFO;
 
         """
         
@@ -2190,7 +2255,7 @@ class Builder
             return Ld;
         }
 
-        float4 calculatePixelColor_PBR(const float2 uv, MaterialInfo material, float3 normal)
+        float4 calculatePixelColor_PBR(const float2 uv, MaterialInfo material, float3 normal, thread LightInfo lights[5])
         {
             material.baseColor = float4(pow(material.baseColor.xyz, 2.2),material.baseColor.w);//float4(1);
             
@@ -2213,23 +2278,26 @@ class Builder
             float3 f = float3(0.);
             float scatteringPdf = 0.;
 
+            
+            /*
             LightInfo light;
-            light.L = float3(3.15);//float3(1.38);//float3(3.15);
-            light.position = float3(10, -100, 0);
-            light.direction = normalize(float3(0, 0, 0)-light.position);//normalize(float3(0,1,0));//normalize(float3(-1.,1.,1.));
+            
+
+            int numberOfLights = int(layerData->general.z);
+            light.L = layerData->lights[0].L.xyz;
+            light.position = layerData->lights[0].position.xyz;
+            light.direction = layerData->lights[0].direction.xyz;
             light.radius = 0;
             light.type = LIGHT_TYPE_SUN;
-            light.enabled = true;
+            light.enabled = true;*/
 
-            
-            LightInfo light2;
-            light2.L = float3(3.15 * 10);//float3(5.4);
-            light2.position = float3(0, -20, 0);
-            light2.radius = 30;
-            light2.type = LIGHT_TYPE_SPHERE;
-            light2.enabled = true;
+            float3 Ld = float3(0);
+            for( int i = 0; i < 5; ++i) {
+                if (lights[i].enabled)
+                    Ld += beta * calculateDirectLight(lights[i], interaction, material, &wi, &f, &scatteringPdf, seed);
+            }
 
-            float3 Ld = beta * calculateDirectLight(light, interaction, material, &wi, &f, &scatteringPdf, seed);
+            //float3 Ld = beta * calculateDirectLight(light, interaction, material, &wi, &f, &scatteringPdf, seed);
             //Ld += beta * calculateDirectLight(light2, interaction, material, &wi, &f, &scatteringPdf, seed);
             L += Ld;
 

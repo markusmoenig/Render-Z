@@ -154,7 +154,8 @@ class SceneRenderer {
         
         instance.data![8] = instance.data![8] + (1000/60) / 1000
         instance.data![9] = 0.1
-        
+        instance.data![10] = 1
+
         nodeGraph.builder.updateInstanceData(instance: instance, camera: camera, frame: 0)
         
         memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)

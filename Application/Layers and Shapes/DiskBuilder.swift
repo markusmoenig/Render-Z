@@ -85,7 +85,7 @@ class DiskBuilder
             float2      size;
             float2      maxDisks;
             float4      camera;
-            float4      general; // .x == time, .y == renderSampling
+            float4      general; // .x == time, .y == normalSampling
         
             float4      diskData[\(maxDisks)];
 
@@ -279,7 +279,7 @@ class DiskBuilder
         instance.data![6] = 1/camera.zoom
         instance.data![7] = 0
         
-        builder.updateInstanceData(instance: instance, camera: camera, frame: 0)
+        builder.updateInstanceData(instance: instance, camera: camera, doMaterials: false, frame: 0)
 
         memcpy(instance.inBuffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
         
