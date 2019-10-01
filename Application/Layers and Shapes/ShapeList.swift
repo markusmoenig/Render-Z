@@ -435,7 +435,7 @@ class ShapeList
             properties["point_1_y"] = 0
             properties["lineWidth"] = 6
         } else
-        if shape.name == "Capsule" {
+        if shape.name == "Capsule" || shape.name == "Trapezoid" {
             properties["point_0_x"] = -size/2
             properties["point_0_y"] = 0
             properties["point_1_x"] = size/2

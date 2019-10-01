@@ -286,7 +286,9 @@ class NodeUISelector : NodeUI
     }
     
     override func update() {
-        index = node.properties[variable]!
+        if let value = node.properties[variable] {
+            index = value
+        }
     }
     
     func getValue() -> Float

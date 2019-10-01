@@ -118,6 +118,44 @@ class ShapeFactory
         def.heightProperty = "radius1"
         def.pointCount = 2
         shapes.append( def )
+        
+        // --- Trapezoid
+        def = ShapeDefinition()
+        def.name = "Trapezoid"
+        def.supportsRounding = true
+        def.distanceCode = "sdTrapezoid(__uv__, float2(__point_0_x__,__point_0_y__), float2(__point_1_x__,__point_1_y__), __radius1__, __radius2__)"
+        def.globalCode =
+        """
+        
+        float sdTrapezoid( float2 p, float2 a, float2 b, float ra, float rb)
+        {
+            float rba  = rb-ra;
+            float baba = dot(b-a,b-a);
+            float papa = dot(p-a,p-a);
+            float paba = dot(p-a,b-a)/baba;
+            float x = sqrt( papa - paba*paba*baba );
+            float cax = max(0.0,x-((paba<0.5)?ra:rb));
+            float cay = abs(paba-0.5)-0.5;
+            float k = rba*rba + baba;
+            float f = clamp( (rba*(x-ra)+paba*baba)/k, 0.0, 1.0 );
+            float cbx = x-ra - f*rba;
+            float cby = paba - f;
+            float s = (cbx < 0.0 && cay < 0.0) ? -1.0 : 1.0;
+            return s*sqrt( min(cax*cax + cay*cay*baba,
+                               cbx*cbx + cby*cby*baba) );
+        }
+
+        """
+        def.properties["radius1"] = 15
+        def.properties["radius2"] = 5
+        def.properties["point_0_x"] = -25
+        def.properties["point_0_y"] = -25
+        def.properties["point_1_x"] = 25
+        def.properties["point_1_y"] = 25
+        def.widthProperty = "radius2"
+        def.heightProperty = "radius1"
+        def.pointCount = 2
+        shapes.append( def )
     
         // --- Polygon
         def = ShapeDefinition()

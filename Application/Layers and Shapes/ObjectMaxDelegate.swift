@@ -1324,7 +1324,7 @@ class MaterialListScrollArea: MMScrollArea
         borderButton = MMButtonWidget(view, skinToUse: borderlessSkin, text: "Border" )
         borderButton.rect.width += 10
         
-        floatWidget = MMFloatWidget(view, range: float2(0, 10), int: true, value: 2)
+        floatWidget = MMFloatWidget(view, range: float2(0, 40), int: true, value: 2)
 
         super.init(view, orientation:.Vertical)
         

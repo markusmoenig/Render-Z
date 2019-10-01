@@ -428,11 +428,13 @@ class Physics
                     
                             let borderWidth : Float = collisionObject.properties["border"]!
                             let borderDistance = distance + disk.distance + borderWidth
-                                                                                    
+                                                
                             penetration = borderDistance
                             distance = -distance
                             result[diskOffset + 2] = -result[diskOffset + 2]
                             result[diskOffset + 3] = -result[diskOffset + 3]
+                                                        
+                            //print( penetration, distance, disk.distance )
                         }
                         
                         if ( penetration > hitPenetration )
