@@ -8,17 +8,8 @@
 
 import MetalKit
 
-class LayerGlobals
-{
-    var position        : float2 = float2(0,0)
-    var limiterSize     : float2 = float2(100000,100000)
-    var normalSampling  : Float = 0.1
-}
-
 class BuilderInstance
 {
-    var layerGlobals    : LayerGlobals? = nil
-    
     var objects         : [Object] = []
     var objectMap       : [Int:Object] = [:]
     
@@ -114,12 +105,11 @@ class Builder
     }
     
     /// Build the state for the given objects
-    func buildObjects(objects: [Object], camera: Camera, fragment: MMFragment? = nil, layerGlobals: LayerGlobals = LayerGlobals(), renderMode: RenderMode = .PBR ) -> BuilderInstance
+    func buildObjects(objects: [Object], camera: Camera, fragment: MMFragment? = nil, renderMode: RenderMode = .PBR ) -> BuilderInstance
     {
         let instance = BuilderInstance()
         let buildData = BuildData()
         
-        instance.layerGlobals = layerGlobals
         instance.objects = objects
         computeMaxCounts(objects: objects, buildData: buildData)
         
@@ -883,14 +873,14 @@ class Builder
         instance.data![1] = camera.yPos
         instance.data![2] = 1/camera.zoom
 
-        instance.data![4] = instance.layerGlobals!.position.x
-        instance.data![5] = instance.layerGlobals!.position.y
+        //instance.data![4] = instance.layerGlobals!.position.x
+        //instance.data![5] = instance.layerGlobals!.position.y
 
-        instance.data![6] = instance.layerGlobals!.limiterSize.x / 2
-        instance.data![7] = instance.layerGlobals!.limiterSize.y / 2
+        //instance.data![6] = instance.layerGlobals!.limiterSize.x / 2
+        //instance.data![7] = instance.layerGlobals!.limiterSize.y / 2
         
-        instance.data![8] = instance.data![8] + (1000/60) / 1000
-        instance.data![9] = instance.layerGlobals!.normalSampling
+        instance.data![8] = instance.data![8] + (1000/60) / 1000 // Time
+        instance.data![9] = 0.1 // Sampling
 
         updateInstanceData(instance: instance, camera: camera, frame: frame)
         

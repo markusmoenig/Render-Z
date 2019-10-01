@@ -146,14 +146,14 @@ class SceneRenderer {
         instance.data![1] = camera.yPos
         instance.data![2] = 1/camera.zoom
         
-        instance.data![4] = instance.layerGlobals!.position.x
-        instance.data![5] = instance.layerGlobals!.position.y
+        //instance.data![4] = instance.layerGlobals!.position.x
+        //instance.data![5] = instance.layerGlobals!.position.y
         
         instance.data![6] = width//instance.layerGlobals!.limiterSize.x / 2
         instance.data![7] = height//instance.layerGlobals!.limiterSize.y / 2
         
         instance.data![8] = instance.data![8] + (1000/60) / 1000
-        instance.data![9] = instance.layerGlobals!.normalSampling
+        instance.data![9] = 0.1
         
         nodeGraph.builder.updateInstanceData(instance: instance, camera: camera, frame: 0)
         

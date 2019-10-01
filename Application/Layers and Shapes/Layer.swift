@@ -115,7 +115,6 @@ class Scene : Node
         maxDelegate = SceneMaxDelegate()
         
         properties["renderMode"] = 1
-        properties["renderSampling"] = 1
         
         //minimumSize = Node.NodeWithPreviewSize
     }
@@ -181,7 +180,6 @@ class Scene : Node
         }
         
         properties["renderMode"] = 1
-        properties["renderSampling"] = 0.1
         
         var camera = maxDelegate!.getCamera()!
         if nodeGraph.app == nil /*|| nodeGraph.currentMaster!.type == "Scene"*/ || nodeGraph.currentMaster!.type == "Game" {
@@ -284,12 +282,6 @@ class Scene : Node
             let yFactor : Float = nodeGraph.previewSize.y / height
             let factor : Float = min(xFactor, yFactor)
             
-            //layer.builderInstance?.layerGlobals?.position.x = x
-            //layer.builderInstance?.layerGlobals?.position.y = y
-            //layer.builderInstance?.layerGlobals?.limiterSize.x = width
-            //layer.builderInstance?.layerGlobals?.limiterSize.y = height
-            //layer.builderInstance?.layerGlobals?.normalSampling = layer.properties["renderSampling"]!
-            
             gameCamera!.zoom = factor
         }
         
@@ -313,8 +305,6 @@ class Scene : Node
         }
         
         if builderInstance != nil {
-            builderInstance?.layerGlobals?.normalSampling = properties["renderSampling"]!
-            //nodeGraph.builder.render(width: size.x, height: size.y, instance: builderInstance!, camera: camera, outTexture: previewTexture)
             nodeGraph.sceneRenderer.render(width: size.x, height: size.y, camera: camera, instance: self.builderInstance!)
         }
         
