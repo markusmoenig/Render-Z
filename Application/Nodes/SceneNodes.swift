@@ -146,143 +146,6 @@ class SceneGravity : Node
     }
 }
 
-class SceneRender : Node
-{
-    override init()
-    {
-        super.init()
-        name = "Render Properties"
-    }
-    
-    override func setup()
-    {
-        type = "Scene Render"
-        brand = .Property
-        
-        //helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/overview"
-    }
-    
-    private enum CodingKeys: String, CodingKey {
-        case type
-    }
-    
-    override func setupUI(mmView: MMView)
-    {
-        uiItems = [
-            NodeUISelector(self, variable: "renderMode", title: "Mode", items: ["Off", "PBR"], index: 1),
-            NodeUINumber(self, variable: "renderSampling", title: "Sampling", range: float2(0.1, 20), value: 0.1)
-        ]
-        
-        super.setupUI(mmView: mmView)
-    }
-    
-    required init(from decoder: Decoder) throws
-    {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        //        test = try container.decode(Float.self, forKey: .test)
-        
-        let superDecoder = try container.superDecoder()
-        try super.init(from: superDecoder)
-    }
-    
-    override func encode(to encoder: Encoder) throws
-    {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(type, forKey: .type)
-        
-        let superdecoder = container.superEncoder()
-        try super.encode(to: superdecoder)
-    }
-    
-    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
-    {
-        if let scene = root.sceneRoot {
-            scene.properties["renderMode"] = properties["renderMode"]!
-            scene.properties["renderSampling"] = properties["renderSampling"]!
-            
-            return .Success
-        }
-        return .Failure
-    }
-    
-    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
-    {
-        if variable == "renderSampling" {
-            if let master = nodeGraph?.currentMaster as? Scene {
-                master.properties["renderSampling"] = properties["renderSampling"]!
-                
-                master.updatePreview(nodeGraph: nodeGraph!)
-                nodeGraph?.mmView.update()
-            }
-        }
-        if noUndo == false {
-            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
-        }
-    }
-}
-
-class SceneDirLight : Node
-{
-    var areaObject  : Object? = nil
-    
-    private enum CodingKeys: String, CodingKey {
-        case type
-        case areaObject
-    }
-    
-    override init()
-    {
-        super.init()
-        
-        areaObject = Object()
-        name = "Directional Light"
-    }
-    
-    override func setup()
-    {
-        type = "Scene Dir Light"
-        brand = .Property
-    }
-    
-    required init(from decoder: Decoder) throws
-    {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        areaObject = try container.decode(Object?.self, forKey: .areaObject)
-        
-        let superDecoder = try container.superDecoder()
-        try super.init(from: superDecoder)
-    }
-    
-    override func encode(to encoder: Encoder) throws
-    {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(type, forKey: .type)
-        try container.encode(areaObject, forKey: .areaObject)
-        
-        let superdecoder = container.superEncoder()
-        try super.encode(to: superdecoder)
-    }
-    
-    override func setupUI(mmView: MMView)
-    {
-        uiItems = [
-            NodeUISelector(self, variable: "status", title: "Status", items: ["Enabled", "Disabled"], index: 0)
-        ]
-        super.setupUI(mmView: mmView)
-    }
-    
-    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
-    {
-        playResult = .Success
-        
-        if properties["status"] != nil && properties["status"]! == 0 {
-            if let _ = root.objectRoot {
-            }
-        }
-        return playResult!
-    }
-}
-
 class SceneFinished : Node
 {
     private enum CodingKeys: String, CodingKey {
@@ -342,5 +205,227 @@ class SceneFinished : Node
         }
 
         return playResult!
+    }
+}
+
+class SceneDirLight : Node
+{
+    override init()
+    {
+        super.init()
+        name = "Directional Light"
+    }
+    
+    override func setup()
+    {
+        type = "Scene Directional Light"
+        brand = .Property
+        
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19791995/Collision+Properties"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUINumber(self, variable: "position", title: "X", range: float2(-4000,4000), value: 10),
+            NodeUINumber(self, variable: "y", title: "Y", range: float2(-4000,4000), value: 0),
+            NodeUINumber(self, variable: "height", title: "Height", range: float2(0,200), value: 100),
+            NodeUINumber(self, variable: "power", title: "Power", range: float2(0,100), value: 3.15),
+            //NodeUIAngle(self, variable: "collisionVelocity", title: "Collision Velocity", value: 0),
+            //NodeUIAngle(self, variable: "collisionNormal", title: "Collision Normal", value: 0)
+        ]
+        
+        super.setupUI(mmView: mmView)
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            //Terminal(name: "collisionVelocity", connector: .Right, brand: .Float2Variable, node: self),
+            //Terminal(name: "collisionNormal", connector: .Right, brand: .Float2Variable, node: self)
+        ]
+    }
+    
+    override func updateUIState(mmView: MMView)
+    {
+        super.updateUIState(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
+    {
+        if let scene = nodeGraph?.getMasterForNode(self) as? Scene {
+            scene.updateStatus = .NeedsHardUpdate
+            //if scene.builderInstance?.scene == nil {
+            //    scene.updateStatus = .NeedsHardUpdate
+            //} else {
+            //    scene.updateStatus = .NeedsUpdate
+            //}
+            nodeGraph?.mmView.update()
+        }
+
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
+    override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+    }
+    
+    override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+    }
+    
+    /// Execute Object physic properties
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
+    {
+        if let scene = root.sceneRoot {
+            let numberOfLights : Int = Int(scene.properties["numberOfLights"]!)
+
+            scene.properties["light_\(numberOfLights)_posX"] = properties["position"]!
+            scene.properties["light_\(numberOfLights)_posY"] = properties["y"]!
+            scene.properties["light_\(numberOfLights)_posZ"] = properties["height"]!
+
+            scene.properties["light_\(numberOfLights)_power"] = properties["power"]!
+            scene.properties["light_\(numberOfLights)_type"] = 1
+
+            scene.properties["numberOfLights"] = Float(numberOfLights + 1)
+        }
+        return .Success
+    }
+}
+
+class SceneSphericalLight : Node
+{
+    override init()
+    {
+        super.init()
+        name = "Spherical Light"
+    }
+    
+    override func setup()
+    {
+        type = "Scene Spherical Light"
+        brand = .Property
+        
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19791995/Collision+Properties"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUINumber(self, variable: "position", title: "X", range: float2(-4000,4000), value: 10),
+            NodeUINumber(self, variable: "y", title: "Y", range: float2(-4000,4000), value: 0),
+            NodeUINumber(self, variable: "height", title: "Height", range: float2(0,200), value: 100),
+            NodeUINumber(self, variable: "power", title: "Power", range: float2(0,100), value: 3.15),
+            NodeUINumber(self, variable: "radius", title: "radius", range: float2(0,100), value: 10),
+            //NodeUIAngle(self, variable: "collisionVelocity", title: "Collision Velocity", value: 0),
+            //NodeUIAngle(self, variable: "collisionNormal", title: "Collision Normal", value: 0)
+        ]
+        
+        super.setupUI(mmView: mmView)
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            //Terminal(name: "collisionVelocity", connector: .Right, brand: .Float2Variable, node: self),
+            //Terminal(name: "collisionNormal", connector: .Right, brand: .Float2Variable, node: self)
+        ]
+    }
+    
+    override func updateUIState(mmView: MMView)
+    {
+        super.updateUIState(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
+    {
+        if let scene = nodeGraph?.getMasterForNode(self) as? Scene {
+            scene.updateStatus = .NeedsHardUpdate
+            //if scene.builderInstance?.scene == nil {
+            //    scene.updateStatus = .NeedsHardUpdate
+            //} else {
+            //    scene.updateStatus = .NeedsUpdate
+            //}
+            nodeGraph?.mmView.update()
+        }
+
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
+    override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+    }
+    
+    override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+    }
+    
+    /// Execute Object physic properties
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
+    {
+        if let scene = root.sceneRoot {
+            let numberOfLights : Int = Int(scene.properties["numberOfLights"]!)
+
+            scene.properties["light_\(numberOfLights)_posX"] = properties["position"]!
+            scene.properties["light_\(numberOfLights)_posY"] = properties["y"]!
+            scene.properties["light_\(numberOfLights)_posZ"] = properties["height"]!
+
+            scene.properties["light_\(numberOfLights)_radius"] = properties["radius"]!
+            scene.properties["light_\(numberOfLights)_power"] = properties["power"]!
+            scene.properties["light_\(numberOfLights)_type"] = 0
+
+            scene.properties["numberOfLights"] = Float(numberOfLights + 1)
+        }
+        return .Success
     }
 }

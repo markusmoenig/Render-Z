@@ -35,6 +35,7 @@ class BuilderInstance
     var lightsDataOffset : Int = 0
     
     var texture         : MTLTexture? = nil
+    var scene           : Scene? = nil
 }
 
 class BuildData
@@ -923,18 +924,16 @@ class Builder
     }
     
     /// Update the instance data of the builder instance for the given frame
-    func updateInstanceData(instance: BuilderInstance, camera: Camera, doMaterials: Bool = true, renderScene: Scene? = nil, frame: Int = 0)
+    func updateInstanceData(instance: BuilderInstance, camera: Camera, doMaterials: Bool = true, frame: Int = 0)
     {
-        //light.L = float3(3.15);//float3(1.38);//float3(3.15);
-        //light.position = float3(10, -100, 0);
-        //light.direction = normalize(float3(0, 0, 0)-light.position);//normalize(float3(0,1,0));//normalize(float3(-1.,1.,1.));
-        
         // Set the lights
         
         if doMaterials {
             
-            func setLight(offset: Int, L: SIMD3<Float>, pos: SIMD3<Float>, dir: SIMD3<Float>, radius: Float, type: Int, enabled: Bool)
+            func setLight(index: Int, L: SIMD3<Float>, pos: SIMD3<Float>, dir: SIMD3<Float>, radius: Float, type: Int, enabled: Bool)
             {
+                let offset = instance.lightsDataOffset + index * 4 * 4
+
                 instance.data![offset] = L.x
                 instance.data![offset + 1] = L.y
                 instance.data![offset + 2] = L.z
@@ -952,10 +951,34 @@ class Builder
                 instance.data![offset + 14] = enabled ? 1 : 0
             }
             
-            let pos : SIMD3<Float> = SIMD3<Float>(10, -100, 0)
-            let dir : SIMD3<Float> = simd_normalize(SIMD3<Float>(0, 0, 0) - pos)
-            setLight(offset: instance.lightsDataOffset, L: SIMD3<Float>(repeating: 3.15), pos: pos, dir: dir, radius: 0, type: 1, enabled: true)
+            if let scene = instance.scene, scene.properties["numberOfLights"] != nil && scene.properties["numberOfLights"]! > 0 {
+                let numberOfLights : Int = Int(scene.properties["numberOfLights"]!)
+                
+                for i in 0..<numberOfLights {
+                    
+                    let pos : SIMD3<Float> = SIMD3<Float>(-scene.properties["light_\(i)_posX"]!, -scene.properties["light_\(i)_posZ"]!, -scene.properties["light_\(i)_posY"]!)
+                    var dir : SIMD3<Float> = SIMD3<Float>(0,0,0)
+
+                    let power = scene.properties["light_\(i)_power"]!
+                    let type = Int(scene.properties["light_\(i)_type"]!)
+                    
+                    let radius : Float = 0
+                    if type == 0 {
+                        let type = Int(scene.properties["light_\(i)_radius"]!)
+                    } else {
+                        dir = simd_normalize(SIMD3<Float>(0, 0, 0) - pos)
+                    }
+
+                    setLight(index: i, L: SIMD3<Float>(repeating: power), pos: pos, dir: dir, radius: radius, type: type, enabled: true)
+                }
+            } else {
+                let pos : SIMD3<Float> = SIMD3<Float>(10, -100, 0)
+                let dir : SIMD3<Float> = simd_normalize(SIMD3<Float>(0, 0, 0) - pos)
+                setLight(index: 0, L: SIMD3<Float>(repeating: 3.15), pos: pos, dir: dir, radius: 0, type: 1, enabled: true)
+            }
         }
+        
+        // ---
         
         let offset : Int = instance.headerOffset
         var index : Int = 0
@@ -2277,19 +2300,6 @@ class Builder
             float3 wi;
             float3 f = float3(0.);
             float scatteringPdf = 0.;
-
-            
-            /*
-            LightInfo light;
-            
-
-            int numberOfLights = int(layerData->general.z);
-            light.L = layerData->lights[0].L.xyz;
-            light.position = layerData->lights[0].position.xyz;
-            light.direction = layerData->lights[0].direction.xyz;
-            light.radius = 0;
-            light.type = LIGHT_TYPE_SUN;
-            light.enabled = true;*/
 
             float3 Ld = float3(0);
             for( int i = 0; i < 5; ++i) {

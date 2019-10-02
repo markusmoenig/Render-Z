@@ -402,18 +402,13 @@ class ObjectInstanceProps : Node
         }
     }
     
-    /// Execute Object physic properties
+    /// Execute  properties
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
     {
         /*
         if let object = root.objectRoot {
             let value = properties["physicsMode"]!
             object.properties["physicsMode"] = value
-            object.properties["physicsMass"] = properties["physicsMass"]!
-            object.properties["physicsRestitution"] = properties["physicsRestitution"]!
-            object.properties["physicsFriction"] = properties["physicsFriction"]!
-            object.properties["physicsSupportsRotation"] = properties["physicsSupportsRotation"]!
-            object.properties["physicsCollisions"] = properties["physicsCollisions"]!
             
             return .Success
         }
@@ -963,22 +958,6 @@ class ObjectCollision : Node
         if let item = uiItems[2] as? NodeUIAngle {
             let rad : Float = atan2(value.x, value.y)
             item.value = toDegrees(rad) - 90
-        }
-    }
-    
-    // Adjusts the internal physics restitution
-    func setInternalPhysicsRestitution(_ value: Float)
-    {
-        if let item = uiItems[3] as? NodeUINumber {
-            item.value = value
-        }
-    }
-    
-    // Adjusts the internal physics friction
-    func setInternalPhysicsFriction(_ value: Float)
-    {
-        if let item = uiItems[4] as? NodeUINumber {
-            item.value = value
         }
     }
 }

@@ -113,10 +113,6 @@ class Scene : Node
     {
         type = "Scene"
         maxDelegate = SceneMaxDelegate()
-        
-        properties["renderMode"] = 1
-        
-        //minimumSize = Node.NodeWithPreviewSize
     }
     
     required init(from decoder: Decoder) throws
@@ -145,8 +141,6 @@ class Scene : Node
         let superdecoder = container.superEncoder()
         try super.encode(to: superdecoder)
     }
-
-    ///
     
     /// Creates the object instances contained in this layer
     @discardableResult func createInstances(nodeGraph: NodeGraph) -> [Object]
@@ -167,6 +161,7 @@ class Scene : Node
     /// Sets up the scene instances for execution
     func setupExecution(nodeGraph: NodeGraph)
     {
+        properties["numberOfLights"] = 0
         let objects = createInstances(nodeGraph: nodeGraph)
 
         executeProperties(nodeGraph)
@@ -178,9 +173,7 @@ class Scene : Node
                 object.body = Body(object, self)
             }
         }
-        
-        properties["renderMode"] = 1
-        
+                
         var camera = maxDelegate!.getCamera()!
         if nodeGraph.app == nil /*|| nodeGraph.currentMaster!.type == "Scene"*/ || nodeGraph.currentMaster!.type == "Game" {
             self.gameCamera = Camera()
@@ -190,7 +183,7 @@ class Scene : Node
         }
         
         //builderInstance = nodeGraph.builder.buildObjects(objects: objects, camera: camera)
-        builderInstance = nodeGraph.sceneRenderer.setup(nodeGraph: nodeGraph, instances: objects)
+        builderInstance = nodeGraph.sceneRenderer.setup(nodeGraph: nodeGraph, instances: objects, scene: self)
         physicsInstance = nodeGraph.physics.buildPhysics(objects: objects, builder: nodeGraph.builder, camera: camera)
         
         platformSize = nodeGraph.getPlatformSize()
@@ -287,13 +280,14 @@ class Scene : Node
         
         if builderInstance == nil || hard {
             DispatchQueue.main.async {
+                self.properties["numberOfLights"] = 0
                 self.executeProperties(nodeGraph)
                 let instances = self.createInstances(nodeGraph: nodeGraph)
                 for instance in instances {
                     instance.executeProperties(nodeGraph)
                 }
                 //self.builderInstance = nodeGraph.builder.buildObjects(objects: instances, camera: camera)
-                self.builderInstance = nodeGraph.sceneRenderer.setup(nodeGraph: nodeGraph, instances: instances)
+                self.builderInstance = nodeGraph.sceneRenderer.setup(nodeGraph: nodeGraph, instances: instances, scene: self)
                 self.updatePreview(nodeGraph: nodeGraph)
                 nodeGraph.mmView.update()
             }

@@ -21,7 +21,7 @@ class SceneRenderer {
         fragment = MMFragment(view)
     }
     
-    func setup( nodeGraph: NodeGraph, instances: [Object] ) -> BuilderInstance?
+    func setup( nodeGraph: NodeGraph, instances: [Object], scene: Scene? = nil ) -> BuilderInstance?
     {
         self.nodeGraph = nodeGraph
         
@@ -41,6 +41,7 @@ class SceneRenderer {
         
         let builderInstance = BuilderInstance()
         builderInstance.objects = instances
+        builderInstance.scene = scene
         
         return builderInstance
     }
@@ -57,7 +58,7 @@ class SceneRenderer {
         } else {
             texture = outTexture!
         }
-        
+                
         if fragment.encoderStart(outTexture: texture) {
             let sortedInstances = instance.objects.sorted(by: { $0.properties["z-index"]! < $1.properties["z-index"]! })
             for inst in sortedInstances {
@@ -73,7 +74,7 @@ class SceneRenderer {
                     
                     if renderDirectly == true {
                         // Render directly
-                        updateInstance(width, height, inst, camera: camera)
+                        updateInstance(width, height, inst, camera: camera, scene: instance.scene)
                         
                         var honorBBox : Bool = false
                         var clipRectApplied : Bool = false
@@ -136,7 +137,7 @@ class SceneRenderer {
         }
     }
     
-    func updateInstance(_ width: Float,_ height: Float,_ inst: Object, camera: Camera)
+    func updateInstance(_ width: Float,_ height: Float,_ inst: Object, camera: Camera, scene: Scene? = nil)
     {
         let instance = inst.fragmentInstance!
 
@@ -156,6 +157,7 @@ class SceneRenderer {
         instance.data![9] = 0.1
         instance.data![10] = 1
 
+        instance.scene = scene
         nodeGraph.builder.updateInstanceData(instance: instance, camera: camera, frame: 0)
         
         memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)

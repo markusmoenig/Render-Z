@@ -118,16 +118,22 @@ class NodeList : MMWidget
             return SceneArea()
         }
         addNodeItem(item, type: .Property, displayType: .Scene)
+        // --- Scene Directional Light
+        item = NodeListItem("Directional Light")
+        item.createNode = {
+            return SceneDirLight()
+        }
+        addNodeItem(item, type: .Property, displayType: .Scene)
         // --- Scene Gravity
         item = NodeListItem("Gravity")
         item.createNode = {
             return SceneGravity()
         }
         addNodeItem(item, type: .Property, displayType: .Scene)
-        // --- Scene Render
-        item = NodeListItem("Render Properties")
+        // --- Scene Spherical Light
+        item = NodeListItem("Spherical Light")
         item.createNode = {
-            return SceneRender()
+            return SceneSphericalLight()
         }
         addNodeItem(item, type: .Property, displayType: .Scene)
         // --- Game Platform OSX
