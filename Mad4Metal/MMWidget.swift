@@ -282,6 +282,7 @@ class MMButtonWidget : MMWidget
     var texture     : MTLTexture?
     var customState : MTLRenderPipelineState?
     var textYOffset : Float = 0
+    var iconZoom    : Float = 1
     
     init( _ view: MMView, skinToUse: MMSkinButton? = nil, text: String? = nil, iconName: String? = nil, customState: MTLRenderPipelineState? = nil )
     {
@@ -351,9 +352,9 @@ class MMButtonWidget : MMWidget
         }
         
         if texture != nil {
-            let x = rect.x + (rect.width - Float(texture!.width)) / 2
-            let y = rect.y + (rect.height - Float(texture!.height)) / 2
-            mmView.drawTexture.draw(texture!, x: x, y: y)
+            let x = rect.x + (rect.width - Float(texture!.width) / iconZoom) / 2
+            let y = rect.y + (rect.height - Float(texture!.height) / iconZoom) / 2
+            mmView.drawTexture.draw(texture!, x: x, y: y, zoom: iconZoom)
         }
         
         if customState != nil {

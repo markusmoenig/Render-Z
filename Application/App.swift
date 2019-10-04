@@ -68,7 +68,9 @@ class App
         
         mmView.registerIcon("background")
         mmView.registerIcon("foreground")
-        
+
+        mmView.registerIcon("navigation")
+
         // --- Reusable buttons
         
         // Close Button

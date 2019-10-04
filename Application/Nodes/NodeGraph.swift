@@ -20,6 +20,11 @@ class NodeGraph : Codable
         case Closed, Nodes
     }
     
+    enum NavigationMode
+    {
+        case Off, On
+    }
+    
     enum NodeHoverMode : Float {
         case None, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, MasterNode, MenuHover, MenuOpen, OverviewEdit, SideSlider
     }
@@ -28,6 +33,7 @@ class NodeGraph : Codable
         case Objects, Scenes, Game, ObjectsOverview, ScenesOverview
     }
     
+    var navigationMode  : NavigationMode = .Off
     var debugMode       : DebugMode = .None
     var nodes           : [Node] = []
 
@@ -87,6 +93,7 @@ class NodeGraph : Codable
     var scenesButton    : MMSwitchButtonWidget!
     var gameButton      : MMButtonWidget!
 
+    var navButton       : MMButtonWidget!
     var editButton      : MMButtonWidget!
     var playButton      : MMButtonWidget!
 
@@ -107,7 +114,7 @@ class NodeGraph : Codable
     var behaviorMenu    : MMMenuWidget!
     var previewInfoMenu : MMMenuWidget!
 
-    var previewSize     : float2 = float2(340, 200)
+    var previewSize     : float2 = float2(370, 200)
     
     var refList         : ReferenceList!
     var validHoverTarget: NodeUIDropTarget? = nil
@@ -244,6 +251,7 @@ class NodeGraph : Codable
         }
         
         func adjustVisibleButtons() {
+            mmView.deregisterWidget(navButton)
             mmView.deregisterWidget(editButton)
             mmView.deregisterWidget(playButton)
             mmView.deregisterWidget(behaviorMenu)
@@ -253,6 +261,7 @@ class NodeGraph : Codable
             editButton.isDisabled = isGame
 
             if !overviewIsOn {
+                mmView.widgets.insert(navButton, at: 0)
                 mmView.widgets.insert(editButton, at: 0)
                 mmView.widgets.insert(playButton, at: 0)
                 mmView.widgets.insert(behaviorMenu, at: 0)
@@ -368,6 +377,23 @@ class NodeGraph : Codable
         smallButtonSkin.round = mmView.skin.Button.round
         smallButtonSkin.fontScale = mmView.skin.Button.fontScale
         
+        var iconButtonSkin = MMSkinButton()
+        iconButtonSkin.width = 30
+        iconButtonSkin.height = mmView.skin.Button.height
+        iconButtonSkin.round = mmView.skin.Button.round
+        iconButtonSkin.fontScale = mmView.skin.Button.fontScale
+        
+        navButton = MMButtonWidget(app.mmView, skinToUse: iconButtonSkin, iconName: "navigation")
+        navButton.iconZoom = 2
+        navButton.clicked = { (event) -> Void in
+            if self.navigationMode == .Off {
+                self.navigationMode = .On
+            } else {
+                self.navButton.removeState(.Checked)
+                self.navigationMode = .Off
+            }
+        }
+
         editButton = MMButtonWidget(app.mmView, skinToUse: smallButtonSkin, text: "Shape..." )
         editButton.clicked = { (event) -> Void in
             self.stopPreview()
@@ -538,6 +564,7 @@ class NodeGraph : Codable
     {
         mmView.registerWidgets(widgets: nodeList!, contentScrollButton, objectsButton, scenesButton, gameButton)
         if !overviewIsOn {
+            mmView.widgets.insert(navButton, at: 0)
             mmView.widgets.insert(editButton, at: 0)
             mmView.widgets.insert(playButton, at: 0)
             mmView.widgets.insert(behaviorMenu, at: 0)
@@ -554,7 +581,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: nodeList!, playButton, contentScrollButton, objectsButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu)
+        mmView.deregisterWidgets(widgets: nodeList!, playButton, contentScrollButton, objectsButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu, navButton)
         app!.properties["NodeGraphNodesOpen"] = leftRegionMode == .Closed ? 0 : 1
     }
     
@@ -949,7 +976,7 @@ class NodeGraph : Codable
             previewSize.x = floor(nodeDragStartPos.x - (event.x - dragStartPos.x))
             previewSize.y = floor(nodeDragStartPos.y + (event.y - dragStartPos.y))
             
-            previewSize.x = max(previewSize.x, 340)
+            previewSize.x = max(previewSize.x, 370)
             previewSize.y = max(previewSize.y, 80)
 
             DispatchQueue.main.async {
@@ -1622,81 +1649,89 @@ class NodeGraph : Codable
         
         // --- Preview
         
-        var textures : [MTLTexture] = []
-        
-        let x : Float = node.rect.x + 2
-        let y : Float = node.rect.y + 34 + 25
-        
-        if refList.isActive == false {
-            // --- Preview
+        if navigationMode == .Off {
+            var textures : [MTLTexture] = []
             
-            func printBehaviorOnlyText()
-            {
-                mmView.drawText.drawTextCentered(mmView.openSans, text: "Behavior Only", x: x, y: y, width: previewSize.x, height: previewSize.y, scale: 0.4, color: float4(1,1,1,1))
-            }
+            let x : Float = node.rect.x + 2
+            let y : Float = node.rect.y + 34 + 25
             
-            // Preview Border
-            app!.mmView.drawBoxPattern.draw( x: x, y: y, width: previewSize.x - 23, height: previewSize.y, round: 26, borderSize: 0, fillColor: float4(0.306, 0.310, 0.314, 1.000), borderColor: float4(0.216, 0.220, 0.224, 1.000) )
-            
-            if let game = previewNode as? Game {
-                if let _ = game.currentScene {
+            if refList.isActive == false {
+                // --- Preview
+                
+                func printBehaviorOnlyText()
+                {
+                    mmView.drawText.drawTextCentered(mmView.openSans, text: "Behavior Only", x: x, y: y, width: previewSize.x, height: previewSize.y, scale: 0.4, color: float4(1,1,1,1))
+                }
+                
+                // Preview Border
+                app!.mmView.drawBoxPattern.draw( x: x, y: y, width: previewSize.x - 23, height: previewSize.y, round: 26, borderSize: 0, fillColor: float4(0.306, 0.310, 0.314, 1.000), borderColor: float4(0.216, 0.220, 0.224, 1.000) )
+                
+                if let game = previewNode as? Game {
+                    if let _ = game.currentScene {
+                        if let texture = sceneRenderer.fragment.texture {
+                            textures.append(texture)
+                        }
+                    } else {
+                        printBehaviorOnlyText()
+                    }
+                } else
+                if let scene = previewNode as? Scene {
+                    if scene.updateStatus != .Valid {
+                        scene.updatePreview(nodeGraph: self, hard: scene.updateStatus == .NeedsHardUpdate)
+                    }
                     if let texture = sceneRenderer.fragment.texture {
                         textures.append(texture)
                     }
-                } else {
-                    printBehaviorOnlyText()
-                }
-            } else
-            if let scene = previewNode as? Scene {
-                if scene.updateStatus != .Valid {
-                    scene.updatePreview(nodeGraph: self, hard: scene.updateStatus == .NeedsHardUpdate)
-                }
-                if let texture = sceneRenderer.fragment.texture {
-                    textures.append(texture)
-                }
-            } else
-            if let object = previewNode as? Object {
-                if let texture = object.previewTexture {
-                    if object.instance != nil {
-                        textures.append(texture)
+                } else
+                if let object = previewNode as? Object {
+                    if let texture = object.previewTexture {
+                        if object.instance != nil {
+                            textures.append(texture)
+                        }
                     }
                 }
-            }
-            
-            for texture in textures {
-                app!.mmView.drawTexture.draw(texture, x: x - 23, y: y, zoom: 1, round: 26, roundingRect: float4(23, 0, previewSize.x - 23, previewSize.y))
-            }
-            
-            // Draw Debug
-            
-            if debugMode != .None {
-                let camera = createNodeCamera(playNode != nil ? playNode! : node)
                 
-                debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)
-                app!.mmView.drawTexture.draw(debugInstance.texture!, x: x - 23, y: y, zoom: 1, round: 26, roundingRect: float4(23, 0, previewSize.x - 23, previewSize.y))
+                for texture in textures {
+                    app!.mmView.drawTexture.draw(texture, x: x - 23, y: y, zoom: 1, round: 26, roundingRect: float4(23, 0, previewSize.x - 23, previewSize.y))
+                }
+                
+                // Draw Debug
+                
+                if debugMode != .None {
+                    let camera = createNodeCamera(playNode != nil ? playNode! : node)
+                    
+                    debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)
+                    app!.mmView.drawTexture.draw(debugInstance.texture!, x: x - 23, y: y, zoom: 1, round: 26, roundingRect: float4(23, 0, previewSize.x - 23, previewSize.y))
+                }
+            } else {
+                // Visible reference list
+                
+                refList.rect.x = x
+                refList.rect.y = y
+                refList.rect.width = previewSize.x - 23
+                refList.rect.height = previewSize.y
+                
+                refList.draw()
+            }
+            
+            // If previewing fill in the screen dimensions
+            if let screen = mmScreen {
+                screen.rect.x = x
+                screen.rect.y = y
+                screen.rect.width = previewSize.x
+                screen.rect.height = previewSize.y
             }
         } else {
-            // Visible reference list
-            
-            refList.rect.x = x
-            refList.rect.y = y
-            refList.rect.width = previewSize.x - 23
-            refList.rect.height = previewSize.y
-            
-            refList.draw()
-        }
-
-        // If previewing fill in the screen dimensions
-        if let screen = mmScreen {
-            screen.rect.x = x
-            screen.rect.y = y
-            screen.rect.width = previewSize.x
-            screen.rect.height = previewSize.y
+            // Navigation
         }
         
         // --- Buttons
         
-        editButton.rect.x = node.rect.x + 15
+        navButton.rect.x = node.rect.x + 15
+        navButton.rect.y = node.rect.y + 25
+        navButton.draw()
+        
+        editButton.rect.x = navButton.rect.x + navButton.rect.width + 10
         editButton.rect.y = node.rect.y + 25
         editButton.draw()
         
@@ -1717,9 +1752,13 @@ class NodeGraph : Codable
         
         // --- Preview Info Label
         
-        previewInfoMenu.rect.x = node.rect.x + node.rect.width - previewInfoMenu.rect.width - 36
-        previewInfoMenu.rect.y = node.rect.y + node.rect.height - 24
-        previewInfoMenu.draw()
+        if navigationMode == .Off {
+            previewInfoMenu.rect.x = node.rect.x + node.rect.width - previewInfoMenu.rect.width - 36
+            previewInfoMenu.rect.y = node.rect.y + node.rect.height - 24
+            previewInfoMenu.draw()
+        } else {
+    
+        }
     }
     
     /// Draws the given connection
