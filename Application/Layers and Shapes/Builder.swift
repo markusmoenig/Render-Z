@@ -962,9 +962,9 @@ class Builder
                     let power = scene.properties["light_\(i)_power"]!
                     let type = Int(scene.properties["light_\(i)_type"]!)
                     
-                    let radius : Float = 0
+                    var radius : Float = 0
                     if type == 0 {
-                        let type = Int(scene.properties["light_\(i)_radius"]!)
+                        radius = scene.properties["light_\(i)_radius"]!
                     } else {
                         dir = simd_normalize(SIMD3<Float>(0, 0, 0) - pos)
                     }
@@ -2174,7 +2174,7 @@ class Builder
             float3 r = reflect(V, interaction.normal);
             float3 centerToRay = dot( L, r ) * r - L;
             float3 closestPoint = L + centerToRay * clamp( light.radius / length( centerToRay ), 0.0, 1.0 );
-            *wi = normalize(closestPoint);
+            *wi = float3(1000);//normalize(closestPoint);
             
             return light.L/dot(L, L);
         }
