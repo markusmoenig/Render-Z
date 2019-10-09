@@ -231,6 +231,7 @@ class SceneDirLight : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
+            NodeUIColor(self, variable: "color", title: "Color", value: SIMD3<Float>(1,1,1)),
             NodeUINumber(self, variable: "position", title: "X", range: float2(-4000,4000), value: 10),
             NodeUINumber(self, variable: "y", title: "Y", range: float2(-4000,4000), value: 0),
             NodeUINumber(self, variable: "height", title: "Height", range: float2(0,200), value: 100),
@@ -291,6 +292,24 @@ class SceneDirLight : Node
         }
     }
     
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: SIMD3<Float>, newValue: SIMD3<Float>, continuous: Bool = false, noUndo: Bool = false)
+    {
+        if let scene = nodeGraph?.getMasterForNode(self) as? Scene {
+            scene.updateStatus = .NeedsHardUpdate
+            //if scene.builderInstance?.scene == nil {
+            //    scene.updateStatus = .NeedsHardUpdate
+            //} else {
+            //    scene.updateStatus = .NeedsUpdate
+            //}
+            nodeGraph?.mmView.update()
+        }
+
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
     override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
     }
@@ -305,6 +324,10 @@ class SceneDirLight : Node
         if let scene = root.sceneRoot {
             let numberOfLights : Int = Int(scene.properties["numberOfLights"]!)
 
+            scene.properties["light_\(numberOfLights)_color_x"] = properties["color_x"]!
+            scene.properties["light_\(numberOfLights)_color_y"] = properties["color_y"]!
+            scene.properties["light_\(numberOfLights)_color_z"] = properties["color_z"]!
+            
             scene.properties["light_\(numberOfLights)_posX"] = properties["position"]!
             scene.properties["light_\(numberOfLights)_posY"] = properties["y"]!
             scene.properties["light_\(numberOfLights)_posZ"] = properties["height"]!
@@ -341,13 +364,12 @@ class SceneSphericalLight : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
+            NodeUIColor(self, variable: "color", title: "Color", value: SIMD3<Float>(1,1,1)),
             NodeUINumber(self, variable: "position", title: "X", range: float2(-4000,4000), value: 10),
             NodeUINumber(self, variable: "y", title: "Y", range: float2(-4000,4000), value: 0),
             NodeUINumber(self, variable: "height", title: "Height", range: float2(0,200), value: 100),
             NodeUINumber(self, variable: "power", title: "Power", range: float2(0,100), value: 3.15),
-            NodeUINumber(self, variable: "radius", title: "radius", range: float2(0,100), value: 10),
-            //NodeUIAngle(self, variable: "collisionVelocity", title: "Collision Velocity", value: 0),
-            //NodeUIAngle(self, variable: "collisionNormal", title: "Collision Normal", value: 0)
+            NodeUINumber(self, variable: "radius", title: "Radius", range: float2(0,100), value: 10),
         ]
         
         super.setupUI(mmView: mmView)
@@ -356,8 +378,7 @@ class SceneSphericalLight : Node
     override func setupTerminals()
     {
         terminals = [
-            //Terminal(name: "collisionVelocity", connector: .Right, brand: .Float2Variable, node: self),
-            //Terminal(name: "collisionNormal", connector: .Right, brand: .Float2Variable, node: self)
+            Terminal(name: "power", connector: .Right, brand: .FloatVariable, node: self),
         ]
     }
     
@@ -402,12 +423,45 @@ class SceneSphericalLight : Node
         }
     }
     
+    /// A UI Variable changed
+    override func variableChanged(variable: String, oldValue: SIMD3<Float>, newValue: SIMD3<Float>, continuous: Bool = false, noUndo: Bool = false)
+    {
+        if let scene = nodeGraph?.getMasterForNode(self) as? Scene {
+            scene.updateStatus = .NeedsHardUpdate
+            nodeGraph?.mmView.update()
+        }
+
+        if noUndo == false {
+            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
+        }
+    }
+    
     override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
+        print("executeReadBinding")
+        /*
+        if terminal.name == "glowSize" {
+            if inst.properties["glowSize"] == nil { inst.properties["glowSize"] = properties["glowSize"] }
+            if terminal.connections.count == 0 {
+                // Not connected, adjust my own vars
+                setInternalGlowSize(inst.properties["glowSize"]!)
+            } else
+            if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                if let object = inst.instance {
+                    if object.properties["glowSize"] == nil { object.properties["glowSize"] = properties["glowSize"] }
+                    variable.setValue(object.properties["glowSize"]!, adjustBinding: false)
+                    setInternalGlowSize(object.properties["glowSize"]!)
+                } else {
+                    variable.setValue(inst.properties["glowSize"]!, adjustBinding: false)
+                    setInternalGlowSize(inst.properties["glowSize"]!)
+                }
+            }
+        }*/
     }
     
     override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
+        print("executeWriteBinding")
     }
     
     /// Execute Object physic properties
@@ -416,12 +470,16 @@ class SceneSphericalLight : Node
         if let scene = root.sceneRoot {
             let numberOfLights : Int = Int(scene.properties["numberOfLights"]!)
 
+            scene.properties["light_\(numberOfLights)_color_x"] = properties["color_x"]!
+            scene.properties["light_\(numberOfLights)_color_y"] = properties["color_y"]!
+            scene.properties["light_\(numberOfLights)_color_z"] = properties["color_z"]!
+
             scene.properties["light_\(numberOfLights)_posX"] = properties["position"]!
             scene.properties["light_\(numberOfLights)_posY"] = properties["y"]!
             scene.properties["light_\(numberOfLights)_posZ"] = properties["height"]!
 
             scene.properties["light_\(numberOfLights)_radius"] = properties["radius"]!
-            scene.properties["light_\(numberOfLights)_power"] = properties["power"]!
+            scene.properties["light_\(numberOfLights)_power"] = properties["power"]! * 100
             scene.properties["light_\(numberOfLights)_type"] = 0
 
             scene.properties["numberOfLights"] = Float(numberOfLights + 1)

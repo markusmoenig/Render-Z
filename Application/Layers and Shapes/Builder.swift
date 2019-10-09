@@ -409,6 +409,7 @@ class Builder
             for( int i = 0; i < 5; ++i) {
                 lights[i].L = layerData->lights[i].L.xyz;
                 lights[i].position = layerData->lights[i].position.xyz;
+                lights[i].position.xz += center - layerData->camera.xy;
                 lights[i].direction = layerData->lights[i].direction.xyz;
                 lights[i].radius = layerData->lights[i].radiusTypeEnabled.x;
                 lights[i].type = layerData->lights[i].radiusTypeEnabled.y;
@@ -956,20 +957,24 @@ class Builder
                 
                 for i in 0..<numberOfLights {
                     
-                    let pos : SIMD3<Float> = SIMD3<Float>(-scene.properties["light_\(i)_posX"]!, -scene.properties["light_\(i)_posZ"]!, -scene.properties["light_\(i)_posY"]!)
+                    let power = scene.properties["light_\(i)_power"]! * camera.zoom
+
+                    let color : SIMD3<Float> = SIMD3<Float>(scene.properties["light_\(i)_color_x"]! * power, scene.properties["light_\(i)_color_y"]! * power, scene.properties["light_\(i)_color_z"]! * power)
+                    
+                    var pos : SIMD3<Float> = SIMD3<Float>(-scene.properties["light_\(i)_posX"]! * camera.zoom, -scene.properties["light_\(i)_posZ"]!, -scene.properties["light_\(i)_posY"]! * camera.zoom)
                     var dir : SIMD3<Float> = SIMD3<Float>(0,0,0)
 
-                    let power = scene.properties["light_\(i)_power"]!
                     let type = Int(scene.properties["light_\(i)_type"]!)
                     
                     var radius : Float = 0
                     if type == 0 {
-                        radius = scene.properties["light_\(i)_radius"]!
+                        radius = scene.properties["light_\(i)_radius"]! * camera.zoom
+                        pos.x = -pos.x
                     } else {
                         dir = simd_normalize(SIMD3<Float>(0, 0, 0) - pos)
                     }
 
-                    setLight(index: i, L: SIMD3<Float>(repeating: power), pos: pos, dir: dir, radius: radius, type: type, enabled: true)
+                    setLight(index: i, L: SIMD3<Float>(color), pos: pos, dir: dir, radius: radius, type: type, enabled: true)
                 }
             } else {
                 let pos : SIMD3<Float> = SIMD3<Float>(10, -100, 0)
@@ -2173,7 +2178,7 @@ class Builder
             float3 V = -normalize(interaction.incomingRayDir);
             float3 r = reflect(V, interaction.normal);
             float3 centerToRay = dot( L, r ) * r - L;
-            float3 closestPoint = L + centerToRay * clamp( light.radius / length( centerToRay ), 0.0, 1.0 );
+            float3 closestPoint = L  * clamp( light.radius / length( centerToRay ), 0.0, 1.0 );
             *wi = float3(1000);//normalize(closestPoint);
             
             return light.L/dot(L, L);
@@ -2226,13 +2231,13 @@ class Builder
             
             if( light.type == LIGHT_TYPE_SPHERE ) {
                 float3 L = lightSample(light, interaction, wi, lightPdf, seed, material);
-                float3 shadowRayDir =normalize(light.position - interaction.point);
-                *visibility = visibilityTest(interaction.point + shadowRayDir * .01, shadowRayDir);
+                //float3 shadowRayDir =normalize(light.position - interaction.point);
+                //*visibility = 1.;//visibilityTest(interaction.point + shadowRayDir * .01, shadowRayDir);
                 return L;
             }
             else if( light.type == LIGHT_TYPE_SUN ) {
                 float3 L = sampleSun(light, interaction, wi, lightPdf, seed);
-                *visibility = visibilityTestSun(interaction.point + *wi * .01, *wi);
+                //*visibility = visibilityTestSun(interaction.point + *wi * .01, *wi);
                 return L;
             }
             else {
@@ -2270,7 +2275,7 @@ class Builder
             float lightPdf = 0., visibility = 1.;
             
             float3 Li = sampleLightType( light, interaction, wi, &lightPdf, &visibility, seed, material);
-            Li *= visibility;
+            //Li *= visibility;
             
             *f = bsdfEvaluate(*wi, wo, interaction.tangent, interaction.binormal, interaction, material) * abs(dot(*wi, interaction.normal));
             Ld += Li * *f;
@@ -2297,7 +2302,7 @@ class Builder
             interaction.tangent = X;
             interaction.binormal = Y;
 
-            float3 wi;
+            float3 wi = float3(0.);
             float3 f = float3(0.);
             float scatteringPdf = 0.;
 
@@ -2318,7 +2323,7 @@ class Builder
             return float4(clamp(pow(L, 0.4545), 0, 1), material.baseColor.w);
         }
 
-        float4 calculatePixelColor_Color(const float2 uv, MaterialInfo material, float3 normal)
+        float4 calculatePixelColor_Color(const float2 uv, MaterialInfo material, float3 normal, thread LightInfo lights[5])
         {
             return material.baseColor;
         }
