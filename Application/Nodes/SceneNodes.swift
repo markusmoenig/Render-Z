@@ -343,6 +343,9 @@ class SceneDirLight : Node
 
 class SceneSphericalLight : Node
 {
+    var currScene   : Scene? = nil
+    var lightNumber : Int = 0
+    
     override init()
     {
         super.init()
@@ -437,53 +440,76 @@ class SceneSphericalLight : Node
     }
     
     override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
-    {
-        print("executeReadBinding")
-        /*
-        if terminal.name == "glowSize" {
-            if inst.properties["glowSize"] == nil { inst.properties["glowSize"] = properties["glowSize"] }
+    {        
+        if terminal.name == "power" {
             if terminal.connections.count == 0 {
                 // Not connected, adjust my own vars
-                setInternalGlowSize(inst.properties["glowSize"]!)
+                //setInternalPower(properties["power"]!)
             } else
             if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
-                if let object = inst.instance {
-                    if object.properties["glowSize"] == nil { object.properties["glowSize"] = properties["glowSize"] }
-                    variable.setValue(object.properties["glowSize"]!, adjustBinding: false)
-                    setInternalGlowSize(object.properties["glowSize"]!)
-                } else {
-                    variable.setValue(inst.properties["glowSize"]!, adjustBinding: false)
-                    setInternalGlowSize(inst.properties["glowSize"]!)
-                }
+                variable.setValue(properties["power"]!, adjustBinding: false)
+                setInternalPower(properties["power"]!)
+                updateSettings()
             }
-        }*/
+        }
     }
     
     override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
-        print("executeWriteBinding")
+        if terminal.name == "power" {
+            if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
+                let value = variable.getValue()
+                                
+                setInternalPower(value)
+                properties["power"] = value
+                updateSettings()
+                
+                if let scene = nodeGraph.getMasterForNode(self) as? Scene {
+                    scene.updateStatus = .NeedsHardUpdate
+                    nodeGraph.mmView.update()
+                }
+            }
+        }
+    }
+    
+    // Adjusts the internal power
+    func setInternalPower(_ mode: Float)
+    {
+        if let item = uiItems[4] as? NodeUINumber {
+            item.value = mode
+        }
     }
     
     /// Execute Object physic properties
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
     {
+        currScene = nil
         if let scene = root.sceneRoot {
-            let numberOfLights : Int = Int(scene.properties["numberOfLights"]!)
+            currScene = scene
+            lightNumber = Int(scene.properties["numberOfLights"]!)
 
-            scene.properties["light_\(numberOfLights)_color_x"] = properties["color_x"]!
-            scene.properties["light_\(numberOfLights)_color_y"] = properties["color_y"]!
-            scene.properties["light_\(numberOfLights)_color_z"] = properties["color_z"]!
-
-            scene.properties["light_\(numberOfLights)_posX"] = properties["position"]!
-            scene.properties["light_\(numberOfLights)_posY"] = properties["y"]!
-            scene.properties["light_\(numberOfLights)_posZ"] = properties["height"]!
-
-            scene.properties["light_\(numberOfLights)_radius"] = properties["radius"]!
-            scene.properties["light_\(numberOfLights)_power"] = properties["power"]! * 100
-            scene.properties["light_\(numberOfLights)_type"] = 0
-
-            scene.properties["numberOfLights"] = Float(numberOfLights + 1)
+            updateSettings()
+            
+            scene.properties["numberOfLights"] = Float(lightNumber + 1)
         }
         return .Success
+    }
+    
+    func updateSettings()
+    {
+        if let scene = currScene {
+            
+            scene.properties["light_\(lightNumber)_color_x"] = properties["color_x"]!
+            scene.properties["light_\(lightNumber)_color_y"] = properties["color_y"]!
+            scene.properties["light_\(lightNumber)_color_z"] = properties["color_z"]!
+
+            scene.properties["light_\(lightNumber)_posX"] = properties["position"]!
+            scene.properties["light_\(lightNumber)_posY"] = properties["y"]!
+            scene.properties["light_\(lightNumber)_posZ"] = properties["height"]!
+
+            scene.properties["light_\(lightNumber)_radius"] = properties["radius"]!
+            scene.properties["light_\(lightNumber)_power"] = properties["power"]! * 100
+            scene.properties["light_\(lightNumber)_type"] = 0
+        }
     }
 }

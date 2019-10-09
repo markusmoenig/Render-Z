@@ -973,8 +973,9 @@ class Builder
                     } else {
                         dir = simd_normalize(SIMD3<Float>(0, 0, 0) - pos)
                     }
-
-                    setLight(index: i, L: SIMD3<Float>(color), pos: pos, dir: dir, radius: radius, type: type, enabled: true)
+                    
+                    let enabled : Bool = power == 0 ? false : true
+                    setLight(index: i, L: SIMD3<Float>(color), pos: pos, dir: dir, radius: radius, type: type, enabled: enabled)
                 }
             } else {
                 let pos : SIMD3<Float> = SIMD3<Float>(10, -100, 0)
