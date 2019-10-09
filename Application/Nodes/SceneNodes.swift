@@ -440,7 +440,7 @@ class SceneSphericalLight : Node
     }
     
     override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
-    {        
+    {
         if terminal.name == "power" {
             if terminal.connections.count == 0 {
                 // Not connected, adjust my own vars
@@ -464,7 +464,7 @@ class SceneSphericalLight : Node
                 properties["power"] = value
                 updateSettings()
                 
-                if let scene = nodeGraph.getMasterForNode(self) as? Scene {
+                if !nodeGraph.isPlaying(), let scene = nodeGraph.getMasterForNode(self) as? Scene {
                     scene.updateStatus = .NeedsHardUpdate
                     nodeGraph.mmView.update()
                 }

@@ -3489,4 +3489,18 @@ class NodeGraph : Codable
         }
         return nil
     }
+    
+    func isPlaying() -> Bool
+    {
+        var playing : Bool = false
+        
+        if playNode != nil {
+            playing = true
+        } else
+        if playButton == nil {
+            playing = true
+        }
+        
+        return playing
+    }
 }
