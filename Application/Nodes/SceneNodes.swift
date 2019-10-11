@@ -208,140 +208,7 @@ class SceneFinished : Node
     }
 }
 
-class SceneDirLight : Node
-{
-    override init()
-    {
-        super.init()
-        name = "Directional Light"
-    }
-    
-    override func setup()
-    {
-        type = "Scene Directional Light"
-        brand = .Property
-        
-        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19791995/Collision+Properties"
-    }
-    
-    private enum CodingKeys: String, CodingKey {
-        case type
-    }
-    
-    override func setupUI(mmView: MMView)
-    {
-        uiItems = [
-            NodeUIColor(self, variable: "color", title: "Color", value: SIMD3<Float>(1,1,1)),
-            NodeUINumber(self, variable: "position", title: "X", range: float2(-4000,4000), value: 10),
-            NodeUINumber(self, variable: "y", title: "Y", range: float2(-4000,4000), value: 0),
-            NodeUINumber(self, variable: "height", title: "Height", range: float2(0,200), value: 100),
-            NodeUINumber(self, variable: "power", title: "Power", range: float2(0,100), value: 3.15),
-            //NodeUIAngle(self, variable: "collisionVelocity", title: "Collision Velocity", value: 0),
-            //NodeUIAngle(self, variable: "collisionNormal", title: "Collision Normal", value: 0)
-        ]
-        
-        super.setupUI(mmView: mmView)
-    }
-    
-    override func setupTerminals()
-    {
-        terminals = [
-            //Terminal(name: "collisionVelocity", connector: .Right, brand: .Float2Variable, node: self),
-            //Terminal(name: "collisionNormal", connector: .Right, brand: .Float2Variable, node: self)
-        ]
-    }
-    
-    override func updateUIState(mmView: MMView)
-    {
-        super.updateUIState(mmView: mmView)
-    }
-    
-    required init(from decoder: Decoder) throws
-    {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        //        test = try container.decode(Float.self, forKey: .test)
-        
-        let superDecoder = try container.superDecoder()
-        try super.init(from: superDecoder)
-    }
-    
-    override func encode(to encoder: Encoder) throws
-    {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(type, forKey: .type)
-        
-        let superdecoder = container.superEncoder()
-        try super.encode(to: superdecoder)
-    }
-    
-    /// A UI Variable changed
-    override func variableChanged(variable: String, oldValue: Float, newValue: Float, continuous: Bool = false, noUndo: Bool = false)
-    {
-        if let scene = nodeGraph?.getMasterForNode(self) as? Scene {
-            scene.updateStatus = .NeedsHardUpdate
-            //if scene.builderInstance?.scene == nil {
-            //    scene.updateStatus = .NeedsHardUpdate
-            //} else {
-            //    scene.updateStatus = .NeedsUpdate
-            //}
-            nodeGraph?.mmView.update()
-        }
-
-        if noUndo == false {
-            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
-        }
-    }
-    
-    /// A UI Variable changed
-    override func variableChanged(variable: String, oldValue: SIMD3<Float>, newValue: SIMD3<Float>, continuous: Bool = false, noUndo: Bool = false)
-    {
-        if let scene = nodeGraph?.getMasterForNode(self) as? Scene {
-            scene.updateStatus = .NeedsHardUpdate
-            //if scene.builderInstance?.scene == nil {
-            //    scene.updateStatus = .NeedsHardUpdate
-            //} else {
-            //    scene.updateStatus = .NeedsUpdate
-            //}
-            nodeGraph?.mmView.update()
-        }
-
-        if noUndo == false {
-            super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
-        }
-    }
-    
-    override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
-    {
-    }
-    
-    override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
-    {
-    }
-    
-    /// Execute Object physic properties
-    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
-    {
-        if let scene = root.sceneRoot {
-            let numberOfLights : Int = Int(scene.properties["numberOfLights"]!)
-
-            scene.properties["light_\(numberOfLights)_color_x"] = properties["color_x"]!
-            scene.properties["light_\(numberOfLights)_color_y"] = properties["color_y"]!
-            scene.properties["light_\(numberOfLights)_color_z"] = properties["color_z"]!
-            
-            scene.properties["light_\(numberOfLights)_posX"] = properties["position"]!
-            scene.properties["light_\(numberOfLights)_posY"] = properties["y"]!
-            scene.properties["light_\(numberOfLights)_posZ"] = properties["height"]!
-
-            scene.properties["light_\(numberOfLights)_power"] = properties["power"]!
-            scene.properties["light_\(numberOfLights)_type"] = 1
-
-            scene.properties["numberOfLights"] = Float(numberOfLights + 1)
-        }
-        return .Success
-    }
-}
-
-class SceneSphericalLight : Node
+class SceneLight : Node
 {
     var currScene   : Scene? = nil
     var lightNumber : Int = 0
@@ -349,12 +216,12 @@ class SceneSphericalLight : Node
     override init()
     {
         super.init()
-        name = "Spherical Light"
+        name = "Light"
     }
     
     override func setup()
     {
-        type = "Scene Spherical Light"
+        type = "Scene Light"
         brand = .Property
         
         helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19791995/Collision+Properties"
@@ -372,7 +239,7 @@ class SceneSphericalLight : Node
             NodeUINumber(self, variable: "y", title: "Y", range: float2(-4000,4000), value: 0),
             NodeUINumber(self, variable: "height", title: "Height", range: float2(0,200), value: 100),
             NodeUINumber(self, variable: "power", title: "Power", range: float2(0,100), value: 3.15),
-            NodeUINumber(self, variable: "radius", title: "Radius", range: float2(0,100), value: 10),
+            NodeUISelector(self, variable: "type", title: "Type", items: ["Directional", "Spherical"], index: 0)
         ]
         
         super.setupUI(mmView: mmView)
@@ -381,6 +248,7 @@ class SceneSphericalLight : Node
     override func setupTerminals()
     {
         terminals = [
+            Terminal(name: "position", connector: .Right, brand: .Float2Variable, node: self),
             Terminal(name: "power", connector: .Right, brand: .FloatVariable, node: self),
         ]
     }
@@ -441,10 +309,17 @@ class SceneSphericalLight : Node
     
     override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
+        if terminal.name == "position" {
+            if terminal.connections.count == 0 {
+            } else
+            if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                variable.setValue(float2(properties["position"]!, properties["y"]!), adjustBinding: false)
+                setInternalPos(float2(properties["position"]!, properties["y"]!))
+                updateSettings()
+            }
+        } else
         if terminal.name == "power" {
             if terminal.connections.count == 0 {
-                // Not connected, adjust my own vars
-                //setInternalPower(properties["power"]!)
             } else
             if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
                 variable.setValue(properties["power"]!, adjustBinding: false)
@@ -456,6 +331,16 @@ class SceneSphericalLight : Node
     
     override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
     {
+        if terminal.name == "position" {
+            if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                let value = variable.getValue()
+                                
+                setInternalPos(value)
+                properties["position"] = value.x
+                properties["y"] = value.y
+                updateSettings()
+            }
+        } else
         if terminal.name == "power" {
             if let variable = terminal.connections[0].toTerminal!.node as? FloatVariable {
                 let value = variable.getValue()
@@ -463,12 +348,23 @@ class SceneSphericalLight : Node
                 setInternalPower(value)
                 properties["power"] = value
                 updateSettings()
-                
-                if !nodeGraph.isPlaying(), let scene = nodeGraph.getMasterForNode(self) as? Scene {
-                    scene.updateStatus = .NeedsHardUpdate
-                    nodeGraph.mmView.update()
-                }
             }
+        }
+        
+        if !nodeGraph.isPlaying(), let scene = nodeGraph.getMasterForNode(self) as? Scene {
+            scene.updateStatus = .NeedsHardUpdate
+            nodeGraph.mmView.update()
+        }
+    }
+    
+    // Adjusts the internal position
+    func setInternalPos(_ pos: float2)
+    {
+        if let item = uiItems[1] as? NodeUINumber {
+            item.value = pos.x
+        }
+        if let item = uiItems[2] as? NodeUINumber {
+            item.value = pos.y
         }
     }
     
@@ -507,9 +403,16 @@ class SceneSphericalLight : Node
             scene.properties["light_\(lightNumber)_posY"] = properties["y"]!
             scene.properties["light_\(lightNumber)_posZ"] = properties["height"]!
 
-            scene.properties["light_\(lightNumber)_radius"] = properties["radius"]!
-            scene.properties["light_\(lightNumber)_power"] = properties["power"]! * 100
-            scene.properties["light_\(lightNumber)_type"] = 0
+            let type : Float = properties["type"]!
+            scene.properties["light_\(lightNumber)_radius"] = 1000//properties["radius"]!
+            
+            var power : Float = properties["power"]!
+            if type == 1 {
+                power *= 100
+            }
+            
+            scene.properties["light_\(lightNumber)_power"] = power
+            scene.properties["light_\(lightNumber)_type"] = type == 0 ? 1.0 : 0.0
         }
     }
 }

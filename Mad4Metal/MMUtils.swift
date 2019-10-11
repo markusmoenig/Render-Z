@@ -111,6 +111,12 @@ class MMRect
         self.width -= x * 2
         self.height -= y * 2
     }
+    
+    /// Clears the rect
+    func clear()
+    {
+        set(0, 0, 0, 0)
+    }
 }
 
 /// MMMargin class

@@ -602,8 +602,7 @@ enum NodeFamily: String, NodeClassFamily {
     case accelerometer = "Accelerometer"
     case scene = "Scene"
     case sceneArea = "Scene Area"
-    case sceneDirLight = "Scene Directional Light"
-    case sceneSphericalLight = "Scene Spherical Light"
+    case sceneLight = "Scene Light"
     case sceneGravity = "Scene Gravity"
     case clickInSceneArea = "Click In Scene Area"
     case game = "Game"
@@ -675,10 +674,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return SceneFinished.self
             case .sceneGravity:
                 return SceneGravity.self
-            case .sceneDirLight:
-                return SceneDirLight.self
-            case .sceneSphericalLight:
-                return SceneSphericalLight.self
+            case .sceneLight:
+                return SceneLight.self
             
             case .game:
                 return Game.self

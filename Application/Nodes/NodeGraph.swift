@@ -114,7 +114,12 @@ class NodeGraph : Codable
     var behaviorMenu    : MMMenuWidget!
     var previewInfoMenu : MMMenuWidget!
 
-    var previewSize     : float2 = float2(370, 200)
+    var previewSize     : float2 = float2(375, 200)
+    
+    var previewRect     : MMRect = MMRect()
+    var navRect         : MMRect = MMRect()
+    
+    var boundingRect    : MMRect = MMRect()
     
     var refList         : ReferenceList!
     var validHoverTarget: NodeUIDropTarget? = nil
@@ -976,7 +981,7 @@ class NodeGraph : Codable
             previewSize.x = floor(nodeDragStartPos.x - (event.x - dragStartPos.x))
             previewSize.y = floor(nodeDragStartPos.y + (event.y - dragStartPos.y))
             
-            previewSize.x = max(previewSize.x, 370)
+            previewSize.x = max(previewSize.x, 375)
             previewSize.y = max(previewSize.y, 80)
 
             DispatchQueue.main.async {
@@ -1208,15 +1213,46 @@ class NodeGraph : Codable
                 
                 let toDraw = getNodesOfMaster(for: currentMaster!)
                 
+                let camera = currentMaster!.camera!
+                func expandBounds(_ node: Node)
+                {
+                    let border : Float = 50
+                    
+                    let nodeX : Float = node.xPos
+                    let nodeY : Float = node.yPos
+                    let nodeWidth : Float = node.rect.width / camera.zoom
+                    let nodeHeight : Float = node.rect.height / camera.zoom
+                    
+                    print(nodeWidth, nodeHeight)
+
+                    if nodeX - border < boundingRect.x {
+                        boundingRect.x = nodeX - border
+                    }
+                    if nodeY - border < boundingRect.y {
+                        boundingRect.y = nodeY - border
+                    }
+                    if nodeX + nodeWidth + 2 * border > boundingRect.x + boundingRect.width {
+                        boundingRect.width = (nodeX + nodeWidth + 2 * border) - boundingRect.x
+                    }
+                    if nodeY + nodeHeight + 2 * border > boundingRect.y + boundingRect.height {
+                        boundingRect.height = (nodeY + nodeHeight + 2 * border) - boundingRect.y
+                    }
+                }
+                
+                boundingRect.set( 10000, 10000, 0, 0)
                 if overviewIsOn == false {
                     for node in toDraw {
                         drawNode( node, region: region)
+                        expandBounds(node)
                     }
                 } else {
                     for node in toDraw {
                         drawOverviewNode( node, region: region)
+                        expandBounds(node)
                     }
                 }
+                
+                print(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height)
                 
                 // --- Ongoing Node connection attempt ?
                 if nodeHoverMode == .TerminalConnection {
@@ -1228,8 +1264,8 @@ class NodeGraph : Codable
                 
                 // --- DrawConnections
                 
-                for node in nodes {
-                    if masterNode.subset!.contains(node.uuid) || node === masterNode {
+                for node in toDraw {
+                    //if masterNode.subset!.contains(node.uuid) || node === masterNode {
                         
                         for terminal in node.terminals {
                             
@@ -1239,11 +1275,11 @@ class NodeGraph : Codable
                                 }
                             }
                         }
-                    }
+                    //}
                 }
                 
                 // --- Draw the master
-                drawMasterNode( masterNode, region: region)
+                drawMasterNode( masterNode, region: region, navNodes: toDraw)
             }
             
             // SideSlider
@@ -1632,7 +1668,7 @@ class NodeGraph : Codable
     }
     
     /// Draw the master node
-    func drawMasterNode(_ node: Node, region: MMRegion)
+    func drawMasterNode(_ node: Node, region: MMRegion, navNodes: [Node])
     {
         if contentType == .ObjectsOverview || contentType == .ScenesOverview { return }
         
@@ -1649,11 +1685,16 @@ class NodeGraph : Codable
         
         // --- Preview
         
+        let x : Float = node.rect.x + 2
+        let y : Float = node.rect.y + 34 + 25
+        
+        previewRect.x = x
+        previewRect.y = y
+        previewRect.width = previewSize.x - 23
+        previewRect.height = previewSize.y
+        
         if navigationMode == .Off {
             var textures : [MTLTexture] = []
-            
-            let x : Float = node.rect.x + 2
-            let y : Float = node.rect.y + 34 + 25
             
             if refList.isActive == false {
                 // --- Preview
@@ -1723,6 +1764,54 @@ class NodeGraph : Codable
             }
         } else {
             // Navigation
+            
+            let navWidth : Float = previewSize.x
+            let navHeight : Float = previewSize.y
+
+            var aWidth : Float = navWidth / boundingRect.width
+            var aHeight = navHeight / boundingRect.height
+
+            aWidth = min( aWidth, aHeight )
+            aHeight = aWidth
+            
+            app!.mmView.renderer.setClipRect(previewRect)
+
+            let camera = node.camera!
+            let scale = camera.zoom
+            
+            for n in navNodes {
+                
+                var color : float4
+                
+                if n.brand == .Behavior {
+                    color = mmView.skin.Node.behaviorColor
+                } else
+                if n.brand == .Property {
+                    color = mmView.skin.Node.propertyColor
+                } else
+                if n.brand == .Function {
+                    color = mmView.skin.Node.functionColor
+                } else {
+                //if node.brand == .Arithmetic {
+                    color = mmView.skin.Node.arithmeticColor
+                }
+                
+                let nX: Float = x + (n.xPos - boundingRect.x) * aWidth + (navWidth - (boundingRect.width * aWidth)) / 2
+                let nY: Float = y + (n.yPos - boundingRect.y) * aHeight + (navHeight - (boundingRect.height * aHeight)) / 2
+                let nWidth: Float = n.rect.width / scale * aWidth
+                let nHeight: Float = n.rect.height / scale * aHeight
+
+                app!.mmView.drawBox.draw(x: nX, y: nY, width: nWidth, height: nHeight, round: 18, borderSize: 0, fillColor: color)
+            }
+            
+            navRect.x = x + (-camera.xPos / scale - boundingRect.x) * aWidth + (navWidth - (boundingRect.width * aWidth)) / 2
+            navRect.y = y + (-camera.yPos / scale - boundingRect.y) * aHeight + (navHeight - (boundingRect.height * aHeight)) / 2
+            navRect.width = app!.editorRegion!.rect.width * aWidth / scale
+            navRect.height = app!.editorRegion!.rect.height * aHeight / scale
+            
+            app!.mmView.drawBox.draw(x: navRect.x, y: navRect.y, width: navRect.width, height: navRect.height, round: 8, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: float4(0.596, 0.125, 0.141, 1.000))
+            
+            app!.mmView.renderer.setClipRect()
         }
         
         // --- Buttons
