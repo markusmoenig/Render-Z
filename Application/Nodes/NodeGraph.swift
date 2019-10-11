@@ -26,7 +26,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, MasterNode, MenuHover, MenuOpen, OverviewEdit, SideSlider
+        case None, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, MasterNode, MenuHover, MenuOpen, OverviewEdit, SideSlider, NavigationDrag
     }
     
     enum ContentType : Int {
@@ -118,6 +118,8 @@ class NodeGraph : Codable
     
     var previewRect     : MMRect = MMRect()
     var navRect         : MMRect = MMRect()
+    var navLabel        : MMTextLabel!
+    var navLabelZoom    : Float = 0
     
     var boundingRect    : MMRect = MMRect()
     
@@ -562,6 +564,8 @@ class NodeGraph : Codable
         //
         refList = ReferenceList(self)
         refList.createVariableList()
+        
+        navLabel = MMTextLabel(mmView, font: mmView.openSans, text: "100%", scale: 0.34, color: mmView.skin.Node.titleColor)
     }
 
     ///
@@ -671,10 +675,20 @@ class NodeGraph : Codable
     
     func mouseDown(_ event: MMMouseEvent)
     {
+        // Reflist
         if refList.isActive && refList.rect.contains(event.x, event.y){
             refList.mouseDown(event)
             nodeHoverMode = .Preview
             hoverNode = currentMaster!
+            return
+        }
+        
+        // Navigation
+        
+        if navigationMode == .On && previewRect.contains(event.x, event.y) && navRect.contains(event.x, event.y) {
+            nodeHoverMode = .NavigationDrag
+            dragStartPos.x = event.x
+            dragStartPos.y = event.y
             return
         }
         
@@ -895,10 +909,24 @@ class NodeGraph : Codable
     
     func mouseMoved(_ event: MMMouseEvent)
     {
+        // Reflist
         if refList.isActive && refList.mouseIsDown == true && refList.rect.contains(event.x, event.y){
             refList.mouseMoved(event)
             nodeHoverMode = .Preview
             hoverNode = currentMaster!
+            return
+        }
+        
+        // Navigation Drag
+        if navigationMode == .On && nodeHoverMode == .NavigationDrag {
+            
+            let factor : Float = max(app!.editorRegion!.rect.width / previewRect.width, app!.editorRegion!.rect.height / previewRect.height)
+            
+            currentMaster!.camera!.xPos -= (event.x - dragStartPos.x) * factor * currentMaster!.camera!.zoom
+            currentMaster!.camera!.yPos -= (event.y - dragStartPos.y) * factor * currentMaster!.camera!.zoom
+            dragStartPos.x = event.x
+            dragStartPos.y = event.y
+            mmView.update()
             return
         }
         
@@ -1223,8 +1251,6 @@ class NodeGraph : Codable
                     let nodeWidth : Float = node.rect.width / camera.zoom
                     let nodeHeight : Float = node.rect.height / camera.zoom
                     
-                    print(nodeWidth, nodeHeight)
-
                     if nodeX - border < boundingRect.x {
                         boundingRect.x = nodeX - border
                     }
@@ -1232,10 +1258,10 @@ class NodeGraph : Codable
                         boundingRect.y = nodeY - border
                     }
                     if nodeX + nodeWidth + 2 * border > boundingRect.x + boundingRect.width {
-                        boundingRect.width = (nodeX + nodeWidth + 2 * border) - boundingRect.x
+                        boundingRect.width = (nodeX + nodeWidth + 2 * border) + (boundingRect.x > 0 ? boundingRect.x : -boundingRect.x)
                     }
                     if nodeY + nodeHeight + 2 * border > boundingRect.y + boundingRect.height {
-                        boundingRect.height = (nodeY + nodeHeight + 2 * border) - boundingRect.y
+                        boundingRect.height = (nodeY + nodeHeight + 2 * border) + (boundingRect.y > 0 ? boundingRect.y : -boundingRect.y)
                     }
                 }
                 
@@ -1252,7 +1278,7 @@ class NodeGraph : Codable
                     }
                 }
                 
-                print(boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height)
+                //print("boundingRect", boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height)
                 
                 // --- Ongoing Node connection attempt ?
                 if nodeHoverMode == .TerminalConnection {
@@ -1812,6 +1838,14 @@ class NodeGraph : Codable
             app!.mmView.drawBox.draw(x: navRect.x, y: navRect.y, width: navRect.width, height: navRect.height, round: 8, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: float4(0.596, 0.125, 0.141, 1.000))
             
             app!.mmView.renderer.setClipRect()
+            
+            navLabel.rect.x = node.rect.x + 30
+            navLabel.rect.y = node.rect.y + node.rect.height - 20
+            if navLabelZoom != currentMaster!.camera!.zoom {
+                navLabel.setText(String(format: "%.00f", currentMaster!.camera!.zoom * 100) + "%")
+                navLabelZoom = currentMaster!.camera!.zoom
+            }
+            navLabel.draw()
         }
         
         // --- Buttons
