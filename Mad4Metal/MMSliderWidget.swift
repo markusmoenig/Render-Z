@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class MMFloatWidget : MMWidget
+class MMSliderWidget : MMWidget
 {
     var value       : Float
     var range       : float2!
@@ -24,7 +24,7 @@ class MMFloatWidget : MMWidget
         self.int = int
         super.init(view)
         
-        name = "MMSliderWidget"
+        name = "MMFloatWidget"
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -81,26 +81,15 @@ class MMFloatWidget : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        let itemHeight = rect.height
+        //let skin = mmView.skin.MenuWidget
         
-        let skin = mmView.skin.MenuWidget
-        
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: itemHeight, round: itemHeight, borderSize: 0, fillColor : skin.color, borderColor: NodeUI.contentColor)
-        
-        //let offset = (rect.width / (range.y - range.x)) * (value - range.x)
-        
-        //mmView.drawBox.draw( x: rect.x, y: rect.y, width: offset, height: itemHeight, round: 0, borderSize: 1, fillColor : float4( 0.4, 0.4, 0.4, 1), borderColor: skin.borderColor )
+        mmView.drawBox.draw( x: rect.x, y: rect.y + rect.height / 2 - 1, width: rect.width, height: 2, round: 0, borderSize: 0, fillColor: float4(0.094, 0.098, 0.102, 1.000))
         
         if range != nil {
             let offset = (rect.width / (range!.y - range!.x)) * (value - range!.x)
-            if offset > 0 {
-                mmView.renderer.setClipRect(MMRect(rect.x, rect.y, offset, itemHeight))
-                mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: itemHeight, round: itemHeight, borderSize: 0, fillColor : NodeUI.contentColor2)
-                mmView.renderer.setClipRect()
-            }
+            let radius = rect.height / 2.5
+            mmView.drawSphere.draw( x: rect.x + offset - radius, y: rect.y + rect.height / 2 - radius, radius: radius, borderSize: 0, fillColor: float4(0.573, 0.576, 0.580, 1.000))
         }
-        
-        mmView.drawText.drawTextCentered(mmView.openSans, text: int ? String(Int(value)) : String(format: "%.02f", value), x: rect.x, y: rect.y, width: rect.width, height: itemHeight, scale: 0.44, color: skin.textColor)
     }
 }
 

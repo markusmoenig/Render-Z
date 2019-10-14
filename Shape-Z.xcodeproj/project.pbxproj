@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2B0271782353FDA1009178F6 /* zoom_minus.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B0271762353FDA0009178F6 /* zoom_minus.tiff */; };
+		2B0271792353FDA1009178F6 /* zoom_minus.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B0271762353FDA0009178F6 /* zoom_minus.tiff */; };
+		2B02717A2353FDA1009178F6 /* zoom_plus.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B0271772353FDA1009178F6 /* zoom_plus.tiff */; };
+		2B02717B2353FDA1009178F6 /* zoom_plus.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B0271772353FDA1009178F6 /* zoom_plus.tiff */; };
+		2B02717D23540417009178F6 /* MMSliderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02717C235403FC009178F6 /* MMSliderWidget.swift */; };
+		2B02717E23540417009178F6 /* MMSliderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02717C235403FC009178F6 /* MMSliderWidget.swift */; };
 		2B02B97622F7D1C100EFCC74 /* SceneRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */; };
 		2B02B97722F7D1C100EFCC74 /* SceneRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */; };
 		2B035152231A076700ACBB78 /* sz_toolbar.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B035151231A076700ACBB78 /* sz_toolbar.tiff */; };
@@ -197,6 +203,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		2B0271762353FDA0009178F6 /* zoom_minus.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = zoom_minus.tiff; sourceTree = "<group>"; };
+		2B0271772353FDA1009178F6 /* zoom_plus.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = zoom_plus.tiff; sourceTree = "<group>"; };
+		2B02717C235403FC009178F6 /* MMSliderWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMSliderWidget.swift; sourceTree = "<group>"; };
 		2B02B97522F7D1C100EFCC74 /* SceneRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneRenderer.swift; sourceTree = "<group>"; };
 		2B035151231A076700ACBB78 /* sz_toolbar.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_toolbar.tiff; sourceTree = "<group>"; };
 		2B06710D22B1DCC200983A76 /* GizmoInfoArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GizmoInfoArea.swift; sourceTree = "<group>"; };
@@ -345,6 +354,8 @@
 		2BA344A422015402000BB2EB /* Icons */ = {
 			isa = PBXGroup;
 			children = (
+				2B0271762353FDA0009178F6 /* zoom_minus.tiff */,
+				2B0271772353FDA1009178F6 /* zoom_plus.tiff */,
 				2B12841023475B54001170B2 /* navigation.tiff */,
 				2B6CCE57231F5E5E00ECA35B /* background.tiff */,
 				2B6CCE58231F5E5F00ECA35B /* foreground.tiff */,
@@ -468,6 +479,7 @@
 				2BBF11B821EADB46001C94E9 /* MMFont.swift */,
 				2BBF11B921EADB46001C94E9 /* MMLabel.swift */,
 				2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */,
+				2B02717C235403FC009178F6 /* MMSliderWidget.swift */,
 				2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */,
 				2BA6163B22597EF400638794 /* MMColorWidget.swift */,
 				2B46E95C224330050047A94A /* MMTabWidget.swift */,
@@ -673,9 +685,11 @@
 				2B035152231A076700ACBB78 /* sz_toolbar.tiff in Resources */,
 				2B6CCE4D231F59E700ECA35B /* substract_on.tiff in Resources */,
 				2B5FE42322C0A96F0046A435 /* Assets.xcassets in Resources */,
+				2B0271782353FDA1009178F6 /* zoom_minus.tiff in Resources */,
 				2B6CCE53231F5A4500ECA35B /* intersection_off.tiff in Resources */,
 				2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */,
 				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
+				2B02717A2353FDA1009178F6 /* zoom_plus.tiff in Resources */,
 				2B6CCE4F231F59E700ECA35B /* substract_off.tiff in Resources */,
 				2B0C6A652338A5B40073EF18 /* Pong.shape-z in Resources */,
 			);
@@ -696,9 +710,11 @@
 				2B8BBA8B22A4AA4600E541B9 /* OpenSans.json in Resources */,
 				2B6CCE47231F4FD600ECA35B /* union_off.tiff in Resources */,
 				2B6CCE4E231F59E700ECA35B /* substract_on.tiff in Resources */,
+				2B02717B2353FDA1009178F6 /* zoom_plus.tiff in Resources */,
 				2BBF113421EAD38E001C94E9 /* Main.storyboard in Resources */,
 				2B6CCE4A231F4FE200ECA35B /* union_on.tiff in Resources */,
 				2B6CCE50231F59E700ECA35B /* substract_off.tiff in Resources */,
+				2B0271792353FDA1009178F6 /* zoom_minus.tiff in Resources */,
 				2B6CCE56231F5A4500ECA35B /* intersection_on.tiff in Resources */,
 				2B0C6A632338A4950073EF18 /* Pinball.shape-z in Resources */,
 				2B12841223475B55001170B2 /* navigation.tiff in Resources */,
@@ -746,6 +762,7 @@
 				2BBF11CB21EADB46001C94E9 /* MMView.swift in Sources */,
 				2BBF11D721EADB46001C94E9 /* MMSkin.swift in Sources */,
 				2BEA8C3822573CE20010C204 /* MMFloatWidget.swift in Sources */,
+				2B02717D23540417009178F6 /* MMSliderWidget.swift in Sources */,
 				2B4CC22D2226669000A47812 /* NodeUI.swift in Sources */,
 				2BBF11AA21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
 				2BBF11A021EAD46B001C94E9 /* TopRegion.swift in Sources */,
@@ -827,6 +844,7 @@
 				2BBF11CC21EADB46001C94E9 /* MMView.swift in Sources */,
 				2BBF11D821EADB46001C94E9 /* MMSkin.swift in Sources */,
 				2BEA8C3722573CE20010C204 /* MMFloatWidget.swift in Sources */,
+				2B02717E23540417009178F6 /* MMSliderWidget.swift in Sources */,
 				2B4CC22E2226669000A47812 /* NodeUI.swift in Sources */,
 				2BBF11AB21EAD46B001C94E9 /* EditorRegion.swift in Sources */,
 				2BBF11A121EAD46B001C94E9 /* TopRegion.swift in Sources */,

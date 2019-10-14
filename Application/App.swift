@@ -71,6 +71,9 @@ class App
 
         mmView.registerIcon("navigation")
 
+        mmView.registerIcon("zoom_minus")
+        mmView.registerIcon("zoom_plus")
+
         // --- Reusable buttons
         
         // Close Button

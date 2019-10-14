@@ -126,6 +126,11 @@ class NodeGraph : Codable
     var refList         : ReferenceList!
     var validHoverTarget: NodeUIDropTarget? = nil
     
+    var zoomInTexture   : MTLTexture? = nil
+    var zoomOutTexture  : MTLTexture? = nil
+    
+    var navSliderWidget : MMSliderWidget!
+    
     // --- Icons
     
     var executeIcon     : MTLTexture?
@@ -259,6 +264,7 @@ class NodeGraph : Codable
         
         func adjustVisibleButtons() {
             mmView.deregisterWidget(navButton)
+            mmView.deregisterWidget(navSliderWidget)
             mmView.deregisterWidget(editButton)
             mmView.deregisterWidget(playButton)
             mmView.deregisterWidget(behaviorMenu)
@@ -272,7 +278,12 @@ class NodeGraph : Codable
                 mmView.widgets.insert(editButton, at: 0)
                 mmView.widgets.insert(playButton, at: 0)
                 mmView.widgets.insert(behaviorMenu, at: 0)
-                mmView.widgets.insert(previewInfoMenu, at: 0)
+
+                if navigationMode == .On {
+                    mmView.widgets.insert(navSliderWidget, at: 0)
+                } else {
+                    mmView.widgets.insert(previewInfoMenu, at: 0)
+                }
             }
         }
         
@@ -395,9 +406,13 @@ class NodeGraph : Codable
         navButton.clicked = { (event) -> Void in
             if self.navigationMode == .Off {
                 self.navigationMode = .On
+                self.mmView.widgets.insert(self.navSliderWidget, at: 0)
+                self.mmView.deregisterWidget(self.previewInfoMenu)
             } else {
                 self.navButton.removeState(.Checked)
                 self.navigationMode = .Off
+                self.mmView.deregisterWidget(self.navSliderWidget)
+                self.mmView.widgets.insert(self.previewInfoMenu, at: 0)
             }
         }
 
@@ -482,6 +497,11 @@ class NodeGraph : Codable
         nodeList = NodeList(app.mmView, app:app)
         sideSliderButton = MMSideSliderWidget(app.mmView)
         
+        navSliderWidget = MMSliderWidget(mmView, range: float2(0.2, 1.5), value: 1)
+        navSliderWidget.changed = { (value) in
+            self.currentMaster!.camera!.zoom = value
+        }
+        
         // --- Register icons at first time start
 //        if app.mmView.icons["execute"] == nil {
 //            executeIcon = app.mmView.registerIcon("execute")
@@ -565,7 +585,10 @@ class NodeGraph : Codable
         refList = ReferenceList(self)
         refList.createVariableList()
         
-        navLabel = MMTextLabel(mmView, font: mmView.openSans, text: "100%", scale: 0.34, color: mmView.skin.Node.titleColor)
+        navLabel = MMTextLabel(mmView, font: mmView.openSans, text: "100%", scale: 0.34, color: float4(0.573, 0.573, 0.573, 1))
+        
+        zoomInTexture = mmView.icons["zoom_plus"]
+        zoomOutTexture = mmView.icons["zoom_minus"]
     }
 
     ///
@@ -577,7 +600,12 @@ class NodeGraph : Codable
             mmView.widgets.insert(editButton, at: 0)
             mmView.widgets.insert(playButton, at: 0)
             mmView.widgets.insert(behaviorMenu, at: 0)
-            mmView.widgets.insert(previewInfoMenu, at: 0)
+            
+            if navigationMode == .On {
+                mmView.widgets.insert(navSliderWidget, at: 0)
+            } else {
+                mmView.widgets.insert(previewInfoMenu, at: 0)
+            }
         }
         if app!.properties["NodeGraphNodesOpen"] == nil || app!.properties["NodeGraphNodesOpen"]! == 1 {
             app!.leftRegion!.rect.width = 200
@@ -590,7 +618,7 @@ class NodeGraph : Codable
     ///
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: nodeList!, playButton, contentScrollButton, objectsButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu, navButton)
+        mmView.deregisterWidgets(widgets: nodeList!, playButton, contentScrollButton, objectsButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu, navButton, navSliderWidget)
         app!.properties["NodeGraphNodesOpen"] = leftRegionMode == .Closed ? 0 : 1
     }
     
@@ -1840,17 +1868,26 @@ class NodeGraph : Codable
             app!.mmView.renderer.setClipRect()
             
             navLabel.rect.x = node.rect.x + 30
-            navLabel.rect.y = node.rect.y + node.rect.height - 20
+            navLabel.rect.y = node.rect.y + node.rect.height - 22
             if navLabelZoom != currentMaster!.camera!.zoom {
                 navLabel.setText(String(format: "%.00f", currentMaster!.camera!.zoom * 100) + "%")
                 navLabelZoom = currentMaster!.camera!.zoom
             }
             navLabel.draw()
+            
+            mmView.drawTexture.draw(zoomOutTexture!, x: node.rect.x + 75, y: navLabel.rect.y - 1, zoom: 2.3)
+            mmView.drawTexture.draw(zoomInTexture!, x: previewRect.x + previewRect.width - 30, y: navLabel.rect.y - 1, zoom: 2.3)
+            
+            navSliderWidget.rect.x = node.rect.x + 105
+            navSliderWidget.rect.y = navLabel.rect.y - 3
+            navSliderWidget.rect.width = previewRect.x + previewRect.width - 45 - navSliderWidget.rect.x
+            navSliderWidget.rect.height = 20
+            navSliderWidget.draw()
         }
         
         // --- Buttons
         
-        navButton.rect.x = node.rect.x + 15
+        navButton.rect.x = node.rect.x + 10
         navButton.rect.y = node.rect.y + 25
         navButton.draw()
         
@@ -1879,8 +1916,6 @@ class NodeGraph : Codable
             previewInfoMenu.rect.x = node.rect.x + node.rect.width - previewInfoMenu.rect.width - 36
             previewInfoMenu.rect.y = node.rect.y + node.rect.height - 24
             previewInfoMenu.draw()
-        } else {
-    
         }
     }
     
