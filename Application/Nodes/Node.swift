@@ -653,6 +653,7 @@ enum NodeFamily: String, NodeClassFamily {
     case reflectFloat2Variables = "Reflect Float2 Variables"
     case testFloat2Variable = "Test Float2 Variable"
     case limitFloat2Range = "Limit Float2 Range"
+    case stopVariableAnimations = "Stop Variable Animations"
 
     static var discriminator: NodeDiscriminator = .type
     
@@ -773,6 +774,9 @@ enum NodeFamily: String, NodeClassFamily {
                 return ReflectFloat2Variables.self
             case .testFloat2Variable:
                 return TestFloat2Variable.self
+            
+            case .stopVariableAnimations:
+                return StopVariableAnimations.self
         }
     }
 }

@@ -131,9 +131,7 @@ class NodeGraph : Codable
     
     var navSliderWidget : MMSliderWidget!
     
-    // --- Icons
-    
-    var executeIcon     : MTLTexture?
+    var currentlyPlaying: Scene? = nil
     
     // --- Static Node Skin
     
@@ -656,6 +654,8 @@ class NodeGraph : Codable
         self.playToExecute = []
         self.playButton.removeState(.Checked)
         app!.mmView.unlockFramerate(true)
+        
+        currentlyPlaying = nil
     }
     
     /// Controls the tab mode in the left region
@@ -1281,39 +1281,46 @@ class NodeGraph : Codable
                 let camera = currentMaster!.camera!
                 func expandBounds(_ node: Node)
                 {
-                    let border : Float = 50
-                    
                     let nodeX : Float = node.xPos
                     let nodeY : Float = node.yPos
                     let nodeWidth : Float = node.rect.width / camera.zoom
                     let nodeHeight : Float = node.rect.height / camera.zoom
                     
-                    if nodeX - border < boundingRect.x {
-                        boundingRect.x = nodeX - border
+                    if nodeX < boundingRect.x {
+                        boundingRect.x = nodeX
                     }
-                    if nodeY - border < boundingRect.y {
-                        boundingRect.y = nodeY - border
+                    if nodeY < boundingRect.y {
+                        boundingRect.y = nodeY
                     }
-                    if nodeX + nodeWidth + 2 * border > boundingRect.x + boundingRect.width {
-                        boundingRect.width = (nodeX + nodeWidth + 2 * border) + (boundingRect.x > 0 ? boundingRect.x : -boundingRect.x)
+                    if nodeX + nodeWidth > boundingRect.width {
+                        boundingRect.width = nodeX + nodeWidth //(nodeX + nodeWidth + 2 * border) + (boundingRect.x > 0 ? boundingRect.x : -boundingRect.x)
                     }
-                    if nodeY + nodeHeight + 2 * border > boundingRect.y + boundingRect.height {
-                        boundingRect.height = (nodeY + nodeHeight + 2 * border) + (boundingRect.y > 0 ? boundingRect.y : -boundingRect.y)
+                    if nodeY + nodeHeight > boundingRect.height {
+                        boundingRect.height = nodeY + nodeHeight//(nodeY + nodeHeight + 2 * border) + (boundingRect.y > 0 ? boundingRect.y : -boundingRect.y)
                     }
                 }
                 
-                boundingRect.set( 10000, 10000, 0, 0)
                 if overviewIsOn == false {
+                    boundingRect.set( 10000, 10000, 0, 0)
                     for node in toDraw {
                         drawNode( node, region: region)
                         expandBounds(node)
                     }
+                    boundingRect.width = boundingRect.width - boundingRect.x
+                    boundingRect.height = boundingRect.height - boundingRect.y
+                    
+                    let border : Float = 50
+                    boundingRect.x -= border
+                    boundingRect.y -= border
+                    boundingRect.width += 3 * border
+                    boundingRect.height += 3 * border
                 } else {
                     for node in toDraw {
                         drawOverviewNode( node, region: region)
-                        expandBounds(node)
                     }
                 }
+
+                // ---
                 
                 //print("boundingRect", boundingRect.x, boundingRect.y, boundingRect.width, boundingRect.height)
                 
@@ -3657,6 +3664,7 @@ class NodeGraph : Codable
         return nil
     }
     
+    /// Returns true if the NodeGraph is currently used for playing a scene
     func isPlaying() -> Bool
     {
         var playing : Bool = false
@@ -3669,5 +3677,22 @@ class NodeGraph : Codable
         }
         
         return playing
+    }
+    
+    /// Reset variables and async nodes for the given scene
+    func resetVariables(scene: Scene)
+    {
+        var toExecute : [Node] = []
+
+        for inst in scene.objectInstances {
+            toExecute.append(inst.instance!)
+        }
+        toExecute.append(scene)
+        
+        for exe in toExecute {
+            if let root = exe.behaviorRoot {
+                root.asyncNodes = []
+            }
+        }
     }
 }

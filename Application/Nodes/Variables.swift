@@ -1064,7 +1064,6 @@ class AnimateFloatVariable : Node
     
     override func executeAsync(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node)
     {
-        print(name, "executeAsync")
         if let target = uiConnections[0].target as? FloatVariable {
             let currTime : Double = Double(Date().timeIntervalSince1970 * 1000)
             let deltaTime : Float = Float(currTime - startTime)
@@ -1074,8 +1073,13 @@ class AnimateFloatVariable : Node
                 root.deinstallAsyncNode(self)
             } else {
                 let deltaValue = endValue - startValue
-                let value : Float = deltaValue != 0 ? startValue + deltaValue * simd_smoothstep( startValue, endValue, startValue + ( deltaValue / duration ) * deltaTime ) : 0;
-                
+                let value : Float
+                    
+                if mode == 0 {
+                    value = startValue + ( deltaValue / duration ) * deltaTime
+                } else {
+                    value = deltaValue != 0 ? startValue + deltaValue * simd_smoothstep( startValue, endValue, startValue + ( deltaValue / duration ) * deltaTime ) : 0;
+                }
                 target.setValue(value)
             }
         }
@@ -1765,6 +1769,69 @@ class ReflectFloat2Variables : Node
             }
         }
         
+        return playResult!
+    }
+}
+
+class StopVariableAnimations : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Stop Variable Anims"
+        uiConnections.append(UINodeConnection(.FloatVariable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Stop Variable Animations"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20349033/Reset+Float"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    /// Reset the value variable
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Success
+        if let scene = nodeGraph.currentlyPlaying {
+            nodeGraph.resetVariables(scene: scene)
+        }
         return playResult!
     }
 }

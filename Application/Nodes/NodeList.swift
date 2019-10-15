@@ -392,6 +392,12 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
+        item = NodeListItem("Stop Variable Anims")
+        item.createNode = {
+            return StopVariableAnimations()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
         // ---
         switchTo(.Object)
     }

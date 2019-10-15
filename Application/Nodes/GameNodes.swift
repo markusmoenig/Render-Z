@@ -244,6 +244,8 @@ class GamePlayScene : Node
             if scene !== currentlyPlaying {
                 
                 currentlyPlaying = scene
+                nodeGraph.currentlyPlaying = scene
+                
                 camera = Camera()
 
                 toExecute = []
