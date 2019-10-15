@@ -293,7 +293,15 @@ class GamePlayScene : Node
             }
             
             for exe in toExecute {
-                _ = exe.execute(nodeGraph: nodeGraph, root: exe.behaviorRoot!, parent: exe.behaviorRoot!.rootNode)
+                let root = exe.behaviorRoot!
+                
+                /// Execute the async nodes currently in the tree
+                for asyncNode in root.asyncNodes {
+                    _ = asyncNode.executeAsync(nodeGraph: nodeGraph, root: root, parent: exe.behaviorRoot!.rootNode)
+                }
+                
+                /// Execute the tree
+                _ = exe.execute(nodeGraph: nodeGraph, root: root, parent: exe.behaviorRoot!.rootNode)
             }
             
             if gameNode == nil {

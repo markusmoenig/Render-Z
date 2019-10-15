@@ -344,6 +344,12 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Arithmetic, displayType: .All)
         
+        item = NodeListItem("Animate(Float)")
+        item.createNode = {
+            return AnimateFloatVariable()
+        }
+        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        
         item = NodeListItem("Add(Const, Float)")
         item.createNode = {
             return AddConstFloatVariable()

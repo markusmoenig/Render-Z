@@ -996,6 +996,110 @@ class SetFloatVariable : Node
     }
 }
 
+class AnimateFloatVariable : Node
+{
+    var startValue      : Float = 0
+    var endValue        : Float = 0
+    
+    var startTime       : Double = 0
+    
+    var mode            : Int = 0
+    var duration        : Float = 0
+
+    override init()
+    {
+        super.init()
+        
+        name = "Animate Float"
+        uiConnections.append(UINodeConnection(.FloatVariable))
+    }
+    
+    override func setup()
+    {
+        brand = .Arithmetic
+        type = "Animate Float Variable"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20086922/Test+Float"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "In", connector: .Top, brand: .Behavior, node: self)
+        ]
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUIFloatVariableTarget(self, variable: "node", title: "Variable", connection:  uiConnections[0]),
+            NodeUISelector(self, variable: "mode", title: "Mode", items: ["Linear", "Spline"], index: 0),
+            NodeUINumber(self, variable: "from", title: "From", range: nil, value: 0),
+            NodeUINumber(self, variable: "to", title: "To", range: nil, value: 0),
+            NodeUINumber(self, variable: "duration", title: "Duration in Seconds", range: float2(0.001, 20), value: 1),
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    override func executeAsync(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node)
+    {
+        print(name, "executeAsync")
+        if let target = uiConnections[0].target as? FloatVariable {
+            let currTime : Double = Double(Date().timeIntervalSince1970 * 1000)
+            let deltaTime : Float = Float(currTime - startTime)
+            
+            if deltaTime >= duration {
+                // Finished
+                root.deinstallAsyncNode(self)
+            } else {
+                let deltaValue = endValue - startValue
+                let value : Float = deltaValue != 0 ? startValue + deltaValue * simd_smoothstep( startValue, endValue, startValue + ( deltaValue / duration ) * deltaTime ) : 0;
+                
+                target.setValue(value)
+            }
+        }
+    }
+    
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        if root.installAsyncNode(self) {
+            /// First time run, set things up
+            
+            mode = Int(properties["mode"]!)
+            startValue = properties["from"]!
+            endValue = properties["to"]!
+            duration = properties["duration"]! * 1000
+        }
+        /// Reset start time every time this node gets executed
+        startTime = Double(Date().timeIntervalSince1970 * 1000)
+        
+        playResult = .Success
+        return playResult!
+    }
+}
+
+
 class RandomDirection : Node
 {
     private enum CodingKeys: String, CodingKey {

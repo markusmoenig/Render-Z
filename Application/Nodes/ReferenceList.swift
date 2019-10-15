@@ -38,7 +38,6 @@ class ReferenceList {
 
     var rect                : MMRect = MMRect()
     var offsetY             : Float = 0
-    var isActive            : Bool = false
     var itemHeight          : Float = 58
 
     var refs                : [ReferenceItem] = []
@@ -54,6 +53,14 @@ class ReferenceList {
     let color               : float4 = float4(0.243, 0.247, 0.251, 1.000)
     let selColor            : float4 = float4(0.388, 0.392, 0.396, 1.000)
 
+    var isActive  : Bool = false {
+        willSet(newValue) {
+            if newValue == true {
+                nodeGraph.setNavigationState(on: false)
+            }
+        }
+    }
+    
     init(_ nodeGraph: NodeGraph)
     {
         self.nodeGraph = nodeGraph

@@ -194,7 +194,33 @@ class MMView : MMBaseView {
     /// Register the widget to the view
     func registerWidget(_ widget : MMWidget)
     {
-        widgets.append( widget )
+        var found: Bool = false
+        for w in widgets {
+            if w === widget {
+                found = true
+                break
+            }
+        }
+        
+        if found == false {
+            widgets.append( widget )
+        }
+    }
+    
+    /// Register the widget to the view at a given position
+    func registerWidgetAt(_ widget : MMWidget, at: Int = 0)
+    {
+        var found: Bool = false
+        for w in widgets {
+            if w === widget {
+                found = true
+                break
+            }
+        }
+        
+        if found == false {
+            widgets.insert(widget, at: at)
+        }
     }
     
     func registerWidgets( widgets: MMWidget... )

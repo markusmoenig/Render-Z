@@ -404,16 +404,7 @@ class NodeGraph : Codable
         navButton = MMButtonWidget(app.mmView, skinToUse: iconButtonSkin, iconName: "navigation")
         navButton.iconZoom = 2
         navButton.clicked = { (event) -> Void in
-            if self.navigationMode == .Off {
-                self.navigationMode = .On
-                self.mmView.widgets.insert(self.navSliderWidget, at: 0)
-                self.mmView.deregisterWidget(self.previewInfoMenu)
-            } else {
-                self.navButton.removeState(.Checked)
-                self.navigationMode = .Off
-                self.mmView.deregisterWidget(self.navSliderWidget)
-                self.mmView.widgets.insert(self.previewInfoMenu, at: 0)
-            }
+            self.setNavigationState(on: self.navigationMode == .Off)
         }
 
         editButton = MMButtonWidget(app.mmView, skinToUse: smallButtonSkin, text: "Shape..." )
@@ -620,6 +611,23 @@ class NodeGraph : Codable
     {
         mmView.deregisterWidgets(widgets: nodeList!, playButton, contentScrollButton, objectsButton, scenesButton, gameButton, editButton, behaviorMenu, previewInfoMenu, navButton, navSliderWidget)
         app!.properties["NodeGraphNodesOpen"] = leftRegionMode == .Closed ? 0 : 1
+    }
+    
+    /// Changes the navigation state
+    func setNavigationState(on: Bool)
+    {
+        if on == true {
+            navigationMode = .On
+            mmView.registerWidgetAt(self.navSliderWidget, at: 0)
+            mmView.deregisterWidget(self.previewInfoMenu)
+            refList.isActive = false
+        } else {
+            navButton.removeState(.Checked)
+            navigationMode = .Off
+            mmView.deregisterWidget(self.navSliderWidget)
+            mmView.registerWidgetAt(self.previewInfoMenu, at: 0)
+
+        }
     }
     
     /// Stop previewing the playNode
@@ -948,7 +956,7 @@ class NodeGraph : Codable
         // Navigation Drag
         if navigationMode == .On && nodeHoverMode == .NavigationDrag {
             
-            let factor : Float = max(app!.editorRegion!.rect.width / previewRect.width, app!.editorRegion!.rect.height / previewRect.height)
+            let factor : Float = max(boundingRect.width / previewRect.width, boundingRect.height / previewRect.height)
             
             currentMaster!.camera!.xPos -= (event.x - dragStartPos.x) * factor * currentMaster!.camera!.zoom
             currentMaster!.camera!.yPos -= (event.y - dragStartPos.y) * factor * currentMaster!.camera!.zoom
@@ -1248,16 +1256,17 @@ class NodeGraph : Codable
                 for terminal in playBindings {
                     terminal.node?.executeReadBinding(self, terminal)
                 }
-                
+                                
                 for exe in playToExecute {
                     let root = exe.behaviorRoot!
                     
-                    /*if let runningNode = root.runningNode {
-                        _ = runningNode.execute(nodeGraph: self, root: root, parent: exe.behaviorRoot!.rootNode)
-                    } else {*/
-                        //root.hasRun = []
-                        _ = exe.execute(nodeGraph: self, root: root, parent: exe.behaviorRoot!.rootNode)
-                    //}
+                    /// Execute the async nodes currently in the tree
+                    for asyncNode in root.asyncNodes {
+                        _ = asyncNode.executeAsync(nodeGraph: self, root: root, parent: exe.behaviorRoot!.rootNode)
+                    }
+                    
+                    /// Execute the tree
+                    _ = exe.execute(nodeGraph: self, root: root, parent: exe.behaviorRoot!.rootNode)
                 }
                 
                 playNode?.updatePreview(nodeGraph: self)
@@ -1855,7 +1864,7 @@ class NodeGraph : Codable
                 let nWidth: Float = n.rect.width / scale * aWidth
                 let nHeight: Float = n.rect.height / scale * aHeight
 
-                app!.mmView.drawBox.draw(x: nX, y: nY, width: nWidth, height: nHeight, round: 18, borderSize: 0, fillColor: color)
+                app!.mmView.drawBox.draw(x: nX, y: nY, width: nWidth, height: nHeight, round: 60 * aWidth, borderSize: 0, fillColor: color)
             }
             
             navRect.x = x + (-camera.xPos / scale - boundingRect.x) * aWidth + (navWidth - (boundingRect.width * aWidth)) / 2

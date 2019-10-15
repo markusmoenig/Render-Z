@@ -140,9 +140,16 @@ class Node : Codable, Equatable
     {
     }
     
+    
+    /// Executes a node inside a behaviour tree
     func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
     {
         return .Success
+    }
+    
+    /// Executes a an asynchronous node, that is a node which runs over time, these nodes are installed in the currentlyRunning array in  root
+    func executeAsync(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node)
+    {
     }
     
     func finishExecution()
@@ -543,14 +550,35 @@ class BehaviorTreeRoot
     
     var runningNode     : Node? = nil
 
-    /// List of Running capable nodes which have already been run, gets reset each time the tree is run
+    /// List of
     var hasRun          : [UUID] = []
+    
+    /// List of asynchronous nodes which are currently running for this tree
+    var asyncNodes      : [Node] = []
     
     init(_ node : Node)
     {
         rootNode = node
         objectRoot = node as? Object
         sceneRoot = node as? Scene
+    }
+    
+    /// Install a node to the async nodes
+    func installAsyncNode(_ node: Node) -> Bool
+    {
+        if !asyncNodes.contains(node) {
+            asyncNodes.append(node)
+            return true
+        }
+        return false
+    }
+    
+    /// Remove a node from the async nodes
+    func deinstallAsyncNode(_ node: Node)
+    {
+        asyncNodes.removeAll(where: { (n) -> Bool in
+            n.uuid == node.uuid
+        })
     }
 }
 
@@ -610,6 +638,7 @@ enum NodeFamily: String, NodeClassFamily {
     case directionVariable = "Direction Variable"
     case float2Variable = "Float2 Variable"
     case float3Variable = "Float3 Variable"
+    case animateFloatVariable = "Animate Float Variable"
     case addFloatVariable = "Add Float Variable"
     case subtractFloatVariable = "Subtract Float Variable"
     case resetFloatVariable = "Reset Float Variable"
@@ -715,6 +744,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return Float3Variable.self
             case .limitFloat2Range:
                 return LimitFloat2Range.self
+            case .animateFloatVariable:
+                return AnimateFloatVariable.self
             case .addFloatVariable:
                 return AddConstFloatVariable.self
             case .subtractFloatVariable:
