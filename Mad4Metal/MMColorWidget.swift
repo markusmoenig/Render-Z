@@ -77,9 +77,13 @@ class MMColorPopupWidget : MMWidget
     override func mouseDown(_ event: MMMouseEvent)
     {
         if hexHover {
+            let oldValue = hexLabel.text
             getStringDialog(view: mmView, title: "Color Value", message: "Enter new value", defaultValue: hexLabel.text, cb: { (string) -> Void in
                 self.setValue(color: fromHex(hexString: string))
                 self.mmView.update()
+                if oldValue != string {
+                    self.changed!(self.value, false)
+                }
             } )
             return
         }

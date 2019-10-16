@@ -1312,8 +1312,8 @@ class NodeGraph : Codable
                     let border : Float = 50
                     boundingRect.x -= border
                     boundingRect.y -= border
-                    boundingRect.width += 3 * border
-                    boundingRect.height += 3 * border
+                    boundingRect.width += 2 * border
+                    boundingRect.height += 2 * border
                 } else {
                     for node in toDraw {
                         drawOverviewNode( node, region: region)
@@ -1835,7 +1835,9 @@ class NodeGraph : Codable
         } else {
             // Navigation
             
-            let navWidth : Float = previewSize.x
+            app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x - 23, height: previewSize.y, round: 26, borderSize: 0, fillColor: float4(0.224, 0.227, 0.231, 1.000))
+            
+            let navWidth : Float = previewSize.x - 23
             let navHeight : Float = previewSize.y
 
             var aWidth : Float = navWidth / boundingRect.width
