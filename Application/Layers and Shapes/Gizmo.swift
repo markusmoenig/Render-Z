@@ -44,8 +44,8 @@ class Gizmo : MMWidget
     var objects         : [Object]
     var rootObject      : Object?
     
-    var dragStartOffset : float2?
-    var gizmoCenter     : float2 = float2()
+    var dragStartOffset : SIMD2<Float>?
+    var gizmoCenter     : SIMD2<Float> = SIMD2<Float>()
     
     var startRotate     : Float = 0
     
@@ -2141,7 +2141,7 @@ class Gizmo : MMWidget
     }
     
     /// Converts the coordinate from scene space to screen space
-    func convertToScreenSpace(x: Float, y: Float) -> float2
+    func convertToScreenSpace(x: Float, y: Float) -> SIMD2<Float>
     {
         var result : float2 = float2()
         
@@ -2160,7 +2160,7 @@ class Gizmo : MMWidget
     }
     
     /// Converts the coordinate from screen space to scene space
-    func convertToSceneSpace(x: Float, y: Float) -> float2
+    func convertToSceneSpace(x: Float, y: Float) -> SIMD2<Float>
     {
         var result : float2 = float2()
         

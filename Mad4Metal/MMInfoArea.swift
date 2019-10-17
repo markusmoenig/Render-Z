@@ -16,7 +16,7 @@ class MMInfoAreaItem {
     var value       : Float
     var rect        : MMRect
     var scale       : Float
-    var range       : float2
+    var range       : SIMD2<Float>
     var int         : Bool
     
     var titleLabel  : MMTextLabel
@@ -24,7 +24,7 @@ class MMInfoAreaItem {
     
     var cb          : ((Float, Float) -> ())?
     
-    init(_ mmView: MMView,_ title: String,_ variable: String,_ value: Float, scale: Float = 0.3, int: Bool = false, range: float2 = float2(-100000, 100000), cb: ((Float, Float) -> ())? = nil)
+    init(_ mmView: MMView,_ title: String,_ variable: String,_ value: Float, scale: Float = 0.3, int: Bool = false, range: SIMD2<Float> = SIMD2<Float>(-100000, 100000), cb: ((Float, Float) -> ())? = nil)
     {
         self.mmView = mmView
         self.title = title
@@ -80,7 +80,7 @@ class MMInfoArea : MMWidget {
         items = items.sorted(by: { $0.variable.lowercased() < $1.variable.lowercased() })
     }
     
-    func addItem(_ title: String,_ variable: String,_ value: Float, int: Bool = false, range: float2 = float2(-100000, 100000), cb: ((Float, Float) -> ())? = nil) -> MMInfoAreaItem
+    func addItem(_ title: String,_ variable: String,_ value: Float, int: Bool = false, range: SIMD2<Float> = SIMD2<Float>(-100000, 100000), cb: ((Float, Float) -> ())? = nil) -> MMInfoAreaItem
     {
         let item = MMInfoAreaItem(mmView, title, variable, value, scale: scale, int: int, range: range, cb: cb)
         items.append(item)
@@ -175,11 +175,11 @@ class MMInfoArea : MMWidget {
         
         for item in items {
             
-            let color : float4
+            let color : SIMD4<Float>
             if item === hoverItem {
-                color = float4(1,1,1,1)
+                color = SIMD4<Float>(1,1,1,1)
             } else {
-                color = float4(0.761, 0.761, 0.761, 1.000)
+                color = SIMD4<Float>(0.761, 0.761, 0.761, 1.000)
             }
             
             item.titleLabel.rect.x = x
@@ -200,9 +200,9 @@ class MMInfoArea : MMWidget {
             
             if closeable {
                 let xStart = x + item.valueLabel.rect.width + 4
-                let color = item === closeItem ? float4(1,1,1,1) : float4(0.4,0.4,0.4,1)
+                let color = item === closeItem ? SIMD4<Float>(1,1,1,1) : SIMD4<Float>(0.4,0.4,0.4,1)
                 
-                mmView.drawSphere.draw(x: xStart - 2, y: rect.y - 1, radius: 8, borderSize: 1, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor: color)
+                mmView.drawSphere.draw(x: xStart - 2, y: rect.y - 1, radius: 8, borderSize: 1, fillColor: SIMD4<Float>(0.110, 0.110, 0.110, 1.000), borderColor: color)
                 mmView.drawLine.draw(sx: xStart, sy: rect.y + 1, ex: xStart + 10, ey: rect.y + rect.height - 5, radius: 1, fillColor: color)
                 mmView.drawLine.draw(sx: xStart, sy: rect.y + rect.height - 5, ex: xStart + 10, ey: rect.y + 1, radius: 1, fillColor: color)
                 

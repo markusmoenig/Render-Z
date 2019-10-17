@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>OSX Framework.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
 		<key>Shape-Z iOS.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
@@ -17,6 +22,11 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>2B91CBEF2358629300DED7B1</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>2BBF10F521EAD2AF001C94E9</key>
 		<dict>
 			<key>primary</key>

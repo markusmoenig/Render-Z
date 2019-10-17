@@ -51,7 +51,7 @@ class Object : Node
     var body                    : Body? = nil
     
     // Profile points (if any)
-    var profile                 : [float4]? = nil
+    var profile                 : [SIMD4<Float>]? = nil
     
     var selectedShapes          : [UUID]
     var selectedBodyMaterials   : [UUID]

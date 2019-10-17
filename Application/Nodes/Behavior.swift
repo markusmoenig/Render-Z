@@ -38,7 +38,7 @@ class BehaviorTree : Node
     {
         uiItems = [
             NodeUISelector(self, variable: "status", title: "Execute", items: ["Always", "On Startup", "On Demand"], index: 0),
-            NodeUINumber(self, variable: "treeScale", title: "Scale", range: float2(0, 1), value: 1)
+            NodeUINumber(self, variable: "treeScale", title: "Scale", range: SIMD2<Float>(0, 1), value: 1)
         ]
         super.setupUI(mmView: mmView)
     }

@@ -116,8 +116,8 @@ class SceneGravity : Node
     {
         uiItems = [
             NodeUIAngle(self, variable: "orientation", title: "", value: 90),
-            NodeUINumber(self, variable: "angle", title: "Direction", range: float2(0,360), value: 90),
-            NodeUINumber(self, variable: "strength", title: "Strength", range: float2(0,10), value: 5)
+            NodeUINumber(self, variable: "angle", title: "Direction", range: SIMD2<Float>(0,360), value: 90),
+            NodeUINumber(self, variable: "strength", title: "Strength", range: SIMD2<Float>(0,10), value: 5)
         ]
         
         uiItems[1].linkedTo = uiItems[0]
@@ -132,7 +132,7 @@ class SceneGravity : Node
         
         let angle = properties["angle"]!
         let strength = properties["strength"]!
-        let dir = float2(cos((360-angle) * Float.pi/180) * strength * 10, sin((360-angle) * Float.pi/180) * strength * 10)
+        let dir = SIMD2<Float>(cos((360-angle) * Float.pi/180) * strength * 10, sin((360-angle) * Float.pi/180) * strength * 10)
         
         if let layer = root.sceneRoot {
             
@@ -235,10 +235,10 @@ class SceneLight : Node
     {
         uiItems = [
             NodeUIColor(self, variable: "color", title: "Color", value: SIMD3<Float>(1,1,1)),
-            NodeUINumber(self, variable: "position", title: "X", range: float2(-4000,4000), value: 10),
-            NodeUINumber(self, variable: "y", title: "Y", range: float2(-4000,4000), value: 0),
-            NodeUINumber(self, variable: "height", title: "Height", range: float2(0,200), value: 100),
-            NodeUINumber(self, variable: "power", title: "Power", range: float2(0,100), value: 3.15),
+            NodeUINumber(self, variable: "position", title: "X", range: SIMD2<Float>(-4000,4000), value: 10),
+            NodeUINumber(self, variable: "y", title: "Y", range: SIMD2<Float>(-4000,4000), value: 0),
+            NodeUINumber(self, variable: "height", title: "Height", range: SIMD2<Float>(0,200), value: 100),
+            NodeUINumber(self, variable: "power", title: "Power", range: SIMD2<Float>(0,100), value: 3.15),
             NodeUISelector(self, variable: "type", title: "Type", items: ["Directional", "Spherical"], index: 0)
         ]
         
@@ -313,8 +313,8 @@ class SceneLight : Node
             if terminal.connections.count == 0 {
             } else
             if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
-                variable.setValue(float2(properties["position"]!, properties["y"]!), adjustBinding: false)
-                setInternalPos(float2(properties["position"]!, properties["y"]!))
+                variable.setValue(SIMD2<Float>(properties["position"]!, properties["y"]!), adjustBinding: false)
+                setInternalPos(SIMD2<Float>(properties["position"]!, properties["y"]!))
                 updateSettings()
             }
         } else
@@ -358,7 +358,7 @@ class SceneLight : Node
     }
     
     // Adjusts the internal position
-    func setInternalPos(_ pos: float2)
+    func setInternalPos(_ pos: SIMD2<Float>)
     {
         if let item = uiItems[1] as? NodeUINumber {
             item.value = pos.x

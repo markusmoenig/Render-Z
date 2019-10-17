@@ -353,11 +353,11 @@ class GizmoInfoArea {
         
         for item in items {
             
-            let color : float4
+            let color : SIMD4<Float>
             if item === hoverItem {
-                color = float4(1,1,1,1)
+                color = SIMD4<Float>(1,1,1,1)
             } else {
-                color = float4(0.761, 0.761, 0.761, 1.000)
+                color = SIMD4<Float>(0.761, 0.761, 0.761, 1.000)
             }
             
             item.titleLabel.rect.x = x

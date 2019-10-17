@@ -50,7 +50,7 @@ class ObjectProfile : Node
     override func setupUI(mmView: MMView)
     {
         uiItems = [
-            NodeUIDropDown(self, variable: "status", title: "Status", items: ["Enabled", "Disabled"], index: 0)
+            NodeUISelector(self, variable: "status", title: "Status", items: ["Enabled", "Disabled"], index: 0)
         ]
         super.setupUI(mmView: mmView)
     }

@@ -108,7 +108,7 @@ class MMTimeline : MMWidget
     var percentVisible          : Float = 0.8
     let barHandleWidth          : Float = 18
     
-    var dragStart               : float2 = float2()
+    var dragStart               : SIMD2<Float> = SIMD2<Float>()
     var dragStartFrame          : Float = 0
     var dragStartValue          : Float = 0
 

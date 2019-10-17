@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import simd
 
 /// OSX: Key Is Down
 class KeyDown : Node
@@ -169,28 +170,28 @@ class ClickInSceneArea : Node
                     let object = area.areaObject!
                     let shape = object.shapes[0]
                     
-                    func rotateCW(_ pos : float2, angle: Float) -> float2
+                    func rotateCW(_ pos : SIMD2<Float>, angle: Float) -> SIMD2<Float>
                     {
                         let ca : Float = cos(angle), sa = sin(angle)
                         return pos * float2x2(float2(ca, -sa), float2(sa, ca))
                     }
                     
-                    var uv = float2(mouse.x, -mouse.y)
+                    var uv = SIMD2<Float>(mouse.x, -mouse.y)
                     
-                    uv -= float2(object.properties["posX"]!, object.properties["posY"]!)
+                    uv -= SIMD2<Float>(object.properties["posX"]!, object.properties["posY"]!)
                     //uv /= float2(object.properties["scaleX"]!, object.properties["scaleY"]!)
                     
                     uv = rotateCW(uv, angle: object.properties["rotate"]! * Float.pi / 180 );
 
-                    let d : float2 = simd_abs( uv ) - float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
-                    let dist : Float = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0)
+                    let d : SIMD2<Float> = simd_abs( uv ) - SIMD2<Float>(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
+                    let dist : Float = simd_length(max(d,SIMD2<Float>(repeating: 0))) + min(max(d.x,d.y),0.0)
 
                     if dist < 0 {
                         playResult = .Success
                         
                         if nodeGraph.debugMode == .SceneAreas {
-                            let pos = float2(object.properties["posX"]!, object.properties["posY"]!)
-                            let size = float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
+                            let pos = SIMD2<Float>(object.properties["posX"]!, object.properties["posY"]!)
+                            let size = SIMD2<Float>(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
                             nodeGraph.debugInstance!.addBox(pos, size, 0, 0, float4(0.541, 0.098, 0.125, 0.8))
                         }
                     }

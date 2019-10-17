@@ -67,12 +67,12 @@ class NodeGraph : Codable
 
     var selectedUUID    : [UUID] = []
     
-    var dragStartPos    : float2 = float2()
-    var nodeDragStartPos: float2 = float2()
+    var dragStartPos    : SIMD2<Float> = SIMD2<Float>()
+    var nodeDragStartPos: SIMD2<Float> = SIMD2<Float>()
     var childsOfSel     : [Node] = []
-    var childsOfSelPos  : [UUID:float2] = [:]
+    var childsOfSelPos  : [UUID:SIMD2<Float>] = [:]
     
-    var mousePos        : float2 = float2()
+    var mousePos        : SIMD2<Float> = SIMD2<Float>()
 
     var nodeHoverMode   : NodeHoverMode = .None
     
@@ -114,7 +114,7 @@ class NodeGraph : Codable
     var behaviorMenu    : MMMenuWidget!
     var previewInfoMenu : MMMenuWidget!
 
-    var previewSize     : float2 = float2(375, 200)
+    var previewSize     : SIMD2<Float> = SIMD2<Float>(375, 200)
     
     var previewRect     : MMRect = MMRect()
     var navRect         : MMRect = MMRect()
@@ -189,7 +189,7 @@ class NodeGraph : Codable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         nodes = try container.decode([Node].self, ofFamily: NodeFamily.self, forKey: .nodes)
         currentMasterUUID = try container.decode(UUID?.self, forKey: .currentMasterUUID)
-        previewSize = try container.decode(float2.self, forKey: .previewSize)
+        previewSize = try container.decode(SIMD2<Float>.self, forKey: .previewSize)
         if let overview = try container.decodeIfPresent(Bool.self, forKey: .overviewIsOn) {
             overviewIsOn = overview
         }
@@ -486,7 +486,7 @@ class NodeGraph : Codable
         nodeList = NodeList(app.mmView, app:app)
         sideSliderButton = MMSideSliderWidget(app.mmView)
         
-        navSliderWidget = MMSliderWidget(mmView, range: float2(0.2, 1.5), value: 1)
+        navSliderWidget = MMSliderWidget(mmView, range: SIMD2<Float>(0.2, 1.5), value: 1)
         navSliderWidget.changed = { (value) in
             self.currentMaster!.camera!.zoom = value
         }
@@ -574,7 +574,7 @@ class NodeGraph : Codable
         refList = ReferenceList(self)
         refList.createVariableList()
         
-        navLabel = MMTextLabel(mmView, font: mmView.openSans, text: "100%", scale: 0.34, color: float4(0.573, 0.573, 0.573, 1))
+        navLabel = MMTextLabel(mmView, font: mmView.openSans, text: "100%", scale: 0.34, color: SIMD4<Float>(0.573, 0.573, 0.573, 1))
         
         zoomInTexture = mmView.icons["zoom_plus"]
         zoomOutTexture = mmView.icons["zoom_minus"]
@@ -871,7 +871,7 @@ class NodeGraph : Codable
                     if !childsOfSel.contains(n) {
                         
                         childsOfSel.append(n)
-                        childsOfSelPos[n.uuid] = float2(n.xPos, n.yPos)
+                        childsOfSelPos[n.uuid] = SIMD2<Float>(n.xPos, n.yPos)
                     }
                     
                     for terminal in n.terminals {
@@ -968,7 +968,7 @@ class NodeGraph : Codable
         
         // --- Side Slider
         
-        let distToSideSlider : Float = simd_distance(float2(sideSliderButton.rect.x + sideSliderButton.rect.width/2, sideSliderButton.rect.y + sideSliderButton.rect.height/2), float2(event.x, event.y))
+        let distToSideSlider : Float = simd_distance(SIMD2<Float>(sideSliderButton.rect.x + sideSliderButton.rect.width/2, sideSliderButton.rect.y + sideSliderButton.rect.height/2), SIMD2<Float>(event.x, event.y))
         if distToSideSlider <=  sideSliderButton.rect.width/2 {
             sideSliderButton.addState(.Hover)
             nodeHoverMode = .SideSlider
@@ -1329,7 +1329,7 @@ class NodeGraph : Codable
                     let scale : Float = currentMaster!.camera!.zoom
 
                     let color = getColorForTerminal(hoverTerminal!.0)
-                    app!.mmView.drawLine.draw( sx: hoverTerminal!.2, sy: hoverTerminal!.3, ex: mousePos.x, ey: mousePos.y, radius: 2 * scale, fillColor : float4(color.x, color.y, color.z, 1) )
+                    app!.mmView.drawLine.draw( sx: hoverTerminal!.2, sy: hoverTerminal!.3, ex: mousePos.x, ey: mousePos.y, radius: 2 * scale, fillColor : SIMD4<Float>(color.x, color.y, color.z, 1) )
                 }
                 
                 // --- DrawConnections
@@ -1407,18 +1407,18 @@ class NodeGraph : Codable
             }
         }
         
-        let nodeColor = float4(0.165, 0.169, 0.173, 1.000)
+        let nodeColor = SIMD4<Float>(0.165, 0.169, 0.173, 1.000)
         let isSelected = selectedUUID.contains(node.uuid)
-        let borderColor = isSelected ? float4(0.953, 0.957, 0.961, 1.000) : float4(0.282, 0.286, 0.290, 1.000)
+        let borderColor = isSelected ? SIMD4<Float>(0.953, 0.957, 0.961, 1.000) : SIMD4<Float>(0.282, 0.286, 0.290, 1.000)
         let round : Float = 46 * scale
         let prevSize : Float = node.rect.height - 4 * scale
 
         app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: round, borderSize: 2 * scale, fillColor: nodeColor, borderColor: borderColor)
         
-        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.height, height: node.rect.height, round: round, borderSize: 2 * scale, fillColor: float4(0,0,0,1), borderColor: float4(0.282, 0.286, 0.290, 1.000))
+        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.height, height: node.rect.height, round: round, borderSize: 2 * scale, fillColor: SIMD4<Float>(0,0,0,1), borderColor: SIMD4<Float>(0.282, 0.286, 0.290, 1.000))
         
         if isSelected {
-            app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: round, borderSize: 2 * scale, fillColor: float4(0,0,0,0), borderColor: float4(0.953, 0.957, 0.961, 1.000))
+            app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: round, borderSize: 2 * scale, fillColor: SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(0.953, 0.957, 0.961, 1.000))
         }
         
         // --- Preview
@@ -1455,12 +1455,12 @@ class NodeGraph : Codable
             topX += ((prevSize * factor) - (prevSize * xFactor)) / 2 * scale / factor / scale
             topY += ((prevSize * factor) - (prevSize * yFactor)) / 2 * scale / factor / scale
             
-            mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor, round: 42 * scale * factor, roundingRect: float4(0,0,prevSize*factor,prevSize*factor))
+            mmView.drawTexture.draw(texture, x: topX, y: topY, zoom: factor, round: 42 * scale * factor, roundingRect: SIMD4<Float>(0,0,prevSize*factor,prevSize*factor))
         }
         
         // --- Edit Button
         
-        let editColor = (nodeHoverMode == .OverviewEdit && node === hoverNode) ? float4(1,1,1,1) : float4(0.8,0.8,0.8,1)
+        let editColor = (nodeHoverMode == .OverviewEdit && node === hoverNode) ? SIMD4<Float>(1,1,1,1) : SIMD4<Float>(0.8,0.8,0.8,1)
         
         let editX : Float = node.rect.x + node.rect.width - 64 * scale
         let editY : Float = node.rect.y + 17 * scale
@@ -1610,7 +1610,7 @@ class NodeGraph : Codable
                 terminal.posX = NodeGraph.tRadius * scale
                 terminal.posY = NodeGraph.tOffY * scale
                 
-                node.data.leftTerminal = float4( color.x, color.y, color.z, terminal.posY)
+                node.data.leftTerminal = SIMD4<Float>( color.x, color.y, color.z, terminal.posY)
 
                 leftTerminalCount += 1
             }  else
@@ -1618,7 +1618,7 @@ class NodeGraph : Codable
                 
                 terminal.posY = 3 * scale
 
-                node.data.topTerminal = float4( color.x, color.y, color.z, terminal.posY)
+                node.data.topTerminal = SIMD4<Float>( color.x, color.y, color.z, terminal.posY)
                 topTerminalCount += 1
             } else
             if terminal.connector == .Right {
@@ -1633,40 +1633,40 @@ class NodeGraph : Codable
                 terminal.posY = uiItem.rect.y - node.rect.y + titleHeaderHeight + (uiItem.rect.height * scale - titleHeaderHeight - NodeUI.itemSpacing * scale) / 2
                 
                 if rightTerminalCount == 0 {
-                    node.data.rightTerminals.0 = float4( color.x, color.y, color.z, terminal.posY)
+                    node.data.rightTerminals.0 = SIMD4<Float>( color.x, color.y, color.z, terminal.posY)
                 } else
                 if rightTerminalCount == 1 {
-                    node.data.rightTerminals.1 = float4( color.x, color.y, color.z, terminal.posY)
+                    node.data.rightTerminals.1 = SIMD4<Float>( color.x, color.y, color.z, terminal.posY)
                 } else
                 if rightTerminalCount == 2 {
-                    node.data.rightTerminals.2 = float4( color.x, color.y, color.z, terminal.posY)
+                    node.data.rightTerminals.2 = SIMD4<Float>( color.x, color.y, color.z, terminal.posY)
                 } else
                 if rightTerminalCount == 3 {
-                    node.data.rightTerminals.3 = float4( color.x, color.y, color.z, terminal.posY)
+                    node.data.rightTerminals.3 = SIMD4<Float>( color.x, color.y, color.z, terminal.posY)
                 } else
                 if rightTerminalCount == 4 {
-                    node.data.rightTerminals.4 = float4( color.x, color.y, color.z, terminal.posY)
+                    node.data.rightTerminals.4 = SIMD4<Float>( color.x, color.y, color.z, terminal.posY)
                 } else
                 if rightTerminalCount == 5 {
-                    node.data.rightTerminals.5 = float4( color.x, color.y, color.z, terminal.posY)
+                    node.data.rightTerminals.5 = SIMD4<Float>( color.x, color.y, color.z, terminal.posY)
                 }
                 rightTerminalCount += 1
             } else
             if terminal.connector == .Bottom {
                 if bottomTerminalCount == 0 {
-                    node.data.bottomTerminals.0 = float4( color.x, color.y, color.z, 10 * scale)
+                    node.data.bottomTerminals.0 = SIMD4<Float>( color.x, color.y, color.z, 10 * scale)
                 } else
                 if bottomTerminalCount == 1 {
-                    node.data.bottomTerminals.1 = float4( color.x, color.y, color.z, 10 * scale)
+                    node.data.bottomTerminals.1 = SIMD4<Float>( color.x, color.y, color.z, 10 * scale)
                 } else
                 if bottomTerminalCount == 2 {
-                    node.data.bottomTerminals.2 = float4( color.x, color.y, color.z, 10 * scale)
+                    node.data.bottomTerminals.2 = SIMD4<Float>( color.x, color.y, color.z, 10 * scale)
                 } else
                 if bottomTerminalCount == 3 {
-                    node.data.bottomTerminals.3 = float4( color.x, color.y, color.z, 10 * scale)
+                    node.data.bottomTerminals.3 = SIMD4<Float>( color.x, color.y, color.z, 10 * scale)
                 } else
                 if bottomTerminalCount == 4 {
-                    node.data.bottomTerminals.4 = float4( color.x, color.y, color.z, 10 * scale)
+                    node.data.bottomTerminals.4 = SIMD4<Float>( color.x, color.y, color.z, 10 * scale)
                 }
                 bottomTerminalCount += 1
             }
@@ -1717,7 +1717,7 @@ class NodeGraph : Codable
             node.livePreview(nodeGraph: self, rect: rect)
 
             // Preview Border
-            app!.mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 3, fillColor: float4(repeating: 0), borderColor: float4(0, 0, 0, 1) )
+            app!.mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 3, fillColor: SIMD4<Float>(repeating: 0), borderColor: SIMD4<Float>(0, 0, 0, 1) )
         }
         
         // Node Menu
@@ -1751,7 +1751,7 @@ class NodeGraph : Codable
         node.rect.x = region.rect.x + region.rect.width - node.rect.width + 11 + 10
         node.rect.y = region.rect.y - 22
         
-        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 32, borderSize: 2, fillColor: float4(0.165, 0.169, 0.173, 1.000), borderColor: float4(0.282, 0.286, 0.290, 1.000) )
+        app!.mmView.drawBox.draw( x: node.rect.x, y: node.rect.y, width: node.rect.width, height: node.rect.height, round: 32, borderSize: 2, fillColor: SIMD4<Float>(0.165, 0.169, 0.173, 1.000), borderColor: SIMD4<Float>(0.282, 0.286, 0.290, 1.000) )
         
         // --- Preview
         
@@ -1771,11 +1771,11 @@ class NodeGraph : Codable
                 
                 func printBehaviorOnlyText()
                 {
-                    mmView.drawText.drawTextCentered(mmView.openSans, text: "Behavior Only", x: x, y: y, width: previewSize.x, height: previewSize.y, scale: 0.4, color: float4(1,1,1,1))
+                    mmView.drawText.drawTextCentered(mmView.openSans, text: "Behavior Only", x: x, y: y, width: previewSize.x, height: previewSize.y, scale: 0.4, color: SIMD4<Float>(1,1,1,1))
                 }
                 
                 // Preview Border
-                app!.mmView.drawBoxPattern.draw( x: x, y: y, width: previewSize.x - 23, height: previewSize.y, round: 26, borderSize: 0, fillColor: float4(0.306, 0.310, 0.314, 1.000), borderColor: float4(0.216, 0.220, 0.224, 1.000) )
+                app!.mmView.drawBoxPattern.draw( x: x, y: y, width: previewSize.x - 23, height: previewSize.y, round: 26, borderSize: 0, fillColor: SIMD4<Float>(0.306, 0.310, 0.314, 1.000), borderColor: SIMD4<Float>(0.216, 0.220, 0.224, 1.000) )
                 
                 if let game = previewNode as? Game {
                     if let _ = game.currentScene {
@@ -1803,7 +1803,7 @@ class NodeGraph : Codable
                 }
                 
                 for texture in textures {
-                    app!.mmView.drawTexture.draw(texture, x: x - 23, y: y, zoom: 1, round: 26, roundingRect: float4(23, 0, previewSize.x - 23, previewSize.y))
+                    app!.mmView.drawTexture.draw(texture, x: x - 23, y: y, zoom: 1, round: 26, roundingRect: SIMD4<Float>(23, 0, previewSize.x - 23, previewSize.y))
                 }
                 
                 // Draw Debug
@@ -1812,7 +1812,7 @@ class NodeGraph : Codable
                     let camera = createNodeCamera(playNode != nil ? playNode! : node)
                     
                     debugBuilder.render(width: previewSize.x, height: previewSize.y, instance: debugInstance, camera: camera)
-                    app!.mmView.drawTexture.draw(debugInstance.texture!, x: x - 23, y: y, zoom: 1, round: 26, roundingRect: float4(23, 0, previewSize.x - 23, previewSize.y))
+                    app!.mmView.drawTexture.draw(debugInstance.texture!, x: x - 23, y: y, zoom: 1, round: 26, roundingRect: SIMD4<Float>(23, 0, previewSize.x - 23, previewSize.y))
                 }
             } else {
                 // Visible reference list
@@ -1835,7 +1835,7 @@ class NodeGraph : Codable
         } else {
             // Navigation
             
-            app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x - 23, height: previewSize.y, round: 26, borderSize: 0, fillColor: float4(0.224, 0.227, 0.231, 1.000))
+            app!.mmView.drawBox.draw( x: x, y: y, width: previewSize.x - 23, height: previewSize.y, round: 26, borderSize: 0, fillColor: SIMD4<Float>(0.224, 0.227, 0.231, 1.000))
             
             let navWidth : Float = previewSize.x - 23
             let navHeight : Float = previewSize.y
@@ -1853,7 +1853,7 @@ class NodeGraph : Codable
             
             for n in navNodes {
                 
-                var color : float4
+                var color : SIMD4<Float>
                 
                 if n.brand == .Behavior {
                     color = mmView.skin.Node.behaviorColor
@@ -1881,7 +1881,7 @@ class NodeGraph : Codable
             navRect.width = app!.editorRegion!.rect.width * aWidth / scale
             navRect.height = app!.editorRegion!.rect.height * aHeight / scale
             
-            app!.mmView.drawBox.draw(x: navRect.x, y: navRect.y, width: navRect.width, height: navRect.height, round: 8, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: float4(0.596, 0.125, 0.141, 1.000))
+            app!.mmView.drawBox.draw(x: navRect.x, y: navRect.y, width: navRect.width, height: navRect.height, round: 8, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(0.596, 0.125, 0.141, 1.000))
             
             app!.mmView.renderer.setClipRect()
             
@@ -2020,7 +2020,7 @@ class NodeGraph : Codable
         /// Draws a connection using two splines
         func drawIt(_ from: (Float,Float), _ to: (Float, Float), _ color: SIMD3<Float>)
         {
-            let color : float4 = float4(color.x,color.y,color.z,1)
+            let color : SIMD4<Float> = SIMD4<Float>(color.x,color.y,color.z,1)
 
             let mx = (from.0 + to.0 ) / 2
             let my = (from.1 + to.1 ) / 2
@@ -3529,15 +3529,15 @@ class NodeGraph : Codable
     }
     
     /// Returns the platform size (if any) for the current platform
-    func getPlatformSize() -> float2
+    func getPlatformSize() -> SIMD2<Float>
     {
-        var size : float2 = float2(800,600)
+        var size : SIMD2<Float> = SIMD2<Float>(800,600)
         
         #if os(OSX)
         if let osx = getNodeOfType("Platform OSX") as? GamePlatformOSX {
             size = osx.getScreenSize()
         } else {
-            size = float2(mmView.renderer.cWidth, mmView.renderer.cHeight)
+            size = SIMD2<Float>(mmView.renderer.cWidth, mmView.renderer.cHeight)
         }
         #elseif os(iOS)
         if let ipad = getNodeOfType("Platform IPAD") as? GamePlatformIPAD {

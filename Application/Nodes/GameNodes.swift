@@ -33,8 +33,8 @@ class GamePlatformOSX : Node
     {
         uiItems = [
             //NodeUIDropDown(self, variable: "animationMode", title: "Mode", items: ["Loop", "Inverse Loop", "Goto Start", "Goto End"], index: 0),
-            NodeUINumber(self, variable: "width", title: "Width", range: float2(100, 4096), int: true, value: 800),
-            NodeUINumber(self, variable: "height", title: "Height", range: float2(100, 4096), int: true, value: 600)
+            NodeUINumber(self, variable: "width", title: "Width", range: SIMD2<Float>(100, 4096), int: true, value: 800),
+            NodeUINumber(self, variable: "height", title: "Height", range: SIMD2<Float>(100, 4096), int: true, value: 600)
         ]
         super.setupUI(mmView: mmView)
     }
@@ -59,9 +59,9 @@ class GamePlatformOSX : Node
         try super.encode(to: superdecoder)
     }
     
-    func getScreenSize() -> float2
+    func getScreenSize() -> SIMD2<Float>
     {
-        return float2(properties["width"]!, properties["height"]!)
+        return SIMD2<Float>(properties["width"]!, properties["height"]!)
     }
     
     /// Return Success if the selected key is currently down
@@ -98,8 +98,8 @@ class GamePlatformIPAD : Node
         uiItems = [
             //NodeUIDropDown(self, variable: "type", title: "iPad", items: ["1536 x 2048", "2048 x 2732"], index: 0),
             //NodeUIDropDown(self, variable: "orientation", title: "Orientation", items: ["Vertical", "Horizontal"], index: 0),
-            NodeUINumber(self, variable: "width", title: "Width", range: float2(100, 4096), int: true, value: 800),
-            NodeUINumber(self, variable: "height", title: "Height", range: float2(100, 4096), int: true, value: 600)
+            NodeUINumber(self, variable: "width", title: "Width", range: SIMD2<Float>(100, 4096), int: true, value: 800),
+            NodeUINumber(self, variable: "height", title: "Height", range: SIMD2<Float>(100, 4096), int: true, value: 600)
         ]
         super.setupUI(mmView: mmView)
     }
@@ -124,9 +124,9 @@ class GamePlatformIPAD : Node
         try super.encode(to: superdecoder)
     }
     
-    func getScreenSize() -> float2
+    func getScreenSize() -> SIMD2<Float>
     {
-        return float2(properties["width"]!, properties["height"]!)
+        return SIMD2<Float>(properties["width"]!, properties["height"]!)
         /*
         var width : Float = 0
         var height : Float = 0

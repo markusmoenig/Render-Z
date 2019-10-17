@@ -59,9 +59,9 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     var bottom          : Float = 0
     var right           : Float = 0
     
-    var startDrag       : float2 = float2()
-    var startPoint      : float2 = float2()
-    var xLimits         : float2 = float2()
+    var startDrag       : SIMD2<Float> = SIMD2<Float>()
+    var startPoint      : SIMD2<Float> = SIMD2<Float>()
+    var xLimits         : SIMD2<Float> = SIMD2<Float>()
     
     var lockCenterAt    : Bool = false
     
@@ -774,7 +774,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
     /// Updates the preview. hard does a rebuild, otherwise just a render
     override func update(_ hard: Bool = false, updateLists: Bool = false)
     {
-        let size = float2(app.editorRegion!.rect.width, app!.editorRegion!.rect.height)
+        let size = SIMD2<Float>(app.editorRegion!.rect.width, app!.editorRegion!.rect.height)
         /*
          var recompile : Bool = hard
         if previewTexture == nil || Float(previewTexture!.width) != size.x || Float(previewTexture!.height) != size.y {
@@ -785,7 +785,7 @@ class ObjectProfileMaxDelegate : NodeMaxDelegate {
         _ = profile.execute(nodeGraph: app.nodeGraph, root: BehaviorTreeRoot(masterObject), parent: masterObject)
         
         if builderInstance == nil || hard {
-            builderInstance = app.nodeGraph.builder.buildObjects(objects: [masterObject], camera: camera, preview: false)
+            builderInstance = app.nodeGraph.builder.buildObjects(objects: [masterObject], camera: camera)
         }
         
         if builderInstance != nil {

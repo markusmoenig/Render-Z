@@ -11,8 +11,8 @@ import MetalKit
 class MMScreen : MMWidget {
     
     // Mouse position in view coordinates
-    var mousePos        : float2 = float2(0,0)
-    var mouseDownPos    : float2 = float2(0,0)
+    var mousePos        : SIMD2<Float> = SIMD2<Float>(0,0)
+    var mouseDownPos    : SIMD2<Float> = SIMD2<Float>(0,0)
     
     var mouseDown       : Bool = false
     

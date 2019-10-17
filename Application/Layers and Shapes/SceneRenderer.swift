@@ -163,9 +163,9 @@ class SceneRenderer {
         memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
     }
     
-    func convertToScreenSpace(x: Float, y: Float, screenWidth: Float, screenHeight: Float, camera: Camera) -> float2
+    func convertToScreenSpace(x: Float, y: Float, screenWidth: Float, screenHeight: Float, camera: Camera) -> SIMD2<Float>
     {
-        var result : float2 = float2()
+        var result : SIMD2<Float> = SIMD2<Float>()
                 
         result.x = x - camera.xPos
         result.y = camera.yPos - y

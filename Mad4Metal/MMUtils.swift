@@ -311,7 +311,7 @@ func createStaticTextSource(_ font: MMFont, _ text: String, varCounter: Int = 0)
     return source
 }
 
-func getStaticTextSize(_ font: MMFont, _ text: String,_ scale: Float = 1) -> float2
+func getStaticTextSize(_ font: MMFont, _ text: String,_ scale: Float = 1) -> SIMD2<Float>
 {
     var totalWidth : Float = 0
     var totalHeight : Float = 0
@@ -323,7 +323,7 @@ func getStaticTextSize(_ font: MMFont, _ text: String,_ scale: Float = 1) -> flo
         totalHeight = max(totalHeight,bmFont.height)
     }
     
-    return float2(totalWidth,totalHeight)
+    return SIMD2<Float>(totalWidth,totalHeight)
 }
 
 func toDegrees(_ rad: Float) -> Float
@@ -336,11 +336,11 @@ func toRadians(_ degree: Float) -> Float
     return degree * Float.pi / 180
 }
 
-func shadeColor(_ color: float4,_ factor: Float) -> float4
+func shadeColor(_ color: SIMD4<Float>,_ factor: Float) -> SIMD4<Float>
 {
     let t: Float = factor < 0 ? 0 : 1
     let p: Float = factor < 0 ? -factor : factor
     
-    let rc = float4((t - color.x) * p + color.x,(t - color.y) * p + color.y,(t - color.z) * p + color.z,color.w)
+    let rc = SIMD4<Float>((t - color.x) * p + color.x,(t - color.y) * p + color.y,(t - color.z) * p + color.z,color.w)
     return rc
 }

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import simd
 
 class NodeUI
 {
@@ -54,10 +55,10 @@ class NodeUI
     static let contentMargin        : Float = 8
     static let contentRound         : Float = 22
 
-    static let titleTextColor       : float4 = float4(0.6, 0.6, 0.6, 1.0)
-    static let contentColor         : float4 = float4(0.404, 0.408, 0.412, 1.000)
-    static let contentColor2        : float4 = float4(0.243, 0.247, 0.251, 1.000)
-    static let contentTextColor     : float4 = float4(0.749, 0.753, 0.757, 1.000)
+    static let titleTextColor       : SIMD4<Float> = SIMD4<Float>(0.6, 0.6, 0.6, 1.0)
+    static let contentColor         : SIMD4<Float> = SIMD4<Float>(0.404, 0.408, 0.412, 1.000)
+    static let contentColor2        : SIMD4<Float> = SIMD4<Float>(0.243, 0.247, 0.251, 1.000)
+    static let contentTextColor     : SIMD4<Float> = SIMD4<Float>(0.749, 0.753, 0.757, 1.000)
 
     init(_ node : Node, brand: Brand, variable: String, title: String)
     {
@@ -111,7 +112,7 @@ class NodeUI
     {
     }
     
-    func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
     {
         if titleLabel!.scale != NodeUI.titleFontScale * scale {
             titleLabel!.setText(title, scale: NodeUI.titleFontScale * scale)
@@ -885,7 +886,7 @@ class NodeUIKeyDown : NodeUI
 class NodeUINumber : NodeUI
 {
     var value       : Float
-    var range       : float2?
+    var range       : SIMD2<Float>?
     var defaultValue: Float
     var mouseIsDown : Bool = false
     var x           : Float = 0
@@ -897,7 +898,7 @@ class NodeUINumber : NodeUI
     var contentText : String = ""
     var contentValue: Float? = nil
     
-    init(_ node: Node, variable: String, title: String, range: float2? = float2(0,1), int: Bool = false, value: Float = 0)
+    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = float2(0,1), int: Bool = false, value: Float = 0)
     {
         self.value = value
         self.defaultValue = value

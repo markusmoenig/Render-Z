@@ -9,12 +9,12 @@
 import MetalKit
 
 class DebugDisk {
-    var pos         : float2
+    var pos         : SIMD2<Float>
     var radius      : Float
     var border      : Float
-    var color       : float4
+    var color       : SIMD4<Float>
     
-    init(_ pos : float2,_ radius: Float,_ border: Float,_ color: float4)
+    init(_ pos : SIMD2<Float>,_ radius: Float,_ border: Float,_ color: SIMD4<Float>)
     {
         self.pos = pos
         self.radius = radius
@@ -24,13 +24,13 @@ class DebugDisk {
 }
 
 class DebugLine {
-    var pos1        : float2
-    var pos2        : float2
+    var pos1        : SIMD2<Float>
+    var pos2        : SIMD2<Float>
     var radius      : Float
     var border      : Float
-    var color       : float4
+    var color       : SIMD4<Float>
     
-    init(_ pos1 : float2, _ pos2 : float2,_ radius: Float,_ border: Float,_ color: float4)
+    init(_ pos1 : SIMD2<Float>, _ pos2 : SIMD2<Float>,_ radius: Float,_ border: Float,_ color: SIMD4<Float>)
     {
         self.pos1 = pos1
         self.pos2 = pos2
@@ -41,13 +41,13 @@ class DebugLine {
 }
 
 class DebugBox {
-    var pos         : float2
-    var size        : float2
+    var pos         : SIMD2<Float>
+    var size        : SIMD2<Float>
     var rotation    : Float
     var border      : Float
-    var color       : float4
+    var color       : SIMD4<Float>
     
-    init(_ pos : float2,_ size: float2,_ rotation: Float,_ border: Float,_ color: float4)
+    init(_ pos : SIMD2<Float>,_ size: SIMD2<Float>,_ rotation: Float,_ border: Float,_ color: SIMD4<Float>)
     {
         self.pos = pos
         self.size = size
@@ -110,17 +110,17 @@ class DebugBuilderInstance
         boxesBackup = t3
     }
     
-    func addDisk(_ pos : float2,_ radius: Float,_ border: Float, _ color: float4)
+    func addDisk(_ pos : SIMD2<Float>,_ radius: Float,_ border: Float, _ color: SIMD4<Float>)
     {
         disks.append(DebugDisk(pos, radius, border, color))
     }
     
-    func addLine(_ pos1 : float2, _ pos2 : float2,_ radius: Float,_ border: Float, _ color: float4)
+    func addLine(_ pos1 : SIMD2<Float>, _ pos2 : SIMD2<Float>,_ radius: Float,_ border: Float, _ color: SIMD4<Float>)
     {
         lines.append(DebugLine(pos1, pos2, radius, border, color))
     }
     
-    func addBox(_ pos : float2, _ size : float2,_ rotation: Float,_ border: Float, _ color: float4)
+    func addBox(_ pos : SIMD2<Float>, _ size : SIMD2<Float>,_ rotation: Float,_ border: Float, _ color: SIMD4<Float>)
     {
         boxes.append(DebugBox(pos, size, rotation, border, color))
     }

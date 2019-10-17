@@ -48,9 +48,9 @@ class Node : Codable, Equatable
     var uiItems         : [NodeUI] = []
     var uiConnections   : [UINodeConnection] = []
 
-    var minimumSize     : float2 = float2()
+    var minimumSize     : SIMD2<Float> = SIMD2<Float>()
     var uiArea          : MMRect = MMRect()
-    var uiMaxTitleSize  : float2 = float2()
+    var uiMaxTitleSize  : SIMD2<Float> = SIMD2<Float>()
     var uiMaxWidth      : Float = 0
 
     // The subset of nodes and camera for master nodes
@@ -70,8 +70,8 @@ class Node : Codable, Equatable
     var nodeGraph       : NodeGraph? = nil
     
     /// Static sizes
-    static var NodeWithPreviewSize : float2 = float2(260,220)
-    static var NodeMinimumSize     : float2 = float2(230,65)
+    static var NodeWithPreviewSize : SIMD2<Float> = SIMD2<Float>(260,220)
+    static var NodeMinimumSize     : SIMD2<Float> = SIMD2<Float>(230,65)
 
     private enum CodingKeys: String, CodingKey {
         case name

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import simd
 
 class FloatVariable : Node
 {
@@ -210,13 +211,13 @@ class Float2Variable : Node
             let number = uiItems[0] as! NodeUINumber
             number.defaultValue = newValue
             properties["defaultValueX"] = newValue
-            setValue(float2(newValue, properties["y"]!))
+            setValue(SIMD2<Float>(newValue, properties["y"]!))
         } else
             if variable == "y" {
                 let number = uiItems[1] as! NodeUINumber
                 number.defaultValue = newValue
                 properties["defaultValueY"] = newValue
-                setValue(float2(properties["x"]!, newValue))
+                setValue(SIMD2<Float>(properties["x"]!, newValue))
         }
         if noUndo == false {
             super.variableChanged(variable: variable, oldValue: oldValue, newValue: newValue, continuous: continuous)
@@ -234,13 +235,13 @@ class Float2Variable : Node
     }
     
     /// Returns the current value of the variable
-    func getValue() -> float2
+    func getValue() -> SIMD2<Float>
     {
-        return float2(properties["x"]!,properties["y"]!)
+        return SIMD2<Float>(properties["x"]!,properties["y"]!)
     }
     
     /// Set a new value to the variable
-    func setValue(_ value: float2, adjustBinding: Bool = true)
+    func setValue(_ value: SIMD2<Float>, adjustBinding: Bool = true)
     {
         properties["x"] = value.x
         properties["y"] = value.y
@@ -461,8 +462,8 @@ class DirectionVariable : Node
     {
         uiItems = [
             NodeUIAngle(self, variable: "orientation", title: "", value: 0),
-            NodeUINumber(self, variable: "angle", title: "Angle", range: float2(0,360), value: 0),
-            NodeUINumber(self, variable: "random", title: "Random", range: float2(0,100), value: 0),
+            NodeUINumber(self, variable: "angle", title: "Angle", range: SIMD2<Float>(0,360), value: 0),
+            NodeUINumber(self, variable: "random", title: "Random", range: SIMD2<Float>(0,100), value: 0),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUISelector(self, variable: "access", title: "Access", items: ["Public", "Private"], index: 1)
         ]
@@ -1039,7 +1040,7 @@ class AnimateFloatVariable : Node
             NodeUISelector(self, variable: "mode", title: "Mode", items: ["Linear", "Spline"], index: 0),
             NodeUINumber(self, variable: "from", title: "From", range: nil, value: 0),
             NodeUINumber(self, variable: "to", title: "To", range: nil, value: 0),
-            NodeUINumber(self, variable: "duration", title: "Duration in Seconds", range: float2(0.001, 20), value: 1),
+            NodeUINumber(self, variable: "duration", title: "Duration in Seconds", range: SIMD2<Float>(0.001, 20), value: 1),
         ]
         super.setupUI(mmView: mmView)
     }
@@ -1153,10 +1154,10 @@ class RandomDirection : Node
     {
         uiItems = [
             NodeUIAngle(self, variable: "orientation1", title: "", value: 0),
-            NodeUINumber(self, variable: "from", title: "From Angle", range: float2(0,360), value: 0),
+            NodeUINumber(self, variable: "from", title: "From Angle", range: SIMD2<Float>(0,360), value: 0),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIAngle(self, variable: "orientation2", title: "", value: 90),
-            NodeUINumber(self, variable: "to", title: "To Angle", range: float2(0,360), value: 90),
+            NodeUINumber(self, variable: "to", title: "To Angle", range: SIMD2<Float>(0,360), value: 90),
             NodeUISeparator(self, variable:"", title: ""),
             NodeUIDirectionVariableTarget(self, variable: "direction", title: "Write To", connection: uiConnections[0])
         ]
@@ -1482,7 +1483,7 @@ class MultiplyConstFloat2Variable : Node
         playResult = .Failure
         if let variable = uiConnections[0].target as? Float2Variable {
             
-            var value : float2 = variable.getValue()
+            var value : SIMD2<Float> = variable.getValue()
             let myCoordinate : Float = properties["coordinate"]!
             let x : Float = properties["x"]!
             let y : Float = properties["y"]!
@@ -1570,7 +1571,7 @@ class TestFloat2Variable : Node
         playResult = .Failure
         if let variable = uiConnections[0].target as? Float2Variable {
             
-            let position : float2 = variable.getValue()
+            let position : SIMD2<Float> = variable.getValue()
             let myCoordinate : Float = properties["coordinate"]!
             let myMode : Float = properties["mode"]!
             let myValue : Float = properties["value"]!
@@ -1672,7 +1673,7 @@ class LimitFloat2Range : Node
         playResult = .Failure
         if let variable = uiConnections[0].target as? Float2Variable {
             
-            var position : float2 = variable.getValue()
+            var position : SIMD2<Float> = variable.getValue()
             let myCoordinate : Float = properties["coordinate"]!
             let upperBorder : Float = properties["upper"]!
             let lowerBorder : Float = properties["lower"]!

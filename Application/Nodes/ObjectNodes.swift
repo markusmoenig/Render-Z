@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import simd
 
 class ObjectInstanceProps : Node
 {
@@ -35,10 +36,10 @@ class ObjectInstanceProps : Node
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
             NodeUINumber(self, variable: "position", title: "X", range: nil, value: 0),
             NodeUINumber(self, variable: "y", title: "Y", range: nil, value: 0),
-            NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 10), value: 1),
-            NodeUINumber(self, variable: "rotate", title: "Rotation", range: float2(0, 360), value: 0),
-            NodeUINumber(self, variable: "opacity", title: "Opacity", range: float2(0, 1), value: 1),
-            NodeUINumber(self, variable: "z-index", title: "Z-Index", range: float2(-5, 5), int: true, value: 0),
+            NodeUINumber(self, variable: "scale", title: "Scale", range: SIMD2<Float>(0, 10), value: 1),
+            NodeUINumber(self, variable: "rotate", title: "Rotation", range: SIMD2<Float>(0, 360), value: 0),
+            NodeUINumber(self, variable: "opacity", title: "Opacity", range: SIMD2<Float>(0, 1), value: 1),
+            NodeUINumber(self, variable: "z-index", title: "Z-Index", range: SIMD2<Float>(-5, 5), int: true, value: 0),
             NodeUISelector(self, variable: "active", title: "Active", items: ["No", "Yes"], index: 1),
         ]
         
@@ -160,15 +161,15 @@ class ObjectInstanceProps : Node
                     
                     if terminal.connections.count == 0 {
                         // Not connected, adjust my own vars
-                        setInternalPos(float2(inst.properties["posX"]!, inst.properties["posY"]!))
+                        setInternalPos(SIMD2<Float>(inst.properties["posX"]!, inst.properties["posY"]!))
                     } else
                     if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
                         if let object = inst.instance {
-                            variable.setValue(float2(object.properties["posX"]!, object.properties["posY"]!), adjustBinding: false)
-                            setInternalPos(float2(object.properties["posX"]!, object.properties["posY"]!))
+                            variable.setValue(SIMD2<Float>(object.properties["posX"]!, object.properties["posY"]!), adjustBinding: false)
+                            setInternalPos(SIMD2<Float>(object.properties["posX"]!, object.properties["posY"]!))
                         } else {
-                            variable.setValue(float2(inst.properties["posX"]!, inst.properties["posY"]!), adjustBinding: false)
-                            setInternalPos(float2(inst.properties["posX"]!, inst.properties["posY"]!))
+                            variable.setValue(SIMD2<Float>(inst.properties["posX"]!, inst.properties["posY"]!), adjustBinding: false)
+                            setInternalPos(SIMD2<Float>(inst.properties["posX"]!, inst.properties["posY"]!))
                         }
                     }
                 } else
@@ -352,7 +353,7 @@ class ObjectInstanceProps : Node
     }
     
     // Adjusts the internal position
-    func setInternalPos(_ pos: float2)
+    func setInternalPos(_ pos: SIMD2<Float>)
     {
         if let item = uiItems[1] as? NodeUINumber {
             item.value = pos.x
@@ -443,9 +444,9 @@ class ObjectPhysics : Node
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
             NodeUISelector(self, variable: "physicsMode", title: "Mode", items: ["Off", "Static", "Dynamic"], index: 1),
-            NodeUINumber(self, variable: "physicsMass", title: "Mass", range: float2(0, 100), value: 1),
-            NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: float2(0, 5), value: 0.2),
-            NodeUINumber(self, variable: "physicsFriction", title: "Friction", range: float2(0, 1), value: 0.3),
+            NodeUINumber(self, variable: "physicsMass", title: "Mass", range: SIMD2<Float>(0, 100), value: 1),
+            NodeUINumber(self, variable: "physicsRestitution", title: "Restitution", range: SIMD2<Float>(0, 5), value: 0.2),
+            NodeUINumber(self, variable: "physicsFriction", title: "Friction", range: SIMD2<Float>(0, 1), value: 0.3),
             NodeUISelector(self, variable: "physicsSupportsRotation", title: "Rotation", items: ["No", "Yes"], index: 1),
             NodeUISelector(self, variable: "physicsCollisions", title: "Collisions", items: ["Natural", "Reflect", "Custom"], index: 0)
         ]
@@ -702,7 +703,7 @@ class ObjectRender : Node
             NodeUISelector(self, variable: "aaLevel", title: "Anti-Aliasing", items: ["None", "Good", "Best"], index: 0),
 
             NodeUISelector(self, variable: "bBox", title: "Bounding Box", items: ["Screen", "Object Size"], index: 0),
-            NodeUINumber(self, variable: "bBoxBorder", title: "Bounding Border", range: float2(0, 500), value: 0)
+            NodeUINumber(self, variable: "bBoxBorder", title: "Bounding Border", range: SIMD2<Float>(0, 500), value: 0)
         ]
         
         super.setupUI(mmView: mmView)
@@ -919,7 +920,7 @@ class ObjectCollision : Node
                                     body.integrateVelocity(delta)
                                     body.integrateForces(delta)
                                 
-                                    body.force = float2(0,0)
+                                    body.force = SIMD2<Float>(0,0)
                                     body.torque = 0
                                 }
                             }
@@ -944,7 +945,7 @@ class ObjectCollision : Node
     }
     
     // Adjusts the internal velocity
-    func setInternalVelocity(_ value: float2 = float2(0,0))
+    func setInternalVelocity(_ value: SIMD2<Float> = SIMD2<Float>(0,0))
     {
         if let item = uiItems[1] as? NodeUIAngle {
             let rad : Float = atan2(value.x, value.y)
@@ -953,7 +954,7 @@ class ObjectCollision : Node
     }
     
     // Adjusts the internal normal
-    func setInternalNormal(_ value: float2 = float2(0,0))
+    func setInternalNormal(_ value: SIMD2<Float> = SIMD2<Float>(0,0))
     {
         if let item = uiItems[2] as? NodeUIAngle {
             let rad : Float = atan2(value.x, value.y)
@@ -989,8 +990,8 @@ class ObjectGlow : Node
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
             NodeUISelector(self, variable: "glowMode", title: "Mode", items: ["Off", "On"], index: 0),
             NodeUIColor(self, variable: "glowColor", title: "Color", value: SIMD3<Float>(1,1,1)),
-            NodeUINumber(self, variable: "glowOpacity", title: "Opacity", range: float2(0, 1), value: 1),
-            NodeUINumber(self, variable: "glowSize", title: "Size", range: float2(0, 50), value: 10),
+            NodeUINumber(self, variable: "glowOpacity", title: "Opacity", range: SIMD2<Float>(0, 1), value: 1),
+            NodeUINumber(self, variable: "glowSize", title: "Size", range: SIMD2<Float>(0, 50), value: 10),
         ]
         
         super.setupUI(mmView: mmView)
@@ -1340,7 +1341,7 @@ class ResetObject : Node
                     inst.properties["rotate"] = inst.properties["copy_rotate"]
 
                     if let body = inst.body {
-                        body.velocity = float2(0,0)
+                        body.velocity = SIMD2<Float>(0,0)
                         body.angularVelocity = 0
                         playResult = .Success
                     }
@@ -1660,7 +1661,7 @@ class ObjectApplyForce : Node
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
             NodeUIFloatVariableTarget(self, variable: "power", title: "Force Value", connection: uiConnections[1]),
-            NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
+            NodeUINumber(self, variable: "scale", title: "Scale", range: SIMD2<Float>(0, 100), value: 10),
         ]
         super.setupUI(mmView: mmView)
     }
@@ -1754,7 +1755,7 @@ class ObjectApplyDirectionalForce : Node
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "master", title: "Instance", connection: uiConnections[0]),
             NodeUIFloatVariableTarget(self, variable: "power", title: "Force Value", connection: uiConnections[1]),
-            NodeUINumber(self, variable: "scale", title: "Scale", range: float2(0, 100), value: 10),
+            NodeUINumber(self, variable: "scale", title: "Scale", range: SIMD2<Float>(0, 100), value: 10),
             NodeUIDirectionVariableTarget(self, variable: "direction", title: "Force Direction", connection: uiConnections[2]),
         ]
         super.setupUI(mmView: mmView)
@@ -1786,7 +1787,7 @@ class ObjectApplyDirectionalForce : Node
             let scale = properties["scale"]!
             
             var power : Float = 0
-            var dir : float2 = float2(0,0)
+            var dir : SIMD2<Float> = SIMD2<Float>(0,0)
             
             if let powerVariable = uiConnections[1].target as? FloatVariable {
                 //                let number = powerVariable.uiItems[0] as? NodeUINumber
@@ -2085,30 +2086,30 @@ class ObjectTouchSceneArea : Node
                     let object = area.areaObject!
                     let shape = object.shapes[0]
                     
-                    func rotateCW(_ pos : float2, angle: Float) -> float2
+                    func rotateCW(_ pos : SIMD2<Float>, angle: Float) -> SIMD2<Float>
                     {
                         let ca : Float = cos(angle), sa = sin(angle)
                         return pos * float2x2(float2(ca, -sa), float2(sa, ca))
                     }
                     
-                    var uv = float2(x, y)
+                    var uv = SIMD2<Float>(x, y)
                     
-                    uv -= float2(object.properties["posX"]!, object.properties["posY"]!)
+                    uv -= SIMD2<Float>(object.properties["posX"]!, object.properties["posY"]!)
                     //uv /= float2(object.properties["scaleX"]!, object.properties["scaleY"]!)
                     
                     uv = rotateCW(uv, angle: object.properties["rotate"]! * Float.pi / 180 );
                     
-                    let d : float2 = simd_abs( uv ) - float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
-                    let dist : Float = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0)
+                    let d : SIMD2<Float> = simd_abs( uv ) - SIMD2<Float>(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
+                    let dist : Float = simd_length(max(d,SIMD2<Float>(repeating: 0))) + min(max(d.x,d.y),0.0)
                     
                     //print( dist, dist - radius )
                     if dist < radius {
                         playResult = .Success
                         
                         if nodeGraph.debugMode == .SceneAreas {
-                            let pos = float2(object.properties["posX"]!, object.properties["posY"]!)
-                            let size = float2(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
-                            nodeGraph.debugInstance!.addBox(pos, size, 0, 0, float4(0.541, 0.098, 0.125, 0.8))
+                            let pos = SIMD2<Float>(object.properties["posX"]!, object.properties["posY"]!)
+                            let size = SIMD2<Float>(shape.properties[shape.widthProperty]! * object.properties["scaleX"]!, shape.properties[shape.heightProperty]! * object.properties["scaleY"]!)
+                            nodeGraph.debugInstance!.addBox(pos, size, 0, 0, SIMD4<Float>(0.541, 0.098, 0.125, 0.8))
                         }
                     }
                 }
