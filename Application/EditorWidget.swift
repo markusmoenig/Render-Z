@@ -82,21 +82,24 @@ class EditorWidget      : MMWidget
         if app.nodeGraph.maximizedNode == nil {
             if app.nodeGraph.hoverNode != nil && app.nodeGraph.nodeHoverMode == .Preview {
                 
-                let realScale = max(0.2, scale)
-                
                 var node = app.nodeGraph.hoverNode!
                 if node === app.nodeGraph.currentMaster! {
                     node = app.nodeGraph.previewNode!
                 }
                 
-                node.properties["prevScale"] = realScale
+                var realScale = scale
+                if node.properties["prevScale"] != nil {
+                    realScale *= node.properties["prevScale"]!
+                }
+                
+                node.properties["prevScale"] = max(0.2, realScale)
                 node.updatePreview(nodeGraph: app.nodeGraph)
                 mmView.update()
             } else
             if app.nodeGraph.nodeHoverMode == .None && app.nodeGraph.currentMaster != nil
             {
                 if let camera = app.nodeGraph.currentMaster!.camera {
-                    camera.zoom = scale
+                    camera.zoom *= scale
                     camera.zoom = max(0.2, camera.zoom)
                     camera.zoom = min(1.5, camera.zoom)
                     mmView.update()

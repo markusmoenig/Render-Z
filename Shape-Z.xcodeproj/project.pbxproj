@@ -55,12 +55,6 @@
 		2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7922358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
 		2B57D7932358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
-		2B57D79623581AE400E8BF65 /* GibBrickPlox.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D79423581AE400E8BF65 /* GibBrickPlox.json */; };
-		2B57D79723581AE400E8BF65 /* GibBrickPlox.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D79423581AE400E8BF65 /* GibBrickPlox.json */; };
-		2B57D79823581AE400E8BF65 /* GibBrickPlox.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D79523581AE400E8BF65 /* GibBrickPlox.tiff */; };
-		2B57D79923581AE400E8BF65 /* GibBrickPlox.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D79523581AE400E8BF65 /* GibBrickPlox.tiff */; };
-		2B57D79E2358269100E8BF65 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D79D2358269100E8BF65 /* Pong.shape-z */; };
-		2B57D79F2358269100E8BF65 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D79D2358269100E8BF65 /* Pong.shape-z */; };
 		2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
@@ -102,6 +96,12 @@
 		2B8BBA8922A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
 		2B8BBA8A22A4AA4600E541B9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
 		2B8BBA8B22A4AA4600E541B9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
+		2B91CBE42358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
+		2B91CBE52358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
+		2B91CBE62358477300DED7B1 /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
+		2B91CBE72358477300DED7B1 /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
+		2B91CBE9235848AC00DED7B1 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE8235848AC00DED7B1 /* Pong.shape-z */; };
+		2B91CBEA235848AC00DED7B1 /* Pong.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE8235848AC00DED7B1 /* Pong.shape-z */; };
 		2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
 		2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
 		2BA344AD2202A0A0000BB2EB /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
@@ -236,9 +236,6 @@
 		2B501A5C22CC5426008D409F /* DebugBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBuilder.swift; sourceTree = "<group>"; };
 		2B57D78E2358149600E8BF65 /* GameCuben.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GameCuben.tiff; sourceTree = "<group>"; };
 		2B57D78F2358149600E8BF65 /* GameCuben.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = GameCuben.json; sourceTree = "<group>"; };
-		2B57D79423581AE400E8BF65 /* GibBrickPlox.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = GibBrickPlox.json; sourceTree = "<group>"; };
-		2B57D79523581AE400E8BF65 /* GibBrickPlox.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GibBrickPlox.tiff; sourceTree = "<group>"; };
-		2B57D79D2358269100E8BF65 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
 		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
 		2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Shape-Z iOS.entitlements"; sourceTree = "<group>"; };
@@ -261,6 +258,9 @@
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
+		2B91CBE22358477300DED7B1 /* Square.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Square.tiff; sourceTree = "<group>"; };
+		2B91CBE32358477300DED7B1 /* Square.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Square.json; sourceTree = "<group>"; };
+		2B91CBE8235848AC00DED7B1 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
 		2BA344A121FE8497000BB2EB /* MMTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTimeline.swift; sourceTree = "<group>"; };
 		2BA344AC22029FA4000BB2EB /* MMFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFragment.swift; sourceTree = "<group>"; };
 		2BA6163B22597EF400638794 /* MMColorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMColorWidget.swift; sourceTree = "<group>"; };
@@ -395,7 +395,7 @@
 			isa = PBXGroup;
 			children = (
 				2B0C6A5F2338A3CA0073EF18 /* Pinball.shape-z */,
-				2B57D79D2358269100E8BF65 /* Pong.shape-z */,
+				2B91CBE8235848AC00DED7B1 /* Pong.shape-z */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -513,8 +513,8 @@
 		2BBF11BD21EADB46001C94E9 /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
-				2B57D79423581AE400E8BF65 /* GibBrickPlox.json */,
-				2B57D79523581AE400E8BF65 /* GibBrickPlox.tiff */,
+				2B91CBE32358477300DED7B1 /* Square.json */,
+				2B91CBE22358477300DED7B1 /* Square.tiff */,
 				2B57D78F2358149600E8BF65 /* GameCuben.json */,
 				2B57D78E2358149600E8BF65 /* GameCuben.tiff */,
 				2B8BBA8722A4AA4600E541B9 /* OpenSans.json */,
@@ -688,12 +688,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2B91CBE42358477300DED7B1 /* Square.tiff in Resources */,
 				2B6CCE55231F5A4500ECA35B /* intersection_on.tiff in Resources */,
 				2B6CCE49231F4FE200ECA35B /* union_on.tiff in Resources */,
 				2B6CCE46231F4FD600ECA35B /* union_off.tiff in Resources */,
 				2B0C6A612338A3CB0073EF18 /* Pinball.shape-z in Resources */,
 				2B12841123475B55001170B2 /* navigation.tiff in Resources */,
-				2B57D79623581AE400E8BF65 /* GibBrickPlox.json in Resources */,
 				2BB6B063231A069A0067B217 /* sz_ui_blue.tiff in Resources */,
 				2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */,
 				2B8BBA8A22A4AA4600E541B9 /* OpenSans.json in Resources */,
@@ -704,12 +704,12 @@
 				2B57D7902358149600E8BF65 /* GameCuben.tiff in Resources */,
 				2B5FE42322C0A96F0046A435 /* Assets.xcassets in Resources */,
 				2B0271782353FDA1009178F6 /* zoom_minus.tiff in Resources */,
-				2B57D79823581AE400E8BF65 /* GibBrickPlox.tiff in Resources */,
 				2B57D7922358149600E8BF65 /* GameCuben.json in Resources */,
 				2B6CCE53231F5A4500ECA35B /* intersection_off.tiff in Resources */,
 				2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */,
 				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
-				2B57D79E2358269100E8BF65 /* Pong.shape-z in Resources */,
+				2B91CBE62358477300DED7B1 /* Square.json in Resources */,
+				2B91CBE9235848AC00DED7B1 /* Pong.shape-z in Resources */,
 				2B02717A2353FDA1009178F6 /* zoom_plus.tiff in Resources */,
 				2B6CCE4F231F59E700ECA35B /* substract_off.tiff in Resources */,
 			);
@@ -720,7 +720,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B035154231A195E00ACBB78 /* sz_ui_blue.tiff in Resources */,
-				2B57D79723581AE400E8BF65 /* GibBrickPlox.json in Resources */,
 				2B6CCE5C231F5E5F00ECA35B /* foreground.tiff in Resources */,
 				2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */,
 				2B035153231A195A00ACBB78 /* sz_ui_grey.tiff in Resources */,
@@ -728,8 +727,8 @@
 				2B8BBA8922A4AA4600E541B9 /* OpenSans.tiff in Resources */,
 				2B6CCE54231F5A4500ECA35B /* intersection_off.tiff in Resources */,
 				2B57D7932358149600E8BF65 /* GameCuben.json in Resources */,
-				2B57D79923581AE400E8BF65 /* GibBrickPlox.tiff in Resources */,
 				2B6CCE5A231F5E5F00ECA35B /* background.tiff in Resources */,
+				2B91CBE52358477300DED7B1 /* Square.tiff in Resources */,
 				2BBF113921EAD38E001C94E9 /* Assets.xcassets in Resources */,
 				2B8BBA8B22A4AA4600E541B9 /* OpenSans.json in Resources */,
 				2B6CCE47231F4FD600ECA35B /* union_off.tiff in Resources */,
@@ -738,9 +737,10 @@
 				2BBF113421EAD38E001C94E9 /* Main.storyboard in Resources */,
 				2B6CCE4A231F4FE200ECA35B /* union_on.tiff in Resources */,
 				2B6CCE50231F59E700ECA35B /* substract_off.tiff in Resources */,
-				2B57D79F2358269100E8BF65 /* Pong.shape-z in Resources */,
 				2B0271792353FDA1009178F6 /* zoom_minus.tiff in Resources */,
+				2B91CBEA235848AC00DED7B1 /* Pong.shape-z in Resources */,
 				2B6CCE56231F5A4500ECA35B /* intersection_on.tiff in Resources */,
+				2B91CBE72358477300DED7B1 /* Square.json in Resources */,
 				2B0C6A632338A4950073EF18 /* Pinball.shape-z in Resources */,
 				2B12841223475B55001170B2 /* navigation.tiff in Resources */,
 				2B035155231A196100ACBB78 /* sz_toolbar.tiff in Resources */,
