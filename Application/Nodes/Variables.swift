@@ -1018,7 +1018,7 @@ class AnimateFloatVariable : Node
     {
         brand = .Arithmetic
         type = "Animate Float Variable"
-        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20086922/Test+Float"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/26247173/Animate+Float"
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -1787,7 +1787,7 @@ class StopVariableAnimations : Node
     {
         brand = .Arithmetic
         type = "Stop Variable Animations"
-        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/20349033/Reset+Float"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/26411011/Stop+Variable+Anims"
     }
     
     private enum CodingKeys: String, CodingKey {

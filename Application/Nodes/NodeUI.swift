@@ -1096,7 +1096,7 @@ class NodeUIAngle : NodeUI
         }
         
         rect.width = 40
-        rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + 40 + NodeUI.itemSpacing
+        rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + 42 + NodeUI.itemSpacing
     }
 
     override func mouseDown(_ event: MMMouseEvent)
@@ -1157,7 +1157,7 @@ class NodeUIAngle : NodeUI
         let length : Float = 17
         
         let x0: Float = x + length * scale
-        let y0: Float = rect.y + itemHeight / 2
+        let y0: Float = rect.y + itemHeight / 2 + 2
         
         for i:Float in stride(from: 0, to: 360, by: 20) {
             

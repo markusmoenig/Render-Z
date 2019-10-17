@@ -54,6 +54,8 @@ class Physics
         let buildData = BuildData()
         buildData.mainDataName = "physicsData->"
 
+        instance.font = nodeGraph.mmView.defaultFont
+
         builder.computeMaxCounts(objects: objects, buildData: buildData, physics: true)
         instance.dynamicObjects = dynamicObjects
         

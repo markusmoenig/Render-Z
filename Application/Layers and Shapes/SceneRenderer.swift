@@ -101,7 +101,7 @@ class SceneRenderer {
                         }
                         
                         if renderIt {
-                            fragment.encodeRun(inst.fragmentInstance!.fragmentState!, inBuffer: inst.fragmentInstance!.buffer, inTexture: mmView.openSans.atlas)
+                            fragment.encodeRun(inst.fragmentInstance!.fragmentState!, inBuffer: inst.fragmentInstance!.buffer, inTexture: inst.fragmentInstance!.font!.atlas)
                         }
                         
                         if clipRectApplied {

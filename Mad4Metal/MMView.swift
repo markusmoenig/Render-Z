@@ -37,7 +37,11 @@ class MMView : MMBaseView {
 
     // --- Fonts
     var openSans        : MMFont!
-    
+    var gameCuben       : MMFont!
+    var gibBrickPlox    : MMFont!
+
+    var defaultFont     : MMFont!
+
     // --- Skin
     var skin            : MMSkin!
     
@@ -89,7 +93,11 @@ class MMView : MMBaseView {
         
         // Fonts
         openSans = MMFont( self, name: "OpenSans" )
+        gameCuben = MMFont( self, name: "GameCuben" )
+        gibBrickPlox = MMFont( self, name: "GibBrickPlox" )
         
+        defaultFont = gibBrickPlox
+
         // --- Drawables
         drawSphere = MMDrawSphere( renderer )
         drawBox = MMDrawBox( renderer )

@@ -53,6 +53,7 @@ class Material : Codable
         properties["limiterType"] = 0
         properties["limiterWidth"] = 40
         properties["limiterHeight"] = 40
+        properties["opacity"] = 1
     }
 
     required init(from decoder: Decoder) throws
@@ -70,6 +71,10 @@ class Material : Codable
         
         if properties["bump"] == nil {
             properties["bump"] = 0
+        }
+        
+        if properties["opacity"] == nil {
+            properties["opacity"] = 1
         }
     }
     

@@ -341,8 +341,13 @@ class Gizmo : MMWidget
                     )
                     
                     gizmoNode.properties["limiterType"] = material.properties["limiterType"]
+                    //gizmoNode.uiItems.append(
+                    //    NodeUISelector(gizmoNode, variable: "limiterType", title: "Limiter", items: ["None", "Rectangle", "Sphere", "Border"], index: 0)
+                    //)
+                    
+                    gizmoNode.properties["opacity"] = material.properties["opacity"]
                     gizmoNode.uiItems.append(
-                        NodeUISelector(gizmoNode, variable: "limiterType", title: "Limiter", items: ["None", "Rectangle", "Sphere", "Border"], index: 0)
+                        NodeUINumber(gizmoNode, variable: "opacity", title: "Opacity", range: float2(0,1), value: 1)
                     )
                     
                     gizmoNode.properties["bump"] = material.properties["bump"]

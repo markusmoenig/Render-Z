@@ -36,6 +36,7 @@ class BuilderInstance
     
     var texture         : MTLTexture? = nil
     var scene           : Scene? = nil
+    var font            : MMFont? = nil
 }
 
 class BuildData
@@ -112,6 +113,8 @@ class Builder
     {
         let instance = BuilderInstance()
         let buildData = BuildData()
+        
+        instance.font = nodeGraph.mmView.defaultFont
         
         instance.objects = objects
         computeMaxCounts(objects: objects, buildData: buildData)
@@ -421,11 +424,12 @@ class Builder
         
             // --- Foreground
         
-            float fm = fillMask( dist );// * bodyMaterial.baseColor.w;
             float bm = 0;
-            bodyMaterial.baseColor.w = fm;
             float border = bodyMaterial.border * 30;
-        
+
+            float fm = fillMask( dist );
+            bodyMaterial.baseColor.w = fm;
+
             if ( materialId >= 0 && border > 0 )
             {
                 bm = borderMask( dist, border );
@@ -473,7 +477,7 @@ class Builder
                 }
             }
         
-            col = mix(background, foreground, foreground.w);
+            col = foreground;//mix(background, foreground, foreground.w);
         
         """
         
@@ -596,7 +600,7 @@ class Builder
             }
             
             if shape.name == "Text" {
-                buildData.source += createStaticTextSource(nodeGraph.mmView.openSans, shape.customText!, varCounter: buildData.shapeIndex)
+                buildData.source += createStaticTextSource(instance.font!, shape.customText!, varCounter: buildData.shapeIndex)
             }
             
             let distanceCode = "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, shapeIndex: buildData.shapeIndex, mainDataName: buildData.mainDataName, variableIndex: buildData.variableIndex) + ";\n"
@@ -711,6 +715,7 @@ class Builder
                 }
                 channelCode += materialProperty
                 let limiterType = material.properties["limiterType"]
+                let opacity = material.properties["opacity"]!
                 let materialExt = channel == 0 ? "" : ".x"
                 
                 if normal {
@@ -748,7 +753,7 @@ class Builder
                             // Static border gets multiplicated to allow scaling
                             source += "  " + channelCode + " = " + channelCode + " * value.x * 10.0;\n"
                         } else {
-                            source += "  " + channelCode + " = mix( " + channelCode + ", value, value.w)" + materialExt + ";\n"
+                            source += "  " + channelCode + " = mix( " + channelCode + ", value, value.w * \(opacity))" + materialExt + ";\n"
                         }
                     } else
                     if limiterType == 1 {
@@ -914,11 +919,11 @@ class Builder
         memcpy(instance.buffer!.contents(), instance.data!, instance.data!.count * MemoryLayout<Float>.stride)
         
         if outTexture == nil {
-            compute!.run( instance.state, inBuffer: instance.buffer, inTexture: nodeGraph.mmView.openSans.atlas )
+            compute!.run( instance.state, inBuffer: instance.buffer, inTexture: instance.font!.atlas )
             return compute!.texture
         } else {
             if let state = instance.state {
-                compute!.run( state, outTexture: outTexture, inBuffer: instance.buffer, inTexture: nodeGraph.mmView.openSans.atlas )
+                compute!.run( state, outTexture: outTexture, inBuffer: instance.buffer, inTexture: instance.font!.atlas )
             }
             return outTexture!
         }
@@ -1089,7 +1094,7 @@ class Builder
                         
                         if let varNode = nodeGraph.getNodeForUUID(uuid) {
                             let text = String(format: "%.0\(Int(shape.properties["custom_precision"]!))f",varNode.properties["value"]!)
-                            let font = nodeGraph.mmView.openSans!
+                            let font = instance.font!
 
                             if text.count > 0 {
                                 
@@ -1138,7 +1143,7 @@ class Builder
                         instance.data![offset + 11] = 1
                         
                         let text = " "
-                        let font = nodeGraph.mmView.openSans!
+                        let font = instance.font!
 
                         for (index,c) in text.enumerated() {
                             let bmFont = font.getItemForChar(c)!
@@ -1513,7 +1518,7 @@ class Builder
                 }
                 
                 if shape.name == "Text" || shape.name == "Variable" {
-                    source += createStaticTextSource(nodeGraph.mmView.openSans, shape.customText!, varCounter: totalShapeIndex)
+                    source += createStaticTextSource(instance.font!, shape.customText!, varCounter: totalShapeIndex)
                 }
                 source += "newDist = " + shape.createDistanceCode(uvName: "uv", transProperties: transformed, shapeIndex: totalShapeIndex) + ";\n"
                 
@@ -1575,7 +1580,7 @@ class Builder
         let state = compute!.createState(library: library, name: "selectedAt")
         
         let outBuffer = compute!.device.makeBuffer(length: MemoryLayout<float4>.stride, options: [])!
-        compute!.runBuffer(state, outBuffer: outBuffer, inTexture: nodeGraph.mmView.openSans.atlas)
+        compute!.runBuffer(state, outBuffer: outBuffer, inTexture: instance.font!.atlas)
         
         let result = outBuffer.contents().load(as: float4.self)
 //        print( result )

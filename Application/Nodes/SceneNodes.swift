@@ -224,7 +224,7 @@ class SceneLight : Node
         type = "Scene Light"
         brand = .Property
         
-        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19791995/Collision+Properties"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/25329700/Light"
     }
     
     private enum CodingKeys: String, CodingKey {

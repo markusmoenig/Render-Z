@@ -70,6 +70,8 @@ class DiskBuilder
         instance.maxDisks = maxDisks
         buildData.mainDataName = "diskBuilderData->"
 
+        instance.font = nodeGraph.mmView.defaultFont
+
         builder.computeMaxCounts(objects: objects, buildData: buildData, physics: false)
         if buildData.maxShapes == 0 { return nil }
         
