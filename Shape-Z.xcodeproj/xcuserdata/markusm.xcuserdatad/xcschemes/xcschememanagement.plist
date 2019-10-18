@@ -4,6 +4,11 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
+		<key>IOS Framework.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
 		<key>OSX Framework.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
@@ -23,6 +28,11 @@
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
 		<key>2B91CBEF2358629300DED7B1</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>2B91CD7E235959CC00DED7B1</key>
 		<dict>
 			<key>primary</key>
 			<true/>

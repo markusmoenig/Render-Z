@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class MMView : MMBaseView {
+public class MMView : MMBaseView {
 
     var renderer        : MMRenderer!
     var textureLoader   : MTKTextureLoader!

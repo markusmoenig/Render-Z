@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class MMBaseView : MTKView
+public class MMBaseView : MTKView
 {
     var widgets         = [MMWidget]()
     var hoverWidget     : MMWidget?
@@ -25,8 +25,8 @@ class MMBaseView : MTKView
     
     var scaleFactor     : Float!
     
-    var mousePos        : float2 = float2()
-    var mouseDownPos    : float2!
+    var mousePos        : SIMD2<Float> = SIMD2<Float>()
+    var mouseDownPos    : SIMD2<Float>!
     
     var mouseTrackWidget: MMWidget? = nil
 
@@ -44,7 +44,7 @@ class MMBaseView : MTKView
     func platformInit()
     {
         scaleFactor = Float(UIScreen.main.scale)
-        mouseDownPos = float2()
+        mouseDownPos = SIMD2<Float>()
         
         let panRecognizer = UIPanGestureRecognizer(target: self, action:(#selector(self.handlePanGesture(_:))))
         addGestureRecognizer(panRecognizer)
@@ -178,7 +178,7 @@ class MMBaseView : MTKView
         lastY = Float(translation.y)
     }
     
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    override public func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let point = touch.location(in: self)
             let event = MMMouseEvent( Float(point.x), Float(point.y) )
@@ -225,13 +225,13 @@ class MMBaseView : MTKView
         }
     }
     
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+    override public func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
 //        if let touch = touches.first {
 //            let currentPoint = touch.location(in: self)
 //        }
     }
     
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    override public func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
             let point = touch.location(in: self)
             let event = MMMouseEvent( Float(point.x), Float(point.y) )

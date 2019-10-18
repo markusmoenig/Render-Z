@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class GameApp
+public class GameApp
 {
     var mmView          : MMView
     var gameRegion      : GameRegion!
@@ -30,7 +30,7 @@ class GameApp
     var viewController  : ViewController?
     #endif
     
-    init(_ view : MMView, embeddedCB: (()->())? = nil)
+    public init(_ view : MMView, embeddedCB: (()->())? = nil)
     {
         self.embeddedCB = embeddedCB
         mmView = view
@@ -86,7 +86,7 @@ class GameApp
         }
     }
     
-    func load(_ json: String)
+    public func load(_ json: String)
     {
         if let jsonData = json.data(using: .utf8) {
 

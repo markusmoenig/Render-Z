@@ -102,11 +102,13 @@ class Shape : Codable
         customReference = try container.decodeIfPresent(UUID.self, forKey: .customReference)
         
         // Update shape code
-        if let shapeDef = globalApp!.shapeFactory.getShapeDef(name) {
-            globalCode = shapeDef.globalCode
-            distanceCode = shapeDef.distanceCode
-            dynamicCode = shapeDef.dynamicCode
-            //print("found for", name)
+        if globalApp != nil {
+            if let shapeDef = globalApp!.shapeFactory.getShapeDef(name) {
+                globalCode = shapeDef.globalCode
+                distanceCode = shapeDef.distanceCode
+                dynamicCode = shapeDef.dynamicCode
+                //print("found for", name)
+            }
         }
         
         if layer == nil {

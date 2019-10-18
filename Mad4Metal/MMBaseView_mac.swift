@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class MMBaseView : MTKView
+public class MMBaseView : MTKView
 {
     var trackingArea    : NSTrackingArea?
 
@@ -50,9 +50,9 @@ class MMBaseView : MTKView
         scaleFactor = Float(NSScreen.main!.backingScaleFactor)
     }
     
-    override var acceptsFirstResponder: Bool { return true }
+    override public var acceptsFirstResponder: Bool { return true }
 
-    override func updateTrackingAreas()
+    override public func updateTrackingAreas()
     {
         if trackingArea != nil {
             self.removeTrackingArea(trackingArea!)
@@ -65,7 +65,7 @@ class MMBaseView : MTKView
     }
     
     /// Mouse has been clicked
-    override func mouseDown(with event: NSEvent) {
+    override public func mouseDown(with event: NSEvent) {
         let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ) )
         
         if mouseTrackWidget != nil {
@@ -85,7 +85,7 @@ class MMBaseView : MTKView
         }
     }
     
-    override func mouseUp(with event: NSEvent) {
+    override public func mouseUp(with event: NSEvent) {
         let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ) )
 
         if mouseTrackWidget != nil {
@@ -119,7 +119,7 @@ class MMBaseView : MTKView
     }
     
     /// Mouse has moved
-    override func mouseMoved(with event: NSEvent) {
+    override public func mouseMoved(with event: NSEvent) {
         let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ) )
         
         mousePos.x = event.x
@@ -157,12 +157,12 @@ class MMBaseView : MTKView
         }
     }
     
-    override func mouseDragged(with event: NSEvent) {
+    override public func mouseDragged(with event: NSEvent) {
         mouseMoved(with: event)
     }
     
     // Mouse scroll wheel
-    override func scrollWheel(with event: NSEvent) {
+    override public func scrollWheel(with event: NSEvent) {
         let scrollEvent = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ) )
         scrollEvent.deltaX = Float(event.deltaX)
         scrollEvent.deltaY = Float(event.deltaY)
@@ -174,7 +174,7 @@ class MMBaseView : MTKView
     }
     
     /// Zoom
-    override func magnify(with event: NSEvent) {
+    override public func magnify(with event: NSEvent) {
         if let hover = hoverWidget {
             if(event.phase == .changed) {
                 zoom += Float(event.magnification)
@@ -188,7 +188,7 @@ class MMBaseView : MTKView
     
     // Currently only used for checking modifier keys
     
-    override func keyDown(with event: NSEvent)
+    override public func keyDown(with event: NSEvent)
     {
         keysDown.append(Float(event.keyCode))
         if focusWidget != nil {
@@ -198,7 +198,7 @@ class MMBaseView : MTKView
         //super.keyDown(with: event)
     }
     
-    override func keyUp(with event: NSEvent)
+    override public func keyUp(with event: NSEvent)
     {
         keysDown.removeAll{$0 == Float(event.keyCode)}
         if focusWidget != nil {
@@ -208,7 +208,7 @@ class MMBaseView : MTKView
         //super.keyUp(with: event)
     }
     
-    override func flagsChanged(with event: NSEvent) {
+    override public func flagsChanged(with event: NSEvent) {
         //https://stackoverflow.com/questions/9268045/how-can-i-detect-that-the-shift-key-has-been-pressed
         if event.modifierFlags.contains(.shift) {
             shiftIsDown = true
