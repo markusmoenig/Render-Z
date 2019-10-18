@@ -79,7 +79,7 @@ class GamePlatformIPAD : Node
     {
         super.init()
         
-        name = "Platform: iPAD"
+        name = "Platform: iOS"
     }
     
     override func setup()
@@ -111,8 +111,93 @@ class GamePlatformIPAD : Node
         
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
         
-        type = "Platform IPAD"
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    func getScreenSize() -> SIMD2<Float>
+    {
+        return SIMD2<Float>(properties["width"]!, properties["height"]!)
+        /*
+        var width : Float = 0
+        var height : Float = 0
+        
+        let index = properties["type"]
+        let orient = properties["orientation"]
+        
+        if index == 0 {
+            width = 1536; height = 2048
+        }
+        if index == 1 {
+            width = 2048; height = 2732
+        } else
+            if index == 2 {
+                width = 2048; height = 2732
+        }
+        
+        if orient == 1 {
+            let temp = height
+            height = width
+            width = temp
+        }
+        
+        return float2(width, height)*/
+    }
+    
+    /// Return Success if the selected key is currently down
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        playResult = .Failure
+        
+        return playResult!
+    }
+}
+
+class GamePlatformTVOS : Node
+{
+    override init()
+    {
+        super.init()
+        
+        name = "Platform: tvOS"
+    }
+    
+    override func setup()
+    {
+        type = "Platform tvOS"
+        brand = .Property
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/19955863/Platform+iPAD"
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            //NodeUIDropDown(self, variable: "type", title: "iPad", items: ["1536 x 2048", "2048 x 2732"], index: 0),
+            //NodeUIDropDown(self, variable: "orientation", title: "Orientation", items: ["Vertical", "Horizontal"], index: 0),
+            NodeUINumber(self, variable: "width", title: "Width", range: SIMD2<Float>(100, 4096), int: true, value: 800),
+            NodeUINumber(self, variable: "height", title: "Height", range: SIMD2<Float>(100, 4096), int: true, value: 600)
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        //        test = try container.decode(Float.self, forKey: .test)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
     }
     
     override func encode(to encoder: Encoder) throws

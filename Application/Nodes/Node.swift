@@ -616,6 +616,7 @@ enum NodeFamily: String, NodeClassFamily {
     case sceneFinished = "Scene Finished"
     case gamePlatformOSX = "Platform OSX"
     case gamePlatformIPAD = "Platform IPAD"
+    case gamePlatformTVOS = "Platform TVOS"
     case gamePlayScene = "Game Play Scene"
     case behaviorTree = "Behavior Tree"
     case executeBehaviorTree = "Execute Behavior Tree"
@@ -713,6 +714,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return GamePlatformOSX.self
             case .gamePlatformIPAD:
                 return GamePlatformIPAD.self
+            case .gamePlatformTVOS:
+                return GamePlatformTVOS.self
             case .gamePlayScene:
                 return GamePlayScene.self
             

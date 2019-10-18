@@ -362,7 +362,7 @@ class NodeUISelector : NodeUI
         }
     }
     
-    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
     {
         super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
         self.scale = scale
@@ -604,7 +604,7 @@ class NodeUIDropTarget : NodeUI
     override func update() {
     }
     
-    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
     {
         super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
         
@@ -863,7 +863,7 @@ class NodeUIKeyDown : NodeUI
         keyCode = node.properties[variable]!
     }
     
-    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
     {
         super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
         
@@ -898,7 +898,7 @@ class NodeUINumber : NodeUI
     var contentText : String = ""
     var contentValue: Float? = nil
     
-    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = float2(0,1), int: Bool = false, value: Float = 0)
+    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = SIMD2<Float>(0,1), int: Bool = false, value: Float = 0)
     {
         self.value = value
         self.defaultValue = value
@@ -1031,7 +1031,7 @@ class NodeUINumber : NodeUI
         updateLinked()
     }
     
-    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
     {
         super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
         
@@ -1146,7 +1146,7 @@ class NodeUIAngle : NodeUI
         node.properties[variable] = value
     }
     
-    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
     {
         super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
 
@@ -1251,7 +1251,7 @@ class NodeUIText : NodeUI
         value = oldValue
     }
     
-    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
     {
         super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
         
@@ -1275,7 +1275,7 @@ class NodeUIColor : NodeUI
     var x           : Float = 0
     var width       : Float = 0
     
-    var prevSize    : float2 = float2(80,80)
+    var prevSize    : SIMD2<Float> = SIMD2<Float>(80,80)
     
     var colorWidget : MMColorWidget? = nil
     
@@ -1386,7 +1386,7 @@ class NodeUIColor : NodeUI
         }
     }
     
-    override func draw(mmView: MMView, maxTitleSize: float2, maxWidth: Float, scale: Float)
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
     {
         super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
         x = rect.x

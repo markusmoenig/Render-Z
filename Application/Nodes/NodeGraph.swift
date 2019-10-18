@@ -3543,7 +3543,13 @@ class NodeGraph : Codable
         if let ipad = getNodeOfType("Platform IPAD") as? GamePlatformIPAD {
             size = ipad.getScreenSize()
         } else {
-            size = float2(mmView.renderer.cWidth, mmView.renderer.cHeight)
+            size = SIMD2<Float>(mmView.renderer.cWidth, mmView.renderer.cHeight)
+        }
+        #elseif os(tvOS)
+        if let tvOS = getNodeOfType("Platform TVOS") as? GamePlatformIPAD {
+            size = tvOS.getScreenSize()
+        } else {
+            size = SIMD2<Float>(mmView.renderer.cWidth, mmView.renderer.cHeight)
         }
         #endif
         return size
