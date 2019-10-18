@@ -26,7 +26,7 @@ public class GameApp
     #if os(OSX)
     var viewController  : NSViewController?
     var playController  : NSWindowController?
-    #else
+    #elseif os(iOS)
     var viewController  : ViewController?
     #endif
     

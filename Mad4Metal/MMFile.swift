@@ -96,7 +96,7 @@ class MMFile
             }
         }
         
-        #else
+        #elseif os(iOS)
         
         app.viewController?.exportFile(stringData)
 
@@ -170,7 +170,7 @@ class MMFile
             openPanel.close()
         }
         
-        #else
+        #elseif os(iOS)
         
         app.viewController?.importFile()
         

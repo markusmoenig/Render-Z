@@ -40,7 +40,7 @@ class App
     #if os(OSX)
     var viewController  : NSViewController?
     var gameController  : NSViewController?
-    #else
+    #elseif os(iOS)
     var viewController  : ViewController?
     #endif
     
