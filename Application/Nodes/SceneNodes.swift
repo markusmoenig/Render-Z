@@ -117,13 +117,62 @@ class SceneGravity : Node
         uiItems = [
             NodeUIAngle(self, variable: "orientation", title: "", value: 90),
             NodeUINumber(self, variable: "angle", title: "Direction", range: SIMD2<Float>(0,360), value: 90),
-            NodeUINumber(self, variable: "strength", title: "Strength", range: SIMD2<Float>(0,10), value: 5)
+            NodeUINumber(self, variable: "strength", title: "Strength", range: SIMD2<Float>(0,10), value: 5),
+            NodeUINumber(self, variable: "raw", title: "From Float2", value: 0),
+            NodeUINumber(self, variable: "rawY", title: "", value: 0)
         ]
         
         uiItems[1].linkedTo = uiItems[0]
         uiItems[0].linkedTo = uiItems[1]
         
         super.setupUI(mmView: mmView)
+    }
+    
+    override func setupTerminals()
+    {
+        terminals = [
+            Terminal(name: "raw", connector: .Right, brand: .Float2Variable, node: self)
+        ]
+    }
+    
+    override func updateUIState(mmView: MMView)
+    {
+        uiItems[3].isDisabled = true
+        uiItems[4].isDisabled = true
+
+        super.updateUIState(mmView: mmView)
+    }
+    
+    override func executeReadBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+        if terminal.name == "raw" {
+            
+            if terminal.connections.count == 0 {
+                // Not connected, adjust my own vars
+                setInternalData(SIMD2<Float>(0, 0))
+            } else
+            if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                variable.setValue(SIMD2<Float>(0, 0), adjustBinding: false)
+                setInternalData(SIMD2<Float>(0, 0))
+            }
+        }
+    }
+    
+    override func executeWriteBinding(_ nodeGraph: NodeGraph, _ terminal: Terminal)
+    {
+        if terminal.name == "raw" {
+            if let variable = terminal.connections[0].toTerminal!.node as? Float2Variable {
+                let value = variable.getValue()
+
+                setInternalData(value)
+                
+                // Update scene
+                if let scene = nodeGraph.currentlyPlaying {
+                    scene.properties["physicsGravityX"] = -value.y * 10
+                    scene.properties["physicsGravityY"] = value.x * 10                    
+                }
+            }
+        }
     }
     
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
@@ -134,15 +183,26 @@ class SceneGravity : Node
         let strength = properties["strength"]!
         let dir = SIMD2<Float>(cos((360-angle) * Float.pi/180) * strength * 10, sin((360-angle) * Float.pi/180) * strength * 10)
         
-        if let layer = root.sceneRoot {
+        if let scene = root.sceneRoot {
             
-            layer.properties["physicsGravityX"] = dir.x
-            layer.properties["physicsGravityY"] = dir.y
+            scene.properties["physicsGravityX"] = dir.x
+            scene.properties["physicsGravityY"] = dir.y
             
             return .Success
         }
         
         return playResult!
+    }
+    
+    // Adjusts the internal data
+    func setInternalData(_ data: SIMD2<Float>)
+    {
+        if let item = uiItems[3] as? NodeUINumber {
+            item.value = data.x
+        }
+        if let item = uiItems[4] as? NodeUINumber {
+            item.value = data.y
+        }
     }
 }
 

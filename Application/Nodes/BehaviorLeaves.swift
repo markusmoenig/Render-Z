@@ -288,8 +288,7 @@ class Accelerometer : Node
             if isValid {
                 
                 if let data = motionManager!.accelerometerData {
-                    let accelData = float2(Float(data.acceleration.x), Float(data.acceleration.y))
-                    print( accelData)
+                    let accelData = SIMD2<Float>(Float(data.acceleration.x), Float(data.acceleration.y))
                     float2Var.setValue(accelData)
                     playResult = .Success
                 }

@@ -560,7 +560,8 @@ class Body
     
     var gravity             : float2 = float2(0, -10 * 5)
     
-    var object              : Object
+    let object              : Object
+    let scene               : Scene
     
     var distanceInfos       : [UUID:Float] = [:]
     
@@ -576,6 +577,7 @@ class Body
     init(_ object: Object,_ scene: Scene)
     {
         self.object = object
+        self.scene = scene
         
         orientation = -toRadians(object.properties["rotate"]!)
 
@@ -620,6 +622,11 @@ class Body
         if invMass == 0.0 {
             return
         }
+        
+        if scene.properties["physicsGravityX"] != nil {
+            gravity = float2(scene.properties["physicsGravityX"]!, scene.properties["physicsGravityY"]!)
+        }
+        
         velocity += (force * invMass + gravity) * (delta/2)
         if supportsRotation {
             angularVelocity += torque * invInertia * (delta/2)

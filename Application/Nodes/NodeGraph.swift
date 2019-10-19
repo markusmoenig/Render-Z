@@ -425,6 +425,7 @@ class NodeGraph : Codable
                 self.playToExecute = []
                 self.playNode = self.previewNode
                 self.mmScreen = MMScreen(self.mmView)
+                self.currentlyPlaying = nil
 
                 let node = self.playNode
                 if node!.type == "Object" {
@@ -435,6 +436,7 @@ class NodeGraph : Codable
                 } else
                 if node!.type == "Scene" {
                     let scene = node as! Scene
+                    self.currentlyPlaying = scene
                     scene.setupExecution(nodeGraph: self)
                     for inst in scene.objectInstances {
                         self.playToExecute.append(inst.instance!)
