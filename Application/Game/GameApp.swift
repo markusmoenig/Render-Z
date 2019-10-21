@@ -82,6 +82,9 @@ public class GameApp
             mmView.registerWidget(closeButton)
             closeButton.clicked = { (event) -> Void in
                 embeddedCB!()
+                #if os(iOS)
+                    OrientationController.forceLockOrientation(.unknown)
+                #endif
             }
         }
     }

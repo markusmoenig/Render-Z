@@ -118,6 +118,12 @@ class NodeList : MMWidget
             return SceneArea()
         }
         addNodeItem(item, type: .Property, displayType: .Scene)
+        // --- Scene Device Orientation
+        item = NodeListItem("iOS: Device Orientation")
+        item.createNode = {
+            return SceneDeviceOrientation()
+        }
+        addNodeItem(item, type: .Property, displayType: .Scene)
         // --- Scene Gravity
         item = NodeListItem("Gravity")
         item.createNode = {

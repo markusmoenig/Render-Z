@@ -168,8 +168,9 @@ class SceneGravity : Node
                 
                 // Update scene
                 if let scene = nodeGraph.currentlyPlaying {
-                    scene.properties["physicsGravityX"] = -value.y * 10
-                    scene.properties["physicsGravityY"] = value.x * 10                    
+                    let strength = properties["strength"]!
+                    scene.properties["physicsGravityX"] = -value.y * strength * 10
+                    scene.properties["physicsGravityY"] = value.x * strength * 10
                 }
             }
         }
@@ -205,6 +206,87 @@ class SceneGravity : Node
         }
     }
 }
+
+class SceneDeviceOrientation : Node
+{
+    private enum CodingKeys: String, CodingKey {
+        case type
+    }
+    
+    override init()
+    {
+        super.init()
+        
+        name = "iOS: Device Orientation"
+    }
+    
+    override func setup()
+    {
+        type = "iOS: Device Orientation"
+        brand = .Property
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9207837/Area"
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        let superDecoder = try container.superDecoder()
+        try super.init(from: superDecoder)
+    }
+    
+    override func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(type, forKey: .type)
+        
+        let superdecoder = container.superEncoder()
+        try super.encode(to: superdecoder)
+    }
+    
+    override func setupUI(mmView: MMView)
+    {
+        uiItems = [
+            NodeUISelector(self, variable: "orientation", title: "Orientation", items: ["All", "Portrait", "Portrait U. Down", "Landscape Left", "Landscape Right"], index: 0)
+        ]
+        super.setupUI(mmView: mmView)
+    }
+    
+    override func finishExecution() {
+        #if os(iOS)
+            OrientationController.forceLockOrientation(.unknown)
+        #endif
+    }
+    
+    /// Apply the control points to the objects profile array
+    override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) -> Result
+    {
+        #if os(iOS)
+
+        playResult = .Success
+        
+        let orientation: Int = Int(properties["orientation"]!)
+        switch(orientation)
+        {
+            case 0: OrientationController.forceLockOrientation(.unknown); break
+            case 1: OrientationController.forceLockOrientation(.portrait); break
+            case 2: OrientationController.forceLockOrientation(.portraitUpsideDown); break
+            case 3: OrientationController.forceLockOrientation(.landscapeLeft); break
+            case 4: OrientationController.forceLockOrientation(.landscapeRight); break
+            
+            default: OrientationController.forceLockOrientation(.unknown); break
+        }
+
+        #else
+
+        playResult = .Failure
+        
+        #endif
+
+        return playResult!
+    }
+}
+
 
 class SceneFinished : Node
 {

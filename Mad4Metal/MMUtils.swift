@@ -344,3 +344,39 @@ func shadeColor(_ color: SIMD4<Float>,_ factor: Float) -> SIMD4<Float>
     let rc = SIMD4<Float>((t - color.x) * p + color.x,(t - color.y) * p + color.y,(t - color.z) * p + color.z,color.w)
     return rc
 }
+
+// https://stackoverflow.com/questions/26357162/how-to-force-view-controller-orientation-in-ios-8
+
+#if os(iOS)
+final class OrientationController {
+
+    static private (set) var allowedOrientation:UIInterfaceOrientationMask = [.all]
+
+    // MARK: - Public
+
+    class func lockOrientation(_ orientationIdiom: UIInterfaceOrientationMask) {
+        OrientationController.allowedOrientation = [orientationIdiom]
+    }
+
+    class func forceLockOrientation(_ orientation: UIInterfaceOrientation) {
+        var mask:UIInterfaceOrientationMask = []
+        switch orientation {
+            case .unknown:
+                mask = [.all]
+            case .portrait:
+                mask = [.portrait]
+            case .portraitUpsideDown:
+                mask = [.portraitUpsideDown]
+            case .landscapeLeft:
+                mask = [.landscapeLeft]
+            case .landscapeRight:
+                mask = [.landscapeRight]
+            @unknown default:
+                print("Unkown Orientation")
+        }
+
+        OrientationController.lockOrientation(mask)
+        UIDevice.current.setValue(orientation.rawValue, forKey: "orientation")
+    }
+}
+#endif

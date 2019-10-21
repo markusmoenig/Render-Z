@@ -631,6 +631,7 @@ enum NodeFamily: String, NodeClassFamily {
     case accelerometer = "Accelerometer"
     case scene = "Scene"
     case sceneArea = "Scene Area"
+    case sceneDeviceOrientation = "iOS: Device Orientation"
     case sceneLight = "Scene Light"
     case sceneGravity = "Scene Gravity"
     case clickInSceneArea = "Click In Scene Area"
@@ -699,6 +700,8 @@ enum NodeFamily: String, NodeClassFamily {
                 return Scene.self
             case .sceneArea:
                 return SceneArea.self
+            case .sceneDeviceOrientation:
+                return SceneDeviceOrientation.self
             case .clickInSceneArea:
                 return ClickInSceneArea.self
             case .sceneFinished:
