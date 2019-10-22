@@ -133,6 +133,9 @@ class NodeGraph : Codable
     
     var currentlyPlaying: Scene? = nil
     
+    // When connecting terminal, indicates if the current state is connected or not
+    var prevTerminalConnected : Bool = false
+    
     // --- Static Node Skin
     
     static var tOffY    : Float = 68 // Vertical Offset of the first terminal
@@ -1073,15 +1076,18 @@ class NodeGraph : Codable
             mousePos.x = event.x
             mousePos.y = event.y
            
+            prevTerminalConnected = false
+            self.connectTerminal = nil
+            
             if hoverNode != nil {
                 if let connectTerminal = terminalAt(hoverNode!, event.x, event.y) {
-                    
-                    self.connectTerminal = nil
                     if hoverTerminal!.0.brand == connectTerminal.0.brand && hoverTerminal!.1 != connectTerminal.1 {
                         self.connectTerminal = connectTerminal
                         
                         mousePos.x = connectTerminal.2
                         mousePos.y = connectTerminal.3
+                        
+                        prevTerminalConnected = true
                     }
                 }
             }
@@ -1330,7 +1336,7 @@ class NodeGraph : Codable
                 if nodeHoverMode == .TerminalConnection {
                     let scale : Float = currentMaster!.camera!.zoom
 
-                    let color = getColorForTerminal(hoverTerminal!.0)
+                    let color = prevTerminalConnected ? SIMD3<Float>(0.278, 0.482, 0.675) : getColorForTerminal(hoverTerminal!.0)
                     app!.mmView.drawLine.draw( sx: hoverTerminal!.2, sy: hoverTerminal!.3, ex: mousePos.x, ey: mousePos.y, radius: 2 * scale, fillColor : SIMD4<Float>(color.x, color.y, color.z, 1) )
                 }
                 
