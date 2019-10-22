@@ -224,7 +224,7 @@ class SceneDeviceOrientation : Node
     {
         type = "iOS: Device Orientation"
         brand = .Property
-        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/9207837/Area"
+        helpUrl = "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/28639233/Device+Orientation+iOS"
     }
     
     required init(from decoder: Decoder) throws
