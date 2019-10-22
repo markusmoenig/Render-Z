@@ -2316,6 +2316,13 @@ class NodeGraph : Codable
                 color = float3()
         }*/
         
+        // If connection preview is connected show connection color for the two terminals
+        if nodeHoverMode == .TerminalConnection && prevTerminalConnected == true {
+            if hoverTerminal!.0 === terminal || connectTerminal!.0 === terminal {
+                return SIMD3<Float>(0.278, 0.482, 0.675)
+            }
+        }
+        
         if terminal.connections.isEmpty {
             color = SIMD3<Float>(0.678, 0.682, 0.686)
         } else {
