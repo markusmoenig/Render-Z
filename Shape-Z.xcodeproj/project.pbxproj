@@ -106,6 +106,8 @@
 		2B1ACC3123597FD700ED19AD /* GameWidget.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		2B1ACC3223597FE100ED19AD /* MMView.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		2B1ACC3323597FE100ED19AD /* MMBaseView__tvos.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B1ACC2D23597F0F00ED19AD /* MMBaseView__tvos.swift */; settings = {ATTRIBUTES = (Public, ); }; };
+		2B1F2E13235EA08200838D46 /* Marble.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B1F2E12235EA08200838D46 /* Marble.shape-z */; };
+		2B1F2E14235EA08200838D46 /* Marble.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B1F2E12235EA08200838D46 /* Marble.shape-z */; };
 		2B333D13226043FF0008A8CF /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
 		2B333D14226043FF0008A8CF /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
 		2B3AC54C22EBD67F0013A60E /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
@@ -169,8 +171,6 @@
 		2B6CCE5C231F5E5F00ECA35B /* foreground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B6CCE58231F5E5F00ECA35B /* foreground.tiff */; };
 		2B6D0035228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
 		2B6D0036228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
-		2B854631235D3AC80041DA05 /* Marble.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B854630235D3AC70041DA05 /* Marble.shape-z */; };
-		2B854632235D3AC80041DA05 /* Marble.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B854630235D3AC70041DA05 /* Marble.shape-z */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
@@ -473,6 +473,7 @@
 		2B1ACBDE23597D2600ED19AD /* TVOS_Framework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TVOS_Framework.h; sourceTree = "<group>"; };
 		2B1ACBDF23597D2600ED19AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2B1ACC2D23597F0F00ED19AD /* MMBaseView__tvos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMBaseView__tvos.swift; sourceTree = "<group>"; };
+		2B1F2E12235EA08200838D46 /* Marble.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Marble.shape-z"; sourceTree = "<group>"; };
 		2B333D12226043FF0008A8CF /* MMScrollButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScrollButton.swift; sourceTree = "<group>"; };
 		2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMInfoArea.swift; sourceTree = "<group>"; };
 		2B46E95C224330050047A94A /* MMTabWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabWidget.swift; sourceTree = "<group>"; };
@@ -508,7 +509,6 @@
 		2B6CCE57231F5E5E00ECA35B /* background.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = background.tiff; sourceTree = "<group>"; };
 		2B6CCE58231F5E5F00ECA35B /* foreground.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = foreground.tiff; sourceTree = "<group>"; };
 		2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerAreaMaxDelegate.swift; sourceTree = "<group>"; };
-		2B854630235D3AC70041DA05 /* Marble.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Marble.shape-z"; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
@@ -702,7 +702,7 @@
 			children = (
 				2B0C6A5F2338A3CA0073EF18 /* Pinball.shape-z */,
 				2B91CBE8235848AC00DED7B1 /* Pong.shape-z */,
-				2B854630235D3AC70041DA05 /* Marble.shape-z */,
+				2B1F2E12235EA08200838D46 /* Marble.shape-z */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -1157,7 +1157,7 @@
 				2B57D7922358149600E8BF65 /* GameCuben.json in Resources */,
 				2B6CCE53231F5A4500ECA35B /* intersection_off.tiff in Resources */,
 				2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */,
-				2B854631235D3AC80041DA05 /* Marble.shape-z in Resources */,
+				2B1F2E13235EA08200838D46 /* Marble.shape-z in Resources */,
 				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
 				2B91CBE62358477300DED7B1 /* Square.json in Resources */,
 				2B91CBE9235848AC00DED7B1 /* Pong.shape-z in Resources */,
@@ -1193,7 +1193,7 @@
 				2B6CCE56231F5A4500ECA35B /* intersection_on.tiff in Resources */,
 				2B91CBE72358477300DED7B1 /* Square.json in Resources */,
 				2B0C6A632338A4950073EF18 /* Pinball.shape-z in Resources */,
-				2B854632235D3AC80041DA05 /* Marble.shape-z in Resources */,
+				2B1F2E14235EA08200838D46 /* Marble.shape-z in Resources */,
 				2B12841223475B55001170B2 /* navigation.tiff in Resources */,
 				2B035155231A196100ACBB78 /* sz_toolbar.tiff in Resources */,
 			);

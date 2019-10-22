@@ -522,7 +522,7 @@ class NodeMaxDelegate
     {
     }
     
-    func pinchGesture(_ scale: Float)
+    func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
     }
     

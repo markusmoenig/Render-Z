@@ -81,6 +81,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     /// Gizmo works on the selected object, gets disabled when shape gets selected
     var selObjectActive : Bool = false
 
+    var zoomBuffer      : Float = 0
+
     override func activate(_ app: App)
     {
         self.app = app
@@ -467,9 +469,13 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         app.gizmo.mouseMoved(event)
     }
     
-    override func pinchGesture(_ scale: Float)
+    override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
-        camera.zoom = scale
+        if firstTouch == true {
+            zoomBuffer = currentObject!.properties["prevMaxScale"] != nil ? currentObject!.properties["prevMaxScale"]! : 1
+        }
+        
+        camera.zoom = zoomBuffer * scale
         camera.zoom = max(0.1, camera.zoom)
         camera.zoom = min(1, camera.zoom)
         currentObject!.properties["prevMaxScale"] = camera.zoom

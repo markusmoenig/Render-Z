@@ -35,6 +35,8 @@ public class MMBaseView : MTKView
 
     // --- Key States
     var shiftIsDown     : Bool = false
+    
+    var firstTouch      : Bool = false
 
     func update()
     {
@@ -56,7 +58,8 @@ public class MMBaseView : MTKView
     @objc func handlePinchGesture(_ recognizer: UIPinchGestureRecognizer)
     {
         if let hover = hoverWidget {
-            hover.pinchGesture(Float(recognizer.scale))
+            hover.pinchGesture(Float(recognizer.scale), firstTouch)
+            firstTouch = false
         }
     }
     
@@ -183,6 +186,8 @@ public class MMBaseView : MTKView
             let point = touch.location(in: self)
             let event = MMMouseEvent( Float(point.x), Float(point.y) )
             
+            firstTouch = true
+            
             mouseDownPos.x = event.x
             mouseDownPos.y = event.y
 
@@ -226,6 +231,7 @@ public class MMBaseView : MTKView
     }
     
     override public func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        
 //        if let touch = touches.first {
 //            let currentPoint = touch.location(in: self)
 //        }

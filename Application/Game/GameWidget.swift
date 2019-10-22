@@ -60,7 +60,7 @@ class GameWidget      : MMWidget
         }
     }
     
-    override func pinchGesture(_ scale: Float)
+    override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
     }
     

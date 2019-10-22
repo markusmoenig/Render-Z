@@ -182,7 +182,7 @@ public class MMBaseView : MTKView
             if(event.phase == .began) {
                 zoom = 1
             }
-            hover.pinchGesture(zoom)
+            hover.pinchGesture(zoom, true)
         }
     }
     

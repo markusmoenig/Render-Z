@@ -63,6 +63,8 @@ class SceneMaxDelegate : NodeMaxDelegate {
     
     var screenList      : [Node?] = []
 
+    var zoomBuffer      : Float = 0
+    
     override func activate(_ app: App)
     {
         self.app = app
@@ -323,9 +325,13 @@ class SceneMaxDelegate : NodeMaxDelegate {
         app.gizmo.mouseMoved(event)
     }
     
-    override func pinchGesture(_ scale: Float)
+    override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
-        camera.zoom = scale
+        if firstTouch == true {
+            zoomBuffer = currentScene!.properties["prevMaxScale"] != nil ? currentScene!.properties["prevMaxScale"]! : 1
+        }
+        
+        camera.zoom = zoomBuffer * scale
         camera.zoom = max(0.1, camera.zoom)
         camera.zoom = min(1, camera.zoom)
         currentScene!.properties["prevMaxScale"] = camera.zoom

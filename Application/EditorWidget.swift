@@ -17,6 +17,8 @@ class EditorWidget      : MMWidget
     
     var dispatched      : Bool = false
     
+    var zoomBuffer      : Float = 0
+    
     init(_ view: MMView, editorRegion: EditorRegion, app: App)
     {
         self.app = app
@@ -77,7 +79,7 @@ class EditorWidget      : MMWidget
         }
     }
     
-    override func pinchGesture(_ scale: Float)
+    override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
         if app.nodeGraph.maximizedNode == nil {
             if app.nodeGraph.hoverNode != nil && app.nodeGraph.nodeHoverMode == .Preview {
@@ -87,26 +89,30 @@ class EditorWidget      : MMWidget
                     node = app.nodeGraph.previewNode!
                 }
                 
-                var realScale = scale
-                if node.properties["prevScale"] != nil {
-                    realScale *= node.properties["prevScale"]!
+                if firstTouch == true {
+                    let realScale : Float = node.properties["prevScale"] != nil ? node.properties["prevScale"]! : 1
+                    zoomBuffer = realScale
                 }
                 
-                node.properties["prevScale"] = max(0.2, realScale)
+                node.properties["prevScale"] = max(0.2, zoomBuffer * scale)
                 node.updatePreview(nodeGraph: app.nodeGraph)
                 mmView.update()
             } else
             if app.nodeGraph.nodeHoverMode == .None && app.nodeGraph.currentMaster != nil
             {
                 if let camera = app.nodeGraph.currentMaster!.camera {
-                    camera.zoom *= scale
+                    
+                    if firstTouch == true {
+                        zoomBuffer = camera.zoom
+                    }
+                    camera.zoom = zoomBuffer * scale
                     camera.zoom = max(0.2, camera.zoom)
                     camera.zoom = min(1.5, camera.zoom)
                     mmView.update()
                 }
             }
         } else {
-            app.nodeGraph.maximizedNode!.maxDelegate!.pinchGesture(scale)
+            app.nodeGraph.maximizedNode!.maxDelegate!.pinchGesture(scale, firstTouch)
         }
     }
     
