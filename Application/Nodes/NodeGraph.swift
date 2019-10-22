@@ -2129,28 +2129,47 @@ class NodeGraph : Codable
         }
         var bottomX : Float = (node.rect.width - (bottomCount * NodeGraph.tDiam * scale + (bottomCount - 1) * NodeGraph.tSpacing * scale )) / 2 - 3.5 * scale
         
+        let tRect = MMRect()
+        
         for terminal in node.terminals {
+            
+            tRect.width = NodeGraph.tDiam * scale
+            tRect.height = NodeGraph.tDiam * scale
+            
             if terminal.connector == .Top {
-                if y >= node.rect.y + 3 * scale && y <= node.rect.y + 3 * scale + NodeGraph.tDiam * scale {
-                    if x >= node.rect.x + node.rect.width / 2 - NodeGraph.tRadius * scale - 3 * scale && x <= node.rect.x + node.rect.width / 2 + NodeGraph.tRadius * scale - 3 * scale {
-                        return (terminal, .Top, node.rect.x + node.rect.width / 2 - 3 * scale, node.rect.y + 3 * scale + NodeGraph.tRadius * scale)
-                    }
+                
+                tRect.x = node.rect.x + node.rect.width / 2 - NodeGraph.tRadius * scale - 3 * scale
+                tRect.y = node.rect.y + 3 * scale
+
+                tRect.shrink(-6 * scale, -6 * scale)
+                
+                if tRect.contains(x, y) {
+                    return (terminal, .Top, node.rect.x + node.rect.width / 2 - 3 * scale, node.rect.y + 3 * scale + NodeGraph.tRadius * scale)
                 }
             } else
-            if terminal.connector == .Left || terminal.connector == .Right{
-                if y >= node.rect.y + terminal.posY - NodeGraph.tRadius * scale && y <= node.rect.y + terminal.posY + NodeGraph.tRadius * scale {
-                    if x >= node.rect.x + terminal.posX - NodeGraph.tRadius * scale && x <= node.rect.x + terminal.posX + NodeGraph.tRadius * scale {
-                        return (terminal, terminal.connector, node.rect.x + terminal.posX, node.rect.y + terminal.posY)
-                    }
+            if terminal.connector == .Left || terminal.connector == .Right {
+                
+                tRect.x = node.rect.x + terminal.posX - NodeGraph.tRadius * scale
+                tRect.y = node.rect.y + terminal.posY - NodeGraph.tRadius * scale
+                                
+                tRect.shrink(-6 * scale, -6 * scale)
+                
+                if tRect.contains(x, y) {
+                    return (terminal, terminal.connector, node.rect.x + terminal.posX, node.rect.y + terminal.posY)
                 }
             } else
             if terminal.connector == .Bottom {
-                if y >= node.rect.y + node.rect.height - 0 * scale - NodeGraph.tDiam * scale && y <= node.rect.y + node.rect.height - 0 * scale {
-                    if x >= node.rect.x + bottomX && x <= node.rect.x + bottomX + NodeGraph.tDiam * scale {
-                        return (terminal, .Bottom, node.rect.x + bottomX + NodeGraph.tRadius * scale, node.rect.y + node.rect.height - 3 * scale - NodeGraph.tRadius * scale)
-                    }
-                    bottomX += NodeGraph.tSpacing * scale + NodeGraph.tDiam * scale
+                
+                tRect.x = node.rect.x + bottomX
+                tRect.y = node.rect.y + node.rect.height - NodeGraph.tDiam * scale
+
+                tRect.shrink(-6 * scale, -6 * scale)
+                
+                if tRect.contains(x, y) {
+                    return (terminal, .Bottom, node.rect.x + bottomX + NodeGraph.tRadius * scale, node.rect.y + node.rect.height - 3 * scale - NodeGraph.tRadius * scale)
                 }
+                
+                bottomX += NodeGraph.tSpacing * scale + NodeGraph.tDiam * scale
             }
         }
 
