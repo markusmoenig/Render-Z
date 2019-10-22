@@ -257,7 +257,7 @@ class MMDialog : MMWidget
 //        mmView.drawBox.draw( x: rect.x, y: rect.y - yOffset, width: rect.width, height: 200, round: 0, borderSize: 1, fillColor: float4(0.165, 0.169, 0.173, 1.000), borderColor: float4(0.267, 0.271, 0.275, 1.000) )
         
 //        mmView.renderer.setClipRect(MMRect(rect.x, (rect.y + 19) - yOffset, rect.width, rect.height))
-        mmView.drawBox.draw( x: rect.x, y: rect.y - yOffset, width: rect.width, height: rect.height, round: 40, borderSize: 2, fillColor: float4(0.165, 0.169, 0.173, 1.000), borderColor: mmView.skin.Item.borderColor )
+        mmView.drawBox.draw( x: rect.x, y: rect.y - yOffset, width: rect.width, height: rect.height, round: 40, borderSize: 2, fillColor: mmView.skin.Dialog.color, borderColor: mmView.skin.Dialog.borderColor )
 //        mmView.renderer.setClipRect()
 
         titleLabel.drawCentered(x: rect.x, y: rect.y - yOffset, width: rect.width, height: 35)

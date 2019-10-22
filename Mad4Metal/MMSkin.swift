@@ -13,24 +13,30 @@ struct MMSkinToolBar
     var height          : Float = 44
     var borderSize      : Float = 1
     var round           : Float = 0
-    var color           : float4 = float4(0.165, 0.169, 0.173, 1.000)
-    var borderColor     : float4 = float4(0.106, 0.110, 0.114, 1.000)
+    var color           : SIMD4<Float> = SIMD4<Float>(0.165, 0.169, 0.173, 1.000)
+    var borderColor     : SIMD4<Float> = SIMD4<Float>(0.106, 0.110, 0.114, 1.000)
 }
 
 struct MMSkinWidget
 {
-    var color           : float4 = float4(0.145, 0.145, 0.145, 1.0)
-    var selectionColor  : float4 = float4(0.224, 0.275, 0.361, 1.000)
-    var textColor       : float4 = float4(0.957, 0.957, 0.957, 1.0)
-    var borderColor     : float4 = float4(0.4, 0.4, 0.4, 1.0)
+    var color           : SIMD4<Float> = SIMD4<Float>(0.145, 0.145, 0.145, 1.0)
+    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.224, 0.275, 0.361, 1.000)
+    var textColor       : SIMD4<Float> = SIMD4<Float>(0.957, 0.957, 0.957, 1.0)
+    var borderColor     : SIMD4<Float> = SIMD4<Float>(0.4, 0.4, 0.4, 1.0)
+}
+
+struct MMSkinDialog
+{
+    var color           : SIMD4<Float> = SIMD4<Float>(0.165, 0.169, 0.173, 1.000)
+    var borderColor     : SIMD4<Float> = SIMD4<Float>(0.286, 0.286, 0.286, 1.000)
 }
 
 struct MMSkinItem
 {
-    var color           : float4 = float4(0.282, 0.286, 0.290, 1.000)
-    var selectionColor  : float4 = float4(0.278, 0.553, 0.722, 1.000)
-    var textColor       : float4 = float4(0.773, 0.776, 0.780, 1.000)
-    var borderColor     : float4 = float4(0.286, 0.286, 0.286, 1.000)
+    var color           : SIMD4<Float> = SIMD4<Float>(0.282, 0.286, 0.290, 1.000)
+    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)
+    var textColor       : SIMD4<Float> = SIMD4<Float>(0.773, 0.776, 0.780, 1.000)
+    var borderColor     : SIMD4<Float> = SIMD4<Float>(0.286, 0.286, 0.286, 1.000)
 }
 
 struct MMSkinButton
@@ -41,10 +47,10 @@ struct MMSkinButton
     var fontScale : Float = 0.5
     var borderSize: Float = 1.5
     var round:      Float = 40
-    var color :     float4 = float4(0.392, 0.392, 0.392, 0.0 )
-    var hoverColor: float4 = float4(0.502, 0.502, 0.502, 1.0 )
-    var activeColor:float4 = float4(0.392, 0.392, 0.392, 1.0)
-    var borderColor:float4 = float4(0.4, 0.4, 0.4, 1.0 )
+    var color :     SIMD4<Float> = SIMD4<Float>(0.392, 0.392, 0.392, 0.0 )
+    var hoverColor: SIMD4<Float> = SIMD4<Float>(0.502, 0.502, 0.502, 1.0 )
+    var activeColor:SIMD4<Float> = SIMD4<Float>(0.392, 0.392, 0.392, 1.0)
+    var borderColor:SIMD4<Float> = SIMD4<Float>(0.4, 0.4, 0.4, 1.0 )
 }
 
 struct MMSkinSmallButton
@@ -55,10 +61,10 @@ struct MMSkinSmallButton
     var fontScale : Float = 0.4
     var borderSize: Float = 1.5
     var round:      Float = 30
-    var color :     float4 = float4(0.392, 0.392, 0.392, 0.0 )
-    var hoverColor: float4 = float4(0.502, 0.502, 0.502, 1.0 )
-    var activeColor:float4 = float4(0.392, 0.392, 0.392, 1.0)
-    var borderColor:float4 = float4(0.4, 0.4, 0.4, 1.0 )
+    var color :     SIMD4<Float> = SIMD4<Float>(0.392, 0.392, 0.392, 0.0 )
+    var hoverColor: SIMD4<Float> = SIMD4<Float>(0.502, 0.502, 0.502, 1.0 )
+    var activeColor:SIMD4<Float> = SIMD4<Float>(0.392, 0.392, 0.392, 1.0)
+    var borderColor:SIMD4<Float> = SIMD4<Float>(0.4, 0.4, 0.4, 1.0 )
 }
 
 struct MMSkinScrollButton
@@ -69,10 +75,10 @@ struct MMSkinScrollButton
     var fontScale : Float = 0.5
     var borderSize: Float = 1.5
     var round:      Float = 40
-    var color :     float4 = float4(0.392, 0.392, 0.392, 0.0 )
-    var hoverColor: float4 = float4(1, 1, 1, 1.0 )
-    var activeColor:float4 = float4(0.5, 0.5, 0.5, 1.0)
-    var borderColor:float4 = float4(0.4, 0.4, 0.4, 1.0 )
+    var color :     SIMD4<Float> = SIMD4<Float>(0.392, 0.392, 0.392, 0.0 )
+    var hoverColor: SIMD4<Float> = SIMD4<Float>(1, 1, 1, 1.0 )
+    var activeColor:SIMD4<Float> = SIMD4<Float>(0.5, 0.5, 0.5, 1.0)
+    var borderColor:SIMD4<Float> = SIMD4<Float>(0.4, 0.4, 0.4, 1.0 )
 }
 
 struct MMSkinMenuButton
@@ -83,10 +89,10 @@ struct MMSkinMenuButton
     var fontScale       : Float = 0.5
     var borderSize      : Float = 0
     var round           : Float = 6
-    var color           : float4 = float4(1, 1, 1, 0.0 )
-    var hoverColor      : float4 = float4(1, 1, 1, 0.2 )
-    var activeColor     : float4 = float4(1, 1, 1, 0.2 )
-    var borderColor     : float4 = float4(0.0, 0.0, 0.0, 0.0 )
+    var color           : SIMD4<Float> = SIMD4<Float>(1, 1, 1, 0.0 )
+    var hoverColor      : SIMD4<Float> = SIMD4<Float>(1, 1, 1, 0.2 )
+    var activeColor     : SIMD4<Float> = SIMD4<Float>(1, 1, 1, 0.2 )
+    var borderColor     : SIMD4<Float> = SIMD4<Float>(0.0, 0.0, 0.0, 0.0 )
 }
 
 struct MMSkinMenuWidget
@@ -99,12 +105,12 @@ struct MMSkinMenuWidget
     var borderSize      : Float = 1
     var spacing         : Float = 4
     var round           : Float = 12
-    var color           : float4 = float4(0.533, 0.537, 0.541, 1.000)
-    var hoverColor      : float4 = float4(0.502, 0.502, 0.502, 1.0 )
-    var borderColor     : float4 = float4(0.0, 0.0, 0.0, 1.0 )
-    var textColor       : float4 = float4(0.165, 0.169, 0.173, 1.000)
-    var selTextColor    : float4 = float4(0.878, 0.882, 0.886, 1.000)
-    var selectionColor  : float4 = float4(0.224, 0.275, 0.361, 1.000)
+    var color           : SIMD4<Float> = SIMD4<Float>(0.533, 0.537, 0.541, 1.000)
+    var hoverColor      : SIMD4<Float> = SIMD4<Float>(0.502, 0.502, 0.502, 1.0 )
+    var borderColor     : SIMD4<Float> = SIMD4<Float>(0.0, 0.0, 0.0, 1.0 )
+    var textColor       : SIMD4<Float> = SIMD4<Float>(0.165, 0.169, 0.173, 1.000)
+    var selTextColor    : SIMD4<Float> = SIMD4<Float>(0.878, 0.882, 0.886, 1.000)
+    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.224, 0.275, 0.361, 1.000)
 }
 
 struct MMSkinTimeline
@@ -114,17 +120,17 @@ struct MMSkinTimeline
 
 struct MMSkinNode
 {
-    var titleColor      : float4 = float4(0.878, 0.886, 0.890, 1.000)
+    var titleColor      : SIMD4<Float> = SIMD4<Float>(0.878, 0.886, 0.890, 1.000)
 
-    var propertyColor   : float4 = float4(0.757, 0.471, 0.255, 1.000)
-    var behaviorColor   : float4 = float4(0.196, 0.400, 0.369, 1.000)
-    var functionColor   : float4 = float4(0.173, 0.310, 0.518, 1.000)
-    var arithmeticColor : float4 = float4(0.035, 0.039, 0.043, 1.000)
-    var selectionColor  : float4 = float4(0.224, 0.275, 0.361, 1.000)
+    var propertyColor   : SIMD4<Float> = SIMD4<Float>(0.757, 0.471, 0.255, 1.000)
+    var behaviorColor   : SIMD4<Float> = SIMD4<Float>(0.196, 0.400, 0.369, 1.000)
+    var functionColor   : SIMD4<Float> = SIMD4<Float>(0.173, 0.310, 0.518, 1.000)
+    var arithmeticColor : SIMD4<Float> = SIMD4<Float>(0.035, 0.039, 0.043, 1.000)
+    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.224, 0.275, 0.361, 1.000)
     
-    var successColor    : float4 = float4(0.278, 0.545, 0.220, 1.000)
-    var failureColor    : float4 = float4(0.729, 0.263, 0.235, 1.000)
-    var runningColor    : float4 = float4(0.678, 0.682, 0.686, 1.000)
+    var successColor    : SIMD4<Float> = SIMD4<Float>(0.278, 0.545, 0.220, 1.000)
+    var failureColor    : SIMD4<Float> = SIMD4<Float>(0.729, 0.263, 0.235, 1.000)
+    var runningColor    : SIMD4<Float> = SIMD4<Float>(0.678, 0.682, 0.686, 1.000)
 }
 
 struct MMSkin
@@ -139,6 +145,7 @@ struct MMSkin
     var ScrollButton    : MMSkinScrollButton = MMSkinScrollButton()
     var Node            : MMSkinNode = MMSkinNode()
     var Item            : MMSkinItem = MMSkinItem()
+    var Dialog          : MMSkinDialog = MMSkinDialog()
 
     var disabledAlpha   : Float = 0.2
 }

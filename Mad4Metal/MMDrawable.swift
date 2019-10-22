@@ -57,13 +57,14 @@ class MMDrawSphere : MMDrawable
 /// Draws a Box
 class MMDrawBox : MMDrawable
 {
-    let mmRenderer : MMRenderer
-    var state : MTLRenderPipelineState!
+    let mmRenderer  : MMRenderer
+    var state       : MTLRenderPipelineState!
     
     required init( _ renderer : MMRenderer )
     {
         let function = renderer.defaultLibrary.makeFunction( name: "m4mBoxDrawable" )
         state = renderer.createNewPipelineState( function! )
+        
         mmRenderer = renderer
     }
     
