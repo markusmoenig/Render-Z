@@ -26,7 +26,7 @@ class NodeGraph : Codable
     }
     
     enum NodeHoverMode : Float {
-        case None, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, MasterNode, MenuHover, MenuOpen, OverviewEdit, SideSlider, NavigationDrag
+        case None, Dragging, Terminal, TerminalConnection, NodeUI, NodeUIMouseLocked, Preview, MasterDrag, MasterDragging, MasterNode, MenuHover, MenuOpen, OverviewEdit, SideSlider, NavigationDrag, NodeEdit
     }
     
     enum ContentType : Int {
@@ -807,6 +807,15 @@ class NodeGraph : Codable
             return
         }
         
+        if nodeHoverMode == .NodeEdit {
+            setCurrentNode(hoverNode!)
+            #if os(OSX)
+            self.activateNodeDelegate(hoverNode!)
+            nodeHoverMode = .None
+            #endif
+            return
+        }
+        
         if nodeHoverMode != .None && nodeHoverMode != .Preview {
             app?.mmView.mouseTrackWidget = app?.editorRegion?.widget
         }
@@ -913,6 +922,14 @@ class NodeGraph : Codable
                     scenesButton.clicked!(MMMouseEvent(0,0))
                 }
             }
+            return
+            #endif
+        }
+        
+        if nodeHoverMode == .NodeEdit {
+            #if os(iOS)
+            self.activateNodeDelegate(hoverNode!)
+            nodeHoverMode = .None
             return
             #endif
         }
@@ -1121,6 +1138,7 @@ class NodeGraph : Codable
                 return
             }
 
+            // OverviewEdit
             if overviewIsOn && event.x > hoverNode!.rect.x + hoverNode!.rect.width - 62 * scale && event.y > hoverNode!.rect.y + 15 * scale && event.x <= hoverNode!.rect.x + hoverNode!.rect.width - (62-16) * scale && event.y <= hoverNode!.rect.y + (15 + 20) * scale {
                 if overviewIsOn || (overviewIsOn == false && hoverNode!.maxDelegate != nil) {
                     nodeHoverMode = .OverviewEdit
@@ -1129,6 +1147,19 @@ class NodeGraph : Codable
                 }
             } else
             if nodeHoverMode == .OverviewEdit
+            {
+                mmView.update()
+            }
+            
+            // NodeEdit
+            if hoverNode!.maxDelegate != nil && event.x > hoverNode!.rect.x + hoverNode!.rect.width - 75 * scale && event.y > hoverNode!.rect.y + 15 * scale && event.x <= hoverNode!.rect.x + hoverNode!.rect.width - (75-16) * scale && event.y <= hoverNode!.rect.y + (15 + 20) * scale {
+                //if overviewIsOn || (overviewIsOn == false && hoverNode!.maxDelegate != nil) {
+                    nodeHoverMode = .NodeEdit
+                    mmView.update()
+                    return
+                //}
+            } else
+            if nodeHoverMode == .NodeEdit
             {
                 mmView.update()
             }
@@ -1726,6 +1757,26 @@ class NodeGraph : Codable
 
             // Preview Border
             app!.mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 3, fillColor: SIMD4<Float>(repeating: 0), borderColor: SIMD4<Float>(0, 0, 0, 1) )
+        }
+        
+        // --- Edit Button
+        
+        if node.maxDelegate != nil {
+            let editColor = (nodeHoverMode == .NodeEdit && node === hoverNode) ? SIMD4<Float>(1,1,1,1) : SIMD4<Float>(0.8,0.8,0.8,1)
+            
+            let editX : Float = node.rect.x + node.rect.width - 75 * scale
+            let editY : Float = node.rect.y + 17 * scale
+            let editSize : Float = 14 * scale
+            let editRadius : Float = 0.9 * scale
+            
+            mmView.drawLine.draw(sx: editX, sy: editY + editSize / 2, ex: editX, ey: editY, radius: editRadius, fillColor: editColor)
+            mmView.drawLine.draw(sx: editX, sy: editY, ex: editX + editSize, ey: editY, radius: editRadius, fillColor: editColor)
+            mmView.drawLine.draw(sx: editX + editSize, sy: editY, ex: editX + editSize , ey: editY + editSize, radius: editRadius, fillColor: editColor)
+            mmView.drawLine.draw(sx: editX + editSize / 2, sy: editY + editSize, ex: editX + editSize, ey: editY + editSize, radius: editRadius, fillColor: editColor)
+            mmView.drawLine.draw(sx: editX, sy: editY + editSize, ex: editX + editSize * 0.7, ey: editY + editSize * 0.3, radius: editRadius, fillColor: editColor)
+
+            mmView.drawLine.draw(sx: editX + editSize * 0.7 - 5 * scale, sy: editY + editSize * 0.3, ex: editX + editSize * 0.7, ey: editY + editSize * 0.3, radius: editRadius, fillColor: editColor)
+            mmView.drawLine.draw(sx: editX + editSize * 0.7, sy: editY + editSize * 0.3, ex: editX + editSize * 0.7, ey: editY + editSize * 0.3 + 5 * scale, radius: editRadius, fillColor: editColor)
         }
         
         // Node Menu
