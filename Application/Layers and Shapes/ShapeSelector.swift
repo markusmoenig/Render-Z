@@ -150,10 +150,10 @@ class ShapeSelector
             }
             
             if shape.name == "Text" {
-                source += createStaticTextSource(mmView.openSans, "Abc", varCounter: index)
+                source += createStaticTextSource(mmView.defaultFont, "Abc", varCounter: index)
             } else
             if shape.name == "Variable" {
-                source += createStaticTextSource(mmView.openSans, "123", varCounter: index)
+                source += createStaticTextSource(mmView.defaultFont, "123", varCounter: index)
             }
             if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" || shape.name == "Noise" {
                 source += "uv.y = -uv.y;\n"
@@ -198,7 +198,7 @@ class ShapeSelector
         
         if fragment!.encoderStart() {
 
-            fragment!.encodeRun(fragmentState, inTexture: mmView.openSans.atlas)
+            fragment!.encodeRun(fragmentState, inTexture: mmView.defaultFont.atlas)
             
             left = spacing
             top = spacing + unitSize - 4
@@ -287,8 +287,11 @@ class ShapeSelector
             source += shape.createPointsVariableCode(shapeIndex: 0)
         }
         
-        if shape.name == "Text" || shape.name == "Variable" {
-            source += createStaticTextSource(mmView.openSans, "Abc")
+        if shape.name == "Text" {
+            source += createStaticTextSource(mmView.defaultFont, "Abc", varCounter: 0)
+        } else
+        if shape.name == "Variable" {
+            source += createStaticTextSource(mmView.defaultFont, "123", varCounter: 0)
         }
         if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" || shape.name == "Noise" {
             source += "uv.y = -uv.y;\n"
@@ -306,11 +309,10 @@ class ShapeSelector
         }
         """
         
-        //        print( source )
         let library = comp.createLibraryFromSource(source: source)
         let state = comp.createState(library: library, name: "iconBuilder")
         
-        comp.run( state )
+        comp.run( state, inTexture: mmView.defaultFont!.atlas )
         
         return comp.texture
     }

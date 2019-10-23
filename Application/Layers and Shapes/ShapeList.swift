@@ -177,7 +177,7 @@ class ShapeList
             
             if shape.name == "Text" || shape.name == "Variable" {
                 source += "uv /= 6;"
-                source += createStaticTextSource(mmView.openSans, shape.name == "Text" ? "Abc" : "123", varCounter: index)
+                source += createStaticTextSource(mmView.defaultFont, shape.name == "Text" ? "Abc" : "123", varCounter: index)
             }
             if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" || shape.name == "Noise" {
                 source += "uv.y = -uv.y;\n"
@@ -282,9 +282,8 @@ class ShapeList
     func update()
     {
         memcpy(hoverBuffer?.contents(), hoverData, hoverData.count * MemoryLayout<Float>.stride)
-        //compute!.run(state, inBuffer: hoverBuffer, inTexture: mmView.openSans.atlas)
         if fragment!.encoderStart() {
-            fragment!.encodeRun(state, inBuffer: hoverBuffer, inTexture: mmView.openSans.atlas)
+            fragment!.encodeRun(state, inBuffer: hoverBuffer, inTexture: mmView.defaultFont.atlas)
             
             let zoom : Float = 1
             var top : Float = 3 * zoom
