@@ -79,7 +79,7 @@ class MMListWidget : MMWidget
     func build(items: [MMListWidgetItem], fixedWidth: Float? = nil, supportsUpDown: Bool = false, supportsClose: Bool = false)
     {
         let count : Float = Float(items.count)
-        width = fixedWidth != nil ? fixedWidth! * zoom : rect.width * zoom
+        width = fixedWidth != nil ? fixedWidth! : rect.width
         height = (count * unitSize + (count > 0 ? (count-1) * spacing : Float(0))) * zoom
         if width == 0 {
             width = 1
@@ -238,8 +238,8 @@ class MMListWidget : MMWidget
         let library = self.fragment!.createLibraryFromSource(source: source)
         self.state = self.fragment!.createState(library: library, name: "listWidgetBuilder")
         
-        if self.fragment!.width != self.width || self.fragment!.height != self.height {
-            self.fragment!.allocateTexture(width: self.width, height: self.height)
+        if self.fragment!.width != self.width * zoom || self.fragment!.height != self.height {
+            self.fragment!.allocateTexture(width: self.width * zoom, height: self.height)
         }
         self.textureWidget.setTexture(self.fragment!.texture)
         self.update()
@@ -277,6 +277,19 @@ class MMListWidget : MMWidget
     {
         scrollArea.rect.copy(rect)
         scrollArea.build(widget:textureWidget, area: rect, xOffset: xOffset)
+    }
+    
+    // Draws a round border around the widget
+    func drawRoundedBorder(backColor: SIMD4<Float>, borderColor: SIMD4<Float>)
+    {
+        let cb : Float = 2
+        // Erase Edges
+        mmView.drawBox.draw( x: rect.x - cb + 1, y: rect.y - cb, width: rect.width + 2*cb - 2, height: rect.height + 2*cb, round: 30, borderSize: 4, fillColor: float4(0,0,0,0), borderColor: backColor)
+        
+        mmView.drawBox.draw( x: rect.x - cb + 1, y: rect.y - cb, width: rect.width + 2*cb - 2, height: rect.height + 2*cb, round: 0, borderSize: 4, fillColor: float4(0,0,0,0), borderColor: backColor)
+        
+        // Box Border
+        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height + 2, round: 30, borderSize: 1, fillColor: float4(0,0,0,0), borderColor: borderColor)
     }
     
     /// Selected the shape at the given relative mouse position

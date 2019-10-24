@@ -55,6 +55,7 @@ class NodeList : MMWidget
         
         listWidget = MMListWidget(view)
         listWidget.skin.selectionColor = float4(0.5,0.5,0.5,1)
+        listWidget.itemRound = 0
         
         super.init(view)
 

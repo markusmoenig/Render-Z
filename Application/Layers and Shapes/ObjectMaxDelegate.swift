@@ -1531,7 +1531,7 @@ class SequenceWidget : MMWidget
         
         label = MMTextLabel(view, font: view.openSans, text:"", scale: 0.44 )//color: SIMD4<Float>(0.506, 0.506, 0.506, 1.000))
         listWidget = MMListWidget(view)
-        //listWidget.itemRound = 18
+        listWidget.itemRound = 14
         //listWidget.unitSize = 45
 
         // ---  Menu
@@ -1670,12 +1670,12 @@ class SequenceWidget : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y - 3, width: rect.width, height: rect.height+2, round: 0, borderSize: 0,  fillColor : SIMD4<Float>(0.169, 0.169, 0.169, 1.000), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y - 3, width: rect.width, height: rect.height+2, round: 0, borderSize: 0, fillColor : SIMD4<Float>(0.169, 0.169, 0.169, 1.000), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
         
         label.setText("Animation Sequence")
         label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
         
-        menuWidget.rect.x = rect.x + rect.width - 30 - 1
+        menuWidget.rect.x = rect.x + rect.width - 45
         menuWidget.rect.y = rect.y + 1
         menuWidget.rect.width = 30
         menuWidget.rect.height = 28
@@ -1691,13 +1691,15 @@ class SequenceWidget : MMWidget
             menuWidget.rect.height = 30
         }
         
-        //mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height - 30, round: 40, borderSize: 2,  fillColor : SIMD4<Float>(0, 0, 0, 0), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000) )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height - 31, round: 40, borderSize: 2,  fillColor : SIMD4<Float>(0, 0, 0, 0), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000) )
 
-        listWidget.rect.x = rect.x + 2
+        listWidget.rect.x = rect.x + 1
         listWidget.rect.y = rect.y + 32
-        listWidget.rect.width = rect.width - 4
-        listWidget.rect.height = rect.height - 32
+        listWidget.rect.width = rect.width - 2
+        listWidget.rect.height = rect.height - 35
         listWidget.draw()
+        
+        listWidget.drawRoundedBorder(backColor: SIMD4<Float>(0.169, 0.169, 0.169, 1.000), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000))
     }
     
     override func mouseDown(_ event: MMMouseEvent)

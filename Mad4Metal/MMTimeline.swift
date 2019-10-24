@@ -718,7 +718,7 @@ class MMTimeline : MMWidget
         deleteButton.rect.y = buttonsY
         deleteButton.draw()
         
-        linearButton.rect.x = deleteButton.rect.x + deleteButton.rect.width + 15
+        linearButton.rect.x = deleteButton.rect.x + deleteButton.rect.width + 20
         linearButton.rect.y = buttonsY
         linearButton.draw()
         
