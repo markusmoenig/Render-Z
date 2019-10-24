@@ -48,8 +48,13 @@ float m4mFillMask(float dist)
 
 float m4mBorderMask(float dist, float width)
 {
-    //dist += 1.0;
     return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
+}
+
+float2 m4mRotateCW(float2 pos, float angle)
+{
+    float ca = cos(angle), sa = sin(angle);
+    return pos * float2x2(ca, -sa, sa, ca);
 }
 
 // --- Sphere Drawable
@@ -69,13 +74,6 @@ fragment float4 m4mSphereDrawable(RasterizerData in [[stage_in]],
 float m4mGradient_linear(float2 uv, float2 p1, float2 p2) {
     return clamp(dot(uv-p1,p2-p1)/dot(p2-p1,p2-p1),0.,1.);
 }
-/*
-float sdLine( float2 uv, float2 pa, float2 pb, float r) {
-    float2 o = uv-pa;
-    float2 l = pb-pa;
-    float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
-    return -(r-distance(o,l*h));
-}*/
 
 fragment float4 m4mLineDrawable(RasterizerData in [[stage_in]],
                                constant MM_LINE *data [[ buffer(0) ]] )
@@ -186,6 +184,22 @@ fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],
     float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0 );
     uv -= float2( data->size / 2.0 + data->borderSize );
 
+    float2 d = abs( uv ) - data->size / 2 + data->round;
+    float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - data->round;
+    
+    float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
+    col = mix( col, data->borderColor, m4mBorderMask( dist, data->borderSize ) );
+    return col;
+}
+
+fragment float4 m4mRotatedBoxDrawable(RasterizerData in [[stage_in]],
+                               constant MM_ROTATEDBOX *data [[ buffer(0) ]] )
+{
+    float2 uv = in.textureCoordinate * ( data->size + float2( data->borderSize ) * 2.0 );
+    uv -= float2( data->size / 2.0 + data->borderSize );
+
+    uv = m4mRotateCW(uv, data->rotation.x * 3.14159265359 / 180.);
+    
     float2 d = abs( uv ) - data->size / 2 + data->round;
     float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - data->round;
     

@@ -203,7 +203,7 @@ class ShapeSelector
             left = spacing
             top = spacing + unitSize - 4
             counter = 0
-            let fontScale : Float = 0.26
+            let fontScale : Float = 0.256 // 26
             
             var fontRect = MMRect()
             
@@ -288,10 +288,10 @@ class ShapeSelector
         }
         
         if shape.name == "Text" {
-            source += createStaticTextSource(mmView.defaultFont, "Abc", varCounter: 0)
+            source += createStaticTextSource(mmView.defaultFont, "Abc")
         } else
         if shape.name == "Variable" {
-            source += createStaticTextSource(mmView.defaultFont, "123", varCounter: 0)
+            source += createStaticTextSource(mmView.defaultFont, "123")
         }
         if shape.name == "Horseshoe" || shape.name == "Pie" || shape.name == "Spring" || shape.name == "Wave" || shape.name == "Noise" {
             source += "uv.y = -uv.y;\n"

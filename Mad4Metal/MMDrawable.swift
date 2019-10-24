@@ -59,11 +59,15 @@ class MMDrawBox : MMDrawable
 {
     let mmRenderer  : MMRenderer
     var state       : MTLRenderPipelineState!
-    
+    let rotatedState: MTLRenderPipelineState!
+
     required init( _ renderer : MMRenderer )
     {
-        let function = renderer.defaultLibrary.makeFunction( name: "m4mBoxDrawable" )
+        var function = renderer.defaultLibrary.makeFunction( name: "m4mBoxDrawable" )
         state = renderer.createNewPipelineState( function! )
+        
+        function = renderer.defaultLibrary.makeFunction( name: "m4mRotatedBoxDrawable" )
+        rotatedState = renderer.createNewPipelineState( function! )
         
         mmRenderer = renderer
     }
@@ -88,6 +92,32 @@ class MMDrawBox : MMDrawable
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
         
         renderEncoder.setRenderPipelineState( state! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+    
+    func drawRotated( x: Float, y: Float, width: Float, height: Float, round: Float = 0, borderSize: Float = 0, fillColor: SIMD4<Float>, borderColor: SIMD4<Float> = SIMD4<Float>(repeating: 0), rotation: Float )
+    {
+        let border : Float = 20
+
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        let settings: [Float] = [
+            width * scaleFactor, height * scaleFactor,
+            round, borderSize * scaleFactor,
+            fillColor.x, fillColor.y, fillColor.z, fillColor.w,
+            borderColor.x, borderColor.y, borderColor.z, borderColor.w,
+            rotation, 0, 0, 0
+        ];
+        
+        let renderEncoder = mmRenderer.renderEncoder!
+        
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect(x - borderSize - border / 2, y - borderSize, width + 2*borderSize, height + 2*borderSize, scale: scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        renderEncoder.setRenderPipelineState( rotatedState! )
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
 }

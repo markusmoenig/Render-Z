@@ -31,7 +31,7 @@ class MMTlSequence : Codable, MMListWidgetItem
     var totalFrames     : Int = 100
 
     var items           : [UUID: [Int:MMTlKey]] = [:]
-    
+        
     private enum CodingKeys: String, CodingKey {
         case uuid
         case name
@@ -76,7 +76,9 @@ class MMTimeline : MMWidget
     var recordButton            : MMButtonWidget
     var playButton              : MMButtonWidget
     var deleteButton            : MMButtonWidget
-    
+    var linearButton            : MMButtonWidget
+    var splineButton            : MMButtonWidget
+
     var topInfoArea             : MMInfoArea
     var totalFramesItem         : MMInfoAreaItem
 
@@ -112,6 +114,8 @@ class MMTimeline : MMWidget
     var dragStartFrame          : Float = 0
     var dragStartValue          : Float = 0
 
+    var currentType             : Float = 0
+
     override init(_ view: MMView )
     {
         mode = .Unused
@@ -130,6 +134,10 @@ class MMTimeline : MMWidget
         recordButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Rec")
         playButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Play")
         deleteButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Del")
+        
+        linearButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Linear")
+        linearButton.addState(.Checked)
+        splineButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Spline")
         
         topInfoArea = MMInfoArea(view, scale: 0.36)
         totalFramesItem = topInfoArea.addItem("Max. Frames", "totalFrames", 100, int: true, range: float2(0, 36000))
@@ -228,16 +236,34 @@ class MMTimeline : MMWidget
                 itemsChanged(newItems, oldItems)
             }
         }
+        
+        linearButton.clicked = { (event) in
+            self.currentType = 0
+            if let current = self.currentKey {
+                current.properties["type"] = 0
+            }
+            self.splineButton.removeState(.Checked)
+            self.mmView.update()
+        }
+        
+        splineButton.clicked = { (event) in
+            self.currentType = 1
+            if let current = self.currentKey {
+                current.properties["type"] = 1
+            }
+            self.linearButton.removeState(.Checked)
+            self.mmView.update()
+        }
     }
     
     func activate()
     {
-        mmView.registerWidgets(widgets: recordButton, playButton, deleteButton, topInfoArea, keyInfoArea)
+        mmView.registerWidgets(widgets: recordButton, playButton, deleteButton, topInfoArea, keyInfoArea, linearButton, splineButton)
     }
     
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: recordButton, playButton, deleteButton, topInfoArea, keyInfoArea)
+        mmView.deregisterWidgets(widgets: recordButton, playButton, deleteButton, topInfoArea, keyInfoArea, linearButton, splineButton)
     }
     
     /// Returns the frame number for the given mouse position
@@ -268,6 +294,7 @@ class MMTimeline : MMWidget
         var key : MMTlKey? = itemDict![currentFrame]
         if key == nil {
             key = MMTlKey()
+            key!.properties["type"] = currentType
             sequence.items[uuid]![currentFrame] = key
         }
         
@@ -314,11 +341,14 @@ class MMTimeline : MMWidget
             var nextFrame : Int = 1000000
             var nextValue : Float? = nil
             
+            var keyFrame : MMTlKey? = nil
+            
             for(frame,key) in item! {
                 if frame < currentFrame && frame > prevFrame {
                     if let value = key.values[name] {
                         prevFrame = frame
                         prevValue = value
+                        keyFrame = key
                     }
                 } else
                 if frame == currentFrame {
@@ -327,6 +357,7 @@ class MMTimeline : MMWidget
                         prevValue = value
                         nextFrame = frame
                         nextValue = value
+                        keyFrame = key
                     }
                     break
                 } else
@@ -334,6 +365,7 @@ class MMTimeline : MMWidget
                     if let value = key.values[name] {
                         nextFrame = frame
                         nextValue = value
+                        keyFrame = key
                     }
                 }
             }
@@ -357,8 +389,11 @@ class MMTimeline : MMWidget
                 
                 let delta = nextValue! - prevValue!
                 
-//                value = prevValue! + ( delta / frameDur ) * frameOffset
-                value = delta != 0 ? prevValue! + delta * simd_smoothstep( prevValue!, nextValue!, prevValue! + ( delta / frameDur ) * frameOffset ) : prevValue!;
+                if keyFrame!.properties["type"] == nil || keyFrame!.properties["type"] == 0 {
+                    value = prevValue! + ( delta / frameDur ) * frameOffset
+                } else {
+                    value = delta != 0 ? prevValue! + delta * simd_smoothstep( prevValue!, nextValue!, prevValue! + ( delta / frameDur ) * frameOffset ) : prevValue!;
+                }
             }
             
             return value
@@ -430,7 +465,8 @@ class MMTimeline : MMWidget
                 for(uuid,dict) in sequence.items {
                     for(frame,key) in dict {
                         let keyX = tlRect.x + (Float(frame)-visibleStartFrame) * pixelsPerFrame
-                        if event.x >= keyX && event.x <= keyX + 12 {
+                        let keyWidth : Float = Float(String(frame).count * 10) + 5
+                        if event.x >= keyX && event.x <= keyX + keyWidth /*12*/ {
                             selectKey( key )
                             mode = .ScrubbingKey
                             keyScrubPos = frame
@@ -549,7 +585,7 @@ class MMTimeline : MMWidget
             totalFrames = currentSequence!.totalFrames
         }
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor : float4(0.110, 0.110, 0.110, 1.000), borderColor: float4(repeating: 0) )// mmView.skin.Widget.borderColor )
+        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor: SIMD4<Float>(0.169, 0.169, 0.169, 1.000), borderColor: float4(repeating: 0) )// mmView.skin.Widget.borderColor )
         
         let skin = mmView.skin.TimelineWidget
         
@@ -571,7 +607,7 @@ class MMTimeline : MMWidget
         tlRect.width = rect.width - skin.margin.right - 8
         tlRect.height = 40
         
-        mmView.drawBox.draw( x: x - 4, y: y - 4, width: tlRect.width + 8, height: tlRect.height, round: 4, borderSize: 2, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : float4(0.133, 0.133, 0.133, 1.000) )
+        mmView.drawBox.draw( x: x - 4, y: y - 4, width: tlRect.width + 8, height: tlRect.height, round: 4, borderSize: 2, fillColor: SIMD4<Float>(0.196, 0.200, 0.204, 1.000), borderColor : SIMD4<Float>(0.133, 0.133, 0.133, 1.000) )
         
         pixelsPerFrame = tlRect.width / (Float(totalFrames)*percentVisible)
         visibleFrames = (tlRect.width - 7 - 2) / pixelsPerFrame
@@ -622,17 +658,18 @@ class MMTimeline : MMWidget
             frames += 1
         }
         
-        func drawMarker(x: Float, color: float4, frame: String? = nil)
+        func drawMarker(x: Float, color: float4, frame: String? = nil, selected: Bool = false, type: Int = 1)
         {
-            let height : Float = 31
-            mmView.drawBox.draw( x: x, y: y + 1, width: 5, height: height, fillColor : color)
+            let width : Float = Float(frame!.count * 10) + 5
             
-            if frame != nil {
-                mmView.drawBox.draw( x: x + 4.5, y: y + 1, width: Float(frame!.count * 10) + 5, height: 18, borderSize: 1.5, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : color)
-                mmView.drawText.drawText(mmView.openSans, text: frame!, x: x + 7, y: y + 3, scale: 0.32)
-                
-            } else {
-                mmView.drawBox.draw( x: x + 3, y: y + 1, width: 10, height: 18, fillColor : color)
+            mmView.drawBox.draw( x: x, y: y, width: width, height: 18, borderSize: 1.5, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : color)
+            mmView.drawText.drawText(mmView.openSans, text: frame!, x: x + 4.2, y: y + 3, scale: 0.32)
+            
+            if type == 0 {
+                mmView.drawBox.drawRotated( x: x + width / 2 + 5, y: y + 20, width: 11, height: 11, borderSize: 1.5, fillColor: selected == false ? float4(0.110, 0.110, 0.110, 0.000) : float4(1,1,1,1), borderColor: color, rotation: 45)
+            } else
+            if type == 1 {
+                mmView.drawSphere.draw( x: x + width / 2 - 7, y: y + 18, radius: 7, borderSize: 1.5, fillColor: selected == false ? float4(0.110, 0.110, 0.110, 0.000) : float4(1,1,1,1), borderColor: color)
             }
         }
         
@@ -640,13 +677,13 @@ class MMTimeline : MMWidget
         for(_,dict) in sequence.items {
             for(frame,key) in dict {
                 let keyX = tlRect.x + (Float(frame) - visibleStartFrame) * pixelsPerFrame
-                drawMarker( x: keyX, color : float4(0.137, 0.620, 0.784, 1.000), frame: key === currentKey ? String(frame) : nil )
+                drawMarker( x: keyX, color : float4(0.137, 0.620, 0.784, 1.000), frame: String(frame), selected: key === currentKey, type: key.properties["type"] == nil || key.properties["type"] == 0 ? 0 : 1)
             }
         }
         
         // --- Marker
         let markerX = tlRect.x + (Float(currentFrame) - visibleStartFrame) * pixelsPerFrame
-        drawMarker( x: markerX, color : float4(0.675, 0.788, 0.184, 1.000), frame: currentKey === nil ? String(currentFrame) : nil )
+        drawMarker( x: markerX, color : float4(0.675, 0.788, 0.184, 1.000), frame: String(currentFrame), selected: currentKey === nil, type: Int(currentType))
         
         mmView.renderer.setClipRect()
         
@@ -672,20 +709,28 @@ class MMTimeline : MMWidget
         recordButton.rect.y = buttonsY
         recordButton.draw()
         
-        playButton.rect.x = tlRect.x + 70
+        playButton.rect.x = recordButton.rect.x + recordButton.rect.width + 10
         playButton.rect.y = buttonsY
         playButton.draw()
         
         deleteButton.isDisabled = currentKey == nil
-        deleteButton.rect.x = tlRect.x + 145
+        deleteButton.rect.x = playButton.rect.x + playButton.rect.width + 10
         deleteButton.rect.y = buttonsY
         deleteButton.draw()
+        
+        linearButton.rect.x = deleteButton.rect.x + deleteButton.rect.width + 15
+        linearButton.rect.y = buttonsY
+        linearButton.draw()
+        
+        splineButton.rect.x = linearButton.rect.x + linearButton.rect.width + 10
+        splineButton.rect.y = buttonsY
+        splineButton.draw()
         
         topInfoArea.rect.x = rect.x + rect.width - topInfoArea.rect.width - 5
         topInfoArea.rect.y = buttonsY
         topInfoArea.draw()
         
-        keyInfoArea.rect.x = tlRect.x
+        keyInfoArea.rect.x = tlRect.x + tlRect.width - keyInfoArea.rect.width
         keyInfoArea.rect.y = buttonsY + 36
         keyInfoArea.draw()
     }

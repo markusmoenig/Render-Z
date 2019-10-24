@@ -60,6 +60,16 @@ typedef struct
     float round, borderSize;
     vector_float4 fillColor;
     vector_float4 borderColor;
+    float4 rotation;
+
+} MM_ROTATEDBOX;
+
+typedef struct
+{
+    vector_float2 size;
+    float round, borderSize;
+    vector_float4 fillColor;
+    vector_float4 borderColor;
     
 } MM_BOXEDMENU;
 

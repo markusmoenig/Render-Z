@@ -49,6 +49,8 @@ class MMListWidget : MMWidget
     
     var selectionShade  : Float = 0.25
     
+    var itemRound       : Float = 0
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -142,7 +144,7 @@ class MMListWidget : MMWidget
             float2 d;
         
             float borderSize = 0.;
-            float round = 0.;
+            const float round = \(itemRound);
         
             float4 fillColor = float4(0.275, 0.275, 0.275, 1.000);
             float4 borderColor = float4( 0.5, 0.5, 0.5, 1 );
