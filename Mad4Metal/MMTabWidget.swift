@@ -77,27 +77,39 @@ class MMTabWidget: MMWidget
         
         let itemWidth = (rect.width - xOffset) / Float(items.count)
         
+        mmView.drawBox.draw( x: rect.x, y: rect.y + 2, width: rect.width, height: headerHeight, round: 20, borderSize: 1.5, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Button.borderColor)
+        
         var xOff : Float = 0
-        for item in items {
+        for (index, item) in items.enumerated() {
             
             item.rect.x = rect.x + xOff + xOffset
-            item.rect.y = rect.y
+            item.rect.y = rect.y + 2
             item.rect.width = itemWidth// + xOffset
             item.rect.height = headerHeight
 
-            let fColor : float4
-            let skin = mmView.skin.MenuWidget
+            //let fColor : float4
+            //let skin = mmView.skin.MenuWidget
 
-            if item === hoverTab {
-                fColor = skin.button.hoverColor
-            } else
+            //if item === hoverTab {
+                //fColor = skin.button.hoverColor
+            //} else
             if item === currentTab {
-                fColor = skin.button.activeColor
+                //fColor = skin.button.activeColor
+                
+                if index == 0 {
+                    mmView.renderer.setClipRect(MMRect(rect.x, rect.y + 2, item.rect.width, item.rect.height))
+                } else {
+                    mmView.renderer.setClipRect(MMRect(item.rect.x, item.rect.y, item.rect.width, item.rect.height))
+                }
+                
+                mmView.drawBox.draw( x: rect.x, y: rect.y + 2, width: rect.width, height: headerHeight, round: 20, borderSize: 0, fillColor:  mmView.skin.Button.borderColor)
+                
+                mmView.renderer.setClipRect()
             } else {
-                fColor = float4(repeating:0)
+                //fColor = float4(repeating:0)
             }
             
-            mmView.drawBox.draw( x: item.rect.x, y: rect.y, width: item.rect.width, height: item.rect.height, round: 8, borderSize: 1, fillColor : fColor, borderColor: float4( 0, 0, 0, 0 ) )
+            //mmView.drawBox.draw( x: item.rect.x, y: rect.y, width: item.rect.width, height: item.rect.height, round: 8, borderSize: 1, fillColor : fColor, borderColor: float4( 0, 0, 0, 0 ) )
             
             item.label!.drawCentered(x: item.rect.x, y: item.rect.y - 1, width: item.rect.width, height: item.rect.height)
             

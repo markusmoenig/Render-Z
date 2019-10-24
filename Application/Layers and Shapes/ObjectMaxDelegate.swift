@@ -1670,7 +1670,7 @@ class SequenceWidget : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y - 3, width: rect.width, height: rect.height+2, round: 0, borderSize: 0, fillColor : SIMD4<Float>(0.169, 0.169, 0.169, 1.000), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y - 3, width: rect.width, height: rect.height+2, round: 0, borderSize: 0, fillColor : SIMD4<Float>(0.169, 0.169, 0.169, 1.000))
         
         label.setText("Animation Sequence")
         label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
