@@ -66,7 +66,7 @@ fragment float4 m4mSphereDrawable(RasterizerData in [[stage_in]],
     
     float dist = length( uv ) - data->radius;
     
-    float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) );
+    float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
     col = mix( col, data->borderColor, m4mBorderMask( dist, data->borderSize ) );
     return col;
 }

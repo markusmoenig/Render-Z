@@ -115,6 +115,7 @@ class MMTimeline : MMWidget
     var dragStartValue          : Float = 0
 
     var currentType             : Float = 0
+    var keyScrubOffset          : Float = 0
 
     override init(_ view: MMView )
     {
@@ -464,14 +465,25 @@ class MMTimeline : MMWidget
             if let sequence = currentSequence {
                 for(uuid,dict) in sequence.items {
                     for(frame,key) in dict {
-                        let keyX = tlRect.x + (Float(frame)-visibleStartFrame) * pixelsPerFrame
                         let keyWidth : Float = Float(String(frame).count * 10) + 5
+                        let keyX = tlRect.x + (Float(frame)-visibleStartFrame) * pixelsPerFrame - keyWidth / 2
                         if event.x >= keyX && event.x <= keyX + keyWidth /*12*/ {
                             selectKey( key )
                             mode = .ScrubbingKey
                             keyScrubPos = frame
                             keyScrubUUID = uuid
                             mmView.mouseTrackWidget = self
+                            keyScrubOffset = event.x - keyX - keyWidth / 2
+                            
+                            currentType = key.properties["type"] == nil || key.properties["type"]! == 0 ? 0 : 1
+                            linearButton.removeState(.Checked)
+                            splineButton.removeState(.Checked)
+                            
+                            if currentType == 0 {
+                                linearButton.addState(.Checked)
+                            } else {
+                                splineButton.addState(.Checked)
+                            }
                             return
                         }
                     }
@@ -524,7 +536,7 @@ class MMTimeline : MMWidget
             }
         } else
         if mode == .ScrubbingKey {
-            let frame = frameAt(event.x,event.y)
+            let frame = frameAt(event.x - keyScrubOffset,event.y)
             
             if frame != keyScrubPos {
                 var dict = currentSequence!.items[keyScrubUUID]
@@ -661,15 +673,16 @@ class MMTimeline : MMWidget
         func drawMarker(x: Float, color: float4, frame: String? = nil, selected: Bool = false, type: Int = 1)
         {
             let width : Float = Float(frame!.count * 10) + 5
+            let corrX = x - width / 2
             
-            mmView.drawBox.draw( x: x, y: y, width: width, height: 18, borderSize: 1.5, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : color)
-            mmView.drawText.drawText(mmView.openSans, text: frame!, x: x + 4.2, y: y + 3, scale: 0.32)
+            mmView.drawBox.draw( x: corrX, y: y, width: width, height: 18, borderSize: 1.5, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : color)
+            mmView.drawText.drawText(mmView.openSans, text: frame!, x: corrX + 4.2, y: y + 3, scale: 0.32)
             
             if type == 0 {
-                mmView.drawBox.drawRotated( x: x + width / 2 + 5, y: y + 20, width: 11, height: 11, borderSize: 1.5, fillColor: selected == false ? float4(0.110, 0.110, 0.110, 0.000) : float4(1,1,1,1), borderColor: color, rotation: 45)
+                mmView.drawBox.drawRotated( x: corrX + width / 2 + 5, y: y + 20, width: 11, height: 11, borderSize: 1.5, fillColor: selected == false ? float4(0.110, 0.110, 0.110, 0.000) : float4(1,1,1,1), borderColor: color, rotation: 45)
             } else
             if type == 1 {
-                mmView.drawSphere.draw( x: x + width / 2 - 7, y: y + 18, radius: 7, borderSize: 1.5, fillColor: selected == false ? float4(0.110, 0.110, 0.110, 0.000) : float4(1,1,1,1), borderColor: color)
+                mmView.drawSphere.draw( x: corrX + width / 2 - 7, y: y + 18, radius: 7, borderSize: 1.5, fillColor: selected == false ? float4(0.110, 0.110, 0.110, 0.000) : float4(1,1,1,1), borderColor: color)
             }
         }
         
