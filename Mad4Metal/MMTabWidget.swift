@@ -93,16 +93,16 @@ class MMTabWidget: MMWidget
             //if item === hoverTab {
                 //fColor = skin.button.hoverColor
             //} else
-            if item === currentTab {
+            if item === currentTab || item === hoverTab {
                 //fColor = skin.button.activeColor
                 
                 if index == 0 {
-                    mmView.renderer.setClipRect(MMRect(rect.x, rect.y + 2, item.rect.width, item.rect.height))
+                    mmView.renderer.setClipRect(MMRect(max(rect.x + xOffset,0), rect.y + 2, max(item.rect.width + xOffset,0), item.rect.height))
                 } else {
-                    mmView.renderer.setClipRect(MMRect(item.rect.x, item.rect.y, item.rect.width, item.rect.height))
+                    mmView.renderer.setClipRect(MMRect(max(item.rect.x,0), item.rect.y, item.rect.width, item.rect.height))
                 }
                 
-                mmView.drawBox.draw( x: rect.x, y: rect.y + 2, width: rect.width, height: headerHeight, round: 20, borderSize: 0, fillColor:  mmView.skin.Button.borderColor)
+                mmView.drawBox.draw( x: rect.x, y: rect.y + 2, width: rect.width, height: headerHeight, round: 20, borderSize: 0, fillColor: item === currentTab ? mmView.skin.Button.borderColor : mmView.skin.Button.hoverColor)
                 
                 mmView.renderer.setClipRect()
             } else {

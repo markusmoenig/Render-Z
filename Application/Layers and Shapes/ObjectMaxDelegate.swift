@@ -10,6 +10,11 @@ import MetalKit
 
 class ObjectMaxDelegate : NodeMaxDelegate {
     
+    enum HoverMode
+    {
+        case None, SideSlider
+    }
+    
     enum LeftRegionMode
     {
         case Closed, Shapes, Materials
@@ -21,13 +26,14 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     }
     
     var firstStart      : Bool = true
-    
+    var hoverMode       : HoverMode = .None
+
     var app             : App!
     var gizmoContext    : Gizmo.GizmoContext = .ShapeEditor
     
     // Top Region
-    var shapesButton    : MMButtonWidget!
-    var materialsButton : MMButtonWidget!
+    var tabButton       : MMTabButtonWidget!
+    
     var timelineButton  : MMButtonWidget!
 
     var screenButton    : MMScrollButton!
@@ -82,6 +88,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     var selObjectActive : Bool = false
 
     var zoomBuffer      : Float = 0
+    
+    var sideSliderButton: MMSideSliderWidget!
+    
+    let maxLeftRegionSize: Float = 223
 
     override func activate(_ app: App)
     {
@@ -93,10 +103,13 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         selObjectActive = false
         
         // Top Region
-        if shapesButton == nil {
-            shapesButton = MMButtonWidget( app.mmView, text: "Shapes" )
-            materialsButton = MMButtonWidget( app.mmView, text: "Materials" )
+        if tabButton == nil {
+            tabButton = MMTabButtonWidget(app.mmView)
+            tabButton.addTab("Shapes")
+            tabButton.addTab("Materials")
+
             timelineButton = MMButtonWidget( app.mmView, text: "Timeline" )
+            sideSliderButton = MMSideSliderWidget(app.mmView)
          }
 
         screenSize = nil
@@ -113,14 +126,16 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             self.app.mmView.update()
         }
         
-        shapesButton.clicked = { (event) -> Void in
-            self.setLeftRegionMode(.Shapes)
-            self.materialsButton.removeState(.Checked)
-        }
-        
-        materialsButton.clicked = { (event) -> Void in
-            self.setLeftRegionMode(.Materials)
-            self.shapesButton.removeState(.Checked)
+        tabButton.clicked = { (event) -> Void in
+            if self.tabButton.index == 0 {
+                if self.leftRegionMode == .Materials {
+                    self.setLeftRegionMode(.Shapes)
+                }
+            } else {
+                if self.leftRegionMode == .Shapes {
+                    self.setLeftRegionMode(.Materials)
+                }
+            }
         }
             
         timelineButton.clicked = { (event) -> Void in
@@ -138,19 +153,19 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         // Left Region
         if shapeSelector == nil {
             // Shapes
-            shapeSelector = ShapeSelector(app.mmView, width : 200)
+            shapeSelector = ShapeSelector(app.mmView, width : maxLeftRegionSize)
             shapeTexture = MMTextureWidget(app.mmView, texture: shapeSelector.fragment!.texture )
             shapeTexture.zoom = 2
             shapeScrollArea = ShapeScrollArea(app.mmView, app: app, delegate:self)
             
             // Materials
             
-            componentSelector = MaterialSelector(app.mmView, width : 200, brand: .Components, materialFactory: app.materialFactory)
+            componentSelector = MaterialSelector(app.mmView, width : maxLeftRegionSize, brand: .Components, materialFactory: app.materialFactory)
             componentTexture = MMTextureWidget(app.mmView, texture: componentSelector.fragment!.texture )
             componentTexture.zoom = 2
             componentScrollArea = ComponentScrollArea(app.mmView, app: app, delegate:self)
             
-            compoundSelector = MaterialSelector(app.mmView, width : 200, brand: .Compounds, materialFactory: app.materialFactory)
+            compoundSelector = MaterialSelector(app.mmView, width : maxLeftRegionSize, brand: .Compounds, materialFactory: app.materialFactory)
             compoundTexture = MMTextureWidget(app.mmView, texture: compoundSelector.fragment!.texture )
             compoundTexture.zoom = 2
             compoundScrollArea = CompoundScrollArea(app.mmView, app: app, delegate:self)
@@ -195,13 +210,11 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             self.update()
         }
         
-        app.mmView.registerWidgets( widgets: shapesButton, materialsButton, timelineButton, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, screenButton, app.closeButton)
+        app.mmView.registerWidgets( widgets: tabButton, timelineButton, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, screenButton, app.closeButton)
 
         // Set Layouts
         if firstStart {
-            shapesButton.addState( .Checked )
-            materialsButton.removeState( .Checked )
-            app.leftRegion!.rect.width = 200
+            app.leftRegion!.rect.width = maxLeftRegionSize
             leftRegionMode = .Closed
             setLeftRegionMode(.Shapes)
             
@@ -211,7 +224,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             if leftRegionMode == .Closed {
                 app.leftRegion!.rect.width = 0
             } else {
-                app.leftRegion!.rect.width = 200
+                app.leftRegion!.rect.width = maxLeftRegionSize
             }
             
             if bottomRegionMode == .Closed {
@@ -260,7 +273,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         }
         
         timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: shapesButton, materialsButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, screenButton, app.closeButton)
+        app.mmView.deregisterWidgets( widgets: tabButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, screenButton, app.closeButton)
         materialsTab.deregisterWidget()
         materialListWidget.deregisterWidgets()
     }
@@ -327,18 +340,27 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             app.gizmo.draw()
             
             app.changed = false
+            
+            app.mmView.renderer!.setClipRect(region.rect)
+
+            // SideSlider
+            sideSliderButton.rect.x = region.rect.x - 40
+            sideSliderButton.rect.y = region.rect.y + (region.rect.height - 70) / 2
+            sideSliderButton.rect.width = 70
+            sideSliderButton.rect.height = 70
+            sideSliderButton.draw()
+            app.mmView.renderer.setClipRect()
         } else
         if region.type == .Top {
-            region.layoutH( startX: 10, startY: 4 + 44, spacing: 10, widgets: shapesButton, materialsButton )
+            region.layoutH( startX: 3, startY: 4 + 44, spacing: 10, widgets: tabButton)
             
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton, app.closeButton)
 
-            screenButton.rect.x = region.rect.x + 300
+            screenButton.rect.x = tabButton.rect.right() + 10
             screenButton.rect.y = 4 + 44
             screenButton.draw()
             
-            shapesButton.draw()
-            materialsButton.draw()
+            tabButton.draw()
             timelineButton.draw()
             app.closeButton.draw()
         } else
@@ -347,11 +369,11 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             if leftRegionMode != .Closed {
                 app.mmView.drawBox.draw( x: leftRegion.rect.x, y: leftRegion.rect.y, width: leftRegion.rect.width, height: leftRegion.rect.height, round: 0, borderSize: 0,  fillColor : SIMD4<Float>(0.169, 0.169, 0.169, 1.000), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
                 if leftRegionMode == .Shapes {
-                    shapeScrollArea.build(widget: shapeTexture, area: leftRegion.rect, xOffset:(leftRegion.rect.width - 200))
+                    shapeScrollArea.build(widget: shapeTexture, area: leftRegion.rect, xOffset:(leftRegion.rect.width - maxLeftRegionSize))
                 } else
                 if leftRegionMode == .Materials {
                     materialsTab.rect.copy(leftRegion.rect)
-                    materialsTab.draw(xOffset: leftRegion.rect.width - 200)
+                    materialsTab.draw(xOffset: leftRegion.rect.width - maxLeftRegionSize)
                 }
             } else {
                 leftRegion.rect.width = 0
@@ -432,6 +454,15 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if hoverMode == .SideSlider {
+            
+            sideSliderButton.removeState(.Hover)
+            setLeftRegionMode(tabButton.index == 0 ? .Shapes : .Materials )
+
+            hoverMode = .None
+            return
+        }
+            
         app.gizmo.mouseDown(event)
         if app.gizmo.hoverUITitle != nil {
             return
@@ -465,6 +496,18 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        // --- Side Slider
+        hoverMode = .None
+        let distToSideSlider : Float = simd_distance(float2(sideSliderButton.rect.x + sideSliderButton.rect.width/2, sideSliderButton.rect.y + sideSliderButton.rect.height/2), float2(event.x, event.y))
+        if distToSideSlider <=  sideSliderButton.rect.width/2 {
+            sideSliderButton.addState(.Hover)
+            hoverMode = .SideSlider
+            return
+        } else {
+            sideSliderButton.removeState(.Hover)
+        }
+        
+        tabButton.hoverTab = nil
         materialsTab.hoverTab = nil
         app.gizmo.mouseMoved(event)
     }
@@ -552,21 +595,26 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         if animating { return }
         let leftRegion = app.leftRegion!
         if self.leftRegionMode == mode && leftRegionMode != .Closed {
+            sideSliderButton.setMode(.Animating)
             app.mmView.startAnimate( startValue: leftRegion.rect.width, endValue: 0, duration: 500, cb: { (value,finished) in
                 leftRegion.rect.width = value
                 if finished {
                     self.animating = false
                     self.leftRegionMode = .Closed
-                    self.shapesButton.removeState( .Checked )
-                    self.materialsButton.removeState( .Checked )
+                    DispatchQueue.main.async {
+                        self.sideSliderButton.setMode(.Right)
+                    }
                 }
             } )
             animating = true
-        } else if leftRegion.rect.width != 200 {
-            
-            app.mmView.startAnimate( startValue: leftRegion.rect.width, endValue: 200, duration: 500, cb: { (value,finished) in
+        } else if leftRegion.rect.width != maxLeftRegionSize {
+            sideSliderButton.setMode(.Animating)
+            app.mmView.startAnimate( startValue: leftRegion.rect.width, endValue: maxLeftRegionSize, duration: 500, cb: { (value,finished) in
                 if finished {
                     self.animating = false
+                    DispatchQueue.main.async {
+                        self.sideSliderButton.setMode(.Left)
+                    }
                 }
                 leftRegion.rect.width = value
             } )
@@ -1304,8 +1352,7 @@ class MaterialListScrollArea: MMScrollArea
     
     var delegate            : ObjectMaxDelegate!
     
-    var bodyButton          : MMButtonWidget!
-    var borderButton        : MMButtonWidget!
+    var tabButton           : MMTabButtonWidget!
     var floatWidget         : MMFloatWidget!
     
     init(_ view: MMView, app: App, delegate: ObjectMaxDelegate)
@@ -1319,38 +1366,28 @@ class MaterialListScrollArea: MMScrollArea
         var borderlessSkin = MMSkinButton()
         borderlessSkin.margin = MMMargin( 4, 4, 4, 4 )
         borderlessSkin.borderSize = 0
-        borderlessSkin.height = view.skin.Button.height
+        borderlessSkin.height = view.skin.Button.height - 5
         borderlessSkin.fontScale = 0.44
         borderlessSkin.round = 24
         
-        bodyButton = MMButtonWidget(view, skinToUse: borderlessSkin, text: "Interior" )
-        bodyButton.addState(.Checked)
-        bodyButton.rect.width += 10
-        
-        borderButton = MMButtonWidget(view, skinToUse: borderlessSkin, text: "Border" )
-        borderButton.rect.width += 10
+        tabButton = MMTabButtonWidget(view, skinToUse: borderlessSkin)
+
+        tabButton.addTab("Interior")
+        tabButton.addTab("Border")
         
         floatWidget = MMFloatWidget(view, range: float2(0, 40), int: true, value: 2)
 
         super.init(view, orientation:.Vertical)
         
-        bodyButton.clicked = { (event) -> Void in
-            self.bodyButton.addState(.Checked)
-            self.borderButton.removeState(.Checked)
+        tabButton.clicked = { (event) -> Void in
             
-            self.delegate.materialType = .Body
+            if self.tabButton.index == 0 {
+                self.delegate.materialType = .Body
+            } else {
+                self.delegate.materialType = .Border
+            }
+            
             self.delegate.materialListChanged = true
-            
-            delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
-        }
-        
-        borderButton.clicked = { (event) -> Void in
-            self.borderButton.addState(.Checked)
-            self.bodyButton.removeState(.Checked)
-            
-            self.delegate.materialType = .Border
-            self.delegate.materialListChanged = true
-            
             delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
         }
         
@@ -1484,29 +1521,22 @@ class MaterialListScrollArea: MMScrollArea
     
     func registerWidgets()
     {
-        mmView.registerWidgets(widgets: bodyButton, borderButton, floatWidget)
+        mmView.registerWidgets(widgets: tabButton, floatWidget)
     }
     
     func deregisterWidgets()
     {
-        mmView.deregisterWidgets(widgets: bodyButton, borderButton, floatWidget)
+        mmView.deregisterWidgets(widgets: tabButton, floatWidget)
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        bodyButton.rect.x = rect.x + 10
-        bodyButton.rect.y = rect.y + 3
-        bodyButton.rect.width = 85
-        bodyButton.rect.height = 24
-        bodyButton.draw()
+        tabButton.rect.x = rect.x + 10
+        tabButton.rect.y = rect.y + 3
+        tabButton.draw()
         
-        borderButton.rect.copy( bodyButton.rect )
-        borderButton.rect.x += bodyButton.rect.width + 10
-        borderButton.rect.width = 80
-        borderButton.draw()
-        
-        floatWidget.rect.copy( borderButton.rect )
-        floatWidget.rect.x += borderButton.rect.width + 10
+        floatWidget.rect.copy( tabButton.rect )
+        floatWidget.rect.x += tabButton.rect.width + 10
         floatWidget.rect.width = 90
         floatWidget.draw()
     }

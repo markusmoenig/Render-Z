@@ -455,6 +455,11 @@
 		2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
 		2BF5D3652220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
 		2BF5D3662220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
+		2BF632ED2361579C00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
+		2BF632EE2361579C00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
+		2BF632EF2361579D00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
+		2BF632F02361579D00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
+		2BF632F12361579E00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
 		2BFBC58722D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 		2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 /* End PBXBuildFile section */
@@ -589,6 +594,7 @@
 		2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectNodes.swift; sourceTree = "<group>"; };
 		2BF5D363221E7E2D00EAAA76 /* Data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
 		2BF5D3642220D50D00EAAA76 /* Behavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Behavior.swift; sourceTree = "<group>"; };
+		2BF632EC2361570600750990 /* MMTabButtonWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabButtonWidget.swift; sourceTree = "<group>"; };
 		2BFBC58622D2C51300A27FAD /* ReferenceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceList.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -809,6 +815,7 @@
 				2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */,
 				2BA6163B22597EF400638794 /* MMColorWidget.swift */,
 				2B46E95C224330050047A94A /* MMTabWidget.swift */,
+				2BF632EC2361570600750990 /* MMTabButtonWidget.swift */,
 				2BBF11BA21EADB46001C94E9 /* MMCompute.swift */,
 				2BA344AC22029FA4000BB2EB /* MMFragment.swift */,
 				2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */,
@@ -1267,6 +1274,7 @@
 				2B1ACC2423597D9A00ED19AD /* MMScrollButton.swift in Sources */,
 				2B1ACC0F23597D8200ED19AD /* NodeGraph.swift in Sources */,
 				2B1ACC2823597D9A00ED19AD /* MMTimeline.swift in Sources */,
+				2BF632F12361579E00750990 /* MMTabButtonWidget.swift in Sources */,
 				2B1ACC1923597D9A00ED19AD /* MMUtils.swift in Sources */,
 				2B1ACBE623597D5900ED19AD /* LeftRegion.swift in Sources */,
 				2B1ACBFA23597D7800ED19AD /* SceneMaxDelegate.swift in Sources */,
@@ -1320,6 +1328,7 @@
 				2B91CCB023586B5400DED7B1 /* GizmoInfoArea.swift in Sources */,
 				2B91CCA023586B5400DED7B1 /* ObjectMaxDelegate.swift in Sources */,
 				2B91CC70235869C800DED7B1 /* MMView.swift in Sources */,
+				2BF632EF2361579D00750990 /* MMTabButtonWidget.swift in Sources */,
 				2B91CCAE23586B5400DED7B1 /* MaterialFactory.swift in Sources */,
 				2B91CC7D235869EE00DED7B1 /* MMFragment.swift in Sources */,
 				2B91CC74235869E400DED7B1 /* MMUtils.swift in Sources */,
@@ -1401,6 +1410,7 @@
 				2B91CD9F23595A6300DED7B1 /* Object.swift in Sources */,
 				2B91CDC523595A9400DED7B1 /* MMFont.swift in Sources */,
 				2B91CDA023595A6300DED7B1 /* ObjectMaxDelegate.swift in Sources */,
+				2BF632F02361579D00750990 /* MMTabButtonWidget.swift in Sources */,
 				2B91CDA123595A6300DED7B1 /* Scene.swift in Sources */,
 				2B91CD9723595A5C00DED7B1 /* GameApp.swift in Sources */,
 				2B91CD9123595A4A00DED7B1 /* RightRegion.swift in Sources */,
@@ -1458,6 +1468,7 @@
 				2BBF11CD21EADB46001C94E9 /* MMBaseView_mac.swift in Sources */,
 				2BBF11F621F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */,
+				2BF632EE2361579C00750990 /* MMTabButtonWidget.swift in Sources */,
 				2B06710E22B1DCC200983A76 /* GizmoInfoArea.swift in Sources */,
 				2BE67102221259F500B95241 /* Node.swift in Sources */,
 				2B4CC230222F5D5C00A47812 /* Physics.swift in Sources */,
@@ -1540,6 +1551,7 @@
 				2BBF11A721EAD46B001C94E9 /* BottomRegion.swift in Sources */,
 				2BBF11F721F02EAD001C94E9 /* ShapeList.swift in Sources */,
 				2B5CCB0322152EB6005BAA2B /* MMListWidget.swift in Sources */,
+				2BF632ED2361579C00750990 /* MMTabButtonWidget.swift in Sources */,
 				2B06710F22B1DCC200983A76 /* GizmoInfoArea.swift in Sources */,
 				2BE67103221259F500B95241 /* Node.swift in Sources */,
 				2B4CC231222F5D5C00A47812 /* Physics.swift in Sources */,

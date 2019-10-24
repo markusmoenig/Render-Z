@@ -312,6 +312,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
     override func mouseMoved(_ event: MMMouseEvent)
     {
         // --- Side Slider
+        hoverMode = .None
         let distToSideSlider : Float = simd_distance(float2(sideSliderButton.rect.x + sideSliderButton.rect.width/2, sideSliderButton.rect.y + sideSliderButton.rect.height/2), float2(event.x, event.y))
         if distToSideSlider <=  sideSliderButton.rect.width/2 {
             sideSliderButton.addState(.Hover)
