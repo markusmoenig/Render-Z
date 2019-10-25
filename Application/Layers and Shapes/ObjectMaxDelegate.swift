@@ -25,73 +25,79 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         case Closed, Open
     }
     
-    var firstStart      : Bool = true
-    var hoverMode       : HoverMode = .None
+    var firstStart              : Bool = true
+    var hoverMode               : HoverMode = .None
 
-    var app             : App!
-    var gizmoContext    : Gizmo.GizmoContext = .ShapeEditor
+    var app                     : App!
+    var gizmoContext            : Gizmo.GizmoContext = .ShapeEditor
     
     // Top Region
-    var tabButton       : MMTabButtonWidget!
+    var tabButton               : MMTabButtonWidget!
     
-    var timelineButton  : MMButtonWidget!
+    var timelineButton          : MMButtonWidget!
 
-    var screenButton    : MMScrollButton!
-    var screenSize      : float2? = nil
-    var screenList      : [Node?] = []
+    var screenButton            : MMScrollButton!
+    var screenSize              : float2? = nil
+    var screenList              : [Node?] = []
+
+    var sceneButton             : MMScrollButton!
+    var sceneNodes              : [Scene] = []
+    var sceneNames              : [String] = []
+    
+    var currentScene            : Scene? = nil
 
     // Left Region
-    var leftRegionMode  : LeftRegionMode = .Shapes
-    var activeRegionMode: LeftRegionMode = .Shapes
+    var leftRegionMode          : LeftRegionMode = .Shapes
+    var activeRegionMode        : LeftRegionMode = .Shapes
 
-    var shapeSelector   : ShapeSelector!
-    var shapeTexture    : MMTextureWidget!
-    var shapeScrollArea : ShapeScrollArea!
-    var animating       : Bool = false
-    var materialsTab    : MMTabWidget!
+    var shapeSelector           : ShapeSelector!
+    var shapeTexture            : MMTextureWidget!
+    var shapeScrollArea         : ShapeScrollArea!
+    var animating               : Bool = false
+    var materialsTab            : MMTabWidget!
     
-    var componentSelector   : MaterialSelector!
-    var componentTexture    : MMTextureWidget!
-    var componentScrollArea : ComponentScrollArea!
-    var compoundSelector    : MaterialSelector!
-    var compoundTexture     : MMTextureWidget!
-    var compoundScrollArea  : CompoundScrollArea!
+    var componentSelector       : MaterialSelector!
+    var componentTexture        : MMTextureWidget!
+    var componentScrollArea     : ComponentScrollArea!
+    var compoundSelector        : MaterialSelector!
+    var compoundTexture         : MMTextureWidget!
+    var compoundScrollArea      : CompoundScrollArea!
     
     // Right Region
-    var objectWidget    : ObjectWidget!
-    var shapeListWidget : ShapeListScrollArea!
-    var shapeList       : ShapeList!
-    var shapeListChanged: Bool = true
+    var objectWidget            : ObjectWidget!
+    var shapeListWidget         : ShapeListScrollArea!
+    var shapeList               : ShapeList!
+    var shapeListChanged        : Bool = true
     
-    var materialListWidget : MaterialListScrollArea!
-    var materialList    : MaterialList!
-    var materialListChanged: Bool = true
+    var materialListWidget      : MaterialListScrollArea!
+    var materialList            : MaterialList!
+    var materialListChanged     : Bool = true
     
-    var materialType : Object.MaterialType = .Body
+    var materialType            : Object.MaterialType = .Body
 
     // Bottom Region
-    var bottomRegionMode: BottomRegionMode = .Open
+    var bottomRegionMode        : BottomRegionMode = .Open
     
-    var timeline        : MMTimeline!
-    var sequenceWidget  : SequenceWidget!
+    var timeline                : MMTimeline!
+    var sequenceWidget          : SequenceWidget!
 
     // ---
-    var currentObject   : Object?
-    var camera          : Camera = Camera()
-    var patternState    : MTLRenderPipelineState?
-    var dispatched      : Bool = false
+    var currentObject           : Object?
+    var camera                  : Camera = Camera()
+    var patternState            : MTLRenderPipelineState?
+    var dispatched              : Bool = false
     
     /// The currently displayed object
-    var selObject       : Object? = nil
+    var selObject               : Object? = nil
     
     /// Gizmo works on the selected object, gets disabled when shape gets selected
-    var selObjectActive : Bool = false
+    var selObjectActive         : Bool = false
 
-    var zoomBuffer      : Float = 0
+    var zoomBuffer              : Float = 0
     
-    var sideSliderButton: MMSideSliderWidget!
+    var sideSliderButton        : MMSideSliderWidget!
     
-    let maxLeftRegionSize: Float = 223
+    let maxLeftRegionSize       : Float = 223
 
     override func activate(_ app: App)
     {
@@ -123,6 +129,21 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 } else {
                     self.screenSize = nil
             }
+            self.app.mmView.update()
+        }
+        
+        currentScene = nil
+        getOccurencesOf(currentObject!)
+        sceneButton = MMScrollButton(app.mmView, items: sceneNames, index: 0)
+        sceneButton.changed = { (index)->() in
+
+            if index == 0 {
+                self.currentScene = nil
+            } else {
+                self.currentScene = self.sceneNodes[index-1]
+                self.currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
+            }
+            
             self.app.mmView.update()
         }
         
@@ -210,7 +231,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             self.update()
         }
         
-        app.mmView.registerWidgets( widgets: tabButton, timelineButton, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, screenButton, app.closeButton)
+        app.mmView.registerWidgets( widgets: tabButton, timelineButton, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget.menuWidget, sequenceWidget, screenButton, sceneButton, app.closeButton)
 
         // Set Layouts
         if firstStart {
@@ -273,7 +294,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         }
         
         timeline.deactivate()
-        app.mmView.deregisterWidgets( widgets: tabButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, screenButton, app.closeButton)
+        app.mmView.deregisterWidgets( widgets: tabButton, timelineButton, shapeScrollArea, materialsTab, shapeListWidget, materialListWidget, objectWidget.menuWidget, objectWidget.objectListWidget, timeline, sequenceWidget, sequenceWidget.menuWidget, screenButton, sceneButton, app.closeButton)
         materialsTab.deregisterWidget()
         materialListWidget.deregisterWidgets()
     }
@@ -314,7 +335,12 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         if region.type == .Editor {
             app.gizmo.rect.copy(region.rect)
             
-            drawPattern(region)
+            if let scene = currentScene, scene.builderInstance != nil {
+                app.nodeGraph.sceneRenderer!.render(width: region.rect.width, height: region.rect.height, camera: camera, instance: scene.builderInstance!)
+                app.mmView.drawTexture.draw(app.nodeGraph.sceneRenderer!.fragment.texture, x: region.rect.x, y: region.rect.y)
+            } else {
+                drawPattern(region)
+            }
             
             if let instance = currentObject!.instance {
             
@@ -359,6 +385,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             screenButton.rect.x = tabButton.rect.right() + 10
             screenButton.rect.y = 4 + 44
             screenButton.draw()
+            
+            sceneButton.rect.x = screenButton.rect.right() + 10
+            sceneButton.rect.y = 4 + 44
+            sceneButton.draw()
             
             tabButton.draw()
             timelineButton.draw()
@@ -564,6 +594,26 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         }
     }
     
+    /// Finds scenes which contain an instance of this object
+    func getOccurencesOf(_ node: Node)
+    {
+        sceneNodes = []
+        sceneNames = ["Scene: None"]
+        
+        for n in app.nodeGraph.nodes {
+            if let scene = n as? Scene {
+                for inst in scene.objectInstances {
+                    if inst.objectUUID == node.uuid {
+                        if !sceneNodes.contains(scene) {
+                            sceneNodes.append(scene)
+                            sceneNames.append("Scene: " + scene.name)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     /// Controls the tab mode in the left region
     func setLeftRegionMode(_ mode: LeftRegionMode )
     {
@@ -667,6 +717,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         if hard {
             //fix? app.gizmo.setObject(selObject, rootObject: currentObject, context: gizmoContext, materialType: materialType)
             currentObject!.instance = app.nodeGraph.builder.buildObjects(objects: [currentObject!], camera: camera)
+            
+            if let scene = currentScene {
+               scene.updatePreview(nodeGraph: app.nodeGraph, hard: true)
+            }
         }
         
         if updateLists {

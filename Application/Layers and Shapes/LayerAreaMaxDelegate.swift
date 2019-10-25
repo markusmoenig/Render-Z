@@ -163,24 +163,8 @@ class SceneAreaMaxDelegate : NodeMaxDelegate {
         if region.type == .Editor {
             
             app.editorRegion!.rect.width = app.mmView.renderer.cWidth - 1
-            //drawPattern(region)
-            
-            //mmView.renderer.setClipRect(region.rect)
-            //app!.mmView.drawBox.draw( x: region.rect.x, y: region.rect.y, width: region.rect.width, height: region.rect.height, round: 0, borderSize: 0, fillColor : float4(1, 1, 1, 1.000), borderColor: float4(repeating:0) )
             
             let region = app.editorRegion!
-            
-            /*
-            if let instance = masterLayer.builderInstance {
-                
-                if instance.texture == nil || instance.texture!.width != Int(region.rect.width) || instance.texture!.height != Int(region.rect.height) {
-                    app.nodeGraph.builder.render(width: region.rect.width, height: region.rect.height, instance: instance, camera: camera)
-                }
-                
-                if let texture = instance.texture {
-                    app.mmView.drawTexture.draw(texture, x: region.rect.x, y: region.rect.y)
-                }
-            }*/
             
             app.nodeGraph.sceneRenderer!.render(width: region.rect.width, height: region.rect.height, camera: camera, instance: masterLayer!.builderInstance!)
             app.mmView.drawTexture.draw(app.nodeGraph.sceneRenderer!.fragment.texture, x: region.rect.x, y: region.rect.y)
