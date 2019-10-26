@@ -264,8 +264,11 @@ class ReferenceList {
     {
         let mmView = nodeGraph.mmView!
         
-        // Preview Border
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 26, borderSize: 0, fillColor: float4(0.094, 0.098, 0.102, 1.000))
+        // Round background
+        var cb : Float = 2
+        //mmView.drawBox.draw( x: rect.x + 2, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.094, 0.098, 0.102, 1.000))
+        
+        mmView.drawBox.draw( x: rect.x + cb, y: rect.y + cb, width: rect.width - 2 * cb, height: rect.height - 2 * cb, round: 26, borderSize: 0, fillColor: SIMD4<Float>(0.094, 0.098, 0.102, 1.000))
         
         if offsetY < -(Float(refs.count) * itemHeight - rect.height) {
             offsetY = -(Float(refs.count) * itemHeight - rect.height)
@@ -342,6 +345,12 @@ class ReferenceList {
 
             y += itemHeight
         }
+            
+        mmView.drawBox.draw( x: rect.x + cb, y: rect.y + cb, width: rect.width - 2 * cb, height: rect.height - 2 * cb, round: 26, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(0.094, 0.098, 0.102, 1.000))
+
+        cb = -2
+        mmView.drawBox.draw( x: rect.x + cb, y: rect.y + cb, width: rect.width - 2 * cb, height: rect.height - 2 * cb, round: 26, borderSize: 5, fillColor: SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(0.165, 0.169, 0.173, 1.000))
+        
         mmView.renderer.setClipRect()
     }
     

@@ -423,11 +423,10 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             shapeListWidget.rect.width = rightRegion.rect.width
             shapeListWidget.rect.height = rightRegion.rect.height * 2/3
             
-            app.mmView.drawBox.draw( x: rightRegion.rect.x, y: rightRegion.rect.y + objectWidget.rect.height + 30, width: rightRegion.rect.width - 1, height: shapeListWidget.rect.height - 32, round: 40, borderSize: 1, fillColor : SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000) )
-            
             materialListWidget.rect.width = rightRegion.rect.width
             materialListWidget.rect.height = rightRegion.rect.height * 2/3
             
+            // Draw lists
             if activeRegionMode == .Shapes {
                 rightRegion.layoutV(startX: rightRegion.rect.x, startY: rightRegion.rect.y, spacing: 0, widgets: objectWidget, shapeListWidget)
                 shapeListWidget.draw()
@@ -435,6 +434,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
                 rightRegion.layoutV(startX: rightRegion.rect.x, startY: rightRegion.rect.y, spacing: 0, widgets: objectWidget, materialListWidget)
                 materialListWidget.draw()
             }
+            
             objectWidget.draw()
 
             // Rebuild shape list
@@ -462,6 +462,13 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             } else {
                 materialListWidget.build(widget: materialList.textureWidget, area: MMRect( materialListWidget.rect.x - 1, materialListWidget.rect.y + 31, materialListWidget.rect.width, materialListWidget.rect.height - 35) )
             }
+            
+            // Erase Edges
+            let cb : Float = 4
+            app.mmView.drawBox.draw( x: rightRegion.rect.x - cb, y: rightRegion.rect.y + objectWidget.rect.height + 30 - cb, width: rightRegion.rect.width + 2*cb - 1, height: shapeListWidget.rect.height + 2 + 2*cb, round: 40, borderSize: 6, fillColor: float4(0,0,0,0), borderColor:  SIMD4<Float>(0.169, 0.169, 0.169, 1.000))
+            
+            // Draw Round Border
+            app.mmView.drawBox.draw( x: rightRegion.rect.x, y: rightRegion.rect.y + objectWidget.rect.height + 30, width: rightRegion.rect.width - 1, height: shapeListWidget.rect.height + 2, round: 40, borderSize: 1, fillColor : SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000) )
         } else
         if region.type == .Bottom {
             region.rect.y = app.mmView.renderer.cHeight - region.rect.height
