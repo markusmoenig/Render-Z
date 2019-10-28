@@ -133,7 +133,7 @@ class ShapeFactory
             float baba = dot(b-a,b-a);
             float papa = dot(p-a,p-a);
             float paba = dot(p-a,b-a)/baba;
-            float x = sqrt( papa - paba*paba*baba );
+            float x = sqrt( max(papa - paba*paba*baba,0.0) );
             float cax = max(0.0,x-((paba<0.5)?ra:rb));
             float cay = abs(paba-0.5)-0.5;
             float k = rba*rba + baba;
