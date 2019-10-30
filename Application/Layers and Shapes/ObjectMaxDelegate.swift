@@ -459,16 +459,30 @@ class ObjectMaxDelegate : NodeMaxDelegate {
             
             if activeRegionMode == .Shapes {
                 shapeListWidget.build(widget: shapeList.textureWidget, area: MMRect( shapeListWidget.rect.x - 1, shapeListWidget.rect.y + 31, shapeListWidget.rect.width, shapeListWidget.rect.height - 35) )
+                                
+                // Erase Edges
+                let cb : Float = 4
+                app.mmView.drawBox.draw( x: rightRegion.rect.x - cb, y: rightRegion.rect.y + objectWidget.rect.height + 30 - cb, width: rightRegion.rect.width + 2*cb - 1, height: shapeListWidget.rect.height + 2 + 2*cb, round: 40, borderSize: 6, fillColor: float4(0,0,0,0), borderColor:  SIMD4<Float>(0.169, 0.169, 0.169, 1.000))
+                
+                // Draw Round Border
+                app.mmView.drawBox.draw( x: rightRegion.rect.x, y: rightRegion.rect.y + objectWidget.rect.height + 30, width: rightRegion.rect.width - 1, height: shapeListWidget.rect.height + 2, round: 40, borderSize: 1, fillColor : SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000) )
             } else {
-                materialListWidget.build(widget: materialList.textureWidget, area: MMRect( materialListWidget.rect.x - 1, materialListWidget.rect.y + 31, materialListWidget.rect.width, materialListWidget.rect.height - 35) )
+                let matRect = MMRect( materialListWidget.rect.x - 1, materialListWidget.rect.y + 31, materialListWidget.rect.width, materialListWidget.rect.height - 35)
+                materialListWidget.build(widget: materialList.textureWidget, area: matRect)
+                
+                matRect.y -= 2
+                matRect.height += 4
+                app.mmView.renderer.setClipRect(matRect)
+                
+                // Erase Edges
+                let cb : Float = 4
+                app.mmView.drawBox.draw( x: rightRegion.rect.x - cb, y: rightRegion.rect.y + objectWidget.rect.height + 30 - cb, width: rightRegion.rect.width + 2*cb - 1, height: materialListWidget.rect.height + 2 + 2*cb, round: 40, borderSize: 6, fillColor: float4(0,0,0,0), borderColor:  SIMD4<Float>(0.169, 0.169, 0.169, 1.000))
+                
+                // Draw Round Border
+                app.mmView.drawBox.draw( x: rightRegion.rect.x, y: rightRegion.rect.y + objectWidget.rect.height + 30, width: rightRegion.rect.width - 1, height: materialListWidget.rect.height + 2, round: 40, borderSize: 1, fillColor : SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000) )
+                
+                app.mmView.renderer.setClipRect()
             }
-            
-            // Erase Edges
-            let cb : Float = 4
-            app.mmView.drawBox.draw( x: rightRegion.rect.x - cb, y: rightRegion.rect.y + objectWidget.rect.height + 30 - cb, width: rightRegion.rect.width + 2*cb - 1, height: shapeListWidget.rect.height + 2 + 2*cb, round: 40, borderSize: 6, fillColor: float4(0,0,0,0), borderColor:  SIMD4<Float>(0.169, 0.169, 0.169, 1.000))
-            
-            // Draw Round Border
-            app.mmView.drawBox.draw( x: rightRegion.rect.x, y: rightRegion.rect.y + objectWidget.rect.height + 30, width: rightRegion.rect.width - 1, height: shapeListWidget.rect.height + 2, round: 40, borderSize: 1, fillColor : SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000) )
         } else
         if region.type == .Bottom {
             region.rect.y = app.mmView.renderer.cHeight - region.rect.height
