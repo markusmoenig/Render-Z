@@ -1292,7 +1292,7 @@ class ShapeListScrollArea: MMScrollArea
         mouseMoved(event)
 
         mouseDownPos.x = event.x - rect.x
-        mouseDownPos.y = event.y - rect.y
+        mouseDownPos.y = event.y - rect.y - offsetY
         mouseIsDown = true
 
         let shapeList = delegate.shapeList!
@@ -1463,7 +1463,7 @@ class MaterialListScrollArea: MMScrollArea
         mouseMoved(event)
         
         mouseDownPos.x = event.x - rect.x
-        mouseDownPos.y = event.y - rect.y
+        mouseDownPos.y = event.y - rect.y - offsetY
         mouseIsDown = true
         
         let materialList = delegate.materialList!

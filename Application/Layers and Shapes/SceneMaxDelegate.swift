@@ -40,8 +40,6 @@ class SceneMaxDelegate : NodeMaxDelegate {
     var leftRegionMode  : LeftRegionMode = .Objects
     var avObjectList    : AvailableObjectList!
 
-    var shapeSelector   : ShapeSelector!
-    var textureWidget   : MMTextureWidget!
     var animating       : Bool = false
     
     // Right Region
@@ -249,7 +247,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
             let leftRegion = app.leftRegion!
             if leftRegionMode != .Closed {
                 
-                app.mmView.drawBox.draw( x: leftRegion.rect.x, y: leftRegion.rect.y, width: leftRegion.rect.width, height: leftRegion.rect.height, round: 0, borderSize: 0,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
+                app.mmView.drawBox.draw( x: leftRegion.rect.x, y: leftRegion.rect.y, width: leftRegion.rect.width, height: leftRegion.rect.height, round: 0, borderSize: 0,  fillColor : float4( 0.169, 0.169, 0.169, 1), borderColor: vector_float4( 0, 0, 0, 1 ) )
                 
                 avObjectList!.rect.copy(leftRegion.rect)
                 avObjectList!.draw()
@@ -258,10 +256,13 @@ class SceneMaxDelegate : NodeMaxDelegate {
             }
         } else
         if region.type == .Right {
+            
             let rightRegion = app.rightRegion!
 
             rightRegion.rect.width = 300
             rightRegion.rect.x = app.mmView.renderer.cWidth - rightRegion.rect.width
+            
+            mmView.drawBox.draw( x: rightRegion.rect.x, y: rightRegion.rect.y, width: rightRegion.rect.width, height: rightRegion.rect.height, round: 0, borderSize: 1,  fillColor : float4(0.169, 0.169, 0.169, 1))
             
             objectList.rect.width = rightRegion.rect.width
             objectList.rect.height = rightRegion.rect.height
@@ -484,9 +485,10 @@ class SceneMaxDelegate : NodeMaxDelegate {
     override func update(_ hard: Bool = false, updateLists: Bool = false)
     {
         if hard == true {
-            let instances = currentScene!.createInstances(nodeGraph: app.nodeGraph)
-            currentScene!.builderInstance = app.nodeGraph.sceneRenderer.setup(nodeGraph: app.nodeGraph, instances: instances)
+            currentScene!.updatePreview(nodeGraph: app.nodeGraph, hard: true)
             updateGizmo()
+        } else {
+            currentScene!.updateStatus = .NeedsUpdate
         }
             
         let region = app.editorRegion!
@@ -673,6 +675,9 @@ class ObjectList : MMWidget
         self.delegate = delegate
         
         listWidget = MMListWidget(view)
+        listWidget.supportsClose = true
+        listWidget.itemRound = 14
+
         label = MMTextLabel(view, font: view.openSans, text: "Object Instances", scale: 0.44 )
         label.textYOffset = 0
         
@@ -745,10 +750,10 @@ class ObjectList : MMWidget
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         // --- Menu
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, borderSize: 1,  fillColor : float4(0.275, 0.275, 0.275, 1), borderColor: float4( 0, 0, 0, 1 ) )
         label.drawCenteredY( x: rect.x + 10, y: rect.y, width: rect.width, height: 30 )
         
-        menuWidget.rect.x = rect.x + rect.width - 30 - 1
+        menuWidget.rect.x = rect.x + rect.width - 45
         menuWidget.rect.y = rect.y + 1
         menuWidget.rect.width = 30
         menuWidget.rect.height = 28
@@ -765,12 +770,14 @@ class ObjectList : MMWidget
         }
         
         // --- List
-        mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height - 30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: rect.height - 30, round: 0, borderSize: 1,  fillColor : float4( 0.145, 0.145, 0.145, 1), borderColor: float4( 0, 0, 0, 1 ) )
         
         listWidget.rect.x = rect.x
         listWidget.rect.y = rect.y + 30
         listWidget.rect.width = rect.width
         listWidget.rect.height = rect.height - 30
+        
+        listWidget.drawRoundedBorder(backColor: SIMD4<Float>(0.169, 0.169, 0.169, 1.000), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000))
         
         listWidget.draw()
     }
