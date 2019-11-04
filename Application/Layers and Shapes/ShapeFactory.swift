@@ -523,6 +523,55 @@ class ShapeFactory
         
             return d;
         }
+        
+        float sdTextConstant( float2 p, float2 size, texture2d<half, access::sample> texture, constant FontChar *chars, float thickness )
+        {
+            constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
+        
+            float2 atlasSize = float2( texture.get_width(), texture.get_height() );
+            float d = 100000;
+        
+            float scale = 60 / size.x;
+        
+            float xAdvance = 0;
+            int index  = 0;
+            while(1)
+            {
+                constant FontChar *text = &chars[index++];
+
+                float2 uv = p / text->charSize * scale;
+        
+                float2 fontPos = text->charPos;
+                float2 fontSize = text->charSize * scale;
+        
+                uv /= atlasSize / fontSize;
+                uv += fontPos / atlasSize + float2( - xAdvance - text->charOffset.x + text->stringInfo.x/4, text->stringInfo.y/2 - text->charOffset.y) / atlasSize;
+        
+                if (uv.x >= fontPos.x / atlasSize.x && uv.x <= (fontPos.x + fontSize.x / scale) / atlasSize.x && uv.y >= fontPos.y / atlasSize.y && uv.y <= (fontPos.y + fontSize.y / scale) / atlasSize.y)
+                {
+                    const half3 colorSample = texture.sample(textureSampler, uv ).xyz;
+        
+                    float3 sample = float3( colorSample );
+        
+                    float dist = max(min(sample.r, sample.g), min(max(sample.r, sample.g), sample.b));// - 0.5 + 0.3;
+                    float b = dist;
+                    dist += thickness;
+                    dist = (0.5 - dist);
+        
+                    if (dist < 0.0)
+                        dist *= smoothstep(0, 1, b) * 10;
+                    else
+                    if (b < 0.2) dist = 100000;
+                
+                    d = min(d, dist);
+                }
+        
+                xAdvance += text->charAdvance.x;
+                if ( text->stringInfo.w == 1 ) break;
+            }
+        
+            return d;
+        }
         """
         
         def.properties["radius"] = 60

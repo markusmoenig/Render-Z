@@ -599,14 +599,14 @@ class Builder
                 }
             }
             
-            if shape.name == "Text" {
-                buildData.source += createStaticTextSource(instance.font!, shape.customText!, varCounter: buildData.shapeIndex)
-            }
+            //if shape.name == "Text" {
+             //   buildData.source += createStaticTextSource(instance.font!, shape.customText!, varCounter: buildData.shapeIndex)
+            //}
             
             let distanceCode = "newDist = " + shape.createDistanceCode(uvName: "tuv", layerIndex: buildData.shapeIndex, pointIndex: buildData.pointIndex, shapeIndex: buildData.shapeIndex, mainDataName: buildData.mainDataName, variableIndex: buildData.variableIndex) + ";\n"
             buildData.source += distanceCode
             
-            if shape.name == "Variable" {
+            if shape.name == "Variable" || shape.name == "Text" {
                 buildData.variableIndex += 1
             }
             
@@ -1084,58 +1084,63 @@ class Builder
                 }
                 
                 // Build variable
-                if shape.name == "Variable" {
+                if shape.name == "Variable" || shape.name == "Text" {
                     
                     var offset = instance.variablesDataOffset + variablesDataIndex * 12 * maxVarSize
-                    
+
+                    var text : String = ""
+                    let font = instance.font!
+
                     var valid = false
 
-                    if let uuid = shape.customReference {
+                    if shape.name == "Variable" {
+                        if let uuid = shape.customReference {
                         
-                        if let varNode = nodeGraph.getNodeForUUID(uuid) {
-                            let text = String(format: "%.0\(Int(shape.properties["custom_precision"]!))f",varNode.properties["value"]!)
-                            let font = instance.font!
-
-                            if text.count > 0 {
-                                
-                                valid = true
-                                
-                                var totalWidth : Float = 0
-                                var totalHeight : Float = 0
-                            
-                                for (index,c) in text.enumerated() {
-                                    let bmFont = font.getItemForChar(c)!
-                                    
-                                    instance.data![offset] = bmFont.x
-                                    instance.data![offset + 1] = bmFont.y
-                                    instance.data![offset + 2] = bmFont.width
-                                    instance.data![offset + 3] = bmFont.height
-
-                                    instance.data![offset + 4] = bmFont.xoffset
-                                    instance.data![offset + 5] = bmFont.yoffset
-                                    instance.data![offset + 6] = bmFont.xadvance
-
-                                    instance.data![offset + 8] = totalWidth
-                                    instance.data![offset + 9] = totalHeight
-                                    
-                                    instance.data![offset + 11] = index == text.count-1 ? 1 : 0
-                                    
-                                    totalWidth += bmFont.width + bmFont.xadvance
-                                    totalHeight = max(totalHeight,bmFont.height)
-                                    
-                                    offset += 12
-                                }
-                            
-                                offset = instance.variablesDataOffset + variablesDataIndex * 12 * maxVarSize
-
-                                for (index,_) in text.enumerated() {
-                                    
-                                    instance.data![offset + 8] = totalWidth
-                                    instance.data![offset + 9] = totalHeight
-                                    
-                                    offset += 12
-                                }
+                            if let varNode = nodeGraph.getNodeForUUID(uuid) {
+                                text = String(format: "%.0\(Int(shape.properties["custom_precision"]!))f",varNode.properties["value"]!)
                             }
+                        }
+                    } else {
+                        text = shape.customText!
+                    }
+                
+                    if text.count > 0 {
+                        valid = true
+                        
+                        var totalWidth : Float = 0
+                        var totalHeight : Float = 0
+                    
+                        for (index,c) in text.enumerated() {
+                            let bmFont = font.getItemForChar(c)!
+                            
+                            instance.data![offset] = bmFont.x
+                            instance.data![offset + 1] = bmFont.y
+                            instance.data![offset + 2] = bmFont.width
+                            instance.data![offset + 3] = bmFont.height
+
+                            instance.data![offset + 4] = bmFont.xoffset
+                            instance.data![offset + 5] = bmFont.yoffset
+                            instance.data![offset + 6] = bmFont.xadvance
+
+                            instance.data![offset + 8] = totalWidth
+                            instance.data![offset + 9] = totalHeight
+                            
+                            instance.data![offset + 11] = index == text.count-1 ? 1 : 0
+                            
+                            totalWidth += bmFont.width + bmFont.xadvance
+                            totalHeight = max(totalHeight,bmFont.height)
+                            
+                            offset += 12
+                        }
+                    
+                        offset = instance.variablesDataOffset + variablesDataIndex * 12 * maxVarSize
+
+                        for (index,_) in text.enumerated() {
+                            
+                            instance.data![offset + 8] = totalWidth
+                            instance.data![offset + 9] = totalHeight
+                            
+                            offset += 12
                         }
                     }
                     
@@ -1681,7 +1686,7 @@ class Builder
                 shapeIndex += 1
                 pointIndex += shape.pointCount
                 
-                if shape.name == "Variable" {
+                if shape.name == "Variable" || shape.name == "Text" {
                     variableIndex += 1
                 }
             }

@@ -166,7 +166,9 @@ class Shape : Codable
                 code = code.replacingOccurrences(of: "__uv__", with: "float2(\(uvName).x, -\(uvName).y)")
                 
                 if name == "Text" {
-                    code = code.replacingOccurrences(of: "__text_chars__", with: "&chars\(shapeIndex!)[0]")
+                    //code = code.replacingOccurrences(of: "__text_chars__", with: "&chars\(shapeIndex!)[0]")
+                    code = code.replacingOccurrences(of: "sdText", with: "sdTextConstant")
+                    code = code.replacingOccurrences(of: "__text_chars__", with: "&\(mainDataName)variables[\(variableIndex!)].chars[0]")
                 } else {
                     code = code.replacingOccurrences(of: "sdVariable", with: "sdVariableConstant")
                     code = code.replacingOccurrences(of: "__text_chars__", with: "&\(mainDataName)variables[\(variableIndex!)].chars[0]")

@@ -95,9 +95,11 @@ class SceneRenderer {
 
                             res.x -= objectRect.width/2 * camera.zoom + bBoxBorder * camera.zoom - objectMidX * camera.zoom
                             res.y -= objectRect.height/2 * camera.zoom + bBoxBorder * camera.zoom - objectMidY * camera.zoom
-                                                      
-                            renderIt = fragment.applyClipRect(MMRect(res.x, res.y, (objectRect.width+bBoxBorder*2) * camera.zoom, (objectRect.height + bBoxBorder*2) * camera.zoom))
-                            clipRectApplied = renderIt
+                                          
+                            //if !res.x.isNaN || !res.y.isNaN {
+                                renderIt = fragment.applyClipRect(MMRect(res.x, res.y, (objectRect.width+bBoxBorder*2) * camera.zoom, (objectRect.height + bBoxBorder*2) * camera.zoom))
+                                clipRectApplied = renderIt
+                            //}
                         }
                         
                         if renderIt {

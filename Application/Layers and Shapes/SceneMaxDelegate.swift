@@ -492,7 +492,11 @@ class SceneMaxDelegate : NodeMaxDelegate {
         }
             
         let region = app.editorRegion!
-        app.nodeGraph.sceneRenderer.render(width: region.rect.width, height: region.rect.height, camera: camera, instance: currentScene!.builderInstance!)
+        if let scene = currentScene {
+            if let instance = scene.builderInstance {
+                app.nodeGraph.sceneRenderer.render(width: region.rect.width, height: region.rect.height, camera: camera, instance: instance)
+            }
+        }
         
         if updateLists {
             objectList.rebuildList()
