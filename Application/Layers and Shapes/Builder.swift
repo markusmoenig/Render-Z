@@ -669,6 +669,11 @@ class Builder
         
         // --- Apply the object id
         buildData.source += "if (dist[shapeLayer] < objectDistance) { objectId = \(buildData.objectIndex); objectDistance = dist[shapeLayer]; }\n"
+        
+        // --- Sub-objects overrule main object
+        if rootObject == false {
+            buildData.source += "if (newDist <= 0.0) { materialId = \(buildData.objectIndex); }\n"
+        }
     
         if !physics && buildMaterials {
             // --- Outside Code
@@ -1178,7 +1183,7 @@ class Builder
             
             // --- Fill in Object Transformation Data
             if doMaterials {
-                instance.data![instance.objectDataOffset + (objectIndex) * 4] = object.properties["border"]!
+                instance.data![instance.objectDataOffset + (objectIndex) * 12] = object.properties["border"]!
             }
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 1] = parentRotate * Float.pi / 180
             instance.data![instance.objectDataOffset + (objectIndex) * 12 + 2] = parentScaleX

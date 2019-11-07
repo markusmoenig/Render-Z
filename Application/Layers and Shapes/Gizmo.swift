@@ -184,7 +184,7 @@ class Gizmo : MMWidget
         } else {
             self.rootObject = object
         }
-        
+                
         // Assign the maxDelegate
         if self.rootObject != nil {
             maxDelegate = customDelegate == nil ? self.rootObject!.maxDelegate : customDelegate
@@ -2397,21 +2397,20 @@ class Gizmo : MMWidget
         let rootObject = self.rootObject!
         var finished : Bool = false
 
-        let objectProperties : [String:Float]
+        var objectProperties : [String:Float]
         if rootObject.currentSequence != nil {
             objectProperties = timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: rootObject.uuid, properties: rootObject.properties)
         } else {
             objectProperties = object.properties
         }
-       
+               
         var parentPosX : Float = objectProperties["posX"]!
         var parentPosY : Float = objectProperties["posY"]!
         var parentRotate : Float = objectProperties["rotate"]!
         
         func parseItem(_ item: Object)
         {
-            // Transform Object Properties
-            let objectProperties = timeline.transformProperties(sequence: rootObject.currentSequence!, uuid: item.uuid, properties: item.properties)
+            objectProperties = object.properties
             
             parentPosX += objectProperties["posX"]!
             parentPosY += objectProperties["posY"]!
@@ -2444,9 +2443,7 @@ class Gizmo : MMWidget
         properties["posX"] = parentPosX
         properties["posY"] = parentPosY
         properties["rotate"] = parentRotate
-        
-        //print( properties )
-        
+                
         return properties
     }
     

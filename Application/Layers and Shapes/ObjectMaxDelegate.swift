@@ -700,7 +700,8 @@ class ObjectMaxDelegate : NodeMaxDelegate {
         selObject!.selectedShapes = []
         selObjectActive = true
         shapeListChanged = true
-        app.gizmo.setObject(selObject!, rootObject: currentObject!, context: .ObjectEditor)
+        materialListChanged = true
+        app.gizmo.setObject(selObject!, rootObject: currentObject!, context: gizmoContext)
     }
     
     /// Switches the mode of the timeline (Open / Closed)
@@ -1463,7 +1464,7 @@ class MaterialListScrollArea: MMScrollArea
             }
             
             self.delegate.materialListChanged = true
-            delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
+            delegate.app.gizmo.setObject(delegate.selObject!, rootObject: delegate.currentObject, context: delegate.gizmoContext, materialType: delegate.materialType)
         }
         
         floatWidget.changed = { (value) -> Void in
@@ -1527,7 +1528,7 @@ class MaterialListScrollArea: MMScrollArea
         func update()
         {
             delegate.materialListChanged = true
-            delegate.app.gizmo.setObject(delegate.selObject!, context: .MaterialEditor, materialType: delegate.materialType)
+            delegate.app.gizmo.setObject(delegate.selObject!, rootObject: delegate.currentObject, context: .MaterialEditor, materialType: delegate.materialType)
             delegate.update(true)
             
             self.app.updateObjectPreview(object)
