@@ -699,7 +699,7 @@ class ObjectRender : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
-            NodeUISelector(self, variable: "renderMode", title: "Mode", items: ["Color", "PBR"], index: 1),
+            NodeUISelector(self, variable: "renderMode", title: "Mode", items: ["Color", "PBR", "Distance"], index: 1),
             NodeUISelector(self, variable: "aaLevel", title: "Anti-Aliasing", items: ["None", "Good", "Best"], index: 0),
 
             NodeUISelector(self, variable: "bBox", title: "Bounding Box", items: ["Screen", "Object Size"], index: 0),

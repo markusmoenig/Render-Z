@@ -130,8 +130,6 @@
 		2B4CC231222F5D5C00A47812 /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22F222F5D5C00A47812 /* Physics.swift */; };
 		2B501A5D22CC5602008D409F /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
 		2B501A5E22CC5602008D409F /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
-		2B57599223667CCD00C9680B /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B57599123667CCD00C9680B /* Pinball.shape-z */; };
-		2B57599323667CCD00C9680B /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B57599123667CCD00C9680B /* Pinball.shape-z */; };
 		2B57D7902358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7922358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
@@ -171,6 +169,8 @@
 		2B6CCE5C231F5E5F00ECA35B /* foreground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B6CCE58231F5E5F00ECA35B /* foreground.tiff */; };
 		2B6D0035228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
 		2B6D0036228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
+		2B7BE57C237901A0007F56E1 /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B7BE57B237901A0007F56E1 /* Pinball.shape-z */; };
+		2B7BE57D237901A0007F56E1 /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B7BE57B237901A0007F56E1 /* Pinball.shape-z */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
@@ -492,7 +492,6 @@
 		2B4CC22C2226669000A47812 /* NodeUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeUI.swift; sourceTree = "<group>"; };
 		2B4CC22F222F5D5C00A47812 /* Physics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics.swift; sourceTree = "<group>"; };
 		2B501A5C22CC5426008D409F /* DebugBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBuilder.swift; sourceTree = "<group>"; };
-		2B57599123667CCD00C9680B /* Pinball.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
 		2B57D78E2358149600E8BF65 /* GameCuben.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GameCuben.tiff; sourceTree = "<group>"; };
 		2B57D78F2358149600E8BF65 /* GameCuben.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = GameCuben.json; sourceTree = "<group>"; };
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
@@ -514,6 +513,7 @@
 		2B6CCE57231F5E5E00ECA35B /* background.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = background.tiff; sourceTree = "<group>"; };
 		2B6CCE58231F5E5F00ECA35B /* foreground.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = foreground.tiff; sourceTree = "<group>"; };
 		2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerAreaMaxDelegate.swift; sourceTree = "<group>"; };
+		2B7BE57B237901A0007F56E1 /* Pinball.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
@@ -706,7 +706,7 @@
 		2BB6B0512318AF640067B217 /* Templates */ = {
 			isa = PBXGroup;
 			children = (
-				2B57599123667CCD00C9680B /* Pinball.shape-z */,
+				2B7BE57B237901A0007F56E1 /* Pinball.shape-z */,
 				2B91CBE8235848AC00DED7B1 /* Pong.shape-z */,
 				2B1F2E12235EA08200838D46 /* Marble.shape-z */,
 			);
@@ -1047,7 +1047,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1010;
-				LastUpgradeCheck = 1110;
+				LastUpgradeCheck = 1120;
 				ORGANIZATIONNAME = "Markus Moenig";
 				TargetAttributes = {
 					2B1ACBDB23597D2600ED19AD = {
@@ -1161,8 +1161,8 @@
 				2B5FE42322C0A96F0046A435 /* Assets.xcassets in Resources */,
 				2B0271782353FDA1009178F6 /* zoom_minus.tiff in Resources */,
 				2B57D7922358149600E8BF65 /* GameCuben.json in Resources */,
-				2B57599223667CCD00C9680B /* Pinball.shape-z in Resources */,
 				2B6CCE53231F5A4500ECA35B /* intersection_off.tiff in Resources */,
+				2B7BE57C237901A0007F56E1 /* Pinball.shape-z in Resources */,
 				2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */,
 				2B1F2E13235EA08200838D46 /* Marble.shape-z in Resources */,
 				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
@@ -1190,9 +1190,9 @@
 				2BBF113921EAD38E001C94E9 /* Assets.xcassets in Resources */,
 				2B8BBA8B22A4AA4600E541B9 /* OpenSans.json in Resources */,
 				2B6CCE47231F4FD600ECA35B /* union_off.tiff in Resources */,
-				2B57599323667CCD00C9680B /* Pinball.shape-z in Resources */,
 				2B6CCE4E231F59E700ECA35B /* substract_on.tiff in Resources */,
 				2B02717B2353FDA1009178F6 /* zoom_plus.tiff in Resources */,
+				2B7BE57D237901A0007F56E1 /* Pinball.shape-z in Resources */,
 				2BBF113421EAD38E001C94E9 /* Main.storyboard in Resources */,
 				2B6CCE4A231F4FE200ECA35B /* union_on.tiff in Resources */,
 				2B6CCE50231F59E700ECA35B /* substract_off.tiff in Resources */,
@@ -1711,7 +1711,7 @@
 		2B91CBFA2358629300DED7B1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1740,7 +1740,7 @@
 		2B91CBFB2358629300DED7B1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1769,7 +1769,7 @@
 		2B91CD89235959CC00DED7B1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -1800,7 +1800,7 @@
 		2B91CD8A235959CC00DED7B1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;

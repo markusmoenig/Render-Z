@@ -363,8 +363,7 @@ class Object : Node
             instance = nil
             DispatchQueue.main.async {
                 self.executeProperties(nodeGraph)
-                let renderMode : Builder.RenderMode = self.properties["renderMode"] != nil && self.properties["renderMode"]! == 0 ? .Color : .PBR
-                self.instance = nodeGraph.builder.buildObjects(objects: self.playInstance != nil ? [self.playInstance!] : [self], camera: camera, renderMode: renderMode)
+                self.instance = nodeGraph.builder.buildObjects(objects: self.playInstance != nil ? [self.playInstance!] : [self], camera: camera, renderMode: Object.getRenderMode(self))
                 self.updatePreview(nodeGraph: nodeGraph)
                 nodeGraph.mmView.update()
             }
@@ -374,6 +373,24 @@ class Object : Node
         if instance != nil {
             nodeGraph.builder.render(width: size.x, height: size.y, instance: instance!, camera: camera, outTexture: previewTexture)
         }
+    }
+    
+    /// Returns the Builder::RenderMode for the object
+    static func getRenderMode(_ object: Object) -> Builder.RenderMode
+    {
+        var renderMode : Builder.RenderMode = .PBR
+        
+        if object.properties["renderMode"] != nil {
+            let index : Float = object.properties["renderMode"]!
+            if index == 0.0 {
+                renderMode = .Color
+            } else
+            if index == 2.0 {
+                renderMode = .Distance
+            }
+        }
+
+        return renderMode
     }
 }
 

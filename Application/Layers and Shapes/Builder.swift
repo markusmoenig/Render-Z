@@ -92,7 +92,7 @@ class Camera : Codable
 class Builder
 {
     enum RenderMode {
-        case Color, PBR
+        case Color, PBR, Distance
     }
     
     var compute                 : MMCompute?
@@ -402,7 +402,21 @@ class Builder
         """
         
         buildData.source += buildData.materialSource
-        let renderModeText : String = renderMode == .PBR ? "calculatePixelColor_PBR" : "calculatePixelColor_Color"
+        let renderModeText : String// = renderMode == .PBR ? "calculatePixelColor_PBR" : "calculatePixelColor_Color"
+        switch(renderMode)
+        {
+            case .Color:
+                renderModeText = "calculatePixelColor_Color"
+            break;
+            
+            case .Distance:
+                renderModeText = "calculatePixelColor_Distance"
+            break;
+            
+            default:
+                renderModeText = "calculatePixelColor_PBR"
+            break;
+        }
         
         buildData.source +=
         """
@@ -444,7 +458,7 @@ class Builder
             }
         
             if (fm != 0 || bm != 0) {
-                foreground = \(renderModeText)( fragCoord, bodyMaterial, normal, lights );
+                foreground = \(renderModeText)( fragCoord, bodyMaterial, normal, lights, dist );
                 if ( objectId >= 0 ) {
                     foreground.w *= layerData->objects[objectId].opacity;
                 }
@@ -471,7 +485,7 @@ class Builder
             }
         
             if (fm != 0 || bm != 0) {
-                background = \(renderModeText)( fragCoord, bodyMaterial, normal, lights );
+                background = \(renderModeText)( fragCoord, bodyMaterial, normal, lights, backDist );
                 if ( objectId >= 0 ) {
                     background.w *= layerData->objects[objectId].opacity;
                 }
@@ -580,6 +594,13 @@ class Builder
             }
             
             var booleanCode = "merge"
+
+            /*
+            if physics == true && object.properties["collisionMode"] != nil && object.properties["collisionMode"]! == 1 {
+                booleanCode = "mergeInnerBorder"
+                print("innerborder for", object.name)
+            }*/
+            
             if shape.mode == .Subtract {
                 booleanCode = "subtract"
             } else
@@ -1770,9 +1791,26 @@ class Builder
             return min(d1, d2);
         }
         
+        float mergeInnerBorder(float d1, float d2)
+        {
+            //if (d1 > 0. && d1 < 5.) d1 = -d1;
+            //if (d2 > 0. && d2 < 5.) d2 = -d2;
+            if ( d1 < 0. && d2 < 0. ) return max(d1, d2);
+            else return min(d1, d2);
+        }
+        
         float mergeSmooth(float d1, float d2, float k) {
             float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
             return mix( d2, d1, h ) - k*h*(1.0-h);
+        }
+        
+        float mergeInnerBorderSmooth(float d1, float d2, float k)
+        {
+            //if (d1 > 0. && d1 < 5.) d1 = -d1;
+            //if (d2 > 0. && d2 < 5.) d2 = -d2;
+            //return mergeSmooth(d1, d2, k);
+            float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+            return mix( d1, d2, h ) - k*h*(1.0-h);
         }
         
         float subtract(float d1, float d2)
@@ -1804,7 +1842,7 @@ class Builder
         
         float borderMask(float dist, float width)
         {
-            //dist += 1.0;
+            dist += 1.0;
             return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
         }
         
@@ -2299,7 +2337,7 @@ class Builder
             return Ld;
         }
 
-        float4 calculatePixelColor_PBR(const float2 uv, MaterialInfo material, float3 normal, thread LightInfo lights[5])
+        float4 calculatePixelColor_PBR(const float2 uv, MaterialInfo material, float3 normal, thread LightInfo lights[5], float distance)
         {
             material.baseColor = float4(pow(material.baseColor.xyz, 2.2),material.baseColor.w);//float4(1);
             
@@ -2339,9 +2377,19 @@ class Builder
             return float4(clamp(pow(L, 0.4545), 0, 1), material.baseColor.w);
         }
 
-        float4 calculatePixelColor_Color(const float2 uv, MaterialInfo material, float3 normal, thread LightInfo lights[5])
+        float4 calculatePixelColor_Color(const float2 uv, MaterialInfo material, float3 normal, thread LightInfo lights[5], float distance)
         {
             return material.baseColor;
+        }
+
+        float4 calculatePixelColor_Distance(const float2 uv, MaterialInfo material, float3 normal, thread LightInfo lights[5], float distance)
+        {
+            float3 col = float3(1.0) + sign(distance) * float3(0.1,0.4,0.7);
+            col *= 1.0 - exp(-2.0 * abs(distance));
+            col *= 0.8 + 0.2 * cos(distance);
+            col = mix( col, float3(1.0), 1.0-smoothstep(0.0,0.02,abs(distance)) );
+
+            return float4(col, 1);
         }
 
         """

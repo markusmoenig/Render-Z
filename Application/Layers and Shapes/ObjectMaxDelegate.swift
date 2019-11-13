@@ -1312,7 +1312,7 @@ class ShapeListScrollArea: MMScrollArea
 
         let shapeList = delegate.shapeList!
         
-        delegate.shapeListChanged = shapeList.selectAt(mouseDownPos.x,mouseDownPos.y, multiSelect: mmView.shiftIsDown)
+        delegate.shapeListChanged = shapeList.selectAt(mouseDownPos.x, mouseDownPos.y, multiSelect: mmView.shiftIsDown)
         
         // --- Move up / down
         if shapeList.hoverState != .None {
@@ -1327,7 +1327,7 @@ class ShapeListScrollArea: MMScrollArea
             } else
             if shapeList.hoverState == .Close && shapeList.hoverIndex >= 0 && shapeList.hoverIndex < object!.shapes.count {
                 deleteAtIndex(index: shapeList.hoverIndex)
-                delegate.shapeList.hoverAt(event.x - rect.x, event.y - rect.y)
+                delegate.shapeList.hoverAt(mouseDownPos.x, mouseDownPos.y)
                 return
             }
             
@@ -1344,7 +1344,7 @@ class ShapeListScrollArea: MMScrollArea
     
     override func mouseMoved(_ event: MMMouseEvent) {
         if !mouseIsDown {
-            if delegate.shapeList.hoverAt(event.x - rect.x, event.y - rect.y) {
+            if delegate.shapeList.hoverAt(event.x - rect.x, event.y - rect.y - offsetY) {
                 delegate.shapeList.update()
                 mmView.update()
             }
@@ -1498,7 +1498,7 @@ class MaterialListScrollArea: MMScrollArea
             if materialList.hoverState == .Close && materialList.hoverIndex >= 0 && materialList.hoverIndex < delegate.materialCount()
             {
                 deleteAtIndex(index: materialList.hoverIndex)
-                delegate.materialList.hoverAt(event.x - rect.x, event.y - rect.y)
+                delegate.materialList.hoverAt(mouseDownPos.x, mouseDownPos.y)
                 return
             }
             
@@ -1580,7 +1580,7 @@ class MaterialListScrollArea: MMScrollArea
     
     override func mouseMoved(_ event: MMMouseEvent) {
         if !mouseIsDown {
-            if delegate.materialList.hoverAt(event.x - rect.x, event.y - rect.y) {
+            if delegate.materialList.hoverAt(event.x - rect.x, event.y - rect.y - offsetY) {
                 delegate.materialList.update()
                 mmView.update()
             }

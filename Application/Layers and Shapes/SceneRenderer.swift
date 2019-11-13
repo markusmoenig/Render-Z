@@ -31,8 +31,7 @@ class SceneRenderer {
                 renderDirectly = false
             }
             if renderDirectly {
-                let renderMode : Builder.RenderMode = inst.properties["renderMode"] != nil && inst.properties["renderMode"]! == 0 ? .Color : .PBR
-                inst.fragmentInstance = nodeGraph.builder.buildObjects(objects: [inst], camera: Camera(), fragment: fragment, renderMode: renderMode)
+                inst.fragmentInstance = nodeGraph.builder.buildObjects(objects: [inst], camera: Camera(), fragment: fragment, renderMode: Object.getRenderMode(inst))
             } else {
                 // Render to texture
                 inst.instance = nodeGraph.builder.buildObjects(objects: [inst], camera: Camera())
