@@ -594,12 +594,6 @@ class Builder
             }
             
             var booleanCode = "merge"
-
-            /*
-            if physics == true && object.properties["collisionMode"] != nil && object.properties["collisionMode"]! == 1 {
-                booleanCode = "mergeInnerBorder"
-                print("innerborder for", object.name)
-            }*/
             
             if shape.mode == .Subtract {
                 booleanCode = "subtract"
@@ -1791,26 +1785,9 @@ class Builder
             return min(d1, d2);
         }
         
-        float mergeInnerBorder(float d1, float d2)
-        {
-            //if (d1 > 0. && d1 < 5.) d1 = -d1;
-            //if (d2 > 0. && d2 < 5.) d2 = -d2;
-            if ( d1 < 0. && d2 < 0. ) return max(d1, d2);
-            else return min(d1, d2);
-        }
-        
         float mergeSmooth(float d1, float d2, float k) {
             float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
             return mix( d2, d1, h ) - k*h*(1.0-h);
-        }
-        
-        float mergeInnerBorderSmooth(float d1, float d2, float k)
-        {
-            //if (d1 > 0. && d1 < 5.) d1 = -d1;
-            //if (d2 > 0. && d2 < 5.) d2 = -d2;
-            //return mergeSmooth(d1, d2, k);
-            float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
-            return mix( d1, d2, h ) - k*h*(1.0-h);
         }
         
         float subtract(float d1, float d2)
@@ -1842,8 +1819,14 @@ class Builder
         
         float borderMask(float dist, float width)
         {
-            dist += 1.0;
+            //dist += 1.0;
             return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
+        }
+        
+        float outerBorderMask(float dist, float width)
+        {
+            //dist += 1.0;
+            return clamp(dist, 0.0, 1.0) - clamp(dist - width, 0.0, 1.0); // outer
         }
         
         float2 translate(float2 p, float2 t)
