@@ -283,6 +283,36 @@ class Physics
                             rc.y = hit.x;
                             if ( hit.x < radius ) {
                                 rc.zw = normal\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
+                    """
+                    /*
+                    // Inner border check, make sanity check
+                    if collisionObject.properties["collisionMode"] != nil && collisionObject.properties["collisionMode"]! == 1 {
+
+                        buildData.source +=
+                        """
+                        
+                        float2 iBorder = object\(collisionObject.body!.shaderIndex)(pos + rc.zw * (radius - hit.x), physicsData, fontTexture);
+                        if ( iBorder.x < 0 && hit.x < 0 ) {
+                        //if ( iBorder.x < -\(collisionObject.properties["border"]!) ) {
+
+                            rc.y = 1000000.0;
+                            rc.x = iBorder.x;
+                            
+                            /*
+                            iBorder = object\(collisionObject.body!.shaderIndex)(pos + rc.zw * (radius - hit.x) / 2.0, physicsData, fontTexture);
+                            //if ( iBorder.x < -\(collisionObject.properties["border"]!) / 2.0 ) {
+                            if (iBorder.x < 0.0 ) {
+                                rc.y = 1000000.0;
+                                rc.x = iBorder.x;
+
+                            }*/
+                        }
+                        """
+                    }*/
+                    
+                    buildData.source +=
+                    """
+                    
                             }
                             out[gid + i + \(totalCollisionChecks)] = rc;
                         }
@@ -398,6 +428,12 @@ class Physics
                         
                         var penetration : Float = result[diskOffset]
                         var distance : Float = result[diskOffset+1]
+                        
+                        /*
+                        if ( distance == 1000000 ) {
+                            print( "continue", penetration )
+                            continue;
+                        }*/
                         
                         if distance - disk.distance < shortestDistance {
                             shortestDistance = distance -  disk.distance
