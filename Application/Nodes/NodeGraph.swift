@@ -2181,6 +2181,7 @@ class NodeGraph : Codable
         var bottomX : Float = (node.rect.width - (bottomCount * NodeGraph.tDiam * scale + (bottomCount - 1) * NodeGraph.tSpacing * scale )) / 2 - 3.5 * scale
         
         let tRect = MMRect()
+        let zoom : Float = -10
         
         for terminal in node.terminals {
             
@@ -2192,7 +2193,7 @@ class NodeGraph : Codable
                 tRect.x = node.rect.x + node.rect.width / 2 - NodeGraph.tRadius * scale - 3 * scale
                 tRect.y = node.rect.y + 3 * scale
 
-                tRect.shrink(-6 * scale, -6 * scale)
+                tRect.shrink(zoom * scale, zoom * scale)
                 
                 if tRect.contains(x, y) {
                     return (terminal, .Top, node.rect.x + node.rect.width / 2 - 3 * scale, node.rect.y + 3 * scale + NodeGraph.tRadius * scale)
@@ -2203,7 +2204,7 @@ class NodeGraph : Codable
                 tRect.x = node.rect.x + terminal.posX - NodeGraph.tRadius * scale
                 tRect.y = node.rect.y + terminal.posY - NodeGraph.tRadius * scale
                                 
-                tRect.shrink(-6 * scale, -6 * scale)
+                tRect.shrink(zoom * scale, zoom * scale)
                 
                 if tRect.contains(x, y) {
                     return (terminal, terminal.connector, node.rect.x + terminal.posX, node.rect.y + terminal.posY)
@@ -2214,7 +2215,7 @@ class NodeGraph : Codable
                 tRect.x = node.rect.x + bottomX
                 tRect.y = node.rect.y + node.rect.height - NodeGraph.tDiam * scale
 
-                tRect.shrink(-6 * scale, -6 * scale)
+                tRect.shrink(zoom * scale, zoom * scale)
                 
                 if tRect.contains(x, y) {
                     return (terminal, .Bottom, node.rect.x + bottomX + NodeGraph.tRadius * scale, node.rect.y + node.rect.height - 3 * scale - NodeGraph.tRadius * scale)
