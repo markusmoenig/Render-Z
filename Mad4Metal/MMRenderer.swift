@@ -46,8 +46,8 @@ class MMRenderer : NSObject, MTKViewDelegate {
         
         // --- Size
         viewportSize = vector_uint2( UInt32(mmView.bounds.width), UInt32(mmView.bounds.height) )
-        width = Float( viewportSize.x ) / mmView.scaleFactor; height = Float( viewportSize.y ) / mmView.scaleFactor
-        cWidth = Float( viewportSize.x ); cHeight = Float( viewportSize.y )
+        width = Float( viewportSize.x ); height = Float( viewportSize.y );
+        cWidth = Float( viewportSize.x ) / mmView.scaleFactor; cHeight = Float( viewportSize.y ) / mmView.scaleFactor
 
         defaultLibrary = device.makeDefaultLibrary()!
         mmView.colorPixelFormat = MTLPixelFormat.bgra8Unorm;//_srgb;

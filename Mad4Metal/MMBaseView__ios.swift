@@ -75,6 +75,10 @@ public class MMBaseView : MTKView
         
         let event = MMMouseEvent(Float(translation.x) + mouseDownPos.x, Float(translation.y) + mouseDownPos.y)
         
+        let mmView : MMView = self as! MMView
+        event.x /= Float(bounds.width) / mmView.renderer.cWidth
+        event.y /= Float(bounds.height) / mmView.renderer.cHeight
+        
         mousePos.x = event.x
         mousePos.y = event.y
         
@@ -188,6 +192,10 @@ public class MMBaseView : MTKView
             
             firstTouch = true
             
+            let mmView : MMView = self as! MMView
+            event.x /= Float(bounds.width) / mmView.renderer.cWidth
+            event.y /= Float(bounds.height) / mmView.renderer.cHeight
+            
             mouseDownPos.x = event.x
             mouseDownPos.y = event.y
 
@@ -241,6 +249,10 @@ public class MMBaseView : MTKView
         if let touch = touches.first {
             let point = touch.location(in: self)
             let event = MMMouseEvent( Float(point.x), Float(point.y) )
+            
+            let mmView : MMView = self as! MMView
+            event.x /= Float(bounds.width) / mmView.renderer.cWidth
+            event.y /= Float(bounds.height) / mmView.renderer.cHeight
             
 //            let x : Float = Float(currentPoint.x)
 //            let y : Float = Float(currentPoint.y)

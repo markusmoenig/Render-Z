@@ -134,6 +134,8 @@
 		2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7922358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
 		2B57D7932358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
+		2B5AE79B23836F6F00990ACB /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B5AE79A23836F6F00990ACB /* Pinball.shape-z */; };
+		2B5AE79C23836F6F00990ACB /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B5AE79A23836F6F00990ACB /* Pinball.shape-z */; };
 		2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB002214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
 		2B5CCB0222152EB6005BAA2B /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
@@ -169,8 +171,6 @@
 		2B6CCE5C231F5E5F00ECA35B /* foreground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B6CCE58231F5E5F00ECA35B /* foreground.tiff */; };
 		2B6D0035228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
 		2B6D0036228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
-		2B7BE57C237901A0007F56E1 /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B7BE57B237901A0007F56E1 /* Pinball.shape-z */; };
-		2B7BE57D237901A0007F56E1 /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B7BE57B237901A0007F56E1 /* Pinball.shape-z */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
@@ -494,6 +494,7 @@
 		2B501A5C22CC5426008D409F /* DebugBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBuilder.swift; sourceTree = "<group>"; };
 		2B57D78E2358149600E8BF65 /* GameCuben.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GameCuben.tiff; sourceTree = "<group>"; };
 		2B57D78F2358149600E8BF65 /* GameCuben.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = GameCuben.json; sourceTree = "<group>"; };
+		2B5AE79A23836F6F00990ACB /* Pinball.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
 		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
 		2B5CCB0422169D76005BAA2B /* Shape-Z iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Shape-Z iOS.entitlements"; sourceTree = "<group>"; };
@@ -513,7 +514,6 @@
 		2B6CCE57231F5E5E00ECA35B /* background.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = background.tiff; sourceTree = "<group>"; };
 		2B6CCE58231F5E5F00ECA35B /* foreground.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = foreground.tiff; sourceTree = "<group>"; };
 		2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerAreaMaxDelegate.swift; sourceTree = "<group>"; };
-		2B7BE57B237901A0007F56E1 /* Pinball.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
@@ -706,7 +706,7 @@
 		2BB6B0512318AF640067B217 /* Templates */ = {
 			isa = PBXGroup;
 			children = (
-				2B7BE57B237901A0007F56E1 /* Pinball.shape-z */,
+				2B5AE79A23836F6F00990ACB /* Pinball.shape-z */,
 				2B91CBE8235848AC00DED7B1 /* Pong.shape-z */,
 				2B1F2E12235EA08200838D46 /* Marble.shape-z */,
 			);
@@ -1162,13 +1162,13 @@
 				2B0271782353FDA1009178F6 /* zoom_minus.tiff in Resources */,
 				2B57D7922358149600E8BF65 /* GameCuben.json in Resources */,
 				2B6CCE53231F5A4500ECA35B /* intersection_off.tiff in Resources */,
-				2B7BE57C237901A0007F56E1 /* Pinball.shape-z in Resources */,
 				2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */,
 				2B1F2E13235EA08200838D46 /* Marble.shape-z in Resources */,
 				2BBF110421EAD2B0001C94E9 /* Main.storyboard in Resources */,
 				2B91CBE62358477300DED7B1 /* Square.json in Resources */,
 				2B91CBE9235848AC00DED7B1 /* Pong.shape-z in Resources */,
 				2B02717A2353FDA1009178F6 /* zoom_plus.tiff in Resources */,
+				2B5AE79B23836F6F00990ACB /* Pinball.shape-z in Resources */,
 				2B6CCE4F231F59E700ECA35B /* substract_off.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1192,7 +1192,6 @@
 				2B6CCE47231F4FD600ECA35B /* union_off.tiff in Resources */,
 				2B6CCE4E231F59E700ECA35B /* substract_on.tiff in Resources */,
 				2B02717B2353FDA1009178F6 /* zoom_plus.tiff in Resources */,
-				2B7BE57D237901A0007F56E1 /* Pinball.shape-z in Resources */,
 				2BBF113421EAD38E001C94E9 /* Main.storyboard in Resources */,
 				2B6CCE4A231F4FE200ECA35B /* union_on.tiff in Resources */,
 				2B6CCE50231F59E700ECA35B /* substract_off.tiff in Resources */,
@@ -1203,6 +1202,7 @@
 				2B1F2E14235EA08200838D46 /* Marble.shape-z in Resources */,
 				2B12841223475B55001170B2 /* navigation.tiff in Resources */,
 				2B035155231A196100ACBB78 /* sz_toolbar.tiff in Resources */,
+				2B5AE79C23836F6F00990ACB /* Pinball.shape-z in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1785,6 +1785,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shape-z.IOS-Framework";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = iphoneos;
@@ -1816,6 +1817,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
+				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shape-z.IOS-Framework";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = iphoneos;
@@ -1960,7 +1962,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.4;
+				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "";
@@ -1986,7 +1988,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.4;
+				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapez;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "";
@@ -2011,7 +2013,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4;
+				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapezios;
 				PRODUCT_NAME = "Shape-Z";
 				SDKROOT = iphoneos;
@@ -2019,7 +2021,7 @@
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 2;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -2039,14 +2041,14 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.4;
+				MARKETING_VERSION = 0.41;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.shapezios;
 				PRODUCT_NAME = "Shape-Z";
 				SDKROOT = iphoneos;
 				SWIFT_OBJC_BRIDGING_HEADER = "";
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = Application/Data.h;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 2;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
