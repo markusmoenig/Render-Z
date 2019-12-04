@@ -1769,6 +1769,7 @@
 		2B91CD89235959CC00DED7B1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BITCODE_GENERATION_MODE = bitcode;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1801,6 +1802,7 @@
 		2B91CD8A235959CC00DED7B1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				BITCODE_GENERATION_MODE = bitcode;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -1818,6 +1820,9 @@
 					"@loader_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.41;
+				"OTHER_CFLAGS[arch=*]" = "-fembed-bitcode";
+				"OTHER_CPLUSPLUSFLAGS[arch=*]" = "$(OTHER_CFLAGS)";
+				"OTHER_LDFLAGS[arch=*]" = "-fembed-bitcode";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.moenig.shape-z.IOS-Framework";
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = iphoneos;

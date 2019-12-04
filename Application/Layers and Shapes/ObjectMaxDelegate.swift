@@ -505,6 +505,7 @@ class ObjectMaxDelegate : NodeMaxDelegate {
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        mouseMoved(event)
         if hoverMode == .SideSlider {
             
             sideSliderButton.removeState(.Hover)

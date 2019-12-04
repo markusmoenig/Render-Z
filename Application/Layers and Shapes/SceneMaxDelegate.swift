@@ -199,7 +199,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
             app.gizmo.rect.copy(region.rect)
             drawPattern(region)
             
-            if let texture = app.nodeGraph.sceneRenderer.fragment.texture {
+            if let texture = app.nodeGraph.sceneRenderer.fragment.texture, currentScene!.builderInstance != nil {
                 if currentScene!.updateStatus != .Valid {
                     update(currentScene!.updateStatus == .NeedsHardUpdate)
                     currentScene!.updateStatus = .Valid
@@ -293,6 +293,7 @@ class SceneMaxDelegate : NodeMaxDelegate {
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        mouseMoved(event)
         if hoverMode == .SideSlider {
             
             sideSliderButton.removeState(.Hover)
