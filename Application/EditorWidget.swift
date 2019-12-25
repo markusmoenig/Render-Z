@@ -18,7 +18,8 @@ class EditorWidget      : MMWidget
     var dispatched      : Bool = false
     
     var zoomBuffer      : Float = 0
-    
+    var scaleBuffer     : Float = 0
+
     init(_ view: MMView, editorRegion: EditorRegion, app: App)
     {
         self.app = app
@@ -104,10 +105,35 @@ class EditorWidget      : MMWidget
                     
                     if firstTouch == true {
                         zoomBuffer = camera.zoom
+                        scaleBuffer = scale
                     }
                     camera.zoom = zoomBuffer * scale
                     camera.zoom = max(0.2, camera.zoom)
                     camera.zoom = min(1.5, camera.zoom)
+                    
+                    #if os(iOS)
+                    
+                    // Move nodes relative to the mouse position
+                    if firstTouch == false && camera.zoom > 0.2 && camera.zoom < 1.5 {
+                        let targetPoint = SIMD2<Float>( app.mmView.pinchCenter.x - app.editorRegion!.rect.x, app.mmView.pinchCenter.y - app.editorRegion!.rect.y)
+                        
+                        print("this", targetPoint)
+
+                        if let currentMaster = app.nodeGraph.currentMaster {
+                            let toMove = app.nodeGraph.getNodesOfMaster(for: currentMaster)
+                            
+                            let percent : Float = (scaleBuffer - scale)
+                            scaleBuffer = scale
+                            
+                            for mNode in toMove {
+                                mNode.xPos = mNode.xPos * (1.0 - percent) + targetPoint.x * percent
+                                mNode.yPos = mNode.yPos * (1.0 - percent) + targetPoint.y * percent
+                            }
+                        }
+                    }
+                    
+                    #endif
+                    
                     mmView.update()
                 }
             }
@@ -186,6 +212,23 @@ class EditorWidget      : MMWidget
                         camera.zoom += event.deltaY! * 0.003
                         camera.zoom = max(0.2, camera.zoom)
                         camera.zoom = min(1.5, camera.zoom)
+                        
+                        // Move nodes relative to the mouse position
+                        
+                        if camera.zoom > 0.2 && camera.zoom < 1.5 {
+                            let targetPoint = SIMD2<Float>(event.x - app.editorRegion!.rect.x, event.y - app.editorRegion!.rect.y)
+
+                            if let currentMaster = app.nodeGraph.currentMaster {
+                                let toMove = app.nodeGraph.getNodesOfMaster(for: currentMaster)
+                                
+                                for mNode in toMove {
+                                    
+                                let percent : Float = event.deltaY! * 0.05
+                                    mNode.xPos = mNode.xPos * (1.0 - percent) + targetPoint.x * percent
+                                    mNode.yPos = mNode.yPos * (1.0 - percent) + targetPoint.y * percent
+                                }
+                            }
+                        }
                     } else {
                         camera.xPos -= event.deltaX!
                         camera.yPos -= event.deltaY!

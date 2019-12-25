@@ -37,6 +37,7 @@ public class MMBaseView : MTKView
     var shiftIsDown     : Bool = false
     
     var firstTouch      : Bool = false
+    var pinchCenter     : SIMD2<Float> = SIMD2<Float>(0,0)
 
     func update()
     {
@@ -59,6 +60,13 @@ public class MMBaseView : MTKView
     {
         if let hover = hoverWidget {
             hover.pinchGesture(Float(recognizer.scale), firstTouch)
+            
+            if let view = recognizer.view {
+                if recognizer.state == .changed {
+                    pinchCenter = SIMD2<Float>(Float(recognizer.location(in: view).x), Float(recognizer.location(in: view).y) )
+                }
+            }
+            
             firstTouch = false
         }
     }

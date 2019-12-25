@@ -803,7 +803,6 @@ class ObjectCollision : Node
     {
         uiItems = [
             NodeUIObjectInstanceTarget(self, variable: "instance", title: "Instance", connection: uiConnections[0]),
-            NodeUISelector(self, variable: "collisionMode", title: "Collision Mode", items: ["Body", "Inside Border"], index: 0),
             NodeUIAngle(self, variable: "collisionVelocity", title: "Collision Velocity", value: 0),
             NodeUIAngle(self, variable: "collisionNormal", title: "Collision Normal", value: 0)
         ]
@@ -934,13 +933,13 @@ class ObjectCollision : Node
     /// Execute Object physic properties
     override func execute(nodeGraph: NodeGraph, root: BehaviorTreeRoot, parent: Node) ->    Result
     {
+        /*
         for target in uiConnections[0].targets {
             if let inst = target as? ObjectInstance {
                 if let object = inst.instance {
-                    object.properties["collisionMode"] = properties["collisionMode"]!
                 }
             }
-        }
+        }*/
         return .Success
     }
     

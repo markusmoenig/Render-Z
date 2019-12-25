@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class NodeListItem : MMListWidgetItem
+class NodeListItem : MMTreeWidgetItem
 {
     enum DisplayType : Int {
         case All, Object, Scene, Game, ObjectOverview, SceneOverview
@@ -17,7 +17,9 @@ class NodeListItem : MMListWidgetItem
     var name         : String = ""
     var uuid         : UUID = UUID()
     var color        : float4? = nil
+    var children     : [MMTreeWidgetItem]? = nil
     var displayType  : DisplayType = .All
+    var folderOpen   : Bool = false
     
     var createNode   : (() -> Node)? = nil
     
@@ -41,7 +43,7 @@ class NodeList : MMWidget
 {
     var app                 : App
     
-    var listWidget          : MMListWidget
+    var listWidget          : MMTreeWidget
     
     var items               : [NodeListItem] = []
     var filteredItems       : [NodeListItem] = []
@@ -53,14 +55,15 @@ class NodeList : MMWidget
     {
         self.app = app
         
-        listWidget = MMListWidget(view)
+        listWidget = MMTreeWidget(view)
         listWidget.skin.selectionColor = float4(0.5,0.5,0.5,1)
         listWidget.itemRound = 0
         
         super.init(view)
 
         var item : NodeListItem
-        
+        var parent : NodeListItem
+
         // --- Object
         item = NodeListItem("Object")
         item.createNode = {
@@ -75,6 +78,7 @@ class NodeList : MMWidget
         }
         addNodeItem(item, type: .Function, displayType: .SceneOverview)
         
+        parent = addNodeItem(NodeListItem("Object Properties"), type: .Property, displayType: .Object)
         // -------------------------------
         /*
         // --- Object Profile
@@ -88,335 +92,360 @@ class NodeList : MMWidget
         item.createNode = {
             return ObjectInstanceProps()
         }
-        addNodeItem(item, type: .Property, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Object Physics
         item = NodeListItem("Physical Props")
         item.createNode = {
             return ObjectPhysics()
         }
-        addNodeItem(item, type: .Property, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Object Collisions
         item = NodeListItem("Collision Props")
         item.createNode = {
             return ObjectCollision()
         }
-        addNodeItem(item, type: .Property, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Object Render
         item = NodeListItem("Render Props")
         item.createNode = {
             return ObjectRender()
         }
-        addNodeItem(item, type: .Property, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Object Glow
         item = NodeListItem("Glow Effect")
         item.createNode = {
             return ObjectGlow()
         }
-        addNodeItem(item, type: .Property, displayType: .Object)
+        addSubNodeItem(parent, item)
+
+        parent = addNodeItem(NodeListItem("Scene Properties"), type: .Property, displayType: .Scene)
+
         // --- Scene Area
         item = NodeListItem("Area")
         item.createNode = {
             return SceneArea()
         }
-        addNodeItem(item, type: .Property, displayType: .Scene)
+        addSubNodeItem(parent, item)
         // --- Scene Device Orientation
         item = NodeListItem("Device Orientation")
         item.createNode = {
             return SceneDeviceOrientation()
         }
-        addNodeItem(item, type: .Property, displayType: .Scene)
+        addSubNodeItem(parent, item)
         // --- Scene Gravity
         item = NodeListItem("Gravity")
         item.createNode = {
             return SceneGravity()
         }
-        addNodeItem(item, type: .Property, displayType: .Scene)
+        addSubNodeItem(parent, item)
         // --- Scene Light
         item = NodeListItem("Light")
         item.createNode = {
             return SceneLight()
         }
-        addNodeItem(item, type: .Property, displayType: .Scene)
+        addSubNodeItem(parent, item)
+        
+        parent = addNodeItem(NodeListItem("Game Properties"), type: .Property, displayType: .Game)
+
         // --- Game Platform OSX
         item = NodeListItem("Platform: OSX")
         item.createNode = {
             return GamePlatformOSX()
         }
-        addNodeItem(item, type: .Property, displayType: .Game)
+        addSubNodeItem(parent, item)
+
         // --- Game Platform IOS
         item = NodeListItem("Platform: iOS")
         item.createNode = {
             return GamePlatformIPAD()
         }
-        addNodeItem(item, type: .Property, displayType: .Game)
+        addSubNodeItem(parent, item)
         // --- Game Platform TVOS
         item = NodeListItem("Platform: tvOS")
         item.createNode = {
             return GamePlatformTVOS()
         }
-        addNodeItem(item, type: .Property, displayType: .Game)
-        
+        addSubNodeItem(parent, item)
+
+        // Variables
+        parent = addNodeItem(NodeListItem("Variables"), type: .Property, displayType: .All)
+
         // --- Variable Value
         item = NodeListItem("Variable: Float")
         item.createNode = {
             return FloatVariable()
         }
-        addNodeItem(item, type: .Property, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         // --- Float2 Value
         item = NodeListItem("Variable: Float2")
         item.createNode = {
             return Float2Variable()
         }
-        addNodeItem(item, type: .Property, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         // --- Float3 Value
         item = NodeListItem("Variable: Float3")
         item.createNode = {
             return Float3Variable()
         }
-        addNodeItem(item, type: .Property, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         // --- Variable Value
         item = NodeListItem("Variable: Direction")
         item.createNode = {
             return DirectionVariable()
         }
-        addNodeItem(item, type: .Property, displayType: .All)
+        addSubNodeItem(parent, item)
+
+        // Object Functions
+        parent = addNodeItem(NodeListItem("Object Functions"), type: .Function, displayType: .Object)
         
         // --- Object Animation
         item = NodeListItem("Play Animation")
         item.createNode = {
             return ObjectAnimation()
         }
-        addNodeItem(item, type: .Function, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Object Animation
         item = NodeListItem("Get Animation State")
         item.createNode = {
             return ObjectAnimationState()
         }
-        addNodeItem(item, type: .Function, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Object Apply Force
         item = NodeListItem("Apply Force")
         item.createNode = {
             return ObjectApplyForce()
         }
-        addNodeItem(item, type: .Function, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Object Apply Directional Force
         item = NodeListItem("Apply Dir. Force")
         item.createNode = {
             return ObjectApplyDirectionalForce()
         }
-        addNodeItem(item, type: .Function, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Instance Collision Any
         item = NodeListItem("Collision (Any)")
         item.createNode = {
             return ObjectCollisionAny()
         }
-        addNodeItem(item, type: .Function, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Instance Collision With
         item = NodeListItem("Collision With")
         item.createNode = {
             return ObjectCollisionWith()
         }
-        addNodeItem(item, type: .Function, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Instance Distance To
         item = NodeListItem("Distance To")
         item.createNode = {
             return ObjectDistanceTo()
         }
-        addNodeItem(item, type: .Function, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Object Reset
         item = NodeListItem("Reset Instance")
         item.createNode = {
             return ResetObject()
         }
-        addNodeItem(item, type: .Function, displayType: .Object)
+        addSubNodeItem(parent, item)
         // --- Object Touch Layer Area
         item = NodeListItem("Touches Area ?")
         item.createNode = {
             return ObjectTouchSceneArea()
         }
-        addNodeItem(item, type: .Function, displayType: .Object)
+        addSubNodeItem(parent, item)
+
+        // Scene Functions
+        parent = addNodeItem(NodeListItem("Scene Functions"), type: .Function, displayType: .Scene)
         
         // --- Scene Finished
         item = NodeListItem("Finished")
         item.createNode = {
             return SceneFinished()
         }
-        addNodeItem(item, type: .Function, displayType: .Scene)
+        addSubNodeItem(parent, item)
+
+        // Game Functions
+        parent = addNodeItem(NodeListItem("Game Functions"), type: .Function, displayType: .Game)
         
         // --- Game Play Scene
         item = NodeListItem("Play Scene")
         item.createNode = {
             return GamePlayScene()
         }
-        addNodeItem(item, type: .Function, displayType: .Game)
+        addSubNodeItem(parent, item)
+
+        // Behavior Trees
+        parent = addNodeItem(NodeListItem("Behavior Trees"), type: .Behavior, displayType: .All)
         
         // --- Behavior: Behavior Tree
         item = NodeListItem("Behavior Tree")
         item.createNode = {
             return BehaviorTree()
         }
-        addNodeItem(item, type: .Behavior, displayType: .All)
+        addSubNodeItem(parent, item)
         // --- Behavior: Execute Behavior Tree
         item = NodeListItem("Execute Tree")
         item.createNode = {
             return ExecuteBehaviorTree()
         }
-        addNodeItem(item, type: .Behavior, displayType: .All)
+        addSubNodeItem(parent, item)
         // --- Behavior: Inverter
         item = NodeListItem("Inverter")
         item.createNode = {
             return Inverter()
         }
-        addNodeItem(item, type: .Behavior, displayType: .All)
+        addSubNodeItem(parent, item)
         // --- Behavior: Sequence
         item = NodeListItem("Sequence")
         item.createNode = {
             return Sequence()
         }
-        addNodeItem(item, type: .Behavior, displayType: .All)
+        addSubNodeItem(parent, item)
         // --- Behavior: Selector
         item = NodeListItem("Selector")
         item.createNode = {
             return Selector()
         }
-        addNodeItem(item, type: .Behavior, displayType: .All)
+        addSubNodeItem(parent, item)
         // --- Behavior: Succeeder
         item = NodeListItem("Succeeder")
         item.createNode = {
             return Succeeder()
         }
-        addNodeItem(item, type: .Behavior, displayType: .All)
+        addSubNodeItem(parent, item)
         // --- Behavior: Repeater
         item = NodeListItem("Repeater")
         item.createNode = {
             return Repeater()
         }
-        addNodeItem(item, type: .Behavior, displayType: .All)
+        addSubNodeItem(parent, item)
         // --- Leaf: Click in Scene Area
         item = NodeListItem("Click in Area")
         item.createNode = {
             return ClickInSceneArea()
         }
-        addNodeItem(item, type: .Behavior, displayType: .All)
+        addSubNodeItem(parent, item)
         // --- Leaf: Key Down
         item = NodeListItem("OSX: Key Down")
         item.createNode = {
             return KeyDown()
         }
-        addNodeItem(item, type: .Behavior, displayType: .All)
+        addSubNodeItem(parent, item)
         // --- Leaf: Accelerometer
         item = NodeListItem("iOS: Accelerometer")
         item.createNode = {
             return Accelerometer()
         }
-        addNodeItem(item, type: .Behavior, displayType: .All)
+        addSubNodeItem(parent, item)
 
+        // Arithmetic
+        parent = addNodeItem(NodeListItem("Arithmetic"), type: .Arithmetic, displayType: .All)
+        
         // --- Arithmetic
         item = NodeListItem("Add(Float2, Float2)")
         item.createNode = {
             return AddFloat2Variables()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Sub(Float2, Float2)")
         item.createNode = {
             return SubtractFloat2Variables()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Mult(Const, Float2)")
         item.createNode = {
             return MultiplyConstFloat2Variable()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Copy(Float2, Float2)")
         item.createNode = {
             return CopyFloat2Variables()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Reflect(Float2, Float2)")
         item.createNode = {
             return ReflectFloat2Variables()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Test(Float2)")
         item.createNode = {
             return TestFloat2Variable()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Limit(Float2)")
         item.createNode = {
             return LimitFloat2Range()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Animate(Float)")
         item.createNode = {
             return AnimateFloatVariable()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Add(Const, Float)")
         item.createNode = {
             return AddConstFloatVariable()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
+        addSubNodeItem(parent, item)
 
         item = NodeListItem("Sub(Const, Float)")
         item.createNode = {
             return SubtractConstFloatVariable()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Reset(Float)")
         item.createNode = {
             return ResetFloatVariable()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Copy(Const, Float)")
         item.createNode = {
             return SetFloatVariable()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Copy(Float, Float)")
         item.createNode = {
             return CopyFloatVariables()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Test(Float)")
         item.createNode = {
             return TestFloatVariable()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Random(Direction)")
         item.createNode = {
             return RandomDirection()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         item = NodeListItem("Stop Variable Anims")
         item.createNode = {
             return StopVariableAnimations()
         }
-        addNodeItem(item, type: .Arithmetic, displayType: .All)
-        
+        addSubNodeItem(parent, item)
+
         // ---
         switchTo(.Object)
     }
     
     /// Adds a given node list item and assigns the brand and display type of the node
-    func addNodeItem(_ item: NodeListItem, type: Node.Brand, displayType: NodeListItem.DisplayType)
+    @discardableResult func addNodeItem(_ item: NodeListItem, type: Node.Brand, displayType: NodeListItem.DisplayType) -> NodeListItem
     {
         if type == .Behavior {
             item.color = mmView.skin.Node.behaviorColor
@@ -432,6 +461,16 @@ class NodeList : MMWidget
         }
         item.displayType = displayType
         items.append(item)
+        return item
+    }
+    
+    func addSubNodeItem(_ item: NodeListItem,_ subItem: NodeListItem)
+    {
+        subItem.color = item.color
+        if item.children == nil {
+            item.children = []
+        }
+        item.children!.append(subItem)
     }
     
     /// Switches the type of the displayed node list items
@@ -444,16 +483,6 @@ class NodeList : MMWidget
             }
         }
         listWidget.build(items: filteredItems, fixedWidth: 200)
-    }
-    
-    func getCurrentItem() -> MMListWidgetItem?
-    {
-        for item in items {
-            if listWidget.selectedItems.contains( item.uuid ) {
-                return item
-            }
-        }
-        return nil
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -502,22 +531,23 @@ class NodeList : MMWidget
     /// Create a drag item
     func createDragSource(_ x: Float,_ y: Float) -> NodeListDrag?
     {
-        if let listItem = listWidget.getCurrentItem() {
-            let item = listItem as! NodeListItem
-            var drag = NodeListDrag()
-            
-            drag.id = "NodeItem"
-            drag.name = item.name
-            drag.pWidgetOffset!.x = x
-            drag.pWidgetOffset!.y = y.truncatingRemainder(dividingBy: listWidget.unitSize)
-            
-            drag.node = item.createNode!()
-            
-            let texture = listWidget.createShapeThumbnail(item: listItem)
-            drag.previewWidget = MMTextureWidget(mmView, texture: texture)
-            drag.previewWidget!.zoom = 2
-            
-            return drag
+        if let listItem = listWidget.getCurrentItem(), listItem.children == nil {
+            if let item = listItem as? NodeListItem, item.createNode != nil {
+                var drag = NodeListDrag()
+                
+                drag.id = "NodeItem"
+                drag.name = item.name
+                drag.pWidgetOffset!.x = x
+                drag.pWidgetOffset!.y = y.truncatingRemainder(dividingBy: listWidget.unitSize)
+                
+                drag.node = item.createNode!()
+                
+                let texture = listWidget.createShapeThumbnail(item: listItem)
+                drag.previewWidget = MMTextureWidget(mmView, texture: texture)
+                drag.previewWidget!.zoom = 2
+                
+                return drag
+            }
         }
         return nil
     }

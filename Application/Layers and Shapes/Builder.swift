@@ -441,7 +441,7 @@ class Builder
             float bm = 0;
             float border = bodyMaterial.border * 30;
 
-            float fm = fillMask( dist );
+            float fm = fillMask( dist );//1.0 - smoothstep( 0.00, 4.0, dist );
             bodyMaterial.baseColor.w = fm;
 
             if ( materialId >= 0 && border > 0 )
@@ -466,7 +466,7 @@ class Builder
         
             // --- Background
         
-            fm = fillMask( backDist );// * bodyMaterial.baseColor.w;
+            fm =  fillMask( backDist );// * bodyMaterial.baseColor.w;//1.0 - smoothstep( 0.00, 4.0, backDist );
             bm = 0;
             bodyMaterial.baseColor.w = fm;
             border = bodyMaterial.border * 30;
@@ -491,7 +491,8 @@ class Builder
                 }
             }
         
-            col = foreground;//mix(background, foreground, foreground.w);
+            col = mix(background, foreground, foreground.w);
+            col.w = max(foreground.w, background.w);
         
         """
         

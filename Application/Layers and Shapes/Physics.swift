@@ -284,31 +284,6 @@ class Physics
                             if ( hit.x < radius ) {
                                 rc.zw = normal\(collisionObject.body!.shaderIndex)(pos, physicsData, fontTexture);
                     """
-                    /*
-                    // Inner border check, make sanity check
-                    if collisionObject.properties["collisionMode"] != nil && collisionObject.properties["collisionMode"]! == 1 {
-
-                        buildData.source +=
-                        """
-                        
-                        float2 iBorder = object\(collisionObject.body!.shaderIndex)(pos + rc.zw * (radius - hit.x), physicsData, fontTexture);
-                        if ( iBorder.x < 0 && hit.x < 0 ) {
-                        //if ( iBorder.x < -\(collisionObject.properties["border"]!) ) {
-
-                            rc.y = 1000000.0;
-                            rc.x = iBorder.x;
-                            
-                            /*
-                            iBorder = object\(collisionObject.body!.shaderIndex)(pos + rc.zw * (radius - hit.x) / 2.0, physicsData, fontTexture);
-                            //if ( iBorder.x < -\(collisionObject.properties["border"]!) / 2.0 ) {
-                            if (iBorder.x < 0.0 ) {
-                                rc.y = 1000000.0;
-                                rc.x = iBorder.x;
-
-                            }*/
-                        }
-                        """
-                    }*/
                     
                     buildData.source +=
                     """
@@ -459,20 +434,6 @@ class Physics
                         if nodeGraph.debugMode == .Physics {
                             let visualContact = rotateCWWithPivot(objectPos + diskPos, toRadians(object.properties["rotate"]!), objectPos)
                             nodeGraph.debugInstance.addDisk(float2(visualContact.x,visualContact.y), disk.distance, 4, penetration > hitPenetration ? float4(1,0,0,1) : float4(1,1,0,1) )
-                        }
-                        
-                        if collisionObject.properties["collisionMode"] != nil && collisionObject.properties["collisionMode"]! == 1 {
-                            // Inverse collision mode, collide with the border from the inside
-                    
-                            let borderWidth : Float = collisionObject.properties["border"]!
-                            let borderDistance = distance + disk.distance + borderWidth
-                                                
-                            penetration = borderDistance
-                            distance = -distance
-                            result[diskOffset + 2] = -result[diskOffset + 2]
-                            result[diskOffset + 3] = -result[diskOffset + 3]
-                                                        
-                            //print( penetration, distance, disk.distance )
                         }
                         
                         if ( penetration > hitPenetration )
