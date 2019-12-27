@@ -23,7 +23,7 @@ public class MMBaseView : MTKView
 
     var scaleFactor     : Float!
     
-    var mousePos        : float2 = float2()
+    var mousePos        : SIMD2<Float> = SIMD2<Float>()
     
     var mouseTrackWidget: MMWidget? = nil
 

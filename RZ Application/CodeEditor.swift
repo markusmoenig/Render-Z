@@ -36,8 +36,6 @@ class CodeEditor        : MMWidget
         codeComponent = CodeComponent()
         codeComponent?.createFunction(.FreeFlow, "main")
         needsUpdate = true
-        
-        print(mmView.scaleFactor)
     }
     
     /// Drag and Drop Target
@@ -81,15 +79,11 @@ class CodeEditor        : MMWidget
         func trans(_ coord: Float) -> Float {
             return coord // zoom// * zoom / mmView.scaleFactor
         }
-        
-        print(rect.width, rect.height, fragment.width, fragment.height)
-        
+                
         if fragment.encoderStart()
         {
             let fontScale   : Float = 0.6
-            let factor      : Float = 1
-
-            var lineY       : Float = 40 / factor
+            var lineY       : Float = 40
 
             var fontRect = MMRect()
             fontRect = mmView.openSans.getTextRect(text: "()", scale: fontScale, rectToUse: fontRect)
@@ -97,10 +91,10 @@ class CodeEditor        : MMWidget
 
             if let comp = codeComponent {
 
-                let startX: Float = 5 / factor
+                let startX: Float = 5
                 var lineX : Float = startX
-                let gapX  : Float = 5 / factor
-                let gapY  : Float = 1 / factor
+                let gapX  : Float = 5
+                let gapY  : Float = 1
 
                 for f in comp.functions {
                 
@@ -121,8 +115,8 @@ class CodeEditor        : MMWidget
                     lineX = startX
                     lineY += lineHeight + gapY
                     
-                    f.rects["body"]!.x = lineX
-                    f.rects["body"]!.y = lineY
+                    f.rects["body"]!.x = lineX + 1
+                    f.rects["body"]!.y = lineY + 1
 
                     mmView.drawText.drawText(mmView.openSans, text: "[", x: trans(lineX), y: trans(lineY), scale: fontScale, fragment: fragment)
                     
@@ -131,8 +125,8 @@ class CodeEditor        : MMWidget
                     mmView.drawText.drawText(mmView.openSans, text: "]", x: trans(lineX), y: trans(lineY), scale: fontScale, fragment: fragment)
                     
                     lineY += lineHeight + gapY
-                    f.rects["body"]!.width = rect.width - f.rects["body"]!.x + 2 / factor
-                    f.rects["body"]!.height = lineY - f.rects["body"]!.y + 2 / factor
+                    f.rects["body"]!.width = rect.width - f.rects["body"]!.x + 2
+                    f.rects["body"]!.height = lineY - f.rects["body"]!.y + 2
                     
                     if f.hoverArea == .Body {
                      

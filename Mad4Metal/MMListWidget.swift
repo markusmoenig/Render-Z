@@ -12,7 +12,7 @@ protocol MMListWidgetItem
 {
     var name        : String {get set}
     var uuid        : UUID {get set}
-    var color       : float4?{get set}
+    var color       : SIMD4<Float>?{get set}
 }
 
 class MMListWidget : MMWidget
@@ -285,12 +285,12 @@ class MMListWidget : MMWidget
     {
         let cb : Float = 2
         // Erase Edges
-        mmView.drawBox.draw( x: rect.x - cb + 1, y: rect.y - cb, width: rect.width + 2*cb - 2, height: rect.height + 2*cb, round: 30, borderSize: 4, fillColor: float4(0,0,0,0), borderColor: backColor)
+        mmView.drawBox.draw( x: rect.x - cb + 1, y: rect.y - cb, width: rect.width + 2*cb - 2, height: rect.height + 2*cb, round: 30, borderSize: 4, fillColor: SIMD4<Float>(0,0,0,0), borderColor: backColor)
         
-        mmView.drawBox.draw( x: rect.x - cb + 1, y: rect.y - cb, width: rect.width + 2*cb - 2, height: rect.height + 2*cb, round: 0, borderSize: 4, fillColor: float4(0,0,0,0), borderColor: backColor)
+        mmView.drawBox.draw( x: rect.x - cb + 1, y: rect.y - cb, width: rect.width + 2*cb - 2, height: rect.height + 2*cb, round: 0, borderSize: 4, fillColor: SIMD4<Float>(0,0,0,0), borderColor: backColor)
         
         // Box Border
-        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height + 2, round: 30, borderSize: 1, fillColor: float4(0,0,0,0), borderColor: borderColor)
+        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height + 2, round: 30, borderSize: 1, fillColor: SIMD4<Float>(0,0,0,0), borderColor: borderColor)
     }
     
     /// Selected the shape at the given relative mouse position

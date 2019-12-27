@@ -27,7 +27,7 @@ class MMTlSequence : Codable, MMListWidgetItem
 {
     var uuid            : UUID = UUID()
     var name            : String = "Idle"
-    var color           : float4? = nil
+    var color           : SIMD4<Float>? = nil
     var totalFrames     : Int = 100
 
     var items           : [UUID: [Int:MMTlKey]] = [:]
@@ -141,12 +141,12 @@ class MMTimeline : MMWidget
         splineButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Spline")
         
         topInfoArea = MMInfoArea(view, scale: 0.36)
-        totalFramesItem = topInfoArea.addItem("Max. Frames", "totalFrames", 100, int: true, range: float2(0, 36000))
+        totalFramesItem = topInfoArea.addItem("Max. Frames", "totalFrames", 100, int: true, range: SIMD2<Float>(0, 36000))
         
         keyInfoArea = MMInfoArea(view, scale: 0.3, closeable: true)
 
         if let textLabel = recordButton.label as? MMTextLabel {
-            textLabel.color = float4(0.678, 0.192, 0.204, 1.000)
+            textLabel.color = SIMD4<Float>(0.678, 0.192, 0.204, 1.000)
         }
         
         recordButton.textYOffset = -1
@@ -514,7 +514,7 @@ class MMTimeline : MMWidget
                 dragStartFrame = barStartX / pixelsPerFrame
                 mode = .MovingBar
             }
-            dragStart = float2(event.x, event.y)
+            dragStart = SIMD2<Float>(event.x, event.y)
             mmView.mouseTrackWidget = self
         }
     }
@@ -550,7 +550,7 @@ class MMTimeline : MMWidget
             }
         } else
         if mode == .MovingBar {
-            let diff : float2 = float2(event.x, event.y) - dragStart
+            let diff : SIMD2<Float> = SIMD2<Float>(event.x, event.y) - dragStart
             
             var frame : Float = (dragStartFrame + diff.x / pixelsPerFrame)
             
@@ -559,7 +559,7 @@ class MMTimeline : MMWidget
             mmView.update()
         } else
         if mode == .MoveRightHandle {
-            let diffPixels : float2 = float2(event.x, event.y) - dragStart
+            let diffPixels : SIMD2<Float> = SIMD2<Float>(event.x, event.y) - dragStart
             let diff : Float = (diffPixels.x / pixelsPerFrame) / percentVisible
             let newPercent : Float = dragStartValue + diff / Float(totalFrames)
 
@@ -567,7 +567,7 @@ class MMTimeline : MMWidget
             mmView.update()
         } else
         if mode == .MoveLeftHandle {
-            let diffPixels : float2 = dragStart - float2(event.x, event.y)
+            let diffPixels : SIMD2<Float> = dragStart - SIMD2<Float>(event.x, event.y)
             let diff : Float = (diffPixels.x / pixelsPerFrame) / percentVisible
             let newPercent : Float = dragStartFrame + diff / Float(totalFrames)
             
@@ -597,7 +597,7 @@ class MMTimeline : MMWidget
             totalFrames = currentSequence!.totalFrames
         }
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor: SIMD4<Float>(0.169, 0.169, 0.169, 1.000), borderColor: float4(repeating: 0) )// mmView.skin.Widget.borderColor )
+        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height, round: 4, borderSize: 0,  fillColor: SIMD4<Float>(0.169, 0.169, 0.169, 1.000), borderColor: SIMD4<Float>(repeating: 0) )// mmView.skin.Widget.borderColor )
         
         let skin = mmView.skin.TimelineWidget
         
@@ -670,19 +670,19 @@ class MMTimeline : MMWidget
             frames += 1
         }
         
-        func drawMarker(x: Float, color: float4, frame: String? = nil, selected: Bool = false, type: Int = 1)
+        func drawMarker(x: Float, color: SIMD4<Float>, frame: String? = nil, selected: Bool = false, type: Int = 1)
         {
             let width : Float = Float(frame!.count * 10) + 5
             let corrX = x - width / 2
             
-            mmView.drawBox.draw( x: corrX, y: y, width: width, height: 18, borderSize: 1.5, fillColor: float4(0.110, 0.110, 0.110, 1.000), borderColor : color)
+            mmView.drawBox.draw( x: corrX, y: y, width: width, height: 18, borderSize: 1.5, fillColor: SIMD4<Float>(0.110, 0.110, 0.110, 1.000), borderColor : color)
             mmView.drawText.drawText(mmView.openSans, text: frame!, x: corrX + 4.2, y: y + 3, scale: 0.32)
             
             if type == 0 {
-                mmView.drawBox.drawRotated( x: corrX + width / 2 + 5, y: y + 20, width: 11, height: 11, borderSize: 1.5, fillColor: selected == false ? float4(0.110, 0.110, 0.110, 0.000) : float4(1,1,1,1), borderColor: color, rotation: 45)
+                mmView.drawBox.drawRotated( x: corrX + width / 2 + 5, y: y + 20, width: 11, height: 11, borderSize: 1.5, fillColor: selected == false ? SIMD4<Float>(0.110, 0.110, 0.110, 0.000) : SIMD4<Float>(1,1,1,1), borderColor: color, rotation: 45)
             } else
             if type == 1 {
-                mmView.drawSphere.draw( x: corrX + width / 2 - 7, y: y + 18, radius: 7, borderSize: 1.5, fillColor: selected == false ? float4(0.110, 0.110, 0.110, 0.000) : float4(1,1,1,1), borderColor: color)
+                mmView.drawSphere.draw( x: corrX + width / 2 - 7, y: y + 18, radius: 7, borderSize: 1.5, fillColor: selected == false ? SIMD4<Float>(0.110, 0.110, 0.110, 0.000) : SIMD4<Float>(1,1,1,1), borderColor: color)
             }
         }
         
@@ -690,13 +690,13 @@ class MMTimeline : MMWidget
         for(_,dict) in sequence.items {
             for(frame,key) in dict {
                 let keyX = tlRect.x + (Float(frame) - visibleStartFrame) * pixelsPerFrame
-                drawMarker( x: keyX, color : float4(0.137, 0.620, 0.784, 1.000), frame: String(frame), selected: key === currentKey, type: key.properties["type"] == nil || key.properties["type"] == 0 ? 0 : 1)
+                drawMarker( x: keyX, color : SIMD4<Float>(0.137, 0.620, 0.784, 1.000), frame: String(frame), selected: key === currentKey, type: key.properties["type"] == nil || key.properties["type"] == 0 ? 0 : 1)
             }
         }
         
         // --- Marker
         let markerX = tlRect.x + (Float(currentFrame) - visibleStartFrame) * pixelsPerFrame
-        drawMarker( x: markerX, color : float4(0.675, 0.788, 0.184, 1.000), frame: String(currentFrame), selected: currentKey === nil, type: Int(currentType))
+        drawMarker( x: markerX, color : SIMD4<Float>(0.675, 0.788, 0.184, 1.000), frame: String(currentFrame), selected: currentKey === nil, type: Int(currentType))
         
         mmView.renderer.setClipRect()
         
@@ -708,11 +708,11 @@ class MMTimeline : MMWidget
         barRect.width = ((Float(totalFrames) * percentVisible) * pixelsPerFrame) * percentVisible
         barRect.height = 15
 
-        mmView.drawBox.draw( x: barRect.x, y: barRect.y - 1, width: barHandleWidth, height: 17, fillColor : float4(0.471, 0.471, 0.471, 1.000))
+        mmView.drawBox.draw( x: barRect.x, y: barRect.y - 1, width: barHandleWidth, height: 17, fillColor : SIMD4<Float>(0.471, 0.471, 0.471, 1.000))
 
-        mmView.drawBox.draw( x: barRect.x + barHandleWidth, y: barRect.y, width: barRect.width - 2 * barHandleWidth, height: 15, fillColor : float4(0.376, 0.376, 0.376, 1.000))
+        mmView.drawBox.draw( x: barRect.x + barHandleWidth, y: barRect.y, width: barRect.width - 2 * barHandleWidth, height: 15, fillColor : SIMD4<Float>(0.376, 0.376, 0.376, 1.000))
         
-        mmView.drawBox.draw( x: barRect.x + barRect.width - barHandleWidth, y: barRect.y - 1, width: 18, height: 17, fillColor : float4(0.471, 0.471, 0.471, 1.000))
+        mmView.drawBox.draw( x: barRect.x + barRect.width - barHandleWidth, y: barRect.y - 1, width: 18, height: 17, fillColor : SIMD4<Float>(0.471, 0.471, 0.471, 1.000))
 
         // Buttons
         

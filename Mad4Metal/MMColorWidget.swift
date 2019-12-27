@@ -11,28 +11,28 @@ import simd
 
 class MMColorPopupWidget : MMWidget
 {
-    var value       : float4
+    var value       : SIMD4<Float>
     var mouseIsDown : Bool = false
     
-    var changed     : ((_ value: float4, _ continuous: Bool)->())?
+    var changed     : ((_ value: SIMD4<Float>, _ continuous: Bool)->())?
     
     var h           : Float = 0
     var s           : Float = 0
     var l           : Float = 0
     
-    var ls1Pt       : float2 = float2(0,0)
-    var ls2Pt       : float2 = float2(0,0)
-    var ls3Pt       : float2 = float2(0,0)
+    var ls1Pt       : SIMD2<Float> = SIMD2<Float>(0,0)
+    var ls2Pt       : SIMD2<Float> = SIMD2<Float>(0,0)
+    var ls3Pt       : SIMD2<Float> = SIMD2<Float>(0,0)
 
-    var hueDot      : float2 = float2(0,0)
-    var slDot       : float2 = float2(0,0)
+    var hueDot      : SIMD2<Float> = SIMD2<Float>(0,0)
+    var slDot       : SIMD2<Float> = SIMD2<Float>(0,0)
     
     var insideOp    : Bool = false
     
     let hexLabel    : MMTextLabel
     var hexHover    : Bool = false
 
-    init(_ view: MMView, value: float4 = float4(0.5, 0.5, 0.5, 1))
+    init(_ view: MMView, value: SIMD4<Float> = SIMD4<Float>(0.5, 0.5, 0.5, 1))
     {
         self.value = value
         
@@ -128,13 +128,13 @@ class MMColorPopupWidget : MMWidget
     {
         let circleSize : Float = 150
         
-        let center : float2 = float2(circleSize/2,circleSize/2)
+        let center : SIMD2<Float> = SIMD2<Float>(circleSize/2,circleSize/2)
         var angle : Float = (h - 180) * Float.pi / 180
-        var dir : float2 = float2(sin(angle), cos(angle))
+        var dir : SIMD2<Float> = SIMD2<Float>(sin(angle), cos(angle))
 
         dir = simd_normalize(dir)
         
-        var ldir : float2 = dir
+        var ldir : SIMD2<Float> = dir
         ldir *= circleSize/2 - 10
         
         hueDot = center + ldir
@@ -145,19 +145,19 @@ class MMColorPopupWidget : MMWidget
         ls2Pt = center + ldir
         
         angle = (h - 180 - 120) * Float.pi / 180
-        dir = float2(sin(angle), cos(angle))
+        dir = SIMD2<Float>(sin(angle), cos(angle))
         dir = simd_normalize(dir)
         dir *= circleSize/2 - 20
         ls1Pt = center + dir
 
         angle = (h - 180 + 120) * Float.pi / 180
-        dir = float2(sin(angle), cos(angle))
+        dir = SIMD2<Float>(sin(angle), cos(angle))
         dir = simd_normalize(dir)
         dir *= circleSize/2 - 20
         ls3Pt = center + dir
         
-        let base : float2 = (ls3Pt - ls1Pt) * l
-        let up : float2 = ((ls3Pt + ls1Pt) * -0.5) + ls2Pt
+        let base : SIMD2<Float> = (ls3Pt - ls1Pt) * l
+        let up : SIMD2<Float> = ((ls3Pt + ls1Pt) * -0.5) + ls2Pt
         let temp : Float = ((l < 0.5 ? l : 1 - l) * 2.0 * s )
         slDot = base + up * temp + ls1Pt
     }
@@ -173,9 +173,9 @@ class MMColorPopupWidget : MMWidget
             
             let circleSize : Float = 150
             
-            let center : float2 = float2(circleSize/2,circleSize/2)
+            let center : SIMD2<Float> = SIMD2<Float>(circleSize/2,circleSize/2)
             
-            let dist = simd_distance(center, float2(x,y))
+            let dist = simd_distance(center, SIMD2<Float>(x,y))
             if dist >= 55 {
                 insideOp = false
             } else {
@@ -200,7 +200,7 @@ class MMColorPopupWidget : MMWidget
         if x < 0 || x > 150 { return }
         if y < 0 || y > 150 { return }
         
-        func signOf(_ p1 : float2,_ p2 : float2,_ p3 : float2) -> Float
+        func signOf(_ p1 : SIMD2<Float>,_ p2 : SIMD2<Float>,_ p3 : SIMD2<Float>) -> Float
         {
             return (p2.x-p1.x) * (p3.y-p1.y) - (p2.y-p1.y) * (p3.x-p1.x);
         }
@@ -212,7 +212,7 @@ class MMColorPopupWidget : MMWidget
             return v
         }
         
-        var ev : float2 = float2(x,y)
+        var ev : SIMD2<Float> = SIMD2<Float>(x,y)
         
         let b1 : Bool = signOf(ev, ls1Pt, ls2Pt) <= 0
         let b2 : Bool = signOf(ev, ls2Pt, ls3Pt) <= 0
@@ -242,11 +242,11 @@ class MMColorPopupWidget : MMWidget
         }
 
         if !fail {
-            let p3 : float2 = ls3Pt - ls1Pt
+            let p3 : SIMD2<Float> = ls3Pt - ls1Pt
             let side : Float = length(p3)
             l = dot(ev, p3) / (side * side)
             if l > 0.01 && l < 0.99 {
-                let up : float2 = ((ls3Pt + ls1Pt) * -0.5) + ls2Pt
+                let up : SIMD2<Float> = ((ls3Pt + ls1Pt) * -0.5) + ls2Pt
                 let temp : Float = l < 0.5 ? l : 1 - l
                 s = dot(ev, up) / length(up) / length(up) * 0.5 / temp
             }
@@ -273,13 +273,13 @@ class MMColorPopupWidget : MMWidget
         
         let circleSize : Float = 150
         
-        let center : float2 = float2(circleSize/2,circleSize/2)
-        var mouse : float2 = float2(x - center.x, y - center.y)
+        let center : SIMD2<Float> = SIMD2<Float>(circleSize/2,circleSize/2)
+        var mouse : SIMD2<Float> = SIMD2<Float>(x - center.x, y - center.y)
         
         mouse = simd_normalize(mouse)
         
         mouse *= circleSize/2 - (circleSize*0.75)/2
-        let v : float2 = center + mouse
+        let v : SIMD2<Float> = center + mouse
         let angle : Float = atan2(v.x - center.x, v.y - center.y) * 180 / Float.pi
         let rgb = toRGB(angle + 180, hsv.1, hsv.2)
         h = angle + 180
@@ -295,17 +295,17 @@ class MMColorPopupWidget : MMWidget
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         if !states.contains(.Opened) {
-            mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 2, borderSize: 2, fillColor: value, borderColor: float4(0, 0, 0, 1))
+            mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 2, borderSize: 2, fillColor: value, borderColor: SIMD4<Float>(0, 0, 0, 1))
         } else {
-            mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 2, borderSize: 2, fillColor: float4(0.145, 0.145, 0.145, 1), borderColor: float4(0, 0, 0, 1))
+            mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 2, borderSize: 2, fillColor: SIMD4<Float>(0.145, 0.145, 0.145, 1), borderColor: SIMD4<Float>(0, 0, 0, 1))
             
-            mmView.drawColorWheel.draw(x: rect.x + 10, y: rect.y + 10, width: 150, height: 150, color: float4(h,s,l,1))
+            mmView.drawColorWheel.draw(x: rect.x + 10, y: rect.y + 10, width: 150, height: 150, color: SIMD4<Float>(h,s,l,1))
             
-            mmView.drawBox.draw(x: rect.x + rect.width - 60, y: rect.y + 10, width: 50, height: rect.height - 20, round: 2, borderSize: 2, fillColor: value, borderColor: float4(0, 0, 0, 1))
+            mmView.drawBox.draw(x: rect.x + rect.width - 60, y: rect.y + 10, width: 50, height: rect.height - 20, round: 2, borderSize: 2, fillColor: value, borderColor: SIMD4<Float>(0, 0, 0, 1))
             
-            mmView.drawSphere.draw(x: rect.x + hueDot.x + 5, y: rect.y + hueDot.y + 5, radius: 6, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
+            mmView.drawSphere.draw(x: rect.x + hueDot.x + 5, y: rect.y + hueDot.y + 5, radius: 6, borderSize: 0, fillColor: SIMD4<Float>(0, 0, 0, 1), borderColor: SIMD4<Float>(0, 0, 0, 0))
             
-            mmView.drawSphere.draw(x: rect.x + slDot.x + 5, y: rect.y + slDot.y + 5, radius: 6, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
+            mmView.drawSphere.draw(x: rect.x + slDot.x + 5, y: rect.y + slDot.y + 5, radius: 6, borderSize: 0, fillColor: SIMD4<Float>(0, 0, 0, 1), borderColor: SIMD4<Float>(0, 0, 0, 0))
             
             hexLabel.rect.x = rect.x + 15
             hexLabel.rect.y = rect.y + rect.height - 28
@@ -327,17 +327,17 @@ class MMColorWidget : MMWidget
     var s           : Float = 0
     var l           : Float = 0
     
-    var ls1Pt       : float2 = float2(0,0)
-    var ls2Pt       : float2 = float2(0,0)
-    var ls3Pt       : float2 = float2(0,0)
+    var ls1Pt       : SIMD2<Float> = SIMD2<Float>(0,0)
+    var ls2Pt       : SIMD2<Float> = SIMD2<Float>(0,0)
+    var ls3Pt       : SIMD2<Float> = SIMD2<Float>(0,0)
     
-    var hueDot      : float2 = float2(0,0)
-    var slDot       : float2 = float2(0,0)
+    var hueDot      : SIMD2<Float> = SIMD2<Float>(0,0)
+    var slDot       : SIMD2<Float> = SIMD2<Float>(0,0)
     
     var dotSize     : Float = 0
     var insideOp    : Bool = false
     
-    var lastSize    : float2 = float2(0,0)
+    var lastSize    : SIMD2<Float> = SIMD2<Float>(0,0)
     
     init(_ view: MMView, value: SIMD3<Float> = SIMD3<Float>(0.5, 0.5, 0.5))
     {
@@ -399,15 +399,15 @@ class MMColorWidget : MMWidget
     {
         let circleSize : Float = rect.width
         
-        let center : float2 = float2(circleSize/2,circleSize/2)
+        let center : SIMD2<Float> = SIMD2<Float>(circleSize/2,circleSize/2)
         var angle : Float = (h - 180) * Float.pi / 180
-        var dir : float2 = float2(sin(angle), cos(angle))
+        var dir : SIMD2<Float> = SIMD2<Float>(sin(angle), cos(angle))
         
         dir = simd_normalize(dir)
         
         let sub : Float = dotSize * 1.4
         
-        var ldir : float2 = dir
+        var ldir : SIMD2<Float> = dir
         ldir *= circleSize/2 - dotSize * 1.4
         
         hueDot = center + ldir - dotSize
@@ -418,19 +418,19 @@ class MMColorWidget : MMWidget
         ls2Pt = center + ldir - dotSize
         
         angle = (h - 180 - 120) * Float.pi / 180
-        dir = float2(sin(angle), cos(angle))
+        dir = SIMD2<Float>(sin(angle), cos(angle))
         dir = simd_normalize(dir)
         dir *= circleSize/2 - sub * 2
         ls1Pt = center + dir - dotSize
         
         angle = (h - 180 + 120) * Float.pi / 180
-        dir = float2(sin(angle), cos(angle))
+        dir = SIMD2<Float>(sin(angle), cos(angle))
         dir = simd_normalize(dir)
         dir *= circleSize/2 - sub * 2
         ls3Pt = center + dir - dotSize
         
-        let base : float2 = (ls3Pt - ls1Pt) * l
-        let up : float2 = ((ls3Pt + ls1Pt) * -0.5) + ls2Pt
+        let base : SIMD2<Float> = (ls3Pt - ls1Pt) * l
+        let up : SIMD2<Float> = ((ls3Pt + ls1Pt) * -0.5) + ls2Pt
         let temp : Float = ((l < 0.5 ? l : 1 - l) * 2.0 * s )
         slDot = base + up * temp + ls1Pt
     }
@@ -446,9 +446,9 @@ class MMColorWidget : MMWidget
             
             let circleSize : Float = rect.width
             
-            let center : float2 = float2(circleSize/2,circleSize/2)
+            let center : SIMD2<Float> = SIMD2<Float>(circleSize/2,circleSize/2)
             
-            let dist = simd_distance(center, float2(x,y))
+            let dist = simd_distance(center, SIMD2<Float>(x,y))
             if dist >= (rect.width * 0.75) / 2 {
                 insideOp = false
             } else {
@@ -473,7 +473,7 @@ class MMColorWidget : MMWidget
         if x < 0 || x > rect.width { return }
         if y < 0 || y > rect.width { return }
         
-        func signOf(_ p1 : float2,_ p2 : float2,_ p3 : float2) -> Float
+        func signOf(_ p1 : SIMD2<Float>,_ p2 : SIMD2<Float>,_ p3 : SIMD2<Float>) -> Float
         {
             return (p2.x-p1.x) * (p3.y-p1.y) - (p2.y-p1.y) * (p3.x-p1.x);
         }
@@ -485,7 +485,7 @@ class MMColorWidget : MMWidget
             return v
         }
         
-        var ev : float2 = float2(x,y)
+        var ev : SIMD2<Float> = SIMD2<Float>(x,y)
         
         let b1 : Bool = signOf(ev, ls1Pt, ls2Pt) <= 0
         let b2 : Bool = signOf(ev, ls2Pt, ls3Pt) <= 0
@@ -515,11 +515,11 @@ class MMColorWidget : MMWidget
         }
         
         if !fail {
-            let p3 : float2 = ls3Pt - ls1Pt
+            let p3 : SIMD2<Float> = ls3Pt - ls1Pt
             let side : Float = length(p3)
             l = dot(ev, p3) / (side * side)
             if l > 0.01 && l < 0.99 {
-                let up : float2 = ((ls3Pt + ls1Pt) * -0.5) + ls2Pt
+                let up : SIMD2<Float> = ((ls3Pt + ls1Pt) * -0.5) + ls2Pt
                 let temp : Float = l < 0.5 ? l : 1 - l
                 s = dot(ev, up) / length(up) / length(up) * 0.5 / temp
             }
@@ -545,13 +545,13 @@ class MMColorWidget : MMWidget
         
         let circleSize : Float = rect.width
         
-        let center : float2 = float2(circleSize/2,circleSize/2)
-        var mouse : float2 = float2(x - center.x, y - center.y)
+        let center : SIMD2<Float> = SIMD2<Float>(circleSize/2,circleSize/2)
+        var mouse : SIMD2<Float> = SIMD2<Float>(x - center.x, y - center.y)
         
         mouse = simd_normalize(mouse)
         
         mouse *= circleSize/2 - (circleSize*0.75)/2
-        let v : float2 = center + mouse
+        let v : SIMD2<Float> = center + mouse
         let angle : Float = atan2(v.x - center.x, v.y - center.y) * 180 / Float.pi
         let rgb = toRGB(angle + 180, hsv.1, hsv.2)
         h = angle + 180
@@ -571,14 +571,14 @@ class MMColorWidget : MMWidget
             lastSize.y = rect.height
             computePoints()
         }
-        mmView.drawColorWheel.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, color: float4(h,s,l, isDisabled ? mmView.skin.disabledAlpha : 1))
+        mmView.drawColorWheel.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, color: SIMD4<Float>(h,s,l, isDisabled ? mmView.skin.disabledAlpha : 1))
         
         if !isDisabled {
-            mmView.drawSphere.draw(x: rect.x + hueDot.x, y: rect.y + hueDot.y, radius: dotSize, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
-            mmView.drawSphere.draw(x: rect.x + slDot.x, y: rect.y + slDot.y, radius: dotSize, borderSize: 0, fillColor: float4(0, 0, 0, 1), borderColor: float4(0, 0, 0, 0))
+            mmView.drawSphere.draw(x: rect.x + hueDot.x, y: rect.y + hueDot.y, radius: dotSize, borderSize: 0, fillColor: SIMD4<Float>(0, 0, 0, 1), borderColor: SIMD4<Float>(0, 0, 0, 0))
+            mmView.drawSphere.draw(x: rect.x + slDot.x, y: rect.y + slDot.y, radius: dotSize, borderSize: 0, fillColor: SIMD4<Float>(0, 0, 0, 1), borderColor: SIMD4<Float>(0, 0, 0, 0))
         } else {
-            mmView.drawSphere.draw(x: rect.x + hueDot.x, y: rect.y + hueDot.y, radius: dotSize, borderSize: 0, fillColor: float4(0, 0, 0, mmView.skin.disabledAlpha), borderColor: float4(0, 0, 0, 0))
-            mmView.drawSphere.draw(x: rect.x + slDot.x, y: rect.y + slDot.y, radius: dotSize, borderSize: 0, fillColor: float4(0, 0, 0, mmView.skin.disabledAlpha), borderColor: float4(0, 0, 0, 0))
+            mmView.drawSphere.draw(x: rect.x + hueDot.x, y: rect.y + hueDot.y, radius: dotSize, borderSize: 0, fillColor: SIMD4<Float>(0, 0, 0, mmView.skin.disabledAlpha), borderColor: SIMD4<Float>(0, 0, 0, 0))
+            mmView.drawSphere.draw(x: rect.x + slDot.x, y: rect.y + slDot.y, radius: dotSize, borderSize: 0, fillColor: SIMD4<Float>(0, 0, 0, mmView.skin.disabledAlpha), borderColor: SIMD4<Float>(0, 0, 0, 0))
         }
     }
 }

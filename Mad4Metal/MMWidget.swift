@@ -13,7 +13,7 @@ protocol MMDragSource
     var id              : String {get set}
     var sourceWidget    : MMWidget? {get set}
     var previewWidget   : MMWidget? {get set}
-    var pWidgetOffset   : float2? {get set}
+    var pWidgetOffset   : SIMD2<Float>? {get set}
 }
 
 class MMMouseEvent
@@ -327,7 +327,7 @@ class MMButtonWidget : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        let fColor : float4
+        let fColor : SIMD4<Float>
         if !isDisabled {
             if states.contains(.Hover) {
                 fColor = skin.hoverColor
@@ -338,7 +338,7 @@ class MMButtonWidget : MMWidget
             }
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fColor, borderColor: skin.borderColor )
         } else {
-            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : float4(0,0,0,0), borderColor: float4(skin.borderColor.x, skin.borderColor.y, skin.borderColor.z, 0.2))
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(skin.borderColor.x, skin.borderColor.y, skin.borderColor.z, 0.2))
         }
         
         if label != nil {
@@ -634,7 +634,7 @@ class MMMenuWidget : MMWidget
             for (index,var item) in self.items.enumerated() {
 
                 if index == selIndex {
-                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: float4(repeating: 1), textBuffer: item.textBuffer)
+                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: SIMD4<Float>(repeating: 1), textBuffer: item.textBuffer)
                 } else {
                     item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: skin.textColor, textBuffer: item.textBuffer)
                 }
@@ -750,11 +750,11 @@ class MMSwitchButtonWidget : MMWidget
     
     func distanceToRRect(_ x: Float,_ y: Float,_ width: Float,_ height: Float, round: Float,_ mouseX: Float,_ mouseY: Float) -> Float
     {
-        var uv : float2 = float2(mouseX - x, mouseY - y)
-        uv = uv - float2(rect.width / 2, rect.height / 2)
+        var uv : SIMD2<Float> = SIMD2<Float>(mouseX - x, mouseY - y)
+        uv = uv - SIMD2<Float>(rect.width / 2, rect.height / 2)
         
-        let d : float2 = simd_abs(uv) - float2(width/2, height/2) + round / 2
-        let dist : Float = simd_length(max(d,float2(repeating: 0))) + min(max(d.x,d.y),0.0) - round / 2
+        let d : SIMD2<Float> = simd_abs(uv) - SIMD2<Float>(width/2, height/2) + round / 2
+        let dist : Float = simd_length(max(d,SIMD2<Float>(repeating: 0))) + min(max(d.x,d.y),0.0) - round / 2
         
         return dist
     }
@@ -858,7 +858,7 @@ class MMSwitchButtonWidget : MMWidget
                     if h == middle && w == middle {
                         mmView.drawSphere.draw( x: xOff, y: yOff, radius: size, borderSize: 0, fillColor : label.color)
                     } else {
-                        mmView.drawSphere.draw( x: xOff, y: yOff, radius: size, borderSize: 0, fillColor : float4(0.278, 0.282, 0.286, 1.000))
+                        mmView.drawSphere.draw( x: xOff, y: yOff, radius: size, borderSize: 0, fillColor : SIMD4<Float>(0.278, 0.282, 0.286, 1.000))
                     }
                 }
             }
@@ -876,8 +876,8 @@ class MMSwitchButtonWidget : MMWidget
         
         if state == .Several {
         
-            var fillColor    : float4 = hoverMode == .One ? skin.hoverColor : float4(0,0,0,0)
-            var borderColor  : float4 = skin.borderColor
+            var fillColor    : SIMD4<Float> = hoverMode == .One ? skin.hoverColor : SIMD4<Float>(0,0,0,0)
+            var borderColor  : SIMD4<Float> = skin.borderColor
             
             if isDisabled {
                 fillColor.w = mmView.skin.disabledAlpha
@@ -898,8 +898,8 @@ class MMSwitchButtonWidget : MMWidget
             label.draw()
         } else {
             
-            var fillColor    : float4 = hoverMode == .Several ? skin.hoverColor : float4(0,0,0,0)
-            var borderColor  : float4 = skin.borderColor
+            var fillColor    : SIMD4<Float> = hoverMode == .Several ? skin.hoverColor : SIMD4<Float>(0,0,0,0)
+            var borderColor  : SIMD4<Float> = skin.borderColor
             
             if isDisabled {
                 fillColor.w = mmView.skin.disabledAlpha

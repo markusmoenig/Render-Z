@@ -132,7 +132,7 @@ class MMCompute {
     }
 
     /// Run the given state
-    func runBuffer(_ state: MTLComputePipelineState?, outBuffer: MTLBuffer, inBuffer: MTLBuffer? = nil, size: float2? = nil, inTexture: MTLTexture? = nil, wait: Bool = true )
+    func runBuffer(_ state: MTLComputePipelineState?, outBuffer: MTLBuffer, inBuffer: MTLBuffer? = nil, size: SIMD2<Float>? = nil, inTexture: MTLTexture? = nil, wait: Bool = true )
     {
         commandBuffer = commandQueue!.makeCommandBuffer()!
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!

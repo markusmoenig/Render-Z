@@ -11,13 +11,13 @@ import MetalKit
 class MMFloatWidget : MMWidget
 {
     var value       : Float
-    var range       : float2!
+    var range       : SIMD2<Float>!
     var mouseIsDown : Bool = false
     var int         : Bool = false
 
     var changed     : ((_ value: Float)->())?
 
-    init(_ view: MMView, range: float2 = float2(0,1), int: Bool = false, value: Float = 0)
+    init(_ view: MMView, range: SIMD2<Float> = SIMD2<Float>(0,1), int: Bool = false, value: Float = 0)
     {
         self.range = range
         self.value = value

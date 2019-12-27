@@ -26,7 +26,7 @@ class MMTextLabel: MMLabel
     var textBuffer  : MMTextBuffer?
     var textYOffset : Float = -1
     
-    var color  : float4 {
+    var color  : SIMD4<Float> {
         
         willSet(newValue) {
             if newValue != color {
@@ -44,7 +44,7 @@ class MMTextLabel: MMLabel
         }
     }
     
-    init( _ view: MMView, font: MMFont, text: String, scale: Float = 0.5, color: float4 = float4(0.957, 0.957, 0.957, 1) )
+    init( _ view: MMView, font: MMFont, text: String, scale: Float = 0.5, color: SIMD4<Float> = SIMD4<Float>(0.957, 0.957, 0.957, 1) )
     {
         rect = MMRect()
         
@@ -60,28 +60,28 @@ class MMTextLabel: MMLabel
     
     func draw()
     {
-        textBuffer = mmView.drawText.drawText(font, text: text, x: rect.x, y: rect.y, scale: scale, color: float4( color.x, color.y, color.z, isDisabled ? 0.2 : color.w), textBuffer: textBuffer)
+        textBuffer = mmView.drawText.drawText(font, text: text, x: rect.x, y: rect.y, scale: scale, color: SIMD4<Float>( color.x, color.y, color.z, isDisabled ? 0.2 : color.w), textBuffer: textBuffer)
     }
     
     func drawCentered(x:Float, y:Float, width:Float, height:Float)
     {
         let drawX = x + (width - rect.width) / 2
         let drawY = y + (height - rect.height)/2 + textYOffset
-        textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: float4( color.x, color.y, color.z, isDisabled ? 0.2 : color.w), textBuffer: textBuffer)
+        textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: SIMD4<Float>( color.x, color.y, color.z, isDisabled ? 0.2 : color.w), textBuffer: textBuffer)
     }
     
     func drawCenteredY(x:Float, y:Float, width:Float, height:Float)
     {
         let drawX = x
         let drawY = y + (height - rect.height)/2 + textYOffset
-        textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: float4( color.x, color.y, color.z, isDisabled ? 0.2 : color.w), textBuffer: textBuffer)
+        textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: SIMD4<Float>( color.x, color.y, color.z, isDisabled ? 0.2 : color.w), textBuffer: textBuffer)
     }
     
     func drawRightCenteredY(x:Float, y:Float, width:Float, height:Float)
     {
         let drawX = x + width - rect.width
         let drawY = y + (height - rect.height)/2 + textYOffset
-        textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: float4( color.x, color.y, color.z, isDisabled ? 0.2 : color.w), textBuffer: textBuffer)
+        textBuffer = mmView.drawText.drawText(font, text: text, x: drawX, y: drawY, scale: scale, color: SIMD4<Float>( color.x, color.y, color.z, isDisabled ? 0.2 : color.w), textBuffer: textBuffer)
     }
     
     func setText(_ text: String, scale: Float? = nil)

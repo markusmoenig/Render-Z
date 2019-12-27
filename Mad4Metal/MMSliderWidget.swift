@@ -11,7 +11,7 @@ import MetalKit
 class MMSliderWidget : MMWidget
 {
     var value       : Float
-    var range       : float2!
+    var range       : SIMD2<Float>!
     var mouseIsDown : Bool = false
     var int         : Bool = false
 
@@ -83,12 +83,12 @@ class MMSliderWidget : MMWidget
     {
         //let skin = mmView.skin.MenuWidget
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y + rect.height / 2 - 1, width: rect.width, height: 2, round: 0, borderSize: 0, fillColor: float4(0.094, 0.098, 0.102, 1.000))
+        mmView.drawBox.draw( x: rect.x, y: rect.y + rect.height / 2 - 1, width: rect.width, height: 2, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.094, 0.098, 0.102, 1.000))
         
         if range != nil {
             let offset = (rect.width / (range!.y - range!.x)) * (value - range!.x)
             let radius = rect.height / 2.5
-            mmView.drawSphere.draw( x: rect.x + offset - radius, y: rect.y + rect.height / 2 - radius, radius: radius, borderSize: 0, fillColor: float4(0.573, 0.576, 0.580, 1.000))
+            mmView.drawSphere.draw( x: rect.x + offset - radius, y: rect.y + rect.height / 2 - radius, radius: radius, borderSize: 0, fillColor: SIMD4<Float>(0.573, 0.576, 0.580, 1.000))
         }
     }
 }
