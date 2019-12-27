@@ -2,7 +2,7 @@
 //  EditorWidget.swift
 //  Shape-Z
 //
-//  Created by Markus Moenig on 15/1/19.
+//  Created by Markus Moenig on 26/12/19.
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
@@ -42,7 +42,21 @@ class EditorWidget      : MMWidget
         dropTargets.append( "Animation" )
         dropTargets.append( "Behavior Tree" )
     }
+    
+    /// Drag and Drop Target
+    override func dragEnded(event:MMMouseEvent, dragSource:MMDragSource)
+    {
+        print("ha")
+        if dragSource.id == "SourceItem"
+        {
+            // Source Item
+            let drag = dragSource as! SourceListDrag
+            
+            print(drag.name)
+        }
+    }
 
+    /*
     override func keyDown(_ event: MMKeyEvent)
     {
         if app.nodeGraph.maximizedNode == nil {
@@ -573,15 +587,5 @@ class EditorWidget      : MMWidget
                 app.nodeGraph.acceptDragSource(dragSource)
             }
         }
-    }
-}
-
-func createNodeCamera(_ node: Node) -> Camera
-{
-    let prevOffX = node.properties["prevOffX"]
-    let prevOffY = node.properties["prevOffY"]
-    let prevScale = node.properties["prevScale"]
-    let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
-    
-    return camera
+    }*/
 }

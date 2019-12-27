@@ -176,6 +176,57 @@
 		2B7A3BEA23B2F1FA002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
 		2B7A3BEB23B2F1FA002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
 		2B7A3BEC23B2F1FB002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
+		2B7A3BF423B4583A002EC5FC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BF323B4583A002EC5FC /* AppDelegate.swift */; };
+		2B7A3BF623B4583A002EC5FC /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BF523B4583A002EC5FC /* ViewController.swift */; };
+		2B7A3BF823B4583E002EC5FC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2B7A3BF723B4583E002EC5FC /* Assets.xcassets */; };
+		2B7A3BFB23B4583E002EC5FC /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2B7A3BF923B4583E002EC5FC /* Main.storyboard */; };
+		2B7A3C0223B4652E002EC5FC /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
+		2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
+		2B7A3C0423B4652E002EC5FC /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
+		2B7A3C0523B4652E002EC5FC /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
+		2B7A3C0623B4652E002EC5FC /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
+		2B7A3C0723B4652E002EC5FC /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
+		2B7A3C0823B4653F002EC5FC /* MMView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; };
+		2B7A3C0923B4653F002EC5FC /* MMBaseView_mac.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B721EADB46001C94E9 /* MMBaseView_mac.swift */; };
+		2B7A3C0A23B46546002EC5FC /* MMRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B121EADB46001C94E9 /* MMRenderer.swift */; };
+		2B7A3C0B23B46546002EC5FC /* MMWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B221EADB46001C94E9 /* MMWidget.swift */; };
+		2B7A3C0C23B46546002EC5FC /* MMRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B321EADB46001C94E9 /* MMRegion.swift */; };
+		2B7A3C0D23B46546002EC5FC /* MMDrawable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B421EADB46001C94E9 /* MMDrawable.swift */; };
+		2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B521EADB46001C94E9 /* MMUtils.swift */; };
+		2B7A3C0F23B46546002EC5FC /* MMFont.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B821EADB46001C94E9 /* MMFont.swift */; };
+		2B7A3C1023B46546002EC5FC /* MMLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11B921EADB46001C94E9 /* MMLabel.swift */; };
+		2B7A3C1123B46546002EC5FC /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
+		2B7A3C1223B46546002EC5FC /* MMSliderWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B02717C235403FC009178F6 /* MMSliderWidget.swift */; };
+		2B7A3C1323B46546002EC5FC /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
+		2B7A3C1423B46546002EC5FC /* MMColorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA6163B22597EF400638794 /* MMColorWidget.swift */; };
+		2B7A3C1523B46546002EC5FC /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
+		2B7A3C1623B46546002EC5FC /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
+		2B7A3C1723B46546002EC5FC /* MMCompute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BA21EADB46001C94E9 /* MMCompute.swift */; };
+		2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
+		2B7A3C1923B46546002EC5FC /* MMScrollArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BB21EADB46001C94E9 /* MMScrollArea.swift */; };
+		2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
+		2B7A3C1B23B46546002EC5FC /* MMListWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */; };
+		2B7A3C1C23B46546002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
+		2B7A3C1D23B46546002EC5FC /* MMSkin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11BC21EADB46001C94E9 /* MMSkin.swift */; };
+		2B7A3C1E23B46546002EC5FC /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
+		2B7A3C1F23B46546002EC5FC /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
+		2B7A3C2023B46546002EC5FC /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
+		2B7A3C2223B46546002EC5FC /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
+		2B7A3C2423B46560002EC5FC /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C2323B46560002EC5FC /* App.swift */; };
+		2B7A3C3723B46838002EC5FC /* EditorRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3623B46838002EC5FC /* EditorRegion.swift */; };
+		2B7A3C3823B46838002EC5FC /* EditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3423B46838002EC5FC /* EditorWidget.swift */; };
+		2B7A3C3923B46838002EC5FC /* LeftRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3523B46838002EC5FC /* LeftRegion.swift */; };
+		2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3123B46837002EC5FC /* TopRegion.swift */; };
+		2B7A3C3B23B46838002EC5FC /* RightRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3223B46837002EC5FC /* RightRegion.swift */; };
+		2B7A3C3C23B46838002EC5FC /* BottomRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3323B46838002EC5FC /* BottomRegion.swift */; };
+		2B7A3C3F23B469AD002EC5FC /* Mad4Metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3D23B469AD002EC5FC /* Mad4Metal.metal */; };
+		2B7A3C4F23B46B53002EC5FC /* sz_toolbar.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B7A3C4323B46AD8002EC5FC /* sz_toolbar.tiff */; };
+		2B7A3C5023B46B53002EC5FC /* sz_ui_grey.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B7A3C4623B46AD8002EC5FC /* sz_ui_grey.tiff */; };
+		2B7A3C5123B46B53002EC5FC /* sz_ui_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B7A3C4C23B46AD8002EC5FC /* sz_ui_blue.tiff */; };
+		2B7A3C5323B4768D002EC5FC /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5223B4768D002EC5FC /* Editor.swift */; };
+		2B7A3C5523B479F4002EC5FC /* SourceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5423B479F4002EC5FC /* SourceList.swift */; };
+		2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */; };
+		2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
@@ -520,6 +571,29 @@
 		2B6CCE58231F5E5F00ECA35B /* foreground.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = foreground.tiff; sourceTree = "<group>"; };
 		2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerAreaMaxDelegate.swift; sourceTree = "<group>"; };
 		2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTreeWidget.swift; sourceTree = "<group>"; };
+		2B7A3BF123B4583A002EC5FC /* Render-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Render-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2B7A3BF323B4583A002EC5FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		2B7A3BF523B4583A002EC5FC /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		2B7A3BF723B4583E002EC5FC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		2B7A3BFA23B4583E002EC5FC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		2B7A3BFC23B4583E002EC5FC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2B7A3BFD23B4583E002EC5FC /* Render_Z.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Render_Z.entitlements; sourceTree = "<group>"; };
+		2B7A3C2323B46560002EC5FC /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		2B7A3C3123B46837002EC5FC /* TopRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopRegion.swift; sourceTree = "<group>"; };
+		2B7A3C3223B46837002EC5FC /* RightRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightRegion.swift; sourceTree = "<group>"; };
+		2B7A3C3323B46838002EC5FC /* BottomRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomRegion.swift; sourceTree = "<group>"; };
+		2B7A3C3423B46838002EC5FC /* EditorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorWidget.swift; sourceTree = "<group>"; };
+		2B7A3C3523B46838002EC5FC /* LeftRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeftRegion.swift; sourceTree = "<group>"; };
+		2B7A3C3623B46838002EC5FC /* EditorRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorRegion.swift; sourceTree = "<group>"; };
+		2B7A3C3D23B469AD002EC5FC /* Mad4Metal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Mad4Metal.metal; sourceTree = "<group>"; };
+		2B7A3C3E23B469AD002EC5FC /* Mad4Metal_types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Mad4Metal_types.h; sourceTree = "<group>"; };
+		2B7A3C4323B46AD8002EC5FC /* sz_toolbar.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_toolbar.tiff; sourceTree = "<group>"; };
+		2B7A3C4623B46AD8002EC5FC /* sz_ui_grey.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_grey.tiff; sourceTree = "<group>"; };
+		2B7A3C4C23B46AD8002EC5FC /* sz_ui_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_blue.tiff; sourceTree = "<group>"; };
+		2B7A3C5223B4768D002EC5FC /* Editor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Editor.swift; sourceTree = "<group>"; };
+		2B7A3C5423B479F4002EC5FC /* SourceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceList.swift; sourceTree = "<group>"; };
+		2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeEditor.swift; sourceTree = "<group>"; };
+		2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSemantics.swift; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
@@ -612,6 +686,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2B7A3BEE23B4583A002EC5FC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2B91CBED2358629300DED7B1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -661,6 +742,50 @@
 				2B5FE42622C213410046A435 /* CloudKit.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		2B7A3BF223B4583A002EC5FC /* Render-Z */ = {
+			isa = PBXGroup;
+			children = (
+				2B7A3BF323B4583A002EC5FC /* AppDelegate.swift */,
+				2B7A3BF523B4583A002EC5FC /* ViewController.swift */,
+				2B7A3BF723B4583E002EC5FC /* Assets.xcassets */,
+				2B7A3BF923B4583E002EC5FC /* Main.storyboard */,
+				2B7A3BFC23B4583E002EC5FC /* Info.plist */,
+				2B7A3BFD23B4583E002EC5FC /* Render_Z.entitlements */,
+			);
+			path = "Render-Z";
+			sourceTree = "<group>";
+		};
+		2B7A3C0123B46422002EC5FC /* RZ Application */ = {
+			isa = PBXGroup;
+			children = (
+				2B7A3C2323B46560002EC5FC /* App.swift */,
+				2B7A3C3523B46838002EC5FC /* LeftRegion.swift */,
+				2B7A3C3123B46837002EC5FC /* TopRegion.swift */,
+				2B7A3C3223B46837002EC5FC /* RightRegion.swift */,
+				2B7A3C3323B46838002EC5FC /* BottomRegion.swift */,
+				2B7A3C3623B46838002EC5FC /* EditorRegion.swift */,
+				2B7A3C3423B46838002EC5FC /* EditorWidget.swift */,
+				2B7A3C3D23B469AD002EC5FC /* Mad4Metal.metal */,
+				2B7A3C3E23B469AD002EC5FC /* Mad4Metal_types.h */,
+				2B7A3C5223B4768D002EC5FC /* Editor.swift */,
+				2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */,
+				2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */,
+				2B7A3C5423B479F4002EC5FC /* SourceList.swift */,
+				2B7A3C4023B46AD8002EC5FC /* Icons */,
+			);
+			path = "RZ Application";
+			sourceTree = "<group>";
+		};
+		2B7A3C4023B46AD8002EC5FC /* Icons */ = {
+			isa = PBXGroup;
+			children = (
+				2B7A3C4323B46AD8002EC5FC /* sz_toolbar.tiff */,
+				2B7A3C4623B46AD8002EC5FC /* sz_ui_grey.tiff */,
+				2B7A3C4C23B46AD8002EC5FC /* sz_ui_blue.tiff */,
+			);
+			path = Icons;
 			sourceTree = "<group>";
 		};
 		2B91CBF12358629300DED7B1 /* OSX Framework */ = {
@@ -725,6 +850,8 @@
 				2BBF119621EAD46B001C94E9 /* Application */,
 				2BBF10F821EAD2AF001C94E9 /* Shape-Z */,
 				2BBF112D21EAD38E001C94E9 /* Shape-Z iOS */,
+				2B7A3C0123B46422002EC5FC /* RZ Application */,
+				2B7A3BF223B4583A002EC5FC /* Render-Z */,
 				2BBF11B021EADB46001C94E9 /* Mad4Metal */,
 				2B91CBF12358629300DED7B1 /* OSX Framework */,
 				2B91CD80235959CC00DED7B1 /* IOS Framework */,
@@ -742,6 +869,7 @@
 				2B91CBF02358629300DED7B1 /* OSX_Framework.framework */,
 				2B91CD7F235959CC00DED7B1 /* IOS_Framework.framework */,
 				2B1ACBDC23597D2600ED19AD /* TVOS_Framework.framework */,
+				2B7A3BF123B4583A002EC5FC /* Render-Z.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -977,6 +1105,23 @@
 			productReference = 2B1ACBDC23597D2600ED19AD /* TVOS_Framework.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		2B7A3BF023B4583A002EC5FC /* Render-Z */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2B7A3BFE23B4583E002EC5FC /* Build configuration list for PBXNativeTarget "Render-Z" */;
+			buildPhases = (
+				2B7A3BED23B4583A002EC5FC /* Sources */,
+				2B7A3BEE23B4583A002EC5FC /* Frameworks */,
+				2B7A3BEF23B4583A002EC5FC /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Render-Z";
+			productName = "Render-Z";
+			productReference = 2B7A3BF123B4583A002EC5FC /* Render-Z.app */;
+			productType = "com.apple.product-type.application";
+		};
 		2B91CBEF2358629300DED7B1 /* OSX Framework */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2B91CBF92358629300DED7B1 /* Build configuration list for PBXNativeTarget "OSX Framework" */;
@@ -1053,12 +1198,15 @@
 		2BBF10EE21EAD2AF001C94E9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1010;
+				LastSwiftUpdateCheck = 1130;
 				LastUpgradeCheck = 1120;
 				ORGANIZATIONNAME = "Markus Moenig";
 				TargetAttributes = {
 					2B1ACBDB23597D2600ED19AD = {
 						CreatedOnToolsVersion = 11.1;
+					};
+					2B7A3BF023B4583A002EC5FC = {
+						CreatedOnToolsVersion = 11.3;
 					};
 					2B91CBEF2358629300DED7B1 = {
 						CreatedOnToolsVersion = 11.1;
@@ -1113,6 +1261,7 @@
 			targets = (
 				2BBF10F521EAD2AF001C94E9 /* Shape-Z */,
 				2BBF112B21EAD38D001C94E9 /* Shape-Z iOS */,
+				2B7A3BF023B4583A002EC5FC /* Render-Z */,
 				2B91CBEF2358629300DED7B1 /* OSX Framework */,
 				2B91CD7E235959CC00DED7B1 /* IOS Framework */,
 				2B1ACBDB23597D2600ED19AD /* TVOS Framework */,
@@ -1125,6 +1274,24 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2B7A3BEF23B4583A002EC5FC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B7A3C0523B4652E002EC5FC /* GameCuben.tiff in Resources */,
+				2B7A3C0423B4652E002EC5FC /* GameCuben.json in Resources */,
+				2B7A3C0623B4652E002EC5FC /* OpenSans.json in Resources */,
+				2B7A3C0723B4652E002EC5FC /* OpenSans.tiff in Resources */,
+				2B7A3C5123B46B53002EC5FC /* sz_ui_blue.tiff in Resources */,
+				2B7A3C4F23B46B53002EC5FC /* sz_toolbar.tiff in Resources */,
+				2B7A3BF823B4583E002EC5FC /* Assets.xcassets in Resources */,
+				2B7A3BFB23B4583E002EC5FC /* Main.storyboard in Resources */,
+				2B7A3C0223B4652E002EC5FC /* Square.json in Resources */,
+				2B7A3C5023B46B53002EC5FC /* sz_ui_grey.tiff in Resources */,
+				2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1294,6 +1461,53 @@
 				2B1ACC1723597D9A00ED19AD /* MMRegion.swift in Sources */,
 				2B1ACC0B23597D8200ED19AD /* SceneNodes.swift in Sources */,
 				2B1ACBED23597D5900ED19AD /* Mad4Metal.metal in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2B7A3BED23B4583A002EC5FC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2B7A3C3B23B46838002EC5FC /* RightRegion.swift in Sources */,
+				2B7A3C0F23B46546002EC5FC /* MMFont.swift in Sources */,
+				2B7A3C3C23B46838002EC5FC /* BottomRegion.swift in Sources */,
+				2B7A3C1523B46546002EC5FC /* MMTabWidget.swift in Sources */,
+				2B7A3C0823B4653F002EC5FC /* MMView.swift in Sources */,
+				2B7A3C2423B46560002EC5FC /* App.swift in Sources */,
+				2B7A3C0B23B46546002EC5FC /* MMWidget.swift in Sources */,
+				2B7A3C5523B479F4002EC5FC /* SourceList.swift in Sources */,
+				2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */,
+				2B7A3C1323B46546002EC5FC /* MMFloatPopUp.swift in Sources */,
+				2B7A3C0C23B46546002EC5FC /* MMRegion.swift in Sources */,
+				2B7A3C1C23B46546002EC5FC /* MMTreeWidget.swift in Sources */,
+				2B7A3BF623B4583A002EC5FC /* ViewController.swift in Sources */,
+				2B7A3C2023B46546002EC5FC /* MMFile.swift in Sources */,
+				2B7A3C3723B46838002EC5FC /* EditorRegion.swift in Sources */,
+				2B7A3C1F23B46546002EC5FC /* MMTimeline.swift in Sources */,
+				2B7A3C1E23B46546002EC5FC /* MMAnimate.swift in Sources */,
+				2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */,
+				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
+				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
+				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
+				2B7A3C3823B46838002EC5FC /* EditorWidget.swift in Sources */,
+				2B7A3C1623B46546002EC5FC /* MMTabButtonWidget.swift in Sources */,
+				2B7A3C1723B46546002EC5FC /* MMCompute.swift in Sources */,
+				2B7A3C1923B46546002EC5FC /* MMScrollArea.swift in Sources */,
+				2B7A3C1123B46546002EC5FC /* MMFloatWidget.swift in Sources */,
+				2B7A3C2223B46546002EC5FC /* MMInfoArea.swift in Sources */,
+				2B7A3C3F23B469AD002EC5FC /* Mad4Metal.metal in Sources */,
+				2B7A3BF423B4583A002EC5FC /* AppDelegate.swift in Sources */,
+				2B7A3C1223B46546002EC5FC /* MMSliderWidget.swift in Sources */,
+				2B7A3C1423B46546002EC5FC /* MMColorWidget.swift in Sources */,
+				2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */,
+				2B7A3C5323B4768D002EC5FC /* Editor.swift in Sources */,
+				2B7A3C1B23B46546002EC5FC /* MMListWidget.swift in Sources */,
+				2B7A3C3923B46838002EC5FC /* LeftRegion.swift in Sources */,
+				2B7A3C0A23B46546002EC5FC /* MMRenderer.swift in Sources */,
+				2B7A3C0923B4653F002EC5FC /* MMBaseView_mac.swift in Sources */,
+				2B7A3C0D23B46546002EC5FC /* MMDrawable.swift in Sources */,
+				2B7A3C1D23B46546002EC5FC /* MMSkin.swift in Sources */,
+				2B7A3C1023B46546002EC5FC /* MMLabel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1634,6 +1848,14 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		2B7A3BF923B4583E002EC5FC /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2B7A3BFA23B4583E002EC5FC /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
 		2BBF110221EAD2B0001C94E9 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1717,6 +1939,50 @@
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		2B7A3BFF23B4583E002EC5FC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Render-Z/Render_Z.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = G6R6L3VH62;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "Render-Z/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MARKETING_VERSION = 0.01;
+				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderz;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		2B7A3C0023B4583E002EC5FC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = "Render-Z/Render_Z.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = G6R6L3VH62;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "Render-Z/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MARKETING_VERSION = 0.01;
+				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderz;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -2078,6 +2344,15 @@
 			buildConfigurations = (
 				2B1ACBE123597D2600ED19AD /* Debug */,
 				2B1ACBE223597D2600ED19AD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		2B7A3BFE23B4583E002EC5FC /* Build configuration list for PBXNativeTarget "Render-Z" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2B7A3BFF23B4583E002EC5FC /* Debug */,
+				2B7A3C0023B4583E002EC5FC /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

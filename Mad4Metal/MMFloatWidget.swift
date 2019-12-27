@@ -85,7 +85,7 @@ class MMFloatWidget : MMWidget
         
         let skin = mmView.skin.MenuWidget
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: itemHeight, round: itemHeight, borderSize: 0, fillColor : skin.color, borderColor: NodeUI.contentColor)
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: itemHeight, round: itemHeight, borderSize: 0, fillColor : skin.color, borderColor: SIMD4<Float>(0.404, 0.408, 0.412, 1.000))
         
         //let offset = (rect.width / (range.y - range.x)) * (value - range.x)
         
@@ -95,7 +95,7 @@ class MMFloatWidget : MMWidget
             let offset = (rect.width / (range!.y - range!.x)) * (value - range!.x)
             if offset > 0 {
                 mmView.renderer.setClipRect(MMRect(rect.x, rect.y, offset, itemHeight))
-                mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: itemHeight, round: itemHeight, borderSize: 0, fillColor : NodeUI.contentColor2)
+                mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: itemHeight, round: itemHeight, borderSize: 0, fillColor : SIMD4<Float>(0.243, 0.247, 0.251, 1.000))
                 mmView.renderer.setClipRect()
             }
         }

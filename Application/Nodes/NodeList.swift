@@ -61,8 +61,9 @@ class NodeList : MMWidget
         
         super.init(view)
 
-        var item : NodeListItem
-        var parent : NodeListItem
+        var item        : NodeListItem
+        var parent      : NodeListItem
+        var subParent   : NodeListItem
 
         // --- Object
         item = NodeListItem("Object")
@@ -342,97 +343,106 @@ class NodeList : MMWidget
 
         // Arithmetic
         parent = addNodeItem(NodeListItem("Arithmetic"), type: .Arithmetic, displayType: .All)
-        
+        subParent = NodeListItem("Float2")
+
+        addSubNodeItem(parent, subParent)
+
         // --- Arithmetic
         item = NodeListItem("Add(Float2, Float2)")
         item.createNode = {
             return AddFloat2Variables()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Sub(Float2, Float2)")
         item.createNode = {
             return SubtractFloat2Variables()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Mult(Const, Float2)")
         item.createNode = {
             return MultiplyConstFloat2Variable()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Copy(Float2, Float2)")
         item.createNode = {
             return CopyFloat2Variables()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Reflect(Float2, Float2)")
         item.createNode = {
             return ReflectFloat2Variables()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Test(Float2)")
         item.createNode = {
             return TestFloat2Variable()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Limit(Float2)")
         item.createNode = {
             return LimitFloat2Range()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
+        subParent = NodeListItem("Float")
+
+        addSubNodeItem(parent, subParent)
+        
         item = NodeListItem("Animate(Float)")
         item.createNode = {
             return AnimateFloatVariable()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Add(Const, Float)")
         item.createNode = {
             return AddConstFloatVariable()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Sub(Const, Float)")
         item.createNode = {
             return SubtractConstFloatVariable()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Reset(Float)")
         item.createNode = {
             return ResetFloatVariable()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Copy(Const, Float)")
         item.createNode = {
             return SetFloatVariable()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Copy(Float, Float)")
         item.createNode = {
             return CopyFloatVariables()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Test(Float)")
         item.createNode = {
             return TestFloatVariable()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
+
+        subParent = NodeListItem("Float")
 
         item = NodeListItem("Random(Direction)")
         item.createNode = {
             return RandomDirection()
         }
-        addSubNodeItem(parent, item)
+        addSubNodeItem(subParent, item)
 
         item = NodeListItem("Stop Variable Anims")
         item.createNode = {

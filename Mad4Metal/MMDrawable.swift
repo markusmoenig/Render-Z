@@ -77,7 +77,7 @@ class MMDrawBox : MMDrawable
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let settings: [Float] = [
             width * scaleFactor, height * scaleFactor,
-            round, borderSize * scaleFactor,
+            round / (scaleFactor == 1 ? 2 : 1), borderSize * scaleFactor,
             fillColor.x, fillColor.y, fillColor.z, fillColor.w,
             borderColor.x, borderColor.y, borderColor.z, borderColor.w
         ];
@@ -580,7 +580,7 @@ class MMDrawText : MMDrawable
     
     @discardableResult func drawChar( _ font: MMFont, char: BMChar, x: Float, y: Float, color: SIMD4<Float>, scale: Float = 1.0, fragment: MMFragment? = nil) -> MMCharBuffer
     {
-        let scaleFactor : Float = fragment == nil ? mmRenderer.mmView.scaleFactor : 2
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let adjScale : Float = scale / 2
         
         let textSettings: [Float] = [

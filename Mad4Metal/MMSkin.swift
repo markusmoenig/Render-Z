@@ -133,6 +133,16 @@ struct MMSkinNode
     var runningColor    : SIMD4<Float> = SIMD4<Float>(0.678, 0.682, 0.686, 1.000)
 }
 
+struct MMSkinCode
+{
+    var reserved        : SIMD4<Float> = SIMD4<Float>(0.922, 0.510, 0.694, 1.000)
+    
+    var nameHighlighted : SIMD4<Float> = SIMD4<Float>(0.553, 0.863, 0.984, 1.000)
+    var name            : SIMD4<Float> = SIMD4<Float>(0.424, 0.682, 0.784, 1.000)
+    
+    var background      : SIMD4<Float> = SIMD4<Float>(0.161, 0.165, 0.184, 1.000)
+}
+
 struct MMSkin
 {
     var Widget          : MMSkinWidget = MMSkinWidget()
@@ -146,6 +156,7 @@ struct MMSkin
     var Node            : MMSkinNode = MMSkinNode()
     var Item            : MMSkinItem = MMSkinItem()
     var Dialog          : MMSkinDialog = MMSkinDialog()
+    var Code            : MMSkinCode = MMSkinCode()
 
     var disabledAlpha   : Float = 0.2
 }

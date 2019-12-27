@@ -268,16 +268,6 @@ func fromHex(hexString: String) -> SIMD3<Float>
     return SIMD3<Float>(Float(r) / 255, Float(g) / 255, Float(b) / 255)//, alpha: CGFloat(a) / 255)
 }
 
-func createNodeCamera(_ node: Node) -> Camera
-{
-    let prevOffX = node.properties["prevOffX"]
-    let prevOffY = node.properties["prevOffY"]
-    let prevScale = node.properties["prevScale"]
-    let camera = Camera(x: prevOffX != nil ? prevOffX! : 0, y: prevOffY != nil ? prevOffY! : 0, zoom: prevScale != nil ? prevScale! : 1)
-    
-    return camera
-}
-
 func createStaticTextSource(_ font: MMFont, _ text: String, varCounter: Int = 0) -> String
 {
     var source = "FontChar chars\(varCounter)[\(text.count)];\n"

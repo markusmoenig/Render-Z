@@ -76,7 +76,7 @@ class MMTreeWidget : MMWidget
         hoverBuffer = fragment!.device.makeBuffer(bytes: hoverData, length: hoverData.count * MemoryLayout<Float>.stride, options: [])!
         
         super.init(view)
-        zoom = 2
+        zoom = mmView.scaleFactor
         textureWidget.zoom = zoom
     }
     
@@ -134,11 +134,11 @@ class MMTreeWidget : MMWidget
 
         if fragment!.encoderStart() {
                         
-            let left        : Float = 6 * zoom
+            let left        : Float = 12
             var top         : Float = 0
             var indent      : Float = 0
-            let indentSize  : Float = 10
-            let fontScale   : Float = 0.22
+            let indentSize  : Float = 4
+            let fontScale   : Float = 0.44
             
             //var fontRect = MMRect()
             
@@ -152,16 +152,15 @@ class MMTreeWidget : MMWidget
 
                 //fontRect = mmView.openSans.getTextRect(text: text, scale: fontScale, rectToUse: fontRect)
                 
-                
                 if item.children != nil {
                     let text : String = item.folderOpen == false ? "+" : "-"
-                    mmView.drawText.drawText(mmView.openSans, text: text, x: left, y: top + 4 * zoom, scale: fontScale * zoom, fragment: fragment)
-                    mmView.drawText.drawText(mmView.openSans, text: item.name, x: left + indent + 15, y: top + 4 * zoom, scale: fontScale * zoom, fragment: fragment)
+                    mmView.drawText.drawText(mmView.openSans, text: text, x: left + indent, y: top + 8, scale: fontScale, fragment: fragment)
+                    mmView.drawText.drawText(mmView.openSans, text: item.name, x: left + indent + 15, y: top + 8, scale: fontScale, fragment: fragment)
                 } else {
-                    mmView.drawText.drawText(mmView.openSans, text: item.name, x: left + indent, y: top + 4 * zoom, scale: fontScale * zoom, fragment: fragment)
+                    mmView.drawText.drawText(mmView.openSans, text: item.name, x: left + indent, y: top + 8, scale: fontScale, fragment: fragment)
                 }
                 
-                top += (unitSize / 2) * zoom
+                top += unitSize
             }
             
             func drawChildren(_ item: MMTreeWidgetItem) {
@@ -198,12 +197,12 @@ class MMTreeWidget : MMWidget
     {
         let cb : Float = 2
         // Erase Edges
-        mmView.drawBox.draw( x: rect.x - cb + 1, y: rect.y - cb, width: rect.width + 2*cb - 2, height: rect.height + 2*cb, round: 30, borderSize: 4, fillColor: float4(0,0,0,0), borderColor: backColor)
+        mmView.drawBox.draw( x: rect.x - cb + 1, y: rect.y - cb, width: rect.width + 2*cb - 2, height: rect.height + 2*cb, round: 30, borderSize: 4, fillColor: SIMD4<Float>(0,0,0,0), borderColor: backColor)
         
-        mmView.drawBox.draw( x: rect.x - cb + 1, y: rect.y - cb, width: rect.width + 2*cb - 2, height: rect.height + 2*cb, round: 0, borderSize: 4, fillColor: float4(0,0,0,0), borderColor: backColor)
+        mmView.drawBox.draw( x: rect.x - cb + 1, y: rect.y - cb, width: rect.width + 2*cb - 2, height: rect.height + 2*cb, round: 0, borderSize: 4, fillColor: SIMD4<Float>(0,0,0,0), borderColor: backColor)
         
         // Box Border
-        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height + 2, round: 30, borderSize: 1, fillColor: float4(0,0,0,0), borderColor: borderColor)
+        mmView.drawBox.draw( x: rect.x, y: rect.y - 1, width: rect.width, height: rect.height + 2, round: 30, borderSize: 1, fillColor: SIMD4<Float>(0,0,0,0), borderColor: borderColor)
     }
     
     /// Select the item at the given relative mouse position
@@ -249,14 +248,17 @@ class MMTreeWidget : MMWidget
             for item in item.children! {
                 if item.folderOpen == false {
                     bottom += unitSize
+                    if selected == nil && bottom > offset {
+                        selected = item
+                    }
                 } else {
                     bottom += itemSize
+                    if selected == nil && bottom > offset {
+                        selected = item
+                    }
                     getChildHeight(item)
                 }
                 bottom += spacing
-                if selected == nil && bottom > offset {
-                    selected = item
-                }
             }
         }
         
