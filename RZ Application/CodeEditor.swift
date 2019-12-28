@@ -55,24 +55,20 @@ class CodeEditor        : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if let dragSource = mmView.dragSource {
-        } else {
-        }
+        //if let dragSource = mmView.dragSource {
+        //} else {
+        //}
         
         if let comp = codeComponent {
-            for f in comp.functions {
-                f.hoverArea = .None
-
-                if f.rects["body"]!.contains((event.x - rect.x), (event.y - rect.y)) {
-                 
-                    //print(event.x - rect.x, event.y - rect.y)
-                    f.hoverArea = .Body
-
-                }
+            let oldFrag = codeContext.hoverFragment
+            
+            comp.codeAt(mmView, event.x - rect.x, event.y - rect.y, codeContext)
+            
+            if oldFrag !== codeContext.hoverFragment {
+                needsUpdate = true
+                mmView.update()
             }
         }
-        needsUpdate = true
-        mmView.update()
     }
     
     override func update()
@@ -89,7 +85,7 @@ class CodeEditor        : MMWidget
                 
         if fragment.encoderStart()
         {
-            let fontScale   : Float = 0.6
+            //let fontScale   : Float = 0.6
             //var lineY       : Float = 40
 
             //var fontRect = MMRect()

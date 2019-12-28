@@ -22,7 +22,8 @@ class CodeFragment          : Codable
     var arguments           : [CodeStatement] = []
 
     var rect                : MMRect = MMRect()
-    
+    var argRect             : MMRect = MMRect()
+
     private enum CodingKeys: String, CodingKey {
         case fragmentType
         case typeName
@@ -118,10 +119,23 @@ class CodeBlock
         {
         case .FunctionHeader:
         
+            let rStart = ctx.rectStart()
             ctx.font.getTextRect(text: fragment.typeName, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
                 mmView.drawText.drawText(ctx.font, text: fragment.typeName, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.reserved, fragment: frag)
             }
+            
+            ctx.cX += ctx.tempRect.width + ctx.gapX
+            
+            ctx.font.getTextRect(text: fragment.name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: fragment.name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.nameHighlighted, fragment: frag)
+            }
+            
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(fragment.rect, rStart)
+            
+            ctx.drawFragmentState(fragment)
         }
     }
 }
@@ -177,6 +191,18 @@ class CodeComponent
         functions.append(f)
     }
     
+    func codeAt(_ mmView: MMView,_ x: Float,_ y: Float,_ ctx: CodeContext)
+    {
+        ctx.hoverFragment = nil
+        
+        for f in functions {
+            if f.header.fragment.rect.contains(x, y) {
+                ctx.hoverFragment = f.header.fragment
+                break
+            }
+        }
+    }
+    
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
         for f in functions {
@@ -203,7 +229,9 @@ class CodeContext
     var lineHeight          : Float = 0
     var gapX                : Float = 0
     var gapY                : Float = 0
-
+    
+    var hoverFragment       : CodeFragment? = nil
+    
     var tempRect            : MMRect = MMRect()
     
     init(_ view: MMView,_ fragment: MMFragment,_ font: MMFont,_ fontScale: Float)
@@ -221,5 +249,25 @@ class CodeContext
     {
         tempRect = font.getTextRect(text: "()", scale: fontScale, rectToUse: tempRect)
         lineHeight = tempRect.height
+    }
+    
+    func rectStart() -> SIMD2<Float>
+    {
+        return SIMD2<Float>(cX, cY)
+    }
+    
+    func rectEnd(_ rect: MMRect,_ start: SIMD2<Float>)
+    {
+        rect.x = start.x - gapX / 2
+        rect.y = start.y - gapY / 2
+        rect.width = cX - start.x + gapX
+        rect.height = max(cY - start.y, lineHeight) + gapY
+    }
+    
+    func drawFragmentState(_ fragment: CodeFragment)
+    {
+        if fragment === hoverFragment {
+            mmView.drawBox.draw( x: fragment.rect.x, y: fragment.rect.y, width: fragment.rect.width, height: fragment.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.5), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: self.fragment )
+        }
     }
 }
