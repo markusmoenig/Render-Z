@@ -95,7 +95,7 @@ class CodeStatement         : Codable
 class CodeBlock
 {
     enum BlockType {
-        case FunctionHeader
+        case Empty, FunctionHeader
     }
     
     let blockType           : BlockType
@@ -117,6 +117,13 @@ class CodeBlock
     {
         switch( blockType )
         {
+        case .Empty:
+            let rStart = ctx.rectStart()
+            ctx.cX = ctx.editorWidth - ctx.cX
+            ctx.rectEnd(fragment.rect, rStart)
+            ctx.drawFragmentState(fragment)
+        break
+            
         case .FunctionHeader:
         
             let rStart = ctx.rectStart()
@@ -133,9 +140,13 @@ class CodeBlock
             }
             
             ctx.cX += ctx.tempRect.width
+            ctx.cY += ctx.lineHeight + ctx.gapY
             ctx.rectEnd(fragment.rect, rStart)
             
             ctx.drawFragmentState(fragment)
+            
+            ctx.cIndent = ctx.indent
+        break
         }
     }
 }
@@ -173,6 +184,11 @@ class CodeFunction
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
         header.draw(mmView, ctx)
+        for b in body {
+            ctx.cIndent = ctx.indent
+            ctx.cX = ctx.startX + ctx.cIndent
+            b.draw(mmView, ctx)
+        }
     }
 }
 
@@ -188,6 +204,7 @@ class CodeComponent
     func createFunction(_ type: CodeFunction.FunctionType, _ name: String)
     {
         let f = CodeFunction(type, name)
+        f.body.append(CodeBlock(.Empty))
         functions.append(f)
     }
     
@@ -200,6 +217,12 @@ class CodeComponent
                 ctx.hoverFragment = f.header.fragment
                 break
             }
+            for b in f.body {
+                if b.fragment.rect.contains(x, y) {
+                    ctx.hoverFragment = b.fragment
+                    break
+                }
+            }
         }
     }
     
@@ -207,6 +230,8 @@ class CodeComponent
     {
         for f in functions {
             
+            ctx.cX = ctx.startX
+            ctx.cIndent = 0
             f.draw(mmView, ctx)
         }
     }
@@ -229,6 +254,9 @@ class CodeContext
     var lineHeight          : Float = 0
     var gapX                : Float = 0
     var gapY                : Float = 0
+    var startX              : Float = 0
+    
+    var editorWidth         : Float = 0
     
     var hoverFragment       : CodeFragment? = nil
     

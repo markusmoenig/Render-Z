@@ -55,6 +55,8 @@ class MMTreeWidget : MMWidget
     
     var itemRound       : Float = 0
     
+    var textOnly        : Bool = false
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -147,7 +149,9 @@ class MMTreeWidget : MMWidget
                 if selectedItems.contains(item.uuid) {
                     mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: shadeColor(item.color!, selectionShade), fragment: fragment!)
                 } else {
-                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: item.color!, fragment: fragment!)
+                    if textOnly == false {
+                        mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: item.color!, fragment: fragment!)
+                    }
                 }
 
                 //fontRect = mmView.openSans.getTextRect(text: text, scale: fontScale, rectToUse: fontRect)

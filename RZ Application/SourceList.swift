@@ -57,7 +57,10 @@ class SourceList : MMWidget
         listWidget = MMTreeWidget(view)
         listWidget.skin.selectionColor = SIMD4<Float>(0.5,0.5,0.5,1)
         listWidget.itemRound = 0
-        
+        listWidget.textOnly = true
+        listWidget.unitSize -= 5
+        listWidget.itemSize -= 5
+
         super.init(view)
 
         var item        : SourceListItem
