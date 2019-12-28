@@ -15,6 +15,7 @@ class CodeEditor        : MMWidget
     var scrollArea      : MMScrollArea
     
     var codeComponent   : CodeComponent? = nil
+    var codeContext     : CodeContext
     
     var needsUpdate     : Bool = false
 
@@ -25,6 +26,8 @@ class CodeEditor        : MMWidget
         fragment = MMFragment(view)
         fragment.allocateTexture(width: 10, height: 10)
         textureWidget = MMTextureWidget( view, texture: fragment.texture )
+        
+        codeContext = CodeContext(view, fragment, view.openSans, 0.6)
         
         super.init(view)
 
@@ -52,6 +55,10 @@ class CodeEditor        : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        if let dragSource = mmView.dragSource {
+        } else {
+        }
+        
         if let comp = codeComponent {
             for f in comp.functions {
                 f.hoverArea = .None
@@ -83,22 +90,28 @@ class CodeEditor        : MMWidget
         if fragment.encoderStart()
         {
             let fontScale   : Float = 0.6
-            var lineY       : Float = 40
+            //var lineY       : Float = 40
 
-            var fontRect = MMRect()
-            fontRect = mmView.openSans.getTextRect(text: "()", scale: fontScale, rectToUse: fontRect)
-            let lineHeight : Float = fontRect.height
+            //var fontRect = MMRect()
+            //fontRect = mmView.openSans.getTextRect(text: "()", scale: fontScale, rectToUse: fontRect)
+            //let lineHeight : Float = fontRect.height
 
             if let comp = codeComponent {
 
+                codeContext.cX = 5
+                codeContext.cY = 40
+
+                codeContext.gapX = 5
+                codeContext.gapY = 1
+
+                comp.draw(mmView, codeContext)
+                /*
                 let startX: Float = 5
                 var lineX : Float = startX
                 let gapX  : Float = 5
                 let gapY  : Float = 1
 
                 for f in comp.functions {
-                
-                    mmView.drawBox.draw( x: 0, y: 0, width: trans(100), height: trans(40), round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 1), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: fragment )
                     
                     let returnType = f.returnType()
                     fontRect = mmView.openSans.getTextRect(text: returnType, scale: fontScale, rectToUse: fontRect)
@@ -118,11 +131,11 @@ class CodeEditor        : MMWidget
                     f.rects["body"]!.x = lineX + 1
                     f.rects["body"]!.y = lineY + 1
 
-                    mmView.drawText.drawText(mmView.openSans, text: "[", x: trans(lineX), y: trans(lineY), scale: fontScale, fragment: fragment)
+                    //mmView.drawText.drawText(mmView.openSans, text: "[", x: trans(lineX), y: trans(lineY), scale: fontScale, fragment: fragment)
                     
                     lineY += lineHeight + gapY
                     
-                    mmView.drawText.drawText(mmView.openSans, text: "]", x: trans(lineX), y: trans(lineY), scale: fontScale, fragment: fragment)
+                    //mmView.drawText.drawText(mmView.openSans, text: "]", x: trans(lineX), y: trans(lineY), scale: fontScale, fragment: fragment)
                     
                     lineY += lineHeight + gapY
                     f.rects["body"]!.width = rect.width - f.rects["body"]!.x + 2
@@ -132,7 +145,7 @@ class CodeEditor        : MMWidget
                      
                         mmView.drawBox.draw( x: trans(f.rects["body"]!.x), y: trans(f.rects["body"]!.y), width: trans(f.rects["body"]!.width), height: trans(f.rects["body"]!.height), round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.6), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: fragment )
                     }
-                }
+                }*/
             }
            /*
             let left        : Float = 6 * zoom

@@ -77,7 +77,7 @@ class SourceList : MMWidget
         parent.color = SIMD4<Float>(0.5,0.5,0.5,1)
         items.append(parent)
 
-        item = SourceListItem("Float", CodeFragment(.Variable, "float", "Unnamed"))
+        item = SourceListItem("Float", CodeFragment(.VariableDefinition, "float"))
         item.color = SIMD4<Float>(0.5,0.5,0.5,1)
         addSubNodeItem(parent, item)
         
