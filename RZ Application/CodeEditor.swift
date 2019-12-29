@@ -60,11 +60,13 @@ class CodeEditor        : MMWidget
         //}
         
         if let comp = codeComponent {
+            let oldFunc = codeContext.hoverFunction
+            let oldBlock = codeContext.hoverBlock
             let oldFrag = codeContext.hoverFragment
             
             comp.codeAt(mmView, event.x - rect.x, event.y - rect.y, codeContext)
             
-            if oldFrag !== codeContext.hoverFragment {
+            if oldFunc !== codeContext.hoverFunction || oldBlock !== codeContext.hoverBlock || oldFrag !== codeContext.hoverFragment {
                 needsUpdate = true
                 mmView.update()
             }
@@ -74,8 +76,8 @@ class CodeEditor        : MMWidget
     override func update()
     {
         let height : Float = 1000
-        if fragment.width != rect.width * zoom || fragment.height != 1000 * zoom {
-            fragment.allocateTexture(width: rect.width * zoom, height: 1000 * zoom)
+        if fragment.width != rect.width * zoom || fragment.height != height * zoom {
+            fragment.allocateTexture(width: rect.width * zoom, height: height * zoom)
         }
         textureWidget.setTexture(fragment.texture)
                 
@@ -83,13 +85,14 @@ class CodeEditor        : MMWidget
         {
             if let comp = codeComponent {
                 
-                codeContext.startX = 5
+                codeContext.startX = 10
                 codeContext.cY = 40
                 
                 codeContext.gapX = 5
                 codeContext.gapY = 1
                 codeContext.indent = 20
-                
+                codeContext.border = 60
+
                 codeContext.editorWidth = rect.width
 
                 comp.draw(mmView, codeContext)

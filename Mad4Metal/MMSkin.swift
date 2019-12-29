@@ -141,6 +141,8 @@ struct MMSkinCode
     var name            : SIMD4<Float> = SIMD4<Float>(0.424, 0.682, 0.784, 1.000)
     
     var background      : SIMD4<Float> = SIMD4<Float>(0.161, 0.165, 0.184, 1.000)
+    
+    var border          : SIMD4<Float> = SIMD4<Float>(0.329, 0.333, 0.353, 1.000)
 }
 
 struct MMSkin
