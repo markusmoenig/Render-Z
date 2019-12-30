@@ -37,7 +37,7 @@ class CodeEditor        : MMWidget
         dropTargets.append( "SourceItem" )
         
         codeComponent = CodeComponent()
-        codeComponent?.createFunction(.FreeFlow, "main")
+        codeComponent?.createDefaultFunction(.ScreenObjectColorize)
         needsUpdate = true
     }
     
@@ -47,9 +47,9 @@ class CodeEditor        : MMWidget
         if dragSource.id == "SourceItem"
         {
             // Source Item
-            if let drag = dragSource as? SourceListDrag {
+            //if let drag = dragSource as? SourceListDrag {
                 //codeEditor.sourceDrop(event, drag.
-            }
+            //}
         }
     }
     

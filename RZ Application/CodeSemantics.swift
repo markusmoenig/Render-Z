@@ -12,7 +12,13 @@ import Foundation
 class CodeFragment          : Codable
 {
     enum FragmentType       : Int, Codable {
-        case Undefined, TypeDefinition, VariableDefinition, OutVariable
+        case    Undefined,              // Type is not defined yet
+                TypeDefinition,         // Type definition (float4 param)
+                ConstTypeDefinition,    // Const type definition (float4 colorize) cannot be editited
+                VariableDefinition,     // Definition of a variable (float4 color)
+                OutVariable,            // Out variable (outColor), cannot be edited
+                ConstantDefinition,     // Definition of a constant (float4)
+                ConstantValue           // Value of a constant (1.2), right now only floats
     }
     
     var fragmentType        : FragmentType = .Undefined
@@ -23,12 +29,15 @@ class CodeFragment          : Codable
 
     var rect                : MMRect = MMRect()
     var argRect             : MMRect = MMRect()
+    
+    var values              : [String:Float] = [:]
 
     private enum CodingKeys: String, CodingKey {
         case fragmentType
         case typeName
         case name
         case arguments
+        case values
     }
     
     required init(from decoder: Decoder) throws
@@ -38,6 +47,7 @@ class CodeFragment          : Codable
         typeName = try container.decode(String.self, forKey: .typeName)
         name = try container.decode(String.self, forKey: .name)
         arguments = try container.decode([CodeStatement].self, forKey: .arguments)
+        values = try container.decode([String:Float].self, forKey: .values)
     }
     
     func encode(to encoder: Encoder) throws
@@ -47,6 +57,7 @@ class CodeFragment          : Codable
         try container.encode(typeName, forKey: .name)
         try container.encode(name, forKey: .name)
         try container.encode(arguments, forKey: .arguments)
+        try container.encode(values, forKey: .values)
     }
 
     init(_ type: FragmentType,_ typeName: String = "",_ name: String = "")
@@ -54,6 +65,86 @@ class CodeFragment          : Codable
         fragmentType = type
         self.typeName = typeName
         self.name = name
+        
+        if type == .ConstantValue {
+            values["value"] = 1
+            values["min"] = 0
+            values["max"] = 1
+        }
+    }
+    
+    func draw(_ mmView: MMView,_ ctx: CodeContext)
+    {
+        if fragmentType == .OutVariable {
+            let rStart = ctx.rectStart()
+            
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.outVariable, fragment: frag)
+            }
+            
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+        } else
+        if fragmentType == .ConstantDefinition {
+            let rStart = ctx.rectStart()
+            
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.reserved, fragment: frag)
+            }
+            
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+        } else
+        if fragmentType == .ConstantValue {
+            let rStart = ctx.rectStart()
+            let value = String(values["value"]!)
+            
+            ctx.font.getTextRect(text: value, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: value, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.value, fragment: frag)
+            }
+            
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+        }
+        
+        // Arguments
+        
+        if !arguments.isEmpty {
+            let op = "("
+            ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+            }
+            ctx.cX += ctx.tempRect.width + ctx.gapX
+        }
+        
+        for (index, arg) in arguments.enumerated() {
+            arg.draw(mmView, ctx)
+            
+            if index != arguments.endIndex - 1 {
+                let op = ","
+                ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+                if let frag = ctx.fragment {
+                    mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+                }
+                ctx.cX += ctx.tempRect.width + ctx.gapX
+            }
+        }
+        
+        if !arguments.isEmpty {
+            let op = ")"
+            ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+            }
+            ctx.cX += ctx.tempRect.width + ctx.gapX
+        }
     }
 }
 
@@ -89,13 +180,22 @@ class CodeStatement         : Codable
     {
         self.statementType = type
     }
+    
+    func draw(_ mmView: MMView,_ ctx: CodeContext)
+    {
+        for f in fragments {
+            
+            f.draw(mmView, ctx)
+            ctx.drawFragmentState(f)
+        }
+    }
 }
 
 /// A single block (line) of code. Has an individual fragment on the left and a list (CodeStatement) on the right. Represents any kind of supported code.
 class CodeBlock
 {
     enum BlockType {
-        case Empty, FunctionHeader
+        case Empty, FunctionHeader, OutVariable
     }
     
     let blockType           : BlockType
@@ -104,6 +204,7 @@ class CodeBlock
     var statement           : CodeStatement
     
     var rect                : MMRect = MMRect()
+    var assignmentRect      : MMRect = MMRect()
 
     init(_ type: BlockType)
     {
@@ -143,18 +244,13 @@ class CodeBlock
         }
         
         // Content
-        switch( blockType )
-        {
-        case .Empty:
+        if blockType == .Empty {
             let rStart = ctx.rectStart()
             ctx.cX = ctx.editorWidth - ctx.cX
             ctx.rectEnd(fragment.rect, rStart)
             ctx.cY += ctx.lineHeight + ctx.gapY
             ctx.drawFragmentState(fragment)
-        break
-            
-        case .FunctionHeader:
-        
+        } else if blockType == .FunctionHeader {
             let rStart = ctx.rectStart()
             ctx.font.getTextRect(text: fragment.typeName, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
@@ -175,7 +271,28 @@ class CodeBlock
             ctx.drawFragmentState(fragment)
             
             ctx.cIndent = ctx.indent
-        break
+        } else {
+            // left side
+            fragment.draw(mmView, ctx)
+            ctx.drawFragmentState(fragment)
+
+            // assignment
+            let arStart = ctx.rectStart()
+            let op = "="
+            
+            ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+            }
+            
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(assignmentRect, arStart)
+            ctx.cX += ctx.gapX
+
+            // statement
+            statement.draw(mmView, ctx)
+            
+            ctx.cY += ctx.lineHeight + ctx.gapY
         }
         
         ctx.rectEnd(rect, rStart)
@@ -187,7 +304,7 @@ class CodeBlock
 class CodeFunction
 {
     enum FunctionType {
-        case FreeFlow
+        case FreeFlow, ScreenObjectColorize
     }
     
     let functionType        : FunctionType
@@ -203,7 +320,26 @@ class CodeFunction
         functionType = type
         self.name = name
         
-        header.fragment = CodeFragment(.TypeDefinition, "void", "main")
+        header.fragment = CodeFragment(.TypeDefinition, "void", "colorize")
+    }
+    
+    func createOutVariableBlock(_ typeName: String,_ name: String) -> CodeBlock
+    {
+        let b = CodeBlock(CodeBlock.BlockType.OutVariable)
+        
+        b.fragment.fragmentType = .OutVariable
+        b.fragment.typeName = typeName
+        b.fragment.name = name
+        
+        let constant = CodeFragment(.ConstantDefinition, "float4", "float4")
+        b.statement.fragments.append(constant)
+        
+        for _ in 0...3 {
+            let argStatement = CodeStatement(.Arithmetic)
+            argStatement.fragments.append(CodeFragment(.ConstantValue))
+            constant.arguments.append(argStatement)
+        }
+        return b
     }
     
     func draw(_ mmView: MMView,_ ctx: CodeContext)
@@ -247,6 +383,14 @@ class CodeComponent
         functions.append(f)
     }
     
+    func createDefaultFunction(_ type: CodeFunction.FunctionType)
+    {
+        let f = CodeFunction(type, "colorize")
+        f.body.append(CodeBlock(.Empty))
+        f.body.append(f.createOutVariableBlock("float4", "outColor"))
+        functions.append(f)
+    }
+    
     func codeAt(_ mmView: MMView,_ x: Float,_ y: Float,_ ctx: CodeContext)
     {
         ctx.hoverFunction = nil
@@ -278,6 +422,23 @@ class CodeComponent
                 if b.fragment.rect.contains(x, y) {
                     ctx.hoverFragment = b.fragment
                     break
+                }
+                                
+                for fragment in b.statement.fragments {
+                    for statement in fragment.arguments {
+                        for arg in statement.fragments {
+                            if arg.rect.contains(x, y) {
+                                ctx.hoverFragment = arg
+                                break
+                            }
+                        }
+                    }
+                    if ctx.hoverFragment == nil {
+                        if fragment.rect.contains(x, y) {
+                            ctx.hoverFragment = fragment
+                            break
+                        }
+                    }
                 }
             }
         }
