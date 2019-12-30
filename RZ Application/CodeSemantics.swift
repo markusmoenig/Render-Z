@@ -9,7 +9,7 @@
 import Foundation
 
 /// The smallest possible fragment of code which has a type, name and arguments like step()
-class CodeFragment          : Codable
+class CodeFragment          : Codable, Equatable
 {
     enum FragmentType       : Int, Codable {
         case    Undefined,              // Type is not defined yet
@@ -24,6 +24,7 @@ class CodeFragment          : Codable
     var fragmentType        : FragmentType = .Undefined
     var typeName            : String = ""
     var name                : String = ""
+    var uuid                : UUID = UUID()
         
     var arguments           : [CodeStatement] = []
 
@@ -36,6 +37,7 @@ class CodeFragment          : Codable
         case fragmentType
         case typeName
         case name
+        case uuid
         case arguments
         case values
     }
@@ -46,6 +48,7 @@ class CodeFragment          : Codable
         fragmentType = try container.decode(FragmentType.self, forKey: .fragmentType)
         typeName = try container.decode(String.self, forKey: .typeName)
         name = try container.decode(String.self, forKey: .name)
+        uuid = try container.decode(UUID.self, forKey: .uuid)
         arguments = try container.decode([CodeStatement].self, forKey: .arguments)
         values = try container.decode([String:Float].self, forKey: .values)
     }
@@ -56,8 +59,13 @@ class CodeFragment          : Codable
         try container.encode(fragmentType, forKey: .fragmentType)
         try container.encode(typeName, forKey: .name)
         try container.encode(name, forKey: .name)
+        try container.encode(uuid, forKey: .uuid)
         try container.encode(arguments, forKey: .arguments)
         try container.encode(values, forKey: .values)
+    }
+    
+    static func ==(lhs:CodeFragment, rhs:CodeFragment) -> Bool { // Implement Equatable
+        return lhs.uuid == rhs.uuid
     }
 
     init(_ type: FragmentType,_ typeName: String = "",_ name: String = "")
@@ -157,7 +165,7 @@ class CodeFragment          : Codable
 }
 
 /// A flat list of fragments which are either combined arithmetically or listed (function header)
-class CodeStatement         : Codable
+class CodeStatement         : Codable, Equatable
 {
     enum StatementType      : Int, Codable {
         case Arithmetic, List
@@ -165,10 +173,12 @@ class CodeStatement         : Codable
     
     var statementType       : StatementType
     var fragments           : [CodeFragment] = []
+    var uuid                : UUID = UUID()
 
     private enum CodingKeys: String, CodingKey {
         case statementType
         case fragments
+        case uuid
     }
     
     required init(from decoder: Decoder) throws
@@ -176,12 +186,19 @@ class CodeStatement         : Codable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         statementType = try container.decode(StatementType.self, forKey: .statementType)
         fragments = try container.decode([CodeFragment].self, forKey: .fragments)
+        uuid = try container.decode(UUID.self, forKey: .uuid)
     }
     
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(statementType, forKey: .statementType)
         try container.encode(fragments, forKey: .fragments)
+        try container.encode(uuid, forKey: .uuid)
+    }
+    
+    static func ==(lhs:CodeStatement, rhs:CodeStatement) -> Bool { // Implement Equatable
+        return lhs.uuid == rhs.uuid
     }
     
     init(_ type: StatementType)
@@ -200,9 +217,9 @@ class CodeStatement         : Codable
 }
 
 /// A single block (line) of code. Has an individual fragment on the left and a list (CodeStatement) on the right. Represents any kind of supported code.
-class CodeBlock
+class CodeBlock             : Codable, Equatable
 {
-    enum BlockType {
+    enum BlockType          : Int, Codable {
         case Empty, FunctionHeader, OutVariable
     }
     
@@ -210,10 +227,39 @@ class CodeBlock
 
     var fragment            : CodeFragment = CodeFragment(.Undefined)
     var statement           : CodeStatement
-    
+    var uuid                : UUID = UUID()
+
     var rect                : MMRect = MMRect()
     var assignmentRect      : MMRect = MMRect()
 
+    private enum CodingKeys: String, CodingKey {
+        case blockType
+        case fragment
+        case statement
+        case uuid
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        blockType = try container.decode(BlockType.self, forKey: .blockType)
+        fragment = try container.decode(CodeFragment.self, forKey: .fragment)
+        statement = try container.decode(CodeStatement.self, forKey: .fragment)
+        uuid = try container.decode(UUID.self, forKey: .uuid)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(fragment, forKey: .fragment)
+        try container.encode(statement, forKey: .statement)
+        try container.encode(uuid, forKey: .uuid)
+    }
+    
+    static func ==(lhs:CodeBlock, rhs:CodeBlock) -> Bool { // Implement Equatable
+        return lhs.uuid == rhs.uuid
+    }
+    
     init(_ type: BlockType)
     {
         self.blockType = type
@@ -309,9 +355,9 @@ class CodeBlock
 }
 
 /// A single function which has a block of code for the header and a list of blocks for the body.
-class CodeFunction
+class CodeFunction          : Codable, Equatable
 {
-    enum FunctionType {
+    enum FunctionType       : Int, Codable {
         case FreeFlow, ScreenObjectColorize
     }
     
@@ -320,9 +366,42 @@ class CodeFunction
     
     var header              : CodeBlock = CodeBlock( .FunctionHeader )
     var body                : [CodeBlock] = []
-    
+    var uuid                : UUID = UUID()
+
     var rect                : MMRect = MMRect()
 
+    private enum CodingKeys: String, CodingKey {
+        case functionType
+        case name
+        case header
+        case body
+        case uuid
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        functionType = try container.decode(FunctionType.self, forKey: .functionType)
+        name = try container.decode(String.self, forKey: .name)
+        header = try container.decode(CodeBlock.self, forKey: .header)
+        body = try container.decode([CodeBlock].self, forKey: .body)
+        uuid = try container.decode(UUID.self, forKey: .uuid)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(functionType, forKey: .functionType)
+        try container.encode(name, forKey: .name)
+        try container.encode(header, forKey: .header)
+        try container.encode(body, forKey: .body)
+        try container.encode(uuid, forKey: .uuid)
+    }
+    
+    static func ==(lhs:CodeFunction, rhs:CodeFunction) -> Bool { // Implement Equatable
+        return lhs.uuid == rhs.uuid
+    }
+    
     init(_ type: FunctionType, _ name: String)
     {
         functionType = type
@@ -374,12 +453,36 @@ class CodeFunction
 }
 
 /// A code component which is a list of functions.
-class CodeComponent
+class CodeComponent         : Codable, Equatable
 {
     var functions           : [CodeFunction] = []
-    
+    var uuid                : UUID = UUID()
+
     var rect                : MMRect = MMRect()
 
+    private enum CodingKeys: String, CodingKey {
+        case functions
+        case uuid
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        functions = try container.decode([CodeFunction].self, forKey: .functions)
+        uuid = try container.decode(UUID.self, forKey: .uuid)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(functions, forKey: .functions)
+        try container.encode(uuid, forKey: .uuid)
+    }
+    
+    static func ==(lhs:CodeComponent, rhs:CodeComponent) -> Bool { // Implement Equatable
+        return lhs.uuid == rhs.uuid
+    }
+    
     init()
     {
     }
