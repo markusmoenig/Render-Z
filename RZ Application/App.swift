@@ -23,6 +23,8 @@ class App
     var bottomRegion    : BottomRegion?
     var editorRegion    : EditorRegion?
     
+    var codeBuilder     : CodeBuilder
+
     var editor          : Editor
     
     var changed         : Bool = false
@@ -37,6 +39,7 @@ class App
         mmView.registerIcon("sz_toolbar")
 
         editor = Editor(mmView)
+        codeBuilder = CodeBuilder(mmView)
 
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )

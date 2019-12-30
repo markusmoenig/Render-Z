@@ -407,6 +407,8 @@
 		2B91CDE323595D3500DED7B1 /* GameWidget.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2B5F50692298FC8500D3B6C5 /* GameWidget.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		2B91CDE423595D3500DED7B1 /* MMView.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		2B91CDE523595D3500DED7B1 /* MMBaseView__ios.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */; settings = {ATTRIBUTES = (Public, ); }; };
+		2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
+		2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9F42F023B9CB2800885B40 /* CodeProperties.swift */; };
 		2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
 		2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
 		2BA344AD2202A0A0000BB2EB /* MMFragment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344AC22029FA4000BB2EB /* MMFragment.swift */; };
@@ -606,6 +608,8 @@
 		2B91CD7F235959CC00DED7B1 /* IOS_Framework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = IOS_Framework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B91CD81235959CC00DED7B1 /* IOS_Framework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IOS_Framework.h; sourceTree = "<group>"; };
 		2B91CD82235959CC00DED7B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeBuilder.swift; sourceTree = "<group>"; };
+		2B9F42F023B9CB2800885B40 /* CodeProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeProperties.swift; sourceTree = "<group>"; };
 		2BA344A121FE8497000BB2EB /* MMTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTimeline.swift; sourceTree = "<group>"; };
 		2BA344AC22029FA4000BB2EB /* MMFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFragment.swift; sourceTree = "<group>"; };
 		2BA6163B22597EF400638794 /* MMColorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMColorWidget.swift; sourceTree = "<group>"; };
@@ -771,6 +775,8 @@
 				2B7A3C3E23B469AD002EC5FC /* Mad4Metal_types.h */,
 				2B7A3C5223B4768D002EC5FC /* Editor.swift */,
 				2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */,
+				2B9F42F023B9CB2800885B40 /* CodeProperties.swift */,
+				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
 				2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */,
 				2B7A3C5423B479F4002EC5FC /* SourceList.swift */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
@@ -1476,6 +1482,7 @@
 				2B7A3C2423B46560002EC5FC /* App.swift in Sources */,
 				2B7A3C0B23B46546002EC5FC /* MMWidget.swift in Sources */,
 				2B7A3C5523B479F4002EC5FC /* SourceList.swift in Sources */,
+				2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */,
 				2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */,
 				2B7A3C1323B46546002EC5FC /* MMFloatPopUp.swift in Sources */,
 				2B7A3C0C23B46546002EC5FC /* MMRegion.swift in Sources */,
@@ -1502,6 +1509,7 @@
 				2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */,
 				2B7A3C5323B4768D002EC5FC /* Editor.swift in Sources */,
 				2B7A3C1B23B46546002EC5FC /* MMListWidget.swift in Sources */,
+				2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */,
 				2B7A3C3923B46838002EC5FC /* LeftRegion.swift in Sources */,
 				2B7A3C0A23B46546002EC5FC /* MMRenderer.swift in Sources */,
 				2B7A3C0923B4653F002EC5FC /* MMBaseView_mac.swift in Sources */,

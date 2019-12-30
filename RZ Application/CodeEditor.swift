@@ -28,7 +28,7 @@ class CodeEditor        : MMWidget
         textureWidget = MMTextureWidget( view, texture: fragment.texture )
         
         codeContext = CodeContext(view, fragment, view.openSans, 0.5)
-        
+
         super.init(view)
 
         zoom = mmView.scaleFactor
@@ -100,11 +100,11 @@ class CodeEditor        : MMWidget
             update()
         }
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background, borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
         
-        //scrollArea.rect.copy(rect)
-        //scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset)
+        scrollArea.rect.copy(rect)
+        scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset)
         
-        mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
+        //mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
     }
 }

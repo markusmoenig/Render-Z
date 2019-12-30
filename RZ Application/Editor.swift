@@ -10,17 +10,19 @@ import Foundation
 
 class Editor
 {
-    let sourceList  : SourceList!
-    let mmView      : MMView!
+    let sourceList      : SourceList!
+    let mmView          : MMView!
     
-    let codeEditor  : CodeEditor
-    
+    let codeEditor      : CodeEditor
+    var codeProperties  : CodeProperties
+
     required init(_ view: MMView)
     {
         mmView = view
         sourceList = SourceList(view)
         codeEditor = CodeEditor(view)
-        
+        codeProperties = CodeProperties(view)
+
         mmView.registerWidgets(widgets: sourceList, codeEditor)
 
     }
@@ -44,6 +46,11 @@ class Editor
         if region.type == .Editor {
             codeEditor.rect.copy(region.rect)
             codeEditor.draw()
+        } else
+        if region.type == .Bottom {
+            region.rect.y = globalApp!.mmView.renderer.cHeight - region.rect.height - 1
+            codeProperties.rect.copy(region.rect)
+            codeProperties.draw()
         }
     }
 }

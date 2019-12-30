@@ -20,11 +20,7 @@ class BottomRegion: MMRegion
     
     override func build()
     {
-        /*
-        if app.nodeGraph.maximizedNode == nil {
-            app.nodeGraph.drawRegion(self)
-        } else {
-            app.nodeGraph.maximizedNode?.maxDelegate?.drawRegion(self)
-        }*/
+        rect.height = 180
+        app.editor.drawRegion(self)
     }
 }
