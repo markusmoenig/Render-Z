@@ -73,6 +73,14 @@ class CodeFragment          : Codable
         }
     }
     
+    func canBeSelected() -> Bool
+    {
+        if fragmentType == .ConstTypeDefinition || fragmentType == .OutVariable {
+            return false
+        }
+        return true
+    }
+    
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
         if fragmentType == .OutVariable {
@@ -320,7 +328,7 @@ class CodeFunction
         functionType = type
         self.name = name
         
-        header.fragment = CodeFragment(.TypeDefinition, "void", "colorize")
+        header.fragment = CodeFragment(type == .FreeFlow ? .TypeDefinition : .ConstTypeDefinition, "void", "colorize")
     }
     
     func createOutVariableBlock(_ typeName: String,_ name: String) -> CodeBlock
@@ -376,9 +384,9 @@ class CodeComponent
     {
     }
     
-    func createFunction(_ type: CodeFunction.FunctionType, _ name: String)
+    func createFunction(_ name: String)
     {
-        let f = CodeFunction(type, name)
+        let f = CodeFunction(.FreeFlow, name)
         f.body.append(CodeBlock(.Empty))
         functions.append(f)
     }
@@ -386,6 +394,7 @@ class CodeComponent
     func createDefaultFunction(_ type: CodeFunction.FunctionType)
     {
         let f = CodeFunction(type, "colorize")
+        
         f.body.append(CodeBlock(.Empty))
         f.body.append(f.createOutVariableBlock("float4", "outColor"))
         functions.append(f)
@@ -407,7 +416,7 @@ class CodeComponent
             
             // ---
             
-            if f.header.fragment.rect.contains(x, y) {
+            if f.header.fragment.canBeSelected() && f.header.fragment.rect.contains(x, y) {
                 ctx.hoverFragment = f.header.fragment
                 break
             }
@@ -419,7 +428,7 @@ class CodeComponent
                     break
                 }
                 
-                if b.fragment.rect.contains(x, y) {
+                if b.fragment.canBeSelected() && b.fragment.rect.contains(x, y) {
                     ctx.hoverFragment = b.fragment
                     break
                 }
@@ -507,15 +516,21 @@ class CodeContext
         self.fragment = fragment
         self.font = font
         self.fontScale = fontScale
-        
-        calcLineHeight()
     }
     
-    /// Calculates the line height for the current font and fontScale
-    func calcLineHeight()
+    func reset(_ editorWidth: Float)
     {
-        tempRect = font.getTextRect(text: "()ygW", scale: fontScale, rectToUse: tempRect)
-        lineHeight = tempRect.height
+        fontScale = 0.45
+        startX = 10
+        cY = 40
+        
+        gapX = 5
+        gapY = 1
+        indent = 20
+        border = 60
+        
+        self.editorWidth = editorWidth
+        self.lineHeight = font.getLineHeight(fontScale)
     }
     
     func rectStart() -> SIMD2<Float>

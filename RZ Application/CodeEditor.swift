@@ -27,7 +27,7 @@ class CodeEditor        : MMWidget
         fragment.allocateTexture(width: 10, height: 10)
         textureWidget = MMTextureWidget( view, texture: fragment.texture )
         
-        codeContext = CodeContext(view, fragment, view.openSans, 0.6)
+        codeContext = CodeContext(view, fragment, view.openSans, 0.5)
         
         super.init(view)
 
@@ -85,15 +85,7 @@ class CodeEditor        : MMWidget
         {
             if let comp = codeComponent {
                 
-                codeContext.startX = 10
-                codeContext.cY = 40
-                
-                codeContext.gapX = 5
-                codeContext.gapY = 1
-                codeContext.indent = 20
-                codeContext.border = 60
-
-                codeContext.editorWidth = rect.width
+                codeContext.reset(rect.width)
 
                 comp.draw(mmView, codeContext)
             }

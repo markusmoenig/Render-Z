@@ -23,9 +23,14 @@ struct BMChar: Decodable {
     let page : Int
 }
 
+struct BMCommon: Decodable {
+    let lineHeight: Float
+}
+
 struct BMFont: Decodable {
     let pages: [String]
     let chars: [BMChar]
+    let common: BMCommon
 }
 
 /// Button widget class which handles all buttons
@@ -48,6 +53,11 @@ class MMFont
             return
         }
         bmFont = font
+    }
+    
+    func getLineHeight(_ fontScale: Float) -> Float
+    {
+        return (bmFont!.common.lineHeight * fontScale) / 2
     }
     
     func getItemForChar(_ char: Character ) -> BMChar?
