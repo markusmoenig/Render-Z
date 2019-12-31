@@ -455,6 +455,12 @@ class CodeFunction          : Codable, Equatable
 /// A code component which is a list of functions.
 class CodeComponent         : Codable, Equatable
 {
+    enum ComponentType      : Int, Codable {
+        case Colorize
+    }
+    
+    let componentType       : ComponentType
+    
     var functions           : [CodeFunction] = []
     var uuid                : UUID = UUID()
     
@@ -463,6 +469,7 @@ class CodeComponent         : Codable, Equatable
     var rect                : MMRect = MMRect()
 
     private enum CodingKeys: String, CodingKey {
+        case componentType
         case functions
         case uuid
         case selected
@@ -471,6 +478,7 @@ class CodeComponent         : Codable, Equatable
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        componentType = try container.decode(ComponentType.self, forKey: .componentType)
         functions = try container.decode([CodeFunction].self, forKey: .functions)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         selected = try container.decode(UUID?.self, forKey: .uuid)
@@ -488,8 +496,9 @@ class CodeComponent         : Codable, Equatable
         return lhs.uuid == rhs.uuid
     }
     
-    init()
+    init(_ type: ComponentType = .Colorize)
     {
+        componentType = type
     }
     
     func createFunction(_ name: String)

@@ -17,6 +17,8 @@ class CodeEditor        : MMWidget
     var codeComponent   : CodeComponent? = nil
     var codeContext     : CodeContext
     
+    var previewTexture  : MTLTexture? = nil
+    
     var editor          : Editor!
 
     var needsUpdate     : Bool = false
@@ -123,6 +125,22 @@ class CodeEditor        : MMWidget
             }
    
             fragment.encodeEnd()
+            
+            buildPreview()
+        }
+    }
+    
+    /// Builds the preview
+    func buildPreview()
+    {
+        if let comp = codeComponent {
+
+            let inst = globalApp!.codeBuilder.build(comp)
+            if previewTexture == nil || (Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom) {
+                previewTexture = globalApp!.codeBuilder.fragment.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
+            }
+            
+            globalApp!.codeBuilder.render(inst, previewTexture)
         }
     }
     
@@ -132,7 +150,11 @@ class CodeEditor        : MMWidget
             update()
         }
         
-        mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
+        //mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
+        
+        if let texture = previewTexture {
+            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
+        }
         
         scrollArea.rect.copy(rect)
         scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset)
