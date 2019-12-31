@@ -483,7 +483,7 @@ class CodeFunction          : Codable, Equatable
         
         ctx.rectEnd(rect, rStart)
         
-        mmView.drawBox.draw( x: ctx.border, y: rect.y, width: 2, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.border, fragment: ctx.fragment )
+        //mmView.drawBox.draw( x: ctx.border, y: rect.y, width: 2, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.border, fragment: ctx.fragment )
         ctx.drawFunctionState(self)
     }
 }

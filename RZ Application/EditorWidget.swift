@@ -46,7 +46,6 @@ class EditorWidget      : MMWidget
     /// Drag and Drop Target
     override func dragEnded(event:MMMouseEvent, dragSource:MMDragSource)
     {
-        print("ha")
         if dragSource.id == "SourceItem"
         {
             // Source Item

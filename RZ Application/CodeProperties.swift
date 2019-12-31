@@ -83,6 +83,10 @@ class CodeProperties    : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        #if os(iOS)
+        mouseMoved(event)
+        #endif
+
         #if os(OSX)
         if hoverUITitle != nil {
             hoverUITitle?.titleClicked()
@@ -92,7 +96,7 @@ class CodeProperties    : MMWidget
         if hoverMode == .NodeUI {
             hoverUIItem!.mouseDown(event)
             hoverMode = .NodeUIMouseLocked
-            return
+            //globalApp?.mmView.mouseTrackWidget = self
         }
     }
     
@@ -102,13 +106,14 @@ class CodeProperties    : MMWidget
             hoverUIItem!.mouseUp(event)
         }
         
-        hoverMode = .None
-        
         #if os(iOS)
         if hoverUITitle != nil {
             hoverUITitle?.titleClicked()
         }
         #endif
+        
+        hoverMode = .None
+        //globalApp?.mmView.mouseTrackWidget = nil
     }
     
     override func mouseMoved(_ event: MMMouseEvent)

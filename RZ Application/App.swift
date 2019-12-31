@@ -31,6 +31,10 @@ class App
     
     let mmFile          : MMFile!
     
+    #if os(iOS)
+    var viewController  : ViewController?
+    #endif
+
     init(_ view : MMView )
     {
         mmView = view

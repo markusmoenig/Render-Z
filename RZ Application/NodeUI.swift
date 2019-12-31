@@ -1007,7 +1007,7 @@ class NodeUIColor : NodeUI
             colorWidget?.changed = { (val, cont) in
                 self.value = val
 
-                if !cont {
+                //if !cont {
                     let oldValue = self.getValue()
                     if oldValue != val {
                         self.setValue(val)
@@ -1015,7 +1015,7 @@ class NodeUIColor : NodeUI
                         self.node.variableChanged(variable: self.variable, oldValue: oldValue, newValue: self.getValue())
                         mmView.update()
                     }
-                }
+                //}
             }
         }
     }

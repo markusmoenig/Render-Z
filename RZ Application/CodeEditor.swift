@@ -62,7 +62,7 @@ class CodeEditor        : MMWidget
         //if let dragSource = mmView.dragSource {
         //} else {
         //}
-        
+                
         if let comp = codeComponent {
             let oldFunc = codeContext.hoverFunction
             let oldBlock = codeContext.hoverBlock
@@ -79,6 +79,10 @@ class CodeEditor        : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        #if os(iOS)
+        mouseMoved(event)
+        #endif
+        
         if let comp = codeComponent {
             codeContext.selectedFunction = codeContext.hoverFunction
             codeContext.selectedBlock = codeContext.hoverBlock

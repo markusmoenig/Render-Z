@@ -96,8 +96,8 @@ class TopRegion: MMRegion
 
             func load() {
                 #if os(iOS)
-                let dialog = MMFileDialog(app.mmView)
-                app.mmView.showDialog(dialog)
+                //let dialog = MMFileDialog(app.mmView)
+                //app.mmView.showDialog(dialog)
                 #else
                 app.mmFile.chooseFile(app: app)
                 #endif                
@@ -121,8 +121,8 @@ class TopRegion: MMRegion
             self.saveButton.removeState(.Checked)
         
             #if os(iOS)
-            let dialog = MMFileDialog(app.mmView, .Save)
-            app.mmView.showDialog(dialog)
+            //let dialog = MMFileDialog(app.mmView, .Save)
+            //app.mmView.showDialog(dialog)
             #else
             //let json = app.nodeGraph.encodeJSON()
             //app.mmFile.saveAs(json, app)

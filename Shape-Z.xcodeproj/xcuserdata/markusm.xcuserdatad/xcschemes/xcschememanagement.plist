@@ -7,42 +7,57 @@
 		<key>IOS Framework.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>3</integer>
+			<integer>5</integer>
 		</dict>
 		<key>OSX Framework.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>2</integer>
-		</dict>
-		<key>Render-Z.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
 			<integer>4</integer>
 		</dict>
-		<key>Shape-Z iOS.xcscheme_^#shared#^_</key>
+		<key>Render-Z iOS.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
-		<key>Shape-Z.xcscheme_^#shared#^_</key>
+		<key>Render-Z.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>Shape-Z iOS.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
+		</dict>
+		<key>Shape-Z.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>2</integer>
+		</dict>
 		<key>TVOS Framework.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>5</integer>
+			<integer>6</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>2B7A3BF023B4583A002EC5FC</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>2B91CBEF2358629300DED7B1</key>
 		<dict>
 			<key>primary</key>
 			<true/>
 		</dict>
 		<key>2B91CD7E235959CC00DED7B1</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>2B9B29A323BB44BF00C2F387</key>
 		<dict>
 			<key>primary</key>
 			<true/>
