@@ -423,7 +423,7 @@ class CodeFunction          : Codable, Equatable
         
         for _ in 0...3 {
             let argStatement = CodeStatement(.Arithmetic)
-            argStatement.fragments.append(CodeFragment(.ConstantValue))
+            argStatement.fragments.append(CodeFragment(.ConstantValue, "float"))
             constant.arguments.append(argStatement)
         }
         return b
@@ -457,12 +457,15 @@ class CodeComponent         : Codable, Equatable
 {
     var functions           : [CodeFunction] = []
     var uuid                : UUID = UUID()
+    
+    var selected            : UUID? = nil
 
     var rect                : MMRect = MMRect()
 
     private enum CodingKeys: String, CodingKey {
         case functions
         case uuid
+        case selected
     }
     
     required init(from decoder: Decoder) throws
@@ -470,6 +473,7 @@ class CodeComponent         : Codable, Equatable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         functions = try container.decode([CodeFunction].self, forKey: .functions)
         uuid = try container.decode(UUID.self, forKey: .uuid)
+        selected = try container.decode(UUID?.self, forKey: .uuid)
     }
     
     func encode(to encoder: Encoder) throws
@@ -477,6 +481,7 @@ class CodeComponent         : Codable, Equatable
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(functions, forKey: .functions)
         try container.encode(uuid, forKey: .uuid)
+        try container.encode(selected, forKey: .selected)
     }
     
     static func ==(lhs:CodeComponent, rhs:CodeComponent) -> Bool { // Implement Equatable
@@ -559,6 +564,7 @@ class CodeComponent         : Codable, Equatable
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
         let rStart = ctx.rectStart()
+        ctx.cComponent = self
         
         for f in functions {
             
@@ -586,9 +592,10 @@ class CodeContext
     var cY                  : Float = 0
     var cIndent             : Float = 0
 
+    var cComponent          : CodeComponent? = nil
     var cFunction           : CodeFunction? = nil
     var cBlock              : CodeBlock? = nil
-    
+
     // Fixed vars
     var indent              : Float = 0
     var lineHeight          : Float = 0
@@ -596,9 +603,10 @@ class CodeContext
     var gapY                : Float = 0
     var startX              : Float = 0
     var border              : Float = 0
+    var hoverAlpha          : Float = 0
+    var selectionAlpha      : Float = 0
     
     // Status
-    
     var blockNumber         : Int = 0
     
     var editorWidth         : Float = 0
@@ -610,7 +618,7 @@ class CodeContext
     var selectedFunction    : CodeFunction? = nil
     var selectedBlock       : CodeBlock? = nil
     var selectedFragment    : CodeFragment? = nil
-    
+        
     var tempRect            : MMRect = MMRect()
     
     init(_ view: MMView,_ fragment: MMFragment,_ font: MMFont,_ fontScale: Float)
@@ -632,6 +640,9 @@ class CodeContext
         indent = 20
         border = 60
         
+        hoverAlpha = 0.5
+        selectionAlpha = 0.7
+
         self.editorWidth = editorWidth
         self.lineHeight = font.getLineHeight(fontScale)
     }
@@ -651,22 +662,25 @@ class CodeContext
     
     func drawFunctionState(_ function: CodeFunction)
     {
-        if function === hoverFunction {
-            mmView.drawBox.draw( x: function.rect.x, y: function.rect.y, width: function.rect.width, height: function.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.5), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: fragment )
+        if function === hoverFunction || function.uuid == cComponent!.selected {
+            let alpha : Float = function.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
+            mmView.drawBox.draw( x: function.rect.x, y: function.rect.y, width: function.rect.width, height: function.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: fragment )
         }
     }
     
     func drawBlockState(_ block: CodeBlock)
     {
-        if block === hoverBlock {
-            mmView.drawBox.draw( x: block.rect.x, y: block.rect.y, width: block.rect.width, height: block.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.5), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: fragment )
+        if block === hoverBlock || block.uuid == cComponent!.selected {
+            let alpha : Float = block.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
+            mmView.drawBox.draw( x: block.rect.x, y: block.rect.y, width: block.rect.width, height: block.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: fragment )
         }
     }
     
     func drawFragmentState(_ fragment: CodeFragment)
     {
-        if fragment === hoverFragment {
-            mmView.drawBox.draw( x: fragment.rect.x, y: fragment.rect.y, width: fragment.rect.width, height: fragment.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.5), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: self.fragment )
+        if fragment === hoverFragment || fragment.uuid == cComponent!.selected {
+            let alpha : Float = fragment.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
+            mmView.drawBox.draw( x: fragment.rect.x, y: fragment.rect.y, width: fragment.rect.width, height: fragment.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: self.fragment )
         }
     }
 }

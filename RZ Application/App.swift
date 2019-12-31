@@ -36,7 +36,7 @@ class App
         mmView = view
         mmFile = MMFile( view )
         
-        mmView.registerIcon("sz_toolbar")
+        mmView.registerIcon("rz_toolbar")
 
         editor = Editor(mmView)
         codeBuilder = CodeBuilder(mmView)

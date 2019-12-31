@@ -408,6 +408,9 @@
 		2B91CDE423595D3500DED7B1 /* MMView.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2BBF11B621EADB46001C94E9 /* MMView.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		2B91CDE523595D3500DED7B1 /* MMBaseView__ios.swift in Headers */ = {isa = PBXBuildFile; fileRef = 2BBF11C021EADB46001C94E9 /* MMBaseView__ios.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
+		2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B9B299123BA327900C2F387 /* rz_toolbar.tiff */; };
+		2B9B299C23BAD15700C2F387 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B299B23BAD15700C2F387 /* Node.swift */; };
+		2B9B299F23BAD2DC00C2F387 /* NodeUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B299E23BAD2DB00C2F387 /* NodeUI.swift */; };
 		2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9F42F023B9CB2800885B40 /* CodeProperties.swift */; };
 		2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
 		2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
@@ -609,6 +612,9 @@
 		2B91CD81235959CC00DED7B1 /* IOS_Framework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IOS_Framework.h; sourceTree = "<group>"; };
 		2B91CD82235959CC00DED7B1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeBuilder.swift; sourceTree = "<group>"; };
+		2B9B299123BA327900C2F387 /* rz_toolbar.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = rz_toolbar.tiff; sourceTree = "<group>"; };
+		2B9B299B23BAD15700C2F387 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
+		2B9B299E23BAD2DB00C2F387 /* NodeUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeUI.swift; sourceTree = "<group>"; };
 		2B9F42F023B9CB2800885B40 /* CodeProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeProperties.swift; sourceTree = "<group>"; };
 		2BA344A121FE8497000BB2EB /* MMTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTimeline.swift; sourceTree = "<group>"; };
 		2BA344AC22029FA4000BB2EB /* MMFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFragment.swift; sourceTree = "<group>"; };
@@ -765,6 +771,8 @@
 			isa = PBXGroup;
 			children = (
 				2B7A3C2323B46560002EC5FC /* App.swift */,
+				2B9B299B23BAD15700C2F387 /* Node.swift */,
+				2B9B299E23BAD2DB00C2F387 /* NodeUI.swift */,
 				2B7A3C3523B46838002EC5FC /* LeftRegion.swift */,
 				2B7A3C3123B46837002EC5FC /* TopRegion.swift */,
 				2B7A3C3223B46837002EC5FC /* RightRegion.swift */,
@@ -787,6 +795,7 @@
 		2B7A3C4023B46AD8002EC5FC /* Icons */ = {
 			isa = PBXGroup;
 			children = (
+				2B9B299123BA327900C2F387 /* rz_toolbar.tiff */,
 				2B7A3C4323B46AD8002EC5FC /* sz_toolbar.tiff */,
 				2B7A3C4623B46AD8002EC5FC /* sz_ui_grey.tiff */,
 				2B7A3C4C23B46AD8002EC5FC /* sz_ui_blue.tiff */,
@@ -1289,6 +1298,7 @@
 			files = (
 				2B7A3C0523B4652E002EC5FC /* GameCuben.tiff in Resources */,
 				2B7A3C0423B4652E002EC5FC /* GameCuben.json in Resources */,
+				2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */,
 				2B7A3C0623B4652E002EC5FC /* OpenSans.json in Resources */,
 				2B7A3C0723B4652E002EC5FC /* OpenSans.tiff in Resources */,
 				2B7A3C5123B46B53002EC5FC /* sz_ui_blue.tiff in Resources */,
@@ -1507,6 +1517,7 @@
 				2B7A3C1223B46546002EC5FC /* MMSliderWidget.swift in Sources */,
 				2B7A3C1423B46546002EC5FC /* MMColorWidget.swift in Sources */,
 				2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */,
+				2B9B299C23BAD15700C2F387 /* Node.swift in Sources */,
 				2B7A3C5323B4768D002EC5FC /* Editor.swift in Sources */,
 				2B7A3C1B23B46546002EC5FC /* MMListWidget.swift in Sources */,
 				2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */,
@@ -1516,6 +1527,7 @@
 				2B7A3C0D23B46546002EC5FC /* MMDrawable.swift in Sources */,
 				2B7A3C1D23B46546002EC5FC /* MMSkin.swift in Sources */,
 				2B7A3C1023B46546002EC5FC /* MMLabel.swift in Sources */,
+				2B9B299F23BAD2DC00C2F387 /* NodeUI.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -27,7 +27,7 @@ class TopRegion: MMRegion
         self.app = app
         super.init( view, type: .Top )
         
-        logoTexture = view.icons["sz_toolbar"]
+        logoTexture = view.icons["rz_toolbar"]
         
         var borderlessSkin = MMSkinButton()
         borderlessSkin.margin = MMMargin( 8, 4, 8, 4 )
@@ -184,14 +184,6 @@ class TopRegion: MMRegion
         mmView.window!.isDocumentEdited = !undoButton.isDisabled
         #endif
         
-        //rect.height = mmView.skin.ToolBar.height + 4 + mmView.skin.ToolBar.height
-
-        /*
-        if app.nodeGraph.maximizedNode == nil {
-            app.nodeGraph.drawRegion(self)
-        } else
-        {
-            app.nodeGraph.maximizedNode?.maxDelegate?.drawRegion(self)
-        }*/
+        app.editor.drawRegion(self)
     }
 }

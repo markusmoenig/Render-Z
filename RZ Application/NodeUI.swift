@@ -2,7 +2,7 @@
 //  NodeUI.swift
 //  Shape-Z
 //
-//  Created by Markus Moenig on 27.02.19.
+//  Created by Markus Moenig on 31/12/19.
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
@@ -148,7 +148,7 @@ class NodeUISeparator : NodeUI
         self.mmView = mmView
         
         if titleLabel == nil {
-            let scale : Float = node.nodeGraph != nil ? node.nodeGraph!.currentMaster!.camera!.zoom : 1
+            let scale : Float = 1
             titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
         }
         
@@ -237,7 +237,7 @@ class NodeUISelector : NodeUI
         self.mmView = mmView
         
         if titleLabel == nil {
-            let scale : Float = node.nodeGraph != nil ? node.nodeGraph!.currentMaster!.camera!.zoom : 1
+            let scale : Float = 1
             titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
             contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
         }
@@ -423,309 +423,6 @@ class NodeUISelector : NodeUI
     }
 }
 
-/// Animation picker derived from NodeUISelector and with .AnimationPicker role
-class NodeUIMasterPicker : NodeUISelector
-{
-    var uiConnection        : UINodeConnection
-    var uuids               : [UUID] = []
-    
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        uiConnection = connection
-        super.init(node, variable: variable, title: title, items: [])
-        uiConnection.uiMasterPicker = self
-        role = .MasterPicker
-    }
-    
-    override func internal_changed()
-    {
-        uiConnection.connectedMaster = uuids[Int(index)]
-        uiConnection.masterNode = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedMaster!)
-        if let nodeGraph = uiConnection.nodeGraph {
-            nodeGraph.updateNode(node)
-        }
-    }
-}
-
-/// Animation picker derived from NodeUISelector and with .AnimationPicker role
-class NodeUIAnimationPicker : NodeUISelector
-{
-    var uiConnection        : UINodeConnection
-    var uuids               : [UUID] = []
-    
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        uiConnection = connection
-        super.init(node, variable: variable, title: title, items: [])
-        uiConnection.uiPicker = self
-        role = .AnimationPicker
-    }
-    
-    override func internal_changed()
-    {
-        uiConnection.connectedTo = uuids[Int(index)]
-        uiConnection.target = nil
-        if let object = uiConnection.masterNode as? Object {
-            for seq in object.sequences {
-                if seq.uuid == uiConnection.connectedTo {
-                    uiConnection.target = seq
-                    break;
-                }
-            }
-        }
-    }
-}
-
-/// Value Variable picker derived from NodeUISelector and with .ValueVariablePicker role
-class NodeUIFloatVariablePicker : NodeUISelector
-{
-    var uiConnection        : UINodeConnection
-    var uuids               : [UUID] = []
-    
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        uiConnection = connection
-        super.init(node, variable: variable, title: title, items: [])
-        uiConnection.uiPicker = self
-        role = .FloatVariablePicker
-    }
-    
-    override func internal_changed()
-    {
-        uiConnection.connectedTo = uuids[Int(index)]
-        uiConnection.target = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedTo!)
-    }
-}
-
-/// Direction Variable picker derived from NodeUISelector and with .DirectionVariablePicker role
-class NodeUIDirectionVariablePicker : NodeUISelector
-{
-    var uiConnection        : UINodeConnection
-    var uuids               : [UUID] = []
-    
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        uiConnection = connection
-        super.init(node, variable: variable, title: title, items: [])
-        uiConnection.uiPicker = self
-        role = .DirectionVariablePicker
-    }
-    
-    override func internal_changed()
-    {
-        uiConnection.connectedTo = uuids[Int(index)]
-        uiConnection.target = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedTo!)
-    }
-}
-
-/// Layer area picker derived from NodeUISelector and with .LayerAreaPicker role
-class NodeUILayerAreaPicker : NodeUISelector
-{
-    var uiConnection        : UINodeConnection
-    var uuids               : [UUID] = []
-    
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        uiConnection = connection
-        super.init(node, variable: variable, title: title, items: [])
-        uiConnection.uiPicker = self
-        role = .LayerAreaPicker
-    }
-    
-    override func internal_changed()
-    {
-        uiConnection.connectedTo = uuids[Int(index)]
-        uiConnection.target = uiConnection.nodeGraph?.getNodeForUUID(uiConnection.connectedTo!)
-    }
-}
-
-/// NodeUI Drop Target
-class NodeUIDropTarget : NodeUI
-{
-    enum HoverState {
-        case None, Valid, Invalid
-    }
-    
-    var hoverState  : HoverState = .None
-    var uiConnection: UINodeConnection!
-
-    var itemHeight  : Float = 26
-    var minItemWidth: Float = 85
-
-    var targetID    : String
-    
-    var contentLabel: MMTextLabel!
-    
-    var supportsAll : Bool = false
-    
-    init(_ node: Node, variable: String, title: String, targetID: String)
-    {
-        self.targetID = targetID
-        super.init(node, brand: .DropTarget, variable: variable, title: title)
-    }
-    
-    override func calcSize(mmView: MMView) {
-        self.mmView = mmView
-        
-        if titleLabel == nil {
-            let scale : Float = node.nodeGraph != nil ? node.nodeGraph!.currentMaster!.camera!.zoom : 1
-            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
-        }
-        
-        var text = ""
-        if let name = uiConnection.targetName {
-            text = name
-        }
-        
-        if role == .ObjectInstanceTarget && text.isEmpty && uiConnection.connectedTo == nil {
-            text = "All"
-        }
-        
-        contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: text, scale: NodeUI.fontScale, color: NodeUI.contentTextColor)
-        minItemWidth = max( contentLabel.rect.width + 30, 85 )
-        
-        rect.width = minItemWidth
-        rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + itemHeight + NodeUI.itemSpacing
-    }
-    
-    override func mouseDown(_ event: MMMouseEvent)
-    {
-        uiConnection.nodeGraph!.refList.switchTo(id: targetID, selected: uiConnection.connectedTo)
-    }
-    
-    override func mouseUp(_ event: MMMouseEvent)
-    {
-    }
-    
-    override func mouseMoved(_ event: MMMouseEvent)
-    {
-    }
-    
-    override func update() {
-    }
-    
-    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
-    {
-        super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
-        
-        let x = rect.x
-        let width = minItemWidth * scale
-        
-        if hoverState == .Valid && isDisabled == false {
-            mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight * scale, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : SIMD4<Float>(repeating: 0), borderColor: mmView.skin.Node.successColor)
-        } else
-        if (hoverState == .Invalid || contentLabel!.text == "") && isDisabled == false {
-            mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight * scale, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : SIMD4<Float>(repeating: 0), borderColor: mmView.skin.Node.failureColor)
-        } else {
-            mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight * scale, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : SIMD4<Float>(repeating: 0), borderColor: SIMD4<Float>(NodeUI.contentColor.x, NodeUI.contentColor.y, NodeUI.contentColor.z, mmView.skin.disabledAlpha))
-        }
-        
-        if contentLabel.scale != NodeUI.fontScale * scale {
-            contentLabel.setText(contentLabel.text, scale: NodeUI.fontScale * scale)
-        }
-        
-        contentLabel.isDisabled = isDisabled
-        contentLabel.drawCentered(x: x, y: contentY, width: width, height: itemHeight * scale)
-    }
-}
-
-/// Float Variable Target derived from NodeUIDropTarget and with "Float Variable" drop ID
-class NodeUIFloatVariableTarget : NodeUIDropTarget
-{
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        super.init(node, variable: variable, title: title, targetID: "Float Variable")
-        uiConnection = connection
-        uiConnection.uiTarget = self
-        role = .FloatVariableTarget
-    }
-}
-
-/// Direction Variable Target derived from NodeUIDropTarget and with "Value Variable" drop ID
-class NodeUIDirectionVariableTarget : NodeUIDropTarget
-{
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        super.init(node, variable: variable, title: title, targetID: "Direction Variable")
-        uiConnection = connection
-        uiConnection.uiTarget = self
-        role = .DirectionVariableTarget
-    }
-}
-
-/// Float2 Variable Target derived from NodeUIDropTarget and with "Float2 Variable" drop ID
-class NodeUIFloat2VariableTarget : NodeUIDropTarget
-{
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        super.init(node, variable: variable, title: title, targetID: "Float2 Variable")
-        uiConnection = connection
-        uiConnection.uiTarget = self
-        role = .Float2VariableTarget
-    }
-}
-
-/// Object Instance Target derived from NodeUIDropTarget and with "Object Instance" drop ID
-class NodeUIObjectInstanceTarget : NodeUIDropTarget
-{
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        super.init(node, variable: variable, title: title, targetID: "Object Instance")
-        uiConnection = connection
-        uiConnection.uiTarget = self
-        role = .ObjectInstanceTarget
-        supportsAll = true
-    }
-}
-
-/// Scene Target derived from NodeUIDropTarget and with "Scene" drop ID
-class NodeUISceneTarget : NodeUIDropTarget
-{
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        super.init(node, variable: variable, title: title, targetID: "Scene")
-        uiConnection = connection
-        uiConnection.uiTarget = self
-        role = .SceneTarget
-    }
-}
-
-/// Scene Area Target derived from NodeUIDropTarget and with "Scene Area" drop ID
-class NodeUISceneAreaTarget : NodeUIDropTarget
-{
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        super.init(node, variable: variable, title: title, targetID: "Scene Area")
-        uiConnection = connection
-        uiConnection.uiTarget = self
-        role = .SceneAreaTarget
-    }
-}
-
-/// Animation Target derived from NodeUIDropTarget and with "Animation" drop ID
-class NodeUIAnimationTarget : NodeUIDropTarget
-{
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        super.init(node, variable: variable, title: title, targetID: "Animation")
-        uiConnection = connection
-        uiConnection.uiTarget = self
-        role = .AnimationTarget
-    }
-}
-
-/// Behavior Tree Target derived from NodeUIDropTarget and with "Behavior Tree" drop ID
-class NodeUIBehaviorTreeTarget : NodeUIDropTarget
-{
-    init(_ node: Node, variable: String, title: String, connection: UINodeConnection)
-    {
-        super.init(node, variable: variable, title: title, targetID: "Behavior Tree")
-        uiConnection = connection
-        uiConnection.uiTarget = self
-        role = .BehaviorTreeTarget
-    }
-}
-
 /// Key down NodeUI class
 class NodeUIKeyDown : NodeUI
 {
@@ -829,7 +526,7 @@ class NodeUIKeyDown : NodeUI
         self.mmView = mmView
         
         if titleLabel == nil {
-            let scale : Float = node.nodeGraph != nil ? node.nodeGraph!.currentMaster!.camera!.zoom : 1
+            let scale : Float = 1
             titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
             contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale * scale)
         }
@@ -919,7 +616,7 @@ class NodeUINumber : NodeUI
         self.mmView = mmView
         
         if titleLabel == nil {
-            let scale : Float = node.nodeGraph != nil ? node.nodeGraph!.currentMaster!.camera!.zoom : 1
+            let scale : Float = 1
             titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
             contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
         }
@@ -1092,7 +789,7 @@ class NodeUIAngle : NodeUI
         self.mmView = mmView
         
         if titleLabel == nil {
-            let scale : Float = node.nodeGraph != nil ? node.nodeGraph!.currentMaster!.camera!.zoom : 1
+            let scale : Float = 1
             titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
         }
         
@@ -1204,7 +901,7 @@ class NodeUIText : NodeUI
         self.mmView = mmView
         
         if titleLabel == nil {
-            let scale : Float = node.nodeGraph != nil ? node.nodeGraph!.currentMaster!.camera!.zoom : 1
+            let scale : Float = 1
             titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
         }
         
@@ -1298,7 +995,7 @@ class NodeUIColor : NodeUI
         self.mmView = mmView
         
         if titleLabel == nil {
-            let scale : Float = node.nodeGraph != nil ? node.nodeGraph!.currentMaster!.camera!.zoom : 1
+            let scale : Float = 1
             titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
         }
         

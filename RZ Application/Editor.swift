@@ -15,6 +15,9 @@ class Editor
     
     let codeEditor      : CodeEditor
     var codeProperties  : CodeProperties
+    
+    // Toolbar
+    var tabButton       : MMTabButtonWidget
 
     required init(_ view: MMView)
     {
@@ -23,22 +26,31 @@ class Editor
         codeEditor = CodeEditor(view)
         codeProperties = CodeProperties(view)
 
-        mmView.registerWidgets(widgets: sourceList, codeEditor)
-
+        tabButton = MMTabButtonWidget(mmView)
+        tabButton.addTab("Artist")
+        tabButton.addTab("Developer")
+        tabButton.currentTab = tabButton.items[1]
+        
+        codeEditor.editor = self
+        codeProperties.editor = self
     }
     
     func activate()
     {
-        mmView.registerWidgets(widgets: sourceList, codeEditor)
+        mmView.registerWidgets(widgets: sourceList, codeEditor, codeProperties, tabButton)
     }
     
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: sourceList)
+        mmView.deregisterWidgets(widgets: sourceList, codeEditor, codeProperties, tabButton)
     }
     
     func drawRegion(_ region: MMRegion)
     {
+        if region.type == .Top {
+            region.layoutH( startX: 3, startY: 4 + 44, spacing: 10, widgets: tabButton)
+            tabButton.draw()
+        } else
         if region.type == .Left {
             sourceList.rect.copy(region.rect)
             sourceList.draw()

@@ -17,6 +17,8 @@ class CodeEditor        : MMWidget
     var codeComponent   : CodeComponent? = nil
     var codeContext     : CodeContext
     
+    var editor          : Editor!
+
     var needsUpdate     : Bool = false
 
     override init(_ view: MMView)
@@ -69,6 +71,36 @@ class CodeEditor        : MMWidget
             if oldFunc !== codeContext.hoverFunction || oldBlock !== codeContext.hoverBlock || oldFrag !== codeContext.hoverFragment {
                 needsUpdate = true
                 mmView.update()
+            }
+        }
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        if let comp = codeComponent {
+            codeContext.selectedFunction = codeContext.hoverFunction
+            codeContext.selectedBlock = codeContext.hoverBlock
+            codeContext.selectedFragment = codeContext.hoverFragment
+            
+            let oldSelected = comp.selected
+            comp.selected = nil
+
+            if let c = codeContext.selectedFragment {
+                comp.selected = c.uuid
+            } else
+            if let c = codeContext.selectedBlock {
+                comp.selected = c.uuid
+            } else
+            if let c = codeContext.selectedFunction {
+                comp.selected = c.uuid
+            }
+            
+            if oldSelected != comp.selected {
+
+                needsUpdate = true
+                mmView.update()
+                
+                editor.codeProperties.setSelected(comp, codeContext)
             }
         }
     }
