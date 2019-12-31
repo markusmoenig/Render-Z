@@ -59,6 +59,9 @@ class CodeBuilder
             {
                 //float2 size = float2(layerData->limiterSize.x, layerData->limiterSize.y);//float2( outTexture.get_width(), outTexture.get_height() );
                 //float2 fragCoord = float2(in.textureCoordinate.x, 1. - in.textureCoordinate.y) * size;
+                float4 outColor = float4(0,0,0,1);
+            
+            
             """
             
         } else {
@@ -77,12 +80,16 @@ class CodeBuilder
             """
         }
         
+        //buildComponent(component, monitor)
+        
+        inst.code += component.code!
+        
         // --- Return value
         if monitor == nil {
             inst.code +=
             """
             
-                return float4(1,1,1,1);
+                return outColor;
                 //return float4(total.x / total.w, total.y / total.w, total.z / total.w, total.w);
             }
             
@@ -117,6 +124,11 @@ class CodeBuilder
         }
         
         return inst
+    }
+    
+    func buildComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    {
+        //print("buildComponent", component.code)
     }
     
     func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil)

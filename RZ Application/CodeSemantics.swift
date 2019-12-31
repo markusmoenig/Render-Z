@@ -78,6 +78,15 @@ class CodeFragment          : Codable, Equatable
             values["value"] = 1
             values["min"] = 0
             values["max"] = 1
+            values["precision"] = 3
+        }
+    }
+    
+    // ConstantValue only, sets the value
+    func setValue(_ value: Float)
+    {
+        if fragmentType == .ConstantValue {
+            values["value"] = value
         }
     }
     
@@ -102,6 +111,8 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.tempRect.width
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
+            
+            ctx.addCode(name)
         } else
         if fragmentType == .ConstantDefinition {
             let rStart = ctx.rectStart()
@@ -114,10 +125,12 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.tempRect.width
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
+            
+            ctx.addCode(typeName)
         } else
         if fragmentType == .ConstantValue {
             let rStart = ctx.rectStart()
-            let value = String(values["value"]!)
+            let value = String(format: "%.0\(Int(values["precision"]!))f", values["value"]!)
             
             ctx.font.getTextRect(text: value, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
@@ -127,6 +140,8 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.tempRect.width
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
+            
+            ctx.addCode(value)
         }
         
         // Arguments
@@ -138,6 +153,8 @@ class CodeFragment          : Codable, Equatable
                 mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
             }
             ctx.cX += ctx.tempRect.width + ctx.gapX
+            
+            ctx.addCode("( ")
         }
         
         for (index, arg) in arguments.enumerated() {
@@ -150,6 +167,7 @@ class CodeFragment          : Codable, Equatable
                     mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
                 }
                 ctx.cX += ctx.tempRect.width + ctx.gapX
+                ctx.addCode( ", " )
             }
         }
         
@@ -160,6 +178,7 @@ class CodeFragment          : Codable, Equatable
                 mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
             }
             ctx.cX += ctx.tempRect.width + ctx.gapX
+            ctx.addCode(") ")
         }
     }
 }
@@ -343,10 +362,14 @@ class CodeBlock             : Codable, Equatable
             ctx.rectEnd(assignmentRect, arStart)
             ctx.cX += ctx.gapX
 
+            ctx.addCode( " " + op + " " )
+
             // statement
             statement.draw(mmView, ctx)
             
             ctx.cY += ctx.lineHeight + ctx.gapY
+            
+            ctx.addCode( ";\n" )
         }
         
         ctx.rectEnd(rect, rStart)
@@ -421,9 +444,22 @@ class CodeFunction          : Codable, Equatable
         let constant = CodeFragment(.ConstantDefinition, "float4", "float4")
         b.statement.fragments.append(constant)
         
-        for _ in 0...3 {
+        for index in 0...3 {
             let argStatement = CodeStatement(.Arithmetic)
-            argStatement.fragments.append(CodeFragment(.ConstantValue, "float"))
+            
+            let constValue = CodeFragment(.ConstantValue, "float")
+            if name == "outColor" {
+                if index == 0 {
+                    constValue.setValue(0.161)
+                } else
+                if index == 1 {
+                    constValue.setValue(0.165)
+                } else
+                if index == 2 {
+                    constValue.setValue(0.184)
+                }
+            }
+            argStatement.fragments.append(constValue)
             constant.arguments.append(argStatement)
         }
         return b
@@ -467,6 +503,9 @@ class CodeComponent         : Codable, Equatable
     var selected            : UUID? = nil
 
     var rect                : MMRect = MMRect()
+    
+    // Code Generation
+    var code                : String? = nil
 
     private enum CodingKeys: String, CodingKey {
         case componentType
@@ -575,6 +614,8 @@ class CodeComponent         : Codable, Equatable
         let rStart = ctx.rectStart()
         ctx.cComponent = self
         
+        code = ""
+        
         for f in functions {
             
             ctx.cFunction = f
@@ -651,7 +692,7 @@ class CodeContext
         
         hoverAlpha = 0.5
         selectionAlpha = 0.7
-
+        
         self.editorWidth = editorWidth
         self.lineHeight = font.getLineHeight(fontScale)
     }
@@ -667,6 +708,13 @@ class CodeContext
         rect.y = start.y - gapY / 2
         rect.width = cX - start.x + gapX
         rect.height = max(cY - start.y, lineHeight) + gapY
+    }
+    
+    func addCode(_ source: String)
+    {
+        if cComponent!.code != nil {
+            cComponent!.code! += source
+        }
     }
     
     func drawFunctionState(_ function: CodeFunction)

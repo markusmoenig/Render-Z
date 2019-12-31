@@ -150,10 +150,22 @@ class CodeEditor        : MMWidget
             update()
         }
         
-        //mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
-        
         if let texture = previewTexture {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
+            
+            if let comp = codeComponent {
+                for f in comp.functions {
+                    var color = mmView.skin.Code.background
+                    color.w = 0.9
+                    
+                    mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2, y: rect.y + codeContext.gapY / 2 + f.rect.y, width: codeContext.border - codeContext.gapX, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+                    
+                    mmView.drawBox.draw(x: rect.x + f.rect.x, y: rect.y + f.rect.y, width: f.rect.width, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+                }
+            }
+            
+        } else {
+            mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
         }
         
         scrollArea.rect.copy(rect)
