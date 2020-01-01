@@ -10,7 +10,7 @@ import Foundation
 
 class Editor
 {
-    let sourceList      : SourceList!
+    let codeList        : CodeList
     let mmView          : MMView!
     
     let codeEditor      : CodeEditor
@@ -22,7 +22,7 @@ class Editor
     required init(_ view: MMView)
     {
         mmView = view
-        sourceList = SourceList(view)
+        codeList = CodeList(view)
         codeEditor = CodeEditor(view)
         codeProperties = CodeProperties(view)
 
@@ -37,12 +37,12 @@ class Editor
     
     func activate()
     {
-        mmView.registerWidgets(widgets: sourceList, codeEditor, codeProperties, tabButton)
+        mmView.registerWidgets(widgets: codeList.sceneList, codeList.fragList, codeEditor, codeProperties, tabButton)
     }
     
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: sourceList, codeEditor, codeProperties, tabButton)
+        mmView.deregisterWidgets(widgets: codeList.sceneList, codeList.fragList, codeEditor, codeProperties, tabButton)
     }
     
     func drawRegion(_ region: MMRegion)
@@ -52,8 +52,15 @@ class Editor
             tabButton.draw()
         } else
         if region.type == .Left {
-            sourceList.rect.copy(region.rect)
-            sourceList.draw()
+            codeList.sceneList.rect.copy(region.rect)
+            codeList.sceneList.rect.height /= 2
+            codeList.sceneList.rect.height -= 1
+            codeList.draw()
+            codeList.fragList.rect.copy(region.rect)
+            codeList.fragList.rect.y += codeList.sceneList.rect.height + 2
+            codeList.fragList.rect.height /= 2
+            codeList.fragList.rect.height -= 1
+            codeList.draw()
         } else
         if region.type == .Editor {
             codeEditor.rect.copy(region.rect)

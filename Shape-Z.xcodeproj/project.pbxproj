@@ -224,7 +224,7 @@
 		2B7A3C5023B46B53002EC5FC /* sz_ui_grey.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B7A3C4623B46AD8002EC5FC /* sz_ui_grey.tiff */; };
 		2B7A3C5123B46B53002EC5FC /* sz_ui_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B7A3C4C23B46AD8002EC5FC /* sz_ui_blue.tiff */; };
 		2B7A3C5323B4768D002EC5FC /* Editor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5223B4768D002EC5FC /* Editor.swift */; };
-		2B7A3C5523B479F4002EC5FC /* SourceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5423B479F4002EC5FC /* SourceList.swift */; };
+		2B7A3C5523B479F4002EC5FC /* CodeFragList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */; };
 		2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */; };
 		2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
@@ -468,7 +468,11 @@
 		2B9B29EB23BB45CA00C2F387 /* CodeProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9F42F023B9CB2800885B40 /* CodeProperties.swift */; };
 		2B9B29EC23BB45CA00C2F387 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
 		2B9B29ED23BB45CA00C2F387 /* CodeSemantics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */; };
-		2B9B29EE23BB45CA00C2F387 /* SourceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5423B479F4002EC5FC /* SourceList.swift */; };
+		2B9B29EE23BB45CA00C2F387 /* CodeFragList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */; };
+		2B9B29F023BC2F0900C2F387 /* SceneList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */; };
+		2B9B29F123BC2F0900C2F387 /* SceneList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */; };
+		2B9B29F323BC30A600C2F387 /* CodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B29F223BC2FA200C2F387 /* CodeList.swift */; };
+		2B9B29F423BC30A700C2F387 /* CodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B29F223BC2FA200C2F387 /* CodeList.swift */; };
 		2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9F42F023B9CB2800885B40 /* CodeProperties.swift */; };
 		2BA344A221FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
 		2BA344A321FE8497000BB2EB /* MMTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA344A121FE8497000BB2EB /* MMTimeline.swift */; };
@@ -654,7 +658,7 @@
 		2B7A3C4623B46AD8002EC5FC /* sz_ui_grey.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_grey.tiff; sourceTree = "<group>"; };
 		2B7A3C4C23B46AD8002EC5FC /* sz_ui_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_blue.tiff; sourceTree = "<group>"; };
 		2B7A3C5223B4768D002EC5FC /* Editor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Editor.swift; sourceTree = "<group>"; };
-		2B7A3C5423B479F4002EC5FC /* SourceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceList.swift; sourceTree = "<group>"; };
+		2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeFragList.swift; sourceTree = "<group>"; };
 		2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeEditor.swift; sourceTree = "<group>"; };
 		2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSemantics.swift; sourceTree = "<group>"; };
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
@@ -681,6 +685,8 @@
 		2B9B29AF23BB44C000C2F387 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2B9B29B223BB44C000C2F387 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2B9B29B423BB44C000C2F387 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneList.swift; sourceTree = "<group>"; };
+		2B9B29F223BC2FA200C2F387 /* CodeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeList.swift; sourceTree = "<group>"; };
 		2B9F42F023B9CB2800885B40 /* CodeProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeProperties.swift; sourceTree = "<group>"; };
 		2BA344A121FE8497000BB2EB /* MMTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTimeline.swift; sourceTree = "<group>"; };
 		2BA344AC22029FA4000BB2EB /* MMFragment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFragment.swift; sourceTree = "<group>"; };
@@ -859,7 +865,9 @@
 				2B9F42F023B9CB2800885B40 /* CodeProperties.swift */,
 				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
 				2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */,
-				2B7A3C5423B479F4002EC5FC /* SourceList.swift */,
+				2B9B29F223BC2FA200C2F387 /* CodeList.swift */,
+				2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */,
+				2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
 			);
 			path = "RZ Application";
@@ -1621,9 +1629,10 @@
 				2B7A3C0823B4653F002EC5FC /* MMView.swift in Sources */,
 				2B7A3C2423B46560002EC5FC /* App.swift in Sources */,
 				2B7A3C0B23B46546002EC5FC /* MMWidget.swift in Sources */,
-				2B7A3C5523B479F4002EC5FC /* SourceList.swift in Sources */,
+				2B7A3C5523B479F4002EC5FC /* CodeFragList.swift in Sources */,
 				2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */,
 				2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */,
+				2B9B29F323BC30A600C2F387 /* CodeList.swift in Sources */,
 				2B7A3C1323B46546002EC5FC /* MMFloatPopUp.swift in Sources */,
 				2B7A3C0C23B46546002EC5FC /* MMRegion.swift in Sources */,
 				2B7A3C1C23B46546002EC5FC /* MMTreeWidget.swift in Sources */,
@@ -1633,6 +1642,7 @@
 				2B7A3C1F23B46546002EC5FC /* MMTimeline.swift in Sources */,
 				2B7A3C1E23B46546002EC5FC /* MMAnimate.swift in Sources */,
 				2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */,
+				2B9B29F023BC2F0900C2F387 /* SceneList.swift in Sources */,
 				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
@@ -1842,7 +1852,7 @@
 				2B9B29EA23BB45CA00C2F387 /* CodeEditor.swift in Sources */,
 				2B9B29EC23BB45CA00C2F387 /* CodeBuilder.swift in Sources */,
 				2B9B29E823BB45C000C2F387 /* Mad4Metal.metal in Sources */,
-				2B9B29EE23BB45CA00C2F387 /* SourceList.swift in Sources */,
+				2B9B29EE23BB45CA00C2F387 /* CodeFragList.swift in Sources */,
 				2B9B29CE23BB453400C2F387 /* MMCompute.swift in Sources */,
 				2B9B29A723BB44BF00C2F387 /* AppDelegate.swift in Sources */,
 				2B9B29C723BB453400C2F387 /* MMLabel.swift in Sources */,
@@ -1867,7 +1877,9 @@
 				2B9B29C523BB453400C2F387 /* MMUtils.swift in Sources */,
 				2B9B29D323BB453400C2F387 /* MMTreeWidget.swift in Sources */,
 				2B9B29D523BB453400C2F387 /* MMAnimate.swift in Sources */,
+				2B9B29F123BC2F0900C2F387 /* SceneList.swift in Sources */,
 				2B9B29E523BB45C000C2F387 /* BottomRegion.swift in Sources */,
+				2B9B29F423BC30A700C2F387 /* CodeList.swift in Sources */,
 				2B9B29B823BB452800C2F387 /* NodeUI.swift in Sources */,
 				2B9B29ED23BB45CA00C2F387 /* CodeSemantics.swift in Sources */,
 				2B9B29E423BB45C000C2F387 /* RightRegion.swift in Sources */,

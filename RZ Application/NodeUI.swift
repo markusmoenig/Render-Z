@@ -972,7 +972,7 @@ class NodeUIColor : NodeUI
     var x           : Float = 0
     var width       : Float = 0
     
-    var prevSize    : SIMD2<Float> = SIMD2<Float>(80,80)
+    var prevSize    : SIMD2<Float> = SIMD2<Float>(120,120)
     
     var colorWidget : MMColorWidget? = nil
     

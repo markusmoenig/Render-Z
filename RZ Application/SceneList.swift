@@ -1,14 +1,14 @@
 //
-//  SourceList.swift
-//  Shape-Z
+//  SceneList.swift
+//  Render-Z
 //
-//  Created by Markus Moenig on 26/12/19.
+//  Created by Markus Moenig on 1/1/20.
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
 import MetalKit
 
-class SourceListItem : MMTreeWidgetItem
+class SceneListItem : MMTreeWidgetItem
 {
     enum SourceType : Int {
         case Variable
@@ -19,19 +19,14 @@ class SourceListItem : MMTreeWidgetItem
     var color        : SIMD4<Float>? = nil
     var children     : [MMTreeWidgetItem]? = nil
     var folderOpen   : Bool = false
-    
-    let sourceType   : SourceType = .Variable
-    
-    let codeFragment : CodeFragment?
         
-    init(_ name: String,_ codeFragment: CodeFragment? = nil)
+    init(_ name: String)
     {
         self.name = name
-        self.codeFragment = codeFragment
     }
 }
 
-struct SourceListDrag : MMDragSource
+struct SceneListDrag : MMDragSource
 {
     var id              : String = ""
     var sourceWidget    : MMWidget? = nil
@@ -42,29 +37,29 @@ struct SourceListDrag : MMDragSource
     var codeFragment    : CodeFragment? = nil
 }
 
-class SourceList : MMWidget
+class SceneList : MMWidget
 {
-    var listWidget          : MMTreeWidget
+    var treeWidget          : MMTreeWidget
     
-    var items               : [SourceListItem] = []
+    var items               : [SceneListItem] = []
     //var filteredItems       : [SourceListItem] = []
     
     var mouseIsDown         : Bool = false
-    var dragSource          : SourceListDrag?
+    var dragSource          : SceneListDrag?
     
     override init(_ view: MMView)
     {        
-        listWidget = MMTreeWidget(view)
-        listWidget.skin.selectionColor = SIMD4<Float>(0.5,0.5,0.5,1)
-        listWidget.itemRound = 0
-        listWidget.textOnly = true
-        listWidget.unitSize -= 5
-        listWidget.itemSize -= 5
+        treeWidget = MMTreeWidget(view)
+        treeWidget.skin.selectionColor = SIMD4<Float>(0.5,0.5,0.5,1)
+        treeWidget.itemRound = 0
+        treeWidget.textOnly = true
+        treeWidget.unitSize -= 5
+        treeWidget.itemSize -= 5
 
         super.init(view)
 
-        var item        : SourceListItem
-        var parent      : SourceListItem
+        var item        : SceneListItem
+        var parent      : SceneListItem
 
         /*
         item = SourceListItem("Object")
@@ -76,15 +71,15 @@ class SourceList : MMWidget
         item.color = SIMD4<Float>(0.5,0.5,0.5,1)
         items.append(item)*/
 
-        parent = SourceListItem("Variables")
+        parent = SceneListItem("Scene")
         parent.color = SIMD4<Float>(0.5,0.5,0.5,1)
         items.append(parent)
 
-        item = SourceListItem("Float", CodeFragment(.VariableDefinition, "float"))
+        item = SceneListItem("Screen Object")
         item.color = SIMD4<Float>(0.5,0.5,0.5,1)
         addSubNodeItem(parent, item)
         
-        listWidget.build(items: items, fixedWidth: 200)
+        treeWidget.build(items: items, fixedWidth: 200)
     }
     
     /*
@@ -108,7 +103,7 @@ class SourceList : MMWidget
         return item
     }*/
     
-    func addSubNodeItem(_ item: SourceListItem,_ subItem: SourceListItem)
+    func addSubNodeItem(_ item: SceneListItem,_ subItem: SceneListItem)
     {
         subItem.color = item.color
         if item.children == nil {
@@ -121,32 +116,33 @@ class SourceList : MMWidget
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
 
-        listWidget.rect.x = rect.x
-        listWidget.rect.y = rect.y
-        listWidget.rect.width = rect.width
-        listWidget.rect.height = rect.height
+        treeWidget.rect.x = rect.x
+        treeWidget.rect.y = rect.y
+        treeWidget.rect.width = rect.width
+        treeWidget.rect.height = rect.height
         
-        listWidget.draw(xOffset: globalApp!.leftRegion!.rect.width - 200)
+        treeWidget.draw(xOffset: globalApp!.leftRegion!.rect.width - 200)
     }
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y), items: items)
+        let changed = treeWidget.selectAt(event.x - rect.x, (event.y - rect.y), items: items)
         if changed {
-            listWidget.build(items: items, fixedWidth: 200)
+            treeWidget.build(items: items, fixedWidth: 200)
         }
         mouseIsDown = true
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        /*
         if mouseIsDown && dragSource == nil {
             dragSource = createDragSource(event.x - rect.x, event.y - rect.y)
             if dragSource != nil {
                 dragSource?.sourceWidget = self
                 mmView.dragStarted(source: dragSource!)
             }
-        }
+        }*/
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -161,20 +157,18 @@ class SourceList : MMWidget
     }
     
     /// Create a drag item
-    func createDragSource(_ x: Float,_ y: Float) -> SourceListDrag?
+    func createDragSource(_ x: Float,_ y: Float) -> SceneListDrag?
     {
-        if let listItem = listWidget.getCurrentItem(), listItem.children == nil {
-            if let item = listItem as? SourceListItem, item.codeFragment != nil {
-                var drag = SourceListDrag()
+        if let listItem = treeWidget.getCurrentItem(), listItem.children == nil {
+            if let item = listItem as? SceneListItem {
+                var drag = SceneListDrag()
                 
-                drag.id = "SourceItem"
+                drag.id = "SceneItem"
                 drag.name = item.name
                 drag.pWidgetOffset!.x = x
-                drag.pWidgetOffset!.y = y.truncatingRemainder(dividingBy: listWidget.unitSize)
-                
-                drag.codeFragment = item.codeFragment
-                                
-                let texture = listWidget.createShapeThumbnail(item: listItem)
+                drag.pWidgetOffset!.y = y.truncatingRemainder(dividingBy: treeWidget.unitSize)
+                                                
+                let texture = treeWidget.createShapeThumbnail(item: listItem)
                 drag.previewWidget = MMTextureWidget(mmView, texture: texture)
                 drag.previewWidget!.zoom = 2
                 
@@ -186,6 +180,6 @@ class SourceList : MMWidget
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
-        listWidget.mouseScrolled(event)
+        treeWidget.mouseScrolled(event)
     }
 }

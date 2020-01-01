@@ -40,6 +40,10 @@ class CodeProperties    : MMWidget
             c1Node?.rect.x = 10
             c1Node?.rect.y = 10
             
+            c2Node = Node()
+            c2Node?.rect.x = 200
+            c2Node?.rect.y = 10
+            
             if fragment.fragmentType == .ConstantValue {
                 
                 if fragment.typeName == "float" {
@@ -59,15 +63,14 @@ class CodeProperties    : MMWidget
                 if fragment.typeName == "float4" || fragment.typeName == "float3" {
                     c1Node?.uiItems.append( NodeUIColor(c1Node!, variable: "color", title: "Color", value: SIMD3<Float>(fragment.arguments[0].fragments[0].values["value"]!, fragment.arguments[1].fragments[0].values["value"]!, fragment.arguments[2].fragments[0].values["value"]!)))
                     if fragment.typeName == "float4" {
-                        c1Node?.uiItems.append( NodeUINumber(c1Node!, variable: "alpha", title: "Alpha", range: SIMD2<Float>(0,1), value: fragment.arguments[3].fragments[0].values["value"]!) )
-                        c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                        c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "alpha", title: "Alpha", range: SIMD2<Float>(0,1), value: fragment.arguments[3].fragments[0].values["value"]!) )
+                        c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                             if variable == "alpha" {
                                 fragment.arguments[3].fragments[0].values["value"] = newValue
                                 self.editor.codeEditor.needsUpdate = true
                             }
                         }
                     }
-                    c1Node?.setupUI(mmView: mmView)
                     c1Node?.float3ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                         if variable == "color" {
                             fragment.arguments[0].fragments[0].values["value"] = newValue.x
@@ -78,6 +81,9 @@ class CodeProperties    : MMWidget
                     }
                 }
             }
+            
+            c1Node?.setupUI(mmView: mmView)
+            c2Node?.setupUI(mmView: mmView)
         }
     }
     
@@ -113,7 +119,7 @@ class CodeProperties    : MMWidget
         #endif
         
         hoverMode = .None
-        //globalApp?.mmView.mouseTrackWidget = nil
+        mmView.mouseTrackWidget = nil
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
@@ -137,7 +143,7 @@ class CodeProperties    : MMWidget
         hoverUIItem = nil
         hoverUITitle = nil
         hoverMode = .None
-        
+                
         func checkNodeUI(_ node: Node)
         {
             // --- Look for NodeUI item under the mouse, master has no UI
@@ -179,9 +185,13 @@ class CodeProperties    : MMWidget
         }
         
         if let node = c1Node {
-         
             checkNodeUI(node)
         }
+        
+        if let node = c2Node, hoverMode == .None {
+            checkNodeUI(node)
+        }
+        
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -189,6 +199,22 @@ class CodeProperties    : MMWidget
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1) )
         
         if let node = c1Node {
+            
+            let uiItemX : Float = rect.x + node.rect.x
+            var uiItemY : Float = rect.y + node.rect.y
+            
+            for uiItem in node.uiItems {
+                uiItem.rect.x = uiItemX
+                uiItem.rect.y = uiItemY
+                uiItemY += uiItem.rect.height
+            }
+            
+            for uiItem in node.uiItems {
+                uiItem.draw(mmView: mmView, maxTitleSize: node.uiMaxTitleSize, maxWidth: node.uiMaxWidth, scale: 1)
+            }
+        }
+        
+        if let node = c2Node {
             
             let uiItemX : Float = rect.x + node.rect.x
             var uiItemY : Float = rect.y + node.rect.y

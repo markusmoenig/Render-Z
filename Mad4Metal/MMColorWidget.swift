@@ -373,7 +373,7 @@ class MMColorWidget : MMWidget
         calcColor(event, true, true)
         
         mmView.lockFramerate()
-        mmView.mouseTrackWidget = self
+        //mmView.mouseTrackWidget = self
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -384,7 +384,7 @@ class MMColorWidget : MMWidget
             calcColor(event, false)
             
             mmView.unlockFramerate()
-            mmView.mouseTrackWidget = nil
+            //mmView.mouseTrackWidget = nil
         }
     }
     
@@ -447,13 +447,15 @@ class MMColorWidget : MMWidget
             let circleSize : Float = rect.width
             
             let center : SIMD2<Float> = SIMD2<Float>(circleSize/2,circleSize/2)
-            
+                        
             let dist = simd_distance(center, SIMD2<Float>(x,y))
             if dist >= (rect.width * 0.75) / 2 {
                 insideOp = false
             } else {
                 insideOp = true
             }
+            
+            //print("calcColor", x, y, dist, insideOp)
         }
         
         if !insideOp {

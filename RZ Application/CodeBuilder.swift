@@ -103,7 +103,7 @@ class CodeBuilder
              """
         }
         
-        print( inst.code )
+        //print( inst.code )
         
         if inst.data.count == 0 {
             inst.data.append(SIMD4<Float>(0,0,0,0))
@@ -135,7 +135,6 @@ class CodeBuilder
     {            
         if fragment.encoderStart(outTexture: texture)
         {
-            print( texture!.width)
             fragment.encodeRun(inst.fragmentState!, inBuffer: inst.buffer)
     
             fragment.encodeEnd()

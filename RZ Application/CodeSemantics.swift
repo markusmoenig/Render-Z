@@ -319,7 +319,7 @@ class CodeBlock             : Codable, Equatable
         // Content
         if blockType == .Empty {
             let rStart = ctx.rectStart()
-            ctx.cX = ctx.editorWidth - ctx.cX
+            ctx.cX += 100//ctx.editorWidth - ctx.cX
             ctx.rectEnd(fragment.rect, rStart)
             ctx.cY += ctx.lineHeight + ctx.gapY
             ctx.drawFragmentState(fragment)
@@ -668,6 +668,8 @@ class CodeContext
     var selectedFunction    : CodeFunction? = nil
     var selectedBlock       : CodeBlock? = nil
     var selectedFragment    : CodeFragment? = nil
+    
+    var dropFragment        : CodeFragment? = nil
         
     var tempRect            : MMRect = MMRect()
     
@@ -717,6 +719,11 @@ class CodeContext
         }
     }
     
+    func drawHighlight(_ rect: MMRect,_ alpha: Float = 0.5)
+    {
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: fragment )
+    }
+    
     func drawFunctionState(_ function: CodeFunction)
     {
         if function === hoverFunction || function.uuid == cComponent!.selected {
@@ -735,9 +742,15 @@ class CodeContext
     
     func drawFragmentState(_ fragment: CodeFragment)
     {
+        if let drop = dropFragment, fragment == hoverFragment {
+            
+            if cBlock!.blockType == .Empty && drop.fragmentType == .VariableDefinition {
+                drawHighlight(fragment.rect, hoverAlpha)
+            }
+        } else
         if fragment === hoverFragment || fragment.uuid == cComponent!.selected {
             let alpha : Float = fragment.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
-            mmView.drawBox.draw( x: fragment.rect.x, y: fragment.rect.y, width: fragment.rect.width, height: fragment.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: self.fragment )
+            drawHighlight(fragment.rect, alpha)
         }
     }
 }

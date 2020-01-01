@@ -38,7 +38,7 @@ class CodeEditor        : MMWidget
         zoom = mmView.scaleFactor
         textureWidget.zoom = zoom
         
-        dropTargets.append( "SourceItem" )
+        dropTargets.append( "SourceFragmentItem" )
         
         codeComponent = CodeComponent()
         codeComponent?.createDefaultFunction(.ScreenObjectColorize)
@@ -48,20 +48,26 @@ class CodeEditor        : MMWidget
     /// Drag and Drop Target
     override func dragEnded(event: MMMouseEvent, dragSource: MMDragSource)
     {
-        if dragSource.id == "SourceItem"
+        if dragSource.id == "SourceFragmentItem"
         {
             // Source Item
             //if let drag = dragSource as? SourceListDrag {
                 //codeEditor.sourceDrop(event, drag.
             //}
+            
+            codeContext.hoverFragment = nil
+            
+            codeContext.dropFragment = nil
+            needsUpdate = true
+            mmView.update()
         }
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        //if let dragSource = mmView.dragSource {
-        //} else {
-        //}
+        if let dragSource = mmView.dragSource as? SourceListDrag {
+            codeContext.dropFragment = dragSource.codeFragment
+        }
                 
         if let comp = codeComponent {
             let oldFunc = codeContext.hoverFunction
