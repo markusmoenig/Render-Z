@@ -51,13 +51,30 @@ class CodeEditor        : MMWidget
         if dragSource.id == "SourceFragmentItem"
         {
             // Source Item
-            //if let drag = dragSource as? SourceListDrag {
-                //codeEditor.sourceDrop(event, drag.
-            //}
+            if let drag = dragSource as? SourceListDrag {
+                /// Insert the fragment
+                if let frag = drag.codeFragment, codeContext.hoverFragment != nil {
+                    insertCodeFragment(frag, codeContext)
+                }
+            }
             
             codeContext.hoverFragment = nil
             
             codeContext.dropFragment = nil
+            needsUpdate = true
+            mmView.update()
+        }
+    }
+    
+    /// Disable hover when mouse leaves the editor
+    override func mouseLeave(_ event: MMMouseEvent) {
+        let oldFunc = codeContext.hoverFunction
+        let oldBlock = codeContext.hoverBlock
+
+        codeContext.hoverFunction = nil
+        codeContext.hoverBlock = nil
+
+        if oldFunc !== codeContext.hoverFunction || oldBlock !== codeContext.hoverBlock {
             needsUpdate = true
             mmView.update()
         }
@@ -138,6 +155,7 @@ class CodeEditor        : MMWidget
             
             buildPreview()
         }
+        needsUpdate = false
     }
     
     /// Builds the preview
@@ -182,5 +200,53 @@ class CodeEditor        : MMWidget
         scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset)
         
         //mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
+    }
+    
+    /// Update the code syntax and redraws
+    func updateCode()
+    {
+        needsUpdate = true
+        update()
+        mmView.update()
+    }
+    
+    /// Insert a Code Fragment
+    func insertCodeFragment(_ frag: CodeFragment,_ ctx: CodeContext )
+    {
+        let destFrag : CodeFragment = ctx.hoverFragment!
+        
+        print( destFrag.fragmentType, destFrag.typeName, destFrag.name )
+        let destBlock : CodeBlock = destFrag.parentBlock!
+
+        if frag.fragmentType == .VariableDefinition {
+            
+            if destBlock.blockType == .Empty {
+                
+                getStringDialog(view: mmView, title: "Float Variable", message: "Enter variable name", defaultValue: "var", cb: { (value) -> Void in
+                
+                    destBlock.blockType = .VariableDefinition
+                    destBlock.fragment.fragmentType = .VariableDefinition
+                    destBlock.fragment.typeName = frag.typeName
+                    destBlock.fragment.name = value
+                    
+                    if destFrag.typeName == "float" {
+                        let constant = CodeFragment(.ConstantValue, frag.typeName, frag.typeName)
+                        destBlock.statement.fragments.append(constant)
+                    } else {
+                        let constant = CodeFragment(.ConstantDefinition, frag.typeName, frag.typeName)
+                        destBlock.statement.fragments.append(constant)
+                        
+                        for _ in 0...0 {
+                            let argStatement = CodeStatement(.Arithmetic)
+                            
+                            let constValue = CodeFragment(.ConstantValue, "float")
+                            argStatement.fragments.append(constValue)
+                            constant.arguments.append(argStatement)
+                        }
+                    }
+                    self.updateCode()
+                } )
+            }
+        }
     }
 }

@@ -749,7 +749,7 @@ class NodeUINumber : NodeUI
         
         // --- Draw Text
         if contentValue != value {
-            contentText = int ? String(Int(value)) : String(format: "%.02f", value)
+            contentText = int ? String(Int(value)) : String(format: "%.03f", value)
             contentValue = value
         }
         if contentLabel.text != contentText || contentLabel.scale != NodeUI.fontScale * scale {

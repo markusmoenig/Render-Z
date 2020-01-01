@@ -92,11 +92,12 @@ class CodeFragList : MMWidget
         
         item = FragItem("F")
         items.append(item)
-        item.items.append( SourceListItem("float", CodeFragment(.VariableDefinition, "float" ) ) )
+        item.items.append( SourceListItem("float (variable)", CodeFragment(.VariableDefinition, "float" ) ) )
         
         item = FragItem("S")
         items.append(item)
-        item.items.append( SourceListItem("smoothstep", CodeFragment(.VariableDefinition, "smoothstep" ) ) )
+        item.items.append( SourceListItem("sin", CodeFragment(.VariableDefinition, "float", "sin" ) ) )
+        item.items.append( SourceListItem("smoothstep", CodeFragment(.VariableDefinition, "float", "smoothstep" ) ) )
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)

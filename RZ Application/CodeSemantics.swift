@@ -18,7 +18,8 @@ class CodeFragment          : Codable, Equatable
                 VariableDefinition,     // Definition of a variable (float4 color)
                 OutVariable,            // Out variable (outColor), cannot be edited
                 ConstantDefinition,     // Definition of a constant (float4)
-                ConstantValue           // Value of a constant (1.2), right now only floats
+                ConstantValue,          // Value of a constant (1.2), right now only floats
+                Primitive               // A primitive function line abs, sin, length etc
     }
     
     var fragmentType        : FragmentType = .Undefined
@@ -32,6 +33,8 @@ class CodeFragment          : Codable, Equatable
     var argRect             : MMRect = MMRect()
     
     var values              : [String:Float] = [:]
+    
+    var parentBlock         : CodeBlock? = nil
 
     private enum CodingKeys: String, CodingKey {
         case fragmentType
@@ -100,6 +103,8 @@ class CodeFragment          : Codable, Equatable
     
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
+        parentBlock = ctx.cBlock
+
         if fragmentType == .OutVariable {
             let rStart = ctx.rectStart()
             
@@ -114,12 +119,12 @@ class CodeFragment          : Codable, Equatable
             
             ctx.addCode(name)
         } else
-        if fragmentType == .ConstantDefinition {
+        if fragmentType == .ConstantDefinition || fragmentType == .Primitive {
             let rStart = ctx.rectStart()
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
-                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.reserved, fragment: frag)
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: fragmentType == .ConstantDefinition ? mmView.skin.Code.reserved : mmView.skin.Code.name, fragment: frag)
             }
             
             ctx.cX += ctx.tempRect.width
@@ -127,6 +132,26 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.gapX
             
             ctx.addCode(typeName)
+        } else
+        if fragmentType == .VariableDefinition {
+            let rStart = ctx.rectStart()
+            
+            ctx.font.getTextRect(text: typeName, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: typeName, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.reserved, fragment: frag)
+            }
+            ctx.cX += ctx.tempRect.width + ctx.gapX
+            
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.name, fragment: frag)
+            }
+            ctx.cX += ctx.tempRect.width
+            
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+            
+            ctx.addCode(typeName + " " + name)
         } else
         if fragmentType == .ConstantValue {
             let rStart = ctx.rectStart()
@@ -239,10 +264,10 @@ class CodeStatement         : Codable, Equatable
 class CodeBlock             : Codable, Equatable
 {
     enum BlockType          : Int, Codable {
-        case Empty, FunctionHeader, OutVariable
+        case Empty, FunctionHeader, OutVariable, VariableDefinition
     }
     
-    let blockType           : BlockType
+    var blockType           : BlockType
 
     var fragment            : CodeFragment = CodeFragment(.Undefined)
     var statement           : CodeStatement
@@ -291,8 +316,10 @@ class CodeBlock             : Codable, Equatable
     
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
-        let rStart = ctx.rectStart()
+        fragment.parentBlock = self
 
+        let rStart = ctx.rectStart()
+        
         // Border
         if blockType == .FunctionHeader {
             ctx.font.getTextRect(text: "func", scale: ctx.fontScale, rectToUse: ctx.tempRect)
