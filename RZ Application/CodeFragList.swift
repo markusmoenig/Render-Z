@@ -88,15 +88,19 @@ class CodeFragList : MMWidget
 
         var item = FragItem("A")
         items.append(item)
-        item.items.append( SourceListItem("abs", CodeFragment(.VariableDefinition, "float" ) ) )
+        item.items.append( SourceListItem("abs", CodeFragment(.Primitive, "float" ) ) )
         
         item = FragItem("F")
         items.append(item)
-        item.items.append( SourceListItem("float (variable)", CodeFragment(.VariableDefinition, "float" ) ) )
+        item.items.append( SourceListItem("float (variable)", CodeFragment(.VariableDefinition, "float", "", ["float"], "float" ) ) )
+        
+        item = FragItem("G")
+        items.append(item)
+        item.items.append( SourceListItem("GlobalTime", CodeFragment(.Primitive, "float", "GlobalTime", nil, "float" ) ) )
         
         item = FragItem("S")
         items.append(item)
-        item.items.append( SourceListItem("sin", CodeFragment(.VariableDefinition, "float", "sin" ) ) )
+        item.items.append( SourceListItem("sin", CodeFragment(.Primitive, "float", "sin", ["float|float2|float3|float4"], "input" ) ) )
         item.items.append( SourceListItem("smoothstep", CodeFragment(.VariableDefinition, "float", "smoothstep" ) ) )
     }
     

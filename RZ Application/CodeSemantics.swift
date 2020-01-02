@@ -16,6 +16,7 @@ class CodeFragment          : Codable, Equatable
                 TypeDefinition,         // Type definition (float4 param)
                 ConstTypeDefinition,    // Const type definition (float4 colorize) cannot be editited
                 VariableDefinition,     // Definition of a variable (float4 color)
+                VariableReference,      // Reference to a variable
                 OutVariable,            // Out variable (outColor), cannot be edited
                 ConstantDefinition,     // Definition of a constant (float4)
                 ConstantValue,          // Value of a constant (1.2), right now only floats
@@ -28,6 +29,15 @@ class CodeFragment          : Codable, Equatable
     var uuid                : UUID = UUID()
         
     var arguments           : [CodeStatement] = []
+    var argumentFormat      : [String]? = nil
+    
+    var evaluatesTo         : String? = nil
+    
+    /// Variable reference
+    var referseTo           : UUID? = nil
+    
+    // For .VariableReference, "xy"
+    var qualifier           : String = ""
 
     var rect                : MMRect = MMRect()
     var argRect             : MMRect = MMRect()
@@ -42,6 +52,10 @@ class CodeFragment          : Codable, Equatable
         case name
         case uuid
         case arguments
+        case argumentFormat
+        case evaluatesTo
+        case referseTo
+        case qualifier
         case values
     }
     
@@ -53,6 +67,10 @@ class CodeFragment          : Codable, Equatable
         name = try container.decode(String.self, forKey: .name)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         arguments = try container.decode([CodeStatement].self, forKey: .arguments)
+        argumentFormat = try container.decode([String]?.self, forKey: .argumentFormat)
+        evaluatesTo = try container.decode(String?.self, forKey: .evaluatesTo)
+        referseTo = try container.decode(UUID?.self, forKey: .referseTo)
+        qualifier = try container.decode(String.self, forKey: .qualifier)
         values = try container.decode([String:Float].self, forKey: .values)
     }
     
@@ -64,6 +82,10 @@ class CodeFragment          : Codable, Equatable
         try container.encode(name, forKey: .name)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(arguments, forKey: .arguments)
+        try container.encode(argumentFormat, forKey: .argumentFormat)
+        try container.encode(evaluatesTo, forKey: .evaluatesTo)
+        try container.encode(referseTo, forKey: .referseTo)
+        try container.encode(qualifier, forKey: .qualifier)
         try container.encode(values, forKey: .values)
     }
     
@@ -71,11 +93,13 @@ class CodeFragment          : Codable, Equatable
         return lhs.uuid == rhs.uuid
     }
 
-    init(_ type: FragmentType,_ typeName: String = "",_ name: String = "")
+    init(_ type: FragmentType,_ typeName: String = "",_ name: String = "",_ argumentFormat: [String]? = nil,_ evaluatesTo: String? = nil)
     {
         fragmentType = type
         self.typeName = typeName
         self.name = name
+        self.argumentFormat = argumentFormat
+        self.evaluatesTo = evaluatesTo
         
         if type == .ConstantValue {
             values["value"] = 1
@@ -99,6 +123,16 @@ class CodeFragment          : Codable, Equatable
             return false
         }
         return true
+    }
+    
+    /// Returns true if fragment is inside the editor, false otherwise (SourceList)
+    func isInsideEditor() -> Bool
+    {
+        if rect.x == 0 {
+            return false
+        } else {
+            return true
+        }
     }
     
     func draw(_ mmView: MMView,_ ctx: CodeContext)
@@ -131,9 +165,10 @@ class CodeFragment          : Codable, Equatable
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
             
-            ctx.addCode(typeName)
+            ctx.addCode(name)
         } else
         if fragmentType == .VariableDefinition {
+            ctx.cVariables[self.uuid] = self
             let rStart = ctx.rectStart()
             
             ctx.font.getTextRect(text: typeName, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -167,6 +202,22 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.gapX
             
             ctx.addCode(value)
+        } else
+        if fragmentType == .VariableReference {
+            let rStart = ctx.rectStart()
+            let name = ctx.cVariables[referseTo!]!.name
+            // TODO ERROR MESSAGE
+
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.name, fragment: frag)
+            }
+            
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+            
+            ctx.addCode(name)
         }
         
         // Arguments
@@ -495,6 +546,8 @@ class CodeFunction          : Codable, Equatable
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
         ctx.blockNumber = 1
+        ctx.cVariables = [:]
+        
         let rStart = ctx.rectStart()
 
         header.draw(mmView, ctx)
@@ -672,6 +725,8 @@ class CodeContext
     var cComponent          : CodeComponent? = nil
     var cFunction           : CodeFunction? = nil
     var cBlock              : CodeBlock? = nil
+    
+    var cVariables          : [UUID:CodeFragment] = [:]
 
     // Fixed vars
     var indent              : Float = 0
@@ -697,6 +752,7 @@ class CodeContext
     var selectedFragment    : CodeFragment? = nil
     
     var dropFragment        : CodeFragment? = nil
+    var dropIsValid         : Bool = false
         
     var tempRect            : MMRect = MMRect()
     
@@ -723,7 +779,9 @@ class CodeContext
         selectionAlpha = 0.7
         
         self.editorWidth = editorWidth
-        self.lineHeight = font.getLineHeight(fontScale)
+        lineHeight = font.getLineHeight(fontScale)
+        
+        dropIsValid = false
     }
     
     func rectStart() -> SIMD2<Float>
@@ -770,9 +828,16 @@ class CodeContext
     func drawFragmentState(_ fragment: CodeFragment)
     {
         if let drop = dropFragment, fragment == hoverFragment {
-            
-            if cBlock!.blockType == .Empty && drop.fragmentType == .VariableDefinition {
+                        
+            // Drop on an empty line (.VariableDefinition)
+            if cBlock!.blockType == .Empty && drop.fragmentType == .VariableDefinition && drop.isInsideEditor() == false {
                 drawHighlight(fragment.rect, hoverAlpha)
+                dropIsValid = true
+            } else
+            // Drop a .Primitive or .VariableReference on a constant value
+            if fragment.fragmentType == .ConstantValue && (drop.fragmentType == .Primitive || drop.fragmentType == .VariableReference) {
+                drawHighlight(fragment.rect, hoverAlpha)
+                dropIsValid = true
             }
         } else
         if fragment === hoverFragment || fragment.uuid == cComponent!.selected {

@@ -17,7 +17,7 @@ class CodeBuilderInstance
     var computeState    : MTLComputePipelineState? = nil
 
     var data            : [SIMD4<Float>] = []
-    var buffer          : MTLBuffer? = nil
+    var buffer          : MTLBuffer!
 }
 
 class CodeBuilder
@@ -27,6 +27,9 @@ class CodeBuilder
     var fragment            : MMFragment
     var compute             : MMCompute
 
+    var GlobalTime          : Double = 0
+    var isPlaying           : Bool = false
+    
     init(_ view: MMView)
     {
         mmView = view
@@ -61,6 +64,9 @@ class CodeBuilder
                 //float2 fragCoord = float2(in.textureCoordinate.x, 1. - in.textureCoordinate.y) * size;
                 float4 outColor = float4(0,0,0,1);
             
+                //float test = sin( float3(1) );
+            
+                float GlobalTime = data[0].x;
             
             """
             
@@ -80,9 +86,7 @@ class CodeBuilder
             """
         }
         
-        //buildComponent(component, monitor)
-        
-        inst.code += component.code!
+        buildComponent(inst, component, monitor)
         
         // --- Return value
         if monitor == nil {
@@ -103,21 +107,19 @@ class CodeBuilder
              """
         }
         
-        //print( inst.code )
+        print( inst.code )
         
         if inst.data.count == 0 {
             inst.data.append(SIMD4<Float>(0,0,0,0))
         }
         
         if monitor == nil {
-            inst.buffer = fragment.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<Float>.stride, options: [])!
+            inst.buffer = fragment.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
             let library = fragment.createLibraryFromSource(source: inst.code)
             inst.fragmentState = fragment.createState(library: library, name: "componentBuilder")
         } else {
-            if inst.data.count > 0 {
-                inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<Float>.stride, options: [])!
-            }
+            inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
             
             let library = compute.createLibraryFromSource(source: inst.code)
             inst.computeState = compute.createState(library: library, name: "componentBuilder")
@@ -126,18 +128,52 @@ class CodeBuilder
         return inst
     }
     
-    func buildComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    /// Build the source code for the component
+    func buildComponent(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
     {
         //print("buildComponent", component.code)
+        inst.code += component.code!
+        
+        inst.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+    }
+    
+    /// Update the instance buffer
+    func updateBuffer(_ inst: CodeBuilderInstance)
+    {
+        if inst.fragmentState != nil {
+            inst.buffer = fragment.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        } else
+        if inst.computeState != nil {
+            inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        }
+    }
+    
+    /// Update the instance data
+    func updateData(_ inst: CodeBuilderInstance)
+    {
+        inst.data[0].x = getDeltaTime()
+        updateBuffer(inst)
     }
     
     func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil)
-    {            
+    {
+        updateData(inst)
         if fragment.encoderStart(outTexture: texture)
         {
             fragment.encodeRun(inst.fragmentState!, inBuffer: inst.buffer)
     
             fragment.encodeEnd()
         }
+    }
+    
+    func getCurrentTime() -> Double {
+        return Double(Date().timeIntervalSince1970)
+    }
+    
+    func getDeltaTime() -> Float
+    {
+        let time = getCurrentTime()
+        let delta : Float = Float(time - GlobalTime)
+        return delta
     }
 }

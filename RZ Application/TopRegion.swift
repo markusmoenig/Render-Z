@@ -141,7 +141,17 @@ class TopRegion: MMRegion
         playButton.isDisabled = false
         playButton.textYOffset = -2
         playButton.clicked = { (event) -> Void in
-            //app.play()
+            if app.codeBuilder.isPlaying == false {
+                self.playButton.addState(.Checked)
+                app.mmView.lockFramerate(true)
+                app.codeBuilder.GlobalTime = app.codeBuilder.getCurrentTime()
+                app.codeBuilder.isPlaying = true
+            } else {
+                self.playButton.removeState(.Checked)
+                app.mmView.unlockFramerate(true)
+                app.codeBuilder.isPlaying = false
+                app.codeBuilder.GlobalTime = 0
+            }
         }
         
         layoutH( startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)

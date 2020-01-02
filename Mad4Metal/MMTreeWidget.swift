@@ -18,6 +18,20 @@ protocol MMTreeWidgetItem
     var folderOpen  : Bool{get set}
 }
 
+class DummyTreeWidgetItem : MMTreeWidgetItem
+{
+    var name         : String = ""
+    var uuid         : UUID = UUID()
+    var color        : SIMD4<Float>? = SIMD4<Float>(0.5, 0.5, 0.5, 1)
+    var children     : [MMTreeWidgetItem]? = nil
+    var folderOpen   : Bool = false
+                
+    init(_ name: String)
+    {
+        self.name = name
+    }
+}
+
 class MMTreeWidget : MMWidget
 {
     enum HoverState {
@@ -327,9 +341,9 @@ class MMTreeWidget : MMWidget
     }
     
     /// Creates a thumbnail for the given item
-    func createShapeThumbnail(item: MMTreeWidgetItem) -> MTLTexture?
+    func createShapeThumbnail(item: MMTreeWidgetItem, customWidth: Float = 200) -> MTLTexture?
     {
-        let width : Float = 200 * zoom
+        let width : Float = customWidth * zoom
         let height : Float = unitSize * zoom
         
         let texture = fragment!.allocateTexture(width: width, height: height, output: true)
@@ -354,6 +368,15 @@ class MMTreeWidget : MMWidget
         
         return texture
     }
+    
+    /// Creates a thumbnail for the given item
+    func createGenericThumbnail(_ name: String,_ width: Float) -> MTLTexture?
+    {
+        let item = DummyTreeWidgetItem(name)
+        item.name = name
+       
+        return createShapeThumbnail(item: item, customWidth: width)
+   }
     
     /// Returns the item of the given uuid
     func itemOfUUID(_ uuid: UUID) -> MMTreeWidgetItem?
