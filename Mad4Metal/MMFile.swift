@@ -16,19 +16,20 @@ import UIKit
 
 class MMFile
 {
-    var mmView      : MMView!
-    var name        : String = "Untitled"
+    var mmView          : MMView!
+    var name            : String = "Untitled"
     
-    let appName     : String = "render-z"
+    let appExtension    : String
     
     var containerUrl: URL? {
         return FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents")
 //        return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
     }
     
-    init(_ view: MMView)
+    init(_ view: MMView,_ ext: String)
     {
         mmView = view
+        appExtension = ext
         
         // --- Check for iCloud container existence
         if let url = self.containerUrl, !FileManager.default.fileExists(atPath: url.path, isDirectory: nil) {
@@ -46,7 +47,7 @@ class MMFile
     {
         let documentUrl = self.containerUrl?
                     .appendingPathComponent(name)
-                    .appendingPathExtension(appName)
+                    .appendingPathExtension(appExtension)
         return documentUrl
     }
     
@@ -78,7 +79,7 @@ class MMFile
         savePanel.title = "Select Project"
         savePanel.directoryURL =  containerUrl
         savePanel.showsHiddenFiles = false
-        savePanel.allowedFileTypes = [appName]
+        savePanel.allowedFileTypes = [appExtension]
         
         func save(url: URL)
         {
@@ -140,7 +141,7 @@ class MMFile
         openPanel.title = "Select Project"
         openPanel.directoryURL =  containerUrl
         openPanel.showsHiddenFiles = false
-        openPanel.allowedFileTypes = [appName]
+        openPanel.allowedFileTypes = [appExtension]
         
         func load(url: URL) -> String
         {

@@ -49,7 +49,7 @@ class App
     init(_ view : MMView )
     {
         mmView = view
-        mmFile = MMFile( view )
+        mmFile = MMFile( view, "shape-z" )
         
         nodeGraph = NodeGraph()
         

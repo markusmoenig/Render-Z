@@ -61,7 +61,7 @@ class MMTemplateChooser : MMDialog {
         
         if let selected = selItem {
             if !selected.fileName.isEmpty {
-                let path = Bundle.main.path(forResource: selected.fileName, ofType: "shape-z")!
+                let path = Bundle.main.path(forResource: selected.fileName, ofType: globalApp!.mmFile.appExtension)!
                 let data = NSData(contentsOfFile: path)! as Data
                 let dataString = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
 
@@ -323,7 +323,7 @@ class MMFileDialog : MMDialog {
             textField.removeFromSuperview()
             
             let mmFile = globalApp!.mmFile!
-            let path = mmFile.containerUrl!.appendingPathComponent(textField.text!).appendingPathExtension("shape-z")
+            let path = mmFile.containerUrl!.appendingPathComponent(textField.text!).appendingPathExtension(globalApp!.mmFile.appExtension)
             mmFile.name = textField.text!
 
             do {
