@@ -22,6 +22,7 @@ class CodeEditor        : MMWidget
     var editor          : Editor!
 
     var needsUpdate     : Bool = false
+    var codeChanged     : Bool = false
     var previewInstance : CodeBuilderInstance? = nil
     
     var mouseIsDown     : Bool = false
@@ -195,7 +196,10 @@ class CodeEditor        : MMWidget
    
             fragment.encodeEnd()
             
-            buildPreview()
+            if codeChanged {
+                buildPreview()
+                codeChanged = false
+            }
         }
         needsUpdate = false
     }
@@ -224,6 +228,7 @@ class CodeEditor        : MMWidget
         // Is playing ?
         if globalApp!.codeBuilder.isPlaying && previewInstance != nil {
             globalApp?.codeBuilder.render(previewInstance!)
+            editor.codeProperties.updateMonitor()
         }
         
         if let texture = previewTexture {
@@ -277,7 +282,7 @@ class CodeEditor        : MMWidget
                     destBlock.fragment.typeName = sourceFrag.typeName
                     destBlock.fragment.name = value
                     
-                    if destFrag.typeName == "float" {
+                    if destFrag.typeName == "float" || destFrag.typeName == "int" {
                         let constant = CodeFragment(.ConstantValue, sourceFrag.typeName, sourceFrag.typeName)
                         destBlock.statement.fragments.append(constant)
                     } else {
@@ -340,9 +345,7 @@ class CodeEditor        : MMWidget
         if sourceFrag.fragmentType == .VariableReference {
             
             //copyFragmentArguments(destFrag, sourceFrag)
-            
-            print("jere")
-            
+                        
             destFrag.fragmentType = .VariableReference
             destFrag.typeName = sourceFrag.typeName
             destFrag.name = sourceFrag.name
@@ -351,6 +354,7 @@ class CodeEditor        : MMWidget
             self.updateCode()
         }
         
+        codeChanged = true
     }
     
     /// Copy the

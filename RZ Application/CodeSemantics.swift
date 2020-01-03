@@ -119,7 +119,7 @@ class CodeFragment          : Codable, Equatable
     
     func canBeSelected() -> Bool
     {
-        if fragmentType == .ConstTypeDefinition || fragmentType == .OutVariable {
+        if fragmentType == .ConstTypeDefinition {//|| fragmentType == .OutVariable {
             return false
         }
         return true
@@ -397,7 +397,7 @@ class CodeBlock             : Codable, Equatable
         // Content
         if blockType == .Empty {
             let rStart = ctx.rectStart()
-            ctx.cX += 100//ctx.editorWidth - ctx.cX
+            ctx.cX += 160//ctx.editorWidth - ctx.cX
             ctx.rectEnd(fragment.rect, rStart)
             ctx.cY += ctx.lineHeight + ctx.gapY
             ctx.drawFragmentState(fragment)

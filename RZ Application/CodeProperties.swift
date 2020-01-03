@@ -14,16 +14,21 @@ class CodeProperties    : MMWidget
         case None, NodeUI, NodeUIMouseLocked
     }
     
-    var hoverMode       : HoverMode = .None
+    var hoverMode           : HoverMode = .None
 
-    var editor          : Editor!
+    var editor              : Editor!
     
-    var c1Node          : Node? = nil
-    var c2Node          : Node? = nil
+    var c1Node              : Node? = nil
+    var c2Node              : Node? = nil
     
-    var hoverUIItem     : NodeUI? = nil
-    var hoverUITitle    : NodeUI? = nil
+    var hoverUIItem         : NodeUI? = nil
+    var hoverUITitle        : NodeUI? = nil
     
+    var monitorInstance     : CodeBuilderInstance? = nil
+    var monitorData         : [SIMD4<Float>] = []
+    let totalMonitorData    : Float = 300
+    var monitorRange        : SIMD2<Float> = SIMD2<Float>(0, 0)
+
     override init(_ view: MMView)
     {
         super.init(view)
@@ -84,6 +89,14 @@ class CodeProperties    : MMWidget
             
             c1Node?.setupUI(mmView: mmView)
             c2Node?.setupUI(mmView: mmView)
+
+            // Setup the monitor
+            if fragment.fragmentType == .VariableDefinition || fragment.fragmentType == .VariableReference || fragment.fragmentType == .OutVariable
+            {
+                setupMonitorData(comp, fragment, ctx)
+            } else {
+                monitorInstance = nil
+            }
         }
     }
     
@@ -228,6 +241,89 @@ class CodeProperties    : MMWidget
             for uiItem in node.uiItems {
                 uiItem.draw(mmView: mmView, maxTitleSize: node.uiMaxTitleSize, maxWidth: node.uiMaxWidth, scale: 1)
             }
+        }
+        
+        // --- Draw Monitor
+        if let inst = monitorInstance {
+            let mMidY       : Float = rect.y + rect.height / 2
+            let border      : Float = 10
+            var mOffsetX    : Float = 200 // + 300 / 2 - totalData / 2
+            let dataRange   : Float = max(monitorRange.y - monitorRange.x, 2)
+            let yRange      : Float = rect.height - 2 * border
+
+            let redColor    : SIMD4<Float> = SIMD4<Float>(0.8,0,0,1)
+            let greenColor  : SIMD4<Float> = SIMD4<Float>(0,0.8,0,1)
+            let blueColor   : SIMD4<Float> = SIMD4<Float>(0,0,0.8,1)
+
+            let color       : SIMD4<Float> = SIMD4<Float>(0,0,0,1)
+
+            mmView.drawBox.draw(x: rect.x + mOffsetX, y: rect.y + border, width: totalMonitorData + 2 * border, height: rect.height - border*2, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1, 1, 1, 0.5))
+
+            func drawY(_ value: Float,_ color: SIMD4<Float>)
+            {
+                var y : Float = mMidY
+                if dataRange != 0 {
+                    y += (value / dataRange) * yRange
+                }
+                mmView.drawBox.draw(x: rect.x + mOffsetX, y: y, width: 2, height: 2, round: 0, borderSize: 0, fillColor: color)
+            }
+            
+            mOffsetX += totalMonitorData + border
+            if inst.computeComponents == 1 {
+                for (_, data) in monitorData.enumerated().reversed() {
+                    drawY(data.x, color)
+                    mOffsetX -= 1
+                }
+            } else
+            if inst.computeComponents == 4 {
+                for (_, data) in monitorData.enumerated().reversed() {
+                    drawY(data.x, redColor)
+                    drawY(data.y, greenColor)
+                    drawY(data.z, blueColor)
+                    drawY(data.w, color)
+                    mOffsetX -= 1
+                }
+            }
+        }
+    }
+    
+    // Clear the monitor data
+    func setupMonitorData(_ comp: CodeComponent,_ fragment: CodeFragment,_ ctx: CodeContext)
+    {
+        monitorInstance = globalApp!.codeBuilder.build(comp, fragment)
+        
+        monitorData = []
+        monitorRange = SIMD2<Float>(0, 0)
+        updateMonitor()
+    }
+    
+    // Append data to the monitor
+    func updateMonitor()
+    {
+        if let inst = monitorInstance {
+            globalApp!.codeBuilder.compute(inst)
+            let result = inst.computeResult
+            
+            if Float(monitorData.count) >= totalMonitorData {
+                monitorData.removeFirst()
+            }
+            monitorData.append( result )
+
+            func checkRange(_ f: Float)
+            {
+                if f < monitorRange.x {
+                    monitorRange.x = f
+                }
+                if f > monitorRange.y {
+                    monitorRange.y = f
+                }
+            }
+            
+            checkRange(result.x)
+            //print("result", result.x, monitorRange.x, monitorRange.y, monitorRange.y - monitorRange.x )
+            checkRange(result.y)
+            checkRange(result.z)
+            checkRange(result.w)
         }
     }
 }
