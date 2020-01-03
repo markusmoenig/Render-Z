@@ -361,7 +361,7 @@ class CodeEditor        : MMWidget
     func copyFragmentArguments(_ destFrag: CodeFragment, _ sourceFrag: CodeFragment)
     {
         if let sourceFormats = sourceFrag.argumentFormat {
-            for arg in sourceFormats
+            for _ in sourceFormats
             {
                 let argStatement = CodeStatement(.Arithmetic)
 
