@@ -78,7 +78,7 @@ class CodeFragment          : Codable, Equatable
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(fragmentType, forKey: .fragmentType)
-        try container.encode(typeName, forKey: .name)
+        try container.encode(typeName, forKey: .typeName)
         try container.encode(name, forKey: .name)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(arguments, forKey: .arguments)
@@ -339,13 +339,14 @@ class CodeBlock             : Codable, Equatable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         blockType = try container.decode(BlockType.self, forKey: .blockType)
         fragment = try container.decode(CodeFragment.self, forKey: .fragment)
-        statement = try container.decode(CodeStatement.self, forKey: .fragment)
+        statement = try container.decode(CodeStatement.self, forKey: .statement)
         uuid = try container.decode(UUID.self, forKey: .uuid)
     }
     
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(blockType, forKey: .blockType)
         try container.encode(fragment, forKey: .fragment)
         try container.encode(statement, forKey: .statement)
         try container.encode(uuid, forKey: .uuid)
@@ -606,6 +607,7 @@ class CodeComponent         : Codable, Equatable
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(componentType, forKey: .componentType)
         try container.encode(functions, forKey: .functions)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(selected, forKey: .selected)

@@ -261,10 +261,7 @@ class CodeProperties    : MMWidget
 
             func drawY(_ value: Float,_ color: SIMD4<Float>)
             {
-                var y : Float = mMidY
-                if dataRange != 0 {
-                    y += (value / dataRange) * yRange
-                }
+                let y : Float = mMidY - (value / dataRange) * yRange
                 mmView.drawBox.draw(x: rect.x + mOffsetX, y: y, width: 2, height: 2, round: 0, borderSize: 0, fillColor: color)
             }
             

@@ -64,6 +64,35 @@ class App
     
     func loadFrom(_ json: String)
     {
+        if let jsonData = json.data(using: .utf8)
+        {
+            /*
+            do {
+                if (try JSONDecoder().decode(CodeComponent.self, from: jsonData)) != nil {
+                    print( "yes" )
+                }
+            }
+            catch {
+                print("Error is : \(error)")
+            }*/
+            
+            if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
+            
+                editor.codeEditor.codeComponent = component
+                editor.codeEditor.codeChanged = true
+                editor.codeEditor.updateCode()
+            }
+        }
+    }
+    
+    func encodeJSON() -> String
+    {
+        let encodedData = try? JSONEncoder().encode(editor.codeEditor.codeComponent!)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+        {
+            return encodedObjectJsonString
+        }
+        return ""
     }
 }
 

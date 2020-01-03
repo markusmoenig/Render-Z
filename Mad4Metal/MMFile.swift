@@ -17,8 +17,9 @@ import UIKit
 class MMFile
 {
     var mmView      : MMView!
-
     var name        : String = "Untitled"
+    
+    let appName     : String = "render-z"
     
     var containerUrl: URL? {
         return FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents")
@@ -45,7 +46,7 @@ class MMFile
     {
         let documentUrl = self.containerUrl?
                     .appendingPathComponent(name)
-                    .appendingPathExtension("shape-z")
+                    .appendingPathExtension(appName)
         return documentUrl
     }
     
@@ -77,7 +78,7 @@ class MMFile
         savePanel.title = "Select Project"
         savePanel.directoryURL =  containerUrl
         savePanel.showsHiddenFiles = false
-        savePanel.allowedFileTypes = ["shape-z"]
+        savePanel.allowedFileTypes = [appName]
         
         func save(url: URL)
         {
@@ -139,7 +140,7 @@ class MMFile
         openPanel.title = "Select Project"
         openPanel.directoryURL =  containerUrl
         openPanel.showsHiddenFiles = false
-        openPanel.allowedFileTypes = ["shape-z"]
+        openPanel.allowedFileTypes = [appName]
         
         func load(url: URL) -> String
         {
