@@ -54,6 +54,55 @@ class MMDrawSphere : MMDrawable
     }
 }
 
+/// Draws a Point Graph
+class MMDrawPointGraph : MMDrawable
+{
+    let mmRenderer  : MMRenderer
+    var state       : MTLRenderPipelineState!
+    var settings    : Array<Float> = Array<Float>(repeating: 0, count: (302*4))
+
+    required init( _ renderer : MMRenderer )
+    {
+        let function = renderer.defaultLibrary.makeFunction( name: "m4mPointGraphDrawable" )
+        state = renderer.createNewPipelineState( function! )
+        
+        mmRenderer = renderer
+    }
+    
+    func draw( x: Float, y: Float, width: Float, height: Float, points: [SIMD4<Float>], range: SIMD2<Float>, components: Int = 1, fragment: MMFragment? = nil )
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+        
+        settings[0] = width * scaleFactor
+        settings[1] = height * scaleFactor
+        settings[2] = Float(points.count)
+        settings[3] = scaleFactor
+        
+        settings[4] = range.x
+        settings[5] = range.y
+        settings[6] = Float(components)
+        settings[7] = 0
+
+        for (index, p) in points.enumerated().reversed() {
+            settings[8 + index * 4 + 0] = p.x
+            settings[8 + index * 4 + 1] = p.y
+            settings[8 + index * 4 + 2] = p.z
+            settings[8 + index * 4 + 3] = p.w
+        }
+
+        let rect = MMRect(x, y, width, height, scale: scaleFactor )
+        let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
+        let vertexBuffer = fragment == nil ? mmRenderer.createVertexBuffer( rect ) : fragment!.createVertexBuffer( rect )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        renderEncoder.setRenderPipelineState( state! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+}
+
 /// Draws a Box
 class MMDrawBox : MMDrawable
 {

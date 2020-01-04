@@ -177,6 +177,90 @@ fragment float4 m4mSplineDrawable(RasterizerData in [[stage_in]],
     return col;
 }
 
+// --- Point Graph Drawable
+fragment float4 m4mPointGraphDrawable(RasterizerData in [[stage_in]],
+                               constant MM_POINTGRAPH *data [[ buffer(0) ]] )
+{
+    float2 uv = in.textureCoordinate * data->size.xy;
+    uv -= data->size.xy / 2.0;
+
+    //uv.y += data->size.x / 2;
+    //uv.y -= data->size.y / 2;
+
+    float width = data->size.x;
+    float height = data->size.y;
+    int count = int(data->size.z);
+    float scaleFactor = data->size.w;
+    float xOffset = -width / 2 + 30;
+    float2 range = data->range.xy;
+    float components = data->range.z;
+    float yRange = height - 4;
+
+    float dataRange = max((range.y - range.x), 2.0);
+
+    float4 col = float4(0,0,0,0);
+    
+    if ( components == 1 )
+    {
+        for( int i=0; i < count; ++i )
+        {
+            float value = data->points[i].x;
+            float y = (value / dataRange) * yRange;
+            float2 local = uv - float2(xOffset, y);
+            float2 d = abs( local ) - float2(scaleFactor);
+            float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            
+            col = mix( col, float4(0,0,0,1), m4mFillMask(dist));
+            
+            xOffset += scaleFactor;
+        }
+    } else
+    if ( components == 4 )
+    {
+        for( int i=0; i < count; ++i )
+        {
+            float value = data->points[i].x;
+            float y = (value / dataRange) * yRange;
+            float2 local = uv - float2(xOffset, y);
+            float2 d = abs( local ) - float2(scaleFactor);
+            float dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            
+            col = mix( col, float4(0.8,0,0,1), m4mFillMask(dist));
+            
+            //y
+            value = data->points[i].y;
+            y = (value / dataRange) * yRange;
+            local = uv - float2(xOffset, y);
+            d = abs( local ) - float2(scaleFactor);
+            dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            
+            col = mix( col, float4(0.0,0.8,0,1), m4mFillMask(dist));
+            
+            // z
+            value = data->points[i].z;
+            y = (value / dataRange) * yRange;
+            local = uv - float2(xOffset, y);
+            d = abs( local ) - float2(scaleFactor);
+            dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            
+            col = mix( col, float4(0.0,0.0,0.8,1), m4mFillMask(dist));
+            
+            // a
+            value = data->points[i].w;
+            y = (value / dataRange) * yRange;
+            local = uv - float2(xOffset, y);
+            d = abs( local ) - float2(scaleFactor);
+            dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
+            
+            col = mix( col, float4(0.0,0.0,0.0,1), m4mFillMask(dist));
+            
+            xOffset += scaleFactor;
+        }
+    }
+    
+    return col;
+}
+
 // --- Box Drawable
 fragment float4 m4mBoxDrawable(RasterizerData in [[stage_in]],
                                constant MM_BOX *data [[ buffer(0) ]] )

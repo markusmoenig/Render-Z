@@ -252,9 +252,11 @@ class CodeProperties    : MMWidget
         
         // --- Draw Monitor
         if let inst = monitorInstance {
-            let mMidY       : Float = rect.y + rect.height / 2
             let border      : Float = 10
-            var mOffsetX    : Float = 200 // + 300 / 2 - totalData / 2
+            let mOffsetX    : Float = 200
+
+            /*
+            let mMidY       : Float = rect.y + rect.height / 2
             let dataRange   : Float = max(monitorRange.y - monitorRange.x, 2)
             let yRange      : Float = rect.height - 2 * border
 
@@ -263,9 +265,13 @@ class CodeProperties    : MMWidget
             let blueColor   : SIMD4<Float> = SIMD4<Float>(0,0,0.8,1)
 
             let color       : SIMD4<Float> = SIMD4<Float>(0,0,0,1)
+            */
 
-            mmView.drawBox.draw(x: rect.x + mOffsetX, y: rect.y + border, width: totalMonitorData + 2 * border, height: rect.height - border*2, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1, 1, 1, 0.5))
+            mmView.drawBox.draw(x: rect.x + mOffsetX, y: rect.y + border, width: totalMonitorData + 2 * border, height: rect.height - border*2, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1, 1, 1, 0.3))
+            
+            mmView.drawPointGraph.draw(x: rect.x + mOffsetX, y: rect.y + 2*border, width: totalMonitorData, height: rect.height - border*4, points: monitorData, range: monitorRange, components: inst.computeComponents)
 
+            /*
             func drawY(_ value: Float,_ color: SIMD4<Float>)
             {
                 let y : Float = mMidY - (value / dataRange) * yRange
@@ -288,6 +294,7 @@ class CodeProperties    : MMWidget
                     mOffsetX -= 1
                 }
             }
+            */
         }
     }
     

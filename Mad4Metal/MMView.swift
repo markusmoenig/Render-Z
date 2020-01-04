@@ -34,6 +34,7 @@ public class MMView : MMBaseView {
     var drawSpline      : MMDrawSpline!
     var drawColorWheel  : MMDrawColorWheel!
     var drawArc         : MMDrawArc!
+    var drawPointGraph  : MMDrawPointGraph!
 
     // --- Fonts
     var openSans        : MMFont!
@@ -112,6 +113,7 @@ public class MMView : MMBaseView {
         drawSpline = MMDrawSpline( renderer )
         drawColorWheel = MMDrawColorWheel( renderer )
         drawArc = MMDrawArc( renderer )
+        drawPointGraph = MMDrawPointGraph( renderer )
     }
     
     /// Build the user interface for this view. Called for each frame inside the renderer.

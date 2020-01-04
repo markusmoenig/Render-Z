@@ -47,6 +47,12 @@ typedef struct
 
 typedef struct
 {
+    float4 size, range;
+    float4 points[300];
+} MM_POINTGRAPH;
+
+typedef struct
+{
     vector_float2 size;
     float round, borderSize;
     vector_float4 fillColor;
