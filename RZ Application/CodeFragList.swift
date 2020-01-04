@@ -64,6 +64,7 @@ class CodeFragList : MMWidget
     var fragArea            : MMRect = MMRect()
     
     var mouseIsDown         : Bool = false
+    var mouseDownPos    : SIMD2<Float> = SIMD2<Float>()
     
     var font                : MMFont
     var fontScale           : Float = 0.40
@@ -151,6 +152,8 @@ class CodeFragList : MMWidget
     override func mouseDown(_ event: MMMouseEvent)
     {
         mouseIsDown = true
+        mouseDownPos.x = event.x
+        mouseDownPos.y = event.y
         if listWidget.rect.contains(event.x, event.y) && selectedItem != nil {
             let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y), items: selectedItem!.items)
             if changed {
@@ -179,14 +182,18 @@ class CodeFragList : MMWidget
     override func mouseMoved(_ event: MMMouseEvent)
     {
         if listWidget.rect.contains(event.x, event.y) {
-            if mouseIsDown && dragSource == nil {
-                dragSource = createDragSource(event.x - rect.x, event.y - rect.y)
-                if dragSource != nil {
-                    dragSource?.sourceWidget = self
-                    mmView.dragStarted(source: dragSource!)
+            let dist = distance(mouseDownPos, SIMD2<Float>(event.x, event.y))
+            if dist > 5 {
+                if mouseIsDown && dragSource == nil {
+                    
+                    dragSource = createDragSource(event.x - rect.x, event.y - rect.y)
+                    if dragSource != nil {
+                        dragSource?.sourceWidget = self
+                        mmView.dragStarted(source: dragSource!)
+                    }
                 }
+                return
             }
-            return
         }
         
         if mmView.dragSource != nil {

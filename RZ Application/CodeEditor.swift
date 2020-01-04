@@ -26,6 +26,7 @@ class CodeEditor        : MMWidget
     var previewInstance : CodeBuilderInstance? = nil
         
     var mouseIsDown     : Bool = false
+    var mouseDownPos    : SIMD2<Float> = SIMD2<Float>()
 
     override init(_ view: MMView)
     {
@@ -93,36 +94,38 @@ class CodeEditor        : MMWidget
     override func mouseMoved(_ event: MMMouseEvent)
     {
         if let selFragment = codeContext.selectedFragment, selFragment.supports(.Dragable), mmView.dragSource == nil, mouseIsDown == true {
+            let dist = distance(mouseDownPos, SIMD2<Float>(event.x, event.y))
+            if dist > 5 {
+                var drag = SourceListDrag()
+                
+                drag.id = "SourceFragmentItem"
+                drag.name = selFragment.name
+                drag.pWidgetOffset!.x = (event.x - (selFragment.rect.x)) - rect.x
+                drag.pWidgetOffset!.y = ((event.y - selFragment.rect.y) - rect.y).truncatingRemainder(dividingBy: editor.codeList.fragList.listWidget.unitSize)
+                
+                drag.codeFragment = selFragment.createCopy()
+                
+                if selFragment.fragmentType == .VariableDefinition {
+                    drag.codeFragment?.fragmentType = .VariableReference
+                    drag.codeFragment?.referseTo = selFragment.uuid
+                }
+                
+                var dragName : String
+                if selFragment.fragmentType == .ConstantValue {
+                    dragName = selFragment.getValueString()
+                } else {
+                    dragName = selFragment.typeName + " " + selFragment.name
+                }
             
-            var drag = SourceListDrag()
-            
-            drag.id = "SourceFragmentItem"
-            drag.name = selFragment.name
-            drag.pWidgetOffset!.x = (event.x - (selFragment.rect.x)) - rect.x
-            drag.pWidgetOffset!.y = ((event.y - selFragment.rect.y) - rect.y).truncatingRemainder(dividingBy: editor.codeList.fragList.listWidget.unitSize)
-            
-            drag.codeFragment = selFragment.createCopy()
-            
-            if selFragment.fragmentType == .VariableDefinition {
-                drag.codeFragment?.fragmentType = .VariableReference
-                drag.codeFragment?.referseTo = selFragment.uuid
+                let texture = editor.codeList.fragList.listWidget.createGenericThumbnail(dragName, selFragment.rect.width + 2*codeContext.gapX)
+                drag.previewWidget = MMTextureWidget(mmView, texture: texture)
+                drag.previewWidget!.zoom = mmView.scaleFactor
+                            
+                drag.sourceWidget = self
+                mmView.dragStarted(source: drag)
+                
+                return
             }
-            
-            var dragName : String
-            if selFragment.fragmentType == .ConstantValue {
-                dragName = selFragment.getValueString()
-            } else {
-                dragName = selFragment.typeName + " " + selFragment.name
-            }
-        
-            let texture = editor.codeList.fragList.listWidget.createGenericThumbnail(dragName, selFragment.rect.width + 2*codeContext.gapX)
-            drag.previewWidget = MMTextureWidget(mmView, texture: texture)
-            drag.previewWidget!.zoom = mmView.scaleFactor
-                        
-            drag.sourceWidget = self
-            mmView.dragStarted(source: drag)
-            
-            return            
         }
         
         if let dragSource = mmView.dragSource as? SourceListDrag {
@@ -146,6 +149,8 @@ class CodeEditor        : MMWidget
     override func mouseDown(_ event: MMMouseEvent)
     {
         mouseIsDown = true
+        mouseDownPos.x = event.x
+        mouseDownPos.y = event.y
         #if os(iOS)
         mouseMoved(event)
         #endif
