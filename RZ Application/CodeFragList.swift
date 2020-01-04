@@ -92,20 +92,20 @@ class CodeFragList : MMWidget
         
         item = FragItem("F")
         items.append(item)
-        item.items.append( SourceListItem("float (variable)", CodeFragment(.VariableDefinition, "float", "", ["float"], "float" ) ) )
+        item.items.append( SourceListItem("float (variable)", CodeFragment(.VariableDefinition, "float", "", [.Selectable, .Dragable, .Monitorable], ["float"], "float" ) ) )
         
         item = FragItem("G")
         items.append(item)
-        item.items.append( SourceListItem("GlobalTime", CodeFragment(.Primitive, "float", "GlobalTime", nil, "float" ) ) )
+        item.items.append( SourceListItem("GlobalTime", CodeFragment(.Primitive, "float", "GlobalTime", [.Selectable], nil, "float" ) ) )
         
         item = FragItem("I")
         items.append(item)
-        item.items.append( SourceListItem("int (variable)", CodeFragment(.VariableDefinition, "int", "", ["int"], "int" ) ) )
+        item.items.append( SourceListItem("int (variable)", CodeFragment(.VariableDefinition, "int", "", [.Selectable, .Dragable, .Monitorable], ["int"], "int" ) ) )
         
         item = FragItem("S")
         items.append(item)
-        item.items.append( SourceListItem("sin", CodeFragment(.Primitive, "float", "sin", ["float|float2|float3|float4"], "input" ) ) )
-        item.items.append( SourceListItem("smoothstep", CodeFragment(.VariableDefinition, "float", "smoothstep" ) ) )
+        item.items.append( SourceListItem("sin", CodeFragment(.Primitive, "float", "sin", [.Selectable], ["float|float2|float3|float4"], "input" ) ) )
+        item.items.append( SourceListItem("smoothstep", CodeFragment(.Primitive, "float", "smoothstep", [.Selectable] ) ) )
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)

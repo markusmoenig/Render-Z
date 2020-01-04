@@ -23,7 +23,12 @@ class CodeFragment          : Codable, Equatable
                 Primitive               // A primitive function line abs, sin, length etc
     }
     
+    enum FragmentProperties : Int, Codable{
+        case Selectable, Dragable, Targetable, NotCodeable, Monitorable
+    }
+    
     var fragmentType        : FragmentType = .Undefined
+    var properties          : [FragmentProperties]
     var typeName            : String = ""
     var name                : String = ""
     var uuid                : UUID = UUID()
@@ -48,6 +53,7 @@ class CodeFragment          : Codable, Equatable
 
     private enum CodingKeys: String, CodingKey {
         case fragmentType
+        case properties
         case typeName
         case name
         case uuid
@@ -63,6 +69,7 @@ class CodeFragment          : Codable, Equatable
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         fragmentType = try container.decode(FragmentType.self, forKey: .fragmentType)
+        properties = try container.decode([FragmentProperties].self, forKey: .properties)
         typeName = try container.decode(String.self, forKey: .typeName)
         name = try container.decode(String.self, forKey: .name)
         uuid = try container.decode(UUID.self, forKey: .uuid)
@@ -78,6 +85,7 @@ class CodeFragment          : Codable, Equatable
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(fragmentType, forKey: .fragmentType)
+        try container.encode(properties, forKey: .properties)
         try container.encode(typeName, forKey: .typeName)
         try container.encode(name, forKey: .name)
         try container.encode(uuid, forKey: .uuid)
@@ -93,11 +101,12 @@ class CodeFragment          : Codable, Equatable
         return lhs.uuid == rhs.uuid
     }
 
-    init(_ type: FragmentType,_ typeName: String = "",_ name: String = "",_ argumentFormat: [String]? = nil,_ evaluatesTo: String? = nil)
+    init(_ type: FragmentType,_ typeName: String = "",_ name: String = "",_ properties: [FragmentProperties] = [],_ argumentFormat: [String]? = nil,_ evaluatesTo: String? = nil)
     {
         fragmentType = type
         self.typeName = typeName
         self.name = name
+        self.properties = properties
         self.argumentFormat = argumentFormat
         self.evaluatesTo = evaluatesTo
         
@@ -105,7 +114,11 @@ class CodeFragment          : Codable, Equatable
             values["value"] = 1
             values["min"] = 0
             values["max"] = 1
-            values["precision"] = 3
+            if typeName.contains("int") {
+                values["precision"] = 0
+            } else {
+                values["precision"] = 3
+            }
         }
     }
     
@@ -117,14 +130,6 @@ class CodeFragment          : Codable, Equatable
         }
     }
     
-    func canBeSelected() -> Bool
-    {
-        if fragmentType == .ConstTypeDefinition {//|| fragmentType == .OutVariable {
-            return false
-        }
-        return true
-    }
-    
     /// Returns true if fragment is inside the editor, false otherwise (SourceList)
     func isInsideEditor() -> Bool
     {
@@ -133,6 +138,37 @@ class CodeFragment          : Codable, Equatable
         } else {
             return true
         }
+    }
+    
+    /// Createa a copy of the given fragment with a new UUID
+    func createCopy() -> CodeFragment
+    {
+        let copy = CodeFragment(fragmentType, typeName, name, properties, argumentFormat, evaluatesTo)
+        copy.values = values
+        copy.referseTo = referseTo
+        copy.qualifier = qualifier
+        
+        return copy
+    }
+    
+    /// Createa a copy of the given fragment with a new UUID
+    func copyTo(_ dest: CodeFragment)
+    {
+        dest.fragmentType = fragmentType
+        dest.typeName = typeName
+        dest.name = name
+        dest.properties = properties
+        dest.argumentFormat = argumentFormat
+        dest.evaluatesTo = evaluatesTo
+        dest.values = values
+        dest.referseTo = referseTo
+        dest.qualifier = qualifier
+    }
+    
+    /// .ConstanValue only: Creates a string for the value
+    func getValueString() -> String
+    {
+        return String(format: "%.0\(Int(values["precision"]!))f", values["value"]!)
     }
     
     func draw(_ mmView: MMView,_ ctx: CodeContext)
@@ -186,11 +222,13 @@ class CodeFragment          : Codable, Equatable
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
             
-            ctx.addCode(typeName + " " + name)
+            if !properties.contains(.NotCodeable) {
+                ctx.addCode(typeName + " " + name)
+            }
         } else
         if fragmentType == .ConstantValue {
             let rStart = ctx.rectStart()
-            let value = String(format: "%.0\(Int(values["precision"]!))f", values["value"]!)
+            let value = getValueString()
             
             ctx.font.getTextRect(text: value, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
@@ -256,6 +294,22 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.tempRect.width + ctx.gapX
             ctx.addCode(") ")
         }
+    }
+    
+    func addProperty(_ property: FragmentProperties)
+    {
+        properties.append( property )
+    }
+    
+    func removeState(_ property: FragmentProperties)
+    {
+        properties.removeAll(where: { $0 == property })
+    }
+    
+    /// Returns true if the fragment supports the given property
+    func supports(_ property: FragmentProperties) -> Bool
+    {
+        return properties.contains(property)
     }
 }
 
@@ -416,7 +470,21 @@ class CodeBlock             : Codable, Equatable
                 mmView.drawText.drawText(ctx.font, text: fragment.name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.nameHighlighted, fragment: frag)
             }
             
-            ctx.cX += ctx.tempRect.width
+            ctx.cX += ctx.tempRect.width + ctx.gapX
+
+            ctx.font.getTextRect(text: "(", scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            ctx.drawText("(", mmView.skin.Code.constant)
+            ctx.cX += ctx.tempRect.width + ctx.gapX
+            
+            for arg in statement.fragments {
+                arg.draw(mmView, ctx)
+                ctx.drawFragmentState(arg)
+            }
+
+            ctx.font.getTextRect(text: ")", scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            ctx.drawText(")", mmView.skin.Code.constant)
+            ctx.cX += ctx.tempRect.width + ctx.gapX
+ 
             ctx.cY += ctx.lineHeight + ctx.gapY
             ctx.rectEnd(fragment.rect, rStart)
             
@@ -460,7 +528,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, ScreenObjectColorize
+        case FreeFlow, ScreenColorize
     }
     
     let functionType        : FunctionType
@@ -517,16 +585,18 @@ class CodeFunction          : Codable, Equatable
         let b = CodeBlock(CodeBlock.BlockType.OutVariable)
         
         b.fragment.fragmentType = .OutVariable
+        b.fragment.addProperty(.Selectable)
+        b.fragment.addProperty(.Monitorable)
         b.fragment.typeName = typeName
         b.fragment.name = name
         
-        let constant = CodeFragment(.ConstantDefinition, "float4", "float4")
+        let constant = CodeFragment(.ConstantDefinition, "float4", "float4", [.Selectable], ["float4"], "float4")
         b.statement.fragments.append(constant)
         
         for index in 0...3 {
             let argStatement = CodeStatement(.Arithmetic)
             
-            let constValue = CodeFragment(.ConstantValue, "float")
+            let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
             if name == "outColor" {
                 if index == 0 {
                     constValue.setValue(0.161)
@@ -631,11 +701,21 @@ class CodeComponent         : Codable, Equatable
     
     func createDefaultFunction(_ type: CodeFunction.FunctionType)
     {
-        let f = CodeFunction(type, "colorize")
-        
-        f.body.append(CodeBlock(.Empty))
-        f.body.append(f.createOutVariableBlock("float4", "outColor"))
-        functions.append(f)
+        if type == .ScreenColorize {
+            let f = CodeFunction(type, "colorize")
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float4", "outColor"))
+            functions.append(f)
+        }
     }
     
     func codeAt(_ mmView: MMView,_ x: Float,_ y: Float,_ ctx: CodeContext)
@@ -654,19 +734,30 @@ class CodeComponent         : Codable, Equatable
             
             // ---
             
-            if f.header.fragment.canBeSelected() && f.header.fragment.rect.contains(x, y) {
+            // Function return type
+            if f.header.fragment.supports(.Selectable) && f.header.fragment.rect.contains(x, y) {
                 ctx.hoverFragment = f.header.fragment
                 break
             }
+            
+            // Function argument
+            for arg in f.header.statement.fragments {
+                if arg.rect.contains(x, y) {
+                    ctx.hoverFragment = arg
+                    break
+                }
+            }
+            
             for b in f.body {
                 
+                //print(b.blockType, b.rect.x, b.rect.y, b.rect.width, b.rect.height, x, y)
                 // Check for block marker
                 if y >= b.rect.y && y <= b.rect.y + ctx.lineHeight && x <= ctx.border {
                     ctx.hoverBlock = b
                     break
                 }
                 
-                if b.fragment.canBeSelected() && b.fragment.rect.contains(x, y) {
+                if b.fragment.supports(.Selectable) && b.fragment.rect.contains(x, y) {
                     ctx.hoverFragment = b.fragment
                     break
                 }
@@ -799,6 +890,13 @@ class CodeContext
         rect.height = max(cY - start.y, lineHeight) + gapY
     }
     
+    func drawText(_ text: String,_ color: SIMD4<Float>)
+    {
+        if let frag = fragment {
+            mmView.drawText.drawText(font, text: text, x: cX, y: cY, scale: fontScale, color: color, fragment: frag)
+        }
+    }
+    
     func addCode(_ source: String)
     {
         if cComponent!.code != nil {
@@ -837,7 +935,7 @@ class CodeContext
                 dropIsValid = true
             } else
             // Drop a .Primitive or .VariableReference on a constant value
-            if fragment.fragmentType == .ConstantValue && (drop.fragmentType == .Primitive || drop.fragmentType == .VariableReference) {
+            if fragment.supports(.Targetable) {
                 drawHighlight(fragment.rect, hoverAlpha)
                 dropIsValid = true
             }

@@ -24,7 +24,7 @@ class CodeEditor        : MMWidget
     var needsUpdate     : Bool = false
     var codeChanged     : Bool = false
     var previewInstance : CodeBuilderInstance? = nil
-    
+        
     var mouseIsDown     : Bool = false
 
     override init(_ view: MMView)
@@ -45,7 +45,7 @@ class CodeEditor        : MMWidget
         dropTargets.append( "SourceFragmentItem" )
         
         codeComponent = CodeComponent()
-        codeComponent?.createDefaultFunction(.ScreenObjectColorize)
+        codeComponent?.createDefaultFunction(.ScreenColorize)
         needsUpdate = true
     }
     
@@ -92,31 +92,37 @@ class CodeEditor        : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if let selFragment = codeContext.selectedFragment, mouseIsDown == true {
+        if let selFragment = codeContext.selectedFragment, selFragment.supports(.Dragable), mmView.dragSource == nil, mouseIsDown == true {
             
-            if selFragment.fragmentType == .VariableDefinition && mmView.dragSource == nil {
-                var drag = SourceListDrag()
-                
-                drag.id = "SourceFragmentItem"
-                drag.name = selFragment.name
-                drag.pWidgetOffset!.x = (event.x - (selFragment.rect.x)) - rect.x
-                drag.pWidgetOffset!.y = ((event.y - selFragment.rect.y) - rect.y).truncatingRemainder(dividingBy: editor.codeList.fragList.listWidget.unitSize)
-                
-                drag.codeFragment = CodeFragment(.VariableReference)
-                                                
-                drag.codeFragment?.typeName = selFragment.typeName
-                drag.codeFragment?.name = selFragment.name
+            var drag = SourceListDrag()
+            
+            drag.id = "SourceFragmentItem"
+            drag.name = selFragment.name
+            drag.pWidgetOffset!.x = (event.x - (selFragment.rect.x)) - rect.x
+            drag.pWidgetOffset!.y = ((event.y - selFragment.rect.y) - rect.y).truncatingRemainder(dividingBy: editor.codeList.fragList.listWidget.unitSize)
+            
+            drag.codeFragment = selFragment.createCopy()
+            
+            if selFragment.fragmentType == .VariableDefinition {
+                drag.codeFragment?.fragmentType = .VariableReference
                 drag.codeFragment?.referseTo = selFragment.uuid
-                
-                let texture = editor.codeList.fragList.listWidget.createGenericThumbnail(selFragment.typeName + " " + selFragment.name, selFragment.rect.width + 2*codeContext.gapX)
-                drag.previewWidget = MMTextureWidget(mmView, texture: texture)
-                drag.previewWidget!.zoom = mmView.scaleFactor
-                            
-                drag.sourceWidget = self
-                mmView.dragStarted(source: drag)
-                
-                return
             }
+            
+            var dragName : String
+            if selFragment.fragmentType == .ConstantValue {
+                dragName = selFragment.getValueString()
+            } else {
+                dragName = selFragment.typeName + " " + selFragment.name
+            }
+        
+            let texture = editor.codeList.fragList.listWidget.createGenericThumbnail(dragName, selFragment.rect.width + 2*codeContext.gapX)
+            drag.previewWidget = MMTextureWidget(mmView, texture: texture)
+            drag.previewWidget!.zoom = mmView.scaleFactor
+                        
+            drag.sourceWidget = self
+            mmView.dragStarted(source: drag)
+            
+            return            
         }
         
         if let dragSource = mmView.dragSource as? SourceListDrag {
@@ -129,7 +135,7 @@ class CodeEditor        : MMWidget
             let oldFrag = codeContext.hoverFragment
             
             comp.codeAt(mmView, event.x - rect.x, event.y - rect.y, codeContext)
-            
+                        
             if oldFunc !== codeContext.hoverFunction || oldBlock !== codeContext.hoverBlock || oldFrag !== codeContext.hoverFragment {
                 needsUpdate = true
                 mmView.update()
@@ -148,7 +154,7 @@ class CodeEditor        : MMWidget
             codeContext.selectedFunction = codeContext.hoverFunction
             codeContext.selectedBlock = codeContext.hoverBlock
             codeContext.selectedFragment = codeContext.hoverFragment
-            
+
             let oldSelected = comp.selected
             comp.selected = nil
 
@@ -224,7 +230,7 @@ class CodeEditor        : MMWidget
         if needsUpdate {
             update()
         }
-        
+
         // Is playing ?
         if globalApp!.codeBuilder.isPlaying && previewInstance != nil {
             globalApp?.codeBuilder.render(previewInstance!)
@@ -256,8 +262,9 @@ class CodeEditor        : MMWidget
     }
     
     /// Update the code syntax and redraws
-    func updateCode()
+    func updateCode(compile: Bool = false)
     {
+        codeChanged = compile
         needsUpdate = true
         update()
         mmView.update()
@@ -268,7 +275,7 @@ class CodeEditor        : MMWidget
     {
         let destFrag : CodeFragment = ctx.hoverFragment!
         
-        print( destFrag.fragmentType, destFrag.typeName, destFrag.name )
+        //print( destFrag.fragmentType, destFrag.typeName, destFrag.name )
         let destBlock : CodeBlock = destFrag.parentBlock!
 
         if sourceFrag.fragmentType == .VariableDefinition {
@@ -279,11 +286,12 @@ class CodeEditor        : MMWidget
                 
                     destBlock.blockType = .VariableDefinition
                     destBlock.fragment.fragmentType = .VariableDefinition
+                    destBlock.fragment.properties = sourceFrag.properties
                     destBlock.fragment.typeName = sourceFrag.typeName
                     destBlock.fragment.name = value
                     
                     if destFrag.typeName == "float" || destFrag.typeName == "int" {
-                        let constant = CodeFragment(.ConstantValue, sourceFrag.typeName, sourceFrag.typeName)
+                        let constant = CodeFragment(.ConstantValue, sourceFrag.typeName, sourceFrag.typeName, [.Selectable, .Dragable, .Targetable], [sourceFrag.typeName], sourceFrag.typeName)
                         destBlock.statement.fragments.append(constant)
                     } else {
                         let constant = CodeFragment(.ConstantDefinition, sourceFrag.typeName, sourceFrag.typeName)
@@ -292,16 +300,27 @@ class CodeEditor        : MMWidget
                         for _ in 0...0 {
                             let argStatement = CodeStatement(.Arithmetic)
                             
-                            let constValue = CodeFragment(.ConstantValue, "float")
+                            let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable], ["float"], "float" )
                             argStatement.fragments.append(constValue)
                             constant.arguments.append(argStatement)
                         }
                     }
-                    self.updateCode()
+                    self.updateCode(compile: true)
                 } )
             }
+        } else
+        {
+            if sourceFrag.fragmentType != .ConstantValue {
+                copyFragmentArguments(destFrag, sourceFrag)
+            }
+            sourceFrag.copyTo(destFrag)
+            
+            self.updateCode(compile: true)
         }
         
+        
+        
+        /*
         if sourceFrag.fragmentType == .Primitive {
             
             copyFragmentArguments(destFrag, sourceFrag)
@@ -309,38 +328,8 @@ class CodeEditor        : MMWidget
             destFrag.fragmentType = .Primitive
             destFrag.name = sourceFrag.name
             
-            self.updateCode()
-
-            /*
-            if destFrag.fragmentType == .ConstantValue {
-                
-                getStringDialog(view: mmView, title: "Float Variable", message: "Enter variable name", defaultValue: "var", cb: { (value) -> Void in
-                
-                    destBlock.blockType = .VariableDefinition
-                    destBlock.fragment.fragmentType = .VariableDefinition
-                    destBlock.fragment.typeName = frag.typeName
-                    destBlock.fragment.name = value
-                    
-                    if frag.fragmentType == .VariableDefinition && destFrag.typeName == "float" {
-                        let constant = CodeFragment(.ConstantValue, frag.typeName, frag.typeName)
-                        destBlock.statement.fragments.append(constant)
-                    } else {
-                        let constant = CodeFragment(.ConstantDefinition, frag.typeName, frag.typeName)
-                        destBlock.statement.fragments.append(constant)
-                        
-                        for _ in 0...0 {
-                            let argStatement = CodeStatement(.Arithmetic)
-                            
-                            let constValue = CodeFragment(.ConstantValue, "float")
-                            argStatement.fragments.append(constValue)
-                            constant.arguments.append(argStatement)
-                        }
-                    }
-                    self.updateCode()
-                } )
-            }*/
+            self.updateCode(compile: true)
         }
-        
         
         if sourceFrag.fragmentType == .VariableReference {
             
@@ -351,10 +340,8 @@ class CodeEditor        : MMWidget
             destFrag.name = sourceFrag.name
             destFrag.referseTo = sourceFrag.referseTo
 
-            self.updateCode()
-        }
-        
-        codeChanged = true
+            self.updateCode(compile: true)
+        }*/
     }
     
     /// Copy the
@@ -365,7 +352,7 @@ class CodeEditor        : MMWidget
             {
                 let argStatement = CodeStatement(.Arithmetic)
 
-                let constValue = CodeFragment(.ConstantValue, "float", "float")
+                let constValue = CodeFragment(.ConstantValue, "float", "float", [.Selectable, .Dragable, .Targetable], ["float"], "float")
                 argStatement.fragments.append(constValue)
                 destFrag.arguments.append(argStatement)
             }

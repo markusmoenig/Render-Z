@@ -57,7 +57,7 @@ class CodeProperties    : MMWidget
                     c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                         if variable == "value" {
                             fragment.values["value"] = newValue
-                            self.editor.codeEditor.needsUpdate = true
+                            self.updateCode()
                         }
                     }
                 }
@@ -72,7 +72,7 @@ class CodeProperties    : MMWidget
                         c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                             if variable == "alpha" {
                                 fragment.arguments[3].fragments[0].values["value"] = newValue
-                                self.editor.codeEditor.needsUpdate = true
+                                self.updateCode()
                             }
                         }
                     }
@@ -81,7 +81,7 @@ class CodeProperties    : MMWidget
                             fragment.arguments[0].fragments[0].values["value"] = newValue.x
                             fragment.arguments[1].fragments[0].values["value"] = newValue.y
                             fragment.arguments[2].fragments[0].values["value"] = newValue.z
-                            self.editor.codeEditor.needsUpdate = true
+                            self.updateCode()
                         }
                     }
                 }
@@ -91,7 +91,7 @@ class CodeProperties    : MMWidget
             c2Node?.setupUI(mmView: mmView)
 
             // Setup the monitor
-            if fragment.fragmentType == .VariableDefinition || fragment.fragmentType == .VariableReference || fragment.fragmentType == .OutVariable
+            if fragment.supports(.Monitorable)
             {
                 setupMonitorData(comp, fragment, ctx)
             } else {
@@ -190,7 +190,7 @@ class CodeProperties    : MMWidget
                     hoverUIItem = uiItem
                     hoverMode = .NodeUI
                     hoverUIItem!.mouseMoved(event)
-                    mmView.update()
+                    //mmView.update()
                     return
                 }
                 uiItemY += uiItem.rect.height
@@ -205,6 +205,13 @@ class CodeProperties    : MMWidget
             checkNodeUI(node)
         }
         
+    }
+    
+    func updateCode()
+    {
+        editor.codeEditor.needsUpdate = true
+        editor.codeEditor.codeChanged = true
+        mmView.update()
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)

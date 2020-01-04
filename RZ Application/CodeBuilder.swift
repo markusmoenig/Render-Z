@@ -74,7 +74,7 @@ class CodeBuilder
             buildColorize(inst, component, monitor)
         }
         
-        print( inst.code )
+        //print( inst.code )
         
         if inst.data.count == 0 {
             inst.data.append(SIMD4<Float>(0,0,0,0))
