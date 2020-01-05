@@ -12,6 +12,7 @@ protocol MMLabel
 {
     var rect : MMRect {get set}
     var isDisabled  : Bool {get set}
+    var font        : MMFont {get set}
 
     func draw()
 }
@@ -25,6 +26,7 @@ class MMTextLabel: MMLabel
     var scale       : Float
     var textBuffer  : MMTextBuffer?
     var textYOffset : Float = -1
+    var lineHeight  : Float = 0
     
     var color  : SIMD4<Float> {
         
@@ -56,6 +58,7 @@ class MMTextLabel: MMLabel
         self.isDisabled = false
         
         rect = font.getTextRect(text: text, scale: scale, rectToUse: rect)
+        lineHeight = font.getLineHeight(scale)
     }
     
     func draw()

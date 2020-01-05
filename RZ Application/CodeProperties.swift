@@ -28,10 +28,44 @@ class CodeProperties    : MMWidget
     var monitorData         : [SIMD4<Float>] = []
     let totalMonitorData    : Float = 300
     var monitorRange        : SIMD2<Float> = SIMD2<Float>(0, 0)
+    
+    var buttons             : [MMButtonWidget] = []
+    var smallButtonSkin     : MMSkinButton
+    var buttonWidth         : Float = 180
+
 
     override init(_ view: MMView)
     {
+        smallButtonSkin = MMSkinButton()
+        
         super.init(view)
+        
+        smallButtonSkin.height = mmView.skin.Button.height
+        smallButtonSkin.round = mmView.skin.Button.round
+        smallButtonSkin.fontScale = mmView.skin.Button.fontScale
+    }
+    
+    func unregisterButtons()
+    {
+        for w in buttons {
+            mmView.deregisterWidget(w)
+        }
+        buttons = []
+    }
+    
+    func addButton(_ b: MMButtonWidget)
+    {
+        mmView.registerWidgetAt(b, at: 0)
+        buttons.append(b)
+    }
+    
+    /// Clears the property area
+    func clear()
+    {
+        c1Node = nil
+        c2Node = nil
+        
+        unregisterButtons()
     }
     
     func setSelected(_ comp: CodeComponent,_ ctx: CodeContext)
@@ -39,15 +73,53 @@ class CodeProperties    : MMWidget
         c1Node = nil
         c2Node = nil
         
+        unregisterButtons()
+        
+        c1Node = Node()
+        c1Node?.rect.x = 10
+        c1Node?.rect.y = 10
+        
+        c2Node = Node()
+        c2Node?.rect.x = 200
+        c2Node?.rect.y = 10
+        
+        monitorInstance = nil
+        
+        if let block = ctx.selectedBlock {
+            if let function = ctx.cFunction {
+                var b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Empty Line", fixedWidth: buttonWidth)
+                b.clicked = { (event) in
+                    for (index, b) in function.body.enumerated() {
+                        if block === b {
+                            let newBlock = CodeBlock(.Empty)
+                            newBlock.fragment.addProperty(.Selectable)
+                            function.body.insert(newBlock, at: index)
+                            self.updateCode()
+                            break
+                        }
+                    }
+                    b.removeState(.Checked)
+                }
+                addButton(b)
+                
+                b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Line", fixedWidth: buttonWidth)
+                b.clicked = { (event) in
+                    for (index, b) in function.body.enumerated() {
+                        if block === b {
+                            function.body.remove(at: index)
+                            self.updateCode()
+                            self.clear()
+                            break
+                        }
+                    }
+                    b.removeState(.Checked)
+                }
+                b.isDisabled = block.blockType == .OutVariable
+                addButton(b)
+            }
+        }
+        
         if let fragment = ctx.selectedFragment {
-            
-            c1Node = Node()
-            c1Node?.rect.x = 10
-            c1Node?.rect.y = 10
-            
-            c2Node = Node()
-            c2Node?.rect.x = 200
-            c2Node?.rect.y = 10
             
             if fragment.fragmentType == .ConstantValue {
                 
@@ -86,18 +158,15 @@ class CodeProperties    : MMWidget
                     }
                 }
             }
-            
-            c1Node?.setupUI(mmView: mmView)
-            c2Node?.setupUI(mmView: mmView)
 
             // Setup the monitor
-            if fragment.supports(.Monitorable)
-            {
+            if fragment.supports(.Monitorable) {
                 setupMonitorData(comp, fragment, ctx)
-            } else {
-                monitorInstance = nil
             }
         }
+        
+        c1Node?.setupUI(mmView: mmView)
+        c2Node?.setupUI(mmView: mmView)
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -255,46 +324,20 @@ class CodeProperties    : MMWidget
             let border      : Float = 10
             let mOffsetX    : Float = 200
 
-            /*
-            let mMidY       : Float = rect.y + rect.height / 2
-            let dataRange   : Float = max(monitorRange.y - monitorRange.x, 2)
-            let yRange      : Float = rect.height - 2 * border
-
-            let redColor    : SIMD4<Float> = SIMD4<Float>(0.8,0,0,1)
-            let greenColor  : SIMD4<Float> = SIMD4<Float>(0,0.8,0,1)
-            let blueColor   : SIMD4<Float> = SIMD4<Float>(0,0,0.8,1)
-
-            let color       : SIMD4<Float> = SIMD4<Float>(0,0,0,1)
-            */
-
             mmView.drawBox.draw(x: rect.x + mOffsetX, y: rect.y + border, width: totalMonitorData + 2 * border, height: rect.height - border*2, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1, 1, 1, 0.3))
             
             mmView.drawPointGraph.draw(x: rect.x + mOffsetX, y: rect.y + 2*border, width: totalMonitorData, height: rect.height - border*4, points: monitorData, range: monitorRange, components: inst.computeComponents)
-
-            /*
-            func drawY(_ value: Float,_ color: SIMD4<Float>)
-            {
-                let y : Float = mMidY - (value / dataRange) * yRange
-                mmView.drawBox.draw(x: rect.x + mOffsetX, y: y, width: 2, height: 2, round: 0, borderSize: 0, fillColor: color)
-            }
+        }
+        
+        // --- Draw buttons
+        
+        var bY = rect.y + 20
+        for b in buttons {
+            b.rect.x = rect.x + rect.width - 200
+            b.rect.y = bY
             
-            mOffsetX += totalMonitorData + border
-            if inst.computeComponents == 1 {
-                for (_, data) in monitorData.enumerated().reversed() {
-                    drawY(data.x, color)
-                    mOffsetX -= 1
-                }
-            } else
-            if inst.computeComponents == 4 {
-                for (_, data) in monitorData.enumerated().reversed() {
-                    drawY(data.x, redColor)
-                    drawY(data.y, greenColor)
-                    drawY(data.z, blueColor)
-                    drawY(data.w, color)
-                    mOffsetX -= 1
-                }
-            }
-            */
+            b.draw()
+            bY += b.rect.height + 10
         }
     }
     
@@ -310,7 +353,7 @@ class CodeProperties    : MMWidget
     
     // Clear the monitor data
     func resetMonitorData()
-    {        
+    {
         monitorData = []
         monitorRange = SIMD2<Float>(0, 0)
         updateMonitor()

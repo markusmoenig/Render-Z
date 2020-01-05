@@ -283,10 +283,12 @@ class MMButtonWidget : MMWidget
     var customState : MTLRenderPipelineState?
     var textYOffset : Float = 0
     var iconZoom    : Float = 1
+    var fixedWidth  : Float? = nil
     
-    init( _ view: MMView, skinToUse: MMSkinButton? = nil, text: String? = nil, iconName: String? = nil, customState: MTLRenderPipelineState? = nil )
+    init( _ view: MMView, skinToUse: MMSkinButton? = nil, text: String? = nil, iconName: String? = nil, customState: MTLRenderPipelineState? = nil, fixedWidth: Float? = nil)
     {
         skin = skinToUse != nil ? skinToUse! : view.skin.ToolBarButton
+        self.fixedWidth = fixedWidth
         super.init(view)
         
         name = "MMButtonWidget"
@@ -298,6 +300,9 @@ class MMButtonWidget : MMWidget
         if text != nil {
             label = MMTextLabel(view, font: view.openSans, text: text!, scale: skin.fontScale )
             rect.width = label!.rect.width + skin.margin.width()
+            if let fWidth = fixedWidth {
+                rect.width = fWidth
+            }
         }
 
         if iconName != nil {
@@ -312,6 +317,10 @@ class MMButtonWidget : MMWidget
         if let label = self.label as? MMTextLabel {
             label.setText(text)
             rect.width = self.label!.rect.width + skin.margin.width()
+        }
+        
+        if let fWidth = fixedWidth {
+            rect.width = fWidth
         }
     }
 
@@ -341,9 +350,11 @@ class MMButtonWidget : MMWidget
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : SIMD4<Float>(0,0,0,0), borderColor: SIMD4<Float>(skin.borderColor.x, skin.borderColor.y, skin.borderColor.z, 0.2))
         }
         
-        if label != nil {
+        if let textLabel = label as? MMTextLabel {
             label!.rect.x = rect.x + (rect.width - label!.rect.width) / 2// skin.margin.left
-            label!.rect.y = rect.y + textYOffset + (rect.height - label!.rect.height) / 2
+            //label!.rect.y = rect.y + textYOffset + (rect.height - label!.rect.height) / 2
+            
+            label!.rect.y = rect.y + textYOffset + (rect.height - (textLabel.lineHeight - (textLabel.lineHeight - label!.rect.height - 2))) / 2
             
             if label!.isDisabled != isDisabled {
                 label!.isDisabled = isDisabled
