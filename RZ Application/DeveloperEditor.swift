@@ -1,5 +1,5 @@
 //
-//  Editor.swift
+//  DeveloperEditor.swift
 //  Render-Z
 //
 //  Created by Markus Moenig on 26/12/19.
@@ -8,48 +8,42 @@
 
 import Foundation
 
-class Editor
+class DeveloperEditor   : Editor
 {
     let codeList        : CodeList
     let mmView          : MMView!
     
     let codeEditor      : CodeEditor
     var codeProperties  : CodeProperties
-    
-    // Toolbar
-    var tabButton       : MMTabButtonWidget
 
-    required init(_ view: MMView)
+    required init(_ view: MMView,_ sceneList: SceneList)
     {
         mmView = view
-        codeList = CodeList(view)
+        codeList = CodeList(view, sceneList)
         codeEditor = CodeEditor(view)
         codeProperties = CodeProperties(view)
-
-        tabButton = MMTabButtonWidget(mmView)
-        tabButton.addTab("Artist")
-        tabButton.addTab("Developer")
-        tabButton.currentTab = tabButton.items[1]
+        
+        super.init()
         
         codeEditor.editor = self
         codeProperties.editor = self
     }
     
-    func activate()
+    override func activate()
     {
-        mmView.registerWidgets(widgets: codeList.sceneList, codeList.fragList, codeEditor, codeProperties, tabButton)
+        mmView.registerWidgets(widgets: codeList.sceneList, codeList.fragList, codeEditor, codeProperties)
     }
     
-    func deactivate()
+    override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: codeList.sceneList, codeList.fragList, codeEditor, codeProperties, tabButton)
+        codeProperties.clear()
+        mmView.deregisterWidgets(widgets: codeList.sceneList, codeList.fragList, codeEditor, codeProperties)
     }
     
-    func drawRegion(_ region: MMRegion)
+    override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Top {
-            region.layoutH( startX: 3, startY: 4 + 44, spacing: 10, widgets: tabButton)
-            tabButton.draw()
+
         } else
         if region.type == .Left {
             codeList.sceneList.rect.copy(region.rect)

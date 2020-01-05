@@ -25,7 +25,12 @@ class App
     
     var codeBuilder     : CodeBuilder
 
-    var editor          : Editor
+    var sceneList       : SceneList
+
+    var artistEditor    : ArtistEditor
+    var developerEditor : DeveloperEditor
+    
+    var currentEditor   : Editor
     
     var changed         : Bool = false
     
@@ -42,8 +47,12 @@ class App
         
         mmView.registerIcon("rz_toolbar")
 
-        editor = Editor(mmView)
+        sceneList = SceneList(mmView)
+        artistEditor = ArtistEditor(mmView, sceneList)
+        developerEditor = DeveloperEditor(mmView, sceneList)
         codeBuilder = CodeBuilder(mmView)
+        
+        currentEditor = developerEditor
 
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )
@@ -59,7 +68,7 @@ class App
                 
         globalApp = self
         
-        editor.activate()
+        currentEditor.activate()
     }
     
     func loadFrom(_ json: String)
@@ -78,15 +87,15 @@ class App
             
             if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
             
-                editor.codeEditor.codeComponent = component
-                editor.codeEditor.updateCode(compile: true)
+                developerEditor.codeEditor.codeComponent = component
+                developerEditor.codeEditor.updateCode(compile: true)
             }
         }
     }
     
     func encodeJSON() -> String
     {
-        let encodedData = try? JSONEncoder().encode(editor.codeEditor.codeComponent!)
+        let encodedData = try? JSONEncoder().encode(developerEditor.codeEditor.codeComponent!)
         if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
         {
             return encodedObjectJsonString
@@ -95,4 +104,17 @@ class App
     }
 }
 
-
+class Editor
+{
+    func activate()
+    {
+    }
+    
+    func deactivate()
+    {
+    }
+    
+    func drawRegion(_ region: MMRegion)
+    {
+    }
+}

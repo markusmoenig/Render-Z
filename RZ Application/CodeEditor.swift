@@ -32,7 +32,7 @@ class CodeEditor        : MMWidget
     
     var previewTexture  : MTLTexture? = nil
     
-    var editor          : Editor!
+    var editor          : DeveloperEditor!
 
     var needsUpdate     : Bool = false
     var codeChanged     : Bool = false

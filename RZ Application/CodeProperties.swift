@@ -16,7 +16,7 @@ class CodeProperties    : MMWidget
     
     var hoverMode           : HoverMode = .None
 
-    var editor              : Editor!
+    var editor              : DeveloperEditor!
     
     var c1Node              : Node? = nil
     var c2Node              : Node? = nil
@@ -45,7 +45,7 @@ class CodeProperties    : MMWidget
         smallButtonSkin.fontScale = mmView.skin.Button.fontScale
     }
     
-    func unregisterButtons()
+    func deregisterButtons()
     {
         for w in buttons {
             mmView.deregisterWidget(w)
@@ -65,7 +65,7 @@ class CodeProperties    : MMWidget
         c1Node = nil
         c2Node = nil
         
-        unregisterButtons()
+        deregisterButtons()
     }
     
     func setSelected(_ comp: CodeComponent,_ ctx: CodeContext)
@@ -73,7 +73,7 @@ class CodeProperties    : MMWidget
         c1Node = nil
         c2Node = nil
         
-        unregisterButtons()
+        deregisterButtons()
         
         c1Node = Node()
         c1Node?.rect.x = 10

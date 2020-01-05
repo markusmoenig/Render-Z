@@ -23,12 +23,5 @@ class RightRegion: MMRegion
     override func build()
     {
         rect.width = 0
-
-        /*
-        if app.nodeGraph.maximizedNode == nil {
-            app.nodeGraph.drawRegion(self)
-        } else {
-            app.nodeGraph.maximizedNode?.maxDelegate?.drawRegion(self)
-        }*/
     }
 }

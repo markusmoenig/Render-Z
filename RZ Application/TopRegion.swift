@@ -20,12 +20,30 @@ class TopRegion: MMRegion
     var helpButton      : MMButtonWidget!
     var playButton      : MMButtonWidget!
     
+    var tabButton       : MMTabButtonWidget
+    
     var app             : App
 
     init( _ view: MMView, app: App )
     {
         self.app = app
+        
+        tabButton = MMTabButtonWidget(view)
+        tabButton.addTab("Artist")
+        tabButton.addTab("Developer")
+        tabButton.currentTab = tabButton.items[1]
+        
         super.init( view, type: .Top )
+        
+        tabButton.clicked = { (event) in
+            self.app.currentEditor.deactivate()
+            if self.tabButton.index == 0 {
+                self.app.currentEditor = self.app.artistEditor
+            } else {
+                self.app.currentEditor = self.app.developerEditor
+            }
+            self.app.currentEditor.activate()
+        }
         
         logoTexture = view.icons["rz_toolbar"]
         
@@ -102,8 +120,8 @@ class TopRegion: MMRegion
                 app.mmFile.chooseFile(app: app)
                 #endif
                 
-                globalApp!.editor.codeEditor.needsUpdate = true
-                globalApp!.editor.codeEditor.codeChanged = true
+                globalApp!.developerEditor.codeEditor.needsUpdate = true
+                globalApp!.developerEditor.codeEditor.codeChanged = true
             }
 
             if self.mmView.undoManager!.canUndo {
@@ -149,8 +167,8 @@ class TopRegion: MMRegion
                 app.mmView.lockFramerate(true)
                 app.codeBuilder.GlobalTime = app.codeBuilder.getCurrentTime()
                 app.codeBuilder.isPlaying = true
-                if app.editor.codeProperties.monitorInstance != nil {
-                    app.editor.codeProperties.resetMonitorData()
+                if app.developerEditor.codeProperties.monitorInstance != nil {
+                    app.developerEditor.codeProperties.resetMonitorData()
                 }
             } else {
                 self.playButton.removeState(.Checked)
@@ -162,7 +180,7 @@ class TopRegion: MMRegion
         
         layoutH( startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
         layoutH( startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton )
-        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, helpButton, playButton )
+        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, helpButton, playButton, tabButton )
     }
     
     override func build()
@@ -195,11 +213,14 @@ class TopRegion: MMRegion
         
         helpButton.draw()
         playButton.draw()
+        
+        layoutH( startX: 3, startY: 4 + 44, spacing: 10, widgets: tabButton)
+        tabButton.draw()
 
         #if os(OSX)
         mmView.window!.isDocumentEdited = !undoButton.isDisabled
         #endif
         
-        app.editor.drawRegion(self)
+        app.currentEditor.drawRegion(self)
     }
 }

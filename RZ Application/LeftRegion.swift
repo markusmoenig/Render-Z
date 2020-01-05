@@ -22,12 +22,6 @@ class LeftRegion: MMRegion
 
     override func build()
     {
-        app.editor.drawRegion(self)
-        /*
-        if app.nodeGraph.maximizedNode == nil {
-            app.nodeGraph.drawRegion(self)
-        } else {
-            app.nodeGraph.maximizedNode?.maxDelegate?.drawRegion(self)
-        }*/
+        app.currentEditor.drawRegion(self)
     }
 }

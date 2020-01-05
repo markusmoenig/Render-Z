@@ -13,9 +13,9 @@ class CodeList : MMWidget
     var sceneList         : SceneList
     var fragList          : CodeFragList
 
-    override init(_ view: MMView)
+    init(_ view: MMView,_ sceneList: SceneList)
     {        
-        sceneList = SceneList(view)
+        self.sceneList = sceneList
         fragList = CodeFragList(view)
 
         super.init(view)
