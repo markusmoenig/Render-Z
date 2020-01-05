@@ -975,6 +975,7 @@ class NodeUIColor : NodeUI
     var prevSize    : SIMD2<Float> = SIMD2<Float>(120,120)
     
     var colorWidget : MMColorWidget? = nil
+    var undoValue   : SIMD3<Float> = SIMD3<Float>()
     
     init(_ node: Node, variable: String, title: String, value: SIMD3<Float> = SIMD3<Float>(0,0,0))
     {
@@ -1005,17 +1006,11 @@ class NodeUIColor : NodeUI
         if colorWidget == nil {
             colorWidget = MMColorWidget(mmView, value: value)
             colorWidget?.changed = { (val, cont) in
-                self.value = val
-
-                //if !cont {
-                    let oldValue = self.getValue()
-                    if oldValue != val {
-                        self.setValue(val)
-
-                        self.node.variableChanged(variable: self.variable, oldValue: oldValue, newValue: self.getValue())
-                        mmView.update()
-                    }
-                //}
+                if self.undoValue != val {
+                    self.setValue(val)
+                    self.node.variableChanged(variable: self.variable, oldValue: self.undoValue, newValue: self.getValue(), continuous: cont)
+                    mmView.update()
+                }
             }
         }
     }
@@ -1035,6 +1030,7 @@ class NodeUIColor : NodeUI
     override func mouseDown(_ event: MMMouseEvent)
     {
         if isDisabled { return }
+        undoValue = getValue()
         mouseIsDown = true
         if let widget = colorWidget {
             widget.mouseDown(event)

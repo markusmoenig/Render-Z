@@ -79,8 +79,7 @@ class App
             if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
             
                 editor.codeEditor.codeComponent = component
-                editor.codeEditor.codeChanged = true
-                editor.codeEditor.updateCode()
+                editor.codeEditor.updateCode(compile: true)
             }
         }
     }

@@ -28,11 +28,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.setFrameAutosaveName("MainWindow")
         //let mainStoryboard = NSStoryboard.init(name: "Main", bundle: nil)
     }
+    
+    func windowWillReturnUndoManager(window: NSWindow) -> UndoManager? {
+        return app!.mmView.undoManager
+    }
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
-
-
 }
 

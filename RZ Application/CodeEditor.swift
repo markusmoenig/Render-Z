@@ -8,6 +8,19 @@
 
 import MetalKit
 
+class CodeUndoComponent
+{
+    var name            : String
+    
+    var originalData    : String = ""
+    var processedData   : String = ""
+
+    init(_ name: String)
+    {
+        self.name = name
+    }
+}
+
 class CodeEditor        : MMWidget
 {
     var fragment        : MMFragment
@@ -276,6 +289,43 @@ class CodeEditor        : MMWidget
         mmView.update()
     }
     
+    func undoStart(_ name: String) -> CodeUndoComponent
+    {
+        let codeUndo = CodeUndoComponent(name)
+
+        if let component = codeComponent {
+            let encodedData = try? JSONEncoder().encode(component)
+            if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+            {
+                codeUndo.originalData = encodedObjectJsonString
+            }
+        }
+        
+        return codeUndo
+    }
+    
+    func undoEnd(_ undoComponent: CodeUndoComponent)
+    {
+        if let component = codeComponent {
+            let encodedData = try? JSONEncoder().encode(component)
+            if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+            {
+                undoComponent.processedData = encodedObjectJsonString
+            }
+        }
+
+        func componentChanged(_ oldState: String, _ newState: String)
+        {
+            mmView.undoManager!.registerUndo(withTarget: self) { target in
+                globalApp!.loadFrom(oldState)
+                componentChanged(newState, oldState)
+            }
+            self.mmView.undoManager!.setActionName(undoComponent.name)
+        }
+        
+        componentChanged(undoComponent.originalData, undoComponent.processedData)
+    }
+    
     /// Insert a Code Fragment
     func insertCodeFragment(_ sourceFrag: CodeFragment,_ ctx: CodeContext )
     {
@@ -290,6 +340,7 @@ class CodeEditor        : MMWidget
                 
                 getStringDialog(view: mmView, title: "Float Variable", message: "Enter variable name", defaultValue: "var", cb: { (value) -> Void in
                 
+                    let undo = self.undoStart("Insert Variable: \(value)")
                     destBlock.blockType = .VariableDefinition
                     destBlock.fragment.fragmentType = .VariableDefinition
                     destBlock.fragment.properties = sourceFrag.properties
@@ -312,16 +363,20 @@ class CodeEditor        : MMWidget
                         }
                     }
                     self.updateCode(compile: true)
+                    self.undoEnd(undo)
                 } )
             }
         } else
         {
+            let undo = self.undoStart("Drag and Drop")
+
             if sourceFrag.fragmentType != .ConstantValue {
                 copyFragmentArguments(destFrag, sourceFrag)
             }
             sourceFrag.copyTo(destFrag)
             
             self.updateCode(compile: true)
+            self.undoEnd(undo)
         }
         
         

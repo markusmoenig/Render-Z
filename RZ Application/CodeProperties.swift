@@ -91,10 +91,12 @@ class CodeProperties    : MMWidget
                 b.clicked = { (event) in
                     for (index, b) in function.body.enumerated() {
                         if block === b {
+                            let undo = self.editor.codeEditor.undoStart("Add Line")
                             let newBlock = CodeBlock(.Empty)
                             newBlock.fragment.addProperty(.Selectable)
                             function.body.insert(newBlock, at: index)
                             self.updateCode()
+                            self.editor.codeEditor.undoEnd(undo)
                             break
                         }
                     }
@@ -106,9 +108,11 @@ class CodeProperties    : MMWidget
                 b.clicked = { (event) in
                     for (index, b) in function.body.enumerated() {
                         if block === b {
+                            let undo = self.editor.codeEditor.undoStart("Add Line")
                             function.body.remove(at: index)
                             self.updateCode()
                             self.clear()
+                            self.editor.codeEditor.undoEnd(undo)
                             break
                         }
                     }
@@ -128,8 +132,11 @@ class CodeProperties    : MMWidget
                     c1Node?.setupUI(mmView: mmView)
                     c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                         if variable == "value" {
+                            fragment.values["value"] = oldValue
+                            let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Float Value Changed") : nil
                             fragment.values["value"] = newValue
                             self.updateCode()
+                            if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                         }
                     }
                 }
@@ -143,17 +150,25 @@ class CodeProperties    : MMWidget
                         c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "alpha", title: "Alpha", range: SIMD2<Float>(0,1), value: fragment.arguments[3].fragments[0].values["value"]!) )
                         c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                             if variable == "alpha" {
+                                fragment.arguments[3].fragments[0].values["value"] = oldValue
+                                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Alpha Value Changed") : nil
                                 fragment.arguments[3].fragments[0].values["value"] = newValue
                                 self.updateCode()
+                                if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                             }
                         }
                     }
                     c1Node?.float3ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                         if variable == "color" {
+                            fragment.arguments[0].fragments[0].values["value"] = oldValue.x
+                            fragment.arguments[1].fragments[0].values["value"] = oldValue.y
+                            fragment.arguments[2].fragments[0].values["value"] = oldValue.z
+                            let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Color Value Changed") : nil
                             fragment.arguments[0].fragments[0].values["value"] = newValue.x
                             fragment.arguments[1].fragments[0].values["value"] = newValue.y
                             fragment.arguments[2].fragments[0].values["value"] = newValue.z
                             self.updateCode()
+                            if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                         }
                     }
                 }
