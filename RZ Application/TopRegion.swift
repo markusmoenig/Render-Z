@@ -100,7 +100,10 @@ class TopRegion: MMRegion
                 app.mmView.showDialog(dialog)
                 #else
                 app.mmFile.chooseFile(app: app)
-                #endif                
+                #endif
+                
+                globalApp!.editor.codeEditor.needsUpdate = true
+                globalApp!.editor.codeEditor.codeChanged = true
             }
 
             if self.mmView.undoManager!.canUndo {
@@ -146,6 +149,9 @@ class TopRegion: MMRegion
                 app.mmView.lockFramerate(true)
                 app.codeBuilder.GlobalTime = app.codeBuilder.getCurrentTime()
                 app.codeBuilder.isPlaying = true
+                if app.editor.codeProperties.monitorInstance != nil {
+                    app.editor.codeProperties.resetMonitorData()
+                }
             } else {
                 self.playButton.removeState(.Checked)
                 app.mmView.unlockFramerate(true)

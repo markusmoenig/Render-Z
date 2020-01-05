@@ -48,6 +48,7 @@ class CodeEditor        : MMWidget
         codeComponent = CodeComponent()
         codeComponent?.createDefaultFunction(.ScreenColorize)
         needsUpdate = true
+        codeChanged = true
     }
     
     /// Drag and Drop Target

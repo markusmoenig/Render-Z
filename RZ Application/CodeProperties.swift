@@ -308,6 +308,14 @@ class CodeProperties    : MMWidget
         updateMonitor()
     }
     
+    // Clear the monitor data
+    func resetMonitorData()
+    {        
+        monitorData = []
+        monitorRange = SIMD2<Float>(0, 0)
+        updateMonitor()
+    }
+    
     // Append data to the monitor
     func updateMonitor()
     {

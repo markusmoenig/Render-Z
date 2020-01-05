@@ -211,7 +211,7 @@ class MMFileDialogItem {
         
         do {
             let values = try? url.resourceValues(forKeys: [.nameKey, .contentModificationDateKey])
-            title = values!.name!.replacingOccurrences(of: ".shape-z", with: "")
+            title = values!.name!.replacingOccurrences(of: "." + globalApp!.mmFile.appExtension, with: "")
             
             let dateFormatter = DateFormatter()
             let localFormatter = DateFormatter.dateFormat(fromTemplate: "MM/dd HH-mm", options: 0, locale: NSLocale.current)
@@ -284,7 +284,7 @@ class MMFileDialog : MMDialog {
                 let values = try? item.resourceValues(forKeys: [.isRegularFileKey, .nameKey])
 
                 if values!.isRegularFile! {
-                    if values!.name!.contains(".shape-z") && !values!.name!.starts(with: ".") {
+                    if values!.name!.contains("." + mmFile.appExtension) && !values!.name!.starts(with: ".") {
                         items.append( MMFileDialogItem(mmView, item ) )
                     }
                 }

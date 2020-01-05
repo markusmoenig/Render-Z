@@ -110,15 +110,13 @@ class CodeFragment          : Codable, Equatable
         self.argumentFormat = argumentFormat
         self.evaluatesTo = evaluatesTo
         
-        if type == .ConstantValue {
-            values["value"] = 1
-            values["min"] = 0
-            values["max"] = 1
-            if typeName.contains("int") {
-                values["precision"] = 0
-            } else {
-                values["precision"] = 3
-            }
+        values["value"] = 1
+        values["min"] = 0
+        values["max"] = 1
+        if typeName.contains("int") {
+            values["precision"] = 0
+        } else {
+            values["precision"] = 3
         }
     }
     
