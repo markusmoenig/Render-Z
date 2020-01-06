@@ -120,8 +120,7 @@ class TopRegion: MMRegion
                 app.mmFile.chooseFile(app: app)
                 #endif
                 
-                globalApp!.developerEditor.codeEditor.needsUpdate = true
-                globalApp!.developerEditor.codeEditor.codeChanged = true
+                app.currentEditor.instantUpdate()
             }
 
             if self.mmView.undoManager!.canUndo {

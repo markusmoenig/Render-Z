@@ -151,7 +151,7 @@ class CodeEditor        : MMWidget
             let oldBlock = codeContext.hoverBlock
             let oldFrag = codeContext.hoverFragment
             
-            comp.codeAt(mmView, event.x - rect.x, event.y - rect.y, codeContext)
+            comp.codeAt(event.x - rect.x, event.y - rect.y, codeContext)
                         
             if oldFunc !== codeContext.hoverFunction || oldBlock !== codeContext.hoverBlock || oldFrag !== codeContext.hoverFragment {
                 needsUpdate = true
@@ -186,7 +186,7 @@ class CodeEditor        : MMWidget
             if let c = codeContext.selectedFunction {
                 comp.selected = c.uuid
             }
-            
+                        
             if oldSelected != comp.selected {
 
                 needsUpdate = true
@@ -213,9 +213,7 @@ class CodeEditor        : MMWidget
         if fragment.encoderStart()
         {
             if let comp = codeComponent {
-                
                 codeContext.reset(rect.width)
-
                 comp.draw(mmView, codeContext)
             }
    
@@ -246,7 +244,7 @@ class CodeEditor        : MMWidget
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         // Need to update the code display ?
-        if needsUpdate {
+        if needsUpdate || fragment.width != rect.width * zoom {
             update()
         }
 
@@ -256,8 +254,14 @@ class CodeEditor        : MMWidget
             editor.codeProperties.updateMonitor()
         }
         
+        // Do the preview
         if let texture = previewTexture {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
+            
+            if Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom {
+                previewTexture = globalApp!.codeBuilder.fragment.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
+                globalApp!.codeBuilder.render(previewInstance!, previewTexture)
+            }
             
             if let comp = codeComponent {
                 for f in comp.functions {

@@ -95,7 +95,7 @@ class CodeProperties    : MMWidget
                             let newBlock = CodeBlock(.Empty)
                             newBlock.fragment.addProperty(.Selectable)
                             function.body.insert(newBlock, at: index)
-                            self.updateCode()
+                            self.editor.updateOnNextDraw()
                             self.editor.codeEditor.undoEnd(undo)
                             break
                         }
@@ -110,7 +110,7 @@ class CodeProperties    : MMWidget
                         if block === b {
                             let undo = self.editor.codeEditor.undoStart("Add Line")
                             function.body.remove(at: index)
-                            self.updateCode()
+                            self.editor.updateOnNextDraw()
                             self.clear()
                             self.editor.codeEditor.undoEnd(undo)
                             break
@@ -135,7 +135,7 @@ class CodeProperties    : MMWidget
                             fragment.values["value"] = oldValue
                             let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Float Value Changed") : nil
                             fragment.values["value"] = newValue
-                            self.updateCode()
+                            self.editor.updateOnNextDraw()
                             if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                         }
                     }
@@ -153,7 +153,7 @@ class CodeProperties    : MMWidget
                                 fragment.arguments[3].fragments[0].values["value"] = oldValue
                                 let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Alpha Value Changed") : nil
                                 fragment.arguments[3].fragments[0].values["value"] = newValue
-                                self.updateCode()
+                                self.editor.updateOnNextDraw()
                                 if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                             }
                         }
@@ -167,7 +167,7 @@ class CodeProperties    : MMWidget
                             fragment.arguments[0].fragments[0].values["value"] = newValue.x
                             fragment.arguments[1].fragments[0].values["value"] = newValue.y
                             fragment.arguments[2].fragments[0].values["value"] = newValue.z
-                            self.updateCode()
+                            self.editor.updateOnNextDraw()
                             if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                         }
                     }
@@ -289,13 +289,6 @@ class CodeProperties    : MMWidget
             checkNodeUI(node)
         }
         
-    }
-    
-    func updateCode()
-    {
-        editor.codeEditor.needsUpdate = true
-        editor.codeEditor.codeChanged = true
-        mmView.update()
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)

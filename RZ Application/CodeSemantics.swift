@@ -669,7 +669,7 @@ class CodeComponent         : Codable, Equatable
         componentType = try container.decode(ComponentType.self, forKey: .componentType)
         functions = try container.decode([CodeFunction].self, forKey: .functions)
         uuid = try container.decode(UUID.self, forKey: .uuid)
-        selected = try container.decode(UUID?.self, forKey: .uuid)
+        selected = try container.decode(UUID?.self, forKey: .selected)
     }
     
     func encode(to encoder: Encoder) throws
@@ -716,7 +716,7 @@ class CodeComponent         : Codable, Equatable
         }
     }
     
-    func codeAt(_ mmView: MMView,_ x: Float,_ y: Float,_ ctx: CodeContext)
+    func codeAt(_ x: Float,_ y: Float,_ ctx: CodeContext)
     {
         ctx.hoverFunction = nil
         ctx.hoverBlock = nil
@@ -748,32 +748,116 @@ class CodeComponent         : Codable, Equatable
             
             for b in f.body {
                 
-                //print(b.blockType, b.rect.x, b.rect.y, b.rect.width, b.rect.height, x, y)
                 // Check for block marker
                 if y >= b.rect.y && y <= b.rect.y + ctx.lineHeight && x <= ctx.border {
                     ctx.hoverBlock = b
                     break
                 }
                 
+                // Check for the left sided fragment
                 if b.fragment.supports(.Selectable) && b.fragment.rect.contains(x, y) {
                     ctx.hoverFragment = b.fragment
                     break
                 }
                                 
-                for fragment in b.statement.fragments {
+                // recursively parse the right sided fragments
+                func parseFragments(_ fragment: CodeFragment)
+                {
                     for statement in fragment.arguments {
                         for arg in statement.fragments {
                             if arg.rect.contains(x, y) {
                                 ctx.hoverFragment = arg
-                                break
+                                return
                             }
+                            parseFragments(arg)
                         }
                     }
                     if ctx.hoverFragment == nil {
                         if fragment.rect.contains(x, y) {
                             ctx.hoverFragment = fragment
-                            break
+                            return
                         }
+                    }
+                }
+                
+                for fragment in b.statement.fragments {
+                    parseFragments(fragment)
+                    if ctx.hoverFragment != nil {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    func selectUUID(_ uuid: UUID,_ ctx: CodeContext)
+    {
+        ctx.selectedFunction = nil
+        ctx.selectedBlock = nil
+        ctx.selectedFragment = nil
+        
+        for f in functions {
+            
+            // Check for func marker
+            if uuid == f.uuid {
+                ctx.selectedFunction = f
+                break
+            }
+            
+            // ---
+            
+            // Function return type
+            if f.header.fragment.supports(.Selectable) && f.header.fragment.uuid == uuid {
+                ctx.selectedFragment = f.header.fragment
+                break
+            }
+            
+            // Function argument
+            for arg in f.header.statement.fragments {
+                if arg.uuid == uuid {
+                    ctx.selectedFragment = arg
+                    break
+                }
+            }
+            
+            for b in f.body {
+                
+                // Check for block marker
+                if b.uuid == uuid {
+                    ctx.selectedBlock = b
+                    break
+                }
+                
+                // Check for the left sided fragment
+                if b.fragment.supports(.Selectable) && b.fragment.uuid == uuid {
+                    ctx.selectedFragment = b.fragment
+                    break
+                }
+                                
+                // recursively parse the right sided fragments
+                func parseFragments(_ fragment: CodeFragment)
+                {
+                    for statement in fragment.arguments {
+                        for arg in statement.fragments {
+                            if arg.uuid == uuid {
+                                ctx.selectedFragment = arg
+                                return
+                            }
+                            parseFragments(arg)
+                        }
+                    }
+                    //if ctx.selectedFragment == nil {
+                        if fragment.uuid == uuid {
+                            ctx.selectedFragment = fragment
+                            return
+                        }
+                    //}
+                }
+                
+                for fragment in b.statement.fragments {
+                    parseFragments(fragment)
+                    if ctx.selectedFragment != nil {
+                        break;
                     }
                 }
             }

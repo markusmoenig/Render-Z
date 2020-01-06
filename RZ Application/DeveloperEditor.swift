@@ -40,6 +40,28 @@ class DeveloperEditor   : Editor
         mmView.deregisterWidgets(widgets: codeList.sceneList, codeList.fragList, codeEditor, codeProperties)
     }
     
+    override func setComponent(_ component: CodeComponent)
+    {
+        codeEditor.codeComponent = component
+        instantUpdate()
+        if let uuid = component.selected {
+            component.selectUUID(uuid, codeEditor.codeContext)
+            codeProperties.setSelected(component, codeEditor.codeContext)
+        }
+    }
+    
+    override func instantUpdate()
+    {
+        codeEditor.updateCode(compile: true)
+    }
+    
+    override func updateOnNextDraw(compile: Bool = true)
+    {
+        codeEditor.needsUpdate = true
+        codeEditor.codeChanged = compile
+        mmView.update()
+    }
+    
     override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Top {

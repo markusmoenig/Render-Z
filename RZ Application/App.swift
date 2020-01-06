@@ -86,9 +86,7 @@ class App
             }*/
             
             if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
-            
-                developerEditor.codeEditor.codeComponent = component
-                developerEditor.codeEditor.updateCode(compile: true)
+                currentEditor.setComponent(component)
             }
         }
     }
@@ -111,6 +109,18 @@ class Editor
     }
     
     func deactivate()
+    {
+    }
+    
+    func setComponent(_ component: CodeComponent)
+    {
+    }
+    
+    func instantUpdate()
+    {
+    }
+    
+    func updateOnNextDraw(compile: Bool = true)
     {
     }
     
