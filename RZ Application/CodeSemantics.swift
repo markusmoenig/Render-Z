@@ -50,6 +50,7 @@ class CodeFragment          : Codable, Equatable
     var values              : [String:Float] = [:]
     
     var parentBlock         : CodeBlock? = nil
+    var parentStatement     : CodeStatement? = nil
 
     private enum CodingKeys: String, CodingKey {
         case fragmentType
@@ -138,6 +139,63 @@ class CodeFragment          : Codable, Equatable
         }
     }
     
+    /// Returns the type this fragment evaluates to, based on the evaluatesTo value and the input values.
+    func evaluateType() -> String
+    {
+        var type :String = ""
+        if let evaluates = evaluatesTo {
+            type = evaluates
+            // Expand on this, i.e. input0 is type of first argument etc
+        } else {
+            type = typeName
+        }
+        if qualifier.count > 0 {
+            type = getBaseType(type)
+            if qualifier.count > 1 {
+                type += String(qualifier.count)
+            }
+        }
+        return type
+    }
+    
+    /// Returns the number of components for this fragment
+    func evaluateComponents() -> Int
+    {
+        var components : Int = 1
+        let typeName = evaluateType()
+        if typeName.hasSuffix("2") {
+            components = 2
+        } else
+        if typeName.hasSuffix("3") {
+            components = 3
+        } else
+        if typeName.hasSuffix("4") {
+            components = 4
+        }
+        if qualifier.count > 0 {
+            components = qualifier.count
+        }
+        return components
+    }
+    
+    /// Returns the base type of the type, i.f. float for float2
+    func getBaseType(_ typeName: String) -> String
+    {
+        var compName    : String = typeName
+        
+        if typeName.hasSuffix("2") {
+            compName.remove(at: compName.index(before: compName.endIndex))
+        } else
+        if typeName.hasSuffix("3") {
+            compName.remove(at: compName.index(before: compName.endIndex))
+        } else
+        if typeName.hasSuffix("4") {
+            compName.remove(at: compName.index(before: compName.endIndex))
+        }
+        
+        return compName
+    }
+    
     /// Createa a copy of the given fragment with a new UUID
     func createCopy() -> CodeFragment
     {
@@ -167,6 +225,16 @@ class CodeFragment          : Codable, Equatable
     func getValueString() -> String
     {
         return String(format: "%.0\(Int(values["precision"]!))f", values["value"]!)
+    }
+    
+    /// Creates a string for the qualifier
+    func getQualifierString() -> String
+    {
+        var string : String = ""
+        if qualifier.count > 0 {
+            string = "." + qualifier
+        }
+        return string
     }
     
     func draw(_ mmView: MMView,_ ctx: CodeContext)
@@ -241,9 +309,21 @@ class CodeFragment          : Codable, Equatable
         } else
         if fragmentType == .VariableReference {
             let rStart = ctx.rectStart()
-            let name = ctx.cVariables[referseTo!]!.name
-            // TODO ERROR MESSAGE
+            
+            // Get the name of the variable
+            var name : String
+            if let ref = referseTo {
+                if let v = ctx.cVariables[ref] {
+                    name = v.name
+                } else {
+                    name = "NOT FOUND"
+                }
+            } else {
+                name = "NIL"
+            }
 
+            name += getQualifierString()
+            
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
                 mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.name, fragment: frag)
@@ -270,6 +350,7 @@ class CodeFragment          : Codable, Equatable
         }
         
         for (index, arg) in arguments.enumerated() {
+            arg.isArgumentIndexOf = index
             arg.draw(mmView, ctx)
             
             if index != arguments.endIndex - 1 {
@@ -322,6 +403,8 @@ class CodeStatement         : Codable, Equatable
     var fragments           : [CodeFragment] = []
     var uuid                : UUID = UUID()
 
+    var isArgumentIndexOf   : Int = 0
+
     private enum CodingKeys: String, CodingKey {
         case statementType
         case fragments
@@ -356,7 +439,7 @@ class CodeStatement         : Codable, Equatable
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
         for f in fragments {
-            
+            f.parentStatement = self
             f.draw(mmView, ctx)
             ctx.drawFragmentState(f)
         }
@@ -367,7 +450,7 @@ class CodeStatement         : Codable, Equatable
 class CodeBlock             : Codable, Equatable
 {
     enum BlockType          : Int, Codable {
-        case Empty, FunctionHeader, OutVariable, VariableDefinition
+        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference
     }
     
     var blockType           : BlockType
@@ -474,8 +557,20 @@ class CodeBlock             : Codable, Equatable
             ctx.drawText("(", mmView.skin.Code.constant)
             ctx.cX += ctx.tempRect.width + ctx.gapX
             
-            for arg in statement.fragments {
+            let firstCX = ctx.cX
+            
+            for (index,arg) in statement.fragments.enumerated() {
                 arg.draw(mmView, ctx)
+                
+                if index != statement.fragments.endIndex - 1 {
+                    ctx.font.getTextRect(text: ", ", scale: ctx.fontScale, rectToUse: ctx.tempRect)
+                    if let frag = ctx.fragment {
+                        mmView.drawText.drawText(ctx.font, text: ", ", x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+                    }
+                    //ctx.cX += ctx.tempRect.width + ctx.gapX
+                    ctx.cX = firstCX
+                    ctx.cY += ctx.lineHeight + ctx.gapY
+                }
                 ctx.drawFragmentState(arg)
             }
 
@@ -616,6 +711,11 @@ class CodeFunction          : Codable, Equatable
     {
         ctx.blockNumber = 1
         ctx.cVariables = [:]
+        
+        // Add the function arguments as variables
+        for v in header.statement.fragments {
+            ctx.cVariables[v.uuid] = v
+        }
         
         let rStart = ctx.rectStart()
 
@@ -1012,12 +1112,12 @@ class CodeContext
         if let drop = dropFragment, fragment == hoverFragment {
                         
             // Drop on an empty line (.VariableDefinition)
-            if cBlock!.blockType == .Empty && drop.fragmentType == .VariableDefinition && drop.isInsideEditor() == false {
+            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference) {
                 drawHighlight(fragment.rect, hoverAlpha)
                 dropIsValid = true
             } else
             // Drop a .Primitive or .VariableReference on a constant value
-            if fragment.supports(.Targetable) {
+            if fragment.supports(.Targetable) && drop.fragmentType != .VariableDefinition {
                 drawHighlight(fragment.rect, hoverAlpha)
                 dropIsValid = true
             }

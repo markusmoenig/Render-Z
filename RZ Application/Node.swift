@@ -22,6 +22,7 @@ class Node : Codable, Equatable
     
     var floatChangedCB  : ((String, Float, Float, Bool, Bool)->())? = nil
     var float3ChangedCB : ((String, SIMD3<Float>, SIMD3<Float>, Bool, Bool)->())? = nil
+    var textChangedCB   : ((String, String, String, Bool, Bool)->())? = nil
 
     var brand           : Brand = .Behavior
     var type            : String = ""
@@ -195,6 +196,13 @@ class Node : Codable, Equatable
     func variableChanged(variable: String, oldValue: SIMD3<Float>, newValue: SIMD3<Float>, continuous: Bool = false, noUndo: Bool = false)
     {
         if let cb = float3ChangedCB {
+            cb(variable, oldValue, newValue, continuous, noUndo)
+        }
+    }
+    
+    func variableChanged(variable: String, oldValue: String, newValue: String, continuous: Bool = false, noUndo: Bool = false)
+    {
+        if let cb = textChangedCB {
             cb(variable, oldValue, newValue, continuous, noUndo)
         }
     }

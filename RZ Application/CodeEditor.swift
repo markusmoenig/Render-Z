@@ -78,9 +78,9 @@ class CodeEditor        : MMWidget
             }
             
             codeContext.hoverFragment = nil
-            
             codeContext.dropFragment = nil
             needsUpdate = true
+
             mmView.update()
         }
     }
@@ -334,13 +334,14 @@ class CodeEditor        : MMWidget
     func insertCodeFragment(_ sourceFrag: CodeFragment,_ ctx: CodeContext )
     {
         let destFrag : CodeFragment = ctx.hoverFragment!
-        
-        //print( destFrag.fragmentType, destFrag.typeName, destFrag.name )
         let destBlock : CodeBlock = destFrag.parentBlock!
 
-        if sourceFrag.fragmentType == .VariableDefinition {
-            
-            if destBlock.blockType == .Empty {
+        print( destBlock.blockType, destFrag.fragmentType, sourceFrag.fragmentType)
+
+        if destBlock.blockType == .Empty {
+
+            // Insert a new Variable into an empty line
+            if sourceFrag.fragmentType == .VariableDefinition {
                 
                 getStringDialog(view: mmView, title: "Float Variable", message: "Enter variable name", defaultValue: "var", cb: { (value) -> Void in
                 
@@ -351,39 +352,62 @@ class CodeEditor        : MMWidget
                     destBlock.fragment.typeName = sourceFrag.typeName
                     destBlock.fragment.name = value
                     
-                    if destFrag.typeName == "float" || destFrag.typeName == "int" {
-                        let constant = CodeFragment(.ConstantValue, sourceFrag.typeName, sourceFrag.typeName, [.Selectable, .Dragable, .Targetable], [sourceFrag.typeName], sourceFrag.typeName)
-                        destBlock.statement.fragments.append(constant)
-                    } else {
-                        let constant = CodeFragment(.ConstantDefinition, sourceFrag.typeName, sourceFrag.typeName)
-                        destBlock.statement.fragments.append(constant)
-                        
-                        for _ in 0...0 {
-                            let argStatement = CodeStatement(.Arithmetic)
-                            
-                            let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable], ["float"], "float" )
-                            argStatement.fragments.append(constValue)
-                            constant.arguments.append(argStatement)
-                        }
-                    }
+                    let constant = self.defaultConstantForType(sourceFrag.evaluateType())
+                    destBlock.statement.fragments.append(constant)
+                    
                     self.updateCode(compile: true)
                     self.undoEnd(undo)
                 } )
+            } else
+            // Insert a variable reference into a new line
+            if sourceFrag.fragmentType == .VariableReference
+            {
+                let undo = self.undoStart("Variable Reference: \(sourceFrag.name)")
+                destBlock.blockType = .VariableReference
+                destBlock.fragment.fragmentType = .VariableReference
+                destBlock.fragment.properties = sourceFrag.properties
+                destBlock.fragment.typeName = sourceFrag.typeName
+                destBlock.fragment.name = sourceFrag.name
+                destBlock.fragment.referseTo = sourceFrag.referseTo
+                
+                let constant = defaultConstantForType(sourceFrag.evaluateType())
+                destBlock.statement.fragments.append(constant)
+
+                self.updateCode(compile: true)
+                self.undoEnd(undo)
             }
         } else
         {
             let undo = self.undoStart("Drag and Drop")
 
-            if sourceFrag.fragmentType != .ConstantValue {
-                copyFragmentArguments(destFrag, sourceFrag)
-            }
-            sourceFrag.copyTo(destFrag)
+            //if sourceFrag.fragmentType != .ConstantValue {
+            //    copyFragmentArguments(destFrag, sourceFrag)
+            //}
             
+            // Add the right qualifier
+            if (destFrag.fragmentType == .ConstantValue || destFrag.evaluateComponents() == 1) {//&& sourceFrag.evaluateComponents() == 1 {// && sourceFrag.fragmentType != .ConstantValue {
+                let sourceComponents = sourceFrag.evaluateComponents()
+                //let destComponents = destFrag.evaluateComponents() // Currently only float anyway
+                //print( sourceComponents, 1)
+                var compName : String = ""
+                if sourceComponents > 1 {
+                    let compArray : [String] = ["x", "y", "z", "w"]
+                    if let parentStatement = destFrag.parentStatement {
+                        let argumentIndex = parentStatement.isArgumentIndexOf
+                        if argumentIndex < sourceComponents {
+                            compName = compArray[argumentIndex]
+                        }
+                    }
+                }
+                sourceFrag.copyTo(destFrag)
+                copyFragmentArguments(destFrag, sourceFrag)
+                destFrag.addProperty(.Targetable)
+                destFrag.qualifier = compName
+            }
+                        
             self.updateCode(compile: true)
             self.undoEnd(undo)
         }
-        
-        
         
         /*
         if sourceFrag.fragmentType == .Primitive {
@@ -409,10 +433,49 @@ class CodeEditor        : MMWidget
         }*/
     }
     
+    /// Creates a constant for the given type
+    func defaultConstantForType(_ typeName: String) -> CodeFragment
+    {
+        print("defaultConstantForType", typeName)
+        
+        let constant    : CodeFragment
+        var components  : Int = 0
+        var compName    : String = typeName
+        
+        if typeName.hasSuffix("2") {
+            components = 2
+            compName.remove(at: compName.index(before: compName.endIndex))
+        } else
+        if typeName.hasSuffix("3") {
+            components = 3
+            compName.remove(at: compName.index(before: compName.endIndex))
+        } else
+        if typeName.hasSuffix("4") {
+            components = 4
+            compName.remove(at: compName.index(before: compName.endIndex))
+        }
+        
+        if components == 0 {
+            constant = CodeFragment(.ConstantValue, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
+        } else {
+            constant = CodeFragment(.ConstantDefinition, typeName, typeName)
+            
+            for _ in 0..<components {
+                let argStatement = CodeStatement(.Arithmetic)
+                
+                let constValue = CodeFragment(.ConstantValue, compName, "", [.Selectable, .Dragable, .Targetable], [compName], compName)
+                argStatement.fragments.append(constValue)
+                constant.arguments.append(argStatement)
+            }
+        }
+        
+        return constant
+    }
+    
     /// Copy the
     func copyFragmentArguments(_ destFrag: CodeFragment, _ sourceFrag: CodeFragment)
     {
-        if let sourceFormats = sourceFrag.argumentFormat {
+        if let sourceFormats = sourceFrag.argumentFormat, sourceFrag.fragmentType == .Primitive {
             for _ in sourceFormats
             {
                 let argStatement = CodeStatement(.Arithmetic)

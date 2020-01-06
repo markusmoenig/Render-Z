@@ -918,7 +918,7 @@ class NodeUIText : NodeUI
             self.titleHover = false
             self.updateLinked()
             self.mmView.update()
-            self.node.variableChanged(variable: self.variable, oldValue: 0, newValue: 1, continuous: false)
+            self.node.variableChanged(variable: self.variable, oldValue: old, newValue: value, continuous: false)
         } )
         return
     }
@@ -959,7 +959,7 @@ class NodeUIText : NodeUI
 
         mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : NodeUI.contentColor)
         
-        mmView.drawText.drawTextCentered(mmView.openSans, text: value, x: x, y: contentY, width: width, height: itemHeight, scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
+        mmView.drawText.drawTextCentered(mmView.openSans, text: value, x: x, y: contentY, width: width, height: itemHeight - 6, scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
     }
 }
 

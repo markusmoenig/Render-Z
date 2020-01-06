@@ -125,6 +125,7 @@ class CodeProperties    : MMWidget
         
         if let fragment = ctx.selectedFragment {
             
+            // --- Constant Value == Float
             if fragment.fragmentType == .ConstantValue {
                 
                 if fragment.typeName == "float" {
@@ -140,8 +141,8 @@ class CodeProperties    : MMWidget
                         }
                     }
                 }
-            }
-            
+            } else
+            // --- Constant Definition (float3) etc
             if fragment.fragmentType == .ConstantDefinition {
                 
                 if fragment.typeName == "float4" || fragment.typeName == "float3" {
@@ -170,6 +171,52 @@ class CodeProperties    : MMWidget
                             self.editor.updateOnNextDraw()
                             if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                         }
+                    }
+                }
+            } else
+            // --- Variable Definition
+            if fragment.fragmentType == .VariableDefinition && fragment.supports(.NotCodeable) == false {
+                c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Name", value: fragment.name) )
+                c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "name" {
+                        fragment.name = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Variable Name Changed") : nil
+                        fragment.name = newValue
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    }
+                }
+            } else
+            // --- Variable Reference
+            if fragment.fragmentType == .VariableReference {
+                let textVar = NodeUIText(c1Node!, variable: "qualifier", title: "Qualifier", value: fragment.qualifier)
+                c1Node?.uiItems.append(textVar)
+                c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "qualifier" {
+                        fragment.qualifier = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Variable Name Changed") : nil
+                        fragment.qualifier = ""
+                        let varComponents = fragment.evaluateComponents()
+                        fragment.qualifier = oldValue
+
+                        if newValue.count <= varComponents {
+                            fragment.qualifier = newValue
+                            if fragment.qualifier.starts(with: ".") {
+                                fragment.qualifier.remove(at: fragment.qualifier.startIndex)
+                                textVar.value = fragment.qualifier
+                            }
+                            if let block = fragment.parentBlock {
+                                if block.blockType == .VariableReference {
+                                    // --- Need to adjust right side to reflect new qualifier
+                                    let constant = self.editor.codeEditor.defaultConstantForType(fragment.evaluateType())
+                                    block.statement.fragments = [constant]
+                                }
+                            }
+                            if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                        } else {
+                            textVar.value = oldValue
+                        }
+                        self.editor.updateOnNextDraw()
                     }
                 }
             }

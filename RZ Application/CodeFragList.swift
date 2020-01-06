@@ -94,6 +94,7 @@ class CodeFragList : MMWidget
         item = FragItem("F")
         items.append(item)
         item.items.append( SourceListItem("float (variable)", CodeFragment(.VariableDefinition, "float", "", [.Selectable, .Dragable, .Monitorable], ["float"], "float" ) ) )
+        item.items.append( SourceListItem("float2 (variable)", CodeFragment(.VariableDefinition, "float2", "", [.Selectable, .Dragable, .Monitorable], ["float2"], "float2" ) ) )
         
         item = FragItem("G")
         items.append(item)

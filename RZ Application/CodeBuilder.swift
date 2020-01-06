@@ -110,6 +110,7 @@ class CodeBuilder
             {
                 //float2 size = float2(layerData->limiterSize.x, layerData->limiterSize.y);//float2( outTexture.get_width(), outTexture.get_height() );
                 //float2 fragCoord = float2(in.textureCoordinate.x, 1. - in.textureCoordinate.y) * size;
+                float2 uv = in.textureCoordinate.xy;
                 float4 outColor = float4(0,0,0,1);
             
                 //float test = sin( float3(1) );
@@ -132,7 +133,8 @@ class CodeBuilder
             {
                 //float2 size = float2( outTexture.get_width(), outTexture.get_height() );
                 //float2 fragCoord = float2( gid.x, gid.y );
-            
+                float2 uv = float2(gid.x, gid.y);
+
                 float4 outColor = float4(0,0,0,1);
                 float GlobalTime = data[0].x;
             
