@@ -143,12 +143,16 @@ class CodeFragment          : Codable, Equatable
     func evaluateType() -> String
     {
         var type :String = ""
+        
+        /*
         if let evaluates = evaluatesTo {
             type = evaluates
             // Expand on this, i.e. input0 is type of first argument etc
         } else {
             type = typeName
-        }
+        }*/
+        type = typeName
+
         if qualifier.count > 0 {
             type = getBaseType(type)
             if qualifier.count > 1 {
@@ -196,6 +200,31 @@ class CodeFragment          : Codable, Equatable
         return compName
     }
     
+    /// Returns true if the fragment supports the given type, needs to evaluate the evaluatesTo string which may depend on the argumentFormats
+    func supportsType(_ typeName: String) -> Bool
+    {
+        var rc : Bool = false
+        
+        if let eval = evaluatesTo {
+            if eval == typeName {
+                rc = true
+            } else
+            if eval.starts(with: "input") {
+                let typeArray = argumentFormat![0].components(separatedBy: "|")
+                if typeArray.contains(typeName) {
+                    rc = true
+                }
+            }
+        } else
+        if self.typeName == typeName {
+            rc = true
+        }
+        
+        //print("supportsType", typeName, rc, evaluatesTo, argumentFormat)
+        
+        return rc
+    }
+    
     /// Createa a copy of the given fragment with a new UUID
     func createCopy() -> CodeFragment
     {
@@ -204,6 +233,8 @@ class CodeFragment          : Codable, Equatable
         copy.referseTo = referseTo
         copy.qualifier = qualifier
         
+        copyArgumentsTo(copy)
+
         return copy
     }
     
@@ -219,6 +250,31 @@ class CodeFragment          : Codable, Equatable
         dest.values = values
         dest.referseTo = referseTo
         dest.qualifier = qualifier
+        
+        copyArgumentsTo(dest)
+    }
+    
+    /// Recursively copies the arguments to the destination fragment
+    func copyArgumentsTo(_ dest: CodeFragment)
+    {
+        func copyArguments(_ destFragment: CodeFragment,_ sourceStatements: [CodeStatement])
+        {
+            destFragment.arguments = []
+            for sourceStatement in sourceStatements {
+
+                let argStatement = CodeStatement(sourceStatement.statementType)
+
+                for frag in sourceStatement.fragments
+                {
+                    let copy = frag.createCopy()
+                    argStatement.fragments.append(copy)
+                    copyArguments(copy, frag.arguments)
+                }
+                destFragment.arguments.append(argStatement)
+            }
+        }
+        
+        copyArguments(dest, arguments)
     }
     
     /// .ConstanValue only: Creates a string for the value
@@ -501,6 +557,12 @@ class CodeBlock             : Codable, Equatable
         }
     }
     
+    /// Returns the type of the block, i.e. the type of the fragment on the left
+    func evaluateType() -> String
+    {
+        return fragment.evaluateType()
+    }
+    
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
         fragment.parentBlock = self
@@ -683,7 +745,7 @@ class CodeFunction          : Codable, Equatable
         b.fragment.typeName = typeName
         b.fragment.name = name
         
-        let constant = CodeFragment(.ConstantDefinition, "float4", "float4", [.Selectable], ["float4"], "float4")
+        let constant = CodeFragment(.ConstantDefinition, "float4", "float4", [.Selectable, .Dragable, .Targetable], ["float4"], "float4")
         b.statement.fragments.append(constant)
         
         for index in 0...3 {
@@ -1028,7 +1090,8 @@ class CodeContext
     
     var dropFragment        : CodeFragment? = nil
     var dropIsValid         : Bool = false
-        
+    var dropOriginalUUID    : UUID = UUID()
+
     var tempRect            : MMRect = MMRect()
     
     init(_ view: MMView,_ fragment: MMFragment,_ font: MMFont,_ fontScale: Float)
@@ -1116,11 +1179,36 @@ class CodeContext
                 drawHighlight(fragment.rect, hoverAlpha)
                 dropIsValid = true
             } else
-            // Drop a .Primitive or .VariableReference on a constant value
-            if fragment.supports(.Targetable) && drop.fragmentType != .VariableDefinition {
-                drawHighlight(fragment.rect, hoverAlpha)
-                dropIsValid = true
+            if fragment.supports(.Targetable)
+            {
+                if fragment.uuid == dropOriginalUUID {
+                    // Exclusion: Dont allow drop on itself
+                } else
+                if drop.fragmentType == .ConstantDefinition && fragment.fragmentType == .ConstantValue {
+                    // Exclusion: Dont allow a floatx to be dropped on a constant value (float)
+                } else
+                if drop.fragmentType == .ConstantDefinition && fragment.fragmentType == .VariableReference {
+                    // Exclusion: Dont allow a floatx to be dropped on a variable reference
+                } else
+                if drop.fragmentType == .ConstantDefinition && fragment.fragmentType == .ConstantDefinition && drop.typeName != fragment.typeName {
+                    // Exclusion: Dont allow a floatx to be dropped on a floatx when the type is not the same
+                } else
+                if drop.fragmentType == .VariableReference && fragment.fragmentType == .ConstantDefinition && drop.typeName != fragment.typeName {
+                    // Exclusion: Dont allow a "var floatx" to be dropped on a floatx when the type is not the same
+                } else
+                if drop.fragmentType == .VariableReference && fragment.fragmentType == .Primitive && drop.typeName != fragment.typeName {
+                    // Exclusion: Dont allow a "var floatx" to be dropped on a floatx when the type is not the same
+                } else
+                if drop.fragmentType == .Primitive && drop.supportsType( fragment.evaluateType() ) == false {
+                    // Exclusion: When the .Primitive does not support the type of the destination
+                } else
+                // Allow drop when not .VariableDefinition (coming straight from the source list)
+                if drop.fragmentType != .VariableDefinition {
+                    drawHighlight(fragment.rect, hoverAlpha)
+                    dropIsValid = true
+                }
             }
+        
         } else
         if fragment === hoverFragment || fragment.uuid == cComponent!.selected {
             let alpha : Float = fragment.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
