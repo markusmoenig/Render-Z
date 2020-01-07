@@ -887,6 +887,8 @@ class NodeUIText : NodeUI
     var x           : Float = 0
     var width       : Float = 0
     
+    var contentLabel: MMTextLabel!
+
     init(_ node: Node, variable: String, title: String, value: String = "")
     {
         self.value = value
@@ -903,6 +905,7 @@ class NodeUIText : NodeUI
         if titleLabel == nil {
             let scale : Float = 1
             titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+            contentLabel = MMTextLabel(mmView, font: mmView.openSans, text: "", scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
         }
         
         rect.width = 160
@@ -959,7 +962,21 @@ class NodeUIText : NodeUI
 
         mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : NodeUI.contentColor)
         
-        mmView.drawText.drawTextCentered(mmView.openSans, text: value, x: x, y: contentY, width: width, height: itemHeight - 6, scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
+        //mmView.drawText.drawTextCentered(mmView.openSans, text: value, x: x, y: contentY, width: width, height: itemHeight - 6, scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
+        
+        if contentLabel.text != value || contentLabel.scale != NodeUI.fontScale * scale {
+            contentLabel.setText(value, scale: NodeUI.fontScale * scale)
+        }
+
+        contentLabel!.isDisabled = isDisabled
+        contentLabel.color = NodeUI.contentTextColor
+        if contentLabel.rect.width < width {
+            contentLabel.drawCentered(x: x, y: contentY, width: width, height: itemHeight)
+        } else {
+            mmView.renderer.setClipRect(MMRect(x + 10, contentY, width - 20, itemHeight))
+            contentLabel.drawCenteredY(x: x + 10, y: contentY, width: width - 20, height: itemHeight)
+            mmView.renderer.setClipRect()
+        }
     }
 }
 

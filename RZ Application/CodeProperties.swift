@@ -85,6 +85,18 @@ class CodeProperties    : MMWidget
         
         monitorInstance = nil
         
+        if let function = ctx.selectedFunction {
+            c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "comment", title: "Comment", value: function.comment) )
+            c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                if variable == "comment" {
+                    function.comment = oldValue
+                    let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Comment Changed") : nil
+                    function.comment = newValue
+                    self.editor.updateOnNextDraw()
+                    if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                }
+            }
+        } else
         if let block = ctx.selectedBlock {
             if let function = ctx.cFunction {
                 var b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Empty Line", fixedWidth: buttonWidth)
@@ -104,6 +116,25 @@ class CodeProperties    : MMWidget
                 }
                 addButton(b)
                 
+                b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Content", fixedWidth: buttonWidth)
+                b.clicked = { (event) in
+                    let undo = self.editor.codeEditor.undoStart("Delete Content")
+                    block.blockType = .Empty
+                    block.uuid = UUID()
+                    block.fragment.fragmentType = .Undefined
+                    block.fragment.name = ""
+                    block.fragment.qualifier = ""
+                    block.fragment.properties = [.Selectable]
+                    block.statement = CodeStatement(.Arithmetic)
+
+                    self.editor.updateOnNextDraw()
+                    self.clear()
+                    self.editor.codeEditor.undoEnd(undo)
+                    b.removeState(.Checked)
+                }
+                b.isDisabled = block.blockType == .OutVariable || block.blockType == .Empty
+                addButton(b)
+                
                 b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Line", fixedWidth: buttonWidth)
                 b.clicked = { (event) in
                     for (index, b) in function.body.enumerated() {
@@ -121,6 +152,17 @@ class CodeProperties    : MMWidget
                 b.isDisabled = block.blockType == .OutVariable
                 addButton(b)
             }
+            
+            c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "comment", title: "Comment", value: block.comment) )
+            c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                if variable == "comment" {
+                    block.comment = oldValue
+                    let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Comment Changed") : nil
+                    block.comment = newValue
+                    self.editor.updateOnNextDraw()
+                    if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                }
+            }
         }
         
         if let fragment = ctx.selectedFragment {
@@ -128,19 +170,48 @@ class CodeProperties    : MMWidget
             // --- Constant Value == Float
             if fragment.fragmentType == .ConstantValue {
                 
-                if fragment.typeName == "float" {
-                    c1Node?.uiItems.append( NodeUINumber(c1Node!, variable: "value", title: "Value", range: SIMD2<Float>(0,1), value: fragment.values["value"]!) )
-                    c1Node?.setupUI(mmView: mmView)
-                    c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
-                        if variable == "value" {
-                            fragment.values["value"] = oldValue
-                            let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Float Value Changed") : nil
-                            fragment.values["value"] = newValue
-                            self.editor.updateOnNextDraw()
-                            if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
-                        }
+                let numberVar = NodeUINumber(c1Node!, variable: "value", title: "Value", range: SIMD2<Float>(0,1), value: fragment.values["value"]!)
+                c1Node?.uiItems.append(numberVar)
+                c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "value" {
+                        fragment.values["value"] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Float Value Changed") : nil
+                        fragment.values["value"] = newValue
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                     }
                 }
+                
+                c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "min", title: "Minimum", range: nil, value: fragment.values["min"]!) )
+                c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "max", title: "Maximum", range: nil, value: fragment.values["max"]!) )
+                c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "precision", title: "Precision", range: SIMD2<Float>(0,10), int: true, value: fragment.values["precision"]!) )
+                c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "min" {
+                        fragment.values["min"] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Minimum Changed") : nil
+                        fragment.values["min"] = newValue
+                        numberVar.range!.x = newValue
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    } else
+                    if variable == "max" {
+                        fragment.values["max"] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Maximum Changed") : nil
+                        fragment.values["max"] = newValue
+                        numberVar.range!.y = newValue
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    } else
+                    if variable == "precision" {
+                        fragment.values["precision"] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Precision Changed") : nil
+                        fragment.values["precision"] = newValue
+                        //numberVar. = newValue
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    }
+                }
+                
             } else
             // --- Constant Definition (float3) etc
             if fragment.fragmentType == .ConstantDefinition {
@@ -219,6 +290,24 @@ class CodeProperties    : MMWidget
                         self.editor.updateOnNextDraw()
                     }
                 }
+            }
+            
+            // --- Some buttons
+            
+            if fragment.fragmentType == .Primitive || fragment.fragmentType == .VariableReference {
+                let b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Reset to Const", fixedWidth: buttonWidth)
+                b.clicked = { (event) in
+                    let undo = self.editor.codeEditor.undoStart("Reset")
+
+                    let constant = self.editor.codeEditor.defaultConstantForType(fragment.typeName)
+                    constant.copyTo(fragment)
+
+                    self.editor.updateOnNextDraw()
+                    self.editor.codeEditor.undoEnd(undo)
+                    
+                    b.removeState(.Checked)
+                }
+                addButton(b)
             }
 
             // Setup the monitor

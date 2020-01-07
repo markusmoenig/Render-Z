@@ -428,6 +428,9 @@ class CodeFragment          : Codable, Equatable
             }
             ctx.cX += ctx.tempRect.width + ctx.gapX
             ctx.addCode(") ")
+            
+            // Expand rect, experimental
+            rect.width = ctx.cX - rect.x
         }
     }
     
@@ -514,6 +517,7 @@ class CodeBlock             : Codable, Equatable
     var fragment            : CodeFragment = CodeFragment(.Undefined)
     var statement           : CodeStatement
     var uuid                : UUID = UUID()
+    var comment             : String = ""
 
     var rect                : MMRect = MMRect()
     var assignmentRect      : MMRect = MMRect()
@@ -523,6 +527,7 @@ class CodeBlock             : Codable, Equatable
         case fragment
         case statement
         case uuid
+        case comment
     }
     
     required init(from decoder: Decoder) throws
@@ -532,6 +537,7 @@ class CodeBlock             : Codable, Equatable
         fragment = try container.decode(CodeFragment.self, forKey: .fragment)
         statement = try container.decode(CodeStatement.self, forKey: .statement)
         uuid = try container.decode(UUID.self, forKey: .uuid)
+        comment = try container.decode(String.self, forKey: .comment)
     }
     
     func encode(to encoder: Encoder) throws
@@ -541,6 +547,7 @@ class CodeBlock             : Codable, Equatable
         try container.encode(fragment, forKey: .fragment)
         try container.encode(statement, forKey: .statement)
         try container.encode(uuid, forKey: .uuid)
+        try container.encode(comment, forKey: .comment)
     }
     
     static func ==(lhs:CodeBlock, rhs:CodeBlock) -> Bool { // Implement Equatable
@@ -567,6 +574,11 @@ class CodeBlock             : Codable, Equatable
     {
         fragment.parentBlock = self
 
+        if comment.isEmpty == false {
+            ctx.drawText("// " + comment, mmView.skin.Code.border)
+            ctx.cY += ctx.lineHeight + ctx.gapY
+        }
+        
         let rStart = ctx.rectStart()
         
         // Border
@@ -692,6 +704,8 @@ class CodeFunction          : Codable, Equatable
     var header              : CodeBlock = CodeBlock( .FunctionHeader )
     var body                : [CodeBlock] = []
     var uuid                : UUID = UUID()
+    
+    var comment             : String = ""
 
     var rect                : MMRect = MMRect()
 
@@ -701,6 +715,7 @@ class CodeFunction          : Codable, Equatable
         case header
         case body
         case uuid
+        case comment
     }
     
     required init(from decoder: Decoder) throws
@@ -711,6 +726,7 @@ class CodeFunction          : Codable, Equatable
         header = try container.decode(CodeBlock.self, forKey: .header)
         body = try container.decode([CodeBlock].self, forKey: .body)
         uuid = try container.decode(UUID.self, forKey: .uuid)
+        comment = try container.decode(String.self, forKey: .comment)
     }
     
     func encode(to encoder: Encoder) throws
@@ -721,6 +737,7 @@ class CodeFunction          : Codable, Equatable
         try container.encode(header, forKey: .header)
         try container.encode(body, forKey: .body)
         try container.encode(uuid, forKey: .uuid)
+        try container.encode(comment, forKey: .comment)
     }
     
     static func ==(lhs:CodeFunction, rhs:CodeFunction) -> Bool { // Implement Equatable
@@ -781,7 +798,11 @@ class CodeFunction          : Codable, Equatable
         
         let rStart = ctx.rectStart()
 
+        var maxRight : Float = 0;
         header.draw(mmView, ctx)
+        if header.rect.right() > maxRight {
+            maxRight = header.rect.right()
+        }
         for b in body {
             ctx.cBlock = b
             
@@ -789,10 +810,16 @@ class CodeFunction          : Codable, Equatable
             ctx.cX = ctx.border + ctx.startX + ctx.cIndent
             b.draw(mmView, ctx)
             
+            if b.rect.right() > maxRight {
+                maxRight = b.rect.right()
+            }
             ctx.blockNumber += 1
         }
         
         ctx.rectEnd(rect, rStart)
+        if rect.right() < maxRight {
+            rect.width = maxRight - rect.x
+        }
         
         //mmView.drawBox.draw( x: ctx.border, y: rect.y, width: 2, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.border, fragment: ctx.fragment )
         ctx.drawFunctionState(self)
@@ -863,6 +890,7 @@ class CodeComponent         : Codable, Equatable
     {
         if type == .ScreenColorize {
             let f = CodeFunction(type, "colorize")
+            f.comment = "Returns a color for the given uv position (0..1)"
             
             let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg1)
@@ -1038,6 +1066,12 @@ class CodeComponent         : Codable, Equatable
             ctx.cFunction = f
             ctx.cX = ctx.border + ctx.startX
             ctx.cIndent = 0
+            
+            if f.comment.isEmpty == false {
+                ctx.drawText("// " + f.comment, mmView.skin.Code.border)
+                ctx.cY += ctx.lineHeight + ctx.gapY
+            }
+            
             f.draw(mmView, ctx)
         }
         
@@ -1173,7 +1207,11 @@ class CodeContext
     func drawFragmentState(_ fragment: CodeFragment)
     {
         if let drop = dropFragment, fragment == hoverFragment {
-                        
+                      
+            #if DEBUG
+            print("drawFragmentState, drop =", drop.fragmentType, ", fragment =", fragment.fragmentType)
+            #endif
+            
             // Drop on an empty line (.VariableDefinition)
             if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference) {
                 drawHighlight(fragment.rect, hoverAlpha)
@@ -1183,24 +1221,45 @@ class CodeContext
             {
                 if fragment.uuid == dropOriginalUUID {
                     // Exclusion: Dont allow drop on itself
+                    #if DEBUG
+                    print("Exclusion #1")
+                    #endif
                 } else
                 if drop.fragmentType == .ConstantDefinition && fragment.fragmentType == .ConstantValue {
                     // Exclusion: Dont allow a floatx to be dropped on a constant value (float)
+                    #if DEBUG
+                    print("Exclusion #2")
+                    #endif
                 } else
-                if drop.fragmentType == .ConstantDefinition && fragment.fragmentType == .VariableReference {
+                if drop.fragmentType == .ConstantDefinition && fragment.fragmentType == .VariableReference && drop.evaluateComponents() != fragment.evaluateComponents() {
                     // Exclusion: Dont allow a floatx to be dropped on a variable reference
+                    #if DEBUG
+                    print("Exclusion #3")
+                    #endif
                 } else
                 if drop.fragmentType == .ConstantDefinition && fragment.fragmentType == .ConstantDefinition && drop.typeName != fragment.typeName {
                     // Exclusion: Dont allow a floatx to be dropped on a floatx when the type is not the same
+                    #if DEBUG
+                    print("Exclusion #4")
+                    #endif
                 } else
                 if drop.fragmentType == .VariableReference && fragment.fragmentType == .ConstantDefinition && drop.typeName != fragment.typeName {
                     // Exclusion: Dont allow a "var floatx" to be dropped on a floatx when the type is not the same
+                    #if DEBUG
+                    print("Exclusion #5")
+                    #endif
                 } else
                 if drop.fragmentType == .VariableReference && fragment.fragmentType == .Primitive && drop.typeName != fragment.typeName {
                     // Exclusion: Dont allow a "var floatx" to be dropped on a floatx when the type is not the same
+                    #if DEBUG
+                    print("Exclusion #6")
+                    #endif
                 } else
                 if drop.fragmentType == .Primitive && drop.supportsType( fragment.evaluateType() ) == false {
                     // Exclusion: When the .Primitive does not support the type of the destination
+                    #if DEBUG
+                    print("Exclusion #7")
+                    #endif
                 } else
                 // Allow drop when not .VariableDefinition (coming straight from the source list)
                 if drop.fragmentType != .VariableDefinition {

@@ -338,7 +338,9 @@ class CodeEditor        : MMWidget
         let destFrag : CodeFragment = ctx.hoverFragment!
         let destBlock : CodeBlock = destFrag.parentBlock!
 
-        print( destBlock.blockType, destFrag.fragmentType, sourceFrag.fragmentType)
+        #if DEBUG
+        print( "insertCodeFragment, destBlock =", destBlock.blockType, "sourceFrag =", sourceFrag.fragmentType, "destFrag =", destFrag.fragmentType)
+        #endif
 
         if destBlock.blockType == .Empty {
 
@@ -402,27 +404,41 @@ class CodeEditor        : MMWidget
                 createFragmentArguments(destFrag, sourceFrag)
                 destFrag.addProperty(.Targetable)
                 destFrag.qualifier = compName
+                #if DEBUG
+                print("Drop #1")
+                #endif
             } else
             // Copy constant to constant where the constants have more components than 1, i.e. 1 to 1 copy
             if (destFrag.fragmentType == .ConstantDefinition && sourceFrag.fragmentType == .ConstantDefinition) {
                 sourceFrag.copyTo(destFrag)
-                print("here2")
-
+                #if DEBUG
+                print("Drop #2")
+                #endif
             } else
             // Copy constant to a .Primitive
             if (destFrag.fragmentType == .Primitive && sourceFrag.fragmentType == .ConstantDefinition) {
                 sourceFrag.copyTo(destFrag)
-                print("here5")
+                #if DEBUG
+                print("Drop #3")
+                #endif
             } else
             // Copy a variable
             if sourceFrag.fragmentType == .VariableReference {
                 sourceFrag.copyTo(destFrag)
-                print("here6")
+                destFrag.addProperty(.Targetable)
+                #if DEBUG
+                print("Drop #4")
+                #endif
+            } else
+            // Copy constant to constant where the constants have more components than 1, i.e. 1 to 1 copy
+            if (destFrag.fragmentType == .VariableReference && sourceFrag.fragmentType == .ConstantDefinition) {
+                sourceFrag.copyTo(destFrag)
+                #if DEBUG
+                print("Drop #5")
+                #endif
             } else
             //
             if sourceFrag.fragmentType == .Primitive {
-                print("here3")
-
                 //print( sourceFrag.name )
                 let typeName = destFrag.evaluateType()
                 sourceFrag.copyTo(destFrag)
@@ -439,40 +455,20 @@ class CodeEditor        : MMWidget
                     
                     destFrag.arguments.append(statement)
                 }
+                #if DEBUG
+                print("Drop #5")
+                #endif
             }
                         
             self.updateCode(compile: true)
             self.undoEnd(undo)
         }
-        
-        /*
-        if sourceFrag.fragmentType == .Primitive {
-            
-            copyFragmentArguments(destFrag, sourceFrag)
-            
-            destFrag.fragmentType = .Primitive
-            destFrag.name = sourceFrag.name
-            
-            self.updateCode(compile: true)
-        }
-        
-        if sourceFrag.fragmentType == .VariableReference {
-            
-            //copyFragmentArguments(destFrag, sourceFrag)
-                        
-            destFrag.fragmentType = .VariableReference
-            destFrag.typeName = sourceFrag.typeName
-            destFrag.name = sourceFrag.name
-            destFrag.referseTo = sourceFrag.referseTo
-
-            self.updateCode(compile: true)
-        }*/
     }
     
     /// Creates a constant for the given type
     func defaultConstantForType(_ typeName: String) -> CodeFragment
     {
-        print("defaultConstantForType", typeName)
+        //print("defaultConstantForType", typeName)
         
         let constant    : CodeFragment
         var components  : Int = 0
@@ -508,14 +504,12 @@ class CodeEditor        : MMWidget
         return constant
     }
     
-    /// Copy the
+    /// Creates the arguments for the fragment
     func createFragmentArguments(_ destFrag: CodeFragment, _ sourceFrag: CodeFragment)
     {
         if let sourceFormats = sourceFrag.argumentFormat, sourceFrag.fragmentType == .Primitive || sourceFrag.fragmentType == .ConstantDefinition {
             // Case1, source is directly from the source list and we need to create the arguments based on the argumentFormat
-            print("Case0", sourceFormats.count, sourceFrag.arguments.count)
             if sourceFormats.count > sourceFrag.arguments.count {
-                print("Case1", sourceFormats.count, sourceFrag.arguments.count)
 
                 for _ in sourceFormats
                 {
@@ -525,58 +519,7 @@ class CodeEditor        : MMWidget
                     argStatement.fragments.append(constValue)
                     destFrag.arguments.append(argStatement)
                 }
-            } else
-            // Case2, drag and drop of fragments in the editor, copy the fragment list of the source (types have to be the same)
-            {
-                destFrag.arguments = []
-
-                print("Case2", destFrag.arguments.count, sourceFrag.arguments.count)
-                                
-                func copyArguments(_ destFragment: CodeFragment,_ sourceStatements: [CodeStatement])
-                {
-                    for sourceStatement in sourceStatements {
-
-                        let argStatement = CodeStatement(sourceStatement.statementType)
-
-                        for frag in sourceStatement.fragments
-                        {
-                            let copy = frag.createCopy()
-                            argStatement.fragments.append(copy)
-                            copyArguments(copy, frag.arguments)
-                        }
-                        destFragment.arguments.append(argStatement)
-                    }
-                }
-                
-                copyArguments(destFrag, sourceFrag.arguments)
-                
-                /*
-                for statement in codeContext.dropOriginalArgs
-                {
-                    let argStatement = CodeStatement(statement.statementType)
-
-                    //let constValue = CodeFragment(.ConstantValue, "float", "float", [.Selectable, .Dragable, .Targetable], ["float"], "float")
-                    //argStatement.fragments.append(constValue)
-                    
-                    for frag in statement.fragments
-                    {
-                        let copy = frag.createCopy()
-                        argStatement.fragments.append(copy)
-                    }
-                    
-                    destFrag.arguments.append(argStatement)
-                }*/
             }
-            
-            /*
-            for _ in sourceFormats
-            {
-                let argStatement = CodeStatement(.Arithmetic)
-
-                let constValue = CodeFragment(.ConstantValue, "float", "float", [.Selectable, .Dragable, .Targetable], ["float"], "float")
-                argStatement.fragments.append(constValue)
-                destFrag.arguments.append(argStatement)
-            }*/
         } else {
             destFrag.argumentFormat = nil
             destFrag.arguments = []
