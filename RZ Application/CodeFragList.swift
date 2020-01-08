@@ -91,6 +91,10 @@ class CodeFragList : MMWidget
         items.append(item)
         item.items.append( SourceListItem("abs", CodeFragment(.Primitive, "float", "abs", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         
+        item = FragItem("C")
+        items.append(item)
+        item.items.append( SourceListItem("cos", CodeFragment(.Primitive, "float", "cos", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
+        
         item = FragItem("F")
         items.append(item)
         item.items.append( SourceListItem("float", CodeFragment(.VariableDefinition, "float", "", [.Selectable, .Dragable, .Monitorable], ["float"], "float" ) ) )
@@ -99,7 +103,6 @@ class CodeFragList : MMWidget
         item.items.append( SourceListItem("float4", CodeFragment(.VariableDefinition, "float4", "", [.Selectable, .Dragable, .Monitorable], ["float4"], "float4" ) ) )
         item.items.append( SourceListItem("fract", CodeFragment(.Primitive, "float", "fract", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
 
-        
         item = FragItem("G")
         items.append(item)
         item.items.append( SourceListItem("GlobalTime", CodeFragment(.Primitive, "float", "GlobalTime", [.Selectable, .Dragable, .Targetable], nil, "float" ) ) )
