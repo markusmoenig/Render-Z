@@ -32,6 +32,8 @@ class CodeProperties    : MMWidget
     var buttons             : [MMButtonWidget] = []
     var smallButtonSkin     : MMSkinButton
     var buttonWidth         : Float = 180
+    
+    var needsUpdate         : Bool = false
 
 
     override init(_ view: MMView)
@@ -84,7 +86,7 @@ class CodeProperties    : MMWidget
         c2Node?.rect.y = 10
         
         monitorInstance = nil
-        
+                
         if let function = ctx.selectedFunction {
             c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "comment", title: "Comment", value: function.comment) )
             c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
@@ -93,6 +95,7 @@ class CodeProperties    : MMWidget
                     let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Comment Changed") : nil
                     function.comment = newValue
                     self.editor.updateOnNextDraw()
+                    self.needsUpdate = true
                     if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                 }
             }
@@ -108,6 +111,7 @@ class CodeProperties    : MMWidget
                             newBlock.fragment.addProperty(.Selectable)
                             function.body.insert(newBlock, at: index)
                             self.editor.updateOnNextDraw()
+                            self.needsUpdate = true
                             self.editor.codeEditor.undoEnd(undo)
                             break
                         }
@@ -128,6 +132,7 @@ class CodeProperties    : MMWidget
                     block.statement = CodeStatement(.Arithmetic)
 
                     self.editor.updateOnNextDraw()
+                    self.needsUpdate = true
                     self.clear()
                     self.editor.codeEditor.undoEnd(undo)
                     b.removeState(.Checked)
@@ -142,6 +147,7 @@ class CodeProperties    : MMWidget
                             let undo = self.editor.codeEditor.undoStart("Add Line")
                             function.body.remove(at: index)
                             self.editor.updateOnNextDraw()
+                            self.needsUpdate = true
                             self.clear()
                             self.editor.codeEditor.undoEnd(undo)
                             break
@@ -159,6 +165,7 @@ class CodeProperties    : MMWidget
                     block.comment = oldValue
                     let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Comment Changed") : nil
                     block.comment = newValue
+                    self.needsUpdate = true
                     self.editor.updateOnNextDraw()
                     if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                 }
@@ -292,8 +299,7 @@ class CodeProperties    : MMWidget
                 }
             }
             
-            // --- Some buttons
-            
+            // --- Reset to Const button for primitives and variable references
             if fragment.fragmentType == .Primitive || fragment.fragmentType == .VariableReference {
                 let b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Reset to Const", fixedWidth: buttonWidth)
                 b.clicked = { (event) in
@@ -302,11 +308,75 @@ class CodeProperties    : MMWidget
                     let constant = self.editor.codeEditor.defaultConstantForType(fragment.typeName)
                     constant.copyTo(fragment)
 
+                    self.needsUpdate = true
                     self.editor.updateOnNextDraw()
                     self.editor.codeEditor.undoEnd(undo)
                     
                     b.removeState(.Checked)
                 }
+                addButton(b)
+            }
+            
+            // Delete, only if parent statement has enough content
+            if let pStatement = fragment.parentStatement {
+                
+                var canDelete : Bool = false
+                var contentCount : Int = 0
+                for f in pStatement.fragments {
+                    if f.fragmentType != .Arithmetic && f.fragmentType != .OpeningRoundBracket && f.fragmentType != .ClosingRoundBracket {
+                    contentCount += 1
+                    }
+                }
+                    
+                var type : Int = -1
+                if fragment.fragmentType != .Arithmetic && fragment.fragmentType != .OpeningRoundBracket && fragment.fragmentType != .ClosingRoundBracket && contentCount > 1 {
+                    canDelete = true
+                    type = 0
+                } else
+                if fragment.fragmentType == .OpeningRoundBracket || fragment.fragmentType == .ClosingRoundBracket {
+                    canDelete = true
+                    type = 1
+                }
+
+                let b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete", fixedWidth: buttonWidth)
+                b.clicked = { (event) in
+                    let undo = self.editor.codeEditor.undoStart("Delete")
+
+                    if type == 0 {
+                        // Value
+
+                        // TODO: DELETE ARITHMETIC
+                        if let index = pStatement.fragments.firstIndex(of: fragment) {
+                            pStatement.fragments.remove(at: index)
+                        }
+                    } else
+                    if type == 1 {
+                        // Brackets
+                        
+                        for (index, f) in pStatement.fragments.enumerated() {
+                            if f.uuid == fragment.uuid {
+                                pStatement.fragments.remove(at: index)
+                                break
+                            }
+                        }
+                        for (index, f) in pStatement.fragments.enumerated() {
+                            if f.uuid == fragment.uuid {
+                                pStatement.fragments.remove(at: index)
+                                break
+                            }
+                        }
+                    }
+
+                    ctx.selectedFragment = nil
+                    comp.selected = nil
+                    
+                    self.needsUpdate = true
+                    self.editor.updateOnNextDraw()
+                    self.editor.codeEditor.undoEnd(undo)
+                    
+                    b.removeState(.Checked)
+                }
+                b.isDisabled = !canDelete
                 addButton(b)
             }
 
@@ -318,6 +388,8 @@ class CodeProperties    : MMWidget
         
         c1Node?.setupUI(mmView: mmView)
         c2Node?.setupUI(mmView: mmView)
+        
+        needsUpdate = false
     }
     
     override func mouseDown(_ event: MMMouseEvent)

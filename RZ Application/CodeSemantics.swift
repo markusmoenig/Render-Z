@@ -20,7 +20,10 @@ class CodeFragment          : Codable, Equatable
                 OutVariable,            // Out variable (outColor), cannot be edited
                 ConstantDefinition,     // Definition of a constant (float4)
                 ConstantValue,          // Value of a constant (1.2), right now only floats
-                Primitive               // A primitive function line abs, sin, length etc
+                Primitive,              // A primitive function line abs, sin, length etc
+                Arithmetic,             // +, -, etc
+                OpeningRoundBracket,    // (
+                ClosingRoundBracket     // )
     }
     
     enum FragmentProperties : Int, Codable{
@@ -390,6 +393,34 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.gapX
             
             ctx.addCode(name)
+        } else
+        if fragmentType == .Arithmetic {
+            let rStart = ctx.rectStart()
+           
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+               mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+            }
+
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+
+            ctx.addCode(name)
+        } else
+        if fragmentType == .OpeningRoundBracket || fragmentType == .ClosingRoundBracket {
+            let rStart = ctx.rectStart()
+           
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+               mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+            }
+
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+
+            ctx.addCode(name)
         }
         
         // Arguments
@@ -588,7 +619,8 @@ class CodeBlock             : Codable, Equatable
                 mmView.drawText.drawText(ctx.font, text: "func", x: ctx.border - ctx.tempRect.width - ctx.gapX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.border, fragment: frag)
                 
                 if ctx.cFunction === ctx.hoverFunction {
-                    mmView.drawBox.draw( x: ctx.gapX / 2, y: ctx.cFunction!.rect.y - ctx.gapY / 2, width: ctx.border - ctx.gapX / 2, height: ctx.lineHeight + ctx.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.5), fragment: frag )
+                    let fY : Float = ctx.cFunction!.comment.isEmpty ? 0 : ctx.lineHeight + ctx.gapY
+                    mmView.drawBox.draw( x: ctx.gapX / 2, y: ctx.cFunction!.rect.y - ctx.gapY / 2 + fY, width: ctx.border - ctx.gapX / 2, height: ctx.lineHeight + ctx.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.5), fragment: frag )
                 }
             }
             
@@ -797,6 +829,12 @@ class CodeFunction          : Codable, Equatable
         }
         
         let rStart = ctx.rectStart()
+        
+        // --- Comment
+        if comment.isEmpty == false {
+            ctx.drawText("// " + comment, mmView.skin.Code.border)
+            ctx.cY += ctx.lineHeight + ctx.gapY
+        }
 
         var maxRight : Float = 0;
         header.draw(mmView, ctx)
@@ -890,7 +928,7 @@ class CodeComponent         : Codable, Equatable
     {
         if type == .ScreenColorize {
             let f = CodeFunction(type, "colorize")
-            f.comment = "Returns a color for the given uv position (0..1)"
+            f.comment = "Returns a color for the given uv position [0..1]"
             
             let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg1)
@@ -915,7 +953,8 @@ class CodeComponent         : Codable, Equatable
         for f in functions {
             
             // Check for func marker
-            if y >= f.rect.y && y <= f.rect.y + ctx.lineHeight && x <= ctx.border {
+            var fY : Float = f.rect.y + (f.comment.isEmpty ? 0 : ctx.lineHeight + ctx.gapY)
+            if y >= fY && y <= fY + ctx.lineHeight && x <= ctx.border {
                 ctx.hoverFunction = f
                 break
             }
@@ -1066,11 +1105,6 @@ class CodeComponent         : Codable, Equatable
             ctx.cFunction = f
             ctx.cX = ctx.border + ctx.startX
             ctx.cIndent = 0
-            
-            if f.comment.isEmpty == false {
-                ctx.drawText("// " + f.comment, mmView.skin.Code.border)
-                ctx.cY += ctx.lineHeight + ctx.gapY
-            }
             
             f.draw(mmView, ctx)
         }

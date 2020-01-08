@@ -30,6 +30,8 @@ class CodeEditor        : MMWidget
     var codeComponent   : CodeComponent? = nil
     var codeContext     : CodeContext
     
+    var codeAccess      : CodeAccess!
+    
     var previewTexture  : MTLTexture? = nil
     
     var editor          : DeveloperEditor!
@@ -52,6 +54,8 @@ class CodeEditor        : MMWidget
         codeContext = CodeContext(view, fragment, view.openSans, 0.5)
 
         super.init(view)
+
+        codeAccess = CodeAccess(view, self)
 
         zoom = mmView.scaleFactor
         textureWidget.zoom = zoom
@@ -108,6 +112,11 @@ class CodeEditor        : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        if codeAccess.accessState != .Closed && codeAccess.rect.contains(event.x, event.y) {
+            codeAccess.mouseMoved(event)
+            return
+        }
+        
         if let selFragment = codeContext.selectedFragment, selFragment.supports(.Dragable), mmView.dragSource == nil, mouseIsDown == true {
             let dist = distance(mouseDownPos, SIMD2<Float>(event.x, event.y))
             if dist > 5 {
@@ -164,6 +173,11 @@ class CodeEditor        : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if codeAccess.accessState != .Closed && codeAccess.rect.contains(event.x, event.y) {
+            codeAccess.mouseDown(event)
+            return
+        }
+        
         mouseIsDown = true
         mouseDownPos.x = event.x
         mouseDownPos.y = event.y
@@ -195,12 +209,17 @@ class CodeEditor        : MMWidget
                 mmView.update()
                 
                 editor.codeProperties.setSelected(comp, codeContext)
+                codeAccess.setSelected(comp, codeContext)
             }
         }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if codeAccess.accessState != .Closed && codeAccess.rect.contains(event.x, event.y) {
+            codeAccess.mouseUp(event)
+            return
+        }
         mouseIsDown = false
     }
     
@@ -248,6 +267,9 @@ class CodeEditor        : MMWidget
         // Need to update the code display ?
         if needsUpdate || fragment.width != rect.width * zoom {
             update()
+            if let comp = codeComponent, editor.codeProperties.needsUpdate {
+                editor.codeProperties.setSelected(comp, codeContext)
+            }
         }
 
         // Is playing ?
@@ -284,6 +306,15 @@ class CodeEditor        : MMWidget
         scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset)
         
         //mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
+        
+        // Access Area
+        
+        codeAccess.rect.x = rect.x
+        codeAccess.rect.y = rect.bottom() - codeAccess.rect.height + 1
+        codeAccess.rect.width = rect.width
+        if codeAccess.accessState != .Closed {
+            codeAccess.draw()
+        }
     }
     
     /// Update the code syntax and redraws
@@ -293,6 +324,9 @@ class CodeEditor        : MMWidget
         needsUpdate = true
         update()
         mmView.update()
+        if let comp = codeComponent, editor.codeProperties.needsUpdate {
+            editor.codeProperties.setSelected(comp, codeContext)
+        }
     }
     
     func undoStart(_ name: String) -> CodeUndoComponent
