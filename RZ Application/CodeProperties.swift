@@ -305,7 +305,7 @@ class CodeProperties    : MMWidget
                 b.clicked = { (event) in
                     let undo = self.editor.codeEditor.undoStart("Reset")
 
-                    let constant = self.editor.codeEditor.defaultConstantForType(fragment.typeName)
+                    let constant = self.editor.codeEditor.defaultConstantForType(fragment.evaluateType())
                     constant.copyTo(fragment)
 
                     self.needsUpdate = true
@@ -342,29 +342,49 @@ class CodeProperties    : MMWidget
                 b.clicked = { (event) in
                     let undo = self.editor.codeEditor.undoStart("Delete")
 
+                    // Delete the brackets of the given uuid
+                    func deleteBrackets(_ uuid: UUID)
+                    {
+                        for (index, f) in pStatement.fragments.enumerated() {
+                            if f.uuid == uuid {
+                                pStatement.fragments.remove(at: index)
+                                break
+                            }
+                        }
+                        for (index, f) in pStatement.fragments.enumerated() {
+                            if f.uuid == uuid {
+                                pStatement.fragments.remove(at: index)
+                                break
+                            }
+                        }
+                    }
+                    
                     if type == 0 {
                         // Value
 
-                        // TODO: DELETE ARITHMETIC
+                        // First step check if there are brackets around the fragment and if yes, recursively delete them
+                        var index = pStatement.fragments.firstIndex(of: fragment)!
+                        while index > 0 && pStatement.fragments[index-1].fragmentType == .OpeningRoundBracket && pStatement.fragments[index+1].fragmentType == .ClosingRoundBracket {
+                            deleteBrackets(pStatement.fragments[index-1].uuid)
+                            index = pStatement.fragments.firstIndex(of: fragment)!
+                        }
+
+                        // Delete the value plus its arithmetic operator
                         if let index = pStatement.fragments.firstIndex(of: fragment) {
-                            pStatement.fragments.remove(at: index)
+                            
+                            if index == 0 || pStatement.fragments[index-1].fragmentType == .OpeningRoundBracket {
+                                // Case of ( 1.00 + ...
+                                pStatement.fragments.remove(at: index)
+                                pStatement.fragments.remove(at: index)
+                            } else {
+                                pStatement.fragments.remove(at: index-1)
+                                pStatement.fragments.remove(at: index-1)
+                            }
                         }
                     } else
                     if type == 1 {
-                        // Brackets
-                        
-                        for (index, f) in pStatement.fragments.enumerated() {
-                            if f.uuid == fragment.uuid {
-                                pStatement.fragments.remove(at: index)
-                                break
-                            }
-                        }
-                        for (index, f) in pStatement.fragments.enumerated() {
-                            if f.uuid == fragment.uuid {
-                                pStatement.fragments.remove(at: index)
-                                break
-                            }
-                        }
+                        // Delete Brackets
+                        deleteBrackets(fragment.uuid)
                     }
 
                     ctx.selectedFragment = nil

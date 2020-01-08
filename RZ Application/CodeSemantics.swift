@@ -430,6 +430,10 @@ class CodeFragment          : Codable, Equatable
             ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
                 mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+                if self === ctx.hoverFragment || uuid == ctx.cComponent!.selected {
+                    let alpha : Float = uuid == ctx.cComponent!.selected ? ctx.selectionAlpha : ctx.hoverAlpha
+                    mmView.drawBox.draw( x: ctx.cX - ctx.gapX / 2 - 1, y: ctx.cY - ctx.gapY / 2, width: ctx.tempRect.width + ctx.gapX, height: ctx.lineHeight + ctx.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
+                }
             }
             ctx.cX += ctx.tempRect.width + ctx.gapX
             
@@ -456,12 +460,16 @@ class CodeFragment          : Codable, Equatable
             ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
                 mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+                if self === ctx.hoverFragment || uuid == ctx.cComponent!.selected {
+                    let alpha : Float = uuid == ctx.cComponent!.selected ? ctx.selectionAlpha : ctx.hoverAlpha
+                    mmView.drawBox.draw( x: ctx.cX - ctx.gapX / 2, y: ctx.cY - ctx.gapY / 2, width: ctx.tempRect.width + ctx.gapX, height: ctx.lineHeight + ctx.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
+                }
             }
             ctx.cX += ctx.tempRect.width + ctx.gapX
             ctx.addCode(") ")
             
             // Expand rect, experimental
-            rect.width = ctx.cX - rect.x
+            //rect.width = ctx.cX - rect.x
         }
     }
     

@@ -49,8 +49,7 @@ class CodeAccess            : MMWidget
         
         super.init(view)
 
-        rect.height = 30
-
+        rect.height = 26
     }
     
     /// Clears the buttons
@@ -80,7 +79,7 @@ class CodeAccess            : MMWidget
         
         if let fragment = ctx.selectedFragment {
             
-            if fragment.fragmentType == .ConstantDefinition || fragment.fragmentType == .ConstantValue || fragment.fragmentType == .Primitive || fragment.fragmentType == .OpeningRoundBracket || fragment.fragmentType == .ClosingRoundBracket  {
+            if fragment.fragmentType == .ConstantDefinition || fragment.fragmentType == .ConstantValue || fragment.fragmentType == .Primitive || fragment.fragmentType == .VariableReference || fragment.fragmentType == .OpeningRoundBracket || fragment.fragmentType == .ClosingRoundBracket  {
                 accessState = .Arithmetic
                 
                 for a in arithmetics {
@@ -208,20 +207,23 @@ class CodeAccess            : MMWidget
                     {
                         let undo = codeEditor.undoStart("Add Brackets")
 
-                        let open = CodeFragment(.OpeningRoundBracket, frag.typeName, "(", [.Selectable])
-                        let close = CodeFragment(.ClosingRoundBracket, frag.typeName, ")", [.Selectable])
+                        let typeName = frag.evaluateType()
+                        let open = CodeFragment(.OpeningRoundBracket, typeName, "(", [.Selectable])
+                        let close = CodeFragment(.ClosingRoundBracket, typeName, ")", [.Selectable])
                         close.uuid = open.uuid
                         pStatement.fragments.insert(open, at: pIndex)
                         pStatement.fragments.insert(close, at: pIndex + 2)
 
+                        codeEditor.editor.codeProperties.needsUpdate = true
                         codeEditor.updateCode(compile: true)
                         codeEditor.undoEnd(undo)
                     } else
                     {
                         let undo = codeEditor.undoStart("Add Arithmetic")
                         
-                        let constant = codeEditor.defaultConstantForType(frag.typeName)
-                        let arithmetic = CodeFragment(.Arithmetic, frag.typeName, button.name, [.Selectable])
+                        let typeName = frag.evaluateType()
+                        let constant = codeEditor.defaultConstantForType(typeName)
+                        let arithmetic = CodeFragment(.Arithmetic, typeName, button.name, [.Selectable])
                         
                         if frag.name == "(" || frag.name == ")" {
                             // Add arithmetic outside of the bracket
@@ -255,6 +257,7 @@ class CodeAccess            : MMWidget
                                 pStatement.fragments.insert(constant, at: pIndex+2)
                             }
                         }
+                        codeEditor.editor.codeProperties.needsUpdate = true
                         codeEditor.updateCode(compile: true)
                         codeEditor.undoEnd(undo)
                     }
@@ -266,6 +269,7 @@ class CodeAccess            : MMWidget
              if let frag = codeEditor.codeContext.selectedFragment {
                 let undo = codeEditor.undoStart("Changed Operator")
                 frag.name = button.name
+                codeEditor.editor.codeProperties.needsUpdate = true
                 codeEditor.updateCode(compile: true)
                 codeEditor.undoEnd(undo)
             }
