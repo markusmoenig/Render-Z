@@ -161,6 +161,8 @@ class SceneTreeWidget   : MMWidget
     
     var textOnly        : Bool = false
     
+    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.2, 0.2, 0.2, 1)
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -252,7 +254,7 @@ class SceneTreeWidget   : MMWidget
                 
                 let color = SIMD4<Float>(0.5, 0.5, 0.5, 1)
                 if scene?.selectedUUID == item.uuid {
-                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: shadeColor(color, selectionShade), fragment: fragment!)
+                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: selectionColor, fragment: fragment!)
                 } else {
                     if textOnly == false {
                         mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
@@ -272,7 +274,7 @@ class SceneTreeWidget   : MMWidget
                 
                 let color = SIMD4<Float>(0.5, 0.5, 0.5, 1)
                 if scene?.selectedUUID == item.uuid {
-                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: shadeColor(color, selectionShade), fragment: fragment!)
+                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: selectionColor, fragment: fragment!)
                 } else {
                     if textOnly == false {
                         mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)

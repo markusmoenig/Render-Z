@@ -64,7 +64,7 @@ class CodeFragList : MMWidget
     var fragArea            : MMRect = MMRect()
     
     var mouseIsDown         : Bool = false
-    var mouseDownPos    : SIMD2<Float> = SIMD2<Float>()
+    var mouseDownPos        : SIMD2<Float> = SIMD2<Float>()
     
     var font                : MMFont
     var fontScale           : Float = 0.40
@@ -84,6 +84,8 @@ class CodeFragList : MMWidget
         listWidget.textOnly = true
         listWidget.unitSize -= 5
         listWidget.itemSize -= 5
+        
+        listWidget.selectionColor = SIMD4<Float>(0.2, 0.2, 0.2, 1)
 
         super.init(view)
 

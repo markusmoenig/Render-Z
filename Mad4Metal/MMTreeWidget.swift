@@ -66,6 +66,7 @@ class MMTreeWidget : MMWidget
     var items           : [MMTreeWidgetItem] = []
     
     var selectionShade  : Float = 0.25
+    var selectionColor  : SIMD4<Float>? = nil
     
     var itemRound       : Float = 0
     
@@ -161,7 +162,7 @@ class MMTreeWidget : MMWidget
             func drawItem(_ item: MMTreeWidgetItem) {
                 
                 if selectedItems.contains(item.uuid) {
-                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: shadeColor(item.color!, selectionShade), fragment: fragment!)
+                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: selectionColor != nil ? selectionColor! : shadeColor(item.color!, selectionShade), fragment: fragment!)
                 } else {
                     if textOnly == false {
                         mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: item.color!, fragment: fragment!)
@@ -357,11 +358,14 @@ class MMTreeWidget : MMWidget
             var fontRect = MMRect()
             
             var color = shadeColor(item.color!, selectionShade)
+            if selectionColor != nil {
+                color = selectionColor!
+            }
             color.w = 0.4
             mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
             
             fontRect = mmView.openSans.getTextRect(text: item.name, scale: fontScale, rectToUse: fontRect)
-            mmView.drawText.drawText(mmView.openSans, text: item.name, x: left, y: top + 4 * zoom, scale: fontScale * zoom, fragment: fragment)
+            mmView.drawText.drawText(mmView.openSans, text: item.name, x: left, y: top + 4 * zoom, scale: fontScale * zoom, color: item.color!, fragment: fragment)
  
             fragment!.encodeEnd()
         }
