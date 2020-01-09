@@ -28,18 +28,28 @@ class CodeProperties    : MMWidget
     var monitorData         : [SIMD4<Float>] = []
     let totalMonitorData    : Float = 300
     var monitorRange        : SIMD2<Float> = SIMD2<Float>(0, 0)
-    
+    var monitorPosition     : Float = 300
+    var monitorLabel        : MMTextLabel
+    var monitorRangeTLabel  : MMTextLabel
+    var monitorRangeBLabel  : MMTextLabel
+
     var buttons             : [MMButtonWidget] = []
     var smallButtonSkin     : MMSkinButton
     var buttonWidth         : Float = 180
     
     var needsUpdate         : Bool = false
 
-
     override init(_ view: MMView)
     {
         smallButtonSkin = MMSkinButton()
-        
+
+        monitorLabel = MMTextLabel(view, font: view.openSans, text: "")
+        monitorLabel.scale = NodeUI.titleFontScale
+        monitorRangeTLabel = MMTextLabel(view, font: view.openSans, text: "")
+        monitorRangeTLabel.scale = NodeUI.titleFontScale
+        monitorRangeBLabel = MMTextLabel(view, font: view.openSans, text: "")
+        monitorRangeBLabel.scale = NodeUI.titleFontScale
+
         super.init(view)
         
         smallButtonSkin.height = mmView.skin.Button.height
@@ -74,6 +84,8 @@ class CodeProperties    : MMWidget
     {
         c1Node = nil
         c2Node = nil
+        
+        monitorPosition = 20
         
         deregisterButtons()
         
@@ -254,7 +266,21 @@ class CodeProperties    : MMWidget
             } else
             // --- Variable Definition
             if fragment.fragmentType == .VariableDefinition && fragment.supports(.NotCodeable) == false {
-                c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Name", value: fragment.name) )
+                
+                let comp = ctx.cComponent!
+                
+                c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Variable Name", value: fragment.name) )
+                let artistNameUI = NodeUIText(c1Node!, variable: "artistName", title: "Artist Name", value: comp.artistPropertyNames[fragment.uuid] == nil ? "" : comp.artistPropertyNames[fragment.uuid]!)
+                c1Node?.uiItems.append( artistNameUI )
+                
+                c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "expose", title: "Expose to Artist", items: ["No", "Yes"], index: 0 ) )
+                c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "min", title: "Minimum", range: nil, value: fragment.values["min"]!) )
+                c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "max", title: "Maximum", range: nil, value: fragment.values["max"]!) )
+                
+                c1Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
+                c2Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
+                c2Node?.uiItems[2].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
+                
                 c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "name" {
                         fragment.name = oldValue
@@ -264,6 +290,43 @@ class CodeProperties    : MMWidget
                         if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                     }
                 }
+                
+                c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "min" {
+                        fragment.values["min"] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Minimum Changed") : nil
+                        fragment.values["min"] = newValue
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    } else
+                    if variable == "max" {
+                        fragment.values["max"] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Maximum Changed") : nil
+                        fragment.values["max"] = newValue
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    } else
+                    if variable == "expose" {
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Expose Variable Changed") : nil
+                        if newValue == 0 {
+                            comp.properties.removeAll { $0 == fragment.uuid }
+                        } else {
+                            comp.properties.append(fragment.uuid)
+                            if comp.artistPropertyNames[fragment.uuid] == nil {
+                                artistNameUI.value = fragment.name
+                                comp.artistPropertyNames[fragment.uuid] = fragment.name
+                            }
+                        }
+                        self.c1Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
+                        self.c2Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
+                        self.c2Node?.uiItems[2].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
+
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    }
+                }
+                
+                monitorPosition = 400
             } else
             // --- Variable Reference
             if fragment.fragmentType == .VariableReference {
@@ -558,11 +621,56 @@ class CodeProperties    : MMWidget
         // --- Draw Monitor
         if let inst = monitorInstance {
             let border      : Float = 10
-            let mOffsetX    : Float = 200
 
-            mmView.drawBox.draw(x: rect.x + mOffsetX, y: rect.y + border, width: totalMonitorData + 2 * border, height: rect.height - border*2, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1, 1, 1, 0.3))
+            mmView.drawBox.draw(x: rect.x + monitorPosition, y: rect.y + border, width: totalMonitorData + 2 * border, height: rect.height - border*2, round: 6, borderSize: 0, fillColor: NodeUI.contentColor)// SIMD4<Float>(1, 1, 1, 0.1))
             
-            mmView.drawPointGraph.draw(x: rect.x + mOffsetX, y: rect.y + 2*border, width: totalMonitorData, height: rect.height - border*4, points: monitorData, range: monitorRange, components: inst.computeComponents)
+            mmView.drawPointGraph.draw(x: rect.x + monitorPosition, y: rect.y + 2*border, width: totalMonitorData, height: rect.height - border*4, points: monitorData, range: monitorRange, components: inst.computeComponents)
+            
+            // Top Range Text
+            let tString : String = String(Int(monitorRange.y))
+            
+            if monitorRangeTLabel.text != tString {
+                monitorRangeTLabel.setText(tString)
+            }
+            
+            monitorRangeTLabel.rect.x = rect.x + monitorPosition + totalMonitorData + 30
+            monitorRangeTLabel.rect.y = rect.y + border
+            monitorRangeTLabel.draw()
+            
+            // Bottom Range Text
+            let bString : String = String(Int(monitorRange.x))
+            
+            if monitorRangeBLabel.text != bString {
+                monitorRangeBLabel.setText(bString)
+            }
+            
+            monitorRangeBLabel.rect.x = monitorRangeTLabel.rect.x
+            monitorRangeBLabel.rect.y = rect.y + rect.height - border * 2 - 5
+            monitorRangeBLabel.draw()
+            
+            // Value Text
+            let value = monitorData[monitorData.count - 1]
+            var vString : String = ""
+            
+            if inst.computeComponents == 1 {
+                vString = "(" + String(format: "%.03f", value.x) + ")"
+            } else
+            if inst.computeComponents == 2 {
+                vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ")"
+            } else
+            if inst.computeComponents == 3 {
+                vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ", " + String(format: "%.03f", value.z) + ")"
+            } else
+            if inst.computeComponents == 4 {
+                vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ", " + String(format: "%.03f", value.z) + ", " + String(format: "%.03f", value.w) + ")"
+            }
+        
+            if monitorLabel.text != vString {
+                monitorLabel.setText(vString)
+            }
+            monitorLabel.rect.x = monitorRangeTLabel.rect.x
+            monitorLabel.rect.y = rect.y + (rect.height - border * 2 ) / 2 + 2
+            monitorLabel.draw()
         }
         
         // --- Draw buttons
@@ -583,7 +691,7 @@ class CodeProperties    : MMWidget
         monitorInstance = globalApp!.codeBuilder.build(comp, fragment)
         
         monitorData = []
-        monitorRange = SIMD2<Float>(0, 0)
+        monitorRange = SIMD2<Float>(-1, 1)
         updateMonitor()
     }
     
@@ -591,7 +699,7 @@ class CodeProperties    : MMWidget
     func resetMonitorData()
     {
         monitorData = []
-        monitorRange = SIMD2<Float>(0, 0)
+        monitorRange = SIMD2<Float>(-1, 1)
         updateMonitor()
     }
     

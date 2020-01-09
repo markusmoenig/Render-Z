@@ -838,13 +838,20 @@ class CodeFunction          : Codable, Equatable
         
         let rStart = ctx.rectStart()
         
+        var maxRight : Float = 0;
+
         // --- Comment
         if comment.isEmpty == false {
-            ctx.drawText("// " + comment, mmView.skin.Code.border)
+            
+            let commentText = "// " + comment
+            ctx.font.getTextRect(text: commentText, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            ctx.drawText(commentText, mmView.skin.Code.border)
             ctx.cY += ctx.lineHeight + ctx.gapY
+            if ctx.cX + ctx.tempRect.width + ctx.gapX > maxRight {
+                maxRight = ctx.cX + ctx.tempRect.width + ctx.gapX
+            }
         }
 
-        var maxRight : Float = 0;
         header.draw(mmView, ctx)
         if header.rect.right() > maxRight {
             maxRight = header.rect.right()
@@ -887,6 +894,12 @@ class CodeComponent         : Codable, Equatable
     var selected            : UUID? = nil
 
     var rect                : MMRect = MMRect()
+    
+    // Properties and their animation
+    var properties          : [UUID] = []
+    var artistPropertyNames : [UUID:String] = [:]
+    var values              : [String:Float] = [:]
+    var sequence            : MMTlSequence = MMTlSequence()
     
     // Code Generation
     var code                : String? = nil

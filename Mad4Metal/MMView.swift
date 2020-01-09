@@ -40,6 +40,7 @@ public class MMView : MMBaseView {
     var openSans        : MMFont!
     var gameCuben       : MMFont!
     var square          : MMFont!
+    var sourceCodePro   : MMFont!
 
     var defaultFont     : MMFont!
 
@@ -96,7 +97,8 @@ public class MMView : MMBaseView {
         openSans = MMFont( self, name: "OpenSans" )
         gameCuben = MMFont( self, name: "GameCuben" )
         square = MMFont( self, name: "Square" )
-        
+        sourceCodePro = MMFont( self, name: "SourceCodePro" )
+
         defaultFont = square
 
         // --- Drawables

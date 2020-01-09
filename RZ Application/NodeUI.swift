@@ -914,6 +914,9 @@ class NodeUIText : NodeUI
     
     override func titleClicked()
     {
+        if isDisabled {
+            return
+        }
         let old = value
         getStringDialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, cb: { (value) -> Void in
             self.value = value
@@ -1034,6 +1037,9 @@ class NodeUIColor : NodeUI
     
     override func titleClicked()
     {
+        if isDisabled {
+            return
+        }
         let old = value
         getStringDialog(view: mmView, title: title, message: "Enter new value", defaultValue: toHex(value), cb: { (string) -> Void in
             self.setValue(fromHex(hexString: string))

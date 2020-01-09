@@ -44,7 +44,7 @@ class CodeAccess            : MMWidget
     init(_ view: MMView,_ codeEditor: CodeEditor)
     {
         self.codeEditor = codeEditor
-        font = view.openSans
+        font = view.sourceCodePro
         fontScale = 0.5
         
         super.init(view)
