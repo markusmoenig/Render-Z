@@ -379,7 +379,7 @@ class CodeEditor        : MMWidget
             // Insert a new Variable into an empty line
             if sourceFrag.fragmentType == .VariableDefinition {
                 
-                getStringDialog(view: mmView, title: "Float Variable", message: "Enter variable name", defaultValue: "var", cb: { (value) -> Void in
+                getStringDialog(view: mmView, title: "Float Variable", message: "Enter variable name", defaultValue: "newVar", cb: { (value) -> Void in
                 
                     let undo = self.undoStart("Insert Variable: \(value)")
                     destBlock.blockType = .VariableDefinition

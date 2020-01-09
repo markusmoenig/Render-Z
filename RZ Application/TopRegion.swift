@@ -37,12 +37,16 @@ class TopRegion: MMRegion
         
         tabButton.clicked = { (event) in
             self.app.currentEditor.deactivate()
+            let component : CodeComponent
             if self.tabButton.index == 0 {
+                component = self.app.developerEditor.codeEditor.codeComponent!
                 self.app.currentEditor = self.app.artistEditor
             } else {
+                component = self.app.artistEditor.designEditor.designComponent!
                 self.app.currentEditor = self.app.developerEditor
             }
             self.app.currentEditor.activate()
+            self.app.currentEditor.setComponent(component)
         }
         
         logoTexture = view.icons["rz_toolbar"]

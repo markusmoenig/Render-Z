@@ -175,7 +175,7 @@ class MMTreeWidget : MMWidget
                     mmView.drawText.drawText(mmView.openSans, text: text, x: left + indent, y: top + 8, scale: fontScale, fragment: fragment)
                     mmView.drawText.drawText(mmView.openSans, text: item.name, x: left + indent + 15, y: top + 8, scale: fontScale, fragment: fragment)
                 } else {
-                    mmView.drawText.drawText(mmView.openSans, text: item.name, x: left + indent, y: top + 8, scale: fontScale, fragment: fragment)
+                    mmView.drawText.drawText(mmView.openSans, text: item.name, x: left + indent, y: top + 8, scale: fontScale, color: item.color!, fragment: fragment)
                 }
                 
                 top += unitSize

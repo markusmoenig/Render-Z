@@ -241,6 +241,8 @@
 		2B8CC6CF23C55DAD00CFCB93 /* CodeAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */; };
 		2B8E2FD923C5CF40005619E4 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FD823C5CF40005619E4 /* Scene.swift */; };
 		2B8E2FDA23C5CF40005619E4 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FD823C5CF40005619E4 /* Scene.swift */; };
+		2B8E2FDF23C6D7B4005619E4 /* DesignEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */; };
+		2B8E2FE023C6D7B4005619E4 /* DesignEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */; };
 		2B91CBE42358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
 		2B91CBE52358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
 		2B91CBE62358477300DED7B1 /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
@@ -679,6 +681,7 @@
 		2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperEditor.swift; sourceTree = "<group>"; };
 		2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeAccess.swift; sourceTree = "<group>"; };
 		2B8E2FD823C5CF40005619E4 /* Scene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scene.swift; sourceTree = "<group>"; };
+		2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignEditor.swift; sourceTree = "<group>"; };
 		2B91CBE22358477300DED7B1 /* Square.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Square.tiff; sourceTree = "<group>"; };
 		2B91CBE32358477300DED7B1 /* Square.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Square.json; sourceTree = "<group>"; };
 		2B91CBE8235848AC00DED7B1 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
@@ -881,6 +884,7 @@
 				2B7A3C3D23B469AD002EC5FC /* Mad4Metal.metal */,
 				2B7A3C3E23B469AD002EC5FC /* Mad4Metal_types.h */,
 				2B7A3C5223B4768D002EC5FC /* ArtistEditor.swift */,
+				2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */,
 				2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */,
 				2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */,
 				2B9F42F023B9CB2800885B40 /* CodeProperties.swift */,
@@ -1667,6 +1671,7 @@
 				2B7A3C2023B46546002EC5FC /* MMFile.swift in Sources */,
 				2B7A3C3723B46838002EC5FC /* EditorRegion.swift in Sources */,
 				2B7A3C1F23B46546002EC5FC /* MMTimeline.swift in Sources */,
+				2B8E2FDF23C6D7B4005619E4 /* DesignEditor.swift in Sources */,
 				2B7A3C1E23B46546002EC5FC /* MMAnimate.swift in Sources */,
 				2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */,
 				2B9B29F023BC2F0900C2F387 /* SceneList.swift in Sources */,
@@ -1895,6 +1900,7 @@
 				2B9B29C923BB453400C2F387 /* MMSliderWidget.swift in Sources */,
 				2B9B29CF23BB453400C2F387 /* MMFragment.swift in Sources */,
 				2B9B29C623BB453400C2F387 /* MMFont.swift in Sources */,
+				2B8E2FE023C6D7B4005619E4 /* DesignEditor.swift in Sources */,
 				2B9B29D723BB453400C2F387 /* MMFile.swift in Sources */,
 				2B9B29D623BB453400C2F387 /* MMTimeline.swift in Sources */,
 				2B9B29D123BB453400C2F387 /* MMScrollButton.swift in Sources */,

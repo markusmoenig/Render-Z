@@ -238,6 +238,11 @@ class CodeFragList : MMWidget
     {
         selectedItem = item
         listWidget.selectedItems = []
+                    
+        for item in item.items{
+            item.color = item.codeFragment!.fragmentType == .Primitive ? mmView.skin.Code.name : mmView.skin.Code.reserved
+        }
+        
         listWidget.build(items: item.items, fixedWidth: 200)
     }
     

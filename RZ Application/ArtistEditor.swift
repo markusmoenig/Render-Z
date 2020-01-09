@@ -11,15 +11,21 @@ import Foundation
 class ArtistEditor      : Editor
 {
     let mmView          : MMView!
+    
+    let designEditor    : DesignEditor
 
-    var sceneList         : SceneList
+    var sceneList       : SceneList
 
     required init(_ view: MMView,_ sceneList: SceneList)
     {
         mmView = view
         self.sceneList = sceneList
 
+        designEditor = DesignEditor(view)
+
         super.init()
+        
+        designEditor.editor = self
     }
     
     override func activate()
@@ -32,6 +38,20 @@ class ArtistEditor      : Editor
         mmView.deregisterWidgets(widgets: sceneList)
     }
     
+    override func setComponent(_ component: CodeComponent)
+    {
+        designEditor.designComponent = component
+        updateOnNextDraw()
+        mmView.update()
+    }
+    
+    override func updateOnNextDraw(compile: Bool = true)
+    {
+        designEditor.needsUpdate = true
+        designEditor.designChanged = compile
+        mmView.update()
+    }
+    
     override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Top {
@@ -42,9 +62,11 @@ class ArtistEditor      : Editor
             sceneList.draw()
         } else
         if region.type == .Editor {
-
+            designEditor.rect.copy(region.rect)
+            designEditor.draw()
         } else
         if region.type == .Bottom {
+            region.rect.y = globalApp!.mmView.renderer.cHeight
         }
     }
 }
