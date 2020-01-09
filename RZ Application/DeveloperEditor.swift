@@ -43,11 +43,13 @@ class DeveloperEditor   : Editor
     override func setComponent(_ component: CodeComponent)
     {
         codeEditor.codeComponent = component
-        instantUpdate()
+//        instantUpdate()
+        updateOnNextDraw()
         if let uuid = component.selected {
             component.selectUUID(uuid, codeEditor.codeContext)
             codeProperties.setSelected(component, codeEditor.codeContext)
         }
+        mmView.update()
     }
     
     override func instantUpdate()

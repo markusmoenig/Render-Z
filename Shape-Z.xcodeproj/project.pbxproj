@@ -239,6 +239,8 @@
 		2B8CC6CC23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */; };
 		2B8CC6CE23C55DAD00CFCB93 /* CodeAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */; };
 		2B8CC6CF23C55DAD00CFCB93 /* CodeAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */; };
+		2B8E2FD923C5CF40005619E4 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FD823C5CF40005619E4 /* Scene.swift */; };
+		2B8E2FDA23C5CF40005619E4 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FD823C5CF40005619E4 /* Scene.swift */; };
 		2B91CBE42358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
 		2B91CBE52358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
 		2B91CBE62358477300DED7B1 /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
@@ -676,6 +678,7 @@
 		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
 		2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperEditor.swift; sourceTree = "<group>"; };
 		2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeAccess.swift; sourceTree = "<group>"; };
+		2B8E2FD823C5CF40005619E4 /* Scene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scene.swift; sourceTree = "<group>"; };
 		2B91CBE22358477300DED7B1 /* Square.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Square.tiff; sourceTree = "<group>"; };
 		2B91CBE32358477300DED7B1 /* Square.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Square.json; sourceTree = "<group>"; };
 		2B91CBE8235848AC00DED7B1 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
@@ -887,6 +890,7 @@
 				2B9B29F223BC2FA200C2F387 /* CodeList.swift */,
 				2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */,
 				2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */,
+				2B8E2FD823C5CF40005619E4 /* Scene.swift */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
 			);
 			path = "RZ Application";
@@ -1644,6 +1648,7 @@
 			files = (
 				2B8CC6CE23C55DAD00CFCB93 /* CodeAccess.swift in Sources */,
 				2B7A3C3B23B46838002EC5FC /* RightRegion.swift in Sources */,
+				2B8E2FD923C5CF40005619E4 /* Scene.swift in Sources */,
 				2B7A3C0F23B46546002EC5FC /* MMFont.swift in Sources */,
 				2B7A3C3C23B46838002EC5FC /* BottomRegion.swift in Sources */,
 				2B7A3C1523B46546002EC5FC /* MMTabWidget.swift in Sources */,
@@ -1908,6 +1913,7 @@
 				2B9B29F423BC30A700C2F387 /* CodeList.swift in Sources */,
 				2B9B29B823BB452800C2F387 /* NodeUI.swift in Sources */,
 				2B9B29ED23BB45CA00C2F387 /* CodeSemantics.swift in Sources */,
+				2B8E2FDA23C5CF40005619E4 /* Scene.swift in Sources */,
 				2B9B29E423BB45C000C2F387 /* RightRegion.swift in Sources */,
 				2B9B29D923BB453400C2F387 /* MMInfoArea.swift in Sources */,
 				2B9B29E223BB45C000C2F387 /* LeftRegion.swift in Sources */,

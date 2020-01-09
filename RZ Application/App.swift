@@ -36,6 +36,8 @@ class App
     
     let mmFile          : MMFile!
     
+    var project         : Project
+    
     #if os(iOS)
     var viewController  : ViewController?
     #endif
@@ -53,6 +55,7 @@ class App
         codeBuilder = CodeBuilder(mmView)
         
         currentEditor = developerEditor
+        project = Project()
 
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )
@@ -68,10 +71,39 @@ class App
                 
         globalApp = self
         
+        let backStage = project.selected!.stages[0]
+        let selected = backStage.createChild("Color")
+        project.scenes[0].setSelected(selected)
+
+        sceneList.setScene(project.selected!)
+
         currentEditor.activate()
     }
     
     func loadFrom(_ json: String)
+    {
+        if let jsonData = json.data(using: .utf8)
+        {
+            /*
+            do {
+                if (try JSONDecoder().decode(Project.self, from: jsonData)) != nil {
+                    print( "yes" )
+                }
+            }
+            catch {
+                print("Error is : \(error)")
+            }*/
+            
+            if let project =  try? JSONDecoder().decode(Project.self, from: jsonData) {
+                //currentEditor.setComponent(component)
+                self.project = project
+                self.sceneList.setScene(self.project.selected!)
+                self.mmView.update()
+            }
+        }
+    }
+    
+    func loadComponentFrom(_ json: String)
     {
         if let jsonData = json.data(using: .utf8)
         {
@@ -86,6 +118,8 @@ class App
             }*/
             
             if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
+                project.selected!.updateComponent(component)
+                self.sceneList.setScene(self.project.selected!)
                 currentEditor.setComponent(component)
             }
         }
@@ -93,13 +127,24 @@ class App
     
     func encodeJSON() -> String
     {
-        let encodedData = try? JSONEncoder().encode(developerEditor.codeEditor.codeComponent!)
+        let encodedData = try? JSONEncoder().encode(project)
         if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
         {
             return encodedObjectJsonString
         }
         return ""
     }
+    
+    /*
+    func encodeComponentJSON() -> String
+    {
+        let encodedData = try? JSONEncoder().encode(developerEditor.codeEditor.codeComponent!)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+        {
+            return encodedObjectJsonString
+        }
+        return ""
+    }*/
 }
 
 class Editor

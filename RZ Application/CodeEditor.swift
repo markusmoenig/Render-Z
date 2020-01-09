@@ -62,8 +62,6 @@ class CodeEditor        : MMWidget
         
         dropTargets.append( "SourceFragmentItem" )
         
-        codeComponent = CodeComponent()
-        codeComponent?.createDefaultFunction(.ScreenColorize)
         needsUpdate = true
         codeChanged = true
     }
@@ -357,7 +355,7 @@ class CodeEditor        : MMWidget
         func componentChanged(_ oldState: String, _ newState: String)
         {
             mmView.undoManager!.registerUndo(withTarget: self) { target in
-                globalApp!.loadFrom(oldState)
+                globalApp!.loadComponentFrom(oldState)
                 componentChanged(newState, oldState)
             }
             self.mmView.undoManager!.setActionName(undoComponent.name)
