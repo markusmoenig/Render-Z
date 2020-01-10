@@ -8,22 +8,22 @@
 
 import MetalKit
 
-class DesignEditor        : MMWidget
+class DesignEditor          : MMWidget
 {
-    var fragment        : MMFragment
+    var fragment            : MMFragment
             
-    var designComponent : CodeComponent? = nil
+    var designComponent     : CodeComponent? = nil
 
-    var previewTexture  : MTLTexture? = nil
+    var previewTexture      : MTLTexture? = nil
     
-    var editor          : ArtistEditor!
+    var editor              : ArtistEditor!
 
-    var needsUpdate     : Bool = false
-    var designChanged   : Bool = false
-    var previewInstance : CodeBuilderInstance? = nil
+    var needsUpdate         : Bool = false
+    var designChanged       : Bool = false
+    var previewInstance     : CodeBuilderInstance? = nil
         
-    var mouseIsDown     : Bool = false
-    var mouseDownPos    : SIMD2<Float> = SIMD2<Float>()
+    var mouseIsDown         : Bool = false
+    var mouseDownPos        : SIMD2<Float> = SIMD2<Float>()
 
     override init(_ view: MMView)
     {
@@ -96,20 +96,20 @@ class DesignEditor        : MMWidget
             
             fragment.encodeEnd()
             
-            if designChanged {
-                buildPreview()
-                designChanged = false
-            }
+            buildPreview(compile: designChanged)
+            designChanged = false
         }
         needsUpdate = false
     }
     
     /// Builds the preview
-    func buildPreview()
+    func buildPreview(compile: Bool = true)
     {
         if let comp = designComponent {
 
-            previewInstance = globalApp!.codeBuilder.build(comp)
+            if compile || previewInstance == nil {
+                previewInstance = globalApp!.codeBuilder.build(comp)
+            }
             if previewTexture == nil || (Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom) {
                 previewTexture = globalApp!.codeBuilder.fragment.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
             }
@@ -145,12 +145,11 @@ class DesignEditor        : MMWidget
         mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
     }
     
-    /*
     func undoStart(_ name: String) -> CodeUndoComponent
     {
         let codeUndo = CodeUndoComponent(name)
 
-        if let component = codeComponent {
+        if let component = designComponent {
             let encodedData = try? JSONEncoder().encode(component)
             if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
             {
@@ -163,7 +162,7 @@ class DesignEditor        : MMWidget
     
     func undoEnd(_ undoComponent: CodeUndoComponent)
     {
-        if let component = codeComponent {
+        if let component = designComponent {
             let encodedData = try? JSONEncoder().encode(component)
             if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
             {
@@ -181,5 +180,5 @@ class DesignEditor        : MMWidget
         }
         
         componentChanged(undoComponent.originalData, undoComponent.processedData)
-    }*/
+    }
 }

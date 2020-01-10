@@ -699,6 +699,8 @@ class CodeBlock             : Codable, Equatable
             
             ctx.cIndent = ctx.indent
         } else {
+            let propIndex = ctx.cComponent!.properties.firstIndex(of: fragment.uuid)
+            
             // left side
             fragment.draw(mmView, ctx)
             ctx.drawFragmentState(fragment)
@@ -719,10 +721,28 @@ class CodeBlock             : Codable, Equatable
             ctx.addCode( " " + op + " " )
 
             // statement
-            statement.draw(mmView, ctx)
+            if let index = propIndex {
+                // PROPERTY!!!!
+                let code = ctx.cComponent!.code!
+                statement.draw(mmView, ctx)
+                ctx.cComponent!.code = code
+                let components = fragment.evaluateComponents()
+                if components == 1 {
+                    ctx.addCode( "data[\(1 + index)].x" )
+                } else
+                if components == 2 {
+                    ctx.addCode( "data[\(1 + index)].xy" )
+                } else
+                if components == 3 {
+                    ctx.addCode( "data[\(1 + index)].xyz" )
+                } else {
+                    ctx.addCode( "data[\(1 + index)]" )
+                }
+            } else {
+                statement.draw(mmView, ctx)
+            }
             
             ctx.cY += ctx.lineHeight + ctx.gapY
-            
             ctx.addCode( ";\n" )
         }
         
@@ -1114,6 +1134,19 @@ class CodeComponent         : Codable, Equatable
         }
     }
     
+    func getPropertyOfUUID(_ uuid: UUID) -> (CodeFragment?, CodeFragment?)
+    {
+        for f in functions {
+            for b in f.body {
+                // Check for the left sided fragment
+                if b.fragment.uuid == uuid {
+                    return (b.fragment, b.statement.fragments[0])
+                }
+            }
+        }
+        return (nil,nil)
+     }
+
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
         let rStart = ctx.rectStart()

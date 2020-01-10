@@ -169,6 +169,11 @@ class Editor
     {
     }
     
+    func getBottomHeight() -> Float
+    {
+        return 0 
+    }
+    
     func drawRegion(_ region: MMRegion)
     {
     }

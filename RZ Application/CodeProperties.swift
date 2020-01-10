@@ -273,13 +273,9 @@ class CodeProperties    : MMWidget
                 let artistNameUI = NodeUIText(c1Node!, variable: "artistName", title: "Artist Name", value: comp.artistPropertyNames[fragment.uuid] == nil ? "" : comp.artistPropertyNames[fragment.uuid]!)
                 c1Node?.uiItems.append( artistNameUI )
                 
-                c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "expose", title: "Expose to Artist", items: ["No", "Yes"], index: 0 ) )
-                c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "min", title: "Minimum", range: nil, value: fragment.values["min"]!) )
-                c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "max", title: "Maximum", range: nil, value: fragment.values["max"]!) )
+                c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "expose", title: "Expose to Artist", items: ["No", "Yes"], index: comp.properties.firstIndex(of: fragment.uuid) == nil ? 0 : 1 ) )
                 
                 c1Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
-                c2Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
-                c2Node?.uiItems[2].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
                 
                 c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "name" {
@@ -288,24 +284,17 @@ class CodeProperties    : MMWidget
                         fragment.name = newValue
                         self.editor.updateOnNextDraw()
                         if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    } else
+                    if variable == "artistName" {
+                        comp.artistPropertyNames[fragment.uuid] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Artist Name Changed") : nil
+                        comp.artistPropertyNames[fragment.uuid] = newValue
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                     }
                 }
                 
                 c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
-                    if variable == "min" {
-                        fragment.values["min"] = oldValue
-                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Minimum Changed") : nil
-                        fragment.values["min"] = newValue
-                        self.editor.updateOnNextDraw()
-                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
-                    } else
-                    if variable == "max" {
-                        fragment.values["max"] = oldValue
-                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Maximum Changed") : nil
-                        fragment.values["max"] = newValue
-                        self.editor.updateOnNextDraw()
-                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
-                    } else
                     if variable == "expose" {
                         let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Expose Variable Changed") : nil
                         if newValue == 0 {
@@ -318,8 +307,6 @@ class CodeProperties    : MMWidget
                             }
                         }
                         self.c1Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
-                        self.c2Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
-                        self.c2Node?.uiItems[2].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
 
                         self.editor.updateOnNextDraw()
                         if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
@@ -360,6 +347,7 @@ class CodeProperties    : MMWidget
                         self.editor.updateOnNextDraw()
                     }
                 }
+                monitorPosition = 200
             }
             
             // --- Reset to Const button for primitives and variable references
@@ -528,6 +516,8 @@ class CodeProperties    : MMWidget
             mmView.update()
         }
         
+        let oldHoverMode = hoverMode
+        
         hoverUIItem = nil
         hoverUITitle = nil
         hoverMode = .None
@@ -565,7 +555,7 @@ class CodeProperties    : MMWidget
                     hoverUIItem = uiItem
                     hoverMode = .NodeUI
                     hoverUIItem!.mouseMoved(event)
-                    //mmView.update()
+                    mmView.update()
                     return
                 }
                 uiItemY += uiItem.rect.height
@@ -580,6 +570,9 @@ class CodeProperties    : MMWidget
             checkNodeUI(node)
         }
         
+        if oldHoverMode != hoverMode {
+            mmView.update()
+        }
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)

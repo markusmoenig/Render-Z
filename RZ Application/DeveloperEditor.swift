@@ -90,4 +90,9 @@ class DeveloperEditor   : Editor
             codeProperties.draw()
         }
     }
+    
+    override func getBottomHeight() -> Float
+    {
+        return 160
+    }
 }

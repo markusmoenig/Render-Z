@@ -20,11 +20,7 @@ class BottomRegion: MMRegion
     
     override func build()
     {
-        if app.currentEditor === app.developerEditor {
-            rect.height = 160
-        } else {
-            rect.height = 0
-        }
+        rect.height = app.currentEditor.getBottomHeight()
         app.currentEditor.drawRegion(self)
     }
 }

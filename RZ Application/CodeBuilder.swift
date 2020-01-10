@@ -22,6 +22,8 @@ class CodeBuilderInstance
     var computeOutBuffer    : MTLBuffer!
     var computeResult       : SIMD4<Float> = SIMD4<Float>(0,0,0,0)
     var computeComponents   : Int = 1
+    
+    var properties          : [(CodeFragment?, CodeFragment?, Int)] = []
 }
 
 class CodeBuilder
@@ -56,6 +58,10 @@ class CodeBuilder
         
         """
         
+        // Time
+        inst.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+
+        // Compute monitor components
         if let fragment = monitor {
             inst.computeComponents = 1
             print( fragment.fragmentType, fragment.typeName )
@@ -70,11 +76,21 @@ class CodeBuilder
             }
         }
         
+        // Collect properties
+        for uuid in component.properties
+        {
+            let rc = component.getPropertyOfUUID(uuid)
+            if rc.0 != nil && rc.1 != nil {
+                inst.properties.append((rc.0, rc.1, inst.data.count))
+                inst.data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
+            }
+        }
+        
         if component.componentType == .Colorize {
             buildColorize(inst, component, monitor)
         }
         
-        //print( inst.code )
+        print( inst.code )
         
         if inst.data.count == 0 {
             inst.data.append(SIMD4<Float>(0,0,0,0))
@@ -142,11 +158,10 @@ class CodeBuilder
             """
         }
         
-        //print("buildComponent", component.code)
-        inst.code += component.code!
-        
-        inst.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
-        
+        if let code = component.code {
+            inst.code += code
+        }
+
         // --- Return value
         if monitor == nil {
             inst.code +=
@@ -194,6 +209,10 @@ class CodeBuilder
     func updateData(_ inst: CodeBuilderInstance)
     {
         inst.data[0].x = getDeltaTime()
+        for property in inst.properties{
+            inst.data[property.2] = extractValueFromFragment(property.1!)
+            //print("update property at", property.2, property.1!.values["value"]!, inst.data[property.2].x)
+        }
         updateBuffer(inst)
     }
     
