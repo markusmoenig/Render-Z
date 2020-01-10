@@ -918,7 +918,6 @@ class CodeComponent         : Codable, Equatable
     // Properties and their animation
     var properties          : [UUID] = []
     var artistPropertyNames : [UUID:String] = [:]
-    var values              : [String:Float] = [:]
     var sequence            : MMTlSequence = MMTlSequence()
     
     // Code Generation
@@ -929,6 +928,9 @@ class CodeComponent         : Codable, Equatable
         case functions
         case uuid
         case selected
+        case properties
+        case artistPropertyNames
+        case sequence
     }
     
     required init(from decoder: Decoder) throws
@@ -938,6 +940,9 @@ class CodeComponent         : Codable, Equatable
         functions = try container.decode([CodeFunction].self, forKey: .functions)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         selected = try container.decode(UUID?.self, forKey: .selected)
+        properties = try container.decode([UUID].self, forKey: .properties)
+        artistPropertyNames = try container.decode([UUID:String].self, forKey: .artistPropertyNames)
+        sequence = try container.decode(MMTlSequence.self, forKey: .sequence)
     }
     
     func encode(to encoder: Encoder) throws
@@ -947,6 +952,9 @@ class CodeComponent         : Codable, Equatable
         try container.encode(functions, forKey: .functions)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(selected, forKey: .selected)
+        try container.encode(properties, forKey: .properties)
+        try container.encode(artistPropertyNames, forKey: .artistPropertyNames)
+        try container.encode(sequence, forKey: .sequence)
     }
     
     static func ==(lhs:CodeComponent, rhs:CodeComponent) -> Bool { // Implement Equatable
