@@ -1273,22 +1273,28 @@ class CodeContext
     
     func drawHighlight(_ rect: MMRect,_ alpha: Float = 0.5)
     {
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: fragment )
+        if let frag = fragment {
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
+        }
     }
     
     func drawFunctionState(_ function: CodeFunction)
     {
-        if function === hoverFunction || function.uuid == cComponent!.selected {
-            let alpha : Float = function.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
-            mmView.drawBox.draw( x: function.rect.x, y: function.rect.y, width: function.rect.width, height: function.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: fragment )
+        if let frag = fragment {
+            if function === hoverFunction || function.uuid == cComponent!.selected {
+                let alpha : Float = function.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
+                mmView.drawBox.draw( x: function.rect.x, y: function.rect.y, width: function.rect.width, height: function.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
+            }
         }
     }
     
     func drawBlockState(_ block: CodeBlock)
     {
-        if block === hoverBlock || block.uuid == cComponent!.selected {
-            let alpha : Float = block.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
-            mmView.drawBox.draw( x: block.rect.x, y: block.rect.y, width: block.rect.width, height: block.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: fragment )
+        if let frag = fragment {
+            if block === hoverBlock || block.uuid == cComponent!.selected {
+                let alpha : Float = block.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
+                mmView.drawBox.draw( x: block.rect.x, y: block.rect.y, width: block.rect.width, height: block.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
+            }
         }
     }
     
