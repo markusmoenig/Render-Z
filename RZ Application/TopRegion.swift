@@ -165,22 +165,8 @@ class TopRegion: MMRegion
         playButton.isDisabled = false
         playButton.textYOffset = -2
         playButton.clicked = { (event) -> Void in
-            
-            /*
-            let timeline = app.artistEditor.timeline
-            
-            if timeline.isPlaying == false {
-                timeline.playButton.addState(.Checked)
-
-                timeline.isPlaying = true
-                app.mmView.lockFramerate(true)
-            } else {
-                self.playButton.removeState(.Checked)
-                timeline.playButton.removeState(.Checked)
-
-                timeline.isPlaying = false
-                app.mmView.unlockFramerate(true)
-            }*/
+        
+            //globalApp!.pipeline.start(400, 400)
             
             if app.codeBuilder.isPlaying == false {
                 self.playButton.addState(.Checked)

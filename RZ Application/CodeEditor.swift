@@ -280,6 +280,10 @@ class CodeEditor        : MMWidget
         if let texture = previewTexture {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
             
+            if let pipe = globalApp!.pipeline.texture {
+                mmView.drawTexture.draw(pipe, x: rect.x, y: rect.y)
+            }
+            
             if Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom {
                 previewTexture = globalApp!.codeBuilder.fragment.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
                 globalApp!.codeBuilder.render(previewInstance!, previewTexture)

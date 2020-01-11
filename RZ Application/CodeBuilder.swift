@@ -88,6 +88,12 @@ class CodeBuilder
         
         if component.componentType == .Colorize {
             buildColorize(inst, component, monitor)
+        } else
+        if component.componentType == .SDF2D {
+            buildSDF2D(inst, component, monitor)
+        } else
+        if component.componentType == .Render {
+            buildRender(inst, component, monitor)
         }
         
 //        print( inst.code )
@@ -96,7 +102,7 @@ class CodeBuilder
             inst.data.append(SIMD4<Float>(0,0,0,0))
         }
         
-        if monitor == nil {
+        if monitor == nil && component.componentType == .Colorize {
             inst.buffer = fragment.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
             let library = fragment.createLibraryFromSource(source: inst.code)
@@ -194,6 +200,154 @@ class CodeBuilder
         }
     }
     
+    /// Build the source code for the component
+    func buildSDF2D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    {
+        inst.code +=
+        """
+        
+        float2 translate(float2 p, float2 t)
+        {
+            return p - t;
+        }
+        
+        float sdCircle(float2 p, float r)
+        {
+          return length(p) - r;
+        }
+        
+        float fillMask(float dist)
+        {
+            return clamp(-dist, 0.0, 1.0);
+        }
+        
+        kernel void componentBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *data   [[ buffer(1) ]],
+        //texture2d<half, access::sample>       fontTexture [[texture(2)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            float2 center = size / 2;
+
+            //float2 fragCoord = float2( gid.x, gid.y );
+        
+            float2 uv = float2(gid.x, gid.y);
+            uv = translate(uv, center);
+        
+            float d = sdCircle(uv, 40);
+
+            float4 outColor = float4(1, 1, 1,1);
+            float GlobalTime = data[0].x;
+        
+            outTexture.write(half4( d, 0, 0, 1 ), gid);
+            
+        """
+    
+        //if let code = component.code {
+        //    inst.code += code
+        //}
+
+        if let frag = monitor {
+
+            if inst.computeComponents == 1 {
+                inst.code += "out[0].x = " + frag.name + ";\n";
+            }
+            if inst.computeComponents == 4 {
+                inst.code += "out[0].x = " + frag.name + ".x;\n";
+                inst.code += "out[0].y = " + frag.name + ".y;\n";
+                inst.code += "out[0].z = " + frag.name + ".z;\n";
+                inst.code += "out[0].w = " + frag.name + ".w;\n";
+            }
+        }
+        
+        inst.code +=
+        """
+         
+        }
+         
+        """
+    }
+    
+    /// Build the source code for the component
+     func buildRender(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+     {
+         inst.code +=
+         """
+         
+         float2 translate(float2 p, float2 t)
+         {
+             return p - t;
+         }
+         
+         float sdCircle(float2 p, float r)
+         {
+           return length(p) - r;
+         }
+         
+         float fillMask(float dist)
+         {
+             return clamp(-dist, 0.0, 1.0);
+         }
+         
+         kernel void componentBuilder(
+         texture2d<half, access::write>          outTexture  [[texture(0)]],
+         constant float4                        *data   [[ buffer(1) ]],
+         texture2d<half, access::sample>         depthTexture [[texture(2)]],
+         uint2 gid                               [[thread_position_in_grid]])
+         {
+             constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
+
+             float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+             float2 center = size / 2;
+
+             //float2 fragCoord = float2( gid.x, gid.y );
+         
+             float2 uv = float2(gid.x, gid.y);
+             //uv = translate(uv, center);
+         
+             //float d = sdCircle(uv, 40);
+
+             float4 outColor = float4(1, 0, 0,1);
+             //float GlobalTime = data[0].x;
+             
+             float4 s = float4(depthTexture.sample(textureSampler, uv / size ));
+             
+            //if ( s.x > 60 ) {
+            //    outColor = float4(0,0,0, 1);
+             //}
+                outColor.x = fillMask(s.x);
+         
+             outTexture.write(half4(outColor.x, outColor.y, outColor.z, 1 ), gid);
+             //outTexture.write(s, gid);
+
+         """
+     
+         //if let code = component.code {
+         //    inst.code += code
+         //}
+
+         if let frag = monitor {
+
+             if inst.computeComponents == 1 {
+                 inst.code += "out[0].x = " + frag.name + ";\n";
+             }
+             if inst.computeComponents == 4 {
+                 inst.code += "out[0].x = " + frag.name + ".x;\n";
+                 inst.code += "out[0].y = " + frag.name + ".y;\n";
+                 inst.code += "out[0].z = " + frag.name + ".z;\n";
+                 inst.code += "out[0].w = " + frag.name + ".w;\n";
+             }
+         }
+         
+         inst.code +=
+         """
+          
+         }
+          
+         """
+     }
+    
     /// Update the instance buffer
     func updateBuffer(_ inst: CodeBuilderInstance)
     {
@@ -274,6 +428,7 @@ class CodeBuilder
         updateBuffer(inst)
     }
     
+    // Render the component into a fragment texture
     func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil)
     {
         updateData(inst)
@@ -285,7 +440,18 @@ class CodeBuilder
         }
     }
     
-    func compute(_ inst: CodeBuilderInstance)
+    // Compute the component into a texture
+    func compute(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil,_ inTexture: MTLTexture? = nil)
+    {
+        updateData(inst)
+        
+        compute.run( inst.computeState!, outTexture: texture, inBuffer: inst.buffer, inTexture: inTexture)
+        
+        compute.commandBuffer.waitUntilCompleted()
+    }
+    
+    // Compute the monitor data
+    func computeMonitor(_ inst: CodeBuilderInstance)
     {
         updateData(inst)
         

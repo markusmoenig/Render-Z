@@ -24,6 +24,7 @@ class App
     var editorRegion    : EditorRegion?
     
     var codeBuilder     : CodeBuilder
+    var pipeline        : Pipeline
 
     var sceneList       : SceneList
 
@@ -53,7 +54,8 @@ class App
         artistEditor = ArtistEditor(mmView, sceneList)
         developerEditor = DeveloperEditor(mmView, sceneList)
         codeBuilder = CodeBuilder(mmView)
-        
+        pipeline = Pipeline(mmView, codeBuilder)
+
         currentEditor = developerEditor
         project = Project()
 

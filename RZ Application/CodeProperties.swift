@@ -700,7 +700,7 @@ class CodeProperties    : MMWidget
     func updateMonitor()
     {
         if let inst = monitorInstance {
-            globalApp!.codeBuilder.compute(inst)
+            globalApp!.codeBuilder.computeMonitor(inst)
             let result = inst.computeResult
             
             if Float(monitorData.count) >= totalMonitorData {

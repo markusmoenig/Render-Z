@@ -903,7 +903,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize
+        case Colorize, SDF2D, Render
     }
     
     let componentType       : ComponentType

@@ -251,6 +251,8 @@
 		2B8E2FE923C7FE25005619E4 /* DesignProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FE723C7FDF9005619E4 /* DesignProperties.swift */; };
 		2B8E2FEB23C81CD9005619E4 /* CodeUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FEA23C81CD9005619E4 /* CodeUtilities.swift */; };
 		2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FEA23C81CD9005619E4 /* CodeUtilities.swift */; };
+		2B8E2FEE23C9691A005619E4 /* Pipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FED23C96919005619E4 /* Pipeline.swift */; };
+		2B8E2FEF23C9691A005619E4 /* Pipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FED23C96919005619E4 /* Pipeline.swift */; };
 		2B91CBE42358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
 		2B91CBE52358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
 		2B91CBE62358477300DED7B1 /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
@@ -694,6 +696,7 @@
 		2B8E2FE223C71F36005619E4 /* SourceCodePro.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = SourceCodePro.tiff; sourceTree = "<group>"; };
 		2B8E2FE723C7FDF9005619E4 /* DesignProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignProperties.swift; sourceTree = "<group>"; };
 		2B8E2FEA23C81CD9005619E4 /* CodeUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeUtilities.swift; sourceTree = "<group>"; };
+		2B8E2FED23C96919005619E4 /* Pipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pipeline.swift; sourceTree = "<group>"; };
 		2B91CBE22358477300DED7B1 /* Square.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Square.tiff; sourceTree = "<group>"; };
 		2B91CBE32358477300DED7B1 /* Square.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Square.json; sourceTree = "<group>"; };
 		2B91CBE8235848AC00DED7B1 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
@@ -884,6 +887,7 @@
 			isa = PBXGroup;
 			children = (
 				2B7A3C2323B46560002EC5FC /* App.swift */,
+				2B8E2FED23C96919005619E4 /* Pipeline.swift */,
 				2B9B29F523BF1DD700C2F387 /* Dialogs.swift */,
 				2B9B299B23BAD15700C2F387 /* Node.swift */,
 				2B9B299E23BAD2DB00C2F387 /* NodeUI.swift */,
@@ -1713,6 +1717,7 @@
 				2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */,
 				2B9B299C23BAD15700C2F387 /* Node.swift in Sources */,
 				2B7A3C5323B4768D002EC5FC /* ArtistEditor.swift in Sources */,
+				2B8E2FEE23C9691A005619E4 /* Pipeline.swift in Sources */,
 				2B7A3C1B23B46546002EC5FC /* MMListWidget.swift in Sources */,
 				2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */,
 				2B7A3C3923B46838002EC5FC /* LeftRegion.swift in Sources */,
@@ -1916,6 +1921,7 @@
 				2B9B29C723BB453400C2F387 /* MMLabel.swift in Sources */,
 				2B9B29E023BB45A700C2F387 /* Node.swift in Sources */,
 				2B9B29CA23BB453400C2F387 /* MMFloatPopUp.swift in Sources */,
+				2B8E2FEF23C9691A005619E4 /* Pipeline.swift in Sources */,
 				2B9B29C123BB453400C2F387 /* MMRenderer.swift in Sources */,
 				2B9B29CC23BB453400C2F387 /* MMTabWidget.swift in Sources */,
 				2B9B29E923BB45CA00C2F387 /* ArtistEditor.swift in Sources */,

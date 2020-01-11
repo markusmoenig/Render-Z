@@ -100,6 +100,30 @@ class MMCompute {
         
         return texture
     }
+    
+    /// Allocate the output texture, optionally can be used to create an arbitray texture by setting output to false
+    @discardableResult func allocateFloatTexture( width: Float, height: Float, output: Bool? = true ) -> MTLTexture?
+    {
+        self.texture = nil
+        
+        let textureDescriptor = MTLTextureDescriptor()
+        textureDescriptor.textureType = MTLTextureType.type2D
+        textureDescriptor.pixelFormat = MTLPixelFormat.rgba32Float
+        textureDescriptor.width = Int(width)
+        textureDescriptor.height = Int(height)
+        
+        textureDescriptor.usage = MTLTextureUsage.unknown
+
+        let texture = device.makeTexture( descriptor: textureDescriptor )
+        if output! {
+            self.texture = texture
+        }
+        
+        self.width = width
+        self.height = height
+        
+        return texture
+    }
 
     /// Run the given state
     func run(_ state: MTLComputePipelineState?, outTexture: MTLTexture? = nil, inBuffer: MTLBuffer? = nil, inTexture: MTLTexture? = nil )
