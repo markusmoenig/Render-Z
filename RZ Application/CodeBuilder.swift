@@ -33,7 +33,7 @@ class CodeBuilder
     var fragment            : MMFragment
     var compute             : MMCompute
 
-    var GlobalTime          : Double = 0
+    var currentFrame        : Int = 0
     var isPlaying           : Bool = false
     
     init(_ view: MMView)
@@ -90,7 +90,7 @@ class CodeBuilder
             buildColorize(inst, component, monitor)
         }
         
-        print( inst.code )
+//        print( inst.code )
         
         if inst.data.count == 0 {
             inst.data.append(SIMD4<Float>(0,0,0,0))
@@ -208,10 +208,69 @@ class CodeBuilder
     /// Update the instance data
     func updateData(_ inst: CodeBuilderInstance)
     {
-        inst.data[0].x = getDeltaTime()
+        let timeline = globalApp!.artistEditor.timeline
+        
+        var time : Float
+
+        if isPlaying {
+            // Global Playback, control time locally
+            time = (Float(currentFrame) * 60) / 1000
+            currentFrame += 1
+        } else {
+            // Timeline Playback
+            time = (Float(timeline.currentFrame) * 60) / 1000
+        }
+        
+        inst.data[0].x = time
+
         for property in inst.properties{
-            inst.data[property.2] = extractValueFromFragment(property.1!)
-            //print("update property at", property.2, property.1!.values["value"]!, inst.data[property.2].x)
+            
+            let data = extractValueFromFragment(property.1!)
+            let components = property.1!.evaluateComponents()
+                
+            if globalApp!.currentEditor === globalApp!.artistEditor {
+                // Transform the properties inside the artist editor
+                
+                let name = property.0!.name
+                var properties : [String:Float] = [:]
+                
+                if components == 1 {
+                    properties[name] = data.x
+                    let transformed = timeline.transformProperties(sequence: inst.component!.sequence, uuid: inst.component!.uuid, properties: properties, frame: timeline.currentFrame)
+                    inst.data[property.2].x = transformed[name]!
+                } else
+                if components == 2 {
+                    properties[name + "_x"] = data.x
+                    properties[name + "_y"] = data.y
+                    let transformed = timeline.transformProperties(sequence: inst.component!.sequence, uuid: inst.component!.uuid, properties: properties, frame: timeline.currentFrame)
+                    inst.data[property.2].x = transformed[name + "_x"]!
+                    inst.data[property.2].y = transformed[name + "_y"]!
+                } else
+                if components == 3 {
+                    properties[name + "_x"] = data.x
+                    properties[name + "_y"] = data.y
+                    properties[name + "_z"] = data.z
+                    let transformed = timeline.transformProperties(sequence: inst.component!.sequence, uuid: inst.component!.uuid, properties: properties, frame: timeline.currentFrame)
+                    inst.data[property.2].x = transformed[name + "_x"]!
+                    inst.data[property.2].y = transformed[name + "_y"]!
+                    inst.data[property.2].z = transformed[name + "_z"]!
+                } else
+                if components == 4 {
+                    properties[name + "_x"] = data.x
+                    properties[name + "_y"] = data.y
+                    properties[name + "_z"] = data.z
+                    properties[name + "_w"] = data.w
+                    let transformed = timeline.transformProperties(sequence: inst.component!.sequence, uuid: inst.component!.uuid, properties: properties, frame: timeline.currentFrame)
+                    inst.data[property.2].x = transformed[name + "_x"]!
+                    inst.data[property.2].y = transformed[name + "_y"]!
+                    inst.data[property.2].z = transformed[name + "_z"]!
+                    inst.data[property.2].w = transformed[name + "_w"]!
+                }
+                globalApp!.artistEditor.designProperties.updateTransformedProperty(name, data: inst.data[property.2])
+            } else {
+                // Otherwise copy 1:1
+                inst.data[property.2] = data
+            }
         }
         updateBuffer(inst)
     }
@@ -239,16 +298,5 @@ class CodeBuilder
         inst.computeResult.y = result[1]
         inst.computeResult.z = result[2]
         inst.computeResult.w = result[3]
-    }
-    
-    func getCurrentTime() -> Double {
-        return Double(Date().timeIntervalSince1970)
-    }
-    
-    func getDeltaTime() -> Float
-    {
-        let time = getCurrentTime()
-        let delta : Float = Float(time - GlobalTime)
-        return delta
     }
 }

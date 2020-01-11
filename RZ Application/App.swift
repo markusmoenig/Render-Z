@@ -72,7 +72,7 @@ class App
         globalApp = self
         
         let backStage = project.selected!.stages[0]
-        let selected = backStage.createChild("Color")
+        let selected = backStage.createChild("Sky")
         project.scenes[0].setSelected(selected)
 
         sceneList.setScene(project.selected!)

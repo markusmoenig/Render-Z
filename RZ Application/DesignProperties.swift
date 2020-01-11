@@ -93,6 +93,7 @@ class DesignProperties      : MMWidget
                             let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
                             rc.1!.values["value"] = newValue
                             self.updatePreview()
+                            self.addKey([frag.name:newValue])
                             if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
                         }
                     }
@@ -107,6 +108,11 @@ class DesignProperties      : MMWidget
                             let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Color Value Changed") : nil
                             insertValueToFragment(rc.1!, newValue)
                             self.updatePreview()
+                            var props : [String:Float] = [:]
+                            props[frag.name + "_x"] = newValue.x
+                            props[frag.name + "_y"] = newValue.y
+                            props[frag.name + "_z"] = newValue.z
+                            self.addKey(props)
                             if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
                         }
                     }
@@ -115,24 +121,32 @@ class DesignProperties      : MMWidget
             }
         }
         
-        /*
-        let numberVar = NodeUINumber(c1Node!, variable: "value", title: "Value", range: SIMD2<Float>(0,1), value: 19)
-        c1Node?.uiItems.append(numberVar)
-        c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
-            if variable == "value" {
-                //fragment.values["value"] = oldValue
-                //let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Float Value Changed") : nil
-                //fragment.values["value"] = newValue
-                self.editor.updateOnNextDraw()
-                //if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
-            }
-        }*/
-        
-        
         c1Node?.setupUI(mmView: mmView)
         c2Node?.setupUI(mmView: mmView)
         
         needsUpdate = false
+    }
+    
+    /// Update the properties when timeline is moving or playing
+    func updateTransformedProperty(_ name: String, data: SIMD4<Float>)
+    {
+        func updateNode(_ node: Node)
+        {
+            for item in node.uiItems {
+                if item.variable == name {
+                    if let number = item as? NodeUINumber {
+                        number.setValue(data.x)
+                    } else
+                    if let color = item as? NodeUIColor {
+                        color.setValue(SIMD3<Float>(data.x, data.y, data.z))
+                    }
+                }
+            }
+        }
+        
+        if let node = c1Node {
+            updateNode(node)
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -250,6 +264,14 @@ class DesignProperties      : MMWidget
     func updatePreview()
     {
         editor.updateOnNextDraw(compile: false)
+    }
+    
+    func addKey(_ properties: [String:Float])
+    {
+        if editor.timeline.isRecording{
+            let component = editor.designEditor.designComponent!
+            editor.timeline.addKeyProperties(sequence: component.sequence, uuid: component.uuid, properties: properties)
+        }
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)

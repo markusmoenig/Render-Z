@@ -165,11 +165,29 @@ class TopRegion: MMRegion
         playButton.isDisabled = false
         playButton.textYOffset = -2
         playButton.clicked = { (event) -> Void in
+            
+            /*
+            let timeline = app.artistEditor.timeline
+            
+            if timeline.isPlaying == false {
+                timeline.playButton.addState(.Checked)
+
+                timeline.isPlaying = true
+                app.mmView.lockFramerate(true)
+            } else {
+                self.playButton.removeState(.Checked)
+                timeline.playButton.removeState(.Checked)
+
+                timeline.isPlaying = false
+                app.mmView.unlockFramerate(true)
+            }*/
+            
+            
             if app.codeBuilder.isPlaying == false {
                 self.playButton.addState(.Checked)
                 app.mmView.lockFramerate(true)
-                app.codeBuilder.GlobalTime = app.codeBuilder.getCurrentTime()
                 app.codeBuilder.isPlaying = true
+                app.codeBuilder.currentFrame = 0
                 if app.developerEditor.codeProperties.monitorInstance != nil {
                     app.developerEditor.codeProperties.resetMonitorData()
                 }
@@ -177,7 +195,7 @@ class TopRegion: MMRegion
                 self.playButton.removeState(.Checked)
                 app.mmView.unlockFramerate(true)
                 app.codeBuilder.isPlaying = false
-                app.codeBuilder.GlobalTime = 0
+                app.codeBuilder.currentFrame = 0
             }
         }
         
