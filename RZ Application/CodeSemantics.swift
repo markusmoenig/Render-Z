@@ -677,9 +677,9 @@ class CodeBlock             : Codable, Equatable
                 arg.draw(mmView, ctx)
                 
                 if index != statement.fragments.endIndex - 1 {
-                    ctx.font.getTextRect(text: ", ", scale: ctx.fontScale, rectToUse: ctx.tempRect)
+                    ctx.font.getTextRect(text: ",", scale: ctx.fontScale, rectToUse: ctx.tempRect)
                     if let frag = ctx.fragment {
-                        mmView.drawText.drawText(ctx.font, text: ", ", x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+                        mmView.drawText.drawText(ctx.font, text: ",", x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
                     }
                     //ctx.cX += ctx.tempRect.width + ctx.gapX
                     ctx.cX = firstCX
@@ -1291,7 +1291,7 @@ class CodeContext
         if let frag = fragment {
             if function === hoverFunction || function.uuid == cComponent!.selected {
                 let alpha : Float = function.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
-                mmView.drawBox.draw( x: function.rect.x, y: function.rect.y, width: function.rect.width, height: function.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
+                mmView.drawBox.draw( x: function.rect.x - gapX / 2, y: function.rect.y, width: function.rect.width, height: function.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
             }
         }
     }
