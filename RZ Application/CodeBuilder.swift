@@ -214,15 +214,14 @@ class CodeBuilder
 
         if isPlaying {
             // Global Playback, control time locally
-            time = (Float(currentFrame) * 60) / 1000
+            time = (Float(currentFrame) * 1000/60) / 1000
             currentFrame += 1
         } else {
             // Timeline Playback
-            time = (Float(timeline.currentFrame) * 60) / 1000
+            time = (Float(timeline.currentFrame) * 1000/60) / 1000
         }
         
         inst.data[0].x = time
-
         for property in inst.properties{
             
             let data = extractValueFromFragment(property.1!)

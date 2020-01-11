@@ -182,7 +182,6 @@ class TopRegion: MMRegion
                 app.mmView.unlockFramerate(true)
             }*/
             
-            
             if app.codeBuilder.isPlaying == false {
                 self.playButton.addState(.Checked)
                 app.mmView.lockFramerate(true)
@@ -198,6 +197,7 @@ class TopRegion: MMRegion
                 app.codeBuilder.currentFrame = 0
             }
         }
+
         
         layoutH( startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
         layoutH( startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton )
