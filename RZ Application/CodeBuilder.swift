@@ -13,7 +13,6 @@ class CodeBuilderInstance
     var component           : CodeComponent? = nil
     var code                : String = ""
     
-    var fragmentState       : MTLRenderPipelineState? = nil
     var computeState        : MTLComputePipelineState? = nil
 
     var data                : [SIMD4<Float>] = []
@@ -30,7 +29,6 @@ class CodeBuilder
 {
     var mmView              : MMView
     
-    var fragment            : MMFragment
     var compute             : MMCompute
 
     var currentFrame        : Int = 0
@@ -40,7 +38,6 @@ class CodeBuilder
     {
         mmView = view
         
-        fragment = MMFragment(view)
         compute = MMCompute()
     }
     
@@ -98,22 +95,12 @@ class CodeBuilder
         
 //        print( inst.code )
         
-        if inst.data.count == 0 {
-            inst.data.append(SIMD4<Float>(0,0,0,0))
-        }
-        
-        if monitor == nil && component.componentType == .Colorize {
-            inst.buffer = fragment.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
-            let library = fragment.createLibraryFromSource(source: inst.code)
-            inst.fragmentState = fragment.createState(library: library, name: "componentBuilder")
-        } else {
-            inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
-            inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
-
-            let library = compute.createLibraryFromSource(source: inst.code)
-            inst.computeState = compute.createState(library: library, name: "componentBuilder")
-        }
+        let library = compute.createLibraryFromSource(source: inst.code)
+        inst.computeState = compute.createState(library: library, name: "componentBuilder")
+    
         
         return inst
     }
@@ -126,13 +113,13 @@ class CodeBuilder
             inst.code +=
             """
             
-            fragment float4 componentBuilder(RasterizerData in                      [[stage_in]],
-                                             constant float4 *data                  [[ buffer(2) ]])
-                                             //texture2d<half, access::sample>      fontTexture [[texture(1)]])
+            kernel void componentBuilder(
+            texture2d<half, access::write>          outTexture  [[texture(0)]],
+            constant float4                        *data   [[ buffer(1) ]],
+            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
+            uint2 gid                               [[thread_position_in_grid]])
             {
-                //float2 size = float2(layerData->limiterSize.x, layerData->limiterSize.y);//float2( outTexture.get_width(), outTexture.get_height() );
-                //float2 fragCoord = float2(in.textureCoordinate.x, 1. - in.textureCoordinate.y) * size;
-                float2 uv = in.textureCoordinate.xy;
+                float2 uv = float2(gid.x, gid.y);
                 float4 outColor = float4(0,0,0,1);
             
                 //float test = sin( float3(1) );
@@ -147,14 +134,11 @@ class CodeBuilder
             """
             
             kernel void componentBuilder(
-            //texture2d<half, access::write>        outTexture  [[texture(0)]],
             constant float4                        *data   [[ buffer(1) ]],
             device float4                          *out [[ buffer(0) ]],
             //texture2d<half, access::sample>       fontTexture [[texture(2)]],
             uint2 gid                               [[thread_position_in_grid]])
             {
-                //float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-                //float2 fragCoord = float2( gid.x, gid.y );
                 float2 uv = float2(gid.x, gid.y);
 
                 float4 outColor = float4(0,0,0,1);
@@ -173,8 +157,7 @@ class CodeBuilder
             inst.code +=
             """
             
-                return outColor;
-                //return float4(total.x / total.w, total.y / total.w, total.z / total.w, total.w);
+                outTexture.write(half4(outColor.x, outColor.y, outColor.z, outColor.w ), gid);
             }
             
             """
@@ -308,15 +291,15 @@ class CodeBuilder
          
              //float d = sdCircle(uv, 40);
 
-             float4 outColor = float4(1, 0, 0,1);
+             float4 outColor = float4(1, 1, 1,1);
              //float GlobalTime = data[0].x;
              
              float4 s = float4(depthTexture.sample(textureSampler, uv / size ));
              
-            //if ( s.x > 60 ) {
-            //    outColor = float4(0,0,0, 1);
-             //}
-                outColor.x = fillMask(s.x);
+            if ( s.x > 60 ) {
+                outColor = float4(0,0,0, 1);
+             }
+                //outColor.x = fillMask(s.x);
          
              outTexture.write(half4(outColor.x, outColor.y, outColor.z, 1 ), gid);
              //outTexture.write(s, gid);
@@ -351,9 +334,6 @@ class CodeBuilder
     /// Update the instance buffer
     func updateBuffer(_ inst: CodeBuilderInstance)
     {
-        if inst.fragmentState != nil {
-            inst.buffer = fragment.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
-        } else
         if inst.computeState != nil {
             inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         }
@@ -427,21 +407,10 @@ class CodeBuilder
         }
         updateBuffer(inst)
     }
+
     
-    // Render the component into a fragment texture
-    func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil)
-    {
-        updateData(inst)
-        if fragment.encoderStart(outTexture: texture)
-        {
-            fragment.encodeRun(inst.fragmentState!, inBuffer: inst.buffer)
-    
-            fragment.encodeEnd()
-        }
-    }
-    
-    // Compute the component into a texture
-    func compute(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil,_ inTexture: MTLTexture? = nil)
+    // Render the component into a texture
+    func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil,_ inTexture: MTLTexture? = nil)
     {
         updateData(inst)
         

@@ -1180,7 +1180,7 @@ class CodeContext
 {
     let mmView              : MMView
     let font                : MMFont
-    var fontScale           : Float = 0.6
+    var fontScale           : Float = 0.45
     
     var fragment            : MMFragment? = nil
     
@@ -1234,14 +1234,14 @@ class CodeContext
     
     func reset(_ editorWidth: Float)
     {
-        fontScale = 0.45
+        //fontScale = 0.45
         startX = 10
         cY = 40
         
         gapX = 5
         gapY = 1
         indent = 20
-        border = 60
+        border = font.getTextRect(text: "func", scale: fontScale).width + 2 * gapX
         
         hoverAlpha = 0.5
         selectionAlpha = 0.7

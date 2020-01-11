@@ -28,14 +28,14 @@ class Pipeline
         let inst = codeBuilder.build(component)
         let test = codeBuilder.compute.allocateFloatTexture(width: width, height: height, output: false)
         
-        codeBuilder.compute(inst, test)
+        codeBuilder.render(inst, test)
         
         let test2 = codeBuilder.compute.allocateTexture(width: width, height: height, output: false)
 
         let component2 = CodeComponent(.Render)
         let inst2 = codeBuilder.build(component2)
 
-        codeBuilder.compute(inst2, test2, test)
+        codeBuilder.render(inst2, test2, test)
 
         texture = test2
     }

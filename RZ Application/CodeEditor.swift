@@ -42,6 +42,8 @@ class CodeEditor        : MMWidget
         
     var mouseIsDown     : Bool = false
     var mouseDownPos    : SIMD2<Float> = SIMD2<Float>()
+    
+    var pinchBuffer     : Float = 0
 
     override init(_ view: MMView)
     {
@@ -221,6 +223,35 @@ class CodeEditor        : MMWidget
         mouseIsDown = false
     }
     
+    override func mouseScrolled(_ event: MMMouseEvent)
+    {
+        var prevScale = codeContext.fontScale
+        
+        #if os(OSX)
+        if mmView.commandIsDown && event.deltaY! != 0 {
+            prevScale += event.deltaY! * 0.01
+            prevScale = max(0.2, prevScale)
+            prevScale = min(2, prevScale)
+            
+            codeContext.fontScale = prevScale
+            editor.updateOnNextDraw(compile: false)
+        }
+        #endif
+    }
+    
+    override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
+    {
+        if firstTouch == true {
+            let realScale : Float = codeContext.fontScale
+            pinchBuffer = realScale
+        }
+        
+        codeContext.fontScale = max(0.2, pinchBuffer * scale)
+        codeContext.fontScale = min(2, codeContext.fontScale)
+        
+        editor.updateOnNextDraw(compile: false)
+    }
+    
     override func update()
     {
         let height : Float = 1000
@@ -253,7 +284,7 @@ class CodeEditor        : MMWidget
 
             previewInstance = globalApp!.codeBuilder.build(comp)
             if previewTexture == nil || (Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom) {
-                previewTexture = globalApp!.codeBuilder.fragment.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
+                previewTexture = globalApp!.codeBuilder.compute.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
             }
             
             globalApp!.codeBuilder.render(previewInstance!, previewTexture)
@@ -285,7 +316,7 @@ class CodeEditor        : MMWidget
             }
             
             if Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom {
-                previewTexture = globalApp!.codeBuilder.fragment.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
+                previewTexture = globalApp!.codeBuilder.compute.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
                 globalApp!.codeBuilder.render(previewInstance!, previewTexture)
             }
             

@@ -184,7 +184,6 @@ class TopRegion: MMRegion
             }
         }
 
-        
         layoutH( startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
         layoutH( startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton )
         registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, helpButton, playButton, tabButton )

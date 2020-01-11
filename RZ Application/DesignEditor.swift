@@ -111,7 +111,7 @@ class DesignEditor          : MMWidget
                 previewInstance = globalApp!.codeBuilder.build(comp)
             }
             if previewTexture == nil || (Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom) {
-                previewTexture = globalApp!.codeBuilder.fragment.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
+                previewTexture = globalApp!.codeBuilder.compute.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
             }
             
             globalApp!.codeBuilder.render(previewInstance!, previewTexture)
@@ -135,7 +135,7 @@ class DesignEditor          : MMWidget
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
             
             if Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom {
-                previewTexture = globalApp!.codeBuilder.fragment.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
+                previewTexture = globalApp!.codeBuilder.compute.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
                 globalApp!.codeBuilder.render(previewInstance!, previewTexture)
             }
         } else {
