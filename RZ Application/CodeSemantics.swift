@@ -755,7 +755,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, ScreenColorize
+        case FreeFlow, Colorize, SDF2D
     }
     
     let functionType        : FunctionType
@@ -809,7 +809,17 @@ class CodeFunction          : Codable, Equatable
         functionType = type
         self.name = name
         
-        header.fragment = CodeFragment(type == .FreeFlow ? .TypeDefinition : .ConstTypeDefinition, "void", "colorize")
+        var funcName = ""
+        let returnType = "void"
+        
+        if type == .Colorize {
+            funcName = "colorize"
+        }
+        if type == .SDF2D {
+            funcName = "shapeDistance"
+        }
+
+        header.fragment = CodeFragment(type == .FreeFlow ? .TypeDefinition : .ConstTypeDefinition, returnType, funcName)
     }
     
     func createOutVariableBlock(_ typeName: String,_ name: String) -> CodeBlock
@@ -822,26 +832,37 @@ class CodeFunction          : Codable, Equatable
         b.fragment.typeName = typeName
         b.fragment.name = name
         
-        let constant = CodeFragment(.ConstantDefinition, "float4", "float4", [.Selectable, .Dragable, .Targetable], ["float4"], "float4")
-        b.statement.fragments.append(constant)
-        
-        for index in 0...3 {
-            let argStatement = CodeStatement(.Arithmetic)
-            
+        if typeName == "float" {
             let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
-            if name == "outColor" {
-                if index == 0 {
-                    constValue.setValue(0.161)
-                } else
-                if index == 1 {
-                    constValue.setValue(0.165)
-                } else
-                if index == 2 {
-                    constValue.setValue(0.184)
-                }
+            b.statement.fragments.append(constValue)
+            
+            if name == "outDistance" {
+                constValue.values["min"] = -10000
+                constValue.values["max"] = 10000
+                constValue.values["value"] = 0
             }
-            argStatement.fragments.append(constValue)
-            constant.arguments.append(argStatement)
+        } else {
+            let constant = CodeFragment(.ConstantDefinition, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
+            b.statement.fragments.append(constant)
+            
+            for index in 0...3 {
+                let argStatement = CodeStatement(.Arithmetic)
+                
+                let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
+                if name == "outColor" {
+                    if index == 0 {
+                        constValue.setValue(0.161)
+                    } else
+                    if index == 1 {
+                        constValue.setValue(0.165)
+                    } else
+                    if index == 2 {
+                        constValue.setValue(0.184)
+                    }
+                }
+                argStatement.fragments.append(constValue)
+                constant.arguments.append(argStatement)
+            }
         }
         return b
     }
@@ -975,7 +996,7 @@ class CodeComponent         : Codable, Equatable
     
     func createDefaultFunction(_ type: CodeFunction.FunctionType)
     {
-        if type == .ScreenColorize {
+        if type == .Colorize {
             let f = CodeFunction(type, "colorize")
             f.comment = "Returns a color for the given uv position [0..1]"
             
@@ -989,6 +1010,22 @@ class CodeComponent         : Codable, Equatable
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
+            functions.append(f)
+        } else
+        if type == .SDF2D {
+            let f = CodeFunction(type, "shapeDistance")
+            f.comment = "Returns the distance to the shape for the given uv position"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float", "outDistance"))
             functions.append(f)
         }
     }

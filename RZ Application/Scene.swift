@@ -61,7 +61,12 @@ class StageItem             : Codable, Equatable
         
         if stageItemType == .PreStage {
             let codeComponent = CodeComponent()
-            codeComponent.createDefaultFunction(.ScreenColorize)
+            codeComponent.createDefaultFunction(.Colorize)
+            components["main"] = codeComponent
+        } else
+        if stageItemType == .ShapeStage {
+            let codeComponent = CodeComponent(.SDF2D)
+            codeComponent.createDefaultFunction(.SDF2D)
             components["main"] = codeComponent
         }
     }

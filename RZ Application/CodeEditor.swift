@@ -578,13 +578,17 @@ class CodeEditor        : MMWidget
             // Case1, source is directly from the source list and we need to create the arguments based on the argumentFormat
             if sourceFormats.count > sourceFrag.arguments.count {
 
-                for _ in sourceFormats
+                for format in sourceFormats
                 {
-                    let argStatement = CodeStatement(.Arithmetic)
-
-                    let constValue = CodeFragment(.ConstantValue, "float", "float", [.Selectable, .Dragable, .Targetable], ["float"], "float")
-                    argStatement.fragments.append(constValue)
-                    destFrag.arguments.append(argStatement)
+                    let types = format.components(separatedBy: "|")
+                    let typeName = types[0]
+                    
+                    let constant = defaultConstantForType(typeName)
+                    
+                    let statement = CodeStatement(.List)
+                    statement.fragments.append(constant)
+                    
+                    destFrag.arguments.append(statement)
                 }
             }
         } else {

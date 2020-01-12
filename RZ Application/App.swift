@@ -9,7 +9,7 @@
 import Foundation
 
 import MetalKit
-//import CloudKit
+import CloudKit
 
 // Necessary for undo / redo situations
 var globalApp : App? = nil
@@ -74,12 +74,29 @@ class App
         globalApp = self
         
         let backStage = project.selected!.stages[0]
+        let shapeStage = project.selected!.stages[1]
         let selected = backStage.createChild("Sky")
+        _ = shapeStage.createChild("2D Object")
         project.scenes[0].setSelected(selected)
 
         sceneList.setScene(project.selected!)
 
         currentEditor.activate()
+        
+        /*
+        let query = CKQuery(recordType: "SampleProjects", predicate: NSPredicate(value: true))
+        CKContainer.init(identifier: "iCloud.com.moenig.shapez.documents").publicCloudDatabase.perform(query, inZoneWith: nil) { (records, error) in
+            records?.forEach({ (record) in
+                
+                print(record)
+                
+                // System Field from property
+                //let recordName_fromProperty = record.recordID.recordName
+                //print("System Field, recordName: \(recordName_fromProperty)")
+                //let deeplink = record.value(forKey: "deeplink")
+                //print("Custom Field, deeplink: \(deeplink ?? "")")
+            })
+        }*/
     }
     
     func loadFrom(_ json: String)

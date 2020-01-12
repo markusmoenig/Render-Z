@@ -93,7 +93,7 @@ class CodeBuilder
             buildRender(inst, component, monitor)
         }
         
-//        print( inst.code )
+        print( inst.code )
         
         inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
@@ -120,6 +120,8 @@ class CodeBuilder
             uint2 gid                               [[thread_position_in_grid]])
             {
                 float2 uv = float2(gid.x, gid.y);
+                float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+
                 float4 outColor = float4(0,0,0,1);
             
                 //float test = sin( float3(1) );
@@ -140,6 +142,8 @@ class CodeBuilder
             uint2 gid                               [[thread_position_in_grid]])
             {
                 float2 uv = float2(gid.x, gid.y);
+                float2 size = float2( data[0].zw );
+
 
                 float4 outColor = float4(0,0,0,1);
                 float GlobalTime = data[0].x;
@@ -204,32 +208,55 @@ class CodeBuilder
             return clamp(-dist, 0.0, 1.0);
         }
         
-        kernel void componentBuilder(
-        texture2d<half, access::write>          outTexture  [[texture(0)]],
-        constant float4                        *data   [[ buffer(1) ]],
-        //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-        uint2 gid                               [[thread_position_in_grid]])
-        {
-            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-            float2 center = size / 2;
-
-            //float2 fragCoord = float2( gid.x, gid.y );
-        
-            float2 uv = float2(gid.x, gid.y);
-            uv = translate(uv, center);
-        
-            float d = sdCircle(uv, 40);
-
-            float4 outColor = float4(1, 1, 1,1);
-            float GlobalTime = data[0].x;
-        
-            outTexture.write(half4( d, 0, 0, 1 ), gid);
-            
         """
+        
+        if monitor == nil {
+        
+            inst.code +=
+                
+            """
+            kernel void componentBuilder(
+            texture2d<half, access::write>          outTexture  [[texture(0)]],
+            constant float4                        *data   [[ buffer(1) ]],
+            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
+            uint2 gid                               [[thread_position_in_grid]])
+            {
+                float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+                float2 uv = float2(gid.x, gid.y);
+                float2 __center = size / 2;
+                uv = translate(uv, __center);
+
+                float GlobalTime = data[0].x;
+                float outDistance = 10;
+            
+                
+            """
+        } else {
+            
+            inst.code +=
+            """
+            
+            kernel void componentBuilder(
+            constant float4                        *data   [[ buffer(1) ]],
+            device float4                          *out [[ buffer(0) ]],
+            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
+            uint2 gid                               [[thread_position_in_grid]])
+            {
+                float2 size = float2( data[0].zw );
+                float2 uv = float2(gid.x, gid.y);
+                float2 __center = size / 2;
+                uv = translate(uv, __center);
+
+                float GlobalTime = data[0].x;
+                float outDistance = 10;
+            
+            
+            """
+        }
     
-        //if let code = component.code {
-        //    inst.code += code
-        //}
+        if let code = component.code {
+            inst.code += code
+        }
 
         if let frag = monitor {
 
@@ -242,6 +269,13 @@ class CodeBuilder
                 inst.code += "out[0].z = " + frag.name + ".z;\n";
                 inst.code += "out[0].w = " + frag.name + ".w;\n";
             }
+        } else {
+            inst.code +=
+            """
+            
+                outTexture.write(half4( outDistance, 0, 0, 1 ), gid);
+             
+            """
         }
         
         inst.code +=
