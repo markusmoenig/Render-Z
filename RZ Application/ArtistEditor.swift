@@ -97,12 +97,20 @@ class ArtistEditor          : Editor
     override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Top {
-            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton)
+            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton, globalApp!.topRegion!.libraryButton)
             timelineButton.draw()
+            globalApp!.topRegion!.libraryButton.draw()
         } else
         if region.type == .Left {
             sceneList.rect.copy(region.rect)
             sceneList.draw()
+        } else
+        if region.type == .Right {
+            if globalApp!.library.currentWidth > 0 {
+                region.rect.x = globalApp!.mmView.renderer.cWidth - region.rect.width
+                globalApp!.library.rect.copy(region.rect)
+                globalApp!.library.draw()
+            }
         } else
         if region.type == .Editor {
             designEditor.rect.copy(region.rect)
@@ -114,7 +122,7 @@ class ArtistEditor          : Editor
             if bottomHeight > 0 {
                 region.rect.y = globalApp!.mmView.renderer.cHeight - bottomHeight - 1
                 timeline.rect.copy( region.rect )
-                timeline.rect.width -= globalApp!.rightRegion!.rect.width
+                //timeline.rect.width -= globalApp!.rightRegion!.rect.width
                 timeline.draw(designEditor.designComponent!.sequence, uuid: designEditor.designComponent!.uuid)
             }
         }

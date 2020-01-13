@@ -45,3 +45,56 @@ func insertValueToFragment(_ fragment: CodeFragment,_ value: SIMD3<Float>)
         }
     }
 }
+
+import CloudKit
+
+func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true)
+{
+    let name = component.libraryName
+    if name == "" {return}
+    
+    let encodedData = try? JSONEncoder().encode(component)
+    if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+    {
+        //codeU = encodedObjectJsonString
+        var libName = name
+        if component.componentType == .Colorize {
+            libName += " - Colorize"
+        } else
+        if component.componentType == .SDF2D {
+            libName += " - SDF2D"
+        }
+        
+        let recordID  = CKRecord.ID(recordName: libName)
+        let record    = CKRecord(recordType: "components", recordID: recordID)
+        
+        record["json"] = encodedObjectJsonString
+        
+        var uploadComponents = [CKRecord]()
+        uploadComponents.append(record)
+
+        let operation = CKModifyRecordsOperation(recordsToSave: uploadComponents, recordIDsToDelete: nil)
+        operation.savePolicy = .allKeys
+
+        operation.modifyRecordsCompletionBlock = { savedRecords, deletedRecordIDs, operationError in
+
+            if let error = operationError {
+                // error
+                print("error", error)
+            }
+
+            if let saved = savedRecords {
+                // print artist.name, or count the array, or whatever..
+                #if DEBUG
+                print("saved", saved)
+                #endif
+            }
+        }
+
+        if privateLibrary {
+            globalApp!.privateDatabase.add(operation)
+        } else {
+            globalApp!.publicDatabase.add(operation)
+        }
+    }
+}

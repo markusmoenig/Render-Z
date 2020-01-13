@@ -22,6 +22,7 @@ class RightRegion: MMRegion
     
     override func build()
     {
-        rect.width = 0
+        rect.width = globalApp!.library.currentWidth
+        globalApp!.currentEditor.drawRegion(self)
     }
 }

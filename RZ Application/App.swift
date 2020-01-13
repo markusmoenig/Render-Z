@@ -37,6 +37,11 @@ class App
     
     let mmFile          : MMFile!
     
+    let privateDatabase : CKDatabase
+    let publicDatabase  : CKDatabase
+
+    let library         : LibraryWidget
+    
     var project         : Project
     
     #if os(iOS)
@@ -58,7 +63,12 @@ class App
 
         currentEditor = developerEditor
         project = Project()
-
+        
+        privateDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").privateCloudDatabase
+        publicDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase
+        
+        library = LibraryWidget(mmView)
+        
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )
         rightRegion = RightRegion( mmView, app: self )
@@ -81,22 +91,7 @@ class App
 
         sceneList.setScene(project.selected!)
 
-        currentEditor.activate()
-        
-        /*
-        let query = CKQuery(recordType: "SampleProjects", predicate: NSPredicate(value: true))
-        CKContainer.init(identifier: "iCloud.com.moenig.shapez.documents").publicCloudDatabase.perform(query, inZoneWith: nil) { (records, error) in
-            records?.forEach({ (record) in
-                
-                print(record)
-                
-                // System Field from property
-                //let recordName_fromProperty = record.recordID.recordName
-                //print("System Field, recordName: \(recordName_fromProperty)")
-                //let deeplink = record.value(forKey: "deeplink")
-                //print("Custom Field, deeplink: \(deeplink ?? "")")
-            })
-        }*/
+        currentEditor.activate()    
     }
     
     func loadFrom(_ json: String)

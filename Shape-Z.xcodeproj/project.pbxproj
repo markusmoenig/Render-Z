@@ -253,6 +253,8 @@
 		2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FEA23C81CD9005619E4 /* CodeUtilities.swift */; };
 		2B8E2FEE23C9691A005619E4 /* Pipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FED23C96919005619E4 /* Pipeline.swift */; };
 		2B8E2FEF23C9691A005619E4 /* Pipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FED23C96919005619E4 /* Pipeline.swift */; };
+		2B8E2FF423CC0E13005619E4 /* Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FF323CC0D04005619E4 /* Library.swift */; };
+		2B8E2FF523CC0E14005619E4 /* Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FF323CC0D04005619E4 /* Library.swift */; };
 		2B91CBE42358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
 		2B91CBE52358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
 		2B91CBE62358477300DED7B1 /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
@@ -697,6 +699,7 @@
 		2B8E2FE723C7FDF9005619E4 /* DesignProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignProperties.swift; sourceTree = "<group>"; };
 		2B8E2FEA23C81CD9005619E4 /* CodeUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeUtilities.swift; sourceTree = "<group>"; };
 		2B8E2FED23C96919005619E4 /* Pipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pipeline.swift; sourceTree = "<group>"; };
+		2B8E2FF323CC0D04005619E4 /* Library.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Library.swift; sourceTree = "<group>"; };
 		2B91CBE22358477300DED7B1 /* Square.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Square.tiff; sourceTree = "<group>"; };
 		2B91CBE32358477300DED7B1 /* Square.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Square.json; sourceTree = "<group>"; };
 		2B91CBE8235848AC00DED7B1 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
@@ -913,6 +916,7 @@
 				2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */,
 				2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */,
 				2B8E2FD823C5CF40005619E4 /* Scene.swift */,
+				2B8E2FF323CC0D04005619E4 /* Library.swift */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
 			);
 			path = "RZ Application";
@@ -1716,6 +1720,7 @@
 				2B7A3C1423B46546002EC5FC /* MMColorWidget.swift in Sources */,
 				2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */,
 				2B9B299C23BAD15700C2F387 /* Node.swift in Sources */,
+				2B8E2FF423CC0E13005619E4 /* Library.swift in Sources */,
 				2B7A3C5323B4768D002EC5FC /* ArtistEditor.swift in Sources */,
 				2B8E2FEE23C9691A005619E4 /* Pipeline.swift in Sources */,
 				2B7A3C1B23B46546002EC5FC /* MMListWidget.swift in Sources */,
@@ -1930,6 +1935,7 @@
 				2B9B29C923BB453400C2F387 /* MMSliderWidget.swift in Sources */,
 				2B9B29CF23BB453400C2F387 /* MMFragment.swift in Sources */,
 				2B9B29C623BB453400C2F387 /* MMFont.swift in Sources */,
+				2B8E2FF523CC0E14005619E4 /* Library.swift in Sources */,
 				2B8E2FE023C6D7B4005619E4 /* DesignEditor.swift in Sources */,
 				2B9B29D723BB453400C2F387 /* MMFile.swift in Sources */,
 				2B9B29D623BB453400C2F387 /* MMTimeline.swift in Sources */,

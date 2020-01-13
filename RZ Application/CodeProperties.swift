@@ -35,7 +35,7 @@ class CodeProperties    : MMWidget
 
     var buttons             : [MMButtonWidget] = []
     var smallButtonSkin     : MMSkinButton
-    var buttonWidth         : Float = 180
+    var buttonWidth         : Float = 190
     
     var needsUpdate         : Bool = false
 
@@ -100,6 +100,7 @@ class CodeProperties    : MMWidget
         monitorInstance = nil
                 
         if let function = ctx.selectedFunction {
+            
             c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "comment", title: "Comment", value: function.comment) )
             c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 if variable == "comment" {
@@ -110,6 +111,35 @@ class CodeProperties    : MMWidget
                     self.needsUpdate = true
                     if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                 }
+            }
+            
+            if function.functionType != .FreeFlow {
+                
+                c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryName", title: "Library Name", value: comp.libraryName) )
+                c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryComment", title: "Library Comment", value: comp.libraryComment) )
+        
+                c2Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "libraryName" {
+                        comp.libraryName = newValue
+                    } else
+                    if variable == "libraryComment" {
+                        comp.libraryComment = newValue
+                    }
+                }
+                
+                var b1 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Private Library", fixedWidth: buttonWidth)
+                b1.clicked = { (event) in
+                    uploadToLibrary(comp, true)
+                    b1.removeState(.Checked)
+                }
+                addButton(b1)
+                
+                var b2 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Public Library", fixedWidth: buttonWidth)
+                b2.clicked = { (event) in
+                    uploadToLibrary(comp, false)
+                    b2.removeState(.Checked)
+                }
+                addButton(b2)
             }
         } else
         if let block = ctx.selectedBlock {

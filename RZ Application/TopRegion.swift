@@ -10,6 +10,14 @@ import MetalKit
 
 class TopRegion: MMRegion
 {
+    enum RightRegionMode
+    {
+        case Closed, Open
+    }
+    
+    var rightRegionMode : RightRegionMode = .Closed
+    var animating       : Bool = false
+
     var logoTexture     : MTLTexture? = nil
     var undoButton      : MMButtonWidget!
     var redoButton      : MMButtonWidget!
@@ -22,6 +30,8 @@ class TopRegion: MMRegion
     
     var tabButton       : MMTabButtonWidget
     
+    var libraryButton   : MMButtonWidget!
+
     var app             : App
 
     init( _ view: MMView, app: App )
@@ -183,10 +193,51 @@ class TopRegion: MMRegion
                 app.codeBuilder.currentFrame = 0
             }
         }
+        
+        libraryButton = MMButtonWidget( mmView, text: "Library" )
+        libraryButton.clicked = { (event) -> Void in
+            self.switchLibraryMode()
+        }
 
         layoutH( startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
         layoutH( startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton )
-        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, helpButton, playButton, tabButton )
+        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, helpButton, playButton, tabButton, libraryButton )
+    }
+    
+    func switchLibraryMode()
+    {
+        if animating { return }
+        let rightRegion = globalApp!.rightRegion!
+        let openWidth = globalApp!.library.openWidth
+        
+        if rightRegionMode == .Open {
+            globalApp!.mmView.startAnimate( startValue: rightRegion.rect.width, endValue: 0, duration: 500, cb: { (value,finished) in
+                globalApp!.library.currentWidth = value
+                if finished {
+                    self.animating = false
+                    self.rightRegionMode = .Closed
+                    self.libraryButton.removeState( .Checked )
+                    
+                    self.mmView.deregisterWidget(globalApp!.library)
+                    self.app.library.deactivate()
+                }
+                self.app.currentEditor.updateOnNextDraw(compile: false)
+            } )
+            animating = true
+        } else if rightRegion.rect.height != openWidth {
+            
+            globalApp!.mmView.startAnimate( startValue: rightRegion.rect.width, endValue: openWidth, duration: 500, cb: { (value,finished) in
+                if finished {
+                    self.animating = false
+                    self.rightRegionMode = .Open
+                    self.app.library.activate()
+                    self.mmView.registerWidget(globalApp!.library)
+                }
+                globalApp!.library.currentWidth = value
+                self.app.currentEditor.updateOnNextDraw(compile: false)
+            } )
+            animating = true
+        }
     }
     
     override func build()

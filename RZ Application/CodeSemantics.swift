@@ -941,6 +941,10 @@ class CodeComponent         : Codable, Equatable
     var artistPropertyNames : [UUID:String] = [:]
     var sequence            : MMTlSequence = MMTlSequence()
     
+    // CloudKit
+    var libraryName         : String = ""
+    var libraryComment      : String = ""
+
     // Code Generation
     var code                : String? = nil
 
@@ -952,6 +956,8 @@ class CodeComponent         : Codable, Equatable
         case properties
         case artistPropertyNames
         case sequence
+        case libraryName
+        case libraryComment
     }
     
     required init(from decoder: Decoder) throws
@@ -964,6 +970,8 @@ class CodeComponent         : Codable, Equatable
         properties = try container.decode([UUID].self, forKey: .properties)
         artistPropertyNames = try container.decode([UUID:String].self, forKey: .artistPropertyNames)
         sequence = try container.decode(MMTlSequence.self, forKey: .sequence)
+        libraryName = try container.decode(String.self, forKey: .libraryName)
+        libraryComment = try container.decode(String.self, forKey: .libraryComment)
     }
     
     func encode(to encoder: Encoder) throws
@@ -976,6 +984,8 @@ class CodeComponent         : Codable, Equatable
         try container.encode(properties, forKey: .properties)
         try container.encode(artistPropertyNames, forKey: .artistPropertyNames)
         try container.encode(sequence, forKey: .sequence)
+        try container.encode(libraryName, forKey: .libraryName)
+        try container.encode(libraryComment, forKey: .libraryComment)
     }
     
     static func ==(lhs:CodeComponent, rhs:CodeComponent) -> Bool { // Implement Equatable
