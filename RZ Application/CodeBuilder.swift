@@ -121,11 +121,10 @@ class CodeBuilder
             {
                 float2 uv = float2(gid.x, gid.y);
                 float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+                uv /= size;
+                uv.y = 1.0 - uv.y;
 
                 float4 outColor = float4(0,0,0,1);
-            
-                //float test = sin( float3(1) );
-            
                 float GlobalTime = data[0].x;
             
             """

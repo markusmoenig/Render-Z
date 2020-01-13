@@ -31,14 +31,11 @@ class CodeEditor        : MMWidget
     var codeContext     : CodeContext
     
     var codeAccess      : CodeAccess!
-    
-    var previewTexture  : MTLTexture? = nil
-    
+        
     var editor          : DeveloperEditor!
 
     var needsUpdate     : Bool = false
     var codeChanged     : Bool = false
-    var previewInstance : CodeBuilderInstance? = nil
         
     var mouseIsDown     : Bool = false
     var mouseDownPos    : SIMD2<Float> = SIMD2<Float>()
@@ -270,25 +267,12 @@ class CodeEditor        : MMWidget
             fragment.encodeEnd()
             
             if codeChanged {
-                buildPreview()
+                globalApp!.pipeline.build(scene: globalApp!.project.selected!, selected: codeComponent)
                 codeChanged = false
             }
+            globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
         }
         needsUpdate = false
-    }
-    
-    /// Builds the preview
-    func buildPreview()
-    {
-        if let comp = codeComponent {
-
-            previewInstance = globalApp!.codeBuilder.build(comp)
-            if previewTexture == nil || (Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom) {
-                previewTexture = globalApp!.codeBuilder.compute.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
-            }
-            
-            globalApp!.codeBuilder.render(previewInstance!, previewTexture)
-        }
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -302,23 +286,15 @@ class CodeEditor        : MMWidget
         }
 
         // Is playing ?
-        if globalApp!.codeBuilder.isPlaying && previewInstance != nil {
-            globalApp?.codeBuilder.render(previewInstance!)
+        if globalApp!.codeBuilder.isPlaying {
+            globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
             editor.codeProperties.updateMonitor()
         }
         
         // Do the preview
-        if let texture = previewTexture {
+        if let texture = globalApp!.pipeline.result {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
-            
-            if let pipe = globalApp!.pipeline.texture {
-                mmView.drawTexture.draw(pipe, x: rect.x, y: rect.y)
-            }
-            
-            if Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom {
-                previewTexture = globalApp!.codeBuilder.compute.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
-                globalApp!.codeBuilder.render(previewInstance!, previewTexture)
-            }
+            globalApp!.pipeline.renderIfResolutionChanged(rect.width * zoom, rect.height * zoom)
             
             if let comp = codeComponent {
                 for f in comp.functions {

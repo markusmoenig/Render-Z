@@ -54,7 +54,7 @@ class App
         artistEditor = ArtistEditor(mmView, sceneList)
         developerEditor = DeveloperEditor(mmView, sceneList)
         codeBuilder = CodeBuilder(mmView)
-        pipeline = Pipeline(mmView, codeBuilder)
+        pipeline = Pipeline(mmView)
 
         currentEditor = developerEditor
         project = Project()

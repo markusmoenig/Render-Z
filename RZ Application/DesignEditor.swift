@@ -13,14 +13,11 @@ class DesignEditor          : MMWidget
     var fragment            : MMFragment
             
     var designComponent     : CodeComponent? = nil
-
-    var previewTexture      : MTLTexture? = nil
     
     var editor              : ArtistEditor!
 
     var needsUpdate         : Bool = false
     var designChanged       : Bool = false
-    var previewInstance     : CodeBuilderInstance? = nil
         
     var mouseIsDown         : Bool = false
     var mouseDownPos        : SIMD2<Float> = SIMD2<Float>()
@@ -96,26 +93,13 @@ class DesignEditor          : MMWidget
             
             fragment.encodeEnd()
             
-            buildPreview(compile: designChanged)
-            designChanged = false
+            if designChanged {
+                globalApp!.pipeline.build(scene: globalApp!.project.selected!, selected: designComponent)
+                designChanged = false
+            }
+            globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
         }
         needsUpdate = false
-    }
-    
-    /// Builds the preview
-    func buildPreview(compile: Bool = true)
-    {
-        if let comp = designComponent {
-
-            if compile || previewInstance == nil {
-                previewInstance = globalApp!.codeBuilder.build(comp)
-            }
-            if previewTexture == nil || (Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom) {
-                previewTexture = globalApp!.codeBuilder.compute.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
-            }
-            
-            globalApp!.codeBuilder.render(previewInstance!, previewTexture)
-        }
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -126,18 +110,14 @@ class DesignEditor          : MMWidget
         }
 
         // Is playing ?
-        if globalApp!.codeBuilder.isPlaying && previewInstance != nil {
-            globalApp?.codeBuilder.render(previewInstance!)
+        if globalApp!.codeBuilder.isPlaying {
+            globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
         }
         
         // Do the preview
-        if let texture = previewTexture {
+        if let texture = globalApp!.pipeline.result {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
-            
-            if Float(previewTexture!.width) != rect.width * zoom || Float(previewTexture!.height) != rect.height * zoom {
-                previewTexture = globalApp!.codeBuilder.compute.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
-                globalApp!.codeBuilder.render(previewInstance!, previewTexture)
-            }
+            globalApp!.pipeline.renderIfResolutionChanged(rect.width * zoom, rect.height * zoom)
         } else {
             mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
         }

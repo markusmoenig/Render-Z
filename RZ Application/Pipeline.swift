@@ -13,12 +13,56 @@ class Pipeline
     var codeBuilder         : CodeBuilder
     var mmView              : MMView
     
-    var texture             : MTLTexture? = nil
+    var result              : MTLTexture? = nil
     
-    init(_ mmView: MMView,_ codeBuilder: CodeBuilder)
+    var instance            : CodeBuilderInstance? = nil
+    
+    init(_ mmView: MMView)
     {
         self.mmView = mmView
-        self.codeBuilder = codeBuilder
+        self.codeBuilder = CodeBuilder(mmView)
+    }
+    
+    func build(scene: Scene, selected: CodeComponent? = nil, monitor: CodeFragment? = nil)
+    {
+        // Background
+        
+        let preStage = scene.stages[0]
+        for item in preStage.children {
+            if let comp = item.components["main"] {
+                instance = codeBuilder.build(comp)
+                if comp === selected {
+                    return
+                }
+            }
+        }
+        
+        // Background
+
+        let shapeStage = scene.stages[1]
+        for item in shapeStage.children {
+            if let comp = item.components["main"] {
+                instance = codeBuilder.build(comp)
+                if comp === selected {
+                    return
+                }
+            }
+        }
+    }
+    
+    func render(_ width: Float,_ height: Float)
+    {
+        if let inst = instance {
+            result = checkTextureSize(width, height, result)
+            codeBuilder.render(inst, result)
+        }
+    }
+    
+    func renderIfResolutionChanged(_ width: Float,_ height: Float)
+    {
+        if (Float(result!.width) != width || Float(result!.height) != height) {
+            render(width, height)
+        }
     }
     
     func start(_ width: Float,_ height: Float)
@@ -37,7 +81,18 @@ class Pipeline
 
         codeBuilder.render(inst2, test2, test)
 
-        texture = test2
+        result = test2
+    }
+    
+    func checkTextureSize(_ width: Float,_ height: Float,_ texture: MTLTexture? = nil) -> MTLTexture?
+    {
+        var result  : MTLTexture? = texture
+        
+        if texture == nil || (Float(texture!.width) != width || Float(texture!.height) != height) {
+            result = codeBuilder.compute.allocateTexture(width: width, height: height)
+        }
+        
+        return result
     }
     
     func draw()
