@@ -26,7 +26,7 @@ class SceneListItem : MMTreeWidgetItem
     }
 }
 
-struct SceneListDrag : MMDragSource
+struct SceneListDrag    : MMDragSource
 {
     var id              : String = ""
     var sourceWidget    : MMWidget? = nil
@@ -37,12 +37,36 @@ struct SceneListDrag : MMDragSource
     var codeFragment    : CodeFragment? = nil
 }
 
+class SceneInfoItem
+{
+    var name            : String
+    var cb              : (()->())? = nil
+    var rect            : MMRect = MMRect()
+    var label           : MMTextLabel
+    
+    init(_ view: MMView,_ name: String,_ cb: (()->())? = nil)
+    {
+        self.name = name
+        self.cb = cb
+        
+        label = MMTextLabel(view, font: view.openSans, text: name, scale: 0.4)
+    }
+}
+
 class SceneList : MMWidget
 {
     var treeWidget          : SceneTreeWidget
+    var infoRect            : MMRect = MMRect()
         
     var mouseIsDown         : Bool = false
     var dragSource          : SceneListDrag?
+    
+    var infoItems           : [SceneInfoItem] = []
+    var hoverInfoItem       : SceneInfoItem? = nil
+    
+    var currentScene        : Scene? = nil
+    
+    static var InfoHeight   : Float = 30
     
     override init(_ view: MMView)
     {        
@@ -53,22 +77,23 @@ class SceneList : MMWidget
         treeWidget.unitSize -= 5
         treeWidget.itemSize -= 5
 
+        infoItems = [SceneInfoItem(view, "Render-Z")]
+        
         super.init(view)
     }
     
     /// Sets the current scene to display
     func setScene(_ scene: Scene)
     {
+        currentScene = scene
         treeWidget.build(scene: scene, fixedWidth: 200)
     }
     
-    func addSubNodeItem(_ item: SceneListItem,_ subItem: SceneListItem)
-    {
-        subItem.color = item.color
-        if item.children == nil {
-            item.children = []
+    func updateTree() {
+        if let scene = currentScene {
+            treeWidget.build(scene: scene, fixedWidth: 200)
+            mmView.update()
         }
-        item.children!.append(subItem)
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -78,22 +103,92 @@ class SceneList : MMWidget
         treeWidget.rect.x = rect.x
         treeWidget.rect.y = rect.y
         treeWidget.rect.width = rect.width
-        treeWidget.rect.height = rect.height
+        treeWidget.rect.height = rect.height - SceneList.InfoHeight
         
         treeWidget.draw(xOffset: globalApp!.leftRegion!.rect.width - 200)
+        
+        infoRect.x = rect.x
+        infoRect.y = rect.y + treeWidget.rect.height
+        infoRect.width = rect.width
+        infoRect.height = SceneList.InfoHeight
+        
+        let infoItemWidth : Float = infoRect.width / Float(infoItems.count)
+        
+        var xOff : Float = infoRect.x
+        for item in infoItems {
+            item.rect.x = xOff
+            item.rect.y = infoRect.y
+            item.rect.width = infoItemWidth
+            item.rect.height = SceneList.InfoHeight
+            if item === hoverInfoItem {
+                mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.2, 0.2, 0.2, 1))
+            }
+            item.label.drawCentered(x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height)
+            xOff += infoItemWidth
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        let changed = treeWidget.selectAt(event.x - rect.x, (event.y - rect.y))
-        if changed {
-            treeWidget.build(scene: globalApp!.project.scenes[0], fixedWidth: 200)
+        if let infoItem = hoverInfoItem {
+            infoItem.cb!()
+        } else {
+            let changed = treeWidget.selectAt(event.x - rect.x, (event.y - rect.y))
+            if changed {
+                treeWidget.build(scene: globalApp!.project.scenes[0], fixedWidth: 200)
+                
+                infoItems = []
+                
+                if let stage = treeWidget.selectedStage {
+                    if stage.stageType == .PreStage {
+                        infoItems = [
+                            SceneInfoItem(mmView, "2D", { () in
+                                stage.children[0].name = "Background"
+                                stage.children[0].defaultName = "2D"
+                                globalApp!.currentMode = "2D"
+                                if let scene = self.currentScene {
+                                    scene.setSelected(stage.children[0])
+                                }
+                                globalApp!.library.modeChanged()
+                                self.treeWidget.update()
+                            }),
+                            SceneInfoItem(mmView, "3D", { () in
+                                stage.children[0].name = "Sky Dome"
+                                stage.children[0].defaultName = "3D"
+                                globalApp!.currentMode = "3D"
+                                if let scene = self.currentScene {
+                                    scene.setSelected(stage.children[0])
+                                }
+                                globalApp!.library.modeChanged()
+                                self.treeWidget.update()
+                            }),
+                        ]
+                    }
+                }
+                
+                if infoItems.count == 0 {
+                    infoItems = [SceneInfoItem(mmView, "Render-Z")]
+                }
+            }
         }
         mouseIsDown = true
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        let oldHoverItem = hoverInfoItem
+        hoverInfoItem = nil
+        if infoRect.contains(event.x, event.y) {
+            for item in infoItems {
+                if item.cb != nil && item.rect.contains(event.x, event.y) {
+                    hoverInfoItem = item
+                    break
+                }
+            }
+        }
+        if hoverInfoItem !== oldHoverItem {
+            mmView.update()
+        }
         /*
         if mouseIsDown && dragSource == nil {
             dragSource = createDragSource(event.x - rect.x, event.y - rect.y)
@@ -102,6 +197,13 @@ class SceneList : MMWidget
                 mmView.dragStarted(source: dragSource!)
             }
         }*/
+    }
+    
+    override func mouseLeave(_ event: MMMouseEvent) {
+        if hoverInfoItem != nil {
+            hoverInfoItem = nil
+            mmView.update()
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -163,6 +265,8 @@ class SceneTreeWidget   : MMWidget
     
     var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.2, 0.2, 0.2, 1)
     
+    var selectedStage   : Stage? = nil
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -192,6 +296,7 @@ class SceneTreeWidget   : MMWidget
     func build(scene: Scene, fixedWidth: Float? = nil, supportsUpDown: Bool = false, supportsClose: Bool = false)
     {
         width = fixedWidth != nil ? fixedWidth! : rect.width
+        rect.width = width
         height = 0
         if width == 0 {
             width = 1
@@ -253,8 +358,8 @@ class SceneTreeWidget   : MMWidget
             func drawStage(_ item: Stage) {
                 
                 let color = SIMD4<Float>(0.5, 0.5, 0.5, 1)
-                if scene?.selectedUUID == item.uuid {
-                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: selectionColor, fragment: fragment!)
+                if selectedStage === item {
+                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: SIMD4<Float>(0.2, 0.2, 0.2, 1), fragment: fragment!)
                 } else {
                     if textOnly == false {
                         mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
@@ -266,6 +371,11 @@ class SceneTreeWidget   : MMWidget
                 let text : String = item.folderIsOpen == false ? "+" : "-"
                 mmView.drawText.drawText(mmView.openSans, text: text, x: left + indent, y: top + 8, scale: fontScale, fragment: fragment)
                 mmView.drawText.drawText(mmView.openSans, text: item.name, x: left + indent + 15, y: top + 8, scale: fontScale, fragment: fragment)
+                
+                if item.stageType == .PreStage {
+                    let text = item.children[0].defaultName
+                    mmView.drawText.drawText(mmView.openSans, text: text, x: rect.width - 30, y: top + 8, scale: fontScale, fragment: fragment)
+                }
                 
                 top += unitSize
             }
@@ -347,12 +457,17 @@ class SceneTreeWidget   : MMWidget
             
             //print( item.name )
             if let stage = item as? Stage {
-                stage.folderIsOpen = !stage.folderIsOpen
+                
+                if selectedStage == stage {
+                    stage.folderIsOpen = !stage.folderIsOpen
+                }
+                selectedStage = stage
             }
             if let stageItem = item as? StageItem {
                 stageItem.folderIsOpen = !stageItem.folderIsOpen
                 //selectedItems = [stageItem.uuid]
                 
+                selectedStage = nil
                 scene?.setSelected(stageItem)
                 
                // if selectionChanged != nil {

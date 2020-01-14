@@ -43,6 +43,7 @@ class App
     let library         : LibraryWidget
     
     var project         : Project
+    var currentMode     : String = "2D"
     
     #if os(iOS)
     var viewController  : ViewController?
@@ -84,14 +85,14 @@ class App
         globalApp = self
         
         let backStage = project.selected!.stages[0]
-        let shapeStage = project.selected!.stages[1]
-        let selected = backStage.createChild("Sky")
-        _ = shapeStage.createChild("2D Object")
+        //let shapeStage = project.selected!.stages[1]
+        let selected = backStage.createChild()
+        //_ = shapeStage.createChild("2D Object")
         project.scenes[0].setSelected(selected)
 
         sceneList.setScene(project.selected!)
 
-        currentEditor.activate()    
+        currentEditor.activate()
     }
     
     func loadFrom(_ json: String)

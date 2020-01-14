@@ -86,6 +86,9 @@ class CodeBuilder
         if component.componentType == .Colorize {
             buildColorize(inst, component, monitor)
         } else
+        if component.componentType == .SkyDome {
+            buildSkyDome(inst, component, monitor)
+        } else
         if component.componentType == .SDF2D {
             buildSDF2D(inst, component, monitor)
         } else
@@ -142,6 +145,89 @@ class CodeBuilder
             {
                 float2 uv = float2(gid.x, gid.y);
                 float2 size = float2( data[0].zw );
+
+
+                float4 outColor = float4(0,0,0,1);
+                float GlobalTime = data[0].x;
+            
+            
+            """
+        }
+        
+        if let code = component.code {
+            inst.code += code
+        }
+
+        // --- Return value
+        if monitor == nil {
+            inst.code +=
+            """
+            
+                outTexture.write(half4(outColor.x, outColor.y, outColor.z, outColor.w ), gid);
+            }
+            
+            """
+        } else {
+            let frag = monitor!
+
+            if inst.computeComponents == 1 {
+                inst.code += "out[0].x = " + frag.name + ";\n";
+            }
+            if inst.computeComponents == 4 {
+                inst.code += "out[0].x = " + frag.name + ".x;\n";
+                inst.code += "out[0].y = " + frag.name + ".y;\n";
+                inst.code += "out[0].z = " + frag.name + ".z;\n";
+                inst.code += "out[0].w = " + frag.name + ".w;\n";
+            }
+            
+            inst.code +=
+            """
+             
+            }
+             
+            """
+        }
+    }
+    
+    /// Build the source code for the component
+    func buildSkyDome(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    {
+        if monitor == nil {
+            
+            inst.code +=
+            """
+            
+            kernel void componentBuilder(
+            texture2d<half, access::write>          outTexture  [[texture(0)]],
+            constant float4                        *data   [[ buffer(1) ]],
+            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
+            uint2 gid                               [[thread_position_in_grid]])
+            {
+                float2 uv = float2(gid.x, gid.y);
+                float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+                uv /= size;
+                uv.y = 1.0 - uv.y;
+                float3 dir = float3(0,0,0);
+
+                float4 outColor = float4(0,0,0,1);
+                float GlobalTime = data[0].x;
+            
+            """
+            
+        } else {
+            
+            inst.code +=
+            """
+            
+            kernel void componentBuilder(
+            constant float4                        *data   [[ buffer(1) ]],
+            device float4                          *out [[ buffer(0) ]],
+            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
+            uint2 gid                               [[thread_position_in_grid]])
+            {
+                float2 uv = float2(gid.x, gid.y);
+                float2 size = float2( data[0].zw );
+                float3 dir = float3(0,0,0);
 
 
                 float4 outColor = float4(0,0,0,1);

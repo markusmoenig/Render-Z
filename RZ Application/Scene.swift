@@ -18,6 +18,8 @@ class StageItem             : Codable, Equatable
 
     var components          : [String:CodeComponent] = [:]
     var children            : [StageItem] = []
+    
+    var defaultName         : String = "main"
 
     private enum CodingKeys: String, CodingKey {
         case stageItemType
@@ -26,6 +28,7 @@ class StageItem             : Codable, Equatable
         case folderIsOpen
         case components
         case children
+        case defaultName
     }
     
     required init(from decoder: Decoder) throws
@@ -37,6 +40,11 @@ class StageItem             : Codable, Equatable
         folderIsOpen = try container.decode(Bool.self, forKey: .folderIsOpen)
         components = try container.decode([String:CodeComponent].self, forKey: .components)
         children = try container.decode([StageItem].self, forKey: .children)
+        defaultName = try container.decode(String.self, forKey: .defaultName)
+        
+        if stageItemType == .PreStage {
+            globalApp!.currentMode = defaultName
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -48,6 +56,7 @@ class StageItem             : Codable, Equatable
         try container.encode(folderIsOpen, forKey: .folderIsOpen)
         try container.encode(components, forKey: .components)
         try container.encode(children, forKey: .children)
+        try container.encode(defaultName, forKey: .defaultName)
     }
     
     static func ==(lhs:StageItem, rhs:StageItem) -> Bool {
@@ -60,9 +69,21 @@ class StageItem             : Codable, Equatable
         self.name = name
         
         if stageItemType == .PreStage {
-            let codeComponent = CodeComponent()
+            var codeComponent = CodeComponent(.Colorize)
             codeComponent.createDefaultFunction(.Colorize)
-            components["main"] = codeComponent
+            components["2D"] = codeComponent
+            
+            codeComponent = CodeComponent(.SkyDome)
+            codeComponent.createDefaultFunction(.SkyDome)
+            components["3D"] = codeComponent
+            
+            defaultName = globalApp!.currentMode
+            
+            if defaultName == "2D" {
+                self.name = "Background"
+            } else {
+                self.name = "Sky Dome"
+            }
         } else
         if stageItemType == .ShapeStage {
             let codeComponent = CodeComponent(.SDF2D)
@@ -101,12 +122,15 @@ class Stage                 : Codable, Equatable
     
     var children            : [StageItem] = []
     
+    var values              : [String:Float] = [:]
+    
     private enum CodingKeys: String, CodingKey {
         case stageType
         case name
         case uuid
         case folderIsOpen
         case children
+        case values
     }
     
     required init(from decoder: Decoder) throws
@@ -117,6 +141,7 @@ class Stage                 : Codable, Equatable
         uuid = try container.decode(UUID.self, forKey: .uuid)
         folderIsOpen = try container.decode(Bool.self, forKey: .folderIsOpen)
         children = try container.decode([StageItem].self, forKey: .children)
+        values = try container.decode([String:Float].self, forKey: .values)
     }
     
     func encode(to encoder: Encoder) throws
@@ -127,6 +152,7 @@ class Stage                 : Codable, Equatable
         try container.encode(uuid, forKey: .uuid)
         try container.encode(folderIsOpen, forKey: .folderIsOpen)
         try container.encode(children, forKey: .children)
+        try container.encode(values, forKey: .values)
     }
     
     static func ==(lhs:Stage, rhs:Stage) -> Bool {
@@ -241,7 +267,7 @@ class Scene                 : Codable, Equatable
         selected = item
         selectedUUID = item.uuid
         
-        globalApp!.currentEditor.setComponent(item.components["main"]!)
+        globalApp!.currentEditor.setComponent(item.components[item.defaultName]!)
     }
 }
 

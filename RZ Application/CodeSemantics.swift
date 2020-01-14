@@ -755,7 +755,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SDF2D
+        case FreeFlow, Colorize, SkyDome, SDF2D
     }
     
     let functionType        : FunctionType
@@ -814,7 +814,10 @@ class CodeFunction          : Codable, Equatable
         
         if type == .Colorize {
             funcName = "colorize"
-        }
+        } else
+        if type == .SkyDome {
+            funcName = "skyDome"
+        } else
         if type == .SDF2D {
             funcName = "shapeDistance"
         }
@@ -924,7 +927,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SDF2D, Render
+        case Colorize, SkyDome, SDF2D, Render
     }
     
     let componentType       : ComponentType
@@ -1015,6 +1018,19 @@ class CodeComponent         : Codable, Equatable
             
             let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float4", "outColor"))
+            functions.append(f)
+        } else
+        if type == .SkyDome {
+            let f = CodeFunction(type, "skyDome")
+            f.comment = "Returns a color for the given ray direction"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float3", "dir", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg1)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)

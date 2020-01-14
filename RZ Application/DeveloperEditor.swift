@@ -44,6 +44,7 @@ class DeveloperEditor   : Editor
     {
         codeEditor.codeComponent = component
         updateOnNextDraw()
+        print( component.componentType)
         if let uuid = component.selected {
             component.selectUUID(uuid, codeEditor.codeContext)
             codeProperties.needsUpdate = true
@@ -72,11 +73,12 @@ class DeveloperEditor   : Editor
         if region.type == .Left {
             codeList.sceneList.rect.copy(region.rect)
             codeList.sceneList.rect.height /= 2
-            codeList.sceneList.rect.height -= 1
+            codeList.sceneList.rect.height += SceneList.InfoHeight
             codeList.draw()
             codeList.fragList.rect.copy(region.rect)
-            codeList.fragList.rect.y += codeList.sceneList.rect.height + 2
+            codeList.fragList.rect.y += codeList.sceneList.rect.height + 1
             codeList.fragList.rect.height /= 2
+            codeList.fragList.rect.height -= SceneList.InfoHeight
             codeList.fragList.rect.height -= 1
             codeList.draw()
         } else

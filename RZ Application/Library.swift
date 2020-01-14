@@ -120,6 +120,12 @@ class LibraryWidget         : MMWidget
         mmView.deregisterWidgets(widgets: scrollButton, self)
     }
     
+    // The 2D or 3D mode changed
+    func modeChanged()
+    {
+        
+    }
+    
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
