@@ -28,7 +28,7 @@ class Pipeline
         // Background
         
         let preStage = scene.stages[0]
-        for item in preStage.children {
+        for item in preStage.getChildren() {
             if let comp = item.components[item.defaultName] {
                 instance = codeBuilder.build(comp)
                 if comp === selected {
@@ -40,7 +40,7 @@ class Pipeline
         // Background
 
         let shapeStage = scene.stages[1]
-        for item in shapeStage.children {
+        for item in shapeStage.getChildren() {
             if let comp = item.components[item.defaultName] {
                 instance = codeBuilder.build(comp)
                 if comp === selected {

@@ -139,35 +139,45 @@ class SceneList : MMWidget
                 
                 infoItems = []
                 
-                if let stage = treeWidget.selectedStage {
+                if let stage = treeWidget.infoAreaStage {
                     if stage.stageType == .PreStage {
                         infoItems = [
                             SceneInfoItem(mmView, "2D", { () in
-                                stage.children[0].name = "Background"
-                                stage.children[0].defaultName = "2D"
-                                globalApp!.currentMode = "2D"
+                                globalApp!.currentSceneMode = .TwoD
                                 if let scene = self.currentScene {
-                                    scene.setSelected(stage.children[0])
+                                    scene.sceneMode = .TwoD
+                                    self.updateTree()
+                                    scene.setSelected(stage.getChildren()[0])
                                 }
                                 globalApp!.library.modeChanged()
                                 self.treeWidget.update()
                             }),
                             SceneInfoItem(mmView, "3D", { () in
-                                stage.children[0].name = "Sky Dome"
-                                stage.children[0].defaultName = "3D"
-                                globalApp!.currentMode = "3D"
+                                globalApp!.currentSceneMode = .ThreeD
                                 if let scene = self.currentScene {
-                                    scene.setSelected(stage.children[0])
+                                    self.updateTree()
+                                    scene.setSelected(stage.getChildren()[0])
                                 }
                                 globalApp!.library.modeChanged()
                                 self.treeWidget.update()
                             }),
+                        ]
+                    } else
+                    if stage.stageType == .ShapeStage {
+                        infoItems = [
+                            SceneInfoItem(mmView, "Add Empty Object", { () in
+                                
+                                self.treeWidget.update()
+                            })
                         ]
                     }
                 }
                 
                 if infoItems.count == 0 {
                     infoItems = [SceneInfoItem(mmView, "Render-Z")]
+                    //treeWidget.infoAreaStage = nil
+                    treeWidget.infoAreaItem = nil
+                    self.treeWidget.update()
                 }
             }
         }
@@ -265,8 +275,9 @@ class SceneTreeWidget   : MMWidget
     
     var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.2, 0.2, 0.2, 1)
     
-    var selectedStage   : Stage? = nil
-    
+    var infoAreaStage   : Stage? = nil
+    var infoAreaItem    : StageItem? = nil
+
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -320,7 +331,7 @@ class SceneTreeWidget   : MMWidget
                 height += unitSize
             } else {
                 height += itemSize
-                getChildHeight(stage.children)
+                getChildHeight(stage.getChildren())
             }
             height += spacing
         }
@@ -358,8 +369,8 @@ class SceneTreeWidget   : MMWidget
             func drawStage(_ item: Stage) {
                 
                 let color = SIMD4<Float>(0.5, 0.5, 0.5, 1)
-                if selectedStage === item {
-                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: SIMD4<Float>(0.2, 0.2, 0.2, 1), fragment: fragment!)
+                if infoAreaStage === item {
+                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 1, fillColor: SIMD4<Float>(0, 0, 0, 0), borderColor: SIMD4<Float>(1, 1, 1, 1), fragment: fragment!)
                 } else {
                     if textOnly == false {
                         mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
@@ -373,7 +384,7 @@ class SceneTreeWidget   : MMWidget
                 mmView.drawText.drawText(mmView.openSans, text: item.name, x: left + indent + 15, y: top + 8, scale: fontScale, fragment: fragment)
                 
                 if item.stageType == .PreStage {
-                    let text = item.children[0].defaultName
+                    let text = globalApp!.currentSceneMode == .TwoD ? "2D" : "3D"
                     mmView.drawText.drawText(mmView.openSans, text: text, x: rect.width - 30, y: top + 8, scale: fontScale, fragment: fragment)
                 }
                 
@@ -383,12 +394,16 @@ class SceneTreeWidget   : MMWidget
             func drawItem(_ item: StageItem) {
                 
                 let color = SIMD4<Float>(0.5, 0.5, 0.5, 1)
-                if scene?.selectedUUID == item.uuid {
+                if scene?.getSelectedUUID() == item.uuid {
                     mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: selectionColor, fragment: fragment!)
                 } else {
                     if textOnly == false {
                         mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
                     }
+                }
+                
+                if infoAreaItem === item {
+                    mmView.drawBox.draw( x: 0, y: top, width: width, height: unitSize, round: 4, borderSize: 1, fillColor: SIMD4<Float>(0, 0, 0, 0), borderColor: SIMD4<Float>(1, 1, 1, 1), fragment: fragment!)
                 }
 
                 //fontRect = mmView.openSans.getTextRect(text: text, scale: fontScale, rectToUse: fontRect)
@@ -420,7 +435,7 @@ class SceneTreeWidget   : MMWidget
                 for stage in scene.stages {
                     drawStage(stage)
                     if stage.folderIsOpen == true {
-                        drawChildren(stage.children)
+                        drawChildren(stage.getChildren())
                     }
                 }
             }
@@ -458,16 +473,18 @@ class SceneTreeWidget   : MMWidget
             //print( item.name )
             if let stage = item as? Stage {
                 
-                if selectedStage == stage {
+                if infoAreaStage === stage {
                     stage.folderIsOpen = !stage.folderIsOpen
                 }
-                selectedStage = stage
+                infoAreaStage = stage
+                infoAreaItem = nil
             }
             if let stageItem = item as? StageItem {
                 stageItem.folderIsOpen = !stageItem.folderIsOpen
                 //selectedItems = [stageItem.uuid]
                 
-                selectedStage = nil
+                infoAreaStage = nil
+                infoAreaItem = stageItem
                 scene?.setSelected(stageItem)
                 
                // if selectionChanged != nil {
@@ -519,7 +536,7 @@ class SceneTreeWidget   : MMWidget
                     if selectedStage == nil && selectedItem == nil && bottom > offset {
                         selectedStage = stage
                     }
-                    getChildHeight(stage.children)
+                    getChildHeight(stage.getChildren())
                 }
                 height += spacing
             }

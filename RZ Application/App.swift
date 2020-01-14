@@ -43,7 +43,7 @@ class App
     let library         : LibraryWidget
     
     var project         : Project
-    var currentMode     : String = "2D"
+    var currentSceneMode: Scene.SceneMode = .TwoD
     
     #if os(iOS)
     var viewController  : ViewController?
@@ -63,7 +63,7 @@ class App
         pipeline = Pipeline(mmView)
 
         currentEditor = developerEditor
-        project = Project()
+        project = Project(currentSceneMode)
         
         privateDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").privateCloudDatabase
         publicDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase
@@ -86,7 +86,7 @@ class App
         
         let backStage = project.selected!.stages[0]
         //let shapeStage = project.selected!.stages[1]
-        let selected = backStage.createChild()
+        let selected = backStage.getChildren()[0]
         //_ = shapeStage.createChild("2D Object")
         project.scenes[0].setSelected(selected)
 

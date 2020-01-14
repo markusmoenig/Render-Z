@@ -41,10 +41,6 @@ class StageItem             : Codable, Equatable
         components = try container.decode([String:CodeComponent].self, forKey: .components)
         children = try container.decode([StageItem].self, forKey: .children)
         defaultName = try container.decode(String.self, forKey: .defaultName)
-        
-        if stageItemType == .PreStage {
-            globalApp!.currentMode = defaultName
-        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -68,27 +64,10 @@ class StageItem             : Codable, Equatable
         self.stageItemType = stageItemType
         self.name = name
         
-        if stageItemType == .PreStage {
-            var codeComponent = CodeComponent(.Colorize)
-            codeComponent.createDefaultFunction(.Colorize)
-            components["2D"] = codeComponent
-            
-            codeComponent = CodeComponent(.SkyDome)
-            codeComponent.createDefaultFunction(.SkyDome)
-            components["3D"] = codeComponent
-            
-            defaultName = globalApp!.currentMode
-            
-            if defaultName == "2D" {
-                self.name = "Background"
-            } else {
-                self.name = "Sky Dome"
-            }
-        } else
         if stageItemType == .ShapeStage {
             let codeComponent = CodeComponent(.SDF2D)
             codeComponent.createDefaultFunction(.SDF2D)
-            components["main"] = codeComponent
+            components[defaultName] = codeComponent
         }
     }
 
@@ -109,7 +88,7 @@ class StageItem             : Codable, Equatable
 
 class Stage                 : Codable, Equatable
 {
-    enum StageType          : Int, Codable{
+    enum StageType          : Int, Codable {
         case PreStage, ShapeStage, RenderStage, PostStage
     }
     
@@ -120,8 +99,9 @@ class Stage                 : Codable, Equatable
  
     var folderIsOpen        : Bool = false
     
-    var children            : [StageItem] = []
-    
+    var children2D          : [StageItem] = []
+    var children3D          : [StageItem] = []
+
     var values              : [String:Float] = [:]
     
     private enum CodingKeys: String, CodingKey {
@@ -129,7 +109,8 @@ class Stage                 : Codable, Equatable
         case name
         case uuid
         case folderIsOpen
-        case children
+        case children2D
+        case children3D
         case values
     }
     
@@ -140,7 +121,8 @@ class Stage                 : Codable, Equatable
         name = try container.decode(String.self, forKey: .name)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         folderIsOpen = try container.decode(Bool.self, forKey: .folderIsOpen)
-        children = try container.decode([StageItem].self, forKey: .children)
+        children2D = try container.decode([StageItem].self, forKey: .children2D)
+        children3D = try container.decode([StageItem].self, forKey: .children3D)
         values = try container.decode([String:Float].self, forKey: .values)
     }
     
@@ -151,7 +133,8 @@ class Stage                 : Codable, Equatable
         try container.encode(name, forKey: .name)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(folderIsOpen, forKey: .folderIsOpen)
-        try container.encode(children, forKey: .children)
+        try container.encode(children2D, forKey: .children2D)
+        try container.encode(children3D, forKey: .children3D)
         try container.encode(values, forKey: .values)
     }
     
@@ -163,13 +146,40 @@ class Stage                 : Codable, Equatable
     {
         self.stageType = stageType
         self.name = name
+        
+        if stageType == .PreStage {
+            var item = StageItem(.PreStage, "Background")
+            var codeComponent = CodeComponent(.Colorize)
+            codeComponent.createDefaultFunction(.Colorize)
+            item.components[item.defaultName] = codeComponent
+            children2D.append(item)
+            
+            item = StageItem(.PreStage, "Sky Dome")
+            codeComponent = CodeComponent(.SkyDome)
+            codeComponent.createDefaultFunction(.SkyDome)
+            item.components[item.defaultName] = codeComponent
+            children3D.append(item)
+            
+            folderIsOpen = true
+        }
+    }
+    
+    /// Returns the 2D or 3D children depending on the current scene mode
+    func getChildren() -> [StageItem]
+    {
+        return globalApp!.currentSceneMode == .TwoD ? children2D : children3D
     }
     
     /// Adds a new stage item to the children list and returns it
     func createChild(_ name: String = "") -> StageItem
     {
         let stageItem = StageItem(stageType, name)
-        children.append(stageItem)
+        if globalApp!.currentSceneMode == .TwoD
+        {
+            children2D.append(stageItem)
+        } else {
+            children3D.append(stageItem)
+        }
         folderIsOpen = true
         return stageItem
     }
@@ -177,6 +187,7 @@ class Stage                 : Codable, Equatable
     /// Recursively update the component
     func updateComponent(_ comp: CodeComponent)
     {
+        let children = getChildren()
         for child in children {
             child.updateComponent(comp)
         }
@@ -185,19 +196,27 @@ class Stage                 : Codable, Equatable
 
 class Scene                 : Codable, Equatable
 {
+    enum SceneMode          : Int, Codable {
+        case TwoD, ThreeD
+    }
+    
+    var sceneMode           : SceneMode = .TwoD
+
     var name                : String = ""
     var uuid                : UUID = UUID()
 
-    var selectedUUID        : UUID? = nil
-    var selected            : StageItem? = nil
+    var selectedUUID2D      : UUID? = nil
+    var selectedUUID3D      : UUID? = nil
 
-    var stages             : [Stage] = []
-   
+    var stages              : [Stage] = []
+       
     private enum CodingKeys: String, CodingKey {
         case name
         case uuid
-        case selectedUUID
+        case selectedUUID2D
+        case selectedUUID3D
         case stages
+        case sceneMode
     }
    
     required init(from decoder: Decoder) throws
@@ -205,10 +224,22 @@ class Scene                 : Codable, Equatable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         name = try container.decode(String.self, forKey: .name)
         uuid = try container.decode(UUID.self, forKey: .uuid)
-        selectedUUID = try container.decode(UUID?.self, forKey: .selectedUUID)
+        selectedUUID2D = try container.decode(UUID?.self, forKey: .selectedUUID2D)
+        selectedUUID3D = try container.decode(UUID?.self, forKey: .selectedUUID3D)
         stages = try container.decode([Stage].self, forKey: .stages)
+        sceneMode = try container.decode(SceneMode.self, forKey: .sceneMode)
+
+        if sceneMode != globalApp!.currentSceneMode {
+            globalApp!.currentSceneMode = sceneMode
+            globalApp!.library.modeChanged()
+        }
         
-        if let uuid = selectedUUID {
+        if sceneMode == .TwoD && uuid == selectedUUID2D {
+            if let item = itemOfUUID(uuid) {
+                setSelected(item)
+            }
+        } else
+        if sceneMode == .ThreeD && uuid == selectedUUID3D {
             if let item = itemOfUUID(uuid) {
                 setSelected(item)
             }
@@ -220,29 +251,56 @@ class Scene                 : Codable, Equatable
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(name, forKey: .name)
         try container.encode(uuid, forKey: .uuid)
-        try container.encode(selectedUUID, forKey: .selectedUUID)
+        try container.encode(selectedUUID2D, forKey: .selectedUUID2D)
+        try container.encode(selectedUUID3D, forKey: .selectedUUID3D)
         try container.encode(stages, forKey: .stages)
+        try container.encode(sceneMode, forKey: .sceneMode)
     }
    
     static func ==(lhs:Scene, rhs:Scene) -> Bool {
        return lhs.uuid == rhs.uuid
     }
 
-    init(_ name: String = "")
+    init(_ sceneMode: SceneMode,_ name: String = "")
     {
         self.name = name
+    
+        self.sceneMode = sceneMode
+
+        stages.append(Stage(.PreStage, "World"))
+        stages.append(Stage(.ShapeStage, "Shapes"))
+        stages.append(Stage(.RenderStage, "Render"))
+        stages.append(Stage(.PostStage, "Post FX"))
         
-        self.stages.append(Stage(.PreStage, "World"))
-        self.stages.append(Stage(.ShapeStage, "Shape"))
-        self.stages.append(Stage(.RenderStage, "Render"))
-        self.stages.append(Stage(.PostStage, "Post FX"))
+        selectedUUID2D = stages[0].children2D[0].uuid
+        selectedUUID3D = stages[0].children3D[0].uuid
+    }
+    
+    /// Returns the selected UUID
+    func getSelectedUUID() -> UUID?
+    {
+        if sceneMode == .TwoD {
+            return selectedUUID2D
+        } else {
+            return selectedUUID3D
+        }
+    }
+    
+    /// Sets the selected UUID
+    func setSelectedUUID(_ uuid: UUID)
+    {
+        if sceneMode == .TwoD {
+            selectedUUID2D = uuid
+        } else {
+            selectedUUID3D = uuid
+        }
     }
     
     /// Recursively update the component
     func updateComponent(_ comp: CodeComponent)
     {
         for stage in stages {
-            for item in stage.children {
+            for item in stage.getChildren() {
                 item.updateComponent(comp)
             }
         }
@@ -252,7 +310,7 @@ class Scene                 : Codable, Equatable
     func itemOfUUID(_ uuid: UUID) -> StageItem?
     {
         for stage in stages {
-            for item in stage.children {
+            for item in stage.getChildren() {
                 if item.uuid == uuid {
                     return item
                 }
@@ -264,8 +322,7 @@ class Scene                 : Codable, Equatable
     /// Sets the selected item for the scene and updates the current editor
     func setSelected(_ item: StageItem)
     {
-        selected = item
-        selectedUUID = item.uuid
+        setSelectedUUID(item.uuid)
         
         globalApp!.currentEditor.setComponent(item.components[item.defaultName]!)
     }
@@ -316,11 +373,11 @@ class Project               : Codable, Equatable
         return lhs.uuid == rhs.uuid
     }
 
-    init(_ name: String = "")
+    init(_ sceneMode: Scene.SceneMode,_ name: String = "")
     {
         self.name = name
         
-        let scene = Scene("Untitled")
+        let scene = Scene(sceneMode, "Untitled")
         scenes.append(scene)
         setSelected(scene: scene)
     }

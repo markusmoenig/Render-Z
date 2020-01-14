@@ -93,6 +93,13 @@ class MMTabButtonWidget: MMWidget
         }
     }
     
+    override func mouseLeave(_ event: MMMouseEvent) {
+        if hoverTab != nil {
+            hoverTab = nil
+            mmView.update()
+        }
+    }
+    
     func draw(xOffset: Float = 0)
     {
         if items.count == 0 { return }
