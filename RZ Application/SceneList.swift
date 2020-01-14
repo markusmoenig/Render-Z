@@ -63,7 +63,8 @@ class SceneList : MMWidget
     
     var infoItems           : [SceneInfoItem] = []
     var hoverInfoItem       : SceneInfoItem? = nil
-    
+    var pressedInfoItem     : SceneInfoItem? = nil
+
     var currentScene        : Scene? = nil
     
     static var InfoHeight   : Float = 30
@@ -120,6 +121,9 @@ class SceneList : MMWidget
             item.rect.y = infoRect.y
             item.rect.width = infoItemWidth
             item.rect.height = SceneList.InfoHeight
+            if item === pressedInfoItem {
+                mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.4, 0.4, 0.4, 1))
+            } else
             if item === hoverInfoItem {
                 mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.2, 0.2, 0.2, 1))
             }
@@ -130,8 +134,14 @@ class SceneList : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        #if os(iOS)
+        mouseMoved(event)
+        #endif
         if let infoItem = hoverInfoItem {
+            pressedInfoItem = infoItem
+            #if os(OSX)
             infoItem.cb!()
+            #endif
         } else {
             let changed = treeWidget.selectAt(event.x - rect.x, (event.y - rect.y))
             if changed {
@@ -218,6 +228,13 @@ class SceneList : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        #if os(iOS)
+        if let infoItem = pressedInfoItem {
+            infoItem.cb!()
+        }
+        hoverInfoItem = nil
+        #endif
+        pressedInfoItem = nil
         mouseIsDown = false
     }
     
