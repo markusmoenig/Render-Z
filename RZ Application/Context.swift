@@ -63,7 +63,7 @@ class ContextWidget         : MMWidget
     
     var selectedItem        : StageItem? = nil
     
-    var dragSource          : LibraryDrag?
+    //var dragSource          : LibraryDrag?
     
     var currentWidth        : Float = 0
     var openWidth           : Float = 200
@@ -182,7 +182,17 @@ class ContextWidget         : MMWidget
         mouseDownPos.x = event.x
         mouseDownPos.y = event.y
 
+        #if os(iOS)
         mouseMoved(event)
+        #endif
+        
+        currentItem = nil
+        
+        if let current = hoverItem {
+            currentItem = current
+            
+            mmView.showDialog(globalApp!.libraryDialog)
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)

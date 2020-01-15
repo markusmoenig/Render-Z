@@ -165,7 +165,6 @@ class SceneList : MMWidget
                                     self.updateTree()
                                     scene.setSelected(stage.getChildren()[0])
                                 }
-                                globalApp!.library.modeChanged()
                                 self.treeWidget.update()
                             }),
                             SceneInfoItem(mmView, "3D", { () in
@@ -174,7 +173,6 @@ class SceneList : MMWidget
                                     self.updateTree()
                                     scene.setSelected(stage.getChildren()[0])
                                 }
-                                globalApp!.library.modeChanged()
                                 self.treeWidget.update()
                             }),
                         ]

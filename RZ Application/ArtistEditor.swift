@@ -106,10 +106,10 @@ class ArtistEditor          : Editor
             sceneList.draw()
         } else
         if region.type == .Right {
-            if globalApp!.library.currentWidth > 0 {
+            if globalApp!.context.currentWidth > 0 {
                 region.rect.x = globalApp!.mmView.renderer.cWidth - region.rect.width
-                globalApp!.library.rect.copy(region.rect)
-                globalApp!.library.draw()
+                globalApp!.context.rect.copy(region.rect)
+                globalApp!.context.draw()
             }
         } else
         if region.type == .Editor {

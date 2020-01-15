@@ -134,6 +134,8 @@
 		2B501A5E22CC5602008D409F /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
 		2B50635523CE9C4700124517 /* Context.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635423CE9ABE00124517 /* Context.swift */; };
 		2B50635623CE9C4700124517 /* Context.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635423CE9ABE00124517 /* Context.swift */; };
+		2B50635823CEC98600124517 /* LibraryDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635723CEC98500124517 /* LibraryDialog.swift */; };
+		2B50635923CEC98600124517 /* LibraryDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635723CEC98500124517 /* LibraryDialog.swift */; };
 		2B57D7902358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7922358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
@@ -255,8 +257,6 @@
 		2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FEA23C81CD9005619E4 /* CodeUtilities.swift */; };
 		2B8E2FEE23C9691A005619E4 /* Pipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FED23C96919005619E4 /* Pipeline.swift */; };
 		2B8E2FEF23C9691A005619E4 /* Pipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FED23C96919005619E4 /* Pipeline.swift */; };
-		2B8E2FF423CC0E13005619E4 /* Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FF323CC0D04005619E4 /* Library.swift */; };
-		2B8E2FF523CC0E14005619E4 /* Library.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FF323CC0D04005619E4 /* Library.swift */; };
 		2B91CBE42358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
 		2B91CBE52358477300DED7B1 /* Square.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE22358477300DED7B1 /* Square.tiff */; };
 		2B91CBE62358477300DED7B1 /* Square.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B91CBE32358477300DED7B1 /* Square.json */; };
@@ -644,6 +644,7 @@
 		2B4CC22F222F5D5C00A47812 /* Physics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics.swift; sourceTree = "<group>"; };
 		2B501A5C22CC5426008D409F /* DebugBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBuilder.swift; sourceTree = "<group>"; };
 		2B50635423CE9ABE00124517 /* Context.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Context.swift; sourceTree = "<group>"; };
+		2B50635723CEC98500124517 /* LibraryDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDialog.swift; sourceTree = "<group>"; };
 		2B57D78E2358149600E8BF65 /* GameCuben.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GameCuben.tiff; sourceTree = "<group>"; };
 		2B57D78F2358149600E8BF65 /* GameCuben.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = GameCuben.json; sourceTree = "<group>"; };
 		2B5AE79A23836F6F00990ACB /* Pinball.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
@@ -702,7 +703,6 @@
 		2B8E2FE723C7FDF9005619E4 /* DesignProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignProperties.swift; sourceTree = "<group>"; };
 		2B8E2FEA23C81CD9005619E4 /* CodeUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeUtilities.swift; sourceTree = "<group>"; };
 		2B8E2FED23C96919005619E4 /* Pipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pipeline.swift; sourceTree = "<group>"; };
-		2B8E2FF323CC0D04005619E4 /* Library.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Library.swift; sourceTree = "<group>"; };
 		2B91CBE22358477300DED7B1 /* Square.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Square.tiff; sourceTree = "<group>"; };
 		2B91CBE32358477300DED7B1 /* Square.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = Square.json; sourceTree = "<group>"; };
 		2B91CBE8235848AC00DED7B1 /* Pong.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pong.shape-z"; sourceTree = "<group>"; };
@@ -919,8 +919,8 @@
 				2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */,
 				2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */,
 				2B8E2FD823C5CF40005619E4 /* Scene.swift */,
-				2B8E2FF323CC0D04005619E4 /* Library.swift */,
 				2B50635423CE9ABE00124517 /* Context.swift */,
+				2B50635723CEC98500124517 /* LibraryDialog.swift */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
 			);
 			path = "RZ Application";
@@ -1712,6 +1712,7 @@
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
 				2B7A3C3823B46838002EC5FC /* EditorWidget.swift in Sources */,
+				2B50635923CEC98600124517 /* LibraryDialog.swift in Sources */,
 				2B7A3C1623B46546002EC5FC /* MMTabButtonWidget.swift in Sources */,
 				2B7A3C1723B46546002EC5FC /* MMCompute.swift in Sources */,
 				2B7A3C1923B46546002EC5FC /* MMScrollArea.swift in Sources */,
@@ -1724,7 +1725,6 @@
 				2B7A3C1423B46546002EC5FC /* MMColorWidget.swift in Sources */,
 				2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */,
 				2B9B299C23BAD15700C2F387 /* Node.swift in Sources */,
-				2B8E2FF423CC0E13005619E4 /* Library.swift in Sources */,
 				2B7A3C5323B4768D002EC5FC /* ArtistEditor.swift in Sources */,
 				2B8E2FEE23C9691A005619E4 /* Pipeline.swift in Sources */,
 				2B50635523CE9C4700124517 /* Context.swift in Sources */,
@@ -1936,12 +1936,12 @@
 				2B9B29CC23BB453400C2F387 /* MMTabWidget.swift in Sources */,
 				2B9B29E923BB45CA00C2F387 /* ArtistEditor.swift in Sources */,
 				2B50635623CE9C4700124517 /* Context.swift in Sources */,
+				2B50635823CEC98600124517 /* LibraryDialog.swift in Sources */,
 				2B9B29E623BB45C000C2F387 /* EditorRegion.swift in Sources */,
 				2B8CC6CC23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */,
 				2B9B29C923BB453400C2F387 /* MMSliderWidget.swift in Sources */,
 				2B9B29CF23BB453400C2F387 /* MMFragment.swift in Sources */,
 				2B9B29C623BB453400C2F387 /* MMFont.swift in Sources */,
-				2B8E2FF523CC0E14005619E4 /* Library.swift in Sources */,
 				2B8E2FE023C6D7B4005619E4 /* DesignEditor.swift in Sources */,
 				2B9B29D723BB453400C2F387 /* MMFile.swift in Sources */,
 				2B9B29D623BB453400C2F387 /* MMTimeline.swift in Sources */,

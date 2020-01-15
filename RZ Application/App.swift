@@ -40,7 +40,7 @@ class App
     let privateDatabase : CKDatabase
     let publicDatabase  : CKDatabase
 
-    let library         : LibraryWidget
+    let libraryDialog   : LibraryDialog
     let context         : ContextWidget
 
     var project         : Project
@@ -69,7 +69,7 @@ class App
         privateDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").privateCloudDatabase
         publicDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase
         
-        library = LibraryWidget(mmView)
+        libraryDialog = LibraryDialog(mmView)
         context = ContextWidget(mmView)
 
         topRegion = TopRegion( mmView, app: self )

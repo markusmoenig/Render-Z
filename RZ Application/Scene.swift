@@ -256,7 +256,6 @@ class Scene                 : Codable, Equatable
 
         if sceneMode != globalApp!.currentSceneMode {
             globalApp!.currentSceneMode = sceneMode
-            globalApp!.library.modeChanged()
         }
         
         if sceneMode == .TwoD && uuid == selectedUUID2D {
