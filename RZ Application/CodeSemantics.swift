@@ -995,9 +995,10 @@ class CodeComponent         : Codable, Equatable
         return lhs.uuid == rhs.uuid
     }
     
-    init(_ type: ComponentType = .Colorize)
+    init(_ type: ComponentType = .Colorize,_ name: String = "")
     {
         componentType = type
+        self.libraryName = name
     }
     
     func createFunction(_ name: String)

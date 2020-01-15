@@ -97,9 +97,9 @@ class ArtistEditor          : Editor
     override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Top {
-            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton, globalApp!.topRegion!.libraryButton)
+            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton)
             timelineButton.draw()
-            globalApp!.topRegion!.libraryButton.draw()
+            //globalApp!.topRegion!.libraryButton.draw()
         } else
         if region.type == .Left {
             sceneList.rect.copy(region.rect)

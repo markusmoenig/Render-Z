@@ -41,7 +41,8 @@ class App
     let publicDatabase  : CKDatabase
 
     let library         : LibraryWidget
-    
+    let context         : ContextWidget
+
     var project         : Project
     var currentSceneMode: Scene.SceneMode = .TwoD
     
@@ -69,7 +70,8 @@ class App
         publicDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase
         
         library = LibraryWidget(mmView)
-        
+        context = ContextWidget(mmView)
+
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )
         rightRegion = RightRegion( mmView, app: self )

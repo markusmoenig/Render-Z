@@ -17,6 +17,8 @@ class StageItem             : Codable, Equatable
     var folderIsOpen        : Bool = false
 
     var components          : [String:CodeComponent] = [:]
+    var componentLists      : [String:[CodeComponent]] = [:]
+
     var children            : [StageItem] = []
     
     var defaultName         : String = "main"
@@ -27,6 +29,7 @@ class StageItem             : Codable, Equatable
         case uuid
         case folderIsOpen
         case components
+        case componentLists
         case children
         case defaultName
     }
@@ -39,6 +42,7 @@ class StageItem             : Codable, Equatable
         uuid = try container.decode(UUID.self, forKey: .uuid)
         folderIsOpen = try container.decode(Bool.self, forKey: .folderIsOpen)
         components = try container.decode([String:CodeComponent].self, forKey: .components)
+        componentLists = try container.decode([String:[CodeComponent]].self, forKey: .componentLists)
         children = try container.decode([StageItem].self, forKey: .children)
         defaultName = try container.decode(String.self, forKey: .defaultName)
     }
@@ -51,6 +55,7 @@ class StageItem             : Codable, Equatable
         try container.encode(uuid, forKey: .uuid)
         try container.encode(folderIsOpen, forKey: .folderIsOpen)
         try container.encode(components, forKey: .components)
+        try container.encode(componentLists, forKey: .componentLists)
         try container.encode(children, forKey: .children)
         try container.encode(defaultName, forKey: .defaultName)
     }
@@ -63,12 +68,6 @@ class StageItem             : Codable, Equatable
     {
         self.stageItemType = stageItemType
         self.name = name
-        
-        if stageItemType == .ShapeStage {
-            let codeComponent = CodeComponent(.SDF2D)
-            codeComponent.createDefaultFunction(.SDF2D)
-            components[defaultName] = codeComponent
-        }
     }
 
     /// Recursively update the component
@@ -170,10 +169,36 @@ class Stage                 : Codable, Equatable
         return globalApp!.currentSceneMode == .TwoD ? children2D : children3D
     }
     
+    /// Sets the 2D or 3D children depending on the current scene mode
+    func setChildren(_ children: [StageItem])
+    {
+        if globalApp!.currentSceneMode == .TwoD {
+            children2D = children
+        } else {
+            children3D = children
+        }
+    }
+    
     /// Adds a new stage item to the children list and returns it
-    func createChild(_ name: String = "") -> StageItem
+    @discardableResult func createChild(_ name: String = "") -> StageItem
     {
         let stageItem = StageItem(stageType, name)
+        
+        if stageItem.stageItemType == .ShapeStage {
+            
+            let defComponent = CodeComponent(.SDF2D, "Empty")
+            defComponent.createDefaultFunction(.SDF2D)
+
+            stageItem.componentLists["atoms2D"] = [defComponent]
+            stageItem.componentLists["atoms3D"] = []
+
+            stageItem.componentLists["materials2D"] = []
+            stageItem.componentLists["materials3D"] = []
+            
+            stageItem.componentLists["domain2D"] = []
+            stageItem.componentLists["domain3D"] = []
+        }
+        
         if globalApp!.currentSceneMode == .TwoD
         {
             children2D.append(stageItem)
@@ -324,7 +349,10 @@ class Scene                 : Codable, Equatable
     {
         setSelectedUUID(item.uuid)
         
-        globalApp!.currentEditor.setComponent(item.components[item.defaultName]!)
+        if let defaultComponent = item.components[item.defaultName] {
+            globalApp!.currentEditor.setComponent(defaultComponent)
+        }
+        globalApp!.context.setSelected(item)
     }
 }
 

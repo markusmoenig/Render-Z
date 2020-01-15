@@ -132,6 +132,8 @@
 		2B4CC231222F5D5C00A47812 /* Physics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4CC22F222F5D5C00A47812 /* Physics.swift */; };
 		2B501A5D22CC5602008D409F /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
 		2B501A5E22CC5602008D409F /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
+		2B50635523CE9C4700124517 /* Context.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635423CE9ABE00124517 /* Context.swift */; };
+		2B50635623CE9C4700124517 /* Context.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635423CE9ABE00124517 /* Context.swift */; };
 		2B57D7902358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7922358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
@@ -641,6 +643,7 @@
 		2B4CC22C2226669000A47812 /* NodeUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeUI.swift; sourceTree = "<group>"; };
 		2B4CC22F222F5D5C00A47812 /* Physics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics.swift; sourceTree = "<group>"; };
 		2B501A5C22CC5426008D409F /* DebugBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBuilder.swift; sourceTree = "<group>"; };
+		2B50635423CE9ABE00124517 /* Context.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Context.swift; sourceTree = "<group>"; };
 		2B57D78E2358149600E8BF65 /* GameCuben.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GameCuben.tiff; sourceTree = "<group>"; };
 		2B57D78F2358149600E8BF65 /* GameCuben.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = GameCuben.json; sourceTree = "<group>"; };
 		2B5AE79A23836F6F00990ACB /* Pinball.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
@@ -917,6 +920,7 @@
 				2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */,
 				2B8E2FD823C5CF40005619E4 /* Scene.swift */,
 				2B8E2FF323CC0D04005619E4 /* Library.swift */,
+				2B50635423CE9ABE00124517 /* Context.swift */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
 			);
 			path = "RZ Application";
@@ -1723,6 +1727,7 @@
 				2B8E2FF423CC0E13005619E4 /* Library.swift in Sources */,
 				2B7A3C5323B4768D002EC5FC /* ArtistEditor.swift in Sources */,
 				2B8E2FEE23C9691A005619E4 /* Pipeline.swift in Sources */,
+				2B50635523CE9C4700124517 /* Context.swift in Sources */,
 				2B7A3C1B23B46546002EC5FC /* MMListWidget.swift in Sources */,
 				2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */,
 				2B7A3C3923B46838002EC5FC /* LeftRegion.swift in Sources */,
@@ -1930,6 +1935,7 @@
 				2B9B29C123BB453400C2F387 /* MMRenderer.swift in Sources */,
 				2B9B29CC23BB453400C2F387 /* MMTabWidget.swift in Sources */,
 				2B9B29E923BB45CA00C2F387 /* ArtistEditor.swift in Sources */,
+				2B50635623CE9C4700124517 /* Context.swift in Sources */,
 				2B9B29E623BB45C000C2F387 /* EditorRegion.swift in Sources */,
 				2B8CC6CC23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */,
 				2B9B29C923BB453400C2F387 /* MMSliderWidget.swift in Sources */,

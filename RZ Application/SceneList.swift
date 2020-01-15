@@ -147,6 +147,12 @@ class SceneList : MMWidget
             if changed {
                 treeWidget.build(scene: globalApp!.project.scenes[0], fixedWidth: 200)
                 
+                if let scene = currentScene {
+                    if scene.getSelectedUUID() == nil {
+                        globalApp!.context.setSelected(nil)
+                    }
+                }
+                
                 infoItems = []
                 
                 if let stage = treeWidget.infoAreaStage {
@@ -175,9 +181,19 @@ class SceneList : MMWidget
                     } else
                     if stage.stageType == .ShapeStage {
                         infoItems = [
-                            SceneInfoItem(mmView, "Add Empty Object", { () in
+                            SceneInfoItem(mmView, "Add Empty Shape", { () in
                                 
-                                self.treeWidget.update()
+                                getStringDialog(view: self.mmView, title: "New Shape", message: "Shape name", defaultValue: "New Shape", cb: { (value) -> Void in
+                                                                        
+                                    if let scene = self.currentScene {
+                                        
+                                        let shapeStage = scene.stages[1]
+                                        let shape = shapeStage.createChild(value)
+
+                                        scene.setSelected(shape)
+                                        self.treeWidget.build(scene: scene, fixedWidth: 200)
+                                    }
+                                } )
                             })
                         ]
                     }
