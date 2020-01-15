@@ -48,6 +48,7 @@ func insertValueToFragment(_ fragment: CodeFragment,_ value: SIMD3<Float>)
 
 import CloudKit
 
+/// Upload the given component to the public or private libraries
 func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true)
 {
     let name = component.libraryName
@@ -97,4 +98,40 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true)
             globalApp!.publicDatabase.add(operation)
         }
     }
+}
+
+/// Generate a preview thumbnail for the component
+func generateThumbnailForComponent(_ comp: CodeComponent, _ width: Float = 100, height: Float = 100) -> MTLTexture?
+{
+    let codeBuilder = globalApp!.codeBuilder
+    let texture : MTLTexture? = codeBuilder.compute.allocateTexture(width: width, height: height, output: false)
+    
+    dryRunComponent(comp)
+    
+    if let tex = texture {
+        let instance = codeBuilder.build(comp)
+        codeBuilder.render(instance, tex)
+    }
+    
+    return texture
+}
+
+/// Decode Component into JSON
+func decodeComponentFromJSON(_ json: String) -> CodeComponent?
+{
+    if let jsonData = json.data(using: .utf8)
+    {
+        if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
+            return component
+        }
+    }
+    return nil
+}
+
+/// Runs the component to generate code without any drawing
+func dryRunComponent(_ comp: CodeComponent)
+{
+    let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, 0.5)
+    ctx.reset(100)
+    comp.draw(globalApp!.mmView, ctx)
 }

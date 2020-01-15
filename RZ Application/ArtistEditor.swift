@@ -76,10 +76,7 @@ class ArtistEditor          : Editor
     
     override func setComponent(_ component: CodeComponent)
     {
-        let ctx = CodeContext(mmView, designEditor.fragment, mmView.openSans, 0.5)
-        ctx.fragment = nil
-        ctx.reset(designEditor.rect.width)
-        component.draw(mmView, ctx)
+        dryRunComponent(component)
         
         designEditor.designComponent = component
         designProperties.setSelected(component)

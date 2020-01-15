@@ -48,6 +48,8 @@ class ContextWidget         : MMWidget
     var currentList         : [ContextItem] = []
     var currentItem         : ContextItem? = nil
     var hoverItem           : ContextItem? = nil
+    
+    var currentId           : String = ""
 
     var fragment            : MMFragment?
     var width, height       : Float
@@ -103,6 +105,15 @@ class ContextWidget         : MMWidget
     func deactivate()
     {
         mmView.deregisterWidgets(widgets: scrollButton, self)
+    }
+    
+    /// Update the current item from the library dialog
+    func updateComponentFromLibrary(_ comp: CodeComponent)
+    {
+        if let current = currentItem {
+            current.component = comp
+            update()
+        }
     }
     
     /// Build the texture widget
@@ -187,10 +198,10 @@ class ContextWidget         : MMWidget
         #endif
         
         currentItem = nil
-        
         if let current = hoverItem {
             currentItem = current
             
+            globalApp!.libraryDialog.setType(currentId, current.component!.uuid)
             mmView.showDialog(globalApp!.libraryDialog)
         }
     }
@@ -236,8 +247,10 @@ class ContextWidget         : MMWidget
                 
                 if globalApp!.currentSceneMode == .TwoD {
                     listToUse = item.componentLists["atoms2D"]!
+                    currentId = "SDF2D"
                 } else {
                     listToUse = item.componentLists["atoms3D"]!
+                    currentId = "SDF3D"
                 }
             }
         }

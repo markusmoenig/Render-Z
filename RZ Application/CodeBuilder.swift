@@ -61,7 +61,6 @@ class CodeBuilder
         // Compute monitor components
         if let fragment = monitor {
             inst.computeComponents = 1
-            print( fragment.fragmentType, fragment.typeName )
             if fragment.typeName.contains("2") {
                 inst.computeComponents = 2
             } else
@@ -96,7 +95,7 @@ class CodeBuilder
             buildRender(inst, component, monitor)
         }
         
-        print( inst.code )
+        //print( inst.code )
         
         inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!

@@ -14,11 +14,14 @@ class LibraryItem {
     var titleLabel          : MMTextLabel
     var descriptionLabel    : MMTextLabel
     var rect                : MMRect = MMRect()
+    var thumbnail           : MTLTexture? = nil
+    var json                : String
     
     init(_ mmView: MMView,_ title: String,_ description: String = "", _ json: String = "")
     {
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title)
         self.descriptionLabel = MMTextLabel(mmView, font: mmView.openSans, text: description, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
+        self.json = json
     }
 }
 
@@ -36,6 +39,9 @@ class LibraryDialog: MMDialog {
     
     var scrollOffset    : Float = 0
     var dispatched      : Bool = false
+    
+    var currentType     : String = ""
+    var uuidToReplace   : UUID = UUID()
 
     init(_ view: MMView) {
         super.init(view, title: "Choose Project Template", cancelText: "", okText: "Create Project")
@@ -68,15 +74,23 @@ class LibraryDialog: MMDialog {
                 //let deeplink = record.value(forKey: "deeplink")
                 //print("Custom Field, deeplink: \(deeplink ?? "")")
                 
-                let name = record.recordID.recordName
+                let arr = record.recordID.recordName.components(separatedBy: " - ")
+                let name = arr[0]
             
-                self.sdf2DItems.append(LibraryItem(view, name,""))
+                let item = LibraryItem(view, name, "", record.value(forKey: "json") as! String)
+                if let comp = decodeComponentFromJSON(item.json) {
+                    item.thumbnail = generateThumbnailForComponent(comp)
+                }
+                self.sdf2DItems.append(item)
                 
                 self.currentItems = self.sdf2DItems
-                
-                print("here")
             })
         }
+    }
+    
+    func setType(_ type: String,_ uuid: UUID)
+    {
+        uuidToReplace = uuid
     }
     
     override func cancel() {
@@ -87,6 +101,13 @@ class LibraryDialog: MMDialog {
         super.ok()
         
         if let selected = selectedItem {
+            if let comp = decodeComponentFromJSON(selected.json) {
+                comp.uuid = uuidToReplace
+                globalApp!.project.selected!.updateComponent(comp)
+                globalApp!.currentEditor.setComponent(comp)
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                globalApp!.context.updateComponentFromLibrary(comp)
+            }
         }
     }
     
@@ -138,7 +159,7 @@ class LibraryDialog: MMDialog {
         if currentItems == nil { return }
         let items = currentItems!
         
-        let itemSize : Float = (rect.width - 4 - 6) / 3
+        let itemSize : Float = (rect.width - 4 - 6) / 5
         var y : Float = rect.y + 38
 
         if rect.y == 0 {
@@ -174,6 +195,10 @@ class LibraryDialog: MMDialog {
 
             mmView.drawBox.draw( x: x, y: y, width: itemSize, height: itemSize, round: 26, borderSize: 2, fillColor: mmView.skin.Item.color, borderColor: borderColor)//, maskRoundingSize: 26, maskRect: SIMD4<Float>(boxRect.x, boxRect.y, boxRect.width, boxRect.height))
             
+            if let thumb = item.thumbnail {
+                mmView.drawTexture.draw(thumb, x: x + (itemSize - Float(100)*0.8) / 2, y: y + 45, zoom: 1.2)
+            }
+
             if selectedItem === item {
                 //mmView.drawTexture.draw(blueTexture!, x: x + (itemSize - Float(blueTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
             } else {

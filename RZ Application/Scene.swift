@@ -79,6 +79,12 @@ class StageItem             : Codable, Equatable
                 return
             }
         }
+        for (id, list) in componentLists {
+            if let index = list.firstIndex(of: comp) {
+                componentLists[id]![index] = comp
+                return
+            }
+        }
         for child in children {
             child.updateComponent(comp)
         }
@@ -212,9 +218,11 @@ class Stage                 : Codable, Equatable
     /// Recursively update the component
     func updateComponent(_ comp: CodeComponent)
     {
-        let children = getChildren()
-        for child in children {
-            child.updateComponent(comp)
+        for item in children2D {
+            item.updateComponent(comp)
+        }
+        for item in children3D {
+            item.updateComponent(comp)
         }
     }
 }
@@ -324,9 +332,7 @@ class Scene                 : Codable, Equatable
     func updateComponent(_ comp: CodeComponent)
     {
         for stage in stages {
-            for item in stage.getChildren() {
-                item.updateComponent(comp)
-            }
+            stage.updateComponent(comp)
         }
     }
     

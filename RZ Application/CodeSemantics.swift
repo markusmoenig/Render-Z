@@ -1288,7 +1288,7 @@ class CodeContext
 
     var tempRect            : MMRect = MMRect()
     
-    init(_ view: MMView,_ fragment: MMFragment,_ font: MMFont,_ fontScale: Float)
+    init(_ view: MMView,_ fragment: MMFragment?,_ font: MMFont,_ fontScale: Float)
     {
         mmView = view
         self.fragment = fragment
