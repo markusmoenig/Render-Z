@@ -50,6 +50,7 @@ class ContextWidget         : MMWidget
     var hoverItem           : ContextItem? = nil
     
     var currentId           : String = ""
+    var libraryId           : String = ""
 
     var fragment            : MMFragment?
     var width, height       : Float
@@ -112,7 +113,7 @@ class ContextWidget         : MMWidget
     {
         width = openWidth
         rect.width = openWidth
-        height = Float(currentList.count) * itemSize + (Float(currentList.count) - 1) * spacing
+        height = max(Float(currentList.count) * itemSize + (Float(currentList.count) - 1) * spacing, 1)
         
         // ---
         
@@ -192,9 +193,16 @@ class ContextWidget         : MMWidget
         if let current = hoverItem {
             currentItem = current
             
-            if current.component == nil {
-                globalApp!.libraryDialog.setType(currentId, current)
+            if libraryId.starts(with: "Render") {
+                globalApp!.libraryDialog.setType(libraryId, current)
                 mmView.showDialog(globalApp!.libraryDialog)
+            } else {
+                if current.component == nil {
+                    globalApp!.libraryDialog.setType(libraryId, current)
+                    mmView.showDialog(globalApp!.libraryDialog)
+                } else {
+                    globalApp!.currentEditor.setComponent(current.component!)
+                }
             }
             update()
         }
@@ -231,6 +239,8 @@ class ContextWidget         : MMWidget
         var nextState : ContextState = .Closed
         var listToUse : [CodeComponent] = []
         
+        var addEmpty : Bool = false
+        
         currentItem = nil
         hoverItem = nil
         currentId = ""
@@ -244,9 +254,21 @@ class ContextWidget         : MMWidget
                 if globalApp!.currentSceneMode == .TwoD {
                     currentId = "shapes2D"
                     listToUse = item.componentLists[currentId]!
+                    libraryId = "SDF2D"
                 } else {
                     currentId = "shapes3D"
+                    libraryId = "SDF3D"
                     listToUse = item.componentLists[currentId]!
+                }
+                addEmpty = true
+            } else
+            if item.stageItemType == .RenderStage {
+                nextState = .Open
+                listToUse = [item.components[item.defaultName]!]
+                if globalApp!.currentSceneMode == .TwoD {
+                    libraryId = "Render2D"
+                } else {
+                    libraryId = "Render3D"
                 }
             }
         }
@@ -256,7 +278,6 @@ class ContextWidget         : MMWidget
         }
         
         if nextState == .Open && listToUse.count > 0 {
-            
             for comp in listToUse {
                 currentList.append(ContextItem(comp))
             }
@@ -265,7 +286,9 @@ class ContextWidget         : MMWidget
             globalApp!.currentEditor.setComponent(currentItem!.component!)
         }
         
-        currentList.append(ContextItem())
+        if addEmpty {
+            currentList.append(ContextItem())
+        }
         build()
 
         selectedItem = selItem
@@ -274,8 +297,10 @@ class ContextWidget         : MMWidget
     /// Replace the json of the component with the given uuid, called from the LibraryDialog
     func replaceJSONForItem(_ contextItem: ContextItem,_ json: String)
     {
+        //print(json)
         if let comp = decodeComponentFromJSON(json) {
             
+            comp.selected = nil
             globalApp!.currentEditor.setComponent(comp)
             globalApp!.currentEditor.updateOnNextDraw(compile: true)
             

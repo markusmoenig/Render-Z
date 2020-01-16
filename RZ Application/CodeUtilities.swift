@@ -62,8 +62,20 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true)
         if component.componentType == .Colorize {
             libName += " - Colorize"
         } else
+        if component.componentType == .SkyDome {
+            libName += " - SkyDome"
+        } else
         if component.componentType == .SDF2D {
             libName += " - SDF2D"
+        } else
+        if component.componentType == .SDF3D {
+            libName += " - SDF3D"
+        } else
+        if component.componentType == .Render2D {
+            libName += " - Render2D"
+        } else
+        if component.componentType == .Render3D {
+            libName += " - Render3D"
         }
         
         let recordID  = CKRecord.ID(recordName: libName)
@@ -126,6 +138,17 @@ func decodeComponentFromJSON(_ json: String) -> CodeComponent?
         }
     }
     return nil
+}
+
+// Encode Component into JSON
+func encodeComponentToJSON(_ component: CodeComponent) -> String
+{
+    let encodedData = try? JSONEncoder().encode(component)
+    if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+    {
+        return encodedObjectJsonString
+    }
+    return ""
 }
 
 /// Runs the component to generate code without any drawing

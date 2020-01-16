@@ -977,10 +977,10 @@ class NodeUIText : NodeUI
         contentLabel!.isDisabled = isDisabled
         contentLabel.color = NodeUI.contentTextColor
         if contentLabel.rect.width < width {
-            contentLabel.drawCentered(x: x, y: contentY - 1, width: width, height: itemHeight)
+            contentLabel.drawCentered(x: x, y: contentY, width: width, height: itemHeight)
         } else {
-            mmView.renderer.setClipRect(MMRect(x + 10, contentY - 1, width - 20, itemHeight))
-            contentLabel.drawCenteredY(x: x + 10, y: contentY - 1, width: width - 20, height: itemHeight)
+            mmView.renderer.setClipRect(MMRect(x + 10, contentY, width - 20, itemHeight))
+            contentLabel.drawCenteredY(x: x + 10, y: contentY, width: width - 20, height: itemHeight)
             mmView.renderer.setClipRect()
         }
     }

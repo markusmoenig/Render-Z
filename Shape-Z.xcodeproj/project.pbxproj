@@ -596,6 +596,8 @@
 		2BE67109221291D300B95241 /* Node.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67107221291D200B95241 /* Node.metal */; };
 		2BE6710B2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
 		2BE6710C2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
+		2BE9488723D0675600DB0BCD /* DefaultItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE9488623D0675600DB0BCD /* DefaultItems.swift */; };
+		2BE9488823D0677700DB0BCD /* DefaultItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE9488623D0675600DB0BCD /* DefaultItems.swift */; };
 		2BEA8C3722573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
 		2BEA8C3822573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
 		2BED879D228B9D9C005CE147 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
@@ -791,6 +793,7 @@
 		2BE6710422125D7D00B95241 /* NodeGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeGraph.swift; sourceTree = "<group>"; };
 		2BE67107221291D200B95241 /* Node.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Node.metal; sourceTree = "<group>"; };
 		2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectMaxDelegate.swift; sourceTree = "<group>"; };
+		2BE9488623D0675600DB0BCD /* DefaultItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultItems.swift; sourceTree = "<group>"; };
 		2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatWidget.swift; sourceTree = "<group>"; };
 		2BED879C228B9D9C005CE147 /* MMScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScreen.swift; sourceTree = "<group>"; };
 		2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectNodes.swift; sourceTree = "<group>"; };
@@ -921,6 +924,7 @@
 				2B8E2FD823C5CF40005619E4 /* Scene.swift */,
 				2B50635423CE9ABE00124517 /* Context.swift */,
 				2B50635723CEC98500124517 /* LibraryDialog.swift */,
+				2BE9488623D0675600DB0BCD /* DefaultItems.swift */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
 			);
 			path = "RZ Application";
@@ -1683,6 +1687,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B8CC6CE23C55DAD00CFCB93 /* CodeAccess.swift in Sources */,
+				2BE9488723D0675600DB0BCD /* DefaultItems.swift in Sources */,
 				2B7A3C3B23B46838002EC5FC /* RightRegion.swift in Sources */,
 				2B8E2FD923C5CF40005619E4 /* Scene.swift in Sources */,
 				2B7A3C0F23B46546002EC5FC /* MMFont.swift in Sources */,
@@ -1931,6 +1936,7 @@
 				2B9B29C723BB453400C2F387 /* MMLabel.swift in Sources */,
 				2B9B29E023BB45A700C2F387 /* Node.swift in Sources */,
 				2B9B29CA23BB453400C2F387 /* MMFloatPopUp.swift in Sources */,
+				2BE9488823D0677700DB0BCD /* DefaultItems.swift in Sources */,
 				2B8E2FEF23C9691A005619E4 /* Pipeline.swift in Sources */,
 				2B9B29C123BB453400C2F387 /* MMRenderer.swift in Sources */,
 				2B9B29CC23BB453400C2F387 /* MMTabWidget.swift in Sources */,

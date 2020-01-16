@@ -27,7 +27,7 @@ class LibraryItem {
 
 class LibraryDialog: MMDialog {
     
-    var sdf2DItems      : [LibraryItem] = []
+    var itemMap         : [String:[LibraryItem]] = [:]
 
     var currentItems    : [LibraryItem]? = nil
 
@@ -76,20 +76,27 @@ class LibraryDialog: MMDialog {
                 
                 let arr = record.recordID.recordName.components(separatedBy: " - ")
                 let name = arr[0]
-            
+                let type = arr[1]
+
                 let item = LibraryItem(view, name, "", record.value(forKey: "json") as! String)
                 if let comp = decodeComponentFromJSON(item.json) {
                     item.thumbnail = generateThumbnailForComponent(comp)
                 }
-                self.sdf2DItems.append(item)
                 
-                self.currentItems = self.sdf2DItems
+                if self.itemMap[type] == nil {
+                    self.itemMap[type] = []
+                }
+                
+                var list = self.itemMap[type]!
+                list.append(item)
+                self.itemMap[type] = list
             })
         }
     }
     
-    func setType(_ type: String,_ contextItem: ContextItem)
+    func setType(_ id: String,_ contextItem: ContextItem)
     {
+        currentItems = itemMap[id]
         self.contextItem = contextItem
     }
     
