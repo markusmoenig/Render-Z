@@ -267,7 +267,7 @@ class CodeEditor        : MMWidget
             fragment.encodeEnd()
             
             if codeChanged {
-                globalApp!.pipeline.build(scene: globalApp!.project.selected!, selected: codeComponent)
+                globalApp!.pipeline.build(scene: globalApp!.project.selected!)
                 codeChanged = false
             }
             globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
@@ -292,7 +292,7 @@ class CodeEditor        : MMWidget
         }
         
         // Do the preview
-        if let texture = globalApp!.pipeline.result {
+        if let texture = globalApp!.pipeline.resultTexture {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
             globalApp!.pipeline.renderIfResolutionChanged(rect.width * zoom, rect.height * zoom)
             

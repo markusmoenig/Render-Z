@@ -41,10 +41,10 @@ class LibraryDialog: MMDialog {
     var dispatched      : Bool = false
     
     var currentType     : String = ""
-    var uuidToReplace   : UUID = UUID()
+    var contextItem     : ContextItem? = nil
 
     init(_ view: MMView) {
-        super.init(view, title: "Choose Project Template", cancelText: "", okText: "Create Project")
+        super.init(view, title: "Choose Library Item", cancelText: "Cancel", okText: "Select")
         
         rect.width = 800
         rect.height = 600
@@ -88,9 +88,9 @@ class LibraryDialog: MMDialog {
         }
     }
     
-    func setType(_ type: String,_ uuid: UUID)
+    func setType(_ type: String,_ contextItem: ContextItem)
     {
-        uuidToReplace = uuid
+        self.contextItem = contextItem
     }
     
     override func cancel() {
@@ -101,12 +101,8 @@ class LibraryDialog: MMDialog {
         super.ok()
         
         if let selected = selectedItem {
-            if let comp = decodeComponentFromJSON(selected.json) {
-                comp.uuid = uuidToReplace
-                globalApp!.project.selected!.updateComponent(comp)
-                globalApp!.currentEditor.setComponent(comp)
-                globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                globalApp!.context.updateComponentFromLibrary(comp)
+            if let context = contextItem {
+                globalApp!.context.replaceJSONForItem(context, selected.json)
             }
         }
     }

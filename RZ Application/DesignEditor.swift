@@ -94,7 +94,7 @@ class DesignEditor          : MMWidget
             fragment.encodeEnd()
             
             if designChanged {
-                globalApp!.pipeline.build(scene: globalApp!.project.selected!, selected: designComponent)
+                globalApp!.pipeline.build(scene: globalApp!.project.selected!)
                 designChanged = false
             }
             globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
@@ -115,7 +115,7 @@ class DesignEditor          : MMWidget
         }
         
         // Do the preview
-        if let texture = globalApp!.pipeline.result {
+        if let texture = globalApp!.pipeline.resultTexture {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
             globalApp!.pipeline.renderIfResolutionChanged(rect.width * zoom, rect.height * zoom)
         } else {

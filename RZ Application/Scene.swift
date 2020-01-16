@@ -167,12 +167,25 @@ class Stage                 : Codable, Equatable
             
             folderIsOpen = true
         }
+        
+        if stageType == .RenderStage {
+            let item = StageItem(.RenderStage, "render")
+            let codeComponent = CodeComponent(.Render)
+            codeComponent.createDefaultFunction(.Render)
+            item.components[item.defaultName] = codeComponent
+            children3D.append(item)
+        }
     }
     
     /// Returns the 2D or 3D children depending on the current scene mode
     func getChildren() -> [StageItem]
     {
-        return globalApp!.currentSceneMode == .TwoD ? children2D : children3D
+        
+        if stageType == .RenderStage {
+            return children3D
+        } else {
+            return globalApp!.currentSceneMode == .TwoD ? children2D : children3D
+        }
     }
     
     /// Sets the 2D or 3D children depending on the current scene mode
@@ -192,11 +205,11 @@ class Stage                 : Codable, Equatable
         
         if stageItem.stageItemType == .ShapeStage {
             
-            let defComponent = CodeComponent(.SDF2D, "Empty")
-            defComponent.createDefaultFunction(.SDF2D)
+            //let defComponent = CodeComponent(.SDF2D, "Empty")
+            //defComponent.createDefaultFunction(.SDF2D)
 
-            stageItem.componentLists["atoms2D"] = [defComponent]
-            stageItem.componentLists["atoms3D"] = []
+            stageItem.componentLists["shapes2D"] = []//[defComponent]
+            stageItem.componentLists["shapes3D"] = []
 
             stageItem.componentLists["materials2D"] = []
             stageItem.componentLists["materials3D"] = []
@@ -300,7 +313,7 @@ class Scene                 : Codable, Equatable
         self.sceneMode = sceneMode
 
         stages.append(Stage(.PreStage, "World"))
-        stages.append(Stage(.ShapeStage, "Shapes"))
+        stages.append(Stage(.ShapeStage, "Objects"))
         stages.append(Stage(.RenderStage, "Render"))
         stages.append(Stage(.PostStage, "Post FX"))
         

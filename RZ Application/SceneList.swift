@@ -179,9 +179,9 @@ class SceneList : MMWidget
                     } else
                     if stage.stageType == .ShapeStage {
                         infoItems = [
-                            SceneInfoItem(mmView, "Add Empty Shape", { () in
+                            SceneInfoItem(mmView, "Add Empty Object", { () in
                                 
-                                getStringDialog(view: self.mmView, title: "New Shape", message: "Shape name", defaultValue: "New Shape", cb: { (value) -> Void in
+                                getStringDialog(view: self.mmView, title: "New Object", message: "Object name", defaultValue: "New Object", cb: { (value) -> Void in
                                                                         
                                     if let scene = self.currentScene {
                                         

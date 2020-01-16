@@ -13,90 +13,92 @@ class Pipeline
     var codeBuilder         : CodeBuilder
     var mmView              : MMView
     
-    var result              : MTLTexture? = nil
+    var backTexture         : MTLTexture? = nil
+    var depthTexture        : MTLTexture? = nil
+    var resultTexture       : MTLTexture? = nil
     
-    var instance            : CodeBuilderInstance? = nil
-    
+    var instanceMap         : [String:CodeBuilderInstance] = [:]
+
     init(_ mmView: MMView)
     {
         self.mmView = mmView
         self.codeBuilder = CodeBuilder(mmView)
     }
     
-    func build(scene: Scene, selected: CodeComponent? = nil, monitor: CodeFragment? = nil)
+    // Build the pipeline elements
+    func build(scene: Scene, upUntil: StageItem? = nil, monitor: CodeFragment? = nil)
     {
-        // Background
+        let modeId : String = globalApp!.currentSceneMode == .TwoD ? "2D" : "3D"
         
+        instanceMap = [:]
+        
+        // Background
         let preStage = scene.stages[0]
         for item in preStage.getChildren() {
             if let comp = item.components[item.defaultName] {
-                instance = codeBuilder.build(comp)
-                if comp === selected {
-                    return
+                instanceMap["pre"] = codeBuilder.build(comp)
+            }
+        }
+
+        // Objects
+        let shapeStage = scene.stages[1]
+        for item in shapeStage.getChildren() {
+            if let shapes = item.componentLists["shapes" + modeId] {
+                if shapes.count > 0 {
+                    instanceMap["shape"] = codeBuilder.build(shapes[0])
                 }
             }
         }
         
-        // Background
-
-        let shapeStage = scene.stages[1]
-        for item in shapeStage.getChildren() {
-            if let comp = item.components[item.defaultName] {
-                instance = codeBuilder.build(comp)
-                if comp === selected {
-                    return
-                }
-            }
-        }
+        // Render
+        let renderStage = scene.stages[2]
+        let renderChildren = renderStage.getChildren()
+        let renderColor = renderChildren[0]
+        instanceMap["render"] = codeBuilder.build(renderColor.components[renderColor.defaultName]!)
     }
     
+    // Render the pipeline
     func render(_ width: Float,_ height: Float)
     {
-        if let inst = instance {
-            result = checkTextureSize(width, height, result)
-            codeBuilder.render(inst, result)
+        // Render the background into backTexture
+        backTexture = checkTextureSize(width, height, backTexture)
+        if let inst = instanceMap["pre"] {
+            codeBuilder.render(inst, backTexture)
+        }
+        
+        // Render the shape distance into depthTexture (float)
+        depthTexture = checkTextureSize(width, height, depthTexture, true)
+        if let inst = instanceMap["shape"] {
+            codeBuilder.render(inst, depthTexture)
+        }
+        
+        // Render it all
+        resultTexture = checkTextureSize(width, height, resultTexture)
+        if let inst = instanceMap["render"] {
+            codeBuilder.render(inst, resultTexture, [depthTexture!, backTexture!])
         }
     }
     
     func renderIfResolutionChanged(_ width: Float,_ height: Float)
     {
-        if (Float(result!.width) != width || Float(result!.height) != height) {
+        if (Float(resultTexture!.width) != width || Float(resultTexture!.height) != height) {
             render(width, height)
         }
     }
     
-    func start(_ width: Float,_ height: Float)
-    {
-        let component = CodeComponent(.SDF2D)
-        
-        let inst = codeBuilder.build(component)
-        let test = codeBuilder.compute.allocateFloatTexture(width: width, height: height, output: false)
-        
-        codeBuilder.render(inst, test)
-        
-        let test2 = codeBuilder.compute.allocateTexture(width: width, height: height, output: false)
-
-        let component2 = CodeComponent(.Render)
-        let inst2 = codeBuilder.build(component2)
-
-        codeBuilder.render(inst2, test2, test)
-
-        result = test2
-    }
-    
-    func checkTextureSize(_ width: Float,_ height: Float,_ texture: MTLTexture? = nil) -> MTLTexture?
+    /// Checks the texture size and if needed reallocate the texture
+    func checkTextureSize(_ width: Float,_ height: Float,_ texture: MTLTexture? = nil,_ isFloat: Bool = false) -> MTLTexture?
     {
         var result  : MTLTexture? = texture
         
         if texture == nil || (Float(texture!.width) != width || Float(texture!.height) != height) {
-            result = codeBuilder.compute.allocateTexture(width: width, height: height)
+            if isFloat == false {
+                result = codeBuilder.compute.allocateTexture(width: width, height: height)
+            } else {
+                result = codeBuilder.compute.allocateFloatTexture(width: width, height: height)
+            }
         }
         
         return result
-    }
-    
-    func draw()
-    {
-        
     }
 }

@@ -395,32 +395,27 @@ class CodeBuilder
          texture2d<half, access::write>          outTexture  [[texture(0)]],
          constant float4                        *data   [[ buffer(1) ]],
          texture2d<half, access::sample>         depthTexture [[texture(2)]],
+         texture2d<half, access::sample>         backTexture [[texture(3)]],
          uint2 gid                               [[thread_position_in_grid]])
          {
              constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
 
              float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-             float2 center = size / 2;
-
-             //float2 fragCoord = float2( gid.x, gid.y );
-         
              float2 uv = float2(gid.x, gid.y);
+             
+             //float2 center = size / 2;
              //uv = translate(uv, center);
-         
-             //float d = sdCircle(uv, 40);
 
-             float4 outColor = float4(1, 1, 1,1);
-             //float GlobalTime = data[0].x;
-             
-             float4 s = float4(depthTexture.sample(textureSampler, uv / size ));
-             
-            if ( s.x > 60 ) {
-                outColor = float4(0,0,0, 1);
-             }
-                //outColor.x = fillMask(s.x);
+             float4 outColor = float4(0, 0, 0, 1);
+             float4 backColor = float4(backTexture.sample(textureSampler, uv / size ));
+             float4 matColor = float4(1, 1, 1, 1);
+
+             float4 __depthIn = float4(depthTexture.sample(textureSampler, uv / size ));
+             float distance = __depthIn.x;
+            
+             outColor = mix(backColor, matColor, fillMask(distance));
          
-             outTexture.write(half4(outColor.x, outColor.y, outColor.z, 1 ), gid);
-             //outTexture.write(s, gid);
+             outTexture.write(half4(outColor), gid);
 
          """
      
@@ -528,11 +523,11 @@ class CodeBuilder
 
     
     // Render the component into a texture
-    func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil,_ inTexture: MTLTexture? = nil)
+    func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil,_ inTextures: [MTLTexture] = [])
     {
         updateData(inst)
         
-        compute.run( inst.computeState!, outTexture: texture, inBuffer: inst.buffer, inTexture: inTexture)
+        compute.run( inst.computeState!, outTexture: texture, inBuffer: inst.buffer, inTextures: inTextures)
         
         compute.commandBuffer.waitUntilCompleted()
     }

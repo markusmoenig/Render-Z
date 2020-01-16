@@ -107,15 +107,6 @@ class ContextWidget         : MMWidget
         mmView.deregisterWidgets(widgets: scrollButton, self)
     }
     
-    /// Update the current item from the library dialog
-    func updateComponentFromLibrary(_ comp: CodeComponent)
-    {
-        if let current = currentItem {
-            current.component = comp
-            update()
-        }
-    }
-    
     /// Build the texture widget
     func build()
     {
@@ -182,7 +173,7 @@ class ContextWidget         : MMWidget
         if currentList.count > 0 {
             scrollArea.rect.copy(rect)
             scrollArea.rect.y += 50
-            scrollArea.rect.height -= 40
+            scrollArea.rect.height -= 60
             scrollArea.build(widget:textureWidget, area: scrollArea.rect, xOffset: xOffset)
         }
     }
@@ -201,8 +192,11 @@ class ContextWidget         : MMWidget
         if let current = hoverItem {
             currentItem = current
             
-            globalApp!.libraryDialog.setType(currentId, current.component!.uuid)
-            mmView.showDialog(globalApp!.libraryDialog)
+            if current.component == nil {
+                globalApp!.libraryDialog.setType(currentId, current)
+                mmView.showDialog(globalApp!.libraryDialog)
+            }
+            update()
         }
     }
     
@@ -220,7 +214,7 @@ class ContextWidget         : MMWidget
     {
         hoverItem = nil
         for item in currentList {
-            if item.rect.contains(event.x - rect.x, event.y - 50 - rect.y) {
+            if item.rect.contains(event.x - rect.x, event.y - 50 - rect.y - scrollArea.offsetY) {
                 hoverItem = item
                 break
             }
@@ -229,6 +223,7 @@ class ContextWidget         : MMWidget
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
+        scrollArea.mouseScrolled(event)
     }
     
     func setSelected(_ selItem: StageItem? = nil)
@@ -238,19 +233,20 @@ class ContextWidget         : MMWidget
         
         currentItem = nil
         hoverItem = nil
+        currentId = ""
         currentList = []
         
         if let item = selItem {
             if item.stageItemType == .ShapeStage {
                 nextState = .Open
-                scrollButton.setItems(["Primitives", "Materials", "Domain"], fixedWidth: 190)
+                scrollButton.setItems(["Shapes", "Materials", "Domain"], fixedWidth: 190)
                 
                 if globalApp!.currentSceneMode == .TwoD {
-                    listToUse = item.componentLists["atoms2D"]!
-                    currentId = "SDF2D"
+                    currentId = "shapes2D"
+                    listToUse = item.componentLists[currentId]!
                 } else {
-                    listToUse = item.componentLists["atoms3D"]!
-                    currentId = "SDF3D"
+                    currentId = "shapes3D"
+                    listToUse = item.componentLists[currentId]!
                 }
             }
         }
@@ -264,16 +260,43 @@ class ContextWidget         : MMWidget
             for comp in listToUse {
                 currentList.append(ContextItem(comp))
             }
-            currentList.append(ContextItem())
 
             currentItem = currentList[0]
-            build()
             globalApp!.currentEditor.setComponent(currentItem!.component!)
         }
         
+        currentList.append(ContextItem())
+        build()
+
         selectedItem = selItem
     }
     
+    /// Replace the json of the component with the given uuid, called from the LibraryDialog
+    func replaceJSONForItem(_ contextItem: ContextItem,_ json: String)
+    {
+        if let comp = decodeComponentFromJSON(json) {
+            
+            globalApp!.currentEditor.setComponent(comp)
+            globalApp!.currentEditor.updateOnNextDraw(compile: true)
+            
+            if contextItem.component != nil {
+                // Replace the old component
+                comp.uuid = contextItem.component!.uuid
+                globalApp!.project.selected!.updateComponent(comp)
+            } else {
+                // Add the component
+                comp.uuid = UUID()
+                currentList.append(ContextItem())
+                if let selected = selectedItem {
+                    selected.componentLists[currentId]?.append(comp)
+                }
+            }
+
+            contextItem.component = comp
+            build()
+        }
+    }
+
     func switchState() {
         if animating { return }
         let rightRegion = globalApp!.rightRegion!
@@ -307,7 +330,6 @@ class ContextWidget         : MMWidget
             animating = true
         }
     }
-    
     /*
     /// Create a drag item
     func createDragSource(_ x: Float,_ y: Float) -> LibraryDrag?
