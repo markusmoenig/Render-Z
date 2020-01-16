@@ -755,7 +755,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D
     }
     
     let functionType        : FunctionType
@@ -821,7 +821,7 @@ class CodeFunction          : Codable, Equatable
         if type == .SDF2D {
             funcName = "shapeDistance"
         } else
-        if type == .Render {
+        if type == .Render2D {
             funcName = "render"
         }
 
@@ -856,14 +856,26 @@ class CodeFunction          : Codable, Equatable
                 
                 let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
                 if name == "outColor" {
-                    if index == 0 {
-                        constValue.setValue(0.161)
-                    } else
-                    if index == 1 {
-                        constValue.setValue(0.165)
-                    } else
-                    if index == 2 {
-                        constValue.setValue(0.184)
+                    if functionType == .Colorize || functionType == .SkyDome {
+                        if index == 0 {
+                            constValue.setValue(0.161)
+                        } else
+                        if index == 1 {
+                            constValue.setValue(0.165)
+                        } else
+                        if index == 2 {
+                            constValue.setValue(0.184)
+                        }
+                    } else {
+                        if index == 0 {
+                            constValue.setValue(0)
+                        } else
+                        if index == 1 {
+                            constValue.setValue(0)
+                        } else
+                        if index == 2 {
+                            constValue.setValue(0)
+                        }
                     }
                 }
                 argStatement.fragments.append(constValue)
@@ -930,7 +942,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D
     }
     
     let componentType       : ComponentType
@@ -1058,7 +1070,7 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float", "outDistance"))
             functions.append(f)
         } else
-        if type == .Render {
+        if type == .Render2D {
             let f = CodeFunction(type, "render")
             f.comment = "Computes the pixel color for the given material."
             

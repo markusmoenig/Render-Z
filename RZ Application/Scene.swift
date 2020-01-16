@@ -170,22 +170,17 @@ class Stage                 : Codable, Equatable
         
         if stageType == .RenderStage {
             let item = StageItem(.RenderStage, "render")
-            let codeComponent = CodeComponent(.Render)
-            codeComponent.createDefaultFunction(.Render)
+            let codeComponent = CodeComponent(.Render2D)
+            codeComponent.createDefaultFunction(.Render2D)
             item.components[item.defaultName] = codeComponent
-            children3D.append(item)
+            children2D.append(item)
         }
     }
     
     /// Returns the 2D or 3D children depending on the current scene mode
     func getChildren() -> [StageItem]
     {
-        
-        if stageType == .RenderStage {
-            return children3D
-        } else {
-            return globalApp!.currentSceneMode == .TwoD ? children2D : children3D
-        }
+        return globalApp!.currentSceneMode == .TwoD ? children2D : children3D
     }
     
     /// Sets the 2D or 3D children depending on the current scene mode

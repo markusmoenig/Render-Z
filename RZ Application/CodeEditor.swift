@@ -429,7 +429,7 @@ class CodeEditor        : MMWidget
             
             // Drag on a constant value or when the target has only one component, i.e. single float values
             if (destFrag.fragmentType == .ConstantValue || destFrag.evaluateComponents() == 1) {
-                print(destFrag.evaluateComponents(), destFrag.evaluateType(), destFrag.typeName)
+                //print(destFrag.evaluateComponents(), destFrag.evaluateType(), destFrag.typeName)
                 let sourceComponents = sourceFrag.evaluateComponents()
                 //let destComponents = destFrag.evaluateComponents() // Currently only float anyway
                 //print( sourceComponents, 1)

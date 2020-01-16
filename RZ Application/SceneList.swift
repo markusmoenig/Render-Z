@@ -392,7 +392,7 @@ class SceneTreeWidget   : MMWidget
             let left        : Float = 12
             var top         : Float = 0
             var indent      : Float = 0
-            let indentSize  : Float = 4
+            let indentSize  : Float = 10
             let fontScale   : Float = 0.44
             
             //var fontRect = MMRect()

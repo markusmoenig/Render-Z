@@ -91,8 +91,8 @@ class CodeBuilder
         if component.componentType == .SDF2D {
             buildSDF2D(inst, component, monitor)
         } else
-        if component.componentType == .Render {
-            buildRender(inst, component, monitor)
+        if component.componentType == .Render2D {
+            buildRender2D(inst, component, monitor)
         }
         
         //print( inst.code )
@@ -371,7 +371,7 @@ class CodeBuilder
     }
     
     /// Build the source code for the component
-     func buildRender(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+     func buildRender2D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
      {
          inst.code +=
          """

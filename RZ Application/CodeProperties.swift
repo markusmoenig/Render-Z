@@ -101,7 +101,7 @@ class CodeProperties    : MMWidget
                 
         if let function = ctx.selectedFunction {
             
-            c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "comment", title: "Comment", value: function.comment) )
+            c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "comment", title: "Code Comment", value: function.comment) )
             c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 if variable == "comment" {
                     function.comment = oldValue
@@ -116,7 +116,7 @@ class CodeProperties    : MMWidget
             if function.functionType != .FreeFlow {
                 
                 c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryName", title: "Library Name", value: comp.libraryName) )
-                c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryComment", title: "Library Comment", value: comp.libraryComment) )
+                c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryComment", title: "Comment", value: comp.libraryComment) )
         
                 c2Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "libraryName" {
@@ -134,7 +134,7 @@ class CodeProperties    : MMWidget
                 }
                 addButton(b1)
                 
-                var b2 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Public Library", fixedWidth: buttonWidth)
+                var b2 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Public", fixedWidth: buttonWidth)
                 b2.clicked = { (event) in
                     uploadToLibrary(comp, false)
                     b2.removeState(.Checked)
@@ -219,7 +219,7 @@ class CodeProperties    : MMWidget
             // --- Constant Value == Float
             if fragment.fragmentType == .ConstantValue {
                 
-                let numberVar = NodeUINumber(c1Node!, variable: "value", title: "Value", range: SIMD2<Float>(0,1), value: fragment.values["value"]!)
+                let numberVar = NodeUINumber(c1Node!, variable: "value", title: "Value", range: SIMD2<Float>(fragment.values["min"]!, fragment.values["max"]!), value: fragment.values["value"]!)
                 c1Node?.uiItems.append(numberVar)
                 c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "value" {

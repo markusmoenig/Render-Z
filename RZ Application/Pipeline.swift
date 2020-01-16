@@ -53,8 +53,10 @@ class Pipeline
         // Render
         let renderStage = scene.stages[2]
         let renderChildren = renderStage.getChildren()
-        let renderColor = renderChildren[0]
-        instanceMap["render"] = codeBuilder.build(renderColor.components[renderColor.defaultName]!)
+        if renderChildren.count > 0 {
+            let renderColor = renderChildren[0]
+            instanceMap["render"] = codeBuilder.build(renderColor.components[renderColor.defaultName]!)
+        }
     }
     
     // Render the pipeline
@@ -73,9 +75,11 @@ class Pipeline
         }
         
         // Render it all
-        resultTexture = checkTextureSize(width, height, resultTexture)
         if let inst = instanceMap["render"] {
+            resultTexture = checkTextureSize(width, height, resultTexture)
             codeBuilder.render(inst, resultTexture, [depthTexture!, backTexture!])
+        } else {
+            resultTexture = backTexture
         }
     }
     
