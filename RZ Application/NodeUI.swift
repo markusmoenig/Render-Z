@@ -595,12 +595,15 @@ class NodeUINumber : NodeUI
     var contentText : String = ""
     var contentValue: Float? = nil
     
-    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = SIMD2<Float>(0,1), int: Bool = false, value: Float = 0)
+    var precision   : Int = 3
+    
+    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = SIMD2<Float>(0,1), int: Bool = false, value: Float = 0, precision: Int = 3)
     {
         self.value = value
         self.defaultValue = value
         self.range = range
         self.int = int
+        self.precision = precision
 
         if node.properties[variable] == nil {
             node.properties[variable] = value
@@ -749,7 +752,7 @@ class NodeUINumber : NodeUI
         
         // --- Draw Text
         if contentValue != value {
-            contentText = int ? String(Int(value)) : String(format: "%.03f", value)
+            contentText = int ? String(Int(value)) : String(format: "%.0\(precision)f", value)
             contentValue = value
         }
         if contentLabel.text != contentText || contentLabel.scale != NodeUI.fontScale * scale {

@@ -219,7 +219,7 @@ class CodeProperties    : MMWidget
             // --- Constant Value == Float
             if fragment.fragmentType == .ConstantValue {
                 
-                let numberVar = NodeUINumber(c1Node!, variable: "value", title: "Value", range: SIMD2<Float>(fragment.values["min"]!, fragment.values["max"]!), value: fragment.values["value"]!)
+                let numberVar = NodeUINumber(c1Node!, variable: "value", title: "Value", range: SIMD2<Float>(fragment.values["min"]!, fragment.values["max"]!), value: fragment.values["value"]!, precision: Int(fragment.values["precision"]!))
                 c1Node?.uiItems.append(numberVar)
                 c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "value" {
@@ -255,7 +255,8 @@ class CodeProperties    : MMWidget
                         fragment.values["precision"] = oldValue
                         let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Precision Changed") : nil
                         fragment.values["precision"] = newValue
-                        //numberVar. = newValue
+                        numberVar.precision = Int(newValue)
+                        numberVar.contentValue = nil
                         self.editor.updateOnNextDraw()
                         if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                     }
@@ -711,11 +712,12 @@ class CodeProperties    : MMWidget
     // Clear the monitor data
     func setupMonitorData(_ comp: CodeComponent,_ fragment: CodeFragment,_ ctx: CodeContext)
     {
+        /*
         monitorInstance = globalApp!.codeBuilder.build(comp, fragment)
         
         monitorData = []
         monitorRange = SIMD2<Float>(-1, 1)
-        updateMonitor()
+        updateMonitor()*/
     }
     
     // Clear the monitor data

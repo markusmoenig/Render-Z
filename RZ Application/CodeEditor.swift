@@ -490,8 +490,16 @@ class CodeEditor        : MMWidget
              
                 // TODO make sure all arguments comform to their formats
                 
-                for _ in sourceFrag.argumentFormat! {
-                    let constant = defaultConstantForType(typeName)
+                for format in sourceFrag.argumentFormat! {
+                    
+                    var argFormatToUse = typeName
+                    let supportedFormats = format.components(separatedBy: "|")
+                    
+                    if supportedFormats.contains(typeName) == false {
+                        argFormatToUse = supportedFormats[0]
+                    }
+                    
+                    let constant = defaultConstantForType(argFormatToUse)
                     
                     let statement = CodeStatement(.List)
                     statement.fragments.append(constant)
@@ -499,7 +507,7 @@ class CodeEditor        : MMWidget
                     destFrag.arguments.append(statement)
                 }
                 #if DEBUG
-                print("Drop #5")
+                print("Drop #6")
                 #endif
             }
                         

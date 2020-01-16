@@ -411,17 +411,13 @@ class CodeBuilder
              float4 matColor = float4(1, 1, 1, 1);
 
              float4 __depthIn = float4(depthTexture.sample(textureSampler, uv / size ));
-             float distance = __depthIn.x;
-            
-             outColor = mix(backColor, matColor, fillMask(distance));
-         
-             outTexture.write(half4(outColor), gid);
+            float distance = __depthIn.x;
 
          """
      
-         //if let code = component.code {
-         //    inst.code += code
-         //}
+         if let code = component.code {
+            inst.code += code
+         }
 
          if let frag = monitor {
 
@@ -438,7 +434,10 @@ class CodeBuilder
          
          inst.code +=
          """
+             
+            //outColor = mix(backColor, matColor, fillMask(distance));
           
+            outTexture.write(half4(outColor), gid);
          }
           
          """

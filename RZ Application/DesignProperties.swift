@@ -85,7 +85,7 @@ class DesignProperties      : MMWidget
                 let components = frag.evaluateComponents()
                 let data = extractValueFromFragment(rc.1!)
                 if components == 1 {
-                    let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), value: data.x)
+                    let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), value: data.x, precision: Int(rc.1!.values["precision"]!))
                     c1Node?.uiItems.append(numberVar)
                     c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                         if variable == frag.name {

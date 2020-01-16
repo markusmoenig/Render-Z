@@ -117,10 +117,14 @@ class CodeFragList : MMWidget
         items.append(item)
         item.items.append( SourceListItem("length", CodeFragment(.Primitive, "float", "length", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4"], "float" ) ) )
         
+        item = FragItem("M")
+        items.append(item)
+        item.items.append( SourceListItem("mix", CodeFragment(.Primitive, "float", "mix", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4", "float"], "input0"  ) ) )
+        
         item = FragItem("S")
         items.append(item)
         item.items.append( SourceListItem("sin", CodeFragment(.Primitive, "float", "sin", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
-        item.items.append( SourceListItem("smoothstep", CodeFragment(.Primitive, "float", "smoothstep", [.Selectable] ) ) )
+        item.items.append( SourceListItem("smoothstep", CodeFragment(.Primitive, "float", "smoothstep", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4", "float"], "input0"  ) ) )
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
