@@ -126,7 +126,7 @@ class MMCompute {
     }
 
     /// Run the given state
-    func run(_ state: MTLComputePipelineState?, outTexture: MTLTexture? = nil, inBuffer: MTLBuffer? = nil, inTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [] )
+    func run(_ state: MTLComputePipelineState?, outTexture: MTLTexture? = nil, inBuffer: MTLBuffer? = nil, inTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], syncronize: Bool = false )
     {
         commandBuffer = commandQueue!.makeCommandBuffer()!
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
@@ -158,7 +158,15 @@ class MMCompute {
             computeEncoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
             computeEncoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
         }*/
+        
         computeEncoder.endEncoding()
+
+        if syncronize {
+            let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
+            blitEncoder.synchronize(texture: texture, slice: 0, level: 0)
+            blitEncoder.endEncoding()
+        }
+        
         commandBuffer.commit()
     }
 

@@ -6,7 +6,7 @@
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
-import Foundation
+import MetalKit
 import simd
 
 class NodeUI
@@ -1118,6 +1118,157 @@ class NodeUIColor : NodeUI
             widget.isDisabled = isDisabled
             
             widget.draw()
+        }
+    }
+}
+
+/// Texture Monitor class
+class NodeUIMonitor : NodeUI
+{
+    var value       : SIMD4<Float>
+    var mouseIsDown : Bool = false
+    var x           : Float = 0
+    var width       : Float = 0
+    
+    var prevSize    : SIMD2<Float> = SIMD2<Float>(140,120)
+    var uv          : SIMD2<Float> = SIMD2<Float>(0.5,0.5)
+
+    var texture     : MTLTexture? = nil
+    var textureRect : MMRect = MMRect()
+    var textureScale: Float = 0
+    
+    var monitorLabel: MMTextLabel!
+    
+    init(_ node: Node, variable: String, title: String, value: SIMD4<Float> = SIMD4<Float>(0,0,0,0))
+    {
+        self.value = value
+    
+        super.init(node, brand: .Number, variable: variable, title: title)
+        supportsTitleHover = false
+    }
+    
+    override func calcSize(mmView: MMView) {
+        self.mmView = mmView
+        
+        if titleLabel == nil {
+            let scale : Float = 1
+            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+        }
+        
+        if monitorLabel == nil {
+            monitorLabel = MMTextLabel(mmView, font: mmView.openSans, text: "")
+            monitorLabel.scale = NodeUI.titleFontScale * 0.8
+        }
+        
+        rect.width = prevSize.x
+        rect.height = prevSize.y + 15 + NodeUI.itemSpacing
+    }
+    
+    override func titleClicked()
+    {
+        if isDisabled {
+            return
+        }
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        if isDisabled { return }
+        mouseIsDown = true
+        if let tex = texture {
+            readPixel(texture: tex, event: event)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        if isDisabled { return }
+        mouseIsDown = false
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if isDisabled { return }
+        
+        if let tex = texture, mouseIsDown {
+            readPixel(texture: tex, event: event)
+            mmView.update()
+        }
+    }
+    
+    override func mouseLeave() {
+    }
+    
+    func readPixel(texture: MTLTexture, event: MMMouseEvent)
+    {
+        if textureRect.contains(event.x, event.y) {
+            
+            uv.x = (event.x - textureRect.x) / (textureRect.width)
+            uv.y = (event.y - textureRect.y) / (textureRect.height)
+            
+            readPixel(texture: texture)
+        }
+    }
+    
+    func readPixel(texture: MTLTexture)
+    {
+        let region = MTLRegionMake2D(Int(uv.x * Float(texture.width)), Int(uv.y * Float(texture.height)), 1, 1)
+
+        let texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(repeating: 0), count: 1)
+        texture.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * texture.width), from: region, mipmapLevel: 0)
+        value = texArray[0]
+    }
+    
+    func setTexture(_ texture: MTLTexture)
+    {
+        self.texture = texture
+        readPixel(texture: texture)
+        mmView.update()
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
+    {
+        super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
+        x = rect.x
+        
+        if let tex = texture {
+        
+            let sX = prevSize.x / Float(tex.width)
+            let sY = prevSize.y / Float(tex.height)
+            textureScale = min(sX, sY)
+            
+            textureRect.width = Float(tex.width) * textureScale
+            textureRect.height = Float(tex.height) * textureScale
+            textureRect.x = x + (prevSize.x - textureRect.width) / 2
+            textureRect.y = contentY
+            
+            mmView.drawTexture.draw(tex, x: textureRect.x, y: textureRect.y, zoom: 1/textureScale)
+            
+            // Draw the value
+            
+            // Value Text
+            var vString : String = ""
+            let inst = globalApp!.pipeline.monitorInstance!
+            
+            if inst.computeComponents == 1 {
+                vString = "(" + String(format: "%.03f", value.x) + ")"
+            } else
+            if inst.computeComponents == 2 {
+                vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ")"
+            } else
+            if inst.computeComponents == 3 {
+                vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ", " + String(format: "%.03f", value.z) + ")"
+            } else
+            if inst.computeComponents == 4 {
+                vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ", " + String(format: "%.03f", value.z) + ", " + String(format: "%.03f", value.w) + ")"
+            }
+        
+            if monitorLabel.text != vString {
+                monitorLabel.setText(vString)
+            }
+            monitorLabel.drawCentered(x: x, y: textureRect.bottom() + 10, width: prevSize.x, height: 10)
+            
+            mmView.drawSphere.draw(x: textureRect.x + uv.x * textureRect.width - 4, y: textureRect.y + uv.y * textureRect.height - 4, radius: 4, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,1), borderColor: SIMD4<Float>(1,1,1,1))
         }
     }
 }

@@ -18,6 +18,12 @@ class Pipeline
     var resultTexture       : MTLTexture? = nil
     
     var instanceMap         : [String:CodeBuilderInstance] = [:]
+    
+    var monitorInstance     : CodeBuilderInstance? = nil
+    var monitorComponent    : CodeComponent? = nil
+    var monitorFragment     : CodeFragment? = nil
+    
+    var monitorTexture      : MTLTexture? = nil
 
     init(_ mmView: MMView)
     {
@@ -70,6 +76,20 @@ class Pipeline
         backTexture = checkTextureSize(width, height, backTexture)
         if let inst = instanceMap["pre"] {
             codeBuilder.render(inst, backTexture)
+            
+            // Monitor
+            if inst.component === monitorComponent {
+                monitorTexture = checkTextureSize(width, height, monitorTexture, true)
+                if monitorInstance == nil {
+                    monitorInstance = codeBuilder.build(monitorComponent!, monitorFragment)
+                }
+                if let mInstance = monitorInstance {
+                    codeBuilder.render(mInstance, monitorTexture!, syncronize: true)
+                    if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
+                        monitorUI.setTexture(monitorTexture!)
+                    }
+                }
+            }
         }
         
         // Render the shape distance into depthTexture (float)

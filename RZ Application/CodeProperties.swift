@@ -20,9 +20,12 @@ class CodeProperties    : MMWidget
     
     var c1Node              : Node? = nil
     var c2Node              : Node? = nil
-    
+    var c3Node              : Node? = nil
+
     var hoverUIItem         : NodeUI? = nil
     var hoverUITitle        : NodeUI? = nil
+    
+    var nodeUIMonitor       : NodeUIMonitor? = nil
     
     var monitorInstance     : CodeBuilderInstance? = nil
     var monitorData         : [SIMD4<Float>] = []
@@ -76,7 +79,8 @@ class CodeProperties    : MMWidget
     {
         c1Node = nil
         c2Node = nil
-        
+        c3Node = nil
+
         deregisterButtons()
     }
     
@@ -84,7 +88,8 @@ class CodeProperties    : MMWidget
     {
         c1Node = nil
         c2Node = nil
-        
+        c3Node = nil
+
         monitorPosition = 20
         
         deregisterButtons()
@@ -97,8 +102,17 @@ class CodeProperties    : MMWidget
         c2Node?.rect.x = 200
         c2Node?.rect.y = 10
         
+        c3Node = Node()
+        c3Node?.rect.x = 400
+        c3Node?.rect.y = 10
+
         monitorInstance = nil
-                
+        
+        nodeUIMonitor = nil
+        globalApp!.pipeline.monitorInstance = nil
+        globalApp!.pipeline.monitorComponent = nil
+        globalApp!.pipeline.monitorFragment = nil
+
         if let function = ctx.selectedFunction {
             
             c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "comment", title: "Code Comment", value: function.comment) )
@@ -345,6 +359,10 @@ class CodeProperties    : MMWidget
                 }
                 
                 monitorPosition = 400
+                
+                nodeUIMonitor = NodeUIMonitor(c3Node!, variable: "monitor", title: "Variable Monitor")
+                c3Node!.uiItems.append(nodeUIMonitor!)
+                
             } else
             // --- Variable Reference
             if fragment.fragmentType == .VariableReference {
@@ -378,7 +396,6 @@ class CodeProperties    : MMWidget
                         self.editor.updateOnNextDraw()
                     }
                 }
-                monitorPosition = 200
             }
             
             // --- Reset to Const button for primitives and variable references
@@ -484,13 +501,22 @@ class CodeProperties    : MMWidget
 
             // Setup the monitor
             if fragment.supports(.Monitorable) {
-                setupMonitorData(comp, fragment, ctx)
+                //setupMonitorData(comp, fragment, ctx)
+                
+                if nodeUIMonitor == nil {
+                    nodeUIMonitor = NodeUIMonitor(c1Node!, variable: "monitor", title: "Variable Monitor")
+                    c1Node!.uiItems.append(nodeUIMonitor!)
+                }
+                
+                globalApp!.pipeline.monitorComponent = comp
+                globalApp!.pipeline.monitorFragment = fragment
             }
         }
         
         c1Node?.setupUI(mmView: mmView)
         c2Node?.setupUI(mmView: mmView)
-        
+        c3Node?.setupUI(mmView: mmView)
+
         needsUpdate = false
     }
     
@@ -601,6 +627,10 @@ class CodeProperties    : MMWidget
             checkNodeUI(node)
         }
         
+        if let node = c3Node, hoverMode == .None {
+            checkNodeUI(node)
+        }
+        
         if oldHoverMode != hoverMode {
             mmView.update()
         }
@@ -627,6 +657,22 @@ class CodeProperties    : MMWidget
         }
         
         if let node = c2Node {
+            
+            let uiItemX : Float = rect.x + node.rect.x
+            var uiItemY : Float = rect.y + node.rect.y
+            
+            for uiItem in node.uiItems {
+                uiItem.rect.x = uiItemX
+                uiItem.rect.y = uiItemY
+                uiItemY += uiItem.rect.height
+            }
+            
+            for uiItem in node.uiItems {
+                uiItem.draw(mmView: mmView, maxTitleSize: node.uiMaxTitleSize, maxWidth: node.uiMaxWidth, scale: 1)
+            }
+        }
+        
+        if let node = c3Node {
             
             let uiItemX : Float = rect.x + node.rect.x
             var uiItemY : Float = rect.y + node.rect.y

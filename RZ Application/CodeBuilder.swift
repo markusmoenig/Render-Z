@@ -113,82 +113,50 @@ class CodeBuilder
     /// Build the source code for the component
     func buildColorize(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
     {
-        if monitor == nil {
-            
-            inst.code +=
-            """
-            
-            kernel void componentBuilder(
-            texture2d<half, access::write>          outTexture  [[texture(0)]],
-            constant float4                        *data   [[ buffer(1) ]],
-            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-            uint2 gid                               [[thread_position_in_grid]])
-            {
-                float2 uv = float2(gid.x, gid.y);
-                float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-                uv /= size;
-                uv.y = 1.0 - uv.y;
+        inst.code +=
+        """
+        
+        kernel void componentBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *data   [[ buffer(1) ]],
+        //texture2d<half, access::sample>       fontTexture [[texture(2)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+            float2 uv = float2(gid.x, gid.y);
+            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            uv /= size;
+            uv.y = 1.0 - uv.y;
 
-                float4 outColor = float4(0,0,0,1);
-                float GlobalTime = data[0].x;
-            
-            """
-            
-        } else {
-            
-            inst.code +=
-            """
-            
-            kernel void componentBuilder(
-            constant float4                        *data   [[ buffer(1) ]],
-            device float4                          *out [[ buffer(0) ]],
-            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-            uint2 gid                               [[thread_position_in_grid]])
-            {
-                float2 uv = float2(gid.x, gid.y);
-                float2 size = float2( data[0].zw );
-
-
-                float4 outColor = float4(0,0,0,1);
-                float GlobalTime = data[0].x;
-            
-            
-            """
-        }
+            float4 outColor = float4(0,0,0,1);
+            float GlobalTime = data[0].x;
+        
+        """
         
         if let code = component.code {
             inst.code += code
         }
 
         // --- Return value
-        if monitor == nil {
-            inst.code +=
-            """
+        if let fragment = monitor {
             
-                outTexture.write(half4(outColor.x, outColor.y, outColor.z, outColor.w ), gid);
-            }
-            
-            """
-        } else {
-            let frag = monitor!
-
             if inst.computeComponents == 1 {
-                inst.code += "out[0].x = " + frag.name + ";\n";
+                inst.code += "outColor = float4(float3(" + fragment.name + "),1);\n";
             }
             if inst.computeComponents == 4 {
-                inst.code += "out[0].x = " + frag.name + ".x;\n";
-                inst.code += "out[0].y = " + frag.name + ".y;\n";
-                inst.code += "out[0].z = " + frag.name + ".z;\n";
-                inst.code += "out[0].w = " + frag.name + ".w;\n";
-            }
-            
-            inst.code +=
-            """
-             
-            }
-             
-            """
+                inst.code += "outColor.x = " + fragment.name + ".x;\n";
+                inst.code += "outColor.y = " + fragment.name + ".y;\n";
+                inst.code += "outColor.z = " + fragment.name + ".z;\n";
+                inst.code += "outColor.w = " + fragment.name + ".w;\n";
+            }             
         }
+        
+        inst.code +=
+        """
+        
+            outTexture.write(half4(outColor.x, outColor.y, outColor.z, outColor.w ), gid);
+        }
+        
+        """
     }
     
     /// Build the source code for the component
@@ -561,11 +529,11 @@ class CodeBuilder
     }
     
     // Render the component into a texture
-    func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil,_ inTextures: [MTLTexture] = [])
+    func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil,_ inTextures: [MTLTexture] = [], syncronize: Bool = false)
     {
         updateData(inst)
         
-        compute.run( inst.computeState!, outTexture: texture, inBuffer: inst.buffer, inTextures: inTextures)
+        compute.run( inst.computeState!, outTexture: texture, inBuffer: inst.buffer, inTextures: inTextures, syncronize: syncronize)
         
         compute.commandBuffer.waitUntilCompleted()
     }
