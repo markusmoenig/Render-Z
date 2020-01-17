@@ -281,11 +281,13 @@ class ContextWidget         : MMWidget
             currentList.append(ContextItem(comp))
         }
         
-        if nextState == .Open && listToUse.count > 0 {
+        if listToUse.count > 0 {
             currentItem = currentList[0]
-            globalApp!.currentEditor.setComponent(currentItem!.component!)
+            if nextState == .Open {
+                globalApp!.currentEditor.setComponent(currentItem!.component!)
+            }
         }
-        
+                
         if addEmpty {
             currentList.append(ContextItem())
         }
@@ -297,7 +299,6 @@ class ContextWidget         : MMWidget
     /// Replace the json of the component with the given uuid, called from the LibraryDialog
     func replaceJSONForItem(_ contextItem: ContextItem,_ json: String)
     {
-        //print(json)
         if let comp = decodeComponentFromJSON(json) {
             
             comp.selected = nil
@@ -322,6 +323,7 @@ class ContextWidget         : MMWidget
         }
     }
 
+    /// Switches between open and close states
     func switchState() {
         if animating { return }
         let rightRegion = globalApp!.rightRegion!

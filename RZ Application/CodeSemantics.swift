@@ -963,8 +963,14 @@ class CodeComponent         : Codable, Equatable
     var libraryName         : String = ""
     var libraryComment      : String = ""
 
+    // Values
+    var values              : [String:Float] = [:]
+    
     // Code Generation
     var code                : String? = nil
+    
+    // Subcomponent, used for boolean operation
+    var subComponent        : CodeComponent? = nil
 
     private enum CodingKeys: String, CodingKey {
         case componentType
@@ -976,6 +982,8 @@ class CodeComponent         : Codable, Equatable
         case sequence
         case libraryName
         case libraryComment
+        case values
+        case subComponent
     }
     
     required init(from decoder: Decoder) throws
@@ -990,6 +998,8 @@ class CodeComponent         : Codable, Equatable
         sequence = try container.decode(MMTlSequence.self, forKey: .sequence)
         libraryName = try container.decode(String.self, forKey: .libraryName)
         libraryComment = try container.decode(String.self, forKey: .libraryComment)
+        values = try container.decode([String:Float].self, forKey: .values)
+        subComponent = try container.decode(CodeComponent?.self, forKey: .subComponent)
     }
     
     func encode(to encoder: Encoder) throws
@@ -1004,6 +1014,8 @@ class CodeComponent         : Codable, Equatable
         try container.encode(sequence, forKey: .sequence)
         try container.encode(libraryName, forKey: .libraryName)
         try container.encode(libraryComment, forKey: .libraryComment)
+        try container.encode(values, forKey: .values)
+        try container.encode(subComponent, forKey: .subComponent)
     }
     
     static func ==(lhs:CodeComponent, rhs:CodeComponent) -> Bool { // Implement Equatable

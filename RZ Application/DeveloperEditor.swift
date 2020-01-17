@@ -44,7 +44,6 @@ class DeveloperEditor   : Editor
     {
         codeEditor.codeComponent = component
         updateOnNextDraw()
-        print( component.componentType)
         if let uuid = component.selected {
             component.selectUUID(uuid, codeEditor.codeContext)
             codeProperties.needsUpdate = true

@@ -194,6 +194,17 @@ class SceneList : MMWidget
                                 } )
                             })
                         ]
+                    } else
+                    if stage.stageType == .RenderStage {
+                        infoItems = [
+                            SceneInfoItem(mmView, "Select from Library", { () in
+                                if let scene = self.currentScene {
+                                    globalApp!.context.setSelected(scene.stages[2].getChildren()[0])
+                                    globalApp!.libraryDialog.setType(globalApp!.context.libraryId, globalApp!.context.currentItem!)
+                                    self.mmView.showDialog(globalApp!.libraryDialog)
+                                }
+                            })
+                        ]
                     }
                 }
                 
@@ -504,9 +515,9 @@ class SceneTreeWidget   : MMWidget
             //print( item.name )
             if let stage = item as? Stage {
                 
-                if infoAreaStage === stage {
+                //if infoAreaStage === stage {
                     stage.folderIsOpen = !stage.folderIsOpen
-                }
+                //}
                 infoAreaStage = stage
                 infoAreaItem = nil
             }
