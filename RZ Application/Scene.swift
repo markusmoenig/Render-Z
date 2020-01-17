@@ -169,10 +169,11 @@ class Stage                 : Codable, Equatable
         }
         
         if stageType == .RenderStage {
-            let item = StageItem(.RenderStage, "render")
+            let item = StageItem(.RenderStage, "Compute Color")
             let codeComponent = decodeComponentFromJSON(defaultRender2D)!// CodeComponent(.Render2D, "Black")
             //codeComponent.createDefaultFunction(.Render2D)
             codeComponent.selected = nil
+            codeComponent.uuid = UUID()
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
         }

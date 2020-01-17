@@ -34,11 +34,15 @@ class CodeBuilder
     var currentFrame        : Int = 0
     var isPlaying           : Bool = false
     
+    var clearBuffer         : MTLBuffer!
+    var clearState          : MTLComputePipelineState? = nil
+
     init(_ view: MMView)
     {
         mmView = view
         
         compute = MMCompute()
+        buildClearState()
     }
     
     func build(_ component: CodeComponent, _ monitor: CodeFragment? = nil) -> CodeBuilderInstance
@@ -103,7 +107,6 @@ class CodeBuilder
         let library = compute.createLibraryFromSource(source: inst.code)
         inst.computeState = compute.createState(library: library, name: "componentBuilder")
     
-        
         return inst
     }
     
@@ -441,7 +444,35 @@ class CodeBuilder
          }
           
          """
-     }
+    }
+    
+    /// Build a clear texture shader
+    func buildClearState()
+    {
+        let code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void clearBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *data   [[ buffer(1) ]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+        
+           outTexture.write(half4(data[0]), gid);
+        }
+         
+        """
+        
+        let data : [SIMD4<Float>] = [SIMD4<Float>(0,0,0,0)]
+        
+        clearBuffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+
+        let library = compute.createLibraryFromSource(source: code)
+        clearState = compute.createState(library: library, name: "clearBuilder")
+    }
     
     /// Update the instance buffer
     func updateBuffer(_ inst: CodeBuilderInstance)
@@ -520,6 +551,14 @@ class CodeBuilder
         updateBuffer(inst)
     }
 
+    // Cear the texture
+    func renderClear(texture: MTLTexture, data: SIMD4<Float>)
+    {
+        clearBuffer = compute.device.makeBuffer(bytes: [data], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+
+        compute.run( clearState!, outTexture: texture, inBuffer: clearBuffer)
+        compute.commandBuffer.waitUntilCompleted()
+    }
     
     // Render the component into a texture
     func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil,_ inTextures: [MTLTexture] = [])

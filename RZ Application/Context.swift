@@ -263,7 +263,7 @@ class ContextWidget         : MMWidget
                 addEmpty = true
             } else
             if item.stageItemType == .RenderStage {
-                nextState = .Open
+                nextState = .Closed
                 listToUse = [item.components[item.defaultName]!]
                 if globalApp!.currentSceneMode == .TwoD {
                     libraryId = "Render2D"
@@ -277,11 +277,11 @@ class ContextWidget         : MMWidget
             switchState()
         }
         
+        for comp in listToUse {
+            currentList.append(ContextItem(comp))
+        }
+        
         if nextState == .Open && listToUse.count > 0 {
-            for comp in listToUse {
-                currentList.append(ContextItem(comp))
-            }
-
             currentItem = currentList[0]
             globalApp!.currentEditor.setComponent(currentItem!.component!)
         }

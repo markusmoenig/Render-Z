@@ -822,7 +822,7 @@ class CodeFunction          : Codable, Equatable
             funcName = "shapeDistance"
         } else
         if type == .Render2D {
-            funcName = "render"
+            funcName = "computeColor"
         }
 
         header.fragment = CodeFragment(type == .FreeFlow ? .TypeDefinition : .ConstTypeDefinition, returnType, funcName)
@@ -1071,7 +1071,7 @@ class CodeComponent         : Codable, Equatable
             functions.append(f)
         } else
         if type == .Render2D {
-            let f = CodeFunction(type, "render")
+            let f = CodeFunction(type, "computeColor")
             f.comment = "Computes the pixel color for the given material."
             
             let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
