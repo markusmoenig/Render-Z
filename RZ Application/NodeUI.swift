@@ -1133,6 +1133,8 @@ class NodeUIMonitor : NodeUI
     var prevSize    : SIMD2<Float> = SIMD2<Float>(140,120)
     var uv          : SIMD2<Float> = SIMD2<Float>(0.5,0.5)
 
+    var scrubbing   : Bool = false
+
     var texture     : MTLTexture? = nil
     var textureRect : MMRect = MMRect()
     var textureScale: Float = 0
@@ -1175,8 +1177,11 @@ class NodeUIMonitor : NodeUI
     {
         if isDisabled { return }
         mouseIsDown = true
-        if let tex = texture {
-            readPixel(texture: tex, event: event)
+        if textureRect.contains(event.x, event.y) {
+            if let tex = texture {
+                readPixel(texture: tex, x: event.x, y: event.y)
+                scrubbing = true
+            }
         }
     }
     
@@ -1184,6 +1189,7 @@ class NodeUIMonitor : NodeUI
     {
         if isDisabled { return }
         mouseIsDown = false
+        scrubbing = false
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
@@ -1191,7 +1197,27 @@ class NodeUIMonitor : NodeUI
         if isDisabled { return }
         
         if let tex = texture, mouseIsDown {
-            readPixel(texture: tex, event: event)
+            
+            var x = event.x
+            var y = event.y
+            
+            if x < textureRect.x {
+                x = textureRect.x
+            }
+            
+            if y < textureRect.y {
+                y = textureRect.y
+            }
+            
+            if x > textureRect.right() {
+                x = textureRect.right()
+            }
+            
+            if y > textureRect.bottom() {
+                y = textureRect.bottom()
+            }
+
+            readPixel(texture: tex, x: x, y: y)
             mmView.update()
         }
     }
@@ -1199,20 +1225,17 @@ class NodeUIMonitor : NodeUI
     override func mouseLeave() {
     }
     
-    func readPixel(texture: MTLTexture, event: MMMouseEvent)
+    func readPixel(texture: MTLTexture, x: Float, y: Float)
     {
-        if textureRect.contains(event.x, event.y) {
-            
-            uv.x = (event.x - textureRect.x) / (textureRect.width)
-            uv.y = (event.y - textureRect.y) / (textureRect.height)
-            
-            readPixel(texture: texture)
-        }
+        uv.x = (x - textureRect.x) / (textureRect.width)
+        uv.y = (y - textureRect.y) / (textureRect.height)
+
+        readPixel(texture: texture)
     }
     
     func readPixel(texture: MTLTexture)
     {
-        let region = MTLRegionMake2D(Int(uv.x * Float(texture.width)), Int(uv.y * Float(texture.height)), 1, 1)
+        let region = MTLRegionMake2D(min(Int(uv.x * Float(texture.width)), texture.width-1), min(Int(uv.y * Float(texture.height)), texture.height-1), 1, 1)
 
         let texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(repeating: 0), count: 1)
         texture.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * texture.width), from: region, mipmapLevel: 0)
