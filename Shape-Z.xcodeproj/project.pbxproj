@@ -140,6 +140,8 @@
 		2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7922358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
 		2B57D7932358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
+		2B59875823D15BD0007E335F /* Gizmo2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B59875723D15BD0007E335F /* Gizmo2D.swift */; };
+		2B59875923D15BD0007E335F /* Gizmo2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B59875723D15BD0007E335F /* Gizmo2D.swift */; };
 		2B5AE79B23836F6F00990ACB /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B5AE79A23836F6F00990ACB /* Pinball.shape-z */; };
 		2B5AE79C23836F6F00990ACB /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B5AE79A23836F6F00990ACB /* Pinball.shape-z */; };
 		2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
@@ -649,6 +651,7 @@
 		2B50635723CEC98500124517 /* LibraryDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDialog.swift; sourceTree = "<group>"; };
 		2B57D78E2358149600E8BF65 /* GameCuben.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GameCuben.tiff; sourceTree = "<group>"; };
 		2B57D78F2358149600E8BF65 /* GameCuben.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = GameCuben.json; sourceTree = "<group>"; };
+		2B59875723D15BD0007E335F /* Gizmo2D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gizmo2D.swift; sourceTree = "<group>"; };
 		2B5AE79A23836F6F00990ACB /* Pinball.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
 		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
@@ -924,6 +927,7 @@
 				2B8E2FD823C5CF40005619E4 /* Scene.swift */,
 				2B50635423CE9ABE00124517 /* Context.swift */,
 				2B50635723CEC98500124517 /* LibraryDialog.swift */,
+				2B59875723D15BD0007E335F /* Gizmo2D.swift */,
 				2BE9488623D0675600DB0BCD /* DefaultItems.swift */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
 			);
@@ -1700,6 +1704,7 @@
 				2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */,
 				2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */,
 				2B9B29F323BC30A600C2F387 /* CodeList.swift in Sources */,
+				2B59875823D15BD0007E335F /* Gizmo2D.swift in Sources */,
 				2B7A3C1323B46546002EC5FC /* MMFloatPopUp.swift in Sources */,
 				2B7A3C0C23B46546002EC5FC /* MMRegion.swift in Sources */,
 				2B8CC6CB23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */,
@@ -1958,6 +1963,7 @@
 				2B9B29CB23BB453400C2F387 /* MMColorWidget.swift in Sources */,
 				2B9B29E723BB45C000C2F387 /* EditorWidget.swift in Sources */,
 				2B9B29A923BB44BF00C2F387 /* SceneDelegate.swift in Sources */,
+				2B59875923D15BD0007E335F /* Gizmo2D.swift in Sources */,
 				2B9B29E123BB45B900C2F387 /* App.swift in Sources */,
 				2B9B29C523BB453400C2F387 /* MMUtils.swift in Sources */,
 				2B9B29D323BB453400C2F387 /* MMTreeWidget.swift in Sources */,

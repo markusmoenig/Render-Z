@@ -97,6 +97,10 @@ class CodeFragList : MMWidget
         items.append(item)
         item.items.append( SourceListItem("cos", CodeFragment(.Primitive, "float", "cos", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         
+        item = FragItem("E")
+        items.append(item)
+        item.items.append( SourceListItem("exp", CodeFragment(.Primitive, "float", "exp", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
+        
         item = FragItem("F")
         items.append(item)
         item.items.append( SourceListItem("float", CodeFragment(.VariableDefinition, "float", "", [.Selectable, .Dragable, .Monitorable], ["float"], "float" ) ) )
@@ -123,6 +127,7 @@ class CodeFragList : MMWidget
         
         item = FragItem("S")
         items.append(item)
+        item.items.append( SourceListItem("sign", CodeFragment(.Primitive, "float", "sign", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         item.items.append( SourceListItem("sin", CodeFragment(.Primitive, "float", "sin", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         item.items.append( SourceListItem("smoothstep", CodeFragment(.Primitive, "float", "smoothstep", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4", "float"], "input0"  ) ) )
     }
@@ -133,7 +138,7 @@ class CodeFragList : MMWidget
         
         let lineHeight = font.getLineHeight(fontScale)
         
-        var cX : Float = 4
+        var cX : Float = 10
         let cY : Float = rect.y + rect.height - 40
         
         let tempRect = MMRect()

@@ -208,6 +208,23 @@ class SceneList : MMWidget
                     }
                 }
                 
+                if let stageItem = treeWidget.infoAreaItem {
+                    if stageItem.stageItemType == .ShapeStage {
+                        infoItems = [
+                             SceneInfoItem(mmView, "Add Child", { () in
+                                 
+                                 getStringDialog(view: self.mmView, title: "New Object", message: "Object name", defaultValue: "New Object", cb: { (value) -> Void in
+
+                                    
+                                 } )
+                             }),
+                             SceneInfoItem(mmView, "Delete", { () in
+                            
+                             })
+                         ]
+                    }
+                }
+                
                 if infoItems.count == 0 {
                     infoItems = [SceneInfoItem(mmView, "Render-Z")]
                     //treeWidget.infoAreaStage = nil
