@@ -23,7 +23,8 @@ class CodeFragment          : Codable, Equatable
                 Primitive,              // A primitive function line abs, sin, length etc
                 Arithmetic,             // +, -, etc
                 OpeningRoundBracket,    // (
-                ClosingRoundBracket     // )
+                ClosingRoundBracket,    // )
+                Assignment              // =, +=, *= etc
     }
     
     enum FragmentProperties : Int, Codable{
@@ -394,7 +395,7 @@ class CodeFragment          : Codable, Equatable
             
             ctx.addCode(name)
         } else
-        if fragmentType == .Arithmetic {
+        if fragmentType == .Arithmetic || fragmentType == .Assignment {
             let rStart = ctx.rectStart()
            
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -554,16 +555,18 @@ class CodeBlock             : Codable, Equatable
     var blockType           : BlockType
 
     var fragment            : CodeFragment = CodeFragment(.Undefined)
+    var assignment          : CodeFragment = CodeFragment(.Assignment, "", "=", [.Selectable])
     var statement           : CodeStatement
+    
     var uuid                : UUID = UUID()
     var comment             : String = ""
 
     var rect                : MMRect = MMRect()
-    var assignmentRect      : MMRect = MMRect()
 
     private enum CodingKeys: String, CodingKey {
         case blockType
         case fragment
+        case assignment
         case statement
         case uuid
         case comment
@@ -574,6 +577,9 @@ class CodeBlock             : Codable, Equatable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         blockType = try container.decode(BlockType.self, forKey: .blockType)
         fragment = try container.decode(CodeFragment.self, forKey: .fragment)
+        if let ass = try container.decodeIfPresent(CodeFragment.self, forKey: .assignment) {
+            assignment = ass
+        }
         statement = try container.decode(CodeStatement.self, forKey: .statement)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         comment = try container.decode(String.self, forKey: .comment)
@@ -584,6 +590,7 @@ class CodeBlock             : Codable, Equatable
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(blockType, forKey: .blockType)
         try container.encode(fragment, forKey: .fragment)
+        try container.encode(assignment, forKey: .assignment)
         try container.encode(statement, forKey: .statement)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(comment, forKey: .comment)
@@ -706,6 +713,10 @@ class CodeBlock             : Codable, Equatable
             ctx.drawFragmentState(fragment)
 
             // assignment
+            assignment.draw(mmView, ctx)
+            ctx.drawFragmentState(assignment)
+
+            /*
             let arStart = ctx.rectStart()
             let op = "="
             
@@ -717,8 +728,10 @@ class CodeBlock             : Codable, Equatable
             ctx.cX += ctx.tempRect.width
             ctx.rectEnd(assignmentRect, arStart)
             ctx.cX += ctx.gapX
-
+            
             ctx.addCode( " " + op + " " )
+             */
+
 
             // statement
             if let index = propIndex {
@@ -1151,6 +1164,12 @@ class CodeComponent         : Codable, Equatable
                 // Check for the left sided fragment
                 if b.fragment.supports(.Selectable) && b.fragment.rect.contains(x, y) {
                     ctx.hoverFragment = b.fragment
+                    break
+                }
+                
+                // Check for assignment fragment
+                if b.blockType == .VariableReference && b.assignment.supports(.Selectable) && b.assignment.rect.contains(x, y) {
+                    ctx.hoverFragment = b.assignment
                     break
                 }
                                 
