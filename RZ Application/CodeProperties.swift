@@ -158,8 +158,8 @@ class CodeProperties    : MMWidget
         } else
         if let block = ctx.selectedBlock {
             if let function = ctx.cFunction {
-                var b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Empty Line", fixedWidth: buttonWidth)
-                b.clicked = { (event) in
+                let b1 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Empty Line", fixedWidth: buttonWidth)
+                b1.clicked = { (event) in
                     for (index, b) in function.body.enumerated() {
                         if block === b {
                             let undo = self.editor.codeEditor.undoStart("Add Line")
@@ -172,12 +172,12 @@ class CodeProperties    : MMWidget
                             break
                         }
                     }
-                    b.removeState(.Checked)
+                    b1.removeState(.Checked)
                 }
-                addButton(b)
+                addButton(b1)
                 
-                b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Content", fixedWidth: buttonWidth)
-                b.clicked = { (event) in
+                let b2 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Content", fixedWidth: buttonWidth)
+                b2.clicked = { (event) in
                     let undo = self.editor.codeEditor.undoStart("Delete Content")
                     block.blockType = .Empty
                     block.uuid = UUID()
@@ -191,13 +191,13 @@ class CodeProperties    : MMWidget
                     self.needsUpdate = true
                     self.clear()
                     self.editor.codeEditor.undoEnd(undo)
-                    b.removeState(.Checked)
+                    b2.removeState(.Checked)
                 }
-                b.isDisabled = /*block.blockType == .OutVariable ||*/ block.blockType == .Empty
-                addButton(b)
+                b2.isDisabled = /*block.blockType == .OutVariable ||*/ block.blockType == .Empty
+                addButton(b2)
                 
-                b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Line", fixedWidth: buttonWidth)
-                b.clicked = { (event) in
+                let b3 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Line", fixedWidth: buttonWidth)
+                b3.clicked = { (event) in
                     for (index, b) in function.body.enumerated() {
                         if block === b {
                             let undo = self.editor.codeEditor.undoStart("Add Line")
@@ -209,10 +209,10 @@ class CodeProperties    : MMWidget
                             break
                         }
                     }
-                    b.removeState(.Checked)
+                    b3.removeState(.Checked)
                 }
                 //b.isDisabled = block.blockType == .OutVariable
-                addButton(b)
+                addButton(b3)
             }
             
             c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "comment", title: "Comment", value: block.comment) )
