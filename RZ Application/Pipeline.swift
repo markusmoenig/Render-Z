@@ -72,11 +72,9 @@ class Pipeline
     // Render the pipeline
     func render(_ width: Float,_ height: Float)
     {
-        // Render the background into backTexture
-        backTexture = checkTextureSize(width, height, backTexture)
-        if let inst = instanceMap["pre"] {
-            codeBuilder.render(inst, backTexture)
-            
+        // Monitor
+        func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
+        {
             // Monitor
             if inst.component === monitorComponent {
                 monitorTexture = checkTextureSize(width, height, monitorTexture, true)
@@ -84,7 +82,7 @@ class Pipeline
                     monitorInstance = codeBuilder.build(monitorComponent!, monitorFragment)
                 }
                 if let mInstance = monitorInstance {
-                    codeBuilder.render(mInstance, monitorTexture!, syncronize: true)
+                    codeBuilder.render(mInstance, monitorTexture!, inTextures, syncronize: true)
                     if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
                         monitorUI.setTexture(monitorTexture!)
                     }
@@ -92,10 +90,19 @@ class Pipeline
             }
         }
         
+        
+        // Render the background into backTexture
+        backTexture = checkTextureSize(width, height, backTexture)
+        if let inst = instanceMap["pre"] {
+            codeBuilder.render(inst, backTexture)
+            computeMonitor(inst)
+        }
+        
         // Render the shape distance into depthTexture (float)
         depthTexture = checkTextureSize(width, height, depthTexture, true)
         if let inst = instanceMap["shape"] {
             codeBuilder.render(inst, depthTexture)
+            computeMonitor(inst)
         } else {
             codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 10000, 10000, 10000))
         }
@@ -104,6 +111,7 @@ class Pipeline
         if let inst = instanceMap["render"] {
             resultTexture = checkTextureSize(width, height, resultTexture)
             codeBuilder.render(inst, resultTexture, [depthTexture!, backTexture!])
+            computeMonitor(inst, inTextures: [depthTexture!, backTexture!])
         } else {
             resultTexture = backTexture
         }

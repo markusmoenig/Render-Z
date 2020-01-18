@@ -110,6 +110,33 @@ class CodeBuilder
         return inst
     }
     
+    func insertMonitorCode(_ fragment: CodeFragment,_ outVariableName: String,_ components: Int) -> String
+    {
+        var code : String = ""
+        if components == 1 {
+            code += "\(outVariableName) = float4(float3(" + fragment.name + "),1);\n";
+        } else
+        if components == 2 {
+            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
+            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
+            code += "\(outVariableName).z = 0;\n";
+            code += "\(outVariableName).w = 1;\n";
+        } else
+        if components == 3 {
+            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
+            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
+            code += "\(outVariableName).z = " + fragment.name + ".z;\n";
+            code += "\(outVariableName).w = 1;\n";
+        } else
+        if components == 4 {
+            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
+            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
+            code += "\(outVariableName).z = " + fragment.name + ".z;\n";
+            code += "\(outVariableName).w = " + fragment.name + ".w;\n";
+        }
+        return code
+    }
+    
     /// Build the source code for the component
     func buildColorize(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
     {
@@ -136,18 +163,9 @@ class CodeBuilder
             inst.code += code
         }
 
-        // --- Return value
+        // --- Monitor
         if let fragment = monitor {
-            
-            if inst.computeComponents == 1 {
-                inst.code += "outColor = float4(float3(" + fragment.name + "),1);\n";
-            }
-            if inst.computeComponents == 4 {
-                inst.code += "outColor.x = " + fragment.name + ".x;\n";
-                inst.code += "outColor.y = " + fragment.name + ".y;\n";
-                inst.code += "outColor.z = " + fragment.name + ".z;\n";
-                inst.code += "outColor.w = " + fragment.name + ".w;\n";
-            }             
+            inst.code += insertMonitorCode(fragment, "outColor", inst.computeComponents)
         }
         
         inst.code +=
@@ -162,84 +180,42 @@ class CodeBuilder
     /// Build the source code for the component
     func buildSkyDome(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
     {
-        if monitor == nil {
-            
-            inst.code +=
-            """
-            
-            kernel void componentBuilder(
-            texture2d<half, access::write>          outTexture  [[texture(0)]],
-            constant float4                        *data   [[ buffer(1) ]],
-            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-            uint2 gid                               [[thread_position_in_grid]])
-            {
-                float2 uv = float2(gid.x, gid.y);
-                float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-                uv /= size;
-                uv.y = 1.0 - uv.y;
-                float3 dir = float3(0,0,0);
+        inst.code +=
+        """
+        
+        kernel void componentBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *data   [[ buffer(1) ]],
+        //texture2d<half, access::sample>       fontTexture [[texture(2)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+            float2 uv = float2(gid.x, gid.y);
+            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            uv /= size;
+            uv.y = 1.0 - uv.y;
+            float3 dir = float3(0,0,0);
 
-                float4 outColor = float4(0,0,0,1);
-                float GlobalTime = data[0].x;
-            
-            """
-            
-        } else {
-            
-            inst.code +=
-            """
-            
-            kernel void componentBuilder(
-            constant float4                        *data   [[ buffer(1) ]],
-            device float4                          *out [[ buffer(0) ]],
-            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-            uint2 gid                               [[thread_position_in_grid]])
-            {
-                float2 uv = float2(gid.x, gid.y);
-                float2 size = float2( data[0].zw );
-                float3 dir = float3(0,0,0);
-
-
-                float4 outColor = float4(0,0,0,1);
-                float GlobalTime = data[0].x;
-            
-            
-            """
-        }
+            float4 outColor = float4(0,0,0,1);
+            float GlobalTime = data[0].x;
+        
+        """
         
         if let code = component.code {
             inst.code += code
         }
 
-        // --- Return value
-        if monitor == nil {
-            inst.code +=
-            """
-            
-                outTexture.write(half4(outColor.x, outColor.y, outColor.z, outColor.w ), gid);
-            }
-            
-            """
-        } else {
-            let frag = monitor!
-
-            if inst.computeComponents == 1 {
-                inst.code += "out[0].x = " + frag.name + ";\n";
-            }
-            if inst.computeComponents == 4 {
-                inst.code += "out[0].x = " + frag.name + ".x;\n";
-                inst.code += "out[0].y = " + frag.name + ".y;\n";
-                inst.code += "out[0].z = " + frag.name + ".z;\n";
-                inst.code += "out[0].w = " + frag.name + ".w;\n";
-            }
-            
-            inst.code +=
-            """
-             
-            }
-             
-            """
+        // --- Monitor
+        if let fragment = monitor {
+            inst.code += insertMonitorCode(fragment, "outColor", inst.computeComponents)
         }
+
+        inst.code +=
+        """
+        
+            outTexture.write(half4(outColor.x, outColor.y, outColor.z, outColor.w ), gid);
+        }
+        
+        """
     }
     
     /// Build the source code for the component
@@ -248,170 +224,107 @@ class CodeBuilder
         inst.code +=
         """
         
-        float2 translate(float2 p, float2 t)
+        float2 __translate(float2 p, float2 t)
         {
             return p - t;
         }
         
-        float sdCircle(float2 p, float r)
-        {
-          return length(p) - r;
-        }
-        
-        float fillMask(float dist)
-        {
-            return clamp(-dist, 0.0, 1.0);
-        }
-        
         """
         
-        if monitor == nil {
+        inst.code +=
+            
+        """
+        kernel void componentBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *data   [[ buffer(1) ]],
+        //texture2d<half, access::sample>       fontTexture [[texture(2)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            float2 uv = float2(gid.x, gid.y);
+            float2 __center = size / 2;
+            uv = __translate(uv, __center);
+
+            float GlobalTime = data[0].x;
+            float outDistance = 10;
+            float4 __output = float4(0,0,0,0);
         
-            inst.code +=
-                
-            """
-            kernel void componentBuilder(
-            texture2d<half, access::write>          outTexture  [[texture(0)]],
-            constant float4                        *data   [[ buffer(1) ]],
-            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-            uint2 gid                               [[thread_position_in_grid]])
-            {
-                float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-                float2 uv = float2(gid.x, gid.y);
-                float2 __center = size / 2;
-                uv = translate(uv, __center);
-
-                float GlobalTime = data[0].x;
-                float outDistance = 10;
-            
-                
-            """
-        } else {
-            
-            inst.code +=
-            """
-            
-            kernel void componentBuilder(
-            constant float4                        *data   [[ buffer(1) ]],
-            device float4                          *out [[ buffer(0) ]],
-            //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-            uint2 gid                               [[thread_position_in_grid]])
-            {
-                float2 size = float2( data[0].zw );
-                float2 uv = float2(gid.x, gid.y);
-                float2 __center = size / 2;
-                uv = translate(uv, __center);
-
-                float GlobalTime = data[0].x;
-                float outDistance = 10;
-            
-            
-            """
-        }
+        """
     
         if let code = component.code {
             inst.code += code
         }
 
-        if let frag = monitor {
-
-            if inst.computeComponents == 1 {
-                inst.code += "out[0].x = " + frag.name + ";\n";
-            }
-            if inst.computeComponents == 4 {
-                inst.code += "out[0].x = " + frag.name + ".x;\n";
-                inst.code += "out[0].y = " + frag.name + ".y;\n";
-                inst.code += "out[0].z = " + frag.name + ".z;\n";
-                inst.code += "out[0].w = " + frag.name + ".w;\n";
-            }
+        // --- Monitor
+        if let fragment = monitor {
+            inst.code += insertMonitorCode(fragment, "__output", inst.computeComponents)
         } else {
             inst.code +=
             """
             
-                outTexture.write(half4( outDistance, 0, 0, 1 ), gid);
-             
+            __output.x = outDistance;
             """
         }
         
         inst.code +=
         """
-         
-        }
-         
+        
+            outTexture.write(half4(__output), gid);
+         }
         """
     }
     
     /// Build the source code for the component
-     func buildRender2D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
-     {
-         inst.code +=
-         """
-         
-         float2 translate(float2 p, float2 t)
-         {
-             return p - t;
-         }
-         
-         float sdCircle(float2 p, float r)
-         {
-           return length(p) - r;
-         }
-         
-         float fillMask(float dist)
-         {
-             return clamp(-dist, 0.0, 1.0);
-         }
-         
-         kernel void componentBuilder(
-         texture2d<half, access::write>          outTexture  [[texture(0)]],
-         constant float4                        *data   [[ buffer(1) ]],
-         texture2d<half, access::sample>         depthTexture [[texture(2)]],
-         texture2d<half, access::sample>         backTexture [[texture(3)]],
-         uint2 gid                               [[thread_position_in_grid]])
-         {
-             constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
+    func buildRender2D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    {
+        inst.code +=
+        """
+        
+        float2 __translate(float2 p, float2 t)
+        {
+            return p - t;
+        }
+        
+        kernel void componentBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *data   [[ buffer(1) ]],
+        texture2d<half, access::sample>         depthTexture [[texture(2)]],
+        texture2d<half, access::sample>         backTexture [[texture(3)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+            constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
 
-             float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-             float2 uv = float2(gid.x, gid.y);
+            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            float2 uv = float2(gid.x, gid.y);
              
-             //float2 center = size / 2;
-             //uv = translate(uv, center);
+            //float2 center = size / 2;
+            //uv = translate(uv, center);
 
-             float4 outColor = float4(0, 0, 0, 1);
-             float4 backColor = float4(backTexture.sample(textureSampler, uv / size ));
-             float4 matColor = float4(1, 1, 1, 1);
+            float4 outColor = float4(0, 0, 0, 1);
+            float4 backColor = float4(backTexture.sample(textureSampler, uv / size ));
+            float4 matColor = float4(1, 1, 1, 1);
 
-             float4 __depthIn = float4(depthTexture.sample(textureSampler, uv / size ));
+            float4 __depthIn = float4(depthTexture.sample(textureSampler, uv / size ));
             float distance = __depthIn.x;
 
-         """
+        """
      
-         if let code = component.code {
+        if let code = component.code {
             inst.code += code
-         }
+        }
 
-         if let frag = monitor {
+        // Monitor
+        if let fragment = monitor {
+            inst.code += insertMonitorCode(fragment, "outColor", inst.computeComponents)
+        }
 
-             if inst.computeComponents == 1 {
-                 inst.code += "out[0].x = " + frag.name + ";\n";
-             }
-             if inst.computeComponents == 4 {
-                 inst.code += "out[0].x = " + frag.name + ".x;\n";
-                 inst.code += "out[0].y = " + frag.name + ".y;\n";
-                 inst.code += "out[0].z = " + frag.name + ".z;\n";
-                 inst.code += "out[0].w = " + frag.name + ".w;\n";
-             }
-         }
-         
-         inst.code +=
-         """
-             
-            //outColor = mix(backColor, matColor, fillMask(distance));
-          
+        inst.code +=
+        """
+                       
             outTexture.write(half4(outColor), gid);
-         }
+        }
           
-         """
+        """
     }
     
     /// Build a clear texture shader
@@ -529,11 +442,11 @@ class CodeBuilder
     }
     
     // Render the component into a texture
-    func render(_ inst: CodeBuilderInstance,_ texture: MTLTexture? = nil,_ inTextures: [MTLTexture] = [], syncronize: Bool = false)
+    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil,_ inTextures: [MTLTexture] = [], syncronize: Bool = false)
     {
         updateData(inst)
         
-        compute.run( inst.computeState!, outTexture: texture, inBuffer: inst.buffer, inTextures: inTextures, syncronize: syncronize)
+        compute.run( inst.computeState!, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, syncronize: syncronize)
         
         compute.commandBuffer.waitUntilCompleted()
     }
