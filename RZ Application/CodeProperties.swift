@@ -231,7 +231,7 @@ class CodeProperties    : MMWidget
         if let fragment = ctx.selectedFragment {
             
             // --- Constant Value == Float
-            if fragment.fragmentType == .ConstantValue {
+            if fragment.fragmentType == .ConstantValue || (fragment.fragmentType == .ConstantDefinition && fragment.isSimplified == true) {
                 
                 let numberVar = NodeUINumber(c1Node!, variable: "value", title: "Value", range: SIMD2<Float>(fragment.values["min"]!, fragment.values["max"]!), value: fragment.values["value"]!, precision: Int(fragment.values["precision"]!))
                 c1Node?.uiItems.append(numberVar)
@@ -278,7 +278,7 @@ class CodeProperties    : MMWidget
                 
             } else
             // --- Constant Definition (float3) etc
-            if fragment.fragmentType == .ConstantDefinition {
+            if fragment.fragmentType == .ConstantDefinition && fragment.isSimplified == false {
                 
                 if fragment.typeName == "float4" || fragment.typeName == "float3" {
                     c1Node?.uiItems.append( NodeUIColor(c1Node!, variable: "color", title: "Color", value: SIMD3<Float>(fragment.arguments[0].fragments[0].values["value"]!, fragment.arguments[1].fragments[0].values["value"]!, fragment.arguments[2].fragments[0].values["value"]!)))

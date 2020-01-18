@@ -55,6 +55,9 @@ class CodeFragment          : Codable, Equatable
     
     var parentBlock         : CodeBlock? = nil
     var parentStatement     : CodeStatement? = nil
+    
+    // Represent a floatx as a float
+    var isSimplified        : Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case fragmentType
@@ -68,6 +71,7 @@ class CodeFragment          : Codable, Equatable
         case referseTo
         case qualifier
         case values
+        case isSimplified
     }
     
     required init(from decoder: Decoder) throws
@@ -84,6 +88,9 @@ class CodeFragment          : Codable, Equatable
         referseTo = try container.decode(UUID?.self, forKey: .referseTo)
         qualifier = try container.decode(String.self, forKey: .qualifier)
         values = try container.decode([String:Float].self, forKey: .values)
+        if let simplified = try container.decodeIfPresent(Bool.self, forKey: .isSimplified) {
+            isSimplified = simplified
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -100,6 +107,7 @@ class CodeFragment          : Codable, Equatable
         try container.encode(referseTo, forKey: .referseTo)
         try container.encode(qualifier, forKey: .qualifier)
         try container.encode(values, forKey: .values)
+        try container.encode(isSimplified, forKey: .isSimplified)
     }
     
     static func ==(lhs:CodeFragment, rhs:CodeFragment) -> Bool { // Implement Equatable
@@ -156,6 +164,10 @@ class CodeFragment          : Codable, Equatable
             type = typeName
         }*/
         type = typeName
+        
+        if isSimplified {
+            type = getBaseType(typeName)
+        }
 
         if qualifier.count > 0 {
             type = getBaseType(type)
@@ -236,6 +248,7 @@ class CodeFragment          : Codable, Equatable
         copy.values = values
         copy.referseTo = referseTo
         copy.qualifier = qualifier
+        copy.isSimplified = isSimplified
         
         copyArgumentsTo(copy)
 
@@ -254,7 +267,8 @@ class CodeFragment          : Codable, Equatable
         dest.values = values
         dest.referseTo = referseTo
         dest.qualifier = qualifier
-        
+        dest.isSimplified = isSimplified
+
         copyArgumentsTo(dest)
     }
     
@@ -315,12 +329,27 @@ class CodeFragment          : Codable, Equatable
             
             ctx.addCode(name)
         } else
-        if fragmentType == .ConstantDefinition || fragmentType == .Primitive {
+        if fragmentType == .ConstantDefinition {
+            let rStart = ctx.rectStart()
+            let name = isSimplified ? getValueString() : self.name
+            
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: isSimplified ? mmView.skin.Code.value : mmView.skin.Code.reserved, fragment: frag)
+            }
+            
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+            
+            ctx.addCode(name)
+        } else
+        if fragmentType == .Primitive {
             let rStart = ctx.rectStart()
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
-                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: fragmentType == .ConstantDefinition ? mmView.skin.Code.reserved : mmView.skin.Code.name, fragment: frag)
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.name, fragment: frag)
             }
             
             ctx.cX += ctx.tempRect.width
@@ -426,51 +455,60 @@ class CodeFragment          : Codable, Equatable
         
         // Arguments
         
-        if !arguments.isEmpty {
-            let op = "("
-            ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
-            if let frag = ctx.fragment {
-                mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
-                if self === ctx.hoverFragment || uuid == ctx.cComponent!.selected {
-                    let alpha : Float = uuid == ctx.cComponent!.selected ? ctx.selectionAlpha : ctx.hoverAlpha
-                    mmView.drawBox.draw( x: ctx.cX - ctx.gapX / 2 - 1, y: ctx.cY - ctx.gapY / 2, width: ctx.tempRect.width + ctx.gapX, height: ctx.lineHeight + ctx.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
-                }
-            }
-            ctx.cX += ctx.tempRect.width + ctx.gapX
-            
-            ctx.addCode("( ")
+        var processArguments = true
+        
+        if fragmentType == .ConstantDefinition && isSimplified {
+            // If fragment is simplified, skip arguments
+            processArguments = false
         }
         
-        for (index, arg) in arguments.enumerated() {
-            arg.isArgumentIndexOf = index
-            arg.draw(mmView, ctx)
-            
-            if index != arguments.endIndex - 1 {
-                let op = ","
+        if processArguments {
+            if !arguments.isEmpty {
+                let op = "("
                 ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
                 if let frag = ctx.fragment {
                     mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+                    if self === ctx.hoverFragment || uuid == ctx.cComponent!.selected {
+                        let alpha : Float = uuid == ctx.cComponent!.selected ? ctx.selectionAlpha : ctx.hoverAlpha
+                        mmView.drawBox.draw( x: ctx.cX - ctx.gapX / 2 - 1, y: ctx.cY - ctx.gapY / 2, width: ctx.tempRect.width + ctx.gapX, height: ctx.lineHeight + ctx.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
+                    }
                 }
                 ctx.cX += ctx.tempRect.width + ctx.gapX
-                ctx.addCode( ", " )
+                
+                ctx.addCode("( ")
             }
-        }
-        
-        if !arguments.isEmpty {
-            let op = ")"
-            ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
-            if let frag = ctx.fragment {
-                mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
-                if self === ctx.hoverFragment || uuid == ctx.cComponent!.selected {
-                    let alpha : Float = uuid == ctx.cComponent!.selected ? ctx.selectionAlpha : ctx.hoverAlpha
-                    mmView.drawBox.draw( x: ctx.cX - ctx.gapX / 2, y: ctx.cY - ctx.gapY / 2, width: ctx.tempRect.width + ctx.gapX, height: ctx.lineHeight + ctx.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
+            
+            for (index, arg) in arguments.enumerated() {
+                arg.isArgumentIndexOf = index
+                arg.draw(mmView, ctx)
+                
+                if index != arguments.endIndex - 1 {
+                    let op = ","
+                    ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+                    if let frag = ctx.fragment {
+                        mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+                    }
+                    ctx.cX += ctx.tempRect.width + ctx.gapX
+                    ctx.addCode( ", " )
                 }
             }
-            ctx.cX += ctx.tempRect.width + ctx.gapX
-            ctx.addCode(") ")
             
-            // Expand rect, experimental
-            //rect.width = ctx.cX - rect.x
+            if !arguments.isEmpty {
+                let op = ")"
+                ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+                if let frag = ctx.fragment {
+                    mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+                    if self === ctx.hoverFragment || uuid == ctx.cComponent!.selected {
+                        let alpha : Float = uuid == ctx.cComponent!.selected ? ctx.selectionAlpha : ctx.hoverAlpha
+                        mmView.drawBox.draw( x: ctx.cX - ctx.gapX / 2, y: ctx.cY - ctx.gapY / 2, width: ctx.tempRect.width + ctx.gapX, height: ctx.lineHeight + ctx.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
+                    }
+                }
+                ctx.cX += ctx.tempRect.width + ctx.gapX
+                ctx.addCode(") ")
+            
+                // Expand rect, experimental
+                //rect.width = ctx.cX - rect.x
+            }
         }
     }
     

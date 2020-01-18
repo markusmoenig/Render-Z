@@ -32,7 +32,8 @@ class CodeAccess            : MMWidget
     
     var leftButtons             : [AccessButton] = []
     var rightButtons            : [AccessButton] = []
-    
+    var middleButtons           : [AccessButton] = []
+
     var font                    : MMFont
     var fontScale               : Float = 0.5
     
@@ -58,6 +59,7 @@ class CodeAccess            : MMWidget
     {
         leftButtons = []
         rightButtons = []
+        middleButtons = []
     }
     
     func setSelected(_ comp: CodeComponent,_ ctx: CodeContext)
@@ -89,6 +91,14 @@ class CodeAccess            : MMWidget
                 if fragment.fragmentType != .OpeningRoundBracket && fragment.fragmentType != .ClosingRoundBracket {
                     addLeftButton("(")
                     addRightButton(")")
+                }
+
+                if fragment.fragmentType == .ConstantDefinition && fragment.typeName != "float" {
+                    if fragment.isSimplified == true {
+                        middleButtons.append(AccessButton("Expand"))
+                    } else {
+                        middleButtons.append(AccessButton("Shorten"))
+                    }
                 }
             } else
             if fragment.fragmentType == .Arithmetic {
@@ -136,6 +146,13 @@ class CodeAccess            : MMWidget
             if b.rect.contains(event.x, event.y) {
                 hoverButton = b
                 b.isLeft = true
+                break
+            }
+        }
+        for b in middleButtons {
+            if b.rect.contains(event.x, event.y) {
+                hoverButton = b
+                b.isLeft = false
                 break
             }
         }
@@ -199,6 +216,21 @@ class CodeAccess            : MMWidget
             
             cX -= lineHeight + 4
         }
+        
+        cX = rect.x + (rect.width - 90 * Float(middleButtons.count)) / 2
+        for b in middleButtons {
+            b.rect.x = cX
+            b.rect.y = cY
+            b.rect.width = 90
+            b.rect.height = lineHeight
+            
+            mmView.drawText.drawText(mmView.openSans, text: b.name, x: cX + (lineHeight - tempRect.width)/2, y: cY, scale: fontScale, color: mmView.skin.Widget.textColor)
+            
+            if hoverButton === b || selectedButton === b {
+                let alpha : Float = selectedButton === b ? 0.7 : 0.5
+                mmView.drawBox.draw( x: b.rect.x, y: b.rect.y, width: b.rect.width, height: b.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
+            }
+        }
     }
     
     /// Execute the selected button for the given state
@@ -207,6 +239,25 @@ class CodeAccess            : MMWidget
         if accessState == .Arithmetic {
 
             if let frag = codeEditor.codeContext.selectedFragment {
+                
+                if button.name == "Shorten" {
+                    let undo = codeEditor.undoStart("Shorten Constant")
+
+                    frag.isSimplified = true
+                    codeEditor.editor.codeProperties.needsUpdate = true
+                    codeEditor.updateCode(compile: true)
+                    codeEditor.undoEnd(undo)
+                    return
+                } else
+                if button.name == "Expand" {
+                    let undo = codeEditor.undoStart("Expand Constant")
+
+                    frag.isSimplified = false
+                    codeEditor.editor.codeProperties.needsUpdate = true
+                    codeEditor.updateCode(compile: true)
+                    codeEditor.undoEnd(undo)
+                    return
+                }
                 
                 let pStatement = frag.parentStatement!
                 if let pIndex = pStatement.fragments.firstIndex(of: frag) {
@@ -230,7 +281,19 @@ class CodeAccess            : MMWidget
                         let undo = codeEditor.undoStart("Add Arithmetic")
                         
                         let typeName = frag.evaluateType()
-                        let constant = codeEditor.defaultConstantForType(typeName)
+                        var constant : CodeFragment = codeEditor.defaultConstantForType(typeName)
+                        
+                        // By default simplify math operators
+                        if frag.evaluateComponents() > 1 {
+                            constant.isSimplified = true
+                        }
+                        
+                        // If the reference statement was simplified need to create the math fragment in the same type and simplify it
+                        if frag.isSimplified {
+                            constant = codeEditor.defaultConstantForType(frag.typeName)
+                            constant.isSimplified = true
+                        }
+                        
                         let arithmetic = CodeFragment(.Arithmetic, typeName, button.name, [.Selectable])
                         
                         if frag.name == "(" || frag.name == ")" {

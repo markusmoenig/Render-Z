@@ -334,6 +334,7 @@ class CodeEditor        : MMWidget
         update()
         mmView.update()
         if let comp = codeComponent, editor.codeProperties.needsUpdate {
+            codeAccess.setSelected(comp, codeContext)
             editor.codeProperties.setSelected(comp, codeContext)
         }
     }
