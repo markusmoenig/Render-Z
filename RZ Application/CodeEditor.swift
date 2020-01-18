@@ -400,7 +400,7 @@ class CodeEditor        : MMWidget
                     destBlock.fragment.typeName = sourceFrag.typeName
                     destBlock.fragment.name = value
                     
-                    let constant = self.defaultConstantForType(sourceFrag.evaluateType())
+                    let constant = defaultConstantForType(sourceFrag.evaluateType())
                     destBlock.statement.fragments.append(constant)
                     
                     self.updateCode(compile: true)
@@ -484,8 +484,28 @@ class CodeEditor        : MMWidget
             } else
             // Copy a variable
             if sourceFrag.fragmentType == .VariableReference || sourceFrag.fragmentType == .OutVariable {
+                let sourceComponents = sourceFrag.evaluateComponents()
+                let destComponents = destFrag.evaluateComponents()
+                
                 sourceFrag.copyTo(destFrag)
                 destFrag.addProperty(.Targetable)
+
+                if sourceComponents != destComponents {
+                    // --- Need to add a qualification to match
+                    
+                    let compArray = ["x", "y", "z", "w"]
+                    let validRange = sourceComponents - 1
+                    
+                    var counter = 0
+                    for _ in 0..<destComponents {
+                        if counter > validRange {
+                            counter = 0
+                        }
+                        
+                        destFrag.qualifier += compArray[counter]
+                        counter += 1
+                    }                    
+                }
                 #if DEBUG
                 print("Drop #4")
                 #endif
@@ -531,45 +551,6 @@ class CodeEditor        : MMWidget
             self.updateCode(compile: true)
             self.undoEnd(undo)
         }
-    }
-    
-    /// Creates a constant for the given type
-    func defaultConstantForType(_ typeName: String) -> CodeFragment
-    {
-        //print("defaultConstantForType", typeName)
-        
-        let constant    : CodeFragment
-        var components  : Int = 0
-        var compName    : String = typeName
-        
-        if typeName.hasSuffix("2") {
-            components = 2
-            compName.remove(at: compName.index(before: compName.endIndex))
-        } else
-        if typeName.hasSuffix("3") {
-            components = 3
-            compName.remove(at: compName.index(before: compName.endIndex))
-        } else
-        if typeName.hasSuffix("4") {
-            components = 4
-            compName.remove(at: compName.index(before: compName.endIndex))
-        }
-        
-        if components == 0 {
-            constant = CodeFragment(.ConstantValue, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
-        } else {
-            constant = CodeFragment(.ConstantDefinition, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
-            
-            for _ in 0..<components {
-                let argStatement = CodeStatement(.Arithmetic)
-                
-                let constValue = CodeFragment(.ConstantValue, compName, "", [.Selectable, .Dragable, .Targetable], [compName], compName)
-                argStatement.fragments.append(constValue)
-                constant.arguments.append(argStatement)
-            }
-        }
-        
-        return constant
     }
     
     /// Creates the arguments for the fragment

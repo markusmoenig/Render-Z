@@ -401,6 +401,7 @@ class CodeFragment          : Codable, Equatable
         } else
         if fragmentType == .VariableReference {
             let rStart = ctx.rectStart()
+            var invalid : Bool = false
             
             // Get the name of the variable
             var name : String
@@ -409,11 +410,19 @@ class CodeFragment          : Codable, Equatable
                     name = v.name
                 } else {
                     name = "NOT FOUND"
+                    invalid = true
                 }
             } else {
                 name = "NIL"
+                invalid = true
             }
 
+            if invalid {
+                // If reference is invalid, replace this with a constant
+                let constant = defaultConstantForType(typeName)
+                constant.copyTo(self)
+            }
+            
             name += getQualifierString()
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -1531,12 +1540,13 @@ class CodeContext
                     print("Exclusion #4")
                     #endif
                 } else
+                /*
                 if drop.fragmentType == .VariableReference && fragment.fragmentType == .ConstantDefinition && drop.typeName != fragment.typeName {
                     // Exclusion: Dont allow a "var floatx" to be dropped on a floatx when the type is not the same
                     #if DEBUG
                     print("Exclusion #5")
                     #endif
-                } else
+                } else*/
                 if drop.fragmentType == .VariableReference && fragment.fragmentType == .Primitive && drop.typeName != fragment.typeName {
                     // Exclusion: Dont allow a "var floatx" to be dropped on a floatx when the type is not the same
                     #if DEBUG

@@ -94,7 +94,7 @@ class StageItem             : Codable, Equatable
 class Stage                 : Codable, Equatable
 {
     enum StageType          : Int, Codable {
-        case PreStage, ShapeStage, RenderStage, PostStage
+        case PreStage, ShapeStage, LightStage, RenderStage, PostStage
     }
     
     var stageType           : StageType = .PreStage
@@ -312,6 +312,7 @@ class Scene                 : Codable, Equatable
 
         stages.append(Stage(.PreStage, "World"))
         stages.append(Stage(.ShapeStage, "Objects"))
+        stages.append(Stage(.LightStage, "Lights"))
         stages.append(Stage(.RenderStage, "Render"))
         stages.append(Stage(.PostStage, "Post FX"))
         

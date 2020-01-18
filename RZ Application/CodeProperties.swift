@@ -370,30 +370,71 @@ class CodeProperties    : MMWidget
                 c1Node?.uiItems.append(textVar)
                 c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "qualifier" {
-                        fragment.qualifier = oldValue
-                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Variable Qualifier Changed") : nil
+                        var newValueToUse = newValue
+                        // Remove possible "."
+                        if newValueToUse.starts(with: ".") {
+                            newValueToUse.remove(at: fragment.qualifier.startIndex)
+                        }
+                        
                         fragment.qualifier = ""
-                        let varComponents = fragment.evaluateComponents()
+                        let maxComponents = fragment.evaluateComponents()
+                        
                         fragment.qualifier = oldValue
-
-                        if newValue.count <= varComponents {
-                            fragment.qualifier = newValue
-                            if fragment.qualifier.starts(with: ".") {
-                                fragment.qualifier.remove(at: fragment.qualifier.startIndex)
-                                textVar.value = fragment.qualifier
+                        let fragComponents = fragment.evaluateComponents()
+                        
+                        var validComponents = fragComponents
+                        let qArray = ["x", "y", "z", "w"]
+                        
+                        var newQualifiersAreValid : Bool = true
+                        
+                        for q in newValueToUse {
+                            if let qIndex = qArray.firstIndex(of: String(q)) {
+                                if qIndex >= maxComponents {
+                                    // Correct character but out of bounce
+                                    newQualifiersAreValid = false
+                                }
+                            } else {
+                                // not in the array, invalid
+                                newQualifiersAreValid = false
                             }
-                            if let block = fragment.parentBlock {
-                                if block.blockType == .VariableReference || block.blockType == .OutVariable {
-                                    // --- Need to adjust right side to reflect new qualifier
-                                    let constant = self.editor.codeEditor.defaultConstantForType(fragment.evaluateType())
-                                    block.statement.fragments = [constant]
+                        }
+                        if newValueToUse.count > maxComponents {
+                            // Too many chars, invalid
+                            newQualifiersAreValid = false
+                        }
+                        
+                        if let block = fragment.parentBlock, newQualifiersAreValid {
+                            if (block.blockType == .VariableReference || block.blockType == .OutVariable) && block.fragment === fragment {
+                                // We change the qualifier on the left side, allow any value as the right side will be reset anyway
+                                
+                                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Variable Qualifier Changed") : nil
+                                fragment.qualifier = newValueToUse
+                                textVar.value = newValueToUse
+                                
+                                // Reset right side
+                                let constant = defaultConstantForType(fragment.evaluateType())
+                                block.statement.fragments = [constant]
+                                
+                                if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                                self.editor.updateOnNextDraw()
+                            } else {
+                                // We are on the right side, either have the same or 1 component
+                                if (newValueToUse.count == validComponents || newValueToUse.count == 1) {
+                                    // If on the right side, allow when same component count or 1 (float always works)
+                                    
+                                    let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Variable Qualifier Changed") : nil
+                                    fragment.qualifier = newValueToUse
+                                    textVar.value = newValueToUse
+                                    
+                                    if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                                    self.editor.updateOnNextDraw()
+                                } else {
+                                    textVar.value = oldValue
                                 }
                             }
-                            if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                         } else {
                             textVar.value = oldValue
                         }
-                        self.editor.updateOnNextDraw()
                     }
                 }
             }
@@ -404,7 +445,7 @@ class CodeProperties    : MMWidget
                 b.clicked = { (event) in
                     let undo = self.editor.codeEditor.undoStart("Reset")
 
-                    let constant = self.editor.codeEditor.defaultConstantForType(fragment.evaluateType())
+                    let constant = defaultConstantForType(fragment.evaluateType())
                     constant.copyTo(fragment)
 
                     self.needsUpdate = true

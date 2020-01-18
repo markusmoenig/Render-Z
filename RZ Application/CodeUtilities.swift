@@ -158,3 +158,42 @@ func dryRunComponent(_ comp: CodeComponent)
     ctx.reset(100)
     comp.draw(globalApp!.mmView, ctx)
 }
+
+/// Creates a constant for the given type
+func defaultConstantForType(_ typeName: String) -> CodeFragment
+{
+    //print("defaultConstantForType", typeName)
+    
+    let constant    : CodeFragment
+    var components  : Int = 0
+    var compName    : String = typeName
+    
+    if typeName.hasSuffix("2") {
+        components = 2
+        compName.remove(at: compName.index(before: compName.endIndex))
+    } else
+    if typeName.hasSuffix("3") {
+        components = 3
+        compName.remove(at: compName.index(before: compName.endIndex))
+    } else
+    if typeName.hasSuffix("4") {
+        components = 4
+        compName.remove(at: compName.index(before: compName.endIndex))
+    }
+    
+    if components == 0 {
+        constant = CodeFragment(.ConstantValue, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
+    } else {
+        constant = CodeFragment(.ConstantDefinition, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
+        
+        for _ in 0..<components {
+            let argStatement = CodeStatement(.Arithmetic)
+            
+            let constValue = CodeFragment(.ConstantValue, compName, "", [.Selectable, .Dragable, .Targetable], [compName], compName)
+            argStatement.fragments.append(constValue)
+            constant.arguments.append(argStatement)
+        }
+    }
+    
+    return constant
+}

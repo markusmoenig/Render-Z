@@ -293,7 +293,7 @@ class CodeAccess            : MMWidget
                         let undo = codeEditor.undoStart("Add Arithmetic")
                         
                         let typeName = frag.evaluateType()
-                        var constant : CodeFragment = codeEditor.defaultConstantForType(typeName)
+                        var constant : CodeFragment = defaultConstantForType(typeName)
                         
                         // By default simplify math operators
                         if frag.evaluateComponents() > 1 {
@@ -302,7 +302,7 @@ class CodeAccess            : MMWidget
                         
                         // If the reference statement was simplified need to create the math fragment in the same type and simplify it
                         if frag.isSimplified {
-                            constant = codeEditor.defaultConstantForType(frag.typeName)
+                            constant = defaultConstantForType(frag.typeName)
                             constant.isSimplified = true
                         }
                         
