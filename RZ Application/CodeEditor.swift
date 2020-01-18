@@ -423,6 +423,22 @@ class CodeEditor        : MMWidget
 
                 self.updateCode(compile: true)
                 self.undoEnd(undo)
+            } else
+            if sourceFrag.fragmentType == .OutVariable
+            {
+                let undo = self.undoStart("Variable Reference: \(sourceFrag.name)")
+                destBlock.blockType = .OutVariable
+                destBlock.fragment.fragmentType = .OutVariable
+                destBlock.fragment.properties = sourceFrag.properties
+                destBlock.fragment.typeName = sourceFrag.typeName
+                destBlock.fragment.name = sourceFrag.name
+                destBlock.fragment.referseTo = sourceFrag.referseTo
+                
+                let constant = defaultConstantForType(sourceFrag.evaluateType())
+                destBlock.statement.fragments.append(constant)
+
+                self.updateCode(compile: true)
+                self.undoEnd(undo)
             }
         } else
         {
@@ -467,7 +483,7 @@ class CodeEditor        : MMWidget
                 #endif
             } else
             // Copy a variable
-            if sourceFrag.fragmentType == .VariableReference {
+            if sourceFrag.fragmentType == .VariableReference || sourceFrag.fragmentType == .OutVariable {
                 sourceFrag.copyTo(destFrag)
                 destFrag.addProperty(.Targetable)
                 #if DEBUG

@@ -193,7 +193,7 @@ class CodeProperties    : MMWidget
                     self.editor.codeEditor.undoEnd(undo)
                     b.removeState(.Checked)
                 }
-                b.isDisabled = block.blockType == .OutVariable || block.blockType == .Empty
+                b.isDisabled = /*block.blockType == .OutVariable ||*/ block.blockType == .Empty
                 addButton(b)
                 
                 b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Line", fixedWidth: buttonWidth)
@@ -211,7 +211,7 @@ class CodeProperties    : MMWidget
                     }
                     b.removeState(.Checked)
                 }
-                b.isDisabled = block.blockType == .OutVariable
+                //b.isDisabled = block.blockType == .OutVariable
                 addButton(b)
             }
             
@@ -365,13 +365,13 @@ class CodeProperties    : MMWidget
                 
             } else
             // --- Variable Reference
-            if fragment.fragmentType == .VariableReference {
+            if fragment.fragmentType == .VariableReference || fragment.fragmentType == .OutVariable {
                 let textVar = NodeUIText(c1Node!, variable: "qualifier", title: "Qualifier", value: fragment.qualifier)
                 c1Node?.uiItems.append(textVar)
                 c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "qualifier" {
                         fragment.qualifier = oldValue
-                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Variable Name Changed") : nil
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Variable Qualifier Changed") : nil
                         fragment.qualifier = ""
                         let varComponents = fragment.evaluateComponents()
                         fragment.qualifier = oldValue
@@ -383,7 +383,7 @@ class CodeProperties    : MMWidget
                                 textVar.value = fragment.qualifier
                             }
                             if let block = fragment.parentBlock {
-                                if block.blockType == .VariableReference {
+                                if block.blockType == .VariableReference || block.blockType == .OutVariable {
                                     // --- Need to adjust right side to reflect new qualifier
                                     let constant = self.editor.codeEditor.defaultConstantForType(fragment.evaluateType())
                                     block.statement.fragments = [constant]
@@ -504,8 +504,8 @@ class CodeProperties    : MMWidget
                 //setupMonitorData(comp, fragment, ctx)
                 
                 if nodeUIMonitor == nil {
-                    nodeUIMonitor = NodeUIMonitor(c1Node!, variable: "monitor", title: "Variable Monitor")
-                    c1Node!.uiItems.append(nodeUIMonitor!)
+                    nodeUIMonitor = NodeUIMonitor(c2Node!, variable: "monitor", title: "Variable Monitor")
+                    c2Node!.uiItems.append(nodeUIMonitor!)
                 }
                 
                 globalApp!.pipeline.monitorComponent = comp

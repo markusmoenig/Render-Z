@@ -82,7 +82,7 @@ class CodeAccess            : MMWidget
         
         if let fragment = ctx.selectedFragment {
             
-            if fragment.fragmentType == .ConstantDefinition || fragment.fragmentType == .ConstantValue || fragment.fragmentType == .Primitive || fragment.fragmentType == .VariableReference || fragment.fragmentType == .OpeningRoundBracket || fragment.fragmentType == .ClosingRoundBracket  {
+            if fragment.fragmentType == .ConstantDefinition || fragment.fragmentType == .ConstantValue || fragment.fragmentType == .Primitive || (fragment.fragmentType == .VariableReference && fragment.parentStatement != nil) || fragment.fragmentType == .OpeningRoundBracket || fragment.fragmentType == .ClosingRoundBracket  {
                 accessState = .Arithmetic
                 
                 for a in arithmetics {

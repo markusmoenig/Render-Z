@@ -317,6 +317,9 @@ class CodeFragment          : Codable, Equatable
 
         if fragmentType == .OutVariable {
             let rStart = ctx.rectStart()
+            var name = self.name
+            
+            name += getQualifierString()
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
@@ -886,8 +889,10 @@ class CodeFunction          : Codable, Equatable
         b.fragment.fragmentType = .OutVariable
         b.fragment.addProperty(.Selectable)
         b.fragment.addProperty(.Monitorable)
+        b.fragment.addProperty(.Dragable)
         b.fragment.typeName = typeName
         b.fragment.name = name
+        b.fragment.evaluatesTo = typeName
         
         if typeName == "float" {
             let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
@@ -1206,7 +1211,7 @@ class CodeComponent         : Codable, Equatable
                 }
                 
                 // Check for assignment fragment
-                if b.blockType == .VariableReference && b.assignment.supports(.Selectable) && b.assignment.rect.contains(x, y) {
+                if (b.blockType == .VariableReference || b.blockType == .OutVariable) && b.assignment.supports(.Selectable) && b.assignment.rect.contains(x, y) {
                     ctx.hoverFragment = b.assignment
                     break
                 }
@@ -1214,13 +1219,21 @@ class CodeComponent         : Codable, Equatable
                 // recursively parse the right sided fragments
                 func parseFragments(_ fragment: CodeFragment)
                 {
-                    for statement in fragment.arguments {
-                        for arg in statement.fragments {
-                            if arg.rect.contains(x, y) {
-                                ctx.hoverFragment = arg
-                                return
+                    var processArguments = true
+                    if fragment.fragmentType == .ConstantDefinition && fragment.isSimplified {
+                        // If fragment is simplified, skip arguments
+                        processArguments = false
+                    }
+                    
+                    if processArguments {
+                        for statement in fragment.arguments {
+                            for arg in statement.fragments {
+                                if arg.rect.contains(x, y) {
+                                    ctx.hoverFragment = arg
+                                    return
+                                }
+                                parseFragments(arg)
                             }
-                            parseFragments(arg)
                         }
                     }
                     if ctx.hoverFragment == nil {
@@ -1488,7 +1501,7 @@ class CodeContext
             #endif
             
             // Drop on an empty line (.VariableDefinition)
-            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference) {
+            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable) {
                 drawHighlight(fragment.rect, hoverAlpha)
                 dropIsValid = true
             } else
