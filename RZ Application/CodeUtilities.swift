@@ -8,6 +8,15 @@
 
 import MetalKit
 
+/// String extension for counting characters
+extension String {
+    func count(of needle: Character) -> Int {
+        return reduce(0) {
+            $1 == needle ? $0 + 1 : $0
+        }
+    }
+}
+
 // Extracts an SIMD4<Float> value from a given fragment
 func extractValueFromFragment(_ fragment: CodeFragment) -> SIMD4<Float>
 {

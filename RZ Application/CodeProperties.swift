@@ -405,18 +405,31 @@ class CodeProperties    : MMWidget
                         
                         if let block = fragment.parentBlock, newQualifiersAreValid {
                             if (block.blockType == .VariableReference || block.blockType == .OutVariable) && block.fragment === fragment {
+                                
                                 // We change the qualifier on the left side, allow any value as the right side will be reset anyway
                                 
-                                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Variable Qualifier Changed") : nil
-                                fragment.qualifier = newValueToUse
-                                textVar.value = newValueToUse
+                                // But we need to check if the new qualifier has duplicate components
+                                var hasDuplicates = false
                                 
-                                // Reset right side
-                                let constant = defaultConstantForType(fragment.evaluateType())
-                                block.statement.fragments = [constant]
+                                if newValueToUse.count(of: "x") > 1 || newValueToUse.count(of: "y") > 1 || newValueToUse.count(of: "z") > 1 ||
+                                    newValueToUse.count(of: "w") > 1 {
+                                    hasDuplicates = true
+                                }
                                 
-                                if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
-                                self.editor.updateOnNextDraw()
+                                if hasDuplicates == false {
+                                    let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Variable Qualifier Changed") : nil
+                                    fragment.qualifier = newValueToUse
+                                    textVar.value = newValueToUse
+                                    
+                                    // Reset right side
+                                    let constant = defaultConstantForType(fragment.evaluateType())
+                                    block.statement.fragments = [constant]
+                                    
+                                    if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                                    self.editor.updateOnNextDraw()
+                                } else {
+                                    textVar.value = oldValue
+                                }
                             } else {
                                 // We are on the right side, either have the same or 1 component
                                 if (newValueToUse.count == validComponents || newValueToUse.count == 1) {
