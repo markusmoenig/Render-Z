@@ -86,7 +86,7 @@ class App
                 
         globalApp = self
         
-        let backStage = project.selected!.stages[0]
+        let backStage = project.selected!.getStage(.PreStage)
         //let shapeStage = project.selected!.stages[1]
         let selected = backStage.getChildren()[0]
         //_ = shapeStage.createChild("2D Object")

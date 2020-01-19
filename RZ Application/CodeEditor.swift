@@ -286,9 +286,8 @@ class CodeEditor        : MMWidget
         }
 
         // Is playing ?
-        if globalApp!.codeBuilder.isPlaying {
+        if globalApp!.pipeline.codeBuilder.isPlaying {
             globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
-            editor.codeProperties.updateMonitor()
         }
         
         // Do the preview
@@ -504,7 +503,7 @@ class CodeEditor        : MMWidget
                         
                         destFrag.qualifier += compArray[counter]
                         counter += 1
-                    }                    
+                    }
                 }
                 #if DEBUG
                 print("Drop #4")

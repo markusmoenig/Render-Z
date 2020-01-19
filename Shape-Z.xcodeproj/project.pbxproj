@@ -140,8 +140,8 @@
 		2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7922358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
 		2B57D7932358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
-		2B59875823D15BD0007E335F /* Gizmo2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B59875723D15BD0007E335F /* Gizmo2D.swift */; };
-		2B59875923D15BD0007E335F /* Gizmo2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B59875723D15BD0007E335F /* Gizmo2D.swift */; };
+		2B59875823D15BD0007E335F /* Combo2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B59875723D15BD0007E335F /* Combo2D.swift */; };
+		2B59875923D15BD0007E335F /* Combo2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B59875723D15BD0007E335F /* Combo2D.swift */; };
 		2B5AE79B23836F6F00990ACB /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B5AE79A23836F6F00990ACB /* Pinball.shape-z */; };
 		2B5AE79C23836F6F00990ACB /* Pinball.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B5AE79A23836F6F00990ACB /* Pinball.shape-z */; };
 		2B5CCAFF2214F2FF005BAA2B /* Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B5CCAFE2214F2FF005BAA2B /* Builder.swift */; };
@@ -590,6 +590,10 @@
 		2BCEC68F22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCF5FA3227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
 		2BCF5FA4227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
+		2BD291B723D435B6006F66BC /* Combo2D.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BD291B623D435B6006F66BC /* Combo2D.metal */; };
+		2BD291B823D435B6006F66BC /* Combo2D.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BD291B623D435B6006F66BC /* Combo2D.metal */; };
+		2BD291BA23D43AB0006F66BC /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD291B923D43AB0006F66BC /* Base.swift */; };
+		2BD291BB23D43AB2006F66BC /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD291B923D43AB0006F66BC /* Base.swift */; };
 		2BE67102221259F500B95241 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67101221259F500B95241 /* Node.swift */; };
 		2BE67103221259F500B95241 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67101221259F500B95241 /* Node.swift */; };
 		2BE6710522125D7D00B95241 /* NodeGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710422125D7D00B95241 /* NodeGraph.swift */; };
@@ -651,7 +655,7 @@
 		2B50635723CEC98500124517 /* LibraryDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDialog.swift; sourceTree = "<group>"; };
 		2B57D78E2358149600E8BF65 /* GameCuben.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GameCuben.tiff; sourceTree = "<group>"; };
 		2B57D78F2358149600E8BF65 /* GameCuben.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = GameCuben.json; sourceTree = "<group>"; };
-		2B59875723D15BD0007E335F /* Gizmo2D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gizmo2D.swift; sourceTree = "<group>"; };
+		2B59875723D15BD0007E335F /* Combo2D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combo2D.swift; sourceTree = "<group>"; };
 		2B5AE79A23836F6F00990ACB /* Pinball.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Pinball.shape-z"; sourceTree = "<group>"; };
 		2B5CCAFE2214F2FF005BAA2B /* Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Builder.swift; sourceTree = "<group>"; };
 		2B5CCB0122152EB6005BAA2B /* MMListWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMListWidget.swift; sourceTree = "<group>"; };
@@ -792,6 +796,8 @@
 		2BC5DCE3231794050081A018 /* Dialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dialogs.swift; sourceTree = "<group>"; };
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
+		2BD291B623D435B6006F66BC /* Combo2D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo2D.metal; sourceTree = "<group>"; };
+		2BD291B923D43AB0006F66BC /* Base.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base.swift; sourceTree = "<group>"; };
 		2BE67101221259F500B95241 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		2BE6710422125D7D00B95241 /* NodeGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeGraph.swift; sourceTree = "<group>"; };
 		2BE67107221291D200B95241 /* Node.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Node.metal; sourceTree = "<group>"; };
@@ -872,6 +878,16 @@
 			path = "TVOS Framework";
 			sourceTree = "<group>";
 		};
+		2B59875A23D3E8C0007E335F /* Gizmos */ = {
+			isa = PBXGroup;
+			children = (
+				2BD291B923D43AB0006F66BC /* Base.swift */,
+				2BD291B623D435B6006F66BC /* Combo2D.metal */,
+				2B59875723D15BD0007E335F /* Combo2D.swift */,
+			);
+			path = Gizmos;
+			sourceTree = "<group>";
+		};
 		2B5CCB0522169D95005BAA2B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -927,8 +943,8 @@
 				2B8E2FD823C5CF40005619E4 /* Scene.swift */,
 				2B50635423CE9ABE00124517 /* Context.swift */,
 				2B50635723CEC98500124517 /* LibraryDialog.swift */,
-				2B59875723D15BD0007E335F /* Gizmo2D.swift */,
 				2BE9488623D0675600DB0BCD /* DefaultItems.swift */,
+				2B59875A23D3E8C0007E335F /* Gizmos */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
 			);
 			path = "RZ Application";
@@ -1702,9 +1718,10 @@
 				2B7A3C0B23B46546002EC5FC /* MMWidget.swift in Sources */,
 				2B7A3C5523B479F4002EC5FC /* CodeFragList.swift in Sources */,
 				2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */,
+				2BD291BA23D43AB0006F66BC /* Base.swift in Sources */,
 				2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */,
 				2B9B29F323BC30A600C2F387 /* CodeList.swift in Sources */,
-				2B59875823D15BD0007E335F /* Gizmo2D.swift in Sources */,
+				2B59875823D15BD0007E335F /* Combo2D.swift in Sources */,
 				2B7A3C1323B46546002EC5FC /* MMFloatPopUp.swift in Sources */,
 				2B7A3C0C23B46546002EC5FC /* MMRegion.swift in Sources */,
 				2B8CC6CB23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */,
@@ -1727,6 +1744,7 @@
 				2B7A3C1723B46546002EC5FC /* MMCompute.swift in Sources */,
 				2B7A3C1923B46546002EC5FC /* MMScrollArea.swift in Sources */,
 				2B8E2FE823C7FE25005619E4 /* DesignProperties.swift in Sources */,
+				2BD291B723D435B6006F66BC /* Combo2D.metal in Sources */,
 				2B7A3C1123B46546002EC5FC /* MMFloatWidget.swift in Sources */,
 				2B7A3C2223B46546002EC5FC /* MMInfoArea.swift in Sources */,
 				2B7A3C3F23B469AD002EC5FC /* Mad4Metal.metal in Sources */,
@@ -1963,14 +1981,16 @@
 				2B9B29CB23BB453400C2F387 /* MMColorWidget.swift in Sources */,
 				2B9B29E723BB45C000C2F387 /* EditorWidget.swift in Sources */,
 				2B9B29A923BB44BF00C2F387 /* SceneDelegate.swift in Sources */,
-				2B59875923D15BD0007E335F /* Gizmo2D.swift in Sources */,
+				2B59875923D15BD0007E335F /* Combo2D.swift in Sources */,
 				2B9B29E123BB45B900C2F387 /* App.swift in Sources */,
 				2B9B29C523BB453400C2F387 /* MMUtils.swift in Sources */,
 				2B9B29D323BB453400C2F387 /* MMTreeWidget.swift in Sources */,
 				2B9B29D523BB453400C2F387 /* MMAnimate.swift in Sources */,
+				2BD291BB23D43AB2006F66BC /* Base.swift in Sources */,
 				2B9B29F123BC2F0900C2F387 /* SceneList.swift in Sources */,
 				2B9B29E523BB45C000C2F387 /* BottomRegion.swift in Sources */,
 				2B9B29F423BC30A700C2F387 /* CodeList.swift in Sources */,
+				2BD291B823D435B6006F66BC /* Combo2D.metal in Sources */,
 				2B9B29B823BB452800C2F387 /* NodeUI.swift in Sources */,
 				2B9B29ED23BB45CA00C2F387 /* CodeSemantics.swift in Sources */,
 				2B8E2FDA23C5CF40005619E4 /* Scene.swift in Sources */,

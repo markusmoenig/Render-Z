@@ -206,3 +206,15 @@ func defaultConstantForType(_ typeName: String) -> CodeFragment
     
     return constant
 }
+
+func setDefaultComponentValues(_ comp: CodeComponent)
+{
+    if comp.componentType == .SDF2D {
+        // Check values
+        comp.values["_posX"] = 0
+        comp.values["_posY"] = 0
+        comp.values["_scaleX"] = 0
+        comp.values["_scaleY"] = 0
+        comp.values["_rotate"] = 0
+    }
+}

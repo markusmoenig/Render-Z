@@ -178,19 +178,16 @@ class TopRegion: MMRegion
         
             //globalApp!.pipeline.start(400, 400)
             
-            if app.codeBuilder.isPlaying == false {
+            if app.pipeline.codeBuilder.isPlaying == false {
                 self.playButton.addState(.Checked)
                 app.mmView.lockFramerate(true)
-                app.codeBuilder.isPlaying = true
-                app.codeBuilder.currentFrame = 0
-                if app.developerEditor.codeProperties.monitorInstance != nil {
-                    app.developerEditor.codeProperties.resetMonitorData()
-                }
+                app.pipeline.codeBuilder.isPlaying = true
+                app.pipeline.codeBuilder.currentFrame = 0
             } else {
                 self.playButton.removeState(.Checked)
                 app.mmView.unlockFramerate(true)
-                app.codeBuilder.isPlaying = false
-                app.codeBuilder.currentFrame = 0
+                app.pipeline.codeBuilder.isPlaying = false
+                app.pipeline.codeBuilder.currentFrame = 0
             }
         }
         

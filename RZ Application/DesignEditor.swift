@@ -10,9 +10,14 @@ import MetalKit
 
 class DesignEditor          : MMWidget
 {
+    enum GizmoState {
+        case None, Combo2D
+    }
+    
     var fragment            : MMFragment
             
     var designComponent     : CodeComponent? = nil
+    var gizmoState          : GizmoState = .None
     
     var editor              : ArtistEditor!
 
@@ -21,11 +26,15 @@ class DesignEditor          : MMWidget
         
     var mouseIsDown         : Bool = false
     var mouseDownPos        : SIMD2<Float> = SIMD2<Float>()
+    
+    var gizmoCombo2D        : GizmoCombo2D
+    var currentGizmo        : GizmoBase? = nil
 
     override init(_ view: MMView)
     {
         fragment = MMFragment(view)
         fragment.allocateTexture(width: 10, height: 10)
+        gizmoCombo2D = GizmoCombo2D(view)
         
         super.init(view)
 
@@ -35,6 +44,25 @@ class DesignEditor          : MMWidget
         
         needsUpdate = true
         designChanged = true
+    }
+    
+    /// Update the gizmo state
+    func updateGizmo()
+    {
+        currentGizmo = nil
+        gizmoState = .None
+        
+        if let comp = designComponent {
+            if comp.componentType == .SDF2D {
+                gizmoState = .Combo2D
+                currentGizmo = gizmoCombo2D
+            }
+            if let gizmo = currentGizmo {
+                gizmo.setComponent(comp)
+            }
+        } else {
+            gizmoState = .None
+        }
     }
     
     /// Drag and Drop Target
@@ -72,14 +100,32 @@ class DesignEditor          : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        if let gizmo = currentGizmo {
+            gizmo.mouseMoved(event)
+        }
+        if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
+            editor.designProperties.mouseMoved(event)
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if let gizmo = currentGizmo {
+            gizmo.mouseDown(event)
+        }
+        if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
+            editor.designProperties.mouseDown(event)
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if let gizmo = currentGizmo {
+            gizmo.mouseUp(event)
+        }
+        if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
+            editor.designProperties.mouseUp(event)
+        }
     }
     
     override func update()
@@ -110,7 +156,7 @@ class DesignEditor          : MMWidget
         }
 
         // Is playing ?
-        if globalApp!.codeBuilder.isPlaying {
+        if globalApp!.pipeline.codeBuilder.isPlaying {
             globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
         }
         
@@ -123,6 +169,11 @@ class DesignEditor          : MMWidget
         }
         
         mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
+        
+        if let gizmo = currentGizmo, designComponent != nil {
+            gizmo.rect.copy(rect)
+            gizmo.draw()
+        }
     }
     
     func undoStart(_ name: String) -> CodeUndoComponent

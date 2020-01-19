@@ -58,7 +58,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: sceneList, designProperties, timelineButton)
+        mmView.registerWidgets(widgets: sceneList, designEditor, timelineButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -67,7 +67,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: sceneList, designProperties, timelineButton)
+        mmView.deregisterWidgets(widgets: sceneList, designEditor, timelineButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -80,6 +80,7 @@ class ArtistEditor          : Editor
         
         designEditor.designComponent = component
         designProperties.setSelected(component)
+        designEditor.updateGizmo()
         updateOnNextDraw()
         mmView.update()
     }

@@ -39,7 +39,7 @@ class Pipeline
         instanceMap = [:]
         
         // Background
-        let preStage = scene.stages[0]
+        let preStage = scene.getStage(.PreStage)
         for item in preStage.getChildren() {
             if let comp = item.components[item.defaultName] {
                 dryRunComponent(comp)
@@ -48,7 +48,7 @@ class Pipeline
         }
 
         // Objects
-        let shapeStage = scene.stages[1]
+        let shapeStage = scene.getStage(.ShapeStage)
         for item in shapeStage.getChildren() {
             if let shapes = item.componentLists["shapes" + modeId] {
                 if shapes.count > 0 {
@@ -59,7 +59,7 @@ class Pipeline
         }
         
         // Render
-        let renderStage = scene.stages[2]
+        let renderStage = scene.getStage(.RenderStage)
         let renderChildren = renderStage.getChildren()
         if renderChildren.count > 0 {
             let renderColor = renderChildren[0]
@@ -106,7 +106,7 @@ class Pipeline
         } else {
             codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 10000, 10000, 10000))
         }
-        
+                
         // Render it all
         if let inst = instanceMap["render"] {
             resultTexture = checkTextureSize(width, height, resultTexture)

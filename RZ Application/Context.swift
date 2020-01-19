@@ -301,6 +301,9 @@ class ContextWidget         : MMWidget
     {
         if let comp = decodeComponentFromJSON(json) {
             
+            // Insert default values for the component, position etc
+            setDefaultComponentValues(comp)
+            
             comp.selected = nil
             globalApp!.currentEditor.setComponent(comp)
             globalApp!.currentEditor.updateOnNextDraw(compile: true)

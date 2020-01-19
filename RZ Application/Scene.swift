@@ -320,6 +320,27 @@ class Scene                 : Codable, Equatable
         selectedUUID3D = stages[0].children3D[0].uuid
     }
     
+    /// Return the stage of the given type
+    func getStage(_ stageType: Stage.StageType) -> Stage
+    {
+        if stageType == .PreStage {
+            return stages[0]
+        } else
+        if stageType == .ShapeStage {
+            return stages[1]
+        } else
+        if stageType == .LightStage {
+            return stages[2]
+        }
+        if stageType == .RenderStage {
+            return stages[3]
+        }
+        if stageType == .PostStage {
+            return stages[4]
+        }
+        return stages[0]
+    }
+    
     /// Returns the selected UUID
     func getSelectedUUID() -> UUID?
     {
