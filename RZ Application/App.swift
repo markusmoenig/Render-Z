@@ -194,4 +194,13 @@ class Editor
     func drawRegion(_ region: MMRegion)
     {
     }
+    
+    func undoStart(_ name: String) -> CodeUndoComponent
+    {
+        return CodeUndoComponent(name)
+    }
+    
+    func undoEnd(_ undoComponent: CodeUndoComponent)
+    {
+    }
 }

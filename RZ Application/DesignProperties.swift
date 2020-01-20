@@ -79,24 +79,17 @@ class DesignProperties      : MMWidget
         c2Node?.rect.x = 200
         c2Node?.rect.y = 10
 
+        var propMap : [String:CodeFragment] = [:]
+
         for uuid in comp.properties {
             let rc = comp.getPropertyOfUUID(uuid)
             if let frag = rc.0 {
+                propMap[frag.name] = rc.1!
                 let components = frag.evaluateComponents()
                 let data = extractValueFromFragment(rc.1!)
                 if components == 1 {
                     let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), value: data.x, precision: Int(rc.1!.values["precision"]!))
                     c1Node?.uiItems.append(numberVar)
-                    c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
-                        if variable == frag.name {
-                            rc.1!.values["value"] = oldValue
-                            let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
-                            rc.1!.values["value"] = newValue
-                            self.updatePreview()
-                            self.addKey([frag.name:newValue])
-                            if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
-                        }
-                    }
                 } else
                 if components == 4 {
                     
@@ -118,6 +111,17 @@ class DesignProperties      : MMWidget
                     }
 
                 }
+            }
+        }
+        
+        c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+            if let frag = propMap[variable] {
+                frag.values["value"] = oldValue
+                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
+                frag.values["value"] = newValue
+                self.updatePreview()
+                self.addKey([frag.name:newValue])
+                if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
             }
         }
         

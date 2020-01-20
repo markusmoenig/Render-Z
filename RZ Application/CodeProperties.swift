@@ -245,9 +245,15 @@ class CodeProperties    : MMWidget
                     }
                 }
                 
-                c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "min", title: "Minimum", range: nil, value: fragment.values["min"]!) )
-                c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "max", title: "Maximum", range: nil, value: fragment.values["max"]!) )
-                c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "precision", title: "Precision", range: SIMD2<Float>(0,10), int: true, value: fragment.values["precision"]!) )
+
+                if fragment.getBaseType(fragment.typeName) == "float" {
+                    c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "min", title: "Minimum", range: nil, value: fragment.values["min"]!) )
+                    c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "max", title: "Maximum", range: nil, value: fragment.values["max"]!) )
+                    c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "precision", title: "Precision", range: SIMD2<Float>(1,10), int: true, value: fragment.values["precision"]!) )
+                } else {
+                    c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "min", title: "Minimum", range: nil, value: fragment.values["min"]!, precision: 0))
+                    c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "max", title: "Maximum", range: nil, value: fragment.values["max"]!, precision: 0))
+                }
                 c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "min" {
                         fragment.values["min"] = oldValue

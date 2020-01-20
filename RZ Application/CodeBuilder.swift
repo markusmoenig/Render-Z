@@ -22,6 +22,8 @@ class CodeBuilderInstance
     var computeResult       : SIMD4<Float> = SIMD4<Float>(0,0,0,0)
     var computeComponents   : Int = 1
     
+    var afterPropertyOffset : Int = 0
+    
     var properties          : [(CodeFragment?, CodeFragment?, Int)] = []
 }
 
@@ -85,6 +87,8 @@ class CodeBuilder
                 inst.data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
             }
         }
+        
+        inst.afterPropertyOffset = inst.data.count
         
         if component.componentType == .Colorize {
             buildColorize(inst, component, monitor)
@@ -156,7 +160,7 @@ class CodeBuilder
 
             float4 outColor = float4(0,0,0,1);
             float GlobalTime = data[0].x;
-        
+
         """
         
         if let code = component.code {
@@ -235,20 +239,22 @@ class CodeBuilder
             
         """
         kernel void componentBuilder(
-        texture2d<half, access::write>          outTexture  [[texture(0)]],
-        constant float4                        *data   [[ buffer(1) ]],
+        texture2d<half, access::write>          __outTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
         //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-        uint2 gid                               [[thread_position_in_grid]])
+        uint2 __gid                               [[thread_position_in_grid]])
         {
-            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-            float2 uv = float2(gid.x, gid.y);
-            float2 __center = size / 2;
-            uv = __translate(uv, __center);
+            float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
+            float2 pos = float2(__gid.x, __gid.y);
+            float2 __center = __size / 2;
+            pos = __translate(pos, __center);
 
-            float GlobalTime = data[0].x;
+            float GlobalTime = __data[0].x;
             float outDistance = 10;
             float4 __output = float4(0,0,0,0);
-        
+            int __offset = int(__data[0].y);
+            pos = __translate(pos, float2(__data[__offset].x, -__data[__offset].y));
+
         """
     
         if let code = component.code {
@@ -269,9 +275,12 @@ class CodeBuilder
         inst.code +=
         """
         
-            outTexture.write(half4(__output), gid);
+            __outTexture.write(half4(__output), __gid);
          }
         """
+        
+        // Position
+        inst.data.append(SIMD4<Float>(0,0,0,0))
     }
     
     /// Build the source code for the component
@@ -286,25 +295,22 @@ class CodeBuilder
         }
         
         kernel void componentBuilder(
-        texture2d<half, access::write>          outTexture  [[texture(0)]],
-        constant float4                        *data   [[ buffer(1) ]],
-        texture2d<half, access::sample>         depthTexture [[texture(2)]],
-        texture2d<half, access::sample>         backTexture [[texture(3)]],
-        uint2 gid                               [[thread_position_in_grid]])
+        texture2d<half, access::write>          __outTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
+        texture2d<half, access::sample>         __depthTexture [[texture(2)]],
+        texture2d<half, access::sample>         __backTexture [[texture(3)]],
+        uint2 __gid                             [[thread_position_in_grid]])
         {
-            constexpr sampler textureSampler(mag_filter::linear, min_filter::linear);
+            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
 
-            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-            float2 uv = float2(gid.x, gid.y);
-             
-            //float2 center = size / 2;
-            //uv = translate(uv, center);
+            float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
+            float2 uv = float2(__gid.x, __gid.y);
 
             float4 outColor = float4(0, 0, 0, 1);
-            float4 backColor = float4(backTexture.sample(textureSampler, uv / size ));
+            float4 backColor = float4(__backTexture.sample(__textureSampler, uv / size ));
             float4 matColor = float4(1, 1, 1, 1);
 
-            float4 __depthIn = float4(depthTexture.sample(textureSampler, uv / size ));
+            float4 __depthIn = float4(__depthTexture.sample(__textureSampler, uv / size ));
             float distance = __depthIn.x;
 
         """
@@ -321,7 +327,7 @@ class CodeBuilder
         inst.code +=
         """
                        
-            outTexture.write(half4(outColor), gid);
+            __outTexture.write(half4(outColor), __gid);
         }
           
         """
@@ -380,6 +386,7 @@ class CodeBuilder
         }
         
         inst.data[0].x = time
+        inst.data[0].y = Float(inst.afterPropertyOffset)
         for property in inst.properties{
             
             let data = extractValueFromFragment(property.1!)
@@ -429,7 +436,19 @@ class CodeBuilder
                 inst.data[property.2] = data
             }
         }
+        updateComponentSpecificData(inst)
         updateBuffer(inst)
+    }
+    
+    /// Update the data from the components
+    func updateComponentSpecificData(_ inst: CodeBuilderInstance)
+    {
+        if let comp = inst.component {
+            if comp.componentType == .SDF2D, comp.values["_posX"] != nil {
+                inst.data[inst.afterPropertyOffset].x = comp.values["_posX"]! * mmView.scaleFactor
+                inst.data[inst.afterPropertyOffset].y = comp.values["_posY"]! * mmView.scaleFactor
+            }
+        }
     }
 
     // Cear the texture

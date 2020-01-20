@@ -138,6 +138,9 @@ fragment float4 drawGizmoCombo2D(RasterizerData        in [[stage_in]],
         }
     }
     
+    finalColor.r /= finalColor.a;
+    finalColor.g /= finalColor.a;
+    finalColor.b /= finalColor.a;
     return finalColor;
 }
 

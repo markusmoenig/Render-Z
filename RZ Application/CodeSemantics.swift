@@ -88,9 +88,7 @@ class CodeFragment          : Codable, Equatable
         referseTo = try container.decode(UUID?.self, forKey: .referseTo)
         qualifier = try container.decode(String.self, forKey: .qualifier)
         values = try container.decode([String:Float].self, forKey: .values)
-        if let simplified = try container.decodeIfPresent(Bool.self, forKey: .isSimplified) {
-            isSimplified = simplified
-        }
+        isSimplified = try container.decode(Bool.self, forKey: .isSimplified)
     }
     
     func encode(to encoder: Encoder) throws
@@ -124,12 +122,15 @@ class CodeFragment          : Codable, Equatable
         self.evaluatesTo = evaluatesTo
         
         values["value"] = 1
-        values["min"] = 0
-        values["max"] = 1
+
         if typeName.contains("int") {
             values["precision"] = 0
+            values["min"] = 0
+            values["max"] = 10
         } else {
             values["precision"] = 3
+            values["min"] = 0
+            values["max"] = 1
         }
     }
     
@@ -627,9 +628,7 @@ class CodeBlock             : Codable, Equatable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         blockType = try container.decode(BlockType.self, forKey: .blockType)
         fragment = try container.decode(CodeFragment.self, forKey: .fragment)
-        if let ass = try container.decodeIfPresent(CodeFragment.self, forKey: .assignment) {
-            assignment = ass
-        }
+        assignment = try container.decode(CodeFragment.self, forKey: .assignment)
         statement = try container.decode(CodeStatement.self, forKey: .statement)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         comment = try container.decode(String.self, forKey: .comment)
@@ -791,15 +790,15 @@ class CodeBlock             : Codable, Equatable
                 ctx.cComponent!.code = code
                 let components = fragment.evaluateComponents()
                 if components == 1 {
-                    ctx.addCode( "data[\(1 + index)].x" )
+                    ctx.addCode( "__data[\(1 + index)].x" )
                 } else
                 if components == 2 {
-                    ctx.addCode( "data[\(1 + index)].xy" )
+                    ctx.addCode( "__data[\(1 + index)].xy" )
                 } else
                 if components == 3 {
-                    ctx.addCode( "data[\(1 + index)].xyz" )
+                    ctx.addCode( "__data[\(1 + index)].xyz" )
                 } else {
-                    ctx.addCode( "data[\(1 + index)]" )
+                    ctx.addCode( "__data[\(1 + index)]" )
                 }
             } else {
                 statement.draw(mmView, ctx)
@@ -1122,8 +1121,14 @@ class CodeComponent         : Codable, Equatable
             let f = CodeFunction(type, "skyDome")
             f.comment = "Returns a color for the given ray direction"
             
-            let arg1 = CodeFragment(.VariableDefinition, "float3", "dir", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg2)
+            
+            let arg3 = CodeFragment(.VariableDefinition, "float3", "dir", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg3)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
@@ -1133,13 +1138,10 @@ class CodeComponent         : Codable, Equatable
         } else
         if type == .SDF2D {
             let f = CodeFunction(type, "shapeDistance")
-            f.comment = "Returns the distance to the shape for the given uv position"
+            f.comment = "Returns the distance to the shape for the given position"
             
-            let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "pos", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg1)
-            
-            let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
-            f.header.statement.fragments.append(arg2)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
@@ -1149,7 +1151,7 @@ class CodeComponent         : Codable, Equatable
         } else
         if type == .Render2D {
             let f = CodeFunction(type, "computeColor")
-            f.comment = "Computes the pixel color for the given material."
+            f.comment = "Computes the pixel color for the given material"
             
             let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg1)

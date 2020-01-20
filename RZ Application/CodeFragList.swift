@@ -95,6 +95,7 @@ class CodeFragList : MMWidget
         
         item = FragItem("C")
         items.append(item)
+        item.items.append( SourceListItem("clamp", CodeFragment(.Primitive, "float", "clamp", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4", "float|float2|float3|float4"], "input0"  ) ) )
         item.items.append( SourceListItem("cos", CodeFragment(.Primitive, "float", "cos", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         
         item = FragItem("E")
@@ -123,6 +124,8 @@ class CodeFragList : MMWidget
         
         item = FragItem("M")
         items.append(item)
+        item.items.append( SourceListItem("max", CodeFragment(.Primitive, "float", "max", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4"], "input0"  ) ) )
+        item.items.append( SourceListItem("min", CodeFragment(.Primitive, "float", "min", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4"], "input0"  ) ) )
         item.items.append( SourceListItem("mix", CodeFragment(.Primitive, "float", "mix", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4", "float"], "input0"  ) ) )
         
         item = FragItem("S")
