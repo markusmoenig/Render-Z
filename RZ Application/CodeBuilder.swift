@@ -445,8 +445,8 @@ class CodeBuilder
     {
         if let comp = inst.component {
             if comp.componentType == .SDF2D, comp.values["_posX"] != nil {
-                inst.data[inst.afterPropertyOffset].x = comp.values["_posX"]! * mmView.scaleFactor
-                inst.data[inst.afterPropertyOffset].y = comp.values["_posY"]! * mmView.scaleFactor
+                inst.data[inst.afterPropertyOffset].x = comp.values["_posX"]!
+                inst.data[inst.afterPropertyOffset].y = comp.values["_posY"]!
             }
         }
     }

@@ -143,7 +143,7 @@ class DesignEditor          : MMWidget
                 globalApp!.pipeline.build(scene: globalApp!.project.selected!)
                 designChanged = false
             }
-            globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
+            globalApp!.pipeline.render(rect.width, rect.height)
         }
         needsUpdate = false
     }
@@ -157,13 +157,13 @@ class DesignEditor          : MMWidget
 
         // Is playing ?
         if globalApp!.pipeline.codeBuilder.isPlaying {
-            globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
+            globalApp!.pipeline.render(rect.width, rect.height)
         }
         
         // Do the preview
         if let texture = globalApp!.pipeline.resultTexture {
-            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
-            globalApp!.pipeline.renderIfResolutionChanged(rect.width * zoom, rect.height * zoom)
+            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+            globalApp!.pipeline.renderIfResolutionChanged(rect.width, rect.height)
         } else {
             mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
         }

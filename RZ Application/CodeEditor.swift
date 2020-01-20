@@ -270,7 +270,7 @@ class CodeEditor        : MMWidget
                 globalApp!.pipeline.build(scene: globalApp!.project.selected!)
                 codeChanged = false
             }
-            globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
+            globalApp!.pipeline.render(rect.width, rect.height)
         }
         needsUpdate = false
     }
@@ -287,13 +287,13 @@ class CodeEditor        : MMWidget
 
         // Is playing ?
         if globalApp!.pipeline.codeBuilder.isPlaying {
-            globalApp!.pipeline.render(rect.width * zoom, rect.height * zoom)
+            globalApp!.pipeline.render(rect.width, rect.height)
         }
         
         // Do the preview
         if let texture = globalApp!.pipeline.resultTexture {
-            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, zoom: zoom)
-            globalApp!.pipeline.renderIfResolutionChanged(rect.width * zoom, rect.height * zoom)
+            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+            globalApp!.pipeline.renderIfResolutionChanged(rect.width, rect.height)
             
             if let comp = codeComponent {
                 for f in comp.functions {
