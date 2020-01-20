@@ -20,6 +20,11 @@ class GizmoCombo2D          : GizmoBase
     var initialValues       : [String:Float] = [:]
     var startRotate         : Float = 0
 
+    var scaleXFragmentName  : String? = nil
+    var scaleYFragmentName  : String? = nil
+    var scaleXFragment      : CodeFragment? = nil
+    var scaleYFragment      : CodeFragment? = nil
+    
     var undoComponent       : CodeUndoComponent? = nil
 
     override init(_ view: MMView)
@@ -43,6 +48,32 @@ class GizmoCombo2D          : GizmoBase
             dragStartOffset = convertToSceneSpace(x: event.x, y: event.y)
             initialValues = component.values
             startRotate = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
+            
+            scaleXFragmentName = nil
+            scaleYFragmentName = nil
+            scaleXFragment = nil
+            scaleYFragment = nil
+            
+            // Get the scale gizmo mapping for the properties
+            for prop in component.properties {
+                if let gizmoMap = component.propertyGizmoMap[prop] {
+                    if gizmoMap != .None {
+                        let rc = component.getPropertyOfUUID(prop)
+                        if let frag = rc.0, rc.1 != nil {
+                            if gizmoMap == .AllScale || gizmoMap == .XScale {
+                                scaleXFragmentName = frag.name
+                                scaleXFragment = rc.1!
+                                initialValues["_scaleX"] = rc.1!.values["value"]!
+                            }
+                            if gizmoMap == .AllScale || gizmoMap == .YScale {
+                                scaleYFragmentName = frag.name
+                                scaleYFragment = rc.1!
+                                initialValues["_scaleY"] = rc.1!.values["value"]!
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -86,8 +117,18 @@ class GizmoCombo2D          : GizmoBase
                     "_rotate" : value
                 ]
                 processGizmoProperties(properties)
+            } else
+            if dragState == .xAxisScale {
+                if let fragment = scaleXFragment {
+                    processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (pos.x - dragStartOffset!.x), 0.001))
+                }
+            } else
+            if dragState == .yAxisScale {
+                if let fragment = scaleYFragment {
+                    processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (pos.y - dragStartOffset!.y), 0.001))
+                }
             }
-
+            
             if undoComponent == nil {
                 undoComponent = globalApp!.currentEditor.undoStart("Gizmo Action")
             }
@@ -112,6 +153,20 @@ class GizmoCombo2D          : GizmoBase
                 component.values[name] = value
             }
         } else {
+            timeline.addKeyProperties(sequence: component.sequence, uuid: component.uuid, properties: properties)
+        }
+        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+    }
+    
+    ///
+    func processProperty(_ fragment: CodeFragment, name: String, value: Float)
+    {
+        let timeline = globalApp!.artistEditor.timeline
+        
+        if !timeline.isRecording {
+            fragment.values["value"] = value
+        } else {
+            let properties : [String:Float] = [name:value]
             timeline.addKeyProperties(sequence: component.sequence, uuid: component.uuid, properties: properties)
         }
         globalApp!.currentEditor.updateOnNextDraw(compile: false)

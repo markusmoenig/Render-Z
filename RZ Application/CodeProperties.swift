@@ -325,9 +325,16 @@ class CodeProperties    : MMWidget
                 c1Node?.uiItems.append( artistNameUI )
                 
                 c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "expose", title: "Expose to Artist", items: ["No", "Yes"], index: comp.properties.firstIndex(of: fragment.uuid) == nil ? 0 : 1 ) )
-                
                 c1Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
                 
+                var mapIndex : Float = 0
+                if let mapping = comp.propertyGizmoMap[fragment.uuid] {
+                    mapIndex = Float(mapping.rawValue)
+                }
+                let gizmoMappingUI = NodeUISelector(c2Node!, variable: "gizmoMap", title: "Gizmo", items: ["No", "Scale (All)", "Scale X", "Scale Y"], index: mapIndex )
+                gizmoMappingUI.isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
+                c2Node?.uiItems.append( gizmoMappingUI )
+
                 c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "name" {
                         fragment.name = oldValue
@@ -361,6 +368,9 @@ class CodeProperties    : MMWidget
 
                         self.editor.updateOnNextDraw()
                         if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    } else
+                    if variable == "gizmoMap" {
+                        comp.propertyGizmoMap[fragment.uuid] = CodeComponent.PropertyGizmoMapping(rawValue: Int(newValue))
                     }
                 }
                 

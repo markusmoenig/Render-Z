@@ -1009,6 +1009,10 @@ class CodeComponent         : Codable, Equatable
         case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D
     }
     
+    enum PropertyGizmoMapping: Int, Codable {
+        case None, AllScale, XScale, YScale, ZScale
+    }
+    
     let componentType       : ComponentType
     
     var functions           : [CodeFunction] = []
@@ -1021,6 +1025,7 @@ class CodeComponent         : Codable, Equatable
     // Properties and their animation
     var properties          : [UUID] = []
     var artistPropertyNames : [UUID:String] = [:]
+    var propertyGizmoMap    : [UUID:PropertyGizmoMapping] = [:]
     var sequence            : MMTlSequence = MMTlSequence()
     
     // CloudKit
@@ -1043,6 +1048,7 @@ class CodeComponent         : Codable, Equatable
         case selected
         case properties
         case artistPropertyNames
+        case propertyGizmoMap
         case sequence
         case libraryName
         case libraryComment
@@ -1059,6 +1065,9 @@ class CodeComponent         : Codable, Equatable
         selected = try container.decode(UUID?.self, forKey: .selected)
         properties = try container.decode([UUID].self, forKey: .properties)
         artistPropertyNames = try container.decode([UUID:String].self, forKey: .artistPropertyNames)
+        if let map = try container.decodeIfPresent([UUID:PropertyGizmoMapping].self, forKey: .propertyGizmoMap) {
+            propertyGizmoMap = map
+        }
         sequence = try container.decode(MMTlSequence.self, forKey: .sequence)
         libraryName = try container.decode(String.self, forKey: .libraryName)
         libraryComment = try container.decode(String.self, forKey: .libraryComment)
@@ -1075,6 +1084,7 @@ class CodeComponent         : Codable, Equatable
         try container.encode(selected, forKey: .selected)
         try container.encode(properties, forKey: .properties)
         try container.encode(artistPropertyNames, forKey: .artistPropertyNames)
+        try container.encode(propertyGizmoMap, forKey: .propertyGizmoMap)
         try container.encode(sequence, forKey: .sequence)
         try container.encode(libraryName, forKey: .libraryName)
         try container.encode(libraryComment, forKey: .libraryComment)
