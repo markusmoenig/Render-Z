@@ -16,12 +16,14 @@ class LibraryItem {
     var rect                : MMRect = MMRect()
     var thumbnail           : MTLTexture? = nil
     var json                : String
+    var type                : String
     
-    init(_ mmView: MMView,_ title: String,_ description: String = "", _ json: String = "")
+    init(_ mmView: MMView,_ title: String,_ description: String = "", _ json: String = "",_ type: String = "")
     {
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title)
         self.descriptionLabel = MMTextLabel(mmView, font: mmView.openSans, text: description, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
         self.json = json
+        self.type = type
     }
 }
 
@@ -77,10 +79,7 @@ class LibraryDialog: MMDialog {
                 let name = arr[0]
                 let type = arr[1]
 
-                let item = LibraryItem(view, name, "", record.value(forKey: "json") as! String)
-                if let comp = decodeComponentFromJSON(item.json) {
-                    item.thumbnail = generateThumbnailForComponent(comp)
-                }
+                let item = LibraryItem(view, name, "", record.value(forKey: "json") as! String, record.recordID.recordName)
                 
                 if self.itemMap[type] == nil {
                     self.itemMap[type] = []
@@ -101,6 +100,7 @@ class LibraryDialog: MMDialog {
     
     override func cancel() {
         super.cancel()
+        cancelButton!.removeState(.Checked)
     }
     
     override func ok() {
@@ -111,6 +111,8 @@ class LibraryDialog: MMDialog {
                 globalApp!.context.replaceJSONForItem(context, selected.json)
             }
         }
+        
+        okButton.removeState(.Checked)
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {
@@ -186,6 +188,7 @@ class LibraryDialog: MMDialog {
             y += scrollOffset
         }
         
+        var oneThumbnailOnly : Bool = false
         for (index,item) in items.enumerated() {
             
             var x : Float = rect.x + 3
@@ -198,7 +201,12 @@ class LibraryDialog: MMDialog {
             mmView.drawBox.draw( x: x, y: y, width: itemSize, height: itemSize, round: 26, borderSize: 2, fillColor: mmView.skin.Item.color, borderColor: borderColor)//, maskRoundingSize: 26, maskRect: SIMD4<Float>(boxRect.x, boxRect.y, boxRect.width, boxRect.height))
             
             if let thumb = item.thumbnail {
-                mmView.drawTexture.draw(thumb, x: x + (itemSize - Float(100)*0.8) / 2, y: y + 45, zoom: 1.2)
+                mmView.drawTexture.draw(thumb, x: x + (itemSize - Float(100)) / 2, y: y + 15, zoom: 2)
+            } else
+            if oneThumbnailOnly == false {
+                oneThumbnailOnly =  true
+                item.thumbnail = globalApp!.thumbnail.request(item.type, decodeComponentFromJSON(item.json)!)
+                mmView.update()
             }
 
             if selectedItem === item {
@@ -209,7 +217,7 @@ class LibraryDialog: MMDialog {
             
             item.rect.set(x, y, itemSize, itemSize)
             item.titleLabel.color = textColor
-            item.titleLabel.drawCentered(x: x, y: y + itemSize - 59, width: itemSize, height: 35)
+            item.titleLabel.drawCentered(x: x, y: y + itemSize - 40, width: itemSize, height: 35)
             
             if index > 0 && Float(index).truncatingRemainder(dividingBy: 2) == 0 {
                 y += itemSize + 2

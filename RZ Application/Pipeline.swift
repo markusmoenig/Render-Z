@@ -57,8 +57,6 @@ class Pipeline
                 codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder)
                 for shape in shapes {
                     codeBuilder.sdfStream.pushComponent(shape)
-                    //dryRunComponent(shapes[0])
-                    //instanceMap["shape"] = codeBuilder.build(shapes[0])
                 }
                 instanceMap["shape"] = instance
                 codeBuilder.sdfStream.closeStream()

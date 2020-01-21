@@ -88,7 +88,7 @@ class ContextWidget         : MMWidget
         
         spacing = 10
         //unitSize = 35
-        itemSize = 100
+        itemSize = 80
 
         textureWidget = MMTextureWidget(view, texture: fragment!.texture)
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -137,6 +137,8 @@ class ContextWidget         : MMWidget
 
             let tempRect = MMRect()
             
+            let textHeight : Float = 18
+            
             for item in currentList {
                 
                 item.rect.set(left, top, itemSize, itemSize)
@@ -146,10 +148,14 @@ class ContextWidget         : MMWidget
                     
                     mmView.drawBox.draw( x: left, y: top, width: itemSize, height: itemSize, round: 4, borderSize: 1, fillColor: fColor, borderColor: borderColor, fragment: fragment!)
                     
-                    mmView.drawBox.draw( x: left, y: top + itemSize - 24, width: itemSize, height: 24, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
+                    mmView.drawBox.draw( x: left, y: top + itemSize - textHeight, width: itemSize, height: textHeight, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
                     
                     font.getTextRect(text: comp.libraryName, scale: fontScale, rectToUse: tempRect)
-                    mmView.drawText.drawText(mmView.openSans, text: comp.libraryName, x: left + (itemSize - tempRect.width)/2, y: top + itemSize - 22, scale: fontScale, fragment: fragment)
+                    mmView.drawText.drawText(mmView.openSans, text: comp.libraryName, x: left + (itemSize - tempRect.width)/2, y: top + itemSize - textHeight, scale: fontScale, fragment: fragment)
+                    
+                    if let thumb = globalApp!.thumbnail.request(comp.libraryName + " - " + libraryId, comp) {
+                        mmView.drawTexture.draw(thumb, x: left + (itemSize - 200 / 3.5)/2, y: top, zoom: 3.5, fragment: fragment)
+                    }
                 } else {
                     mmView.drawBox.draw( x: left, y: top, width: itemSize, height: itemSize, round: 4, borderSize: 1, fillColor: SIMD4<Float>(0,0,0,0), borderColor: borderColor, fragment: fragment!)
                 }

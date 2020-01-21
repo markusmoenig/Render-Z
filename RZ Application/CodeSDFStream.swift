@@ -73,7 +73,7 @@ class CodeSDFStream
             """
         }
         
-        print(instance.code)
+        //print(instance.code)
         codeBuilder.buildInstance(instance)
     }
     
@@ -87,8 +87,7 @@ class CodeSDFStream
         {
             let posX = instance.getTransformPropertyIndex(component, "_posX")
             let posY = instance.getTransformPropertyIndex(component, "_posY")
-            print( "posX", posX)
-            print( "posY", posY)
+
             instance.code +=
             """
                 {

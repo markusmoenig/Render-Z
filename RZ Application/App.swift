@@ -25,6 +25,7 @@ class App
     
     var codeBuilder     : CodeBuilder
     var pipeline        : Pipeline
+    var thumbnail       : Thumbnail
 
     var sceneList       : SceneList
 
@@ -62,6 +63,7 @@ class App
         developerEditor = DeveloperEditor(mmView, sceneList)
         codeBuilder = CodeBuilder(mmView)
         pipeline = Pipeline(mmView)
+        thumbnail = Thumbnail(mmView)
 
         currentEditor = developerEditor
         project = Project(currentSceneMode)

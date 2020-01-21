@@ -120,17 +120,6 @@ class CodeBuilder
             }
         }
         
-        // Collect properties
-        /*
-        for uuid in component.properties
-        {
-            let rc = component.getPropertyOfUUID(uuid)
-            if rc.0 != nil && rc.1 != nil {
-                inst.properties.append((rc.0, rc.1, inst.data.count))
-                inst.data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
-            }
-        }*/
-        
         inst.collectProperties(component)
         
         if component.componentType == .Colorize {

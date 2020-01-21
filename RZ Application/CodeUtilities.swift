@@ -121,22 +121,6 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true)
     }
 }
 
-/// Generate a preview thumbnail for the component
-func generateThumbnailForComponent(_ comp: CodeComponent, _ width: Float = 100, height: Float = 100) -> MTLTexture?
-{
-    let codeBuilder = globalApp!.codeBuilder
-    let texture : MTLTexture? = codeBuilder.compute.allocateTexture(width: width, height: height, output: false)
-    
-    dryRunComponent(comp)
-    
-    if let tex = texture {
-        let instance = codeBuilder.build(comp)
-        codeBuilder.render(instance, tex)
-    }
-    
-    return texture
-}
-
 /// Decode Component into JSON
 func decodeComponentFromJSON(_ json: String) -> CodeComponent?
 {
