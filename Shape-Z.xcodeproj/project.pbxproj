@@ -161,6 +161,8 @@
 		2B639F18221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
 		2B639F1A221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
 		2B639F1B221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
+		2B65083323D69922003DE093 /* CodeSDFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B65083223D69922003DE093 /* CodeSDFStream.swift */; };
+		2B65083423D69922003DE093 /* CodeSDFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B65083223D69922003DE093 /* CodeSDFStream.swift */; };
 		2B6CCE46231F4FD600ECA35B /* union_off.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B6CCE45231F4FD600ECA35B /* union_off.tiff */; };
 		2B6CCE47231F4FD600ECA35B /* union_off.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B6CCE45231F4FD600ECA35B /* union_off.tiff */; };
 		2B6CCE49231F4FE200ECA35B /* union_on.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B6CCE48231F4FE200ECA35B /* union_on.tiff */; };
@@ -667,6 +669,7 @@
 		2B5FE42822C213690046A435 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		2B639F16221791F500576542 /* NodeList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeList.swift; sourceTree = "<group>"; };
 		2B639F19221A32CD00576542 /* MMFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFile.swift; sourceTree = "<group>"; };
+		2B65083223D69922003DE093 /* CodeSDFStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSDFStream.swift; sourceTree = "<group>"; };
 		2B6CCE45231F4FD600ECA35B /* union_off.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = union_off.tiff; sourceTree = "<group>"; };
 		2B6CCE48231F4FE200ECA35B /* union_on.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = union_on.tiff; sourceTree = "<group>"; };
 		2B6CCE4B231F59E700ECA35B /* substract_on.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = substract_on.tiff; sourceTree = "<group>"; };
@@ -935,6 +938,7 @@
 				2B9F42F023B9CB2800885B40 /* CodeProperties.swift */,
 				2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */,
 				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
+				2B65083223D69922003DE093 /* CodeSDFStream.swift */,
 				2B8E2FEA23C81CD9005619E4 /* CodeUtilities.swift */,
 				2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */,
 				2B9B29F223BC2FA200C2F387 /* CodeList.swift */,
@@ -1733,6 +1737,7 @@
 				2B8E2FDF23C6D7B4005619E4 /* DesignEditor.swift in Sources */,
 				2B7A3C1E23B46546002EC5FC /* MMAnimate.swift in Sources */,
 				2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */,
+				2B65083323D69922003DE093 /* CodeSDFStream.swift in Sources */,
 				2B9B29F023BC2F0900C2F387 /* SceneList.swift in Sources */,
 				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
@@ -1985,6 +1990,7 @@
 				2B9B29E123BB45B900C2F387 /* App.swift in Sources */,
 				2B9B29C523BB453400C2F387 /* MMUtils.swift in Sources */,
 				2B9B29D323BB453400C2F387 /* MMTreeWidget.swift in Sources */,
+				2B65083423D69922003DE093 /* CodeSDFStream.swift in Sources */,
 				2B9B29D523BB453400C2F387 /* MMAnimate.swift in Sources */,
 				2BD291BB23D43AB2006F66BC /* Base.swift in Sources */,
 				2B9B29F123BC2F0900C2F387 /* SceneList.swift in Sources */,

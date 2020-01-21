@@ -65,7 +65,6 @@ class LibraryDialog: MMDialog {
             
             records?.forEach({ (record) in
                 
-                
                 //currentItems.append(item)
                 
                 // System Field from property

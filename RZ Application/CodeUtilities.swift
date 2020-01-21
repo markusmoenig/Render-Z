@@ -161,10 +161,10 @@ func encodeComponentToJSON(_ component: CodeComponent) -> String
 }
 
 /// Runs the component to generate code without any drawing
-func dryRunComponent(_ comp: CodeComponent)
+func dryRunComponent(_ comp: CodeComponent,_ propertyOffset: Int = 0)
 {
     let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, 0.5)
-    ctx.reset(100)
+    ctx.reset(1000, propertyOffset)
     comp.draw(globalApp!.mmView, ctx)
 }
 

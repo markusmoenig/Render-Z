@@ -35,7 +35,8 @@ class Pipeline
     func build(scene: Scene, upUntil: StageItem? = nil, monitor: CodeFragment? = nil)
     {
         let modeId : String = globalApp!.currentSceneMode == .TwoD ? "2D" : "3D"
-        
+        let typeId : CodeComponent.ComponentType = globalApp!.currentSceneMode == .TwoD ? .SDF2D : .SDF3D
+
         instanceMap = [:]
         
         // Background
@@ -51,10 +52,16 @@ class Pipeline
         let shapeStage = scene.getStage(.ShapeStage)
         for item in shapeStage.getChildren() {
             if let shapes = item.componentLists["shapes" + modeId] {
-                if shapes.count > 0 {
-                    dryRunComponent(shapes[0])
-                    instanceMap["shape"] = codeBuilder.build(shapes[0])
+                let instance = CodeBuilderInstance()
+                instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+                codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder)
+                for shape in shapes {
+                    codeBuilder.sdfStream.pushComponent(shape)
+                    //dryRunComponent(shapes[0])
+                    //instanceMap["shape"] = codeBuilder.build(shapes[0])
                 }
+                instanceMap["shape"] = instance
+                codeBuilder.sdfStream.closeStream()
             }
         }
         
@@ -76,7 +83,7 @@ class Pipeline
         func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
         {
             // Monitor
-            if inst.component === monitorComponent {
+            if inst.component != nil && inst.component === monitorComponent {
                 monitorTexture = checkTextureSize(width, height, monitorTexture, true)
                 if monitorInstance == nil {
                     monitorInstance = codeBuilder.build(monitorComponent!, monitorFragment)

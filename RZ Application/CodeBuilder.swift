@@ -21,10 +21,46 @@ class CodeBuilderInstance
     var computeOutBuffer    : MTLBuffer!
     var computeResult       : SIMD4<Float> = SIMD4<Float>(0,0,0,0)
     var computeComponents   : Int = 1
+        
+    var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent)] = []
     
-    var afterPropertyOffset : Int = 0
+    /// Collect all the properties of the component and create a data entry for it
+    func collectProperties(_ component: CodeComponent)
+    {
+        // Collect properties, stored in the value property of the CodeFragment
+        for uuid in component.properties
+        {
+            let rc = component.getPropertyOfUUID(uuid)
+            if rc.0 != nil && rc.1 != nil {
+                properties.append((rc.0, rc.1, nil, data.count, component))
+                data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
+            }
+        }
+        
+        // Collect transforms, stored in the values map of the component
+        if component.componentType == .SDF2D {
+            properties.append((nil, nil, "_posX", data.count, component))
+            data.append(SIMD4<Float>(0,0,0,0))
+            properties.append((nil, nil, "_posY", data.count, component))
+            data.append(SIMD4<Float>(0,0,0,0))
+            properties.append((nil, nil, "_rotate", data.count, component))
+            data.append(SIMD4<Float>(0,0,0,0))
+        }
+    }
     
-    var properties          : [(CodeFragment?, CodeFragment?, Int)] = []
+    ///
+    func getTransformPropertyIndex(_ component: CodeComponent,_ name: String) -> Int
+    {
+        for property in properties {
+            if let propertyName = property.2 {
+                if propertyName == name && property.4 === component {
+                    return property.3
+                }
+            }
+        }
+        print("property", name, "not found")
+        return 0
+    }
 }
 
 class CodeBuilder
@@ -38,12 +74,16 @@ class CodeBuilder
     
     var clearBuffer         : MTLBuffer!
     var clearState          : MTLComputePipelineState? = nil
+    
+    var sdfStream           : CodeSDFStream
 
     init(_ view: MMView)
     {
         mmView = view
         
         compute = MMCompute()
+        sdfStream = CodeSDFStream()
+        
         buildClearState()
     }
     
@@ -63,6 +103,8 @@ class CodeBuilder
         
         // Time
         inst.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+        
+        dryRunComponent(component, inst.data.count)
 
         // Compute monitor components
         if let fragment = monitor {
@@ -79,6 +121,7 @@ class CodeBuilder
         }
         
         // Collect properties
+        /*
         for uuid in component.properties
         {
             let rc = component.getPropertyOfUUID(uuid)
@@ -86,9 +129,9 @@ class CodeBuilder
                 inst.properties.append((rc.0, rc.1, inst.data.count))
                 inst.data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
             }
-        }
+        }*/
         
-        inst.afterPropertyOffset = inst.data.count
+        inst.collectProperties(component)
         
         if component.componentType == .Colorize {
             buildColorize(inst, component, monitor)
@@ -104,14 +147,18 @@ class CodeBuilder
         }
         
         //print( inst.code )
-        
+    
+        buildInstance(inst)
+        return inst
+    }
+    
+    func buildInstance(_ inst: CodeBuilderInstance)
+    {
         inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
         let library = compute.createLibraryFromSource(source: inst.code)
         inst.computeState = compute.createState(library: library, name: "componentBuilder")
-    
-        return inst
     }
     
     func insertMonitorCode(_ fragment: CodeFragment,_ outVariableName: String,_ components: Int) -> String
@@ -225,41 +272,12 @@ class CodeBuilder
     /// Build the source code for the component
     func buildSDF2D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
     {
-        inst.code +=
-        """
+        sdfStream.openStream(.SDF2D, inst, self)
         
-        float2 __translate(float2 p, float2 t)
-        {
-            return p - t;
-        }
-        
-        """
-        
-        inst.code +=
-            
-        """
-        kernel void componentBuilder(
-        texture2d<half, access::write>          __outTexture  [[texture(0)]],
-        constant float4                        *__data   [[ buffer(1) ]],
-        //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-        uint2 __gid                               [[thread_position_in_grid]])
-        {
-            float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
-            float2 pos = float2(__gid.x, __gid.y);
-            float2 __center = __size / 2;
-            pos = __translate(pos, __center);
-
-            float GlobalTime = __data[0].x;
-            float outDistance = 10;
-            float4 __output = float4(0,0,0,0);
-            int __offset = int(__data[0].y);
-            pos = __translate(pos, float2(__data[__offset].x, -__data[__offset].y));
-
-        """
-    
-        if let code = component.code {
-            inst.code += code
-        }
+        sdfStream.pushComponent(component)
+        //if let code = component.code {
+//            inst.code += code
+ //       }
 
         // --- Monitor
         if let fragment = monitor {
@@ -272,12 +290,7 @@ class CodeBuilder
             """
         }
         
-        inst.code +=
-        """
-        
-            __outTexture.write(half4(__output), __gid);
-         }
-        """
+        sdfStream.closeStream()
         
         // Position
         inst.data.append(SIMD4<Float>(0,0,0,0))
@@ -361,6 +374,18 @@ class CodeBuilder
         clearState = compute.createState(library: library, name: "clearBuilder")
     }
     
+    ///
+    func openSDFStream()
+    {
+        
+    }
+    
+    ///
+    func closeSDFStream()
+    {
+        
+    }
+    
     /// Update the instance buffer
     func updateBuffer(_ inst: CodeBuilderInstance)
     {
@@ -386,13 +411,18 @@ class CodeBuilder
         }
         
         inst.data[0].x = time
-        inst.data[0].y = Float(inst.afterPropertyOffset)
-        for property in inst.properties{
+        for property in inst.properties {
             
-            let data = extractValueFromFragment(property.1!)
-            let components = property.1!.evaluateComponents()
+            let dataIndex = property.3
+            let component = property.4
+
+            if property.0 != nil
+            {
+                // Property, stored in the CodeFragments
                 
-            if globalApp!.currentEditor === globalApp!.artistEditor {
+                let data = extractValueFromFragment(property.1!)
+                let components = property.1!.evaluateComponents()
+                
                 // Transform the properties inside the artist editor
                 
                 let name = property.0!.name
@@ -400,55 +430,52 @@ class CodeBuilder
                 
                 if components == 1 {
                     properties[name] = data.x
-                    let transformed = timeline.transformProperties(sequence: inst.component!.sequence, uuid: inst.component!.uuid, properties: properties, frame: timeline.currentFrame)
-                    inst.data[property.2].x = transformed[name]!
+                    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                    inst.data[dataIndex].x = transformed[name]!
                 } else
                 if components == 2 {
                     properties[name + "_x"] = data.x
                     properties[name + "_y"] = data.y
-                    let transformed = timeline.transformProperties(sequence: inst.component!.sequence, uuid: inst.component!.uuid, properties: properties, frame: timeline.currentFrame)
-                    inst.data[property.2].x = transformed[name + "_x"]!
-                    inst.data[property.2].y = transformed[name + "_y"]!
+                    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                    inst.data[dataIndex].x = transformed[name + "_x"]!
+                    inst.data[dataIndex].y = transformed[name + "_y"]!
                 } else
                 if components == 3 {
                     properties[name + "_x"] = data.x
                     properties[name + "_y"] = data.y
                     properties[name + "_z"] = data.z
-                    let transformed = timeline.transformProperties(sequence: inst.component!.sequence, uuid: inst.component!.uuid, properties: properties, frame: timeline.currentFrame)
-                    inst.data[property.2].x = transformed[name + "_x"]!
-                    inst.data[property.2].y = transformed[name + "_y"]!
-                    inst.data[property.2].z = transformed[name + "_z"]!
+                    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                    inst.data[dataIndex].x = transformed[name + "_x"]!
+                    inst.data[dataIndex].y = transformed[name + "_y"]!
+                    inst.data[dataIndex].z = transformed[name + "_z"]!
                 } else
                 if components == 4 {
                     properties[name + "_x"] = data.x
                     properties[name + "_y"] = data.y
                     properties[name + "_z"] = data.z
                     properties[name + "_w"] = data.w
-                    let transformed = timeline.transformProperties(sequence: inst.component!.sequence, uuid: inst.component!.uuid, properties: properties, frame: timeline.currentFrame)
-                    inst.data[property.2].x = transformed[name + "_x"]!
-                    inst.data[property.2].y = transformed[name + "_y"]!
-                    inst.data[property.2].z = transformed[name + "_z"]!
-                    inst.data[property.2].w = transformed[name + "_w"]!
+                    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                    inst.data[dataIndex].x = transformed[name + "_x"]!
+                    inst.data[dataIndex].y = transformed[name + "_y"]!
+                    inst.data[dataIndex].z = transformed[name + "_z"]!
+                    inst.data[dataIndex].w = transformed[name + "_w"]!
                 }
-                globalApp!.artistEditor.designProperties.updateTransformedProperty(name, data: inst.data[property.2])
-            } else {
-                // Otherwise copy 1:1
-                inst.data[property.2] = data
+                if globalApp!.currentEditor === globalApp!.artistEditor {
+                    globalApp!.artistEditor.designProperties.updateTransformedProperty(name, data: inst.data[dataIndex])
+                }
+            } else
+            if let name = property.2 {
+                // Transform property, stored in the values of the component
+                
+                var properties : [String:Float] = [:]
+                properties[name] = component.values[name]!
+
+                let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                
+                inst.data[dataIndex].x = transformed[name]!
             }
         }
-        updateComponentSpecificData(inst)
         updateBuffer(inst)
-    }
-    
-    /// Update the data from the components
-    func updateComponentSpecificData(_ inst: CodeBuilderInstance)
-    {
-        if let comp = inst.component {
-            if comp.componentType == .SDF2D, comp.values["_posX"] != nil {
-                inst.data[inst.afterPropertyOffset].x = comp.values["_posX"]!
-                inst.data[inst.afterPropertyOffset].y = comp.values["_posY"]!
-            }
-        }
     }
 
     // Cear the texture

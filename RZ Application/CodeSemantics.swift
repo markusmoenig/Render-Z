@@ -783,23 +783,25 @@ class CodeBlock             : Codable, Equatable
 
 
             // statement
-            if let index = propIndex {
+            if let _ = propIndex {
                 // PROPERTY!!!!
                 let code = ctx.cComponent!.code!
                 statement.draw(mmView, ctx)
                 ctx.cComponent!.code = code
+                let dataIndex = ctx.propertyDataOffset
                 let components = fragment.evaluateComponents()
                 if components == 1 {
-                    ctx.addCode( "__data[\(1 + index)].x" )
+                    ctx.addCode( "__data[\(dataIndex)].x" )
                 } else
                 if components == 2 {
-                    ctx.addCode( "__data[\(1 + index)].xy" )
+                    ctx.addCode( "__data[\(dataIndex)].xy" )
                 } else
                 if components == 3 {
-                    ctx.addCode( "__data[\(1 + index)].xyz" )
+                    ctx.addCode( "__data[\(dataIndex)].xyz" )
                 } else {
-                    ctx.addCode( "__data[\(1 + index)]" )
+                    ctx.addCode( "__data[\(dataIndex)]" )
                 }
+                ctx.propertyDataOffset += 1
             } else {
                 statement.draw(mmView, ctx)
             }
@@ -1431,6 +1433,8 @@ class CodeContext
 
     var tempRect            : MMRect = MMRect()
     
+    var propertyDataOffset  : Int = 0
+    
     init(_ view: MMView,_ fragment: MMFragment?,_ font: MMFont,_ fontScale: Float)
     {
         mmView = view
@@ -1439,7 +1443,7 @@ class CodeContext
         self.fontScale = fontScale
     }
     
-    func reset(_ editorWidth: Float)
+    func reset(_ editorWidth: Float = 10000,_ propertyDataOffset: Int = 0)
     {
         //fontScale = 0.45
         startX = 10
@@ -1455,7 +1459,8 @@ class CodeContext
         
         self.editorWidth = editorWidth
         lineHeight = font.getLineHeight(fontScale)
-        
+        self.propertyDataOffset = propertyDataOffset
+
         dropIsValid = false
     }
     
