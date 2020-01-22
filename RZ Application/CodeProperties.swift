@@ -383,6 +383,7 @@ class CodeProperties    : MMWidget
             // --- Variable Reference
             if fragment.fragmentType == .VariableReference || fragment.fragmentType == .OutVariable {
                 let textVar = NodeUIText(c1Node!, variable: "qualifier", title: "Qualifier", value: fragment.qualifier)
+                textVar.isDisabled = fragment.evaluateComponents() == 1
                 c1Node?.uiItems.append(textVar)
                 c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "qualifier" {
