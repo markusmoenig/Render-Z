@@ -26,7 +26,7 @@ class AccessButton
 class CodeAccess            : MMWidget
 {
     enum AccessState {
-        case Closed, Arithmetic, ArithmeticOperator, AssignmentOperator
+        case Closed, Arithmetic, ArithmeticOperator, AssignmentOperator, ComparisonOperator
     }
     
     var accessState             : AccessState = .Closed
@@ -45,6 +45,7 @@ class CodeAccess            : MMWidget
     
     let arithmetics             : [String] = ["+", "-", "*", "/"]
     let assignments             : [String] = ["=", "+=", "-=", "*=", "/="]
+    let comparisons             : [String] = ["==", "!=", "<", ">", "<=", ">="]
 
     init(_ view: MMView,_ codeEditor: CodeEditor)
     {
@@ -115,6 +116,13 @@ class CodeAccess            : MMWidget
                 accessState = .AssignmentOperator
                 
                 for a in assignments {
+                    addLeftButton(a)
+                }
+            } else
+            if fragment.fragmentType == .Comparison {
+                accessState = .ComparisonOperator
+                
+                for a in comparisons {
                     addLeftButton(a)
                 }
             }
@@ -363,6 +371,16 @@ class CodeAccess            : MMWidget
 
              if let frag = codeEditor.codeContext.selectedFragment {
                 let undo = codeEditor.undoStart("Changed Assignment")
+                frag.name = button.name
+                codeEditor.editor.codeProperties.needsUpdate = true
+                codeEditor.updateCode(compile: true)
+                codeEditor.undoEnd(undo)
+            }
+        } else
+        if accessState == .ComparisonOperator {
+
+             if let frag = codeEditor.codeContext.selectedFragment {
+                let undo = codeEditor.undoStart("Changed Comparison")
                 frag.name = button.name
                 codeEditor.editor.codeProperties.needsUpdate = true
                 codeEditor.updateCode(compile: true)

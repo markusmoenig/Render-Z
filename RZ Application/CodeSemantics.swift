@@ -24,7 +24,9 @@ class CodeFragment          : Codable, Equatable
                 Arithmetic,             // +, -, etc
                 OpeningRoundBracket,    // (
                 ClosingRoundBracket,    // )
-                Assignment              // =, +=, *= etc
+                Assignment,             // =, +=, *= etc
+                Comparison,             // ==, <=, >= etc
+                If                      // If
     }
     
     enum FragmentProperties : Int, Codable{
@@ -153,7 +155,7 @@ class CodeFragment          : Codable, Equatable
     }
     
     /// Returns the type this fragment evaluates to, based on the evaluatesTo value and the input values.
-    func evaluateType() -> String
+    func evaluateType(ignoreQualifiers: Bool = false) -> String
     {
         var type :String = ""
         
@@ -170,20 +172,22 @@ class CodeFragment          : Codable, Equatable
             type = getBaseType(typeName)
         }
 
-        if qualifier.count > 0 {
-            type = getBaseType(type)
-            if qualifier.count > 1 {
-                type += String(qualifier.count)
+        if ignoreQualifiers == false {
+            if qualifier.count > 0 {
+                type = getBaseType(type)
+                if qualifier.count > 1 {
+                    type += String(qualifier.count)
+                }
             }
         }
         return type
     }
     
     /// Returns the number of components for this fragment
-    func evaluateComponents() -> Int
+    func evaluateComponents(ignoreQualifiers: Bool = false) -> Int
     {
         var components : Int = 1
-        let typeName = evaluateType()
+        let typeName = evaluateType(ignoreQualifiers: ignoreQualifiers)
         if typeName.hasSuffix("2") {
             components = 2
         } else
@@ -193,8 +197,11 @@ class CodeFragment          : Codable, Equatable
         if typeName.hasSuffix("4") {
             components = 4
         }
-        if qualifier.count > 0 {
-            components = qualifier.count
+        
+        if ignoreQualifiers == false {
+            if qualifier.count > 0 {
+                components = qualifier.count
+            }
         }
         return components
     }
@@ -362,6 +369,20 @@ class CodeFragment          : Codable, Equatable
             
             ctx.addCode(name)
         } else
+        if fragmentType == .If {
+            let rStart = ctx.rectStart()
+            
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.name, fragment: frag)
+            }
+            
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+            
+            ctx.addCode(name)
+        } else
         if fragmentType == .VariableDefinition {
             ctx.cVariables[self.uuid] = self
             let rStart = ctx.rectStart()
@@ -437,7 +458,7 @@ class CodeFragment          : Codable, Equatable
             
             ctx.addCode(name)
         } else
-        if fragmentType == .Arithmetic || fragmentType == .Assignment {
+        if fragmentType == .Arithmetic || fragmentType == .Assignment || fragmentType == .Comparison {
             let rStart = ctx.rectStart()
            
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -546,7 +567,7 @@ class CodeFragment          : Codable, Equatable
 class CodeStatement         : Codable, Equatable
 {
     enum StatementType      : Int, Codable {
-        case Arithmetic, List
+        case Arithmetic, List, Boolean
     }
     
     var statementType       : StatementType
@@ -600,7 +621,7 @@ class CodeStatement         : Codable, Equatable
 class CodeBlock             : Codable, Equatable
 {
     enum BlockType          : Int, Codable {
-        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference
+        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference, IfHeader
     }
     
     var blockType           : BlockType
@@ -611,6 +632,8 @@ class CodeBlock             : Codable, Equatable
     
     var uuid                : UUID = UUID()
     var comment             : String = ""
+    
+    var children            : [CodeBlock] = []
 
     var rect                : MMRect = MMRect()
 
@@ -621,6 +644,7 @@ class CodeBlock             : Codable, Equatable
         case statement
         case uuid
         case comment
+        case children
     }
     
     required init(from decoder: Decoder) throws
@@ -632,6 +656,9 @@ class CodeBlock             : Codable, Equatable
         statement = try container.decode(CodeStatement.self, forKey: .statement)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         comment = try container.decode(String.self, forKey: .comment)
+        if let children = try container.decodeIfPresent([CodeBlock].self, forKey: .children) {
+            self.children = children
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -643,6 +670,7 @@ class CodeBlock             : Codable, Equatable
         try container.encode(statement, forKey: .statement)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(comment, forKey: .comment)
+        try container.encode(children, forKey: .children)
     }
     
     static func ==(lhs:CodeBlock, rhs:CodeBlock) -> Bool { // Implement Equatable
@@ -754,6 +782,28 @@ class CodeBlock             : Codable, Equatable
             ctx.drawFragmentState(fragment)
             
             ctx.cIndent = ctx.indent
+        } else
+        if blockType == .IfHeader {
+            let rStart = ctx.rectStart()
+            
+            fragment.draw(mmView, ctx)
+            ctx.drawFragmentState(fragment)
+            ctx.cY += ctx.lineHeight + ctx.gapY
+            ctx.blockNumber += 1
+
+            ctx.addCode("{\n")
+            ctx.openSyntaxBlock()
+            for b in children {
+                
+                ctx.cBlock = b
+                ctx.cX = ctx.border + ctx.startX + ctx.cIndent
+                b.draw(mmView, ctx)
+                ctx.blockNumber += 1
+            }
+            ctx.closeSyntaxBlock()
+            ctx.addCode("}\n")
+
+            ctx.rectEnd(rect, rStart)
         } else {
             let propIndex = ctx.cComponent!.properties.firstIndex(of: fragment.uuid)
             
@@ -1210,10 +1260,87 @@ class CodeComponent         : Codable, Equatable
         ctx.hoverBlock = nil
         ctx.hoverFragment = nil
         
+        func parseBlock(_ b: CodeBlock)
+        {
+            func parseFragments(_ fragment: CodeFragment)
+            {
+                var processArguments = true
+                if fragment.fragmentType == .ConstantDefinition && fragment.isSimplified {
+                    // If fragment is simplified, skip arguments
+                    processArguments = false
+                }
+                
+                if processArguments {
+                    for statement in fragment.arguments {
+                        for arg in statement.fragments {
+                            if arg.rect.contains(x, y) {
+                                ctx.hoverFragment = arg
+                                return
+                            }
+                            parseFragments(arg)
+                        }
+                    }
+                }
+                if ctx.hoverFragment == nil {
+                    if fragment.rect.contains(x, y) {
+                        ctx.hoverFragment = fragment
+                        return
+                    }
+                }
+            }
+            
+            // Check for block marker
+            if y >= b.rect.y && y <= b.rect.y + ctx.lineHeight && x <= ctx.border {
+                ctx.hoverBlock = b
+                return
+            }
+            
+            // Check for the left sided fragment
+            if b.fragment.supports(.Selectable) && b.fragment.rect.contains(x, y) {
+                ctx.hoverFragment = b.fragment
+                return
+            }
+            
+            // Parse If
+            if b.fragment.fragmentType == .If {
+                for statement in b.fragment.arguments {
+                    for fragment in statement.fragments {
+                        parseFragments(fragment)
+                        if ctx.hoverFragment != nil {
+                            return;
+                        }
+                    }
+                }
+                
+                if ctx.hoverFragment == nil {
+                    for bchild in b.children {
+                        parseBlock(bchild)
+                        if ctx.hoverFragment != nil {
+                            return
+                        }
+                    }
+                }
+            }
+            
+            // Check for assignment fragment
+            if (b.blockType == .VariableReference || b.blockType == .OutVariable) && b.assignment.supports(.Selectable) && b.assignment.rect.contains(x, y) {
+                ctx.hoverFragment = b.assignment
+                return
+            }
+            
+            // recursively parse the right sided fragments
+            for fragment in b.statement.fragments {
+                parseFragments(fragment)
+                if ctx.hoverFragment != nil {
+                    return;
+                }
+            }
+        }
+        
         for f in functions {
             
             // Check for func marker
-            var fY : Float = f.rect.y + (f.comment.isEmpty ? 0 : ctx.lineHeight + ctx.gapY)
+            let fY : Float = f.rect.y + (f.comment.isEmpty ? 0 : ctx.lineHeight + ctx.gapY)
             if y >= fY && y <= fY + ctx.lineHeight && x <= ctx.border {
                 ctx.hoverFunction = f
                 break
@@ -1236,62 +1363,10 @@ class CodeComponent         : Codable, Equatable
             }
             
             for b in f.body {
-                
-                // Check for block marker
-                if y >= b.rect.y && y <= b.rect.y + ctx.lineHeight && x <= ctx.border {
-                    ctx.hoverBlock = b
-                    break
-                }
-                
-                // Check for the left sided fragment
-                if b.fragment.supports(.Selectable) && b.fragment.rect.contains(x, y) {
-                    ctx.hoverFragment = b.fragment
-                    break
-                }
-                
-                // Check for assignment fragment
-                if (b.blockType == .VariableReference || b.blockType == .OutVariable) && b.assignment.supports(.Selectable) && b.assignment.rect.contains(x, y) {
-                    ctx.hoverFragment = b.assignment
-                    break
-                }
-                                
-                // recursively parse the right sided fragments
-                func parseFragments(_ fragment: CodeFragment)
-                {
-                    var processArguments = true
-                    if fragment.fragmentType == .ConstantDefinition && fragment.isSimplified {
-                        // If fragment is simplified, skip arguments
-                        processArguments = false
-                    }
-                    
-                    if processArguments {
-                        for statement in fragment.arguments {
-                            for arg in statement.fragments {
-                                if arg.rect.contains(x, y) {
-                                    ctx.hoverFragment = arg
-                                    return
-                                }
-                                parseFragments(arg)
-                            }
-                        }
-                    }
-                    if ctx.hoverFragment == nil {
-                        if fragment.rect.contains(x, y) {
-                            ctx.hoverFragment = fragment
-                            return
-                        }
-                    }
-                }
-                
-                for fragment in b.statement.fragments {
-                    parseFragments(fragment)
-                    if ctx.hoverFragment != nil {
-                        break;
-                    }
-                }
+                parseBlock(b)
             }
         }
-    }
+     }
     
     func selectUUID(_ uuid: UUID,_ ctx: CodeContext)
     {
@@ -1493,6 +1568,16 @@ class CodeContext
         rect.height = max(cY - start.y, lineHeight) + gapY
     }
     
+    func openSyntaxBlock()
+    {
+        cIndent += indent
+    }
+    
+    func closeSyntaxBlock()
+    {
+        cIndent -= indent
+    }
+    
     func drawText(_ text: String,_ color: SIMD4<Float>)
     {
         if let frag = fragment {
@@ -1543,7 +1628,7 @@ class CodeContext
             #endif
             
             // Drop on an empty line (.VariableDefinition)
-            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable) {
+            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name == "if" && drop.typeName == "block" ) ) {
                 drawHighlight(fragment.rect, hoverAlpha)
                 dropIsValid = true
             } else

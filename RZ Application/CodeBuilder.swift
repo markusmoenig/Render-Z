@@ -201,6 +201,7 @@ class CodeBuilder
         
         if let code = component.code {
             inst.code += code
+            print(code)
         }
 
         // --- Monitor

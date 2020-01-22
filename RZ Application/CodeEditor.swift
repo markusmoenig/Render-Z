@@ -438,6 +438,32 @@ class CodeEditor        : MMWidget
 
                 self.updateCode(compile: true)
                 self.undoEnd(undo)
+            } else
+            // If switch
+            if sourceFrag.typeName == "block" && sourceFrag.name == "if" {
+                destBlock.blockType = .IfHeader
+                destBlock.fragment.fragmentType = .If
+                destBlock.fragment.typeName = "bool"
+                destBlock.fragment.name = "if"
+                destBlock.fragment.properties = [.Selectable]
+                
+                let statement = CodeStatement(.Boolean)
+                var frag = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
+                statement.fragments.append(frag)
+                
+                frag = CodeFragment(.Comparison, "bool", "==", [.Selectable])
+                statement.fragments.append(frag)
+
+                frag = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
+                statement.fragments.append(frag)
+                
+                destBlock.fragment.arguments.append(statement)
+                
+                destBlock.children.append(CodeBlock(.Empty))
+                destBlock.children.append(CodeBlock(.Empty))
+                
+                destBlock.children[0].fragment.addProperty(.Selectable)
+                destBlock.children[1].fragment.addProperty(.Selectable)
             }
         } else
         {
@@ -488,7 +514,7 @@ class CodeEditor        : MMWidget
                 sourceFrag.copyTo(destFrag)
                 destFrag.addProperty(.Targetable)
 
-                if sourceComponents != destComponents {
+                if sourceComponents != destComponents && sourceComponents > 1 {
                     // --- Need to add a qualification to match
                     
                     let compArray = ["x", "y", "z", "w"]

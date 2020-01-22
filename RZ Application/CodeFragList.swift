@@ -116,6 +116,7 @@ class CodeFragList : MMWidget
         
         item = FragItem("I")
         items.append(item)
+        item.items.append( SourceListItem("if (...)", CodeFragment(.Primitive, "block", "if")))
         item.items.append( SourceListItem("int", CodeFragment(.VariableDefinition, "int", "", [.Selectable, .Dragable, .Monitorable], ["int"], "int" ) ) )
         
         item = FragItem("L")
