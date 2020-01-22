@@ -12,17 +12,17 @@ class Pipeline
 {
     var codeBuilder         : CodeBuilder
     var mmView              : MMView
-    
+
     var backTexture         : MTLTexture? = nil
     var depthTexture        : MTLTexture? = nil
     var resultTexture       : MTLTexture? = nil
-    
+
     var instanceMap         : [String:CodeBuilderInstance] = [:]
-    
+
     var monitorInstance     : CodeBuilderInstance? = nil
     var monitorComponent    : CodeComponent? = nil
     var monitorFragment     : CodeFragment? = nil
-    
+
     var monitorTexture      : MTLTexture? = nil
 
     init(_ mmView: MMView)
@@ -81,7 +81,7 @@ class Pipeline
         func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
         {
             // Monitor
-            if inst.component != nil && inst.component === monitorComponent {
+            if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
                 monitorTexture = checkTextureSize(width, height, monitorTexture, true)
                 if monitorInstance == nil {
                     monitorInstance = codeBuilder.build(monitorComponent!, monitorFragment)
@@ -94,7 +94,6 @@ class Pipeline
                 }
             }
         }
-        
         
         // Render the background into backTexture
         backTexture = checkTextureSize(width, height, backTexture)

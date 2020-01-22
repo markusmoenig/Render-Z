@@ -262,23 +262,7 @@ class CodeBuilder
     func buildSDF2D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
     {
         sdfStream.openStream(.SDF2D, inst, self)
-        
-        sdfStream.pushComponent(component)
-        //if let code = component.code {
-//            inst.code += code
- //       }
-
-        // --- Monitor
-        if let fragment = monitor {
-            inst.code += insertMonitorCode(fragment, "__output", inst.computeComponents)
-        } else {
-            inst.code +=
-            """
-            
-            __output.x = outDistance;
-            """
-        }
-        
+        sdfStream.pushComponent(component, monitor)
         sdfStream.closeStream()
         
         // Position

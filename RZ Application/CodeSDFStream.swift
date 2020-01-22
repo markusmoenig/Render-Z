@@ -77,7 +77,7 @@ class CodeSDFStream
         codeBuilder.buildInstance(instance)
     }
     
-    func pushComponent(_ component: CodeComponent)
+    func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)
     {
         dryRunComponent(component, instance.data.count)
         
@@ -94,9 +94,14 @@ class CodeSDFStream
                     float2 pos = __translate(__origin, float2(__data[\(posX)].x, -__data[\(posY)].x));
             """
         }
-
+        
         instance.code += component.code!
-        instance.code += "\n __output.x = min( __output.x, outDistance);\n"
+
+        if let fragment = monitor {
+            instance.code += codeBuilder.insertMonitorCode(fragment, "__output", instance.computeComponents)
+        } else {
+            instance.code += "\n __output.x = min( __output.x, outDistance);\n"
+        }
         instance.code += "\n    }\n"
     }
 }
