@@ -104,12 +104,12 @@ class DeveloperEditor   : Editor
         return 160
     }
     
-    override func undoStart(_ name: String) -> CodeUndoComponent
+    override func undoComponentStart(_ name: String) -> CodeUndoComponent
     {
         return codeEditor.undoStart(name)
     }
     
-    override func undoEnd(_ undoComponent: CodeUndoComponent)
+    override func undoComponentEnd(_ undoComponent: CodeUndoComponent)
     {
         codeEditor.undoEnd(undoComponent)
     }

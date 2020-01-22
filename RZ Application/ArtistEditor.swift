@@ -167,12 +167,12 @@ class ArtistEditor          : Editor
         return bottomHeight
     }
     
-    override func undoStart(_ name: String) -> CodeUndoComponent
+    override func undoComponentStart(_ name: String) -> CodeUndoComponent
     {
         return designEditor.undoStart(name)
     }
     
-    override func undoEnd(_ undoComponent: CodeUndoComponent)
+    override func undoComponentEnd(_ undoComponent: CodeUndoComponent)
     {
         designEditor.undoEnd(undoComponent)
     }

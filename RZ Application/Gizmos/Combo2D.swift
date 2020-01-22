@@ -130,7 +130,7 @@ class GizmoCombo2D          : GizmoBase
             }
             
             if undoComponent == nil {
-                undoComponent = globalApp!.currentEditor.undoStart("Gizmo Action")
+                undoComponent = globalApp!.currentEditor.undoComponentStart("Gizmo Action")
             }
         }
     }
@@ -139,7 +139,7 @@ class GizmoCombo2D          : GizmoBase
     {
         dragState = .Inactive
         if undoComponent != nil {
-            globalApp!.currentEditor.undoEnd(undoComponent!)
+            globalApp!.currentEditor.undoComponentEnd(undoComponent!)
         }
     }
     

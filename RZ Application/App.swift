@@ -144,6 +144,30 @@ class App
         }
     }
     
+    func loadStageItemFrom(_ json: String)
+    {
+        if let jsonData = json.data(using: .utf8)
+        {
+            /*
+            do {
+                if (try JSONDecoder().decode(CodeComponent.self, from: jsonData)) != nil {
+                    print( "yes" )
+                }
+            }
+            catch {
+                print("Error is : \(error)")
+            }*/
+            
+            if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
+                project.selected!.updateStageItem(stageItem)
+                sceneList.setScene(self.project.selected!)
+                if let selected = project.selected!.getSelected() {
+                    project.selected!.setSelected(selected)
+                }
+            }
+        }
+    }
+    
     func encodeJSON() -> String
     {
         let encodedData = try? JSONEncoder().encode(project)
@@ -197,12 +221,61 @@ class Editor
     {
     }
     
-    func undoStart(_ name: String) -> CodeUndoComponent
+    func undoComponentStart(_ name: String) -> CodeUndoComponent
     {
         return CodeUndoComponent(name)
     }
     
-    func undoEnd(_ undoComponent: CodeUndoComponent)
+    func undoComponentEnd(_ undoComponent: CodeUndoComponent)
     {
+    }
+    
+    func undoStageItemStart(_ name: String) -> StageItemUndo
+    {
+        let undo = StageItemUndo(name)
+        if let current = globalApp!.context.selectedItem {
+            let encodedData = try? JSONEncoder().encode(current)
+            if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
+                undo.originalData = encodedObjectJsonString
+            }
+        } else {
+            print("undoStageItemStart: Stage Item is 0")
+        }
+        
+        return undo
+    }
+    
+    func undoStageItemEnd(_ undoComponent: StageItemUndo)
+    {
+        if let current = globalApp!.context.selectedItem {
+            let encodedData = try? JSONEncoder().encode(current)
+            if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
+                undoComponent.processedData = encodedObjectJsonString
+            }
+        }
+
+        func stageItemChanged(_ oldState: String, _ newState: String)
+        {
+            globalApp!.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                globalApp!.loadStageItemFrom(oldState)
+                stageItemChanged(newState, oldState)
+            }
+            globalApp!.mmView.undoManager!.setActionName(undoComponent.name)
+        }
+        
+        stageItemChanged(undoComponent.originalData, undoComponent.processedData)
+    }
+}
+
+class StageItemUndo
+{
+    var name            : String
+    
+    var originalData    : String = ""
+    var processedData   : String = ""
+
+    init(_ name: String)
+    {
+        self.name = name
     }
 }

@@ -14,9 +14,28 @@ class ContextItem
     var component       : CodeComponent? = nil
     var rect            : MMRect = MMRect()
     
+    var subComponent    : CodeComponent? = nil
+    var subRect         : MMRect? = nil
+
     init(_ component: CodeComponent? = nil)
     {
         self.component = component
+    }
+}
+
+class ContextInfoItem
+{
+    var name            : String
+    var cb              : (()->())? = nil
+    var rect            : MMRect = MMRect()
+    var label           : MMTextLabel
+    
+    init(_ view: MMView,_ name: String,_ cb: (()->())? = nil)
+    {
+        self.name = name
+        self.cb = cb
+        
+        label = MMTextLabel(view, font: view.openSans, text: name, scale: 0.4)
     }
 }
 
@@ -48,7 +67,9 @@ class ContextWidget         : MMWidget
     var currentList         : [ContextItem] = []
     var currentItem         : ContextItem? = nil
     var hoverItem           : ContextItem? = nil
-    
+    var hoverOnSub          : Bool = false
+    var currentOnSub        : Bool = false
+
     var currentId           : String = ""
     var libraryId           : String = ""
 
@@ -70,6 +91,14 @@ class ContextWidget         : MMWidget
     
     var currentWidth        : Float = 0
     var openWidth           : Float = 200
+    
+    // Info Area
+    var infoItems           : [ContextInfoItem] = []
+    var hoverInfoItem       : ContextInfoItem? = nil
+    var pressedInfoItem     : ContextInfoItem? = nil
+    var infoRect            : MMRect = MMRect()
+
+    static var InfoHeight   : Float = 30
 
     override init(_ view: MMView)
     {
@@ -139,28 +168,47 @@ class ContextWidget         : MMWidget
             
             let textHeight : Float = 18
             
-            for item in currentList {
-                
-                item.rect.set(left, top, itemSize, itemSize)
-                
-                if let comp = item.component {
-                    let fColor = item === currentItem ? SIMD4<Float>(0.4,0.4,0.4,1) : SIMD4<Float>(0,0,0,0)
-                    
-                    mmView.drawBox.draw( x: left, y: top, width: itemSize, height: itemSize, round: 4, borderSize: 1, fillColor: fColor, borderColor: borderColor, fragment: fragment!)
-                    
-                    mmView.drawBox.draw( x: left, y: top + itemSize - textHeight, width: itemSize, height: textHeight, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
-                    
-                    font.getTextRect(text: comp.libraryName, scale: fontScale, rectToUse: tempRect)
-                    mmView.drawText.drawText(mmView.openSans, text: comp.libraryName, x: left + (itemSize - tempRect.width)/2, y: top + itemSize - textHeight, scale: fontScale, fragment: fragment)
-                    
-                    if let thumb = globalApp!.thumbnail.request(comp.libraryName + " - " + libraryId, comp) {
-                        mmView.drawTexture.draw(thumb, x: left + (itemSize - 200 / 3.5)/2, y: top, zoom: 3.5, fragment: fragment)
-                    }
-                } else {
-                    mmView.drawBox.draw( x: left, y: top, width: itemSize, height: itemSize, round: 4, borderSize: 1, fillColor: SIMD4<Float>(0,0,0,0), borderColor: borderColor, fragment: fragment!)
-                }
+            if libraryId.starts(with: "SDF") {
+                for (index, item) in currentList.enumerated() {
+                                        
+                    if let comp = item.component {
+                        let fColor = item === currentItem && currentOnSub == false ? SIMD4<Float>(0.4,0.4,0.4,1) : SIMD4<Float>(0,0,0,0)
+                        
+                        let localLeft = left + (index > 0 ? 55 : 0);
+                        item.rect.set(localLeft, top, itemSize, itemSize)
 
-                top += itemSize + spacing
+                        mmView.drawBox.draw( x: localLeft, y: top, width: itemSize, height: itemSize, round: 4, borderSize: 1, fillColor: fColor, borderColor: borderColor, fragment: fragment!)
+                        
+                        mmView.drawBox.draw( x: localLeft, y: top + itemSize - textHeight, width: itemSize, height: textHeight, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
+                        
+                        font.getTextRect(text: comp.libraryName, scale: fontScale, rectToUse: tempRect)
+                        mmView.drawText.drawText(mmView.openSans, text: comp.libraryName, x: localLeft + (itemSize - tempRect.width)/2, y: top + itemSize - textHeight, scale: fontScale, fragment: fragment)
+                        
+                        if let thumb = globalApp!.thumbnail.request(comp.libraryName + " - " + libraryId, comp) {
+                            mmView.drawTexture.draw(thumb, x: localLeft + (itemSize - 200 / 3.5)/2, y: top, zoom: 3.5, fragment: fragment)
+                        }
+                        
+                        if index > 0 {
+                            // Boolean Items
+                            
+                            let localLeft : Float = 10
+                            let localTextHeight : Float = 22
+                            item.subRect = MMRect(localLeft, top + (itemSize - localTextHeight) / 2, itemSize, localTextHeight)
+                            
+                            let fSubColor = item === currentItem && currentOnSub == true ? SIMD4<Float>(0.4,0.4,0.4,1) : SIMD4<Float>(0,0,0,0)
+                            mmView.drawBox.draw( x: localLeft, y: top + (itemSize - localTextHeight) / 2, width: itemSize, height: localTextHeight, round: 4, borderSize: 1, fillColor: fSubColor, borderColor: borderColor, fragment: fragment!)
+                            
+                            let name = "Merge"
+                            font.getTextRect(text: name, scale: fontScale, rectToUse: tempRect)
+                            mmView.drawText.drawText(mmView.openSans, text: name, x: localLeft + (itemSize - tempRect.width)/2, y: top + (itemSize - textHeight) / 2, scale: fontScale, fragment: fragment)
+                        }
+                    } else {
+                        item.rect.set(left, top, itemSize, itemSize)
+                        mmView.drawBox.draw( x: left, y: top, width: itemSize, height: itemSize, round: 4, borderSize: 1, fillColor: SIMD4<Float>(0,0,0,0), borderColor: borderColor, fragment: fragment!)
+                    }
+
+                    top += itemSize + spacing
+                }
             }
             
             fragment!.encodeEnd()
@@ -180,8 +228,54 @@ class ContextWidget         : MMWidget
         if currentList.count > 0 {
             scrollArea.rect.copy(rect)
             scrollArea.rect.y += 50
-            scrollArea.rect.height -= 60
+            scrollArea.rect.height -= 60 - ContextWidget.InfoHeight
             scrollArea.build(widget:textureWidget, area: scrollArea.rect, xOffset: xOffset)
+            
+            infoRect.x = rect.x
+            infoRect.y = rect.y + rect.height - ContextWidget.InfoHeight
+            infoRect.width = rect.width
+            infoRect.height = ContextWidget.InfoHeight
+            
+            let infoItemWidth : Float = infoRect.width / Float(infoItems.count)
+            
+            var xOff : Float = infoRect.x
+            for item in infoItems {
+                item.rect.x = xOff
+                item.rect.y = infoRect.y
+                item.rect.width = infoItemWidth
+                item.rect.height = ContextWidget.InfoHeight
+                if item === pressedInfoItem {
+                    mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.4, 0.4, 0.4, 1))
+                } else
+                if item === hoverInfoItem {
+                    mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.2, 0.2, 0.2, 1))
+                }
+                item.label.drawCentered(x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height)
+                xOff += infoItemWidth
+            }
+        }
+    }
+    
+    func createInfoItems()
+    {
+        infoItems = []
+
+        if let current = currentItem {
+            if libraryId.starts(with: "SDF") {
+                if currentOnSub == false {
+                    // SDF
+                    if let _ = current.component {
+                        infoItems = [
+                            ContextInfoItem(mmView, "Change", { () in
+                                globalApp!.libraryDialog.setType(self.libraryId, current)
+                                self.mmView.showDialog(globalApp!.libraryDialog)
+                            }),
+                            ContextInfoItem(mmView, "Delete", { () in
+                            }),
+                        ]
+                    }
+                }
+            }
         }
     }
     
@@ -195,14 +289,40 @@ class ContextWidget         : MMWidget
         mouseMoved(event)
         #endif
         
+        if let infoItem = hoverInfoItem {
+            pressedInfoItem = infoItem
+            #if os(OSX)
+            infoItem.cb!()
+            #endif
+        }
+        
         currentItem = nil
+        currentOnSub = false
+        infoItems = []
+        
         if let current = hoverItem {
             currentItem = current
+            currentOnSub = hoverOnSub
             
             if libraryId.starts(with: "Render") {
                 globalApp!.libraryDialog.setType(libraryId, current)
                 mmView.showDialog(globalApp!.libraryDialog)
-            } else {
+            } else
+            if libraryId.starts(with: "SDF") {
+                if currentOnSub == false {
+                    // SDF
+                    if current.component == nil {
+                        globalApp!.libraryDialog.setType(libraryId, current)
+                        mmView.showDialog(globalApp!.libraryDialog)
+                    } else {
+                        globalApp!.currentEditor.setComponent(current.component!)
+                    }
+                } else {
+                    // Boolean
+                    print("boolean")
+                }
+            } else
+            {
                 if current.component == nil {
                     globalApp!.libraryDialog.setType(libraryId, current)
                     mmView.showDialog(globalApp!.libraryDialog)
@@ -212,25 +332,59 @@ class ContextWidget         : MMWidget
             }
             update()
         }
+        
+        createInfoItems()
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        #if os(iOS)
+        if let infoItem = pressedInfoItem {
+            infoItem.cb!()
+        }
+        hoverInfoItem = nil
+        #endif
         mouseIsDown = false
-
     }
     
-    //override func mouseLeave(_ event: MMMouseEvent) {
-    //    hoverItem = nil
-    //}
+    override func mouseLeave(_ event: MMMouseEvent) {
+        if hoverInfoItem != nil {
+            hoverInfoItem = nil
+            mmView.update()
+        }
+    }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        hoverItem = nil
-        for item in currentList {
-            if item.rect.contains(event.x - rect.x, event.y - 50 - rect.y - scrollArea.offsetY) {
-                hoverItem = item
-                break
+        if infoRect.contains(event.x, event.y) {
+            let oldHoverItem = hoverInfoItem
+            hoverInfoItem = nil
+            if infoRect.contains(event.x, event.y) {
+                for item in infoItems {
+                    if item.cb != nil && item.rect.contains(event.x, event.y) {
+                        hoverInfoItem = item
+                        break
+                    }
+                }
+            }
+            if hoverInfoItem !== oldHoverItem {
+                mmView.update()
+            }
+        } else {
+            hoverItem = nil
+            hoverOnSub = false
+            for item in currentList {
+                if item.rect.contains(event.x - rect.x, event.y - 50 - rect.y - scrollArea.offsetY) {
+                    hoverItem = item
+                    break
+                }
+                if let subRect = item.subRect {
+                    if subRect.contains(event.x - rect.x, event.y - 50 - rect.y - scrollArea.offsetY) {
+                        hoverItem = item
+                        hoverOnSub = true
+                        break
+                    }
+                }
             }
         }
     }
@@ -300,12 +454,15 @@ class ContextWidget         : MMWidget
         build()
 
         selectedItem = selItem
+        createInfoItems()
     }
     
     /// Replace the json of the component with the given uuid, called from the LibraryDialog
     func replaceJSONForItem(_ contextItem: ContextItem,_ json: String)
     {
         if let comp = decodeComponentFromJSON(json) {
+            
+            let undo = globalApp!.currentEditor.undoStageItemStart("Add Component")
             
             // Insert default values for the component, position etc
             setDefaultComponentValues(comp)
@@ -329,7 +486,10 @@ class ContextWidget         : MMWidget
 
             contextItem.component = comp
             build()
+            
+            globalApp!.currentEditor.undoStageItemEnd(undo)
         }
+        createInfoItems()
     }
 
     /// Switches between open and close states

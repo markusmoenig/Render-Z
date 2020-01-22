@@ -89,6 +89,19 @@ class StageItem             : Codable, Equatable
             child.updateComponent(comp)
         }
     }
+    
+    /// Recursively update the item
+    func updateStageItem(_ item: StageItem)
+    {
+        if let index = children.firstIndex(of: item) {
+            children[index] = item
+            return
+        }
+        
+        for item in children {
+            item.updateStageItem(item)
+        }
+    }
 }
 
 class Stage                 : Codable, Equatable
@@ -236,6 +249,26 @@ class Stage                 : Codable, Equatable
             item.updateComponent(comp)
         }
     }
+    
+    /// Recursively update the item
+    func updateStageItem(_ item: StageItem)
+    {
+        if let index = children2D.firstIndex(of: item) {
+            children2D[index] = item
+            return
+        }
+        if let index = children3D.firstIndex(of: item) {
+            children3D[index] = item
+            return
+        }
+        
+        for item in children2D {
+            item.updateStageItem(item)
+        }
+        for item in children3D {
+            item.updateStageItem(item)
+        }
+    }
 }
 
 class Scene                 : Codable, Equatable
@@ -369,6 +402,14 @@ class Scene                 : Codable, Equatable
         }
     }
     
+    /// Recursively update the item
+    func updateStageItem(_ item: StageItem)
+    {
+        for stage in stages {
+            stage.updateStageItem(item)
+        }
+    }
+    
     /// Find the item of the given uuid
     func itemOfUUID(_ uuid: UUID) -> StageItem?
     {
@@ -378,6 +419,15 @@ class Scene                 : Codable, Equatable
                     return item
                 }
             }
+        }
+        return nil
+    }
+    
+    /// Returns the currently selected item
+    func getSelected() -> StageItem?
+    {
+        if let uuid = getSelectedUUID() {
+            return itemOfUUID(uuid)
         }
         return nil
     }

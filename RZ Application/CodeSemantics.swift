@@ -819,7 +819,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean
     }
     
     let functionType        : FunctionType
@@ -1008,7 +1008,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1184,6 +1184,22 @@ class CodeComponent         : Codable, Equatable
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
+            functions.append(f)
+        }
+        if type == .Boolean {
+            let f = CodeFunction(type, "booleanOperator")
+            f.comment = "Choose between the two shapes based on their distance stored in .x"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float4", "shapeA", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float4", "shapeB", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float4", "out"))
             functions.append(f)
         }
     }
