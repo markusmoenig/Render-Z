@@ -184,18 +184,18 @@ class CodeBuilder
         """
         
         kernel void componentBuilder(
-        texture2d<half, access::write>          outTexture  [[texture(0)]],
-        constant float4                        *data   [[ buffer(1) ]],
-        //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-        uint2 gid                               [[thread_position_in_grid]])
+        texture2d<half, access::write>          __outTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
+        //texture2d<half, access::sample>       __fontTexture [[texture(2)]],
+        uint2 __gid                               [[thread_position_in_grid]])
         {
-            float2 uv = float2(gid.x, gid.y);
-            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            float2 uv = float2(__gid.x, __gid.y);
+            float2 size = float2(__outTexture.get_width(), __outTexture.get_height() );
             uv /= size;
             uv.y = 1.0 - uv.y;
 
             float4 outColor = float4(0,0,0,1);
-            float GlobalTime = data[0].x;
+            float GlobalTime = __data[0].x;
 
         """
         
@@ -211,7 +211,7 @@ class CodeBuilder
         inst.code +=
         """
         
-            outTexture.write(half4(outColor.x, outColor.y, outColor.z, outColor.w ), gid);
+            __outTexture.write(half4(outColor), __gid);
         }
         
         """
@@ -224,19 +224,19 @@ class CodeBuilder
         """
         
         kernel void componentBuilder(
-        texture2d<half, access::write>          outTexture  [[texture(0)]],
-        constant float4                        *data   [[ buffer(1) ]],
+        texture2d<half, access::write>          __outTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
         //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-        uint2 gid                               [[thread_position_in_grid]])
+        uint2 __gid                             [[thread_position_in_grid]])
         {
-            float2 uv = float2(gid.x, gid.y);
-            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            float2 uv = float2(__gid.x, __gid.y);
+            float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
             uv /= size;
             uv.y = 1.0 - uv.y;
             float3 dir = float3(0,0,0);
 
             float4 outColor = float4(0,0,0,1);
-            float GlobalTime = data[0].x;
+            float GlobalTime = __data[0].x;
         
         """
         
@@ -252,7 +252,7 @@ class CodeBuilder
         inst.code +=
         """
         
-            outTexture.write(half4(outColor.x, outColor.y, outColor.z, outColor.w ), gid);
+            __outTexture.write(half4(outColor), __gid);
         }
         
         """
