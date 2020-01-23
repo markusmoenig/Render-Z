@@ -32,7 +32,7 @@ class Thumbnail
     {
         let result = checkTextureSize(width, height)
         if comp.componentType == .SDF2D {
-            depthTexture = checkTextureSize(width, height, depthTexture, true)
+            depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
             backTexture = checkTextureSize(width, height, backTexture)
             codeBuilder.renderClear(texture: backTexture!, data: SIMD4<Float>(0,0,0,0))
             let instance = CodeBuilderInstance()
@@ -60,16 +60,12 @@ class Thumbnail
     }
     
     /// Checks the texture size and if needed reallocate the texture
-    func checkTextureSize(_ width: Float,_ height: Float,_ texture: MTLTexture? = nil,_ isFloat: Bool = false) -> MTLTexture?
+    func checkTextureSize(_ width: Float,_ height: Float,_ texture: MTLTexture? = nil,_ pixelFormat: MTLPixelFormat = .bgra8Unorm) -> MTLTexture?
     {
         var result  : MTLTexture? = texture
         
         if texture == nil || (Float(texture!.width) != width || Float(texture!.height) != height) {
-            if isFloat == false {
-                result = codeBuilder.compute.allocateTexture(width: width, height: height)
-            } else {
-                result = codeBuilder.compute.allocateFloatTexture(width: width, height: height)
-            }
+            result = codeBuilder.compute.allocateTexture(width: width, height: height, output: true, pixelFormat: pixelFormat)
         }
         
         return result

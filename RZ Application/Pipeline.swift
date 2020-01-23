@@ -82,7 +82,7 @@ class Pipeline
         {
             // Monitor
             if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
-                monitorTexture = checkTextureSize(width, height, monitorTexture, true)
+                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba32Float)
                 if monitorInstance == nil {
                     monitorInstance = codeBuilder.build(monitorComponent!, monitorFragment)
                 }
@@ -103,7 +103,7 @@ class Pipeline
         }
         
         // Render the shape distance into depthTexture (float)
-        depthTexture = checkTextureSize(width, height, depthTexture, true)
+        depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
         if let inst = instanceMap["shape"] {
             codeBuilder.render(inst, depthTexture)
             computeMonitor(inst)
@@ -129,16 +129,12 @@ class Pipeline
     }
     
     /// Checks the texture size and if needed reallocate the texture
-    func checkTextureSize(_ width: Float,_ height: Float,_ texture: MTLTexture? = nil,_ isFloat: Bool = false) -> MTLTexture?
+    func checkTextureSize(_ width: Float,_ height: Float,_ texture: MTLTexture? = nil,_ pixelFormat: MTLPixelFormat = .bgra8Unorm) -> MTLTexture?
     {
         var result  : MTLTexture? = texture
         
         if texture == nil || (Float(texture!.width) != width || Float(texture!.height) != height) {
-            if isFloat == false {
-                result = codeBuilder.compute.allocateTexture(width: width, height: height)
-            } else {
-                result = codeBuilder.compute.allocateFloatTexture(width: width, height: height)
-            }
+            result = codeBuilder.compute.allocateTexture(width: width, height: height, output: true, pixelFormat: pixelFormat)
         }
         
         return result
