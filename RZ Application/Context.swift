@@ -289,13 +289,13 @@ class ContextWidget         : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
-        mouseIsDown = true
-        mouseDownPos.x = event.x
-        mouseDownPos.y = event.y
-
         #if os(iOS)
         mouseMoved(event)
         #endif
+        
+        mouseIsDown = true
+        mouseDownPos.x = event.x
+        mouseDownPos.y = event.y
         
         if let infoItem = hoverInfoItem {
             pressedInfoItem = infoItem
@@ -327,7 +327,9 @@ class ContextWidget         : MMWidget
                     }
                 } else {
                     // Boolean
-                    globalApp!.currentEditor.setComponent(current.subComponent!)
+                    if let sub = current.subComponent {
+                        globalApp!.currentEditor.setComponent(sub)
+                    }
                 }
             } else
             {

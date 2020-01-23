@@ -42,6 +42,9 @@ class GizmoCombo2D          : GizmoBase
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        #if os(iOS)
+            mouseMoved(event)
+        #endif
         if hoverState != .Inactive {
             dragState = hoverState
             
@@ -138,9 +141,13 @@ class GizmoCombo2D          : GizmoBase
     override func mouseUp(_ event: MMMouseEvent)
     {
         dragState = .Inactive
+        #if os(iOS)
+        hoverState = .Inactive
+        #endif
         if undoComponent != nil {
             globalApp!.currentEditor.undoComponentEnd(undoComponent!)
         }
+        mmView.update()
     }
     
     ///
