@@ -440,7 +440,7 @@ class CodeEditor        : MMWidget
                 self.undoEnd(undo)
             } else
             // If switch
-            if sourceFrag.typeName == "block" && sourceFrag.name == "if" {
+                if sourceFrag.typeName == "block" && (sourceFrag.name == "if" || sourceFrag.name == "if else"){
                 destBlock.blockType = .IfHeader
                 destBlock.fragment.fragmentType = .If
                 destBlock.fragment.typeName = "bool"
@@ -464,6 +464,34 @@ class CodeEditor        : MMWidget
                 
                 destBlock.children[0].fragment.addProperty(.Selectable)
                 destBlock.children[1].fragment.addProperty(.Selectable)
+                
+                if sourceFrag.name == "if else" {
+                    var newBlock : CodeBlock? = nil
+                    if let pF = destBlock.parentFunction {
+                        if let index = pF.body.firstIndex(of: destBlock) {
+                            newBlock = CodeBlock(.ElseHeader)
+                            pF.body.insert(newBlock!, at: index+1)
+                        }
+                    } else
+                    if let pB = destBlock.parentBlock {
+                        if let index = pB.children.firstIndex(of: destBlock) {
+                            newBlock = CodeBlock(.ElseHeader)
+                            pB.children.insert(newBlock!, at: index+1)
+                        }
+                    }
+                    if let block = newBlock {
+                        block.fragment.fragmentType = .Else
+                        block.fragment.typeName = "bool"
+                        block.fragment.name = "else"
+                        block.fragment.properties = [.Selectable]
+                        
+                        block.children.append(CodeBlock(.Empty))
+                        block.children.append(CodeBlock(.Empty))
+                        
+                        block.children[0].fragment.addProperty(.Selectable)
+                        block.children[1].fragment.addProperty(.Selectable)
+                    }
+                }
             }
         } else
         {

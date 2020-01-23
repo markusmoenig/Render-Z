@@ -26,7 +26,8 @@ class CodeFragment          : Codable, Equatable
                 ClosingRoundBracket,    // )
                 Assignment,             // =, +=, *= etc
                 Comparison,             // ==, <=, >= etc
-                If                      // If
+                If,                     // If
+                Else                    // Else
     }
     
     enum FragmentProperties : Int, Codable{
@@ -369,12 +370,12 @@ class CodeFragment          : Codable, Equatable
             
             ctx.addCode(name)
         } else
-        if fragmentType == .If {
+        if fragmentType == .If || fragmentType == .Else {
             let rStart = ctx.rectStart()
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
-                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.name, fragment: frag)
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.reserved, fragment: frag)
             }
             
             ctx.cX += ctx.tempRect.width
@@ -621,7 +622,7 @@ class CodeStatement         : Codable, Equatable
 class CodeBlock             : Codable, Equatable
 {
     enum BlockType          : Int, Codable {
-        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference, IfHeader
+        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference, IfHeader, ElseHeader
     }
     
     var blockType           : BlockType
@@ -636,6 +637,9 @@ class CodeBlock             : Codable, Equatable
     var children            : [CodeBlock] = []
 
     var rect                : MMRect = MMRect()
+    
+    var parentFunction      : CodeFunction? = nil
+    var parentBlock         : CodeBlock? = nil
 
     private enum CodingKeys: String, CodingKey {
         case blockType
@@ -783,7 +787,7 @@ class CodeBlock             : Codable, Equatable
             
             ctx.cIndent = ctx.indent
         } else
-        if blockType == .IfHeader {
+        if blockType == .IfHeader || blockType == .ElseHeader {
             let rStart = ctx.rectStart()
             
             fragment.draw(mmView, ctx)
@@ -794,6 +798,8 @@ class CodeBlock             : Codable, Equatable
             ctx.addCode("{\n")
             ctx.openSyntaxBlock()
             for b in children {
+                b.parentFunction = nil
+                b.parentBlock = self
                 
                 ctx.cBlock = b
                 ctx.cX = ctx.border + ctx.startX + ctx.cIndent
@@ -814,23 +820,6 @@ class CodeBlock             : Codable, Equatable
             // assignment
             assignment.draw(mmView, ctx)
             ctx.drawFragmentState(assignment)
-
-            /*
-            let arStart = ctx.rectStart()
-            let op = "="
-            
-            ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
-            if let frag = ctx.fragment {
-                mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
-            }
-            
-            ctx.cX += ctx.tempRect.width
-            ctx.rectEnd(assignmentRect, arStart)
-            ctx.cX += ctx.gapX
-            
-            ctx.addCode( " " + op + " " )
-             */
-
 
             // statement
             if let _ = propIndex {
@@ -1033,7 +1022,9 @@ class CodeFunction          : Codable, Equatable
         }
         for b in body {
             ctx.cBlock = b
-            
+            b.parentFunction = self
+            b.parentBlock = nil
+
             ctx.cIndent = ctx.indent
             ctx.cX = ctx.border + ctx.startX + ctx.cIndent
             b.draw(mmView, ctx)
@@ -1301,8 +1292,8 @@ class CodeComponent         : Codable, Equatable
                 return
             }
             
-            // Parse If
-            if b.fragment.fragmentType == .If {
+            // Parse If, Else
+            if b.fragment.fragmentType == .If || b.fragment.fragmentType == .Else {
                 for statement in b.fragment.arguments {
                     for fragment in statement.fragments {
                         parseFragments(fragment)
@@ -1628,7 +1619,7 @@ class CodeContext
             #endif
             
             // Drop on an empty line (.VariableDefinition)
-            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name == "if" && drop.typeName == "block" ) ) {
+            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) ) {
                 drawHighlight(fragment.rect, hoverAlpha)
                 dropIsValid = true
             } else

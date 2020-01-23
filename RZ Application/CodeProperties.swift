@@ -160,18 +160,25 @@ class CodeProperties    : MMWidget
             if let function = ctx.cFunction {
                 let b1 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Empty Line", fixedWidth: buttonWidth)
                 b1.clicked = { (event) in
-                    for (index, b) in function.body.enumerated() {
-                        if block === b {
-                            let undo = self.editor.codeEditor.undoStart("Add Line")
-                            let newBlock = CodeBlock(.Empty)
-                            newBlock.fragment.addProperty(.Selectable)
-                            function.body.insert(newBlock, at: index)
-                            self.editor.updateOnNextDraw()
-                            self.needsUpdate = true
-                            self.editor.codeEditor.undoEnd(undo)
-                            break
+                    let undo = self.editor.codeEditor.undoStart("Add Line")
+                    let newBlock = CodeBlock(.Empty)
+                    newBlock.fragment.addProperty(.Selectable)
+
+                    if let pF = block.parentFunction {
+                        if let index = pF.body.firstIndex(of: block) {
+                            pF.body.insert(newBlock, at: index)
+                        }
+                    } else
+                    if let pB = block.parentBlock {
+                        if let index = pB.children.firstIndex(of: block) {
+                            pB.children.insert(newBlock, at: index)
                         }
                     }
+                    
+                    self.editor.updateOnNextDraw()
+                    self.needsUpdate = true
+                    self.editor.codeEditor.undoEnd(undo)
+                
                     b1.removeState(.Checked)
                 }
                 addButton(b1)
@@ -198,17 +205,31 @@ class CodeProperties    : MMWidget
                 
                 let b3 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Line", fixedWidth: buttonWidth)
                 b3.clicked = { (event) in
-                    for (index, b) in function.body.enumerated() {
-                        if block === b {
-                            let undo = self.editor.codeEditor.undoStart("Add Line")
-                            function.body.remove(at: index)
-                            self.editor.updateOnNextDraw()
-                            self.needsUpdate = true
-                            self.clear()
-                            self.editor.codeEditor.undoEnd(undo)
-                            break
+
+                    let undo = self.editor.codeEditor.undoStart("Delete Line")
+                    
+                    if let pF = block.parentFunction {
+                        if let index = pF.body.firstIndex(of: block) {
+                            pF.body.remove(at: index)
+                            if index < pF.body.count && pF.body[index].blockType == .ElseHeader {
+                                pF.body.remove(at: index)
+                            }
+                        }
+                    } else
+                    if let pB = block.parentBlock {
+                        if let index = pB.children.firstIndex(of: block) {
+                            pB.children.remove(at: index)
+                            if index < pB.children.count && pB.children[index].blockType == .ElseHeader {
+                                pB.children.remove(at: index)
+                            }
                         }
                     }
+                    
+                    self.editor.updateOnNextDraw()
+                    self.needsUpdate = true
+                    self.clear()
+                    self.editor.codeEditor.undoEnd(undo)
+
                     b3.removeState(.Checked)
                 }
                 //b.isDisabled = block.blockType == .OutVariable
