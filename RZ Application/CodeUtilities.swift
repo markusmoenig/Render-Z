@@ -63,6 +63,8 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true)
     let name = component.libraryName
     if name == "" {return}
     
+    component.subComponent = nil
+    
     let encodedData = try? JSONEncoder().encode(component)
     if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
     {
@@ -85,6 +87,9 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true)
         } else
         if component.componentType == .Render3D {
             libName += " - Render3D"
+        } else
+        if component.componentType == .Boolean {
+            libName += " - Boolean"
         }
         
         let recordID  = CKRecord.ID(recordName: libName)

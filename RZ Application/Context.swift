@@ -115,9 +115,9 @@ class ContextWidget         : MMWidget
         fragment = MMFragment(view)
         fragment!.allocateTexture(width: 1, height: 1)
         
-        spacing = 10
+        spacing = 22
         //unitSize = 35
-        itemSize = 80
+        itemSize = 70
 
         textureWidget = MMTextureWidget(view, texture: fragment!.texture)
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -157,54 +157,52 @@ class ContextWidget         : MMWidget
     {
         if fragment!.encoderStart() {
                         
-            let left        : Float = 50
             var top         : Float = 0
             let fontScale   : Float = 0.4
+            //let lineHeight  : Float = font.getLineHeight(fontScale)
             
-            let color = SIMD4<Float>(1, 1, 1, 0.4)
+            //let color = SIMD4<Float>(1, 1, 1, 0.4)
             let borderColor = SIMD4<Float>(0.5, 0.5, 0.5, 1)
 
             let tempRect = MMRect()
-            
-            let textHeight : Float = 18
-            
+                                    
             if libraryId.starts(with: "SDF") {
                 for (index, item) in currentList.enumerated() {
                                         
                     if let comp = item.component {
-                        let fColor = item === currentItem && currentOnSub == false ? SIMD4<Float>(0.4,0.4,0.4,1) : SIMD4<Float>(0,0,0,0)
                         
-                        let localLeft = left + (index > 0 ? 55 : 0);
-                        item.rect.set(localLeft, top, itemSize, itemSize)
+                        item.rect.set(0, top, width, itemSize)
 
-                        mmView.drawBox.draw( x: localLeft, y: top, width: itemSize, height: itemSize, round: 4, borderSize: 1, fillColor: fColor, borderColor: borderColor, fragment: fragment!)
+                        if item === currentItem && currentOnSub == false {
+                            mmView.drawBox.draw( x: 0, y: top, width: width, height: itemSize, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: borderColor, fragment: fragment!)
+                        }
                         
-                        mmView.drawBox.draw( x: localLeft, y: top + itemSize - textHeight, width: itemSize, height: textHeight, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
+                        //mmView.drawBox.draw( x: localLeft, y: top + itemSize - lineHeight, width: itemSize, height: lineHeight, round: 4, borderSize: 0, fillColor: color, fragment: fragment!)
                         
-                        font.getTextRect(text: comp.libraryName, scale: fontScale, rectToUse: tempRect)
-                        mmView.drawText.drawText(mmView.openSans, text: comp.libraryName, x: localLeft + (itemSize - tempRect.width)/2, y: top + itemSize - textHeight, scale: fontScale, fragment: fragment)
+                        //font.getTextRect(text: comp.libraryName, scale: fontScale, rectToUse: tempRect)
+                        //mmView.drawText.drawText(mmView.openSans, text: comp.libraryName, x: (width - tempRect.width)/2, y: top + itemSize - lineHeight - 2, scale: fontScale, fragment: fragment)
                         
                         if let thumb = globalApp!.thumbnail.request(comp.libraryName + " - " + libraryId, comp) {
-                            mmView.drawTexture.draw(thumb, x: localLeft + (itemSize - 200 / 3.5)/2, y: top, zoom: 3.5, fragment: fragment)
+                            mmView.drawTexture.draw(thumb, x: (width - 200 / 3) / 2, y: top, zoom: 3, fragment: fragment)
                         }
                         
-                        if index > 0 {
+                        if let subComp = comp.subComponent, index > 0 {
                             // Boolean Items
                             
-                            let localLeft : Float = 10
-                            let localTextHeight : Float = 22
-                            item.subRect = MMRect(localLeft, top + (itemSize - localTextHeight) / 2, itemSize, localTextHeight)
+                            item.subRect = MMRect(0, top - spacing, width, spacing)
                             
-                            let fSubColor = item === currentItem && currentOnSub == true ? SIMD4<Float>(0.4,0.4,0.4,1) : SIMD4<Float>(0,0,0,0)
-                            mmView.drawBox.draw( x: localLeft, y: top + (itemSize - localTextHeight) / 2, width: itemSize, height: localTextHeight, round: 4, borderSize: 1, fillColor: fSubColor, borderColor: borderColor, fragment: fragment!)
+                            mmView.drawBox.draw( x: 0, y: top - spacing, width: width, height: spacing, round: 0, borderSize: 0, fillColor: item === currentItem && currentOnSub == true ? SIMD4<Float>(0.4,0.4,0.4,1) : SIMD4<Float>(1,1,1,0.5), borderColor: borderColor, fragment: fragment!)
                             
-                            let name = "Merge"
+                            let name = subComp.libraryName
                             font.getTextRect(text: name, scale: fontScale, rectToUse: tempRect)
-                            mmView.drawText.drawText(mmView.openSans, text: name, x: localLeft + (itemSize - tempRect.width)/2, y: top + (itemSize - textHeight) / 2, scale: fontScale, fragment: fragment)
+                            mmView.drawText.drawText(mmView.openSans, text: name, x: (width - tempRect.width ) / 2, y: top - spacing + 1, scale: fontScale, fragment: fragment)
                         }
                     } else {
-                        item.rect.set(left, top, itemSize, itemSize)
-                        mmView.drawBox.draw( x: left, y: top, width: itemSize, height: itemSize, round: 4, borderSize: 1, fillColor: SIMD4<Float>(0,0,0,0), borderColor: borderColor, fragment: fragment!)
+                        if index > 0 {
+                            top -= spacing / 2
+                        }
+                        item.rect.set((width - itemSize) / 2, top, itemSize, itemSize)
+                        mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: itemSize, height: itemSize, round: 4, borderSize: 1, fillColor: SIMD4<Float>(0,0,0,0), borderColor: borderColor, fragment: fragment!)
                     }
 
                     top += itemSize + spacing
@@ -274,6 +272,16 @@ class ContextWidget         : MMWidget
                             }),
                         ]
                     }
+                } else {
+                    // Boolean
+                    if let _ = current.component {
+                        infoItems = [
+                            ContextInfoItem(mmView, "Change", { () in
+                                globalApp!.libraryDialog.setType("Boolean", current)
+                                self.mmView.showDialog(globalApp!.libraryDialog)
+                            })
+                        ]
+                    }
                 }
             }
         }
@@ -319,7 +327,7 @@ class ContextWidget         : MMWidget
                     }
                 } else {
                     // Boolean
-                    print("boolean")
+                    globalApp!.currentEditor.setComponent(current.subComponent!)
                 }
             } else
             {
@@ -464,29 +472,60 @@ class ContextWidget         : MMWidget
             
             let undo = globalApp!.currentEditor.undoStageItemStart("Add Component")
             
-            // Insert default values for the component, position etc
-            setDefaultComponentValues(comp)
-            
             comp.selected = nil
             globalApp!.currentEditor.setComponent(comp)
             globalApp!.currentEditor.updateOnNextDraw(compile: true)
             
-            if contextItem.component != nil {
-                // Replace the old component
-                comp.uuid = contextItem.component!.uuid
-                globalApp!.project.selected!.updateComponent(comp)
-            } else {
-                // Add the component
-                comp.uuid = UUID()
-                currentList.append(ContextItem())
-                if let selected = selectedItem {
-                    selected.componentLists[currentId]?.append(comp)
+            if comp.componentType == .SDF2D || comp.componentType == .SDF3D {
+                // If SDF, add the default boolean operator as subcomponent
+                
+                // Insert default values for the component, position etc
+                setDefaultComponentValues(comp)
+                
+                if contextItem.component != nil {
+                    // Replace the old component
+                    comp.uuid = contextItem.component!.uuid
+                    if let sub = contextItem.subComponent {
+                        comp.subComponent = sub
+                    }
+                    globalApp!.project.selected!.updateComponent(comp)
+                } else {
+                    // Add the component
+                    comp.uuid = UUID()
+                    currentList.append(ContextItem())
+                    if let selected = selectedItem {
+                        selected.componentLists[currentId]?.append(comp)
+                    }
                 }
+                
+                contextItem.component = comp
+                currentOnSub = false
+                                
+                if contextItem.subComponent == nil {
+                    if let bComp = decodeComponentFromJSON(defaultBoolean) {
+                        //CodeComponent(.Boolean)
+                        //bComp.createDefaultFunction(.Boolean)
+                        bComp.uuid = UUID()
+                        bComp.selected = nil
+                        comp.subComponent = bComp
+                        contextItem.subComponent = bComp
+                    }
+                }
+            } else
+            if comp.componentType == .Boolean {
+                // If Boolean, replace the subComponent
+                
+                comp.uuid = UUID()
+                contextItem.subComponent = comp
+                contextItem.component!.subComponent = comp
+                
+                currentItem = contextItem
+                currentOnSub = true
             }
 
-            contextItem.component = comp
+            currentItem = contextItem
+
             build()
-            
             globalApp!.currentEditor.undoStageItemEnd(undo)
         }
         createInfoItems()

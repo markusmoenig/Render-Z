@@ -707,7 +707,7 @@ class CodeBlock             : Codable, Equatable
         }
         
         let rStart = ctx.rectStart()
-        
+
         // Border
         if blockType == .FunctionHeader {
             ctx.font.getTextRect(text: "func", scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -788,15 +788,16 @@ class CodeBlock             : Codable, Equatable
             ctx.cIndent = ctx.indent
         } else
         if blockType == .IfHeader || blockType == .ElseHeader {
-            let rStart = ctx.rectStart()
+            //let rStart = ctx.rectStart()
             
             fragment.draw(mmView, ctx)
             ctx.drawFragmentState(fragment)
             ctx.cY += ctx.lineHeight + ctx.gapY
             ctx.blockNumber += 1
-
+            
             ctx.addCode("{\n")
             ctx.openSyntaxBlock()
+            
             for b in children {
                 b.parentFunction = nil
                 b.parentBlock = self
@@ -809,7 +810,8 @@ class CodeBlock             : Codable, Equatable
             ctx.closeSyntaxBlock()
             ctx.addCode("}\n")
 
-            ctx.rectEnd(rect, rStart)
+            //ctx.rectEnd(rect, rStart)
+
         } else {
             let propIndex = ctx.cComponent!.properties.firstIndex(of: fragment.uuid)
             
@@ -1002,7 +1004,7 @@ class CodeFunction          : Codable, Equatable
         
         let rStart = ctx.rectStart()
         
-        var maxRight : Float = 0;
+        var maxRight : Float = 0
 
         // --- Comment
         if comment.isEmpty == false {
@@ -1229,7 +1231,7 @@ class CodeComponent         : Codable, Equatable
         }
         if type == .Boolean {
             let f = CodeFunction(type, "booleanOperator")
-            f.comment = "Choose between the two shapes based on their distance stored in .x"
+            f.comment = "Choose between the two shapes based on their distances stored in .x"
             
             let arg1 = CodeFragment(.VariableDefinition, "float4", "shapeA", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
             f.header.statement.fragments.append(arg1)
@@ -1240,7 +1242,7 @@ class CodeComponent         : Codable, Equatable
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
-            f.body.append(f.createOutVariableBlock("float4", "out"))
+            f.body.append(f.createOutVariableBlock("float4", "outShape"))
             functions.append(f)
         }
     }

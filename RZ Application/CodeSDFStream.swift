@@ -13,6 +13,7 @@ class CodeSDFStream
     var type                : CodeComponent.ComponentType = .SDF2D
     var instance            : CodeBuilderInstance!
     var codeBuilder         : CodeBuilder!
+    var componentCounter    : Int = 0
     
     init()
     {
@@ -24,6 +25,7 @@ class CodeSDFStream
         self.type = type
         self.instance = instance
         self.codeBuilder = codeBuilder
+        componentCounter = 0
         
         if type == .SDF2D {
             instance.code +=
@@ -56,8 +58,8 @@ class CodeSDFStream
 
                 float GlobalTime = __data[0].x;
                 float outDistance = 10;
-                float4 __output = float4(100000,0,0,0);
-
+                float4 outShape = float4(100000, 0,0,0);
+            
             """
         }
     }
@@ -68,7 +70,7 @@ class CodeSDFStream
             instance.code +=
             """
             
-                __outTexture.write(half4(__output), __gid);
+                __outTexture.write(half4(outShape), __gid);
              }
             """
         }
@@ -80,7 +82,6 @@ class CodeSDFStream
     func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)
     {
         dryRunComponent(component, instance.data.count)
-        
         instance.collectProperties(component)
         
         if type == .SDF2D
@@ -92,16 +93,40 @@ class CodeSDFStream
             """
                 {
                     float2 pos = __translate(__origin, float2(__data[\(posX)].x, -__data[\(posY)].x));
+            
             """
         }
         
         instance.code += component.code!
 
         if let fragment = monitor {
-            instance.code += codeBuilder.insertMonitorCode(fragment, "__output", instance.computeComponents)
+            instance.code += codeBuilder.insertMonitorCode(fragment, "outShape", instance.computeComponents)
         } else {
-            instance.code += "\n __output.x = min( __output.x, outDistance);\n"
+            if componentCounter > 0
+            {
+                instance.code +=
+                """
+                
+                    float4 shapeA = outShape;
+                    float4 shapeB = float4(outDistance,0,0,0);
+                
+                """
+                
+                if let subComponent = component.subComponent {
+                    dryRunComponent(subComponent, instance.data.count)
+                    instance.collectProperties(subComponent)
+                    instance.code += subComponent.code!
+                }
+            } else {
+                instance.code +=
+                """
+                
+                    outShape = float4(outDistance,0,0,0);
+                
+                """
+            }
         }
         instance.code += "\n    }\n"
+        componentCounter += 1
     }
 }
