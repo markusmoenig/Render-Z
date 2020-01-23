@@ -108,7 +108,7 @@ class MMCompute {
         
         let textureDescriptor = MTLTextureDescriptor()
         textureDescriptor.textureType = MTLTextureType.type2D
-        textureDescriptor.pixelFormat = MTLPixelFormat.rgba32Float
+        textureDescriptor.pixelFormat = MTLPixelFormat.rgba16Float
         textureDescriptor.width = Int(width)
         textureDescriptor.height = Int(height)
         
