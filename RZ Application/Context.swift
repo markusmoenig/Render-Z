@@ -355,6 +355,7 @@ class ContextWidget         : MMWidget
         hoverInfoItem = nil
         #endif
         mouseIsDown = false
+        pressedInfoItem = nil
     }
     
     override func mouseLeave(_ event: MMMouseEvent) {
@@ -366,9 +367,25 @@ class ContextWidget         : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if infoRect.contains(event.x, event.y) {
+        hoverItem = nil
+        hoverOnSub = false
+        for item in currentList {
+            if item.rect.contains(event.x - rect.x, event.y - 50 - rect.y - scrollArea.offsetY) {
+                hoverItem = item
+                break
+            }
+            if let subRect = item.subRect {
+                if subRect.contains(event.x - rect.x, event.y - 50 - rect.y - scrollArea.offsetY) {
+                    hoverItem = item
+                    hoverOnSub = true
+                    break
+                }
+            }
+        }
+        
+        hoverInfoItem = nil
+        if hoverItem == nil && infoRect.contains(event.x, event.y) {
             let oldHoverItem = hoverInfoItem
-            hoverInfoItem = nil
             if infoRect.contains(event.x, event.y) {
                 for item in infoItems {
                     if item.cb != nil && item.rect.contains(event.x, event.y) {
@@ -379,22 +396,6 @@ class ContextWidget         : MMWidget
             }
             if hoverInfoItem !== oldHoverItem {
                 mmView.update()
-            }
-        } else {
-            hoverItem = nil
-            hoverOnSub = false
-            for item in currentList {
-                if item.rect.contains(event.x - rect.x, event.y - 50 - rect.y - scrollArea.offsetY) {
-                    hoverItem = item
-                    break
-                }
-                if let subRect = item.subRect {
-                    if subRect.contains(event.x - rect.x, event.y - 50 - rect.y - scrollArea.offsetY) {
-                        hoverItem = item
-                        hoverOnSub = true
-                        break
-                    }
-                }
             }
         }
     }
@@ -410,7 +411,7 @@ class ContextWidget         : MMWidget
         var listToUse : [CodeComponent] = []
         
         var addEmpty : Bool = false
-        
+                
         currentItem = nil
         hoverItem = nil
         currentId = ""
