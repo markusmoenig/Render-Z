@@ -26,15 +26,6 @@ class CodeProperties    : MMWidget
     var hoverUITitle        : NodeUI? = nil
     
     var nodeUIMonitor       : NodeUIMonitor? = nil
-    
-    var monitorInstance     : CodeBuilderInstance? = nil
-    var monitorData         : [SIMD4<Float>] = []
-    let totalMonitorData    : Float = 300
-    var monitorRange        : SIMD2<Float> = SIMD2<Float>(0, 0)
-    var monitorPosition     : Float = 300
-    var monitorLabel        : MMTextLabel
-    var monitorRangeTLabel  : MMTextLabel
-    var monitorRangeBLabel  : MMTextLabel
 
     var buttons             : [MMButtonWidget] = []
     var smallButtonSkin     : MMSkinButton
@@ -45,13 +36,6 @@ class CodeProperties    : MMWidget
     override init(_ view: MMView)
     {
         smallButtonSkin = MMSkinButton()
-
-        monitorLabel = MMTextLabel(view, font: view.openSans, text: "")
-        monitorLabel.scale = NodeUI.titleFontScale
-        monitorRangeTLabel = MMTextLabel(view, font: view.openSans, text: "")
-        monitorRangeTLabel.scale = NodeUI.titleFontScale
-        monitorRangeBLabel = MMTextLabel(view, font: view.openSans, text: "")
-        monitorRangeBLabel.scale = NodeUI.titleFontScale
 
         super.init(view)
         
@@ -89,8 +73,6 @@ class CodeProperties    : MMWidget
         c1Node = nil
         c2Node = nil
         c3Node = nil
-
-        monitorPosition = 20
         
         deregisterButtons()
         
@@ -105,8 +87,6 @@ class CodeProperties    : MMWidget
         c3Node = Node()
         c3Node?.rect.x = 400
         c3Node?.rect.y = 10
-
-        monitorInstance = nil
         
         nodeUIMonitor = nil
         globalApp!.pipeline.monitorInstance = nil
@@ -394,8 +374,6 @@ class CodeProperties    : MMWidget
                         comp.propertyGizmoMap[fragment.uuid] = CodeComponent.PropertyGizmoMapping(rawValue: Int(newValue))
                     }
                 }
-                
-                monitorPosition = 400
                 
                 nodeUIMonitor = NodeUIMonitor(c3Node!, variable: "monitor", title: "Variable Monitor")
                 c3Node!.uiItems.append(nodeUIMonitor!)
@@ -780,61 +758,6 @@ class CodeProperties    : MMWidget
             }
         }
         
-        // --- Draw Monitor
-        if let inst = monitorInstance {
-            let border      : Float = 10
-
-            mmView.drawBox.draw(x: rect.x + monitorPosition, y: rect.y + border, width: totalMonitorData + 2 * border, height: rect.height - border*2, round: 6, borderSize: 0, fillColor: NodeUI.contentColor)// SIMD4<Float>(1, 1, 1, 0.1))
-            
-            mmView.drawPointGraph.draw(x: rect.x + monitorPosition, y: rect.y + 2*border, width: totalMonitorData, height: rect.height - border*4, points: monitorData, range: monitorRange, components: inst.computeComponents)
-            
-            // Top Range Text
-            let tString : String = String(Int(monitorRange.y))
-            
-            if monitorRangeTLabel.text != tString {
-                monitorRangeTLabel.setText(tString)
-            }
-            
-            monitorRangeTLabel.rect.x = rect.x + monitorPosition + totalMonitorData + 30
-            monitorRangeTLabel.rect.y = rect.y + border
-            monitorRangeTLabel.draw()
-            
-            // Bottom Range Text
-            let bString : String = String(Int(monitorRange.x))
-            
-            if monitorRangeBLabel.text != bString {
-                monitorRangeBLabel.setText(bString)
-            }
-            
-            monitorRangeBLabel.rect.x = monitorRangeTLabel.rect.x
-            monitorRangeBLabel.rect.y = rect.y + rect.height - border * 2 - 5
-            monitorRangeBLabel.draw()
-            
-            // Value Text
-            let value = monitorData[monitorData.count - 1]
-            var vString : String = ""
-            
-            if inst.computeComponents == 1 {
-                vString = "(" + String(format: "%.03f", value.x) + ")"
-            } else
-            if inst.computeComponents == 2 {
-                vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ")"
-            } else
-            if inst.computeComponents == 3 {
-                vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ", " + String(format: "%.03f", value.z) + ")"
-            } else
-            if inst.computeComponents == 4 {
-                vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ", " + String(format: "%.03f", value.z) + ", " + String(format: "%.03f", value.w) + ")"
-            }
-        
-            if monitorLabel.text != vString {
-                monitorLabel.setText(vString)
-            }
-            monitorLabel.rect.x = monitorRangeTLabel.rect.x
-            monitorLabel.rect.y = rect.y + (rect.height - border * 2 ) / 2 + 2
-            monitorLabel.draw()
-        }
-        
         // --- Draw buttons
         
         var bY = rect.y + 20
@@ -844,55 +767,6 @@ class CodeProperties    : MMWidget
             
             b.draw()
             bY += b.rect.height + 10
-        }
-    }
-    
-    // Clear the monitor data
-    func setupMonitorData(_ comp: CodeComponent,_ fragment: CodeFragment,_ ctx: CodeContext)
-    {
-        /*
-        monitorInstance = globalApp!.codeBuilder.build(comp, fragment)
-        
-        monitorData = []
-        monitorRange = SIMD2<Float>(-1, 1)
-        updateMonitor()*/
-    }
-    
-    // Clear the monitor data
-    func resetMonitorData()
-    {
-        monitorData = []
-        monitorRange = SIMD2<Float>(-1, 1)
-        updateMonitor()
-    }
-    
-    // Append data to the monitor
-    func updateMonitor()
-    {
-        if let inst = monitorInstance {
-            globalApp!.codeBuilder.computeMonitor(inst)
-            let result = inst.computeResult
-            
-            if Float(monitorData.count) >= totalMonitorData {
-                monitorData.removeFirst()
-            }
-            monitorData.append( result )
-
-            func checkRange(_ f: Float)
-            {
-                if f < monitorRange.x {
-                    monitorRange.x = f
-                }
-                if f > monitorRange.y {
-                    monitorRange.y = f
-                }
-            }
-            
-            checkRange(result.x)
-            //print("result", result.x, monitorRange.x, monitorRange.y, monitorRange.y - monitorRange.x )
-            checkRange(result.y)
-            checkRange(result.z)
-            checkRange(result.w)
         }
     }
 }

@@ -108,7 +108,9 @@ class LibraryDialog: MMDialog {
         
         if let selected = selectedItem {
             if let context = contextItem {
-                globalApp!.context.replaceJSONForItem(context, selected.json)
+                DispatchQueue.main.async {
+                    globalApp!.context.replaceJSONForItem(context, selected.json)
+                }
             }
         }
         

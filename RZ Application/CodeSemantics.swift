@@ -385,7 +385,9 @@ class CodeFragment          : Codable, Equatable
             ctx.addCode(name)
         } else
         if fragmentType == .VariableDefinition {
-            ctx.cVariables[self.uuid] = self
+            //ctx.cVariables[self.uuid] = self
+            ctx.registerVariableForSyntaxBlock(self)
+
             let rStart = ctx.rectStart()
             
             ctx.font.getTextRect(text: typeName, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -796,7 +798,7 @@ class CodeBlock             : Codable, Equatable
             ctx.blockNumber += 1
             
             ctx.addCode("{\n")
-            ctx.openSyntaxBlock()
+            ctx.openSyntaxBlock(uuid)
             
             for b in children {
                 b.parentFunction = nil
@@ -807,7 +809,7 @@ class CodeBlock             : Codable, Equatable
                 b.draw(mmView, ctx)
                 ctx.blockNumber += 1
             }
-            ctx.closeSyntaxBlock()
+            ctx.closeSyntaxBlock(uuid)
             ctx.addCode("}\n")
 
             //ctx.rectEnd(rect, rStart)
@@ -996,14 +998,18 @@ class CodeFunction          : Codable, Equatable
     {
         ctx.blockNumber = 1
         ctx.cVariables = [:]
+        ctx.cSyntaxBlocks = [:]
+        ctx.cSyntaxLevel = []
+        
+        ctx.openSyntaxBlock(uuid)
         
         // Add the function arguments as variables
         for v in header.statement.fragments {
-            ctx.cVariables[v.uuid] = v
+            //ctx.cVariables[v.uuid] = v
+            ctx.registerVariableForSyntaxBlock(v)
         }
         
         let rStart = ctx.rectStart()
-        
         var maxRight : Float = 0
 
         // --- Comment
@@ -1022,6 +1028,7 @@ class CodeFunction          : Codable, Equatable
         if header.rect.right() > maxRight {
             maxRight = header.rect.right()
         }
+        
         for b in body {
             ctx.cBlock = b
             b.parentFunction = self
@@ -1044,6 +1051,8 @@ class CodeFunction          : Codable, Equatable
         
         //mmView.drawBox.draw( x: ctx.border, y: rect.y, width: 2, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.border, fragment: ctx.fragment )
         ctx.drawFunctionState(self)
+        
+        ctx.closeSyntaxBlock(uuid)
     }
 }
 
@@ -1487,6 +1496,8 @@ class CodeContext
     var cBlock              : CodeBlock? = nil
     
     var cVariables          : [UUID:CodeFragment] = [:]
+    var cSyntaxBlocks       : [UUID:[CodeFragment]] = [:]
+    var cSyntaxLevel        : [UUID] = []
 
     // Fixed vars
     var indent              : Float = 0
@@ -1519,6 +1530,9 @@ class CodeContext
     
     var propertyDataOffset  : Int = 0
     
+    var monitorFragment     : CodeFragment? = nil
+    var monitorComponents   : Int = 0
+    
     init(_ view: MMView,_ fragment: MMFragment?,_ font: MMFont,_ fontScale: Float)
     {
         mmView = view
@@ -1527,11 +1541,13 @@ class CodeContext
         self.fontScale = fontScale
     }
     
-    func reset(_ editorWidth: Float = 10000,_ propertyDataOffset: Int = 0)
+    func reset(_ editorWidth: Float = 10000,_ propertyDataOffset: Int = 0,_ monitorFragment: CodeFragment? = nil)
     {
         //fontScale = 0.45
         startX = 10
+        
         cY = 40
+        cIndent = 0
         
         gapX = 5
         gapY = 1
@@ -1541,11 +1557,59 @@ class CodeContext
         hoverAlpha = 0.5
         selectionAlpha = 0.7
         
-        self.editorWidth = editorWidth
         lineHeight = font.getLineHeight(fontScale)
-        self.propertyDataOffset = propertyDataOffset
 
+        self.editorWidth = editorWidth
+        self.propertyDataOffset = propertyDataOffset
+        self.monitorFragment = monitorFragment
+        
+        // Compute monitor components
+        monitorComponents = 0
+        if let fragment = monitorFragment {
+            monitorComponents = 1
+            if fragment.typeName.contains("2") {
+                monitorComponents = 2
+            } else
+            if fragment.typeName.contains("3") {
+                monitorComponents = 3
+            }
+            if fragment.typeName.contains("4") {
+                monitorComponents = 4
+            }
+        }
+        
         dropIsValid = false
+    }
+    
+    // Inserts the monitor code for the given variable
+    func insertMonitorCode(_ fragment: CodeFragment)
+    {
+        let outVariableName = "__monitorOut"
+        let components = monitorComponents
+        
+        var code : String = ""
+        if components == 1 {
+            code += "\(outVariableName) = float4(float3(" + fragment.name + "),1);\n";
+        } else
+        if components == 2 {
+            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
+            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
+            code += "\(outVariableName).z = 0;\n";
+            code += "\(outVariableName).w = 1;\n";
+        } else
+        if components == 3 {
+            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
+            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
+            code += "\(outVariableName).z = " + fragment.name + ".z;\n";
+            code += "\(outVariableName).w = 1;\n";
+        } else
+        if components == 4 {
+            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
+            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
+            code += "\(outVariableName).z = " + fragment.name + ".z;\n";
+            code += "\(outVariableName).w = " + fragment.name + ".w;\n";
+        }
+        addCode(code)
     }
     
     func rectStart() -> SIMD2<Float>
@@ -1561,14 +1625,40 @@ class CodeContext
         rect.height = max(cY - start.y, lineHeight) + gapY
     }
     
-    func openSyntaxBlock()
+    func openSyntaxBlock(_ uuid: UUID)
     {
         cIndent += indent
+        cSyntaxBlocks[uuid] = []
+        cSyntaxLevel.append(uuid)
     }
     
-    func closeSyntaxBlock()
+    func closeSyntaxBlock(_ uuid: UUID)
     {
         cIndent -= indent
+        
+        if let variablesForBlock = cSyntaxBlocks[uuid] {
+            for frag in variablesForBlock {
+                cVariables[frag.uuid] = nil
+                
+                if let monitor = monitorFragment {
+                    if monitor.uuid == frag.uuid {
+                        // MONITOR !!! ADD MONITOR CODE
+                        insertMonitorCode(monitor)
+                    }
+                }
+            }
+        }
+        
+        cSyntaxBlocks[uuid] = nil
+        cSyntaxLevel.removeLast()
+    }
+    
+    func registerVariableForSyntaxBlock(_ variable: CodeFragment)
+    {
+        cVariables[variable.uuid] = variable
+        if let currentSyntaxUUID = cSyntaxLevel.last {
+            cSyntaxBlocks[currentSyntaxUUID]?.append(variable)
+        }
     }
     
     func drawText(_ text: String,_ color: SIMD4<Float>)

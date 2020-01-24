@@ -15,6 +15,8 @@ class CodeSDFStream
     var codeBuilder         : CodeBuilder!
     var componentCounter    : Int = 0
     
+    var monitor             : CodeFragment? = nil
+    
     init()
     {
         
@@ -25,6 +27,8 @@ class CodeSDFStream
         self.type = type
         self.instance = instance
         self.codeBuilder = codeBuilder
+        
+        monitor = nil
         componentCounter = 0
         
         if type == .SDF2D {
@@ -51,6 +55,7 @@ class CodeSDFStream
             //texture2d<half, access::sample>       fontTexture [[texture(2)]],
             uint2 __gid                               [[thread_position_in_grid]])
             {
+                float4 __monitorOut = float4(0,0,0,0);
                 float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
                 float2 __origin = float2(__gid.x, __gid.y);
                 float2 __center = __size / 2;
@@ -66,6 +71,24 @@ class CodeSDFStream
 
     func closeStream()
     {
+        if let monitorFragment = monitor {
+            if monitorFragment.name != "outDistance" {
+                instance.code +=
+                """
+                
+                outShape = __monitorOut;
+                
+                """
+            } else {
+                instance.code +=
+                """
+                
+                outShape = float4(float3(outShape.x), 1);
+                
+                """
+            }
+        }
+        
         if type == .SDF2D {
             instance.code +=
             """
@@ -81,8 +104,9 @@ class CodeSDFStream
     
     func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)
     {
-        dryRunComponent(component, instance.data.count)
+        dryRunComponent(component, instance.data.count, monitor)
         instance.collectProperties(component)
+        self.monitor = monitor
         
         if type == .SDF2D
         {
@@ -99,33 +123,29 @@ class CodeSDFStream
         
         instance.code += component.code!
 
-        if let fragment = monitor {
-            instance.code += codeBuilder.insertMonitorCode(fragment, "outShape", instance.computeComponents)
-        } else {
-            if componentCounter > 0
-            {
-                instance.code +=
-                """
-                
-                    float4 shapeA = outShape;
-                    float4 shapeB = float4(outDistance,0,0,0);
-                
-                """
-                
-                if let subComponent = component.subComponent {
-                    dryRunComponent(subComponent, instance.data.count)
-                    instance.collectProperties(subComponent)
-                    instance.code += subComponent.code!
-                }
-            } else {
-                instance.code +=
-                """
-                
-                    outShape = float4(outDistance,0,0,0);
-                
-                """
+        if componentCounter > 0 {
+            instance.code +=
+            """
+            
+                float4 shapeA = outShape;
+                float4 shapeB = float4(outDistance,0,0,0);
+            
+            """
+            
+            if let subComponent = component.subComponent {
+                dryRunComponent(subComponent, instance.data.count)
+                instance.collectProperties(subComponent)
+                instance.code += subComponent.code!
             }
+        } else {
+            instance.code +=
+            """
+            
+                outShape = float4(outDistance,0,0,0);
+            
+            """
         }
+    
         instance.code += "\n    }\n"
         componentCounter += 1
     }

@@ -20,7 +20,7 @@ class CodeBuilderInstance
     
     var computeOutBuffer    : MTLBuffer!
     var computeResult       : SIMD4<Float> = SIMD4<Float>(0,0,0,0)
-    var computeComponents   : Int = 1
+    var monitorComponents   : Int = 1
         
     var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent)] = []
     
@@ -98,25 +98,25 @@ class CodeBuilder
         #include <metal_stdlib>
         #include <simd/simd.h>
         using namespace metal;
-        
+                
         """
         
         // Time
         inst.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
         
-        dryRunComponent(component, inst.data.count)
+        dryRunComponent(component, inst.data.count, monitor)
 
         // Compute monitor components
         if let fragment = monitor {
-            inst.computeComponents = 1
+            inst.monitorComponents = 1
             if fragment.typeName.contains("2") {
-                inst.computeComponents = 2
+                inst.monitorComponents = 2
             } else
             if fragment.typeName.contains("3") {
-                inst.computeComponents = 3
+                inst.monitorComponents = 3
             }
             if fragment.typeName.contains("4") {
-                inst.computeComponents = 4
+                inst.monitorComponents = 4
             }
         }
         
@@ -189,10 +189,12 @@ class CodeBuilder
         //texture2d<half, access::sample>       __fontTexture [[texture(2)]],
         uint2 __gid                               [[thread_position_in_grid]])
         {
+            float4 __monitorOut = float4(0,0,0,0);
             float2 uv = float2(__gid.x, __gid.y);
             float2 size = float2(__outTexture.get_width(), __outTexture.get_height() );
             uv /= size;
             uv.y = 1.0 - uv.y;
+        
 
             float4 outColor = float4(0,0,0,1);
             float GlobalTime = __data[0].x;
@@ -202,10 +204,14 @@ class CodeBuilder
         if let code = component.code {
             inst.code += code
         }
-
-        // --- Monitor
-        if let fragment = monitor {
-            inst.code += insertMonitorCode(fragment, "outColor", inst.computeComponents)
+        
+        if let monitorFragment = monitor, monitorFragment.name != "outColor" {
+            inst.code +=
+            """
+            
+            outColor = __monitorOut;
+            
+            """
         }
         
         inst.code +=
@@ -229,6 +235,7 @@ class CodeBuilder
         //texture2d<half, access::sample>       fontTexture [[texture(2)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
+            float4 __monitorOut = float4(0,0,0,0);
             float2 uv = float2(__gid.x, __gid.y);
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
             uv /= size;
@@ -244,9 +251,13 @@ class CodeBuilder
             inst.code += code
         }
 
-        // --- Monitor
-        if let fragment = monitor {
-            inst.code += insertMonitorCode(fragment, "outColor", inst.computeComponents)
+        if let monitorFragment = monitor, monitorFragment.name != "outColor" {
+            inst.code +=
+            """
+            
+            outColor = __monitorOut;
+            
+            """
         }
 
         inst.code +=
@@ -288,6 +299,7 @@ class CodeBuilder
         uint2 __gid                             [[thread_position_in_grid]])
         {
             constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+            float4 __monitorOut = float4(0,0,0,0);
 
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
             float2 uv = float2(__gid.x, __gid.y);
@@ -305,9 +317,13 @@ class CodeBuilder
             inst.code += code
         }
 
-        // Monitor
-        if let fragment = monitor {
-            inst.code += insertMonitorCode(fragment, "outColor", inst.computeComponents)
+        if let monitorFragment = monitor, monitorFragment.name != "outColor" {
+            inst.code +=
+            """
+            
+            outColor = __monitorOut;
+            
+            """
         }
 
         inst.code +=
