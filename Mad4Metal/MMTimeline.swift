@@ -416,7 +416,7 @@ class MMTimeline : MMWidget
         }
         
         for(frame,key) in sequence.items[uuid]! {
-            print( "Key at \(frame): \(key)" )
+            print( "Key at \(frame): \(key)", key.values )
         }
     }
     

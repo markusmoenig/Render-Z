@@ -120,7 +120,7 @@ class DesignProperties      : MMWidget
                 let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
                 frag.values["value"] = newValue
                 self.updatePreview()
-                self.addKey([frag.name:newValue])
+                self.addKey([variable:newValue])
                 if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
             }
         }

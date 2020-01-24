@@ -29,7 +29,8 @@ class CodeSDFStream
         self.codeBuilder = codeBuilder
         
         monitor = nil
-        componentCounter = 0
+        componentCounter = 0        
+        instance.properties = []
         
         if type == .SDF2D {
             instance.code +=
