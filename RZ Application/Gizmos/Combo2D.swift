@@ -146,6 +146,7 @@ class GizmoCombo2D          : GizmoBase
         #endif
         if undoComponent != nil {
             globalApp!.currentEditor.undoComponentEnd(undoComponent!)
+            undoComponent = nil
         }
         mmView.update()
     }
