@@ -90,7 +90,7 @@ class ContextWidget         : MMWidget
     //var dragSource          : LibraryDrag?
     
     var currentWidth        : Float = 0
-    var openWidth           : Float = 200
+    var openWidth           : Float = 160
     
     // Info Area
     var infoItems           : [ContextInfoItem] = []
@@ -420,7 +420,7 @@ class ContextWidget         : MMWidget
         if let item = selItem {
             if item.stageItemType == .ShapeStage {
                 nextState = .Open
-                scrollButton.setItems(["Shapes", "Materials", "Domain"], fixedWidth: 190)
+                scrollButton.setItems(["Shapes", "Material", "Domain"])
                 
                 if globalApp!.currentSceneMode == .TwoD {
                     currentId = "shapes2D"

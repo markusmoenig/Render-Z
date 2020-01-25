@@ -148,11 +148,11 @@ class CodeFragList : MMWidget
         let lineHeight = font.getLineHeight(fontScale)
         
         var cX : Float = 10
-        let cY : Float = rect.y + rect.height - 40
+        var cY : Float = rect.y + rect.height - 40
         
         let tempRect = MMRect()
         
-        for item in items {
+        for (index,item) in items.enumerated() {
             font.getTextRect(text: item.char, scale: fontScale, rectToUse: tempRect)
             mmView.drawText.drawText(font, text: item.char, x: cX + (lineHeight - tempRect.width)/2, y: cY, scale: fontScale, color: mmView.skin.Widget.textColor)
             
@@ -165,8 +165,13 @@ class CodeFragList : MMWidget
                 let alpha : Float = selectedItem === item ? 0.7 : 0.5
                 mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
             }
-
-            cX += lineHeight
+            
+            if index > 0 && index % 8 == 0 {
+                cX = 10
+                cY += lineHeight + 2
+            } else {
+                cX += lineHeight
+            }
         }
         
         listWidget.rect.x = rect.x
@@ -174,7 +179,7 @@ class CodeFragList : MMWidget
         listWidget.rect.width = rect.width
         listWidget.rect.height = rect.height - 40
         
-        listWidget.draw(xOffset: globalApp!.leftRegion!.rect.width - 200)
+        listWidget.draw(xOffset: globalApp!.leftRegion!.rect.width - SceneList.openWidth)
         
         if selectedItem == nil {
             selectItem(items[0])
@@ -190,7 +195,7 @@ class CodeFragList : MMWidget
             let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y), items: selectedItem!.items)
             if changed {
                 
-                listWidget.build(items: selectedItem!.items, fixedWidth: 200)
+                listWidget.build(items: selectedItem!.items, fixedWidth: SceneList.openWidth)
               //  mmView.update()
             }
             return
@@ -267,7 +272,7 @@ class CodeFragList : MMWidget
             item.color = item.codeFragment!.fragmentType == .Primitive ? mmView.skin.Code.name : mmView.skin.Code.reserved
         }
         
-        listWidget.build(items: item.items, fixedWidth: 200)
+        listWidget.build(items: item.items, fixedWidth: SceneList.openWidth)
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)

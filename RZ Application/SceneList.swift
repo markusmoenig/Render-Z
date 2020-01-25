@@ -64,6 +64,7 @@ class SceneList : MMWidget
     var infoItems           : [SceneInfoItem] = []
     var hoverInfoItem       : SceneInfoItem? = nil
     var pressedInfoItem     : SceneInfoItem? = nil
+    static var openWidth    : Float = 180
 
     var currentScene        : Scene? = nil
     
@@ -87,12 +88,12 @@ class SceneList : MMWidget
     func setScene(_ scene: Scene)
     {
         currentScene = scene
-        treeWidget.build(scene: scene, fixedWidth: 200)
+        treeWidget.build(scene: scene, fixedWidth: SceneList.openWidth)
     }
     
     func updateTree() {
         if let scene = currentScene {
-            treeWidget.build(scene: scene, fixedWidth: 200)
+            treeWidget.build(scene: scene, fixedWidth: SceneList.openWidth)
             mmView.update()
         }
     }
@@ -106,7 +107,7 @@ class SceneList : MMWidget
         treeWidget.rect.width = rect.width
         treeWidget.rect.height = rect.height - SceneList.InfoHeight
         
-        treeWidget.draw(xOffset: globalApp!.leftRegion!.rect.width - 200)
+        treeWidget.draw()//xOffset: globalApp!.leftRegion!.rect.width - openWidth)
         
         infoRect.x = rect.x
         infoRect.y = rect.y + treeWidget.rect.height
@@ -145,7 +146,7 @@ class SceneList : MMWidget
         } else {
             let changed = treeWidget.selectAt(event.x - rect.x, (event.y - rect.y))
             if changed {
-                treeWidget.build(scene: globalApp!.project.scenes[0], fixedWidth: 200)
+                treeWidget.build(scene: globalApp!.project.scenes[0], fixedWidth: SceneList.openWidth)
                 
                 if let scene = currentScene {
                     if scene.getSelectedUUID() == nil {
@@ -189,7 +190,7 @@ class SceneList : MMWidget
                                         let shape = shapeStage.createChild(value)
 
                                         scene.setSelected(shape)
-                                        self.treeWidget.build(scene: scene, fixedWidth: 200)
+                                        self.treeWidget.build(scene: scene, fixedWidth: SceneList.openWidth)
                                     }
                                 } )
                             })
@@ -649,7 +650,7 @@ class SceneTreeWidget   : MMWidget
     }
     
     /// Creates a thumbnail for the given item
-    func createShapeThumbnail(item: MMTreeWidgetItem, customWidth: Float = 200) -> MTLTexture?
+    func createShapeThumbnail(item: MMTreeWidgetItem, customWidth: Float = 180) -> MTLTexture?
     {
         let width : Float = customWidth * zoom
         let height : Float = unitSize * zoom
