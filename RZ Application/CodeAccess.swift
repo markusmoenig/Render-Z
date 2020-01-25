@@ -16,9 +16,9 @@ class AccessButton
     
     var label       : MMTextLabel
     
-    init(_ view: MMView,_ font: MMFont,_ name: String)
+    init(_ view: MMView,_ font: MMFont,_ name: String,_ fontScale: Float = 0.5)
     {
-        label = MMTextLabel(view, font: font, text: name, scale: 0.5, color: view.skin.Widget.textColor)
+        label = MMTextLabel(view, font: font, text: name, scale: fontScale, color: view.skin.Widget.textColor)
         self.name = name
     }
 }
@@ -96,12 +96,16 @@ class CodeAccess            : MMWidget
                     addLeftButton("(")
                     addRightButton(")")
                 }
+                
+                if fragment.fragmentType == .ConstantValue || fragment.fragmentType == .ConstantDefinition || fragment.fragmentType == .VariableReference || fragment.fragmentType == .Primitive {
+                    middleButtons.append(AccessButton(mmView, mmView.openSans, "Negate", 0.4))
+                }
 
                 if fragment.fragmentType == .ConstantDefinition && fragment.typeName != "float" {
                     if fragment.isSimplified == true {
-                        middleButtons.append(AccessButton(mmView, mmView.openSans, "Expand"))
+                        middleButtons.append(AccessButton(mmView, mmView.openSans, "Expand", 0.4))
                     } else {
-                        middleButtons.append(AccessButton(mmView, mmView.openSans, "Shorten"))
+                        middleButtons.append(AccessButton(mmView, mmView.openSans, "Shorten", 0.4))
                     }
                 }
             } else
@@ -232,24 +236,31 @@ class CodeAccess            : MMWidget
             cX -= lineHeight + 4
         }
         
+        var totalWidth : Float = 0
+        for b in middleButtons {
+            totalWidth += b.label.rect.width + 4
+        }
+        totalWidth -= 4
+        cX = rect.x + (rect.width - totalWidth) / 2
+        
         for b in middleButtons {
             
             let width : Float = b.label.rect.width + 10
-            cX = rect.x + (rect.width - width * Float(middleButtons.count)) / 2
 
             b.rect.x = cX
-            b.rect.y = cY
+            b.rect.y = cY + 2
             b.rect.width = width
             b.rect.height = lineHeight
             
             b.label.rect.x = cX + (lineHeight - tempRect.width)/2
-            b.label.rect.y = cY
+            b.label.rect.y = cY + 2
             b.label.draw()
             
             if hoverButton === b || selectedButton === b {
                 let alpha : Float = selectedButton === b ? 0.7 : 0.5
-                mmView.drawBox.draw( x: b.rect.x, y: b.rect.y, width: b.rect.width, height: b.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
+                mmView.drawBox.draw( x: b.rect.x, y: b.rect.y - 1, width: b.rect.width, height: b.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
             }
+            cX += width + 4
         }
     }
     
@@ -260,6 +271,15 @@ class CodeAccess            : MMWidget
 
             if let frag = codeEditor.codeContext.selectedFragment {
                 
+                if button.name == "Negate" {
+                    let undo = codeEditor.undoStart("Negate")
+
+                    frag.setNegated(!frag.isNegated())
+                    codeEditor.editor.codeProperties.needsUpdate = true
+                    codeEditor.updateCode(compile: true)
+                    codeEditor.undoEnd(undo)
+                    return
+                } else
                 if button.name == "Shorten" {
                     let undo = codeEditor.undoStart("Shorten Constant")
 

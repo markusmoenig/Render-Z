@@ -137,7 +137,7 @@ class CodeFragment          : Codable, Equatable
         }
     }
     
-    // ConstantValue only, sets the value
+    /// ConstantValue only, sets the value
     func setValue(_ value: Float)
     {
         if fragmentType == .ConstantValue {
@@ -145,14 +145,21 @@ class CodeFragment          : Codable, Equatable
         }
     }
     
-    /// Returns true if fragment is inside the editor, false otherwise (SourceList)
-    func isInsideEditor() -> Bool
+    /// Returns true if fragment is negated
+    func isNegated() -> Bool
     {
-        if rect.x == 0 {
-            return false
-        } else {
-            return true
+        if let negated = values["negated"] {
+            if negated == 1 {
+                return true
+            }
         }
+        return false
+    }
+    
+    /// Sets the negated property of the fragment
+    func setNegated(_ negated: Bool)
+    {
+        values["negated"] = negated == true ? 1 : 0
     }
     
     /// Returns the type this fragment evaluates to, based on the evaluatesTo value and the input values.
@@ -307,7 +314,8 @@ class CodeFragment          : Codable, Equatable
     /// .ConstanValue only: Creates a string for the value
     func getValueString() -> String
     {
-        return String(format: "%.0\(Int(values["precision"]!))f", values["value"]!)
+        let valueString = (isNegated() == true ? "-" : "") + String(format: "%.0\(Int(values["precision"]!))f", values["value"]!)
+        return valueString
     }
     
     /// Creates a string for the qualifier
@@ -343,7 +351,7 @@ class CodeFragment          : Codable, Equatable
         } else
         if fragmentType == .ConstantDefinition {
             let rStart = ctx.rectStart()
-            let name = isSimplified ? getValueString() : self.name
+            let name = (isNegated() && isSimplified == false ? "-" : "") + (isSimplified ? getValueString() : self.name)
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
@@ -358,6 +366,7 @@ class CodeFragment          : Codable, Equatable
         } else
         if fragmentType == .Primitive {
             let rStart = ctx.rectStart()
+            let name = (isNegated() ? "-" : "") + self.name
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
@@ -432,7 +441,7 @@ class CodeFragment          : Codable, Equatable
             var name : String
             if let ref = referseTo {
                 if let v = ctx.cVariables[ref] {
-                    name = v.name
+                    name = (isNegated() ? "-" : "") + v.name
                 } else {
                     name = "NOT FOUND"
                     invalid = true
