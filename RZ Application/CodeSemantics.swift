@@ -752,6 +752,8 @@ class CodeBlock             : Codable, Equatable
             ctx.drawFragmentState(fragment)
         } else if blockType == .FunctionHeader {
             let rStart = ctx.rectStart()
+
+            // Return type
             ctx.font.getTextRect(text: fragment.typeName, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
                 mmView.drawText.drawText(ctx.font, text: fragment.typeName, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.reserved, fragment: frag)
@@ -759,12 +761,19 @@ class CodeBlock             : Codable, Equatable
             
             ctx.cX += ctx.tempRect.width + ctx.gapX
             
+            // Function name
             ctx.font.getTextRect(text: fragment.name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
                 mmView.drawText.drawText(ctx.font, text: fragment.name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.nameHighlighted, fragment: frag)
             }
             
-            ctx.cX += ctx.tempRect.width + ctx.gapX
+            ctx.cX += ctx.tempRect.width
+            
+            ctx.rectEnd(fragment.rect, rStart)
+            if fragment.fragmentType == .TypeDefinition {
+                ctx.addCode(fragment.typeName + " " + fragment.name + "( ")
+            }
+            ctx.cX += ctx.gapX
 
             ctx.font.getTextRect(text: "(", scale: ctx.fontScale, rectToUse: ctx.tempRect)
             ctx.drawText("(", mmView.skin.Code.constant)
@@ -774,7 +783,7 @@ class CodeBlock             : Codable, Equatable
             
             for (index,arg) in statement.fragments.enumerated() {
                 arg.draw(mmView, ctx)
-                
+
                 if index != statement.fragments.endIndex - 1 {
                     ctx.font.getTextRect(text: ",", scale: ctx.fontScale, rectToUse: ctx.tempRect)
                     if let frag = ctx.fragment {
@@ -790,9 +799,13 @@ class CodeBlock             : Codable, Equatable
             ctx.font.getTextRect(text: ")", scale: ctx.fontScale, rectToUse: ctx.tempRect)
             ctx.drawText(")", mmView.skin.Code.constant)
             ctx.cX += ctx.tempRect.width + ctx.gapX
+            
+            if fragment.fragmentType == .TypeDefinition {
+                ctx.addCode(")\n{\n")
+            }
  
             ctx.cY += ctx.lineHeight + ctx.gapY
-            ctx.rectEnd(fragment.rect, rStart)
+            //ctx.rectEnd(fragment.rect, rStart)
             
             ctx.drawFragmentState(fragment)
             
@@ -925,9 +938,12 @@ class CodeFunction          : Codable, Equatable
         functionType = type
         self.name = name
         
-        var funcName = ""
-        let returnType = "void"
+        var funcName = name
+        var returnType = "void"
         
+        if type == .FreeFlow {
+            returnType = "float4"
+        } else
         if type == .Colorize {
             funcName = "colorize"
         } else
@@ -942,6 +958,10 @@ class CodeFunction          : Codable, Equatable
         }
 
         header.fragment = CodeFragment(type == .FreeFlow ? .TypeDefinition : .ConstTypeDefinition, returnType, funcName)
+        
+        if type == .FreeFlow {
+            header.fragment.addProperty(.Selectable)
+        }
     }
     
     func createOutVariableBlock(_ typeName: String,_ name: String) -> CodeBlock
@@ -1100,7 +1120,8 @@ class CodeComponent         : Codable, Equatable
     
     // Code Generation
     var code                : String? = nil
-    
+    var globalCode          : String? = nil
+
     // Subcomponent, used for boolean operation
     var subComponent        : CodeComponent? = nil
 
@@ -1472,17 +1493,34 @@ class CodeComponent         : Codable, Equatable
         ctx.cComponent = self
         
         code = ""
+        globalCode = ""
         
         for f in functions {
+            
+            if f.functionType == .FreeFlow {
+                ctx.insideGlobalCode = true
+            } else {
+                ctx.insideGlobalCode = false
+            }
             
             ctx.cFunction = f
             ctx.cX = ctx.border + ctx.startX
             ctx.cIndent = 0
             
             f.draw(mmView, ctx)
+            
+            if f.functionType == .FreeFlow {
+                ctx.addCode("}\n")
+            }
+            
+            ctx.cY += CodeContext.fSpace
         }
         
         ctx.rectEnd(rect, rStart)
+        
+        if globalCode!.count > 0 {
+            print(globalCode!)
+        }
     }
 }
 
@@ -1542,6 +1580,10 @@ class CodeContext
     var monitorFragment     : CodeFragment? = nil
     var monitorComponents   : Int = 0
     
+    var insideGlobalCode    : Bool = false
+    
+    static var fSpace       : Float = 30
+
     init(_ view: MMView,_ fragment: MMFragment?,_ font: MMFont,_ fontScale: Float)
     {
         mmView = view
@@ -1555,7 +1597,7 @@ class CodeContext
         //fontScale = 0.45
         startX = 10
         
-        cY = 40
+        cY = CodeContext.fSpace
         cIndent = 0
         
         gapX = 5
@@ -1587,6 +1629,7 @@ class CodeContext
             }
         }
         
+        insideGlobalCode = false
         dropIsValid = false
     }
     
@@ -1679,8 +1722,14 @@ class CodeContext
     
     func addCode(_ source: String)
     {
-        if cComponent!.code != nil {
-            cComponent!.code! += source
+        if insideGlobalCode {
+            if cComponent!.globalCode != nil {
+                cComponent!.globalCode! += source
+            }
+        } else {
+            if cComponent!.code != nil {
+                cComponent!.code! += source
+            }
         }
     }
     

@@ -41,7 +41,9 @@ class CodeEditor        : MMWidget
     var mouseDownPos    : SIMD2<Float> = SIMD2<Float>()
     
     var pinchBuffer     : Float = 0
-
+    
+    var dndFunction     : CodeFunction? = nil
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -75,6 +77,24 @@ class CodeEditor        : MMWidget
                 /// Insert the fragment
                 if let frag = drag.codeFragment, codeContext.hoverFragment != nil, codeContext.dropIsValid == true {
                     insertCodeFragment(frag, codeContext)
+                } else
+                // Function ?
+                if let frag = drag.codeFragment, dndFunction != nil {
+                    if frag.name == "function" {
+                        // Insert new function
+                        if let comp = codeComponent {
+                            if let index = comp.functions.firstIndex(of: dndFunction!) {
+                                let f = CodeFunction(.FreeFlow, "test")
+                                let b = CodeBlock(.Empty)
+                                b.fragment.addProperty(.Selectable)
+                                f.body.append(b)
+                                f.body.append(f.createOutVariableBlock("float4", "out"))
+
+                                
+                                comp.functions.insert(f, at: index)
+                            }
+                        }
+                    }
                 }
             }
             
@@ -82,6 +102,8 @@ class CodeEditor        : MMWidget
             codeContext.dropFragment = nil
             codeContext.dropOriginalUUID = UUID()
             
+            dndFunction = nil
+
             needsUpdate = true
             mmView.update()
         }
@@ -91,6 +113,7 @@ class CodeEditor        : MMWidget
     override func dragTerminated() {
         mmView.unlockFramerate()
         mouseIsDown = false
+        dndFunction = nil
     }
     
     /// Disable hover when mouse leaves the editor
@@ -114,6 +137,7 @@ class CodeEditor        : MMWidget
             return
         }
         
+        // Drag and drop inside the editor
         if let selFragment = codeContext.selectedFragment, selFragment.supports(.Dragable), mmView.dragSource == nil, mouseIsDown == true {
             let dist = distance(mouseDownPos, SIMD2<Float>(event.x, event.y))
             if dist > 5 {
@@ -150,8 +174,30 @@ class CodeEditor        : MMWidget
             }
         }
         
+        // Drag and drop from the fraglist
         if let dragSource = mmView.dragSource as? SourceListDrag {
             codeContext.dropFragment = dragSource.codeFragment
+            
+            let oldDndFunction = dndFunction
+            
+            dndFunction = nil
+            if let frag = dragSource.codeFragment {
+                if frag.name == "function" {
+                    codeContext.dropFragment = nil
+                    if let comp = codeComponent {
+                        let y = event.y - rect.y
+                        for f in comp.functions {
+                            if y >= f.rect.y - CodeContext.fSpace && y < f.rect.y {
+                                dndFunction = f
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+            if oldDndFunction !== dndFunction {
+                mmView.update()
+            }
         }
                 
         if let comp = codeComponent {
@@ -218,6 +264,7 @@ class CodeEditor        : MMWidget
             return
         }
         mouseIsDown = false
+        dndFunction = nil
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -315,8 +362,12 @@ class CodeEditor        : MMWidget
         
         //mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
         
-        // Access Area
+        // Function DND
+        if let f = dndFunction {
+            mmView.drawBox.draw(x: rect.x, y: rect.y + f.rect.y - CodeContext.fSpace, width: rect.width, height: CodeContext.fSpace, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.2))
+        }
         
+        // Access Area
         codeAccess.rect.x = rect.x
         codeAccess.rect.y = rect.bottom() - codeAccess.rect.height + 1
         codeAccess.rect.width = rect.width

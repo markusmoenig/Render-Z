@@ -113,7 +113,8 @@ class CodeFragList : MMWidget
         item.items.append( SourceListItem("float3", CodeFragment(.VariableDefinition, "float3", "", [.Selectable, .Dragable, .Monitorable], ["float3"], "float3" ) ) )
         item.items.append( SourceListItem("float4", CodeFragment(.VariableDefinition, "float4", "", [.Selectable, .Dragable, .Monitorable], ["float4"], "float4" ) ) )
         item.items.append( SourceListItem("fract", CodeFragment(.Primitive, "float", "fract", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
-
+        item.items.append( SourceListItem("function", CodeFragment(.Primitive, "float", "function")) )
+        
         item = FragItem("G")
         items.append(item)
         item.items.append( SourceListItem("GlobalTime", CodeFragment(.Primitive, "float", "GlobalTime", [.Selectable, .Dragable, .Targetable], nil, "float" ) ) )
