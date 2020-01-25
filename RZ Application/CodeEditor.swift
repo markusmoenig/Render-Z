@@ -84,14 +84,25 @@ class CodeEditor        : MMWidget
                         // Insert new function
                         if let comp = codeComponent {
                             if let index = comp.functions.firstIndex(of: dndFunction!) {
-                                let f = CodeFunction(.FreeFlow, "test")
-                                let b = CodeBlock(.Empty)
-                                b.fragment.addProperty(.Selectable)
-                                f.body.append(b)
-                                f.body.append(f.createOutVariableBlock("float4", "out"))
-
                                 
-                                comp.functions.insert(f, at: index)
+                                getStringDialog(view: mmView, title: "New Function", message: "Function name", defaultValue: "newFunction", cb: { (value) -> Void in
+
+                                    let undo = self.undoStart("Insert New Function")
+                                    let f = CodeFunction(.FreeFlow, value)
+                                    
+                                    let arg = CodeFragment(.VariableDefinition, "float", "argument", [.Selectable, .Dragable])
+                                    f.header.statement.fragments.append(arg)
+                                    
+                                    let b = CodeBlock(.Empty)
+                                    b.fragment.addProperty(.Selectable)
+                                    f.body.append(b)
+                                    f.body.append(f.createOutVariableBlock("float4", "out"))
+
+                                    
+                                    comp.functions.insert(f, at: index)
+                                    self.undoEnd(undo)
+                                    self.editor.updateOnNextDraw()
+                                })
                             }
                         }
                     }
@@ -150,6 +161,8 @@ class CodeEditor        : MMWidget
                 
                 drag.codeFragment = selFragment.createCopy()
                 codeContext.dropOriginalUUID = selFragment.uuid
+                
+                drag.codeFragment?.parentBlock = selFragment.parentBlock
 
                 if selFragment.fragmentType == .VariableDefinition {
                     drag.codeFragment?.fragmentType = .VariableReference

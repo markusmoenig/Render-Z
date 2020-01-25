@@ -207,3 +207,4 @@ func setDefaultComponentValues(_ comp: CodeComponent)
         comp.values["_rotate"] = 0
     }
 }
+

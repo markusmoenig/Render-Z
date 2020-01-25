@@ -231,6 +231,76 @@ class CodeProperties    : MMWidget
         
         if let fragment = ctx.selectedFragment {
             
+            // --- FreeFlow Function Header
+            
+            print(fragment.fragmentType, fragment.parentBlock!.parentFunction!.functionType)
+
+            if fragment.fragmentType == .TypeDefinition {
+                // Function Parameter and name
+                if fragment.parentBlock!.fragment === fragment {
+                
+                    c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Function Name", value: fragment.name) )
+                    c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                        if variable == "name" {
+                            fragment.name = oldValue
+                            let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Function Name Changed") : nil
+                            fragment.name = newValue
+                            self.editor.updateOnNextDraw()
+                            if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                        }
+                    }
+                    
+                    let items : [String] = ["int", "float", "float2", "float3", "float4"]
+                    c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "returnType", title: "Returns", items: items, index: Float(items.firstIndex(of: fragment.typeName)!) ) )
+                    
+                    let cFunction = fragment.parentBlock!.parentFunction!
+                    c2Node?.uiItems[0].isDisabled = cFunction.references > 0
+                    
+                    c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                        if variable == "returnType" {
+
+                            let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Return Type Changed") : nil
+                            fragment.typeName = items[Int(newValue)]
+                            cFunction.body[cFunction.body.count-1].statement.fragments = [defaultConstantForType(fragment.typeName)]
+                            
+                            self.editor.updateOnNextDraw()
+                            if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                        }
+                    }
+                }
+            } else
+            // --- FreeFlow argument
+            if fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.parentFunction != nil && fragment.parentBlock!.parentFunction!.functionType == .FreeFlow {
+
+                c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Argument Name", value: fragment.name) )
+                c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "name" {
+                        fragment.name = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Argument Name Changed") : nil
+                        fragment.name = newValue
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    }
+                }
+                
+                let items : [String] = ["int", "float", "float2", "float3", "float4"]
+                c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "argumentType", title: "Argument Type", items: items, index: Float(items.firstIndex(of: fragment.typeName)!) ) )
+                
+                let cFunction = fragment.parentBlock!.parentFunction!
+                c2Node?.uiItems[0].isDisabled = cFunction.references > 0 || fragment.references > 0
+                
+                c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "argumentType" {
+
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Argument Type Changed") : nil
+                        fragment.typeName = items[Int(newValue)]
+                        
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    }
+                }
+                
+            } else
             // --- Constant Value == Float
             if fragment.fragmentType == .ConstantValue || (fragment.fragmentType == .ConstantDefinition && fragment.isSimplified == true) {
                 
@@ -246,7 +316,6 @@ class CodeProperties    : MMWidget
                     }
                 }
                 
-
                 if fragment.getBaseType(fragment.typeName) == "float" {
                     c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "min", title: "Minimum", range: nil, value: fragment.values["min"]!) )
                     c2Node?.uiItems.append( NodeUINumber(c2Node!, variable: "max", title: "Maximum", range: nil, value: fragment.values["max"]!) )

@@ -62,6 +62,9 @@ class CodeFragment          : Codable, Equatable
     // Represent a floatx as a float
     var isSimplified        : Bool = false
 
+    // How many times we get referenced
+    var references          : Int = 0
+    
     private enum CodingKeys: String, CodingKey {
         case fragmentType
         case properties
@@ -331,7 +334,8 @@ class CodeFragment          : Codable, Equatable
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
         parentBlock = ctx.cBlock
-
+        references = 0
+        
         if fragmentType == .OutVariable {
             let rStart = ctx.rectStart()
             var name = self.name
@@ -442,6 +446,7 @@ class CodeFragment          : Codable, Equatable
             if let ref = referseTo {
                 if let v = ctx.cVariables[ref] {
                     name = (isNegated() ? "-" : "") + v.name
+                    v.references += 1
                 } else {
                     name = "NOT FOUND"
                     invalid = true
@@ -758,7 +763,6 @@ class CodeBlock             : Codable, Equatable
             if let frag = ctx.fragment {
                 mmView.drawText.drawText(ctx.font, text: fragment.typeName, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.reserved, fragment: frag)
             }
-            
             ctx.cX += ctx.tempRect.width + ctx.gapX
             
             // Function name
@@ -801,7 +805,7 @@ class CodeBlock             : Codable, Equatable
             ctx.cX += ctx.tempRect.width + ctx.gapX
             
             if fragment.fragmentType == .TypeDefinition {
-                ctx.addCode(")\n{\n")
+                ctx.addCode(")\n{\n" + fragment.typeName + " out" + " = " + fragment.typeName + "(0);\n")
             }
  
             ctx.cY += ctx.lineHeight + ctx.gapY
@@ -897,6 +901,9 @@ class CodeFunction          : Codable, Equatable
     var comment             : String = ""
 
     var rect                : MMRect = MMRect()
+    
+    // Referenced this many times in the component
+    var references          : Int = 0
 
     private enum CodingKeys: String, CodingKey {
         case functionType
@@ -961,6 +968,7 @@ class CodeFunction          : Codable, Equatable
         
         if type == .FreeFlow {
             header.fragment.addProperty(.Selectable)
+            header.fragment.addProperty(.Dragable)
         }
     }
     
@@ -971,7 +979,9 @@ class CodeFunction          : Codable, Equatable
         b.fragment.fragmentType = .OutVariable
         b.fragment.addProperty(.Selectable)
         b.fragment.addProperty(.Monitorable)
-        b.fragment.addProperty(.Dragable)
+        if name != "out" {
+            b.fragment.addProperty(.Dragable)
+        }
         b.fragment.typeName = typeName
         b.fragment.name = name
         b.fragment.evaluatesTo = typeName
@@ -1032,6 +1042,8 @@ class CodeFunction          : Codable, Equatable
         
         ctx.openSyntaxBlock(uuid)
         
+        references = 0
+        
         // Add the function arguments as variables
         for v in header.statement.fragments {
             //ctx.cVariables[v.uuid] = v
@@ -1053,6 +1065,8 @@ class CodeFunction          : Codable, Equatable
             }
         }
 
+        ctx.cBlock = header
+        header.parentFunction = self
         header.draw(mmView, ctx)
         if header.rect.right() > maxRight {
             maxRight = header.rect.right()
@@ -1510,6 +1524,7 @@ class CodeComponent         : Codable, Equatable
             f.draw(mmView, ctx)
             
             if f.functionType == .FreeFlow {
+                ctx.addCode("return out;\n")
                 ctx.addCode("}\n")
             }
             
@@ -1772,6 +1787,15 @@ class CodeContext
             if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) ) {
                 drawHighlight(fragment.rect, hoverAlpha)
                 dropIsValid = true
+            } else
+            // Drop a function on an empty line, need to verify that the function is dropped inside another function
+            if cBlock!.blockType == .Empty && drop.fragmentType == .TypeDefinition {
+                let function = drop.parentBlock!.parentFunction!
+                                
+                if !function.rect.contains(fragment.rect.x, fragment.rect.y) {
+                    drawHighlight(fragment.rect, hoverAlpha)
+                    dropIsValid = true
+                }
             } else
             if fragment.supports(.Targetable)
             {
