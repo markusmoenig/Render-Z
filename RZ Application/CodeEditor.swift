@@ -163,6 +163,21 @@ class CodeEditor        : MMWidget
                 codeContext.dropOriginalUUID = selFragment.uuid
                 
                 drag.codeFragment?.parentBlock = selFragment.parentBlock
+                if selFragment.fragmentType == .TypeDefinition {
+                    // --- Dragging the typedef of a function, create a .Primitive out of it
+                    if let frag = drag.codeFragment {
+                    
+                        frag.fragmentType = .Primitive
+                        var argFormat : [String] = []
+                        
+                        let args = selFragment.parentBlock!.statement.fragments
+                        for arg in args {
+                            argFormat.append(arg.typeName)
+                        }
+                        frag.argumentFormat = argFormat
+                        frag.referseTo = selFragment.parentBlock!.parentFunction!.uuid
+                    }
+                }
 
                 if selFragment.fragmentType == .VariableDefinition {
                     drag.codeFragment?.fragmentType = .VariableReference

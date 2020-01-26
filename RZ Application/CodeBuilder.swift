@@ -106,6 +106,10 @@ class CodeBuilder
         
         dryRunComponent(component, inst.data.count, monitor)
 
+        if let globalCode = component.globalCode {
+            inst.code += globalCode
+        }
+        
         // Compute monitor components
         if let fragment = monitor {
             inst.monitorComponents = 1

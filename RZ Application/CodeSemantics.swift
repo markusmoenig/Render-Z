@@ -377,6 +377,14 @@ class CodeFragment          : Codable, Equatable
                 mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.name, fragment: frag)
             }
             
+            if let referalUUID = referseTo {
+                // This is a function reference!
+                if let referencedFunction = ctx.functionMap[referalUUID] {
+                    referencedFunction.references += 1
+                    ctx.cFunction!.dependsOn.append(referencedFunction)
+                }
+            }
+            
             ctx.cX += ctx.tempRect.width
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
@@ -796,6 +804,9 @@ class CodeBlock             : Codable, Equatable
                     //ctx.cX += ctx.tempRect.width + ctx.gapX
                     ctx.cX = firstCX
                     ctx.cY += ctx.lineHeight + ctx.gapY
+                    if arg.properties.contains(.NotCodeable) == false {
+                        ctx.addCode(",")
+                    }
                 }
                 ctx.drawFragmentState(arg)
             }
@@ -904,6 +915,9 @@ class CodeFunction          : Codable, Equatable
     
     // Referenced this many times in the component
     var references          : Int = 0
+    
+    // Depends on these other functions
+    var dependsOn           : [CodeFunction] = []
 
     private enum CodingKeys: String, CodingKey {
         case functionType
@@ -1043,6 +1057,7 @@ class CodeFunction          : Codable, Equatable
         ctx.openSyntaxBlock(uuid)
         
         references = 0
+        dependsOn = []
         
         // Add the function arguments as variables
         for v in header.statement.fragments {
@@ -1529,6 +1544,7 @@ class CodeComponent         : Codable, Equatable
             }
             
             ctx.cY += CodeContext.fSpace
+            ctx.functionMap[f.uuid] = f
         }
         
         ctx.rectEnd(rect, rStart)
@@ -1596,6 +1612,8 @@ class CodeContext
     var monitorComponents   : Int = 0
     
     var insideGlobalCode    : Bool = false
+    
+    var functionMap         : [UUID:CodeFunction] = [:]
     
     static var fSpace       : Float = 30
 
@@ -1783,19 +1801,20 @@ class CodeContext
             print("drawFragmentState, drop =", drop.fragmentType, ", fragment =", fragment.fragmentType)
             #endif
             
+            // Dragging a function, need to check for recursion
+            if drop.fragmentType == .Primitive && drop.referseTo != nil {
+                let function = drop.parentBlock!.parentFunction!
+                                
+                if function.rect.contains(fragment.rect.x, fragment.rect.y) || function.rect.y > fragment.rect.y {
+                    dropIsValid = false
+                    return
+                }
+            }
+            
             // Drop on an empty line (.VariableDefinition)
             if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) ) {
                 drawHighlight(fragment.rect, hoverAlpha)
                 dropIsValid = true
-            } else
-            // Drop a function on an empty line, need to verify that the function is dropped inside another function
-            if cBlock!.blockType == .Empty && drop.fragmentType == .TypeDefinition {
-                let function = drop.parentBlock!.parentFunction!
-                                
-                if !function.rect.contains(fragment.rect.x, fragment.rect.y) {
-                    drawHighlight(fragment.rect, hoverAlpha)
-                    dropIsValid = true
-                }
             } else
             if fragment.supports(.Targetable)
             {

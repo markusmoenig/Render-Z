@@ -26,7 +26,7 @@ class AccessButton
 class CodeAccess            : MMWidget
 {
     enum AccessState {
-        case Closed, Arithmetic, ArithmeticOperator, AssignmentOperator, ComparisonOperator
+        case Closed, Arithmetic, ArithmeticOperator, AssignmentOperator, ComparisonOperator, FreeFlowFunctionArgument
     }
     
     var accessState             : AccessState = .Closed
@@ -39,6 +39,7 @@ class CodeAccess            : MMWidget
 
     var font                    : MMFont
     var fontScale               : Float = 0.5
+    var maxButtonSize           : Float = 0
     
     var hoverButton             : AccessButton? = nil
     var selectedButton          : AccessButton? = nil
@@ -46,6 +47,7 @@ class CodeAccess            : MMWidget
     let arithmetics             : [String] = ["+", "-", "*", "/"]
     let assignments             : [String] = ["=", "+=", "-=", "*=", "/="]
     let comparisons             : [String] = ["==", "!=", "<", ">", "<=", ">="]
+    let freeFlowArguments       : [String] = ["int", "float", "float2", "float3", "float4"]
 
     init(_ view: MMView,_ codeEditor: CodeEditor)
     {
@@ -69,23 +71,56 @@ class CodeAccess            : MMWidget
     func setSelected(_ comp: CodeComponent,_ ctx: CodeContext)
     {
         accessState = .Closed
+        maxButtonSize = 0
         clear()
         
         func addButtonBothSides(_ name: String) {
-            leftButtons.append(AccessButton(mmView, mmView.sourceCodePro, name))
+            let b = AccessButton(mmView, mmView.sourceCodePro, name)
+            if b.label.rect.width > maxButtonSize {
+                maxButtonSize = b.label.rect.width
+            }
+            leftButtons.append(b)
             rightButtons.append(AccessButton(mmView, mmView.sourceCodePro, name))
+        }
+        
+        func addOpenSansButtonBothSides(_ name: String) {
+            let b = AccessButton(mmView, mmView.openSans, name, 0.4)
+            if b.label.rect.width > maxButtonSize {
+                maxButtonSize = b.label.rect.width
+            }
+            leftButtons.append(b)
+            rightButtons.append(AccessButton(mmView, mmView.openSans, name, 0.4))
         }
         
         func addLeftButton(_ name: String) {
-            leftButtons.append(AccessButton(mmView, mmView.sourceCodePro, name))
+            let b = AccessButton(mmView, mmView.sourceCodePro, name)
+            if b.label.rect.width > maxButtonSize {
+                maxButtonSize = b.label.rect.width
+            }
+            leftButtons.append(b)
         }
         
         func addRightButton(_ name: String) {
-            rightButtons.append(AccessButton(mmView, mmView.sourceCodePro, name))
+            let b = AccessButton(mmView, mmView.sourceCodePro, name)
+            if b.label.rect.width > maxButtonSize {
+                maxButtonSize = b.label.rect.width
+            }
+            rightButtons.append(b)
         }
         
         if let fragment = ctx.selectedFragment {
             
+            // --- FreeFlow argument
+            if fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.parentFunction != nil && fragment.parentBlock!.parentFunction!.functionType == .FreeFlow {
+                accessState = .FreeFlowFunctionArgument
+                
+                let cFunction = fragment.parentBlock!.parentFunction!
+                if cFunction.references == 0 && fragment.references == 0 {
+                    for a in freeFlowArguments {
+                        addOpenSansButtonBothSides(a)
+                    }
+                }
+            } else
             if fragment.fragmentType == .ConstantDefinition || fragment.fragmentType == .ConstantValue || fragment.fragmentType == .Primitive || (fragment.fragmentType == .VariableReference && fragment.parentStatement != nil) || fragment.fragmentType == .OpeningRoundBracket || fragment.fragmentType == .ClosingRoundBracket  {
                 accessState = .Arithmetic
                 
@@ -195,15 +230,15 @@ class CodeAccess            : MMWidget
         
         let tempRect = MMRect()
         
+        let bWidth = max(maxButtonSize, lineHeight)
+        
         for b in leftButtons {
-            font.getTextRect(text: b.name, scale: fontScale, rectToUse: tempRect)
-            
             b.rect.x = cX
             b.rect.y = cY
-            b.rect.width = lineHeight
+            b.rect.width = bWidth
             b.rect.height = lineHeight
             
-            b.label.rect.x = cX + (lineHeight - tempRect.width)/2
+            b.label.rect.x = cX + (bWidth - b.label.rect.width)/2
             b.label.rect.y = cY
             b.label.draw()
 
@@ -212,19 +247,17 @@ class CodeAccess            : MMWidget
                 mmView.drawBox.draw( x: b.rect.x, y: b.rect.y, width: b.rect.width, height: b.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
             }
             
-            cX += lineHeight + 4
+            cX += bWidth + 6
         }
         
-        cX = rect.x + rect.width - 4 - lineHeight
+        cX = rect.x + rect.width - 4 - bWidth
         for b in rightButtons {
-            font.getTextRect(text: b.name, scale: fontScale, rectToUse: tempRect)
-            
             b.rect.x = cX
             b.rect.y = cY
-            b.rect.width = lineHeight
+            b.rect.width = bWidth
             b.rect.height = lineHeight
             
-            b.label.rect.x = cX + (lineHeight - tempRect.width)/2
+            b.label.rect.x = cX + (bWidth - b.label.rect.width)/2
             b.label.rect.y = cY
             b.label.draw()
             
@@ -233,7 +266,7 @@ class CodeAccess            : MMWidget
                 mmView.drawBox.draw( x: b.rect.x, y: b.rect.y, width: b.rect.width, height: b.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
             }
             
-            cX -= lineHeight + 4
+            cX -= bWidth + 6
         }
         
         var totalWidth : Float = 0
@@ -405,6 +438,52 @@ class CodeAccess            : MMWidget
                 codeEditor.editor.codeProperties.needsUpdate = true
                 codeEditor.updateCode(compile: true)
                 codeEditor.undoEnd(undo)
+            }
+        } else
+        if accessState == .FreeFlowFunctionArgument {
+            if let frag = codeEditor.codeContext.selectedFragment {
+                let pBlock = frag.parentBlock!
+                if let pIndex = pBlock.statement.fragments.firstIndex(of: frag) {
+                    let undo = codeEditor.undoStart("New Function Argument")
+
+                    var name = "newVar"
+                    var counter : Int = 1
+                    var hasCounter : Bool = false
+                    
+                    func replace(_ myString: String, _ index: Int, _ newChar: Character) -> String {
+                        var chars = Array(myString)     // gets an array of characters
+                        chars[index] = newChar
+                        let modifiedString = String(chars)
+                        return modifiedString
+                    }
+                    
+                    for a in pBlock.statement.fragments.sorted(by: { $0.name < $1.name }) {
+                        if a.name == name {
+                            if hasCounter == false {
+                                name += String(counter)
+                                counter += 1
+                                hasCounter = true
+                            } else {
+                                if counter <= 9 {
+                                    name = replace(name, name.count-1, Character(String(counter)))
+                                    counter += 1
+                                } else {
+                                    name += "_"
+                                }
+                            }
+                        }
+                    }
+                    
+                    let newArg = CodeFragment(.VariableDefinition, button.name, name, [.Selectable, .Dragable])
+                    if button.isLeft {
+                        pBlock.statement.fragments.insert(newArg, at: pIndex)
+                    } else {
+                        pBlock.statement.fragments.insert(newArg, at: pIndex+1)
+                    }
+                    
+                    codeEditor.updateCode(compile: true)
+                    codeEditor.undoEnd(undo)
+                }
             }
         }
     }

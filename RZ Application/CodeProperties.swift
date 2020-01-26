@@ -233,8 +233,6 @@ class CodeProperties    : MMWidget
             
             // --- FreeFlow Function Header
             
-            print(fragment.fragmentType, fragment.parentBlock!.parentFunction!.functionType)
-
             if fragment.fragmentType == .TypeDefinition {
                 // Function Parameter and name
                 if fragment.parentBlock!.fragment === fragment {
@@ -300,6 +298,19 @@ class CodeProperties    : MMWidget
                     }
                 }
                 
+                let b1 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Argument", fixedWidth: buttonWidth)
+                b1.isDisabled = cFunction.references > 0 || fragment.references > 0
+                b1.clicked = { (event) in
+                    let pBlock = fragment.parentBlock!
+                    if let pIndex = pBlock.statement.fragments.firstIndex(of: fragment) {
+                        let undo = self.editor.codeEditor.undoStart("Deletes Function Argument")
+                        pBlock.statement.fragments.remove(at: pIndex)
+                        self.editor.updateOnNextDraw(compile: true)
+                        self.editor.codeEditor.undoEnd(undo)
+                        b1.removeState(.Checked)
+                    }
+                }
+                addButton(b1)
             } else
             // --- Constant Value == Float
             if fragment.fragmentType == .ConstantValue || (fragment.fragmentType == .ConstantDefinition && fragment.isSimplified == true) {
