@@ -568,6 +568,18 @@ class CodeFragment          : Codable, Equatable
                 // Expand rect, experimental
                 //rect.width = ctx.cX - rect.x
             }
+            
+            if arguments.isEmpty && fragmentType == .Primitive && referseTo != nil {
+                // For function references which dont have arguments we need to add the brackets manually
+                
+                let op = "()"
+                ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+                if let frag = ctx.fragment {
+                    mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
+                }
+                ctx.cX += ctx.tempRect.width + ctx.gapX
+                ctx.addCode( "()" )
+            }
         }
     }
     
