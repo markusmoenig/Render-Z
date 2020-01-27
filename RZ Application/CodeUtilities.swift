@@ -71,25 +71,25 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true)
         //codeU = encodedObjectJsonString
         var libName = name
         if component.componentType == .Colorize {
-            libName += " - Colorize"
+            libName += " :: Colorize"
         } else
         if component.componentType == .SkyDome {
-            libName += " - SkyDome"
+            libName += " :: SkyDome"
         } else
         if component.componentType == .SDF2D {
-            libName += " - SDF2D"
+            libName += " :: SDF2D"
         } else
         if component.componentType == .SDF3D {
-            libName += " - SDF3D"
+            libName += " :: SDF3D"
         } else
         if component.componentType == .Render2D {
-            libName += " - Render2D"
+            libName += " :: Render2D"
         } else
         if component.componentType == .Render3D {
-            libName += " - Render3D"
+            libName += " :: Render3D"
         } else
         if component.componentType == .Boolean {
-            libName += " - Boolean"
+            libName += " :: Boolean"
         }
         
         let recordID  = CKRecord.ID(recordName: libName)

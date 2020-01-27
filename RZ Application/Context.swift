@@ -182,7 +182,7 @@ class ContextWidget         : MMWidget
                         //font.getTextRect(text: comp.libraryName, scale: fontScale, rectToUse: tempRect)
                         //mmView.drawText.drawText(mmView.openSans, text: comp.libraryName, x: (width - tempRect.width)/2, y: top + itemSize - lineHeight - 2, scale: fontScale, fragment: fragment)
                         
-                        if let thumb = globalApp!.thumbnail.request(comp.libraryName + " - " + libraryId, comp) {
+                        if let thumb = globalApp!.thumbnail.request(comp.libraryName + " :: " + libraryId, comp) {
                             mmView.drawTexture.draw(thumb, x: (width - 200 / 3) / 2, y: top, zoom: 3, fragment: fragment)
                         }
                         

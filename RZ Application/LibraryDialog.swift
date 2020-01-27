@@ -74,8 +74,11 @@ class LibraryDialog: MMDialog {
                 //print("System Field, recordName: \(recordName_fromProperty)")
                 //let deeplink = record.value(forKey: "deeplink")
                 //print("Custom Field, deeplink: \(deeplink ?? "")")
-                
-                let arr = record.recordID.recordName.components(separatedBy: " - ")
+
+                if !record.recordID.recordName.contains(" :: ") {
+                    return
+                }
+                let arr = record.recordID.recordName.components(separatedBy: " :: ")
                 let name = arr[0]
                 let type = arr[1]
 
