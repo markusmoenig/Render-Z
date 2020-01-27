@@ -93,6 +93,10 @@ class MMTabButtonWidget: MMWidget
         }
     }
     
+    override func _clicked(_ event:MMMouseEvent)
+    {
+    }
+    
     override func mouseLeave(_ event: MMMouseEvent) {
         if hoverTab != nil {
             hoverTab = nil

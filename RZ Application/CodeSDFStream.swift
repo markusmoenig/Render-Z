@@ -134,7 +134,7 @@ class CodeSDFStream
             """
             
             if let subComponent = component.subComponent {
-                dryRunComponent(subComponent, instance.data.count)
+                dryRunComponent(subComponent, instance.data.count, monitor)
                 instance.collectProperties(subComponent)
                 instance.code += subComponent.code!
             }

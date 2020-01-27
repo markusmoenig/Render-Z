@@ -227,9 +227,7 @@ class CodeAccess            : MMWidget
 
         var cX : Float = rect.x + 4
         let cY : Float = rect.y + 2
-        
-        let tempRect = MMRect()
-        
+                
         let bWidth = max(maxButtonSize, lineHeight)
         
         for b in leftButtons {
@@ -271,7 +269,7 @@ class CodeAccess            : MMWidget
         
         var totalWidth : Float = 0
         for b in middleButtons {
-            totalWidth += b.label.rect.width + 4
+            totalWidth += b.label.rect.width + 10 + 4
         }
         totalWidth -= 4
         cX = rect.x + (rect.width - totalWidth) / 2
@@ -285,7 +283,7 @@ class CodeAccess            : MMWidget
             b.rect.width = width
             b.rect.height = lineHeight
             
-            b.label.rect.x = cX + (lineHeight - tempRect.width)/2
+            b.label.rect.x = cX + 5
             b.label.rect.y = cY + 2
             b.label.draw()
             
