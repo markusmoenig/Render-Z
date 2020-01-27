@@ -267,9 +267,9 @@ class CodeProperties    : MMWidget
                     c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Function Name", value: fragment.name) )
                     c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                         if variable == "name" {
-                            fragment.name = oldValue
                             let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Function Name Changed") : nil
                             fragment.name = newValue
+                            fragment.parentBlock!.parentFunction!.name = newValue
                             self.editor.updateOnNextDraw()
                             if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                         }
@@ -295,7 +295,7 @@ class CodeProperties    : MMWidget
                 }
             } else
             // --- FreeFlow argument
-            if fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.parentFunction != nil && fragment.parentBlock!.parentFunction!.functionType == .FreeFlow {
+            if fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.parentFunction != nil && fragment.parentBlock!.parentFunction!.functionType == .FreeFlow && fragment.parentBlock!.parentFunction!.header.statement.fragments.contains(fragment) {
 
                 c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Argument Name", value: fragment.name) )
                 c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in

@@ -482,6 +482,35 @@ class MMDrawTexture : MMDrawable
         renderEncoder.setRenderPipelineState(state!)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
+    
+    func drawScaled( _ texture: MTLTexture, x: Float, y: Float, width: Float, height: Float, fragment: MMFragment? = nil)
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+
+        let settings: [Float] = [
+            mmRenderer.width, mmRenderer.height,
+            x, y,
+            width * scaleFactor, height * scaleFactor,
+            0, 0,
+            0, 0, 0, 0
+        ];
+        
+        let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
+
+        let vertexBuffer = fragment == nil ?
+            mmRenderer.createVertexBuffer( MMRect( x, y, width, height, scale: scaleFactor ) )
+            : fragment!.createVertexBuffer( MMRect( x, y, width, height, scale: scaleFactor ) )
+
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        renderEncoder.setFragmentTexture(texture, index: 1)
+        
+        renderEncoder.setRenderPipelineState(state!)
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
 }
 
 /// Draws custom code

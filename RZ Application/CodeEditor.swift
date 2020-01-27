@@ -44,6 +44,8 @@ class CodeEditor        : MMWidget
     
     var dndFunction     : CodeFunction? = nil
     
+    var orientationDrag : Bool = false
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
@@ -143,6 +145,20 @@ class CodeEditor        : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        if orientationDrag == true {
+            var offset : Float = mouseDownPos.y - event.y
+            
+            offset /= (100 / rect.width) * 1.8
+            scrollArea.offsetY += offset
+            
+            mouseDownPos.x = event.x
+            mouseDownPos.y = event.y
+
+            scrollArea.checkOffset(widget: textureWidget, area: rect)
+            mmView.update()
+            return
+        }
+        
         if codeAccess.accessState != .Closed && codeAccess.rect.contains(event.x, event.y) {
             codeAccess.mouseMoved(event)
             return
@@ -244,6 +260,7 @@ class CodeEditor        : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        orientationDrag = false
         if codeAccess.accessState != .Closed && codeAccess.rect.contains(event.x, event.y) {
             codeAccess.mouseDown(event)
             return
@@ -252,6 +269,21 @@ class CodeEditor        : MMWidget
         mouseIsDown = true
         mouseDownPos.x = event.x
         mouseDownPos.y = event.y
+        
+        if event.x > rect.right() - 100 {
+            orientationDrag = true;
+            
+            var offset : Float = event.y - rect.y
+            
+            offset /= (100 / rect.width) * 1.8
+            scrollArea.offsetY = -offset
+
+            scrollArea.checkOffset(widget: textureWidget, area: rect)
+            mmView.update()
+            
+            return
+        }
+        
         #if os(iOS)
         mouseMoved(event)
         #endif
@@ -293,6 +325,7 @@ class CodeEditor        : MMWidget
         }
         mouseIsDown = false
         dndFunction = nil
+        orientationDrag = false
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -397,6 +430,22 @@ class CodeEditor        : MMWidget
         
         scrollArea.rect.copy(rect)
         scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset)
+        
+        // Orientation area
+        
+        let factor : Float = 1.8
+        var ratio : Float = 100 / Float(fragment.width)
+        ratio = ratio * Float(fragment.height)
+        mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100 * factor, height: ratio * factor)
+        
+        ratio = 100 / rect.width
+        ratio = ratio * rect.height
+
+        let height : Float = ratio * factor
+        let y : Float = (100 / rect.width) * -scrollArea.offsetY * 1.8
+        mmView.drawBox.draw(x: rect.right() - 100, y: rect.y + y, width: 100, height: height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
+        
+        //
         
         // Function DND
         if let f = dndFunction {

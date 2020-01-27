@@ -370,12 +370,7 @@ class CodeFragment          : Codable, Equatable
         } else
         if fragmentType == .Primitive {
             let rStart = ctx.rectStart()
-            let name = (isNegated() ? "-" : "") + self.name
-            
-            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
-            if let frag = ctx.fragment {
-                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.name, fragment: frag)
-            }
+            var name = (isNegated() ? "-" : "")
             
             if let referalUUID = referseTo {
                 // This is a function reference!
@@ -384,7 +379,16 @@ class CodeFragment          : Codable, Equatable
                     if !ctx.cFunction!.dependsOn.contains(referencedFunction) {
                         ctx.cFunction!.dependsOn.append(referencedFunction)
                     }
+                    name += referencedFunction.name
+                    self.name = referencedFunction.name
                 }
+            } else {
+                name += self.name
+            }
+            
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.name, fragment: frag)
             }
             
             ctx.cX += ctx.tempRect.width
