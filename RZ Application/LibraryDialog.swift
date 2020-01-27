@@ -92,6 +92,11 @@ class LibraryDialog: MMDialog {
                 list.append(item)
                 self.itemMap[type] = list
             })
+            
+            globalApp!.topRegion!.libraryButton.isDisabled = false
+            DispatchQueue.main.async {
+                self.mmView.update()
+            }
         }
     }
     
@@ -99,6 +104,12 @@ class LibraryDialog: MMDialog {
     {
         currentItems = itemMap[id]
         self.contextItem = contextItem
+    }
+    
+    func setOverview()
+    {
+        currentItems = itemMap["FuncNoise"]
+        contextItem = nil
     }
     
     override func cancel() {
@@ -113,6 +124,22 @@ class LibraryDialog: MMDialog {
             if let context = contextItem {
                 DispatchQueue.main.async {
                     globalApp!.context.replaceJSONForItem(context, selected.json)
+                }
+            } else
+            if globalApp?.currentEditor === globalApp?.developerEditor {
+                if let component = globalApp?.developerEditor.codeEditor.codeComponent {
+                    if let from = decodeComponentFromJSON(selected.json) {
+                        var counter : Int = 0
+                        var inserted : [UUID] = []
+                        for f in from.functions {
+                            if inserted.contains(f.uuid) == false {
+                                component.functions.insert(f, at: counter)
+                                counter += 1
+                                inserted.append(f.uuid)
+                            }
+                        }
+                        globalApp?.currentEditor.updateOnNextDraw()
+                    }
                 }
             }
         }

@@ -233,7 +233,7 @@ class CodeEditor        : MMWidget
             let oldBlock = codeContext.hoverBlock
             let oldFrag = codeContext.hoverFragment
             
-            comp.codeAt(event.x - rect.x, event.y - rect.y, codeContext)
+            comp.codeAt(event.x - rect.x, event.y - rect.y - scrollArea.offsetY, codeContext)
                         
             if oldFunc !== codeContext.hoverFunction || oldBlock !== codeContext.hoverBlock || oldFrag !== codeContext.hoverFragment {
                 needsUpdate = true
@@ -307,6 +307,8 @@ class CodeEditor        : MMWidget
             
             codeContext.fontScale = prevScale
             editor.updateOnNextDraw(compile: false)
+        } else {
+            scrollArea.mouseScrolled(event)
         }
         #endif
     }
@@ -326,7 +328,13 @@ class CodeEditor        : MMWidget
     
     override func update()
     {
-        let height : Float = 1000
+        if codeChanged {
+            if let comp = codeComponent {
+                dryRunComponent(comp)
+            }
+        }
+        
+        let height : Float = codeContext.cY == 0 ? 500 : codeContext.cY
         if fragment.width != rect.width * zoom || fragment.height != height * zoom {
             fragment.allocateTexture(width: rect.width * zoom, height: height * zoom)
         }
@@ -370,25 +378,26 @@ class CodeEditor        : MMWidget
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
             globalApp!.pipeline.renderIfResolutionChanged(rect.width, rect.height)
             
+            mmView.renderer.setClipRect(rect)
+            scrollArea.checkOffset(widget: textureWidget, area: rect)
             if let comp = codeComponent {
                 for f in comp.functions {
                     var color = mmView.skin.Code.background
                     color.w = 0.9
                     
-                    mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2, y: rect.y + codeContext.gapY / 2 + f.rect.y, width: codeContext.border - codeContext.gapX, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+                    mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2, y: rect.y + codeContext.gapY / 2 + f.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
                     
-                    mmView.drawBox.draw(x: rect.x + f.rect.x, y: rect.y + f.rect.y, width: f.rect.width, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+                    mmView.drawBox.draw(x: rect.x + f.rect.x, y: rect.y + f.rect.y + scrollArea.offsetY, width: f.rect.width, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
                 }
             }
-            
+            mmView.renderer.setClipRect()
         } else {
             mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
         }
         
         scrollArea.rect.copy(rect)
+        print(textureWidget.rect.height, textureWidget.zoom, rect.height)
         scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset)
-        
-        //mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
         
         // Function DND
         if let f = dndFunction {

@@ -58,38 +58,56 @@ func insertValueToFragment(_ fragment: CodeFragment,_ value: SIMD3<Float>)
 import CloudKit
 
 /// Upload the given component to the public or private libraries
-func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true)
+func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_ functionOnly: CodeFunction? = nil)
 {
     let name = component.libraryName
     if name == "" {return}
     
+    let subComponent = component.subComponent
     component.subComponent = nil
     
-    let encodedData = try? JSONEncoder().encode(component)
+    var componentToUse : CodeComponent = component
+    
+    if let function = functionOnly {
+        componentToUse = CodeComponent(.FunctionContainer)
+        componentToUse.libraryCategory = component.libraryCategory
+        componentToUse.libraryName = component.libraryName
+        
+        for f in function.dependsOn {
+            componentToUse.functions.append(f)
+        }
+        componentToUse.functions.append(function)
+    }
+    
+    let encodedData = try? JSONEncoder().encode(componentToUse)
     if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
     {
-        //codeU = encodedObjectJsonString
         var libName = name
-        if component.componentType == .Colorize {
-            libName += " :: Colorize"
-        } else
-        if component.componentType == .SkyDome {
-            libName += " :: SkyDome"
-        } else
-        if component.componentType == .SDF2D {
-            libName += " :: SDF2D"
-        } else
-        if component.componentType == .SDF3D {
-            libName += " :: SDF3D"
-        } else
-        if component.componentType == .Render2D {
-            libName += " :: Render2D"
-        } else
-        if component.componentType == .Render3D {
-            libName += " :: Render3D"
-        } else
-        if component.componentType == .Boolean {
-            libName += " :: Boolean"
+        if let _ = functionOnly {
+            libName += " :: Func"
+            libName += component.libraryCategory
+        } else {
+            if component.componentType == .Colorize {
+                libName += " :: Colorize"
+            } else
+            if component.componentType == .SkyDome {
+                libName += " :: SkyDome"
+            } else
+            if component.componentType == .SDF2D {
+                libName += " :: SDF2D"
+            } else
+            if component.componentType == .SDF3D {
+                libName += " :: SDF3D"
+            } else
+            if component.componentType == .Render2D {
+                libName += " :: Render2D"
+            } else
+            if component.componentType == .Render3D {
+                libName += " :: Render3D"
+            } else
+            if component.componentType == .Boolean {
+                libName += " :: Boolean"
+            }
         }
         
         let recordID  = CKRecord.ID(recordName: libName)
@@ -124,6 +142,8 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true)
             globalApp!.publicDatabase.add(operation)
         }
     }
+    
+    component.subComponent = subComponent
 }
 
 /// Decode Component into JSON

@@ -107,34 +107,45 @@ class CodeProperties    : MMWidget
                 }
             }
             
-            if function.functionType != .FreeFlow {
+            //if function.functionType != .FreeFlow {
                 
-                c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryName", title: "Library Name", value: comp.libraryName) )
-                c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryComment", title: "Comment", value: comp.libraryComment) )
+            c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryName", title: "Library Name", value: comp.libraryName) )
+            c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryComment", title: "Comment", value: comp.libraryComment) )
+    
+            let items : [String] = ["Hash", "Noise"]
+            c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "libraryCategory", title: "Category", items: items, index: Float(items.firstIndex(of: comp.libraryCategory)!) ) )
         
-                c2Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
-                    if variable == "libraryName" {
-                        comp.libraryName = newValue
-                    } else
-                    if variable == "libraryComment" {
-                        comp.libraryComment = newValue
-                    }
-                }
+            c2Node?.uiItems[2].isDisabled = function.functionType != .FreeFlow
                 
-                var b1 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Private Library", fixedWidth: buttonWidth)
-                b1.clicked = { (event) in
-                    uploadToLibrary(comp, true)
-                    b1.removeState(.Checked)
+            c2Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                if variable == "libraryName" {
+                    comp.libraryName = newValue
+                } else
+                if variable == "libraryComment" {
+                    comp.libraryComment = newValue
                 }
-                addButton(b1)
-                
-                var b2 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Public", fixedWidth: buttonWidth)
-                b2.clicked = { (event) in
-                    uploadToLibrary(comp, false)
-                    b2.removeState(.Checked)
-                }
-                addButton(b2)
             }
+            
+            c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                if variable == "libraryCategory" {
+                    comp.libraryCategory = items[Int(newValue)]
+                }
+            }
+            
+            var b1 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Private Library", fixedWidth: buttonWidth)
+            b1.clicked = { (event) in
+                uploadToLibrary(comp, true, function.functionType == .FreeFlow ? function : nil)
+                b1.removeState(.Checked)
+            }
+            addButton(b1)
+            
+            var b2 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Public", fixedWidth: buttonWidth)
+            b2.clicked = { (event) in
+                uploadToLibrary(comp, false, function.functionType == .FreeFlow ? function : nil)
+                b2.removeState(.Checked)
+            }
+            addButton(b2)
+            //}
         } else
         if let block = ctx.selectedBlock {
             if let function = ctx.cFunction {

@@ -218,6 +218,8 @@ class CodeBuilder
             """
         }
         
+        print( inst.code )
+        
         inst.code +=
         """
         

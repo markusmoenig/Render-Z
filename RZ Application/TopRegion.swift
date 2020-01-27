@@ -163,6 +163,15 @@ class TopRegion: MMRegion
             #endif
         }
         
+        libraryButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Library" )
+        libraryButton.clicked = { (event) -> Void in
+            globalApp!.libraryDialog.setOverview()
+
+            self.mmView.showDialog(globalApp!.libraryDialog)
+            self.libraryButton.removeState(.Checked)
+        }
+        libraryButton.isDisabled = true
+        
         helpButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Help" )
         helpButton.isDisabled = false
         helpButton.textYOffset = -2
@@ -190,17 +199,11 @@ class TopRegion: MMRegion
                 app.pipeline.codeBuilder.currentFrame = 0
             }
         }
-        
-        /*
-        libraryButton = MMButtonWidget( mmView, text: "Library" )
-        libraryButton.clicked = { (event) -> Void in
-            self.switchLibraryMode()
-        }
-        */
 
-        layoutH( startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
-        layoutH( startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton )
-        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, helpButton, playButton, tabButton )
+        layoutH(startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
+        layoutH(startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton)
+        layoutH(startX: saveButton.rect.right() + 20, startY: 8, spacing: 10, widgets: libraryButton)
+        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, libraryButton, helpButton, playButton, tabButton )
     }
     
     override func build()
@@ -210,6 +213,10 @@ class TopRegion: MMRegion
         
         mmView.drawBox.draw( x: 149 + 55, y: 8, width: 1, height: 30, round: 0, borderSize: 0, fillColor : SIMD4<Float>(0.125, 0.125, 0.125, 1.000) )
         mmView.drawBox.draw( x: 150 + 55, y: 8, width: 1, height: 30, round: 0, borderSize: 0, fillColor : SIMD4<Float>(0.247, 0.243, 0.247, 1.000) )
+
+        let saveRight = saveButton.rect.right() + 9
+        mmView.drawBox.draw( x: saveRight, y: 8, width: 1, height: 30, round: 0, borderSize: 0, fillColor : SIMD4<Float>(0.125, 0.125, 0.125, 1.000) )
+        mmView.drawBox.draw( x: saveRight + 1, y: 8, width: 1, height: 30, round: 0, borderSize: 0, fillColor : SIMD4<Float>(0.247, 0.243, 0.247, 1.000) )
 
         mmView.drawBox.draw( x: 1, y: mmView.skin.ToolBar.height, width: mmView.renderer.width - 1, height: mmView.skin.ToolBar.height + 3, round: 0, borderSize: mmView.skin.ToolBar.borderSize, fillColor : mmView.skin.ToolBar.color, borderColor: mmView.skin.ToolBar.borderColor )
         //mmView.drawBoxGradient.draw( x: 1, y: 44, width: mmView.renderer.width-1, height: 48, round: 0, borderSize: 1, uv1: float2( 0, 0 ), uv2: float2( 0, 1 ), gradientColor1 : float4( 0.082, 0.082, 0.082, 1), gradientColor2 : float4( 0.169, 0.173, 0.169, 1), borderColor: float4( 0.051, 0.051, 0.051, 1 ) )
@@ -228,7 +235,9 @@ class TopRegion: MMRegion
         
         openButton.draw()
         saveButton.draw()
-        
+
+        libraryButton.draw()
+
         layoutHFromRight(startX: rect.x + rect.width - 10, startY: 8, spacing: 10, widgets: helpButton, playButton)
         
         helpButton.draw()

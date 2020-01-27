@@ -36,51 +36,83 @@ class MMScrollArea : MMWidget
         name = "MMScrollArea"
     }
     
+    func checkOffset(widget: MMWidget, area: MMRect)
+    {
+        rect.copy( area )
+        switch( orientation )
+        {
+             case .Vertical:
+             
+                 let wHeight = widget.rect.height / widget.zoom
+                                     
+                 // --- Check bounds
+                 
+                 if offsetY < -(wHeight-area.height) {
+                     offsetY = -(wHeight-area.height)
+                 }
+                 
+                 if offsetY > 0 {
+                     offsetY = 0
+                 }
+                 
+             case .Horizontal:
+                 let wWidth = widget.rect.width / widget.zoom
+                              
+                 // --- Check bounds
+                 
+                 if offsetX < -(wWidth-area.width) {
+                     offsetX = -(wWidth-area.width)
+                 }
+                 
+                 if offsetX > 0 {
+                     offsetX = 0
+                 }
+         }
+    }
+    
     func build( widget: MMWidget, area: MMRect, xOffset: Float = 0, yOffset: Float = 0 )
     {
         mmView.renderer.setClipRect( area )
-        if orientation == .Vertical {
+        rect.copy( area )
+        
+        switch( orientation )
+        {
+            case .Vertical:
             
-            rect.copy( area )
+                let wHeight = widget.rect.height / widget.zoom
+                widget.rect.x = area.x + xOffset
+                                    
+                // --- Check bounds
+                
+                if offsetY < -(wHeight-area.height) {
+                    offsetY = -(wHeight-area.height)
+                }
+                
+                if offsetY > 0 {
+                    offsetY = 0
+                }
+                
+                widget.rect.y = area.y + offsetY
             
-            switch( orientation )
-            {
-                case .Vertical:
+            case .Horizontal:
+                let wWidth = widget.rect.width / widget.zoom
+            
+                widget.rect.y = area.y + yOffset
                 
-                    let wHeight = widget.rect.height / widget.zoom
-                    widget.rect.x = area.x + xOffset
-                                        
-                    // --- Check bounds
-                    
-                    if offsetY < -(wHeight-area.height) {
-                        offsetY = -(wHeight-area.height)
-                    }
-                    
-                    if offsetY > 0 {
-                        offsetY = 0
-                    }
-                    
-                    widget.rect.y = area.y + offsetY
+                // --- Check bounds
                 
-                case .Horizontal:
-                    let wWidth = widget.rect.width / widget.zoom
+                if offsetX < -(wWidth-area.width) {
+                    offsetX = -(wWidth-area.width)
+                }
                 
-                    widget.rect.y = area.y + yOffset
-                    
-                    // --- Check bounds
-                    
-                    if offsetX < -(wWidth-area.width) {
-                        offsetX = -(wWidth-area.width)
-                    }
-                    
-                    if offsetX > 0 {
-                        offsetX = 0
-                    }
-                    
-                    widget.rect.x = area.x + offsetX
-            }
-            widget.draw()
+                if offsetX > 0 {
+                    offsetX = 0
+                }
+                
+                widget.rect.x = area.x + offsetX
         }
+        widget.draw()
+        
         mmView.renderer.setClipRect()
     }
     

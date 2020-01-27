@@ -381,7 +381,9 @@ class CodeFragment          : Codable, Equatable
                 // This is a function reference!
                 if let referencedFunction = ctx.functionMap[referalUUID] {
                     referencedFunction.references += 1
-                    ctx.cFunction!.dependsOn.append(referencedFunction)
+                    if !ctx.cFunction!.dependsOn.contains(referencedFunction) {
+                        ctx.cFunction!.dependsOn.append(referencedFunction)
+                    }
                 }
             }
             
@@ -828,7 +830,7 @@ class CodeBlock             : Codable, Equatable
             ctx.cX += ctx.tempRect.width + ctx.gapX
             
             if fragment.fragmentType == .TypeDefinition {
-                ctx.addCode(")\n{\n" + fragment.typeName + " out" + " = " + fragment.typeName + "(0);\n")
+                ctx.addCode(")\n{\nfloat4 __monitorOut = float4(0,0,0,0);\n" + fragment.typeName + " out" + " = " + fragment.typeName + "(0);\n")
             }
  
             ctx.cY += ctx.lineHeight + ctx.gapY
@@ -1130,7 +1132,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1154,6 +1156,7 @@ class CodeComponent         : Codable, Equatable
     
     // CloudKit
     var libraryName         : String = ""
+    var libraryCategory     : String = "Noise"
     var libraryComment      : String = ""
 
     // Values
@@ -1176,6 +1179,7 @@ class CodeComponent         : Codable, Equatable
         case propertyGizmoMap
         case sequence
         case libraryName
+        case libraryCategory
         case libraryComment
         case values
         case subComponent
@@ -1195,6 +1199,9 @@ class CodeComponent         : Codable, Equatable
         }
         sequence = try container.decode(MMTlSequence.self, forKey: .sequence)
         libraryName = try container.decode(String.self, forKey: .libraryName)
+        if let category = try container.decodeIfPresent(String.self, forKey: .libraryCategory) {
+            libraryCategory = category
+        }
         libraryComment = try container.decode(String.self, forKey: .libraryComment)
         values = try container.decode([String:Float].self, forKey: .values)
         subComponent = try container.decode(CodeComponent?.self, forKey: .subComponent)
@@ -1212,6 +1219,7 @@ class CodeComponent         : Codable, Equatable
         try container.encode(propertyGizmoMap, forKey: .propertyGizmoMap)
         try container.encode(sequence, forKey: .sequence)
         try container.encode(libraryName, forKey: .libraryName)
+        try container.encode(libraryCategory, forKey: .libraryCategory)
         try container.encode(libraryComment, forKey: .libraryComment)
         try container.encode(values, forKey: .values)
         try container.encode(subComponent, forKey: .subComponent)
@@ -1561,9 +1569,9 @@ class CodeComponent         : Codable, Equatable
         
         ctx.rectEnd(rect, rStart)
         
-        if globalCode!.count > 0 {
-            print(globalCode!)
-        }
+        //if globalCode!.count > 0 {
+            //print(globalCode!)
+        //}
     }
 }
 
