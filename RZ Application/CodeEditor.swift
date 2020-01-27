@@ -309,6 +309,7 @@ class CodeEditor        : MMWidget
             editor.updateOnNextDraw(compile: false)
         } else {
             scrollArea.mouseScrolled(event)
+            scrollArea.checkOffset(widget: textureWidget, area: rect)
         }
         #endif
     }
@@ -379,7 +380,6 @@ class CodeEditor        : MMWidget
             globalApp!.pipeline.renderIfResolutionChanged(rect.width, rect.height)
             
             mmView.renderer.setClipRect(rect)
-            scrollArea.checkOffset(widget: textureWidget, area: rect)
             if let comp = codeComponent {
                 for f in comp.functions {
                     var color = mmView.skin.Code.background
@@ -396,7 +396,6 @@ class CodeEditor        : MMWidget
         }
         
         scrollArea.rect.copy(rect)
-        print(textureWidget.rect.height, textureWidget.zoom, rect.height)
         scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset)
         
         // Function DND
@@ -424,6 +423,15 @@ class CodeEditor        : MMWidget
             codeAccess.setSelected(comp, codeContext)
             editor.codeProperties.setSelected(comp, codeContext)
         }
+    }
+    
+    /// Runs the component to generate code without any drawing
+    func dryRunComponent(_ comp: CodeComponent,_ propertyOffset: Int = 0)
+    {
+        codeContext.fragment = nil
+        codeContext.reset(rect.width, propertyOffset)
+        comp.draw(globalApp!.mmView, codeContext)
+        codeContext.fragment = fragment
     }
     
     func undoStart(_ name: String) -> CodeUndoComponent

@@ -108,27 +108,43 @@ class CodeProperties    : MMWidget
             }
             
             //if function.functionType != .FreeFlow {
-                
-            c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryName", title: "Library Name", value: comp.libraryName) )
-            c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryComment", title: "Comment", value: comp.libraryComment) )
+            
+            let libraryName = function.functionType == .FreeFlow ? function.libraryName : comp.libraryName
+            let libraryComment = function.functionType == .FreeFlow ? function.libraryComment : comp.libraryComment
+            let libraryCategory = function.functionType == .FreeFlow ? function.libraryCategory : comp.libraryCategory
+
+            c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryName", title: "Library Name", value: libraryName) )
+            c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryComment", title: "Comment", value: libraryComment) )
     
             let items : [String] = ["Hash", "Noise"]
-            c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "libraryCategory", title: "Category", items: items, index: Float(items.firstIndex(of: comp.libraryCategory)!) ) )
+            c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "libraryCategory", title: "Category", items: items, index: Float(items.firstIndex(of: libraryCategory)!) ) )
         
             c2Node?.uiItems[2].isDisabled = function.functionType != .FreeFlow
                 
             c2Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 if variable == "libraryName" {
-                    comp.libraryName = newValue
+                    if function.functionType == .FreeFlow {
+                        function.libraryName = newValue
+                    } else {
+                        comp.libraryName = newValue
+                    }
                 } else
                 if variable == "libraryComment" {
-                    comp.libraryComment = newValue
+                    if function.functionType == .FreeFlow {
+                        function.libraryComment = newValue
+                    } else {
+                        comp.libraryComment = newValue
+                    }
                 }
             }
             
             c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 if variable == "libraryCategory" {
-                    comp.libraryCategory = items[Int(newValue)]
+                    if function.functionType == .FreeFlow {
+                        function.libraryCategory = items[Int(newValue)]
+                    } else {
+                        comp.libraryCategory = items[Int(newValue)]
+                    }
                 }
             }
             

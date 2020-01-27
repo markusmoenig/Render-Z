@@ -927,6 +927,11 @@ class CodeFunction          : Codable, Equatable
 
     var rect                : MMRect = MMRect()
     
+    // CloudKit
+    var libraryName         : String = ""
+    var libraryCategory     : String = "Noise"
+    var libraryComment      : String = ""
+    
     // Referenced this many times in the component
     var references          : Int = 0
     
@@ -940,6 +945,9 @@ class CodeFunction          : Codable, Equatable
         case body
         case uuid
         case comment
+        case libraryName
+        case libraryCategory
+        case libraryComment
     }
     
     required init(from decoder: Decoder) throws
@@ -951,6 +959,15 @@ class CodeFunction          : Codable, Equatable
         body = try container.decode([CodeBlock].self, forKey: .body)
         uuid = try container.decode(UUID.self, forKey: .uuid)
         comment = try container.decode(String.self, forKey: .comment)
+        if let lName = try container.decodeIfPresent(String.self, forKey: .libraryName) {
+            libraryName = lName
+        }
+        if let lCategory = try container.decodeIfPresent(String.self, forKey: .libraryCategory) {
+            libraryCategory = lCategory
+        }
+        if let lComment = try container.decodeIfPresent(String.self, forKey: .libraryComment) {
+            libraryComment = lComment
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -962,6 +979,9 @@ class CodeFunction          : Codable, Equatable
         try container.encode(body, forKey: .body)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(comment, forKey: .comment)
+        try container.encode(libraryName, forKey: .libraryName)
+        try container.encode(libraryCategory, forKey: .libraryCategory)
+        try container.encode(libraryComment, forKey: .libraryComment)
     }
     
     static func ==(lhs:CodeFunction, rhs:CodeFunction) -> Bool { // Implement Equatable

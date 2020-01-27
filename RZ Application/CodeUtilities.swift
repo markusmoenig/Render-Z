@@ -60,7 +60,10 @@ import CloudKit
 /// Upload the given component to the public or private libraries
 func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_ functionOnly: CodeFunction? = nil)
 {
-    let name = component.libraryName
+    var name = component.libraryName
+    if let function = functionOnly {
+        name = function.libraryName
+    }
     if name == "" {return}
     
     let subComponent = component.subComponent
