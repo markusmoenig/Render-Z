@@ -390,7 +390,7 @@ class CodeBuilder
             inst.code +=
             """
             
-                    \(uvName) = float2(outPosition.x, -outPosition.y);
+                    \(uvName) = float2(outPosition.x, outPosition.y);
                 }
             
             """

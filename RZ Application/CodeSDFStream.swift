@@ -15,6 +15,8 @@ class CodeSDFStream
     var codeBuilder         : CodeBuilder!
     var componentCounter    : Int = 0
     
+    var headerCode          : String = ""
+    
     var monitor             : CodeFragment? = nil
     
     init()
@@ -31,9 +33,9 @@ class CodeSDFStream
         monitor = nil
         componentCounter = 0        
         instance.properties = []
-        
+                
         if type == .SDF2D {
-            instance.code =
+            headerCode =
             """
             
             #include <metal_stdlib>
@@ -59,11 +61,11 @@ class CodeSDFStream
                 dryRunComponent(camera, instance.data.count, monitor)
                 instance.collectProperties(camera)
                 if let globalCode = camera.globalCode {
-                    instance.code += globalCode
+                    headerCode += globalCode
                 }
             }
             
-            instance.code +=
+            instance.code =
                 
             """
             kernel void componentBuilder(
@@ -124,6 +126,8 @@ class CodeSDFStream
             """
         }
         
+        instance.code = headerCode + instance.code
+        
         //print(instance.code)
         codeBuilder.buildInstance(instance)
     }
@@ -133,6 +137,10 @@ class CodeSDFStream
         dryRunComponent(component, instance.data.count, monitor)
         instance.collectProperties(component)
         self.monitor = monitor
+        
+        if let globalCode = component.globalCode {
+            headerCode += globalCode
+        }
         
         if type == .SDF2D
         {

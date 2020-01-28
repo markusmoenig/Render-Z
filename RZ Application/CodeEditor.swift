@@ -231,7 +231,7 @@ class CodeEditor        : MMWidget
                     if let comp = codeComponent {
                         let y = event.y - rect.y
                         for f in comp.functions {
-                            if y >= f.rect.y - CodeContext.fSpace && y < f.rect.y {
+                            if y >= f.rect.y - CodeContext.fSpace + scrollArea.offsetY && y < f.rect.y + scrollArea.offsetY {
                                 dndFunction = f
                                 break
                             }
@@ -432,7 +432,8 @@ class CodeEditor        : MMWidget
         scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset)
         
         // Orientation area
-        
+        mmView.renderer.setClipRect(rect)
+
         let factor : Float = 1.8
         var ratio : Float = 100 / Float(fragment.width)
         ratio = ratio * Float(fragment.height)
@@ -444,12 +445,12 @@ class CodeEditor        : MMWidget
         let height : Float = ratio * factor
         let y : Float = (100 / rect.width) * -scrollArea.offsetY * 1.8
         mmView.drawBox.draw(x: rect.right() - 100, y: rect.y + y, width: 100, height: height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
-        
+        mmView.renderer.setClipRect()
         //
         
         // Function DND
         if let f = dndFunction {
-            mmView.drawBox.draw(x: rect.x, y: rect.y + f.rect.y - CodeContext.fSpace, width: rect.width, height: CodeContext.fSpace, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.2))
+            mmView.drawBox.draw(x: rect.x, y: rect.y + f.rect.y - CodeContext.fSpace + scrollArea.offsetY, width: rect.width, height: CodeContext.fSpace, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.2))
         }
         
         // Access Area
