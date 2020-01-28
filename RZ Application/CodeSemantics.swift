@@ -56,8 +56,8 @@ class CodeFragment          : Codable, Equatable
     
     var values              : [String:Float] = [:]
     
-    var parentBlock         : CodeBlock? = nil
-    var parentStatement     : CodeStatement? = nil
+    weak var parentBlock    : CodeBlock? = nil
+    weak var parentStatement: CodeStatement? = nil
     
     // Represent a floatx as a float
     var isSimplified        : Bool = false
@@ -317,7 +317,7 @@ class CodeFragment          : Codable, Equatable
     /// .ConstanValue only: Creates a string for the value
     func getValueString() -> String
     {
-        let valueString = (isNegated() == true ? "-" : "") + String(format: "%.0\(Int(values["precision"]!))f", values["value"]!)
+        let valueString = (isNegated() == true ? " -" : "") + String(format: "%.0\(Int(values["precision"]!))f", values["value"]!)
         return valueString
     }
     
@@ -355,7 +355,7 @@ class CodeFragment          : Codable, Equatable
         } else
         if fragmentType == .ConstantDefinition {
             let rStart = ctx.rectStart()
-            let name = (isNegated() && isSimplified == false ? "-" : "") + (isSimplified ? getValueString() : self.name)
+            let name = (isNegated() && isSimplified == false ? " -" : "") + (isSimplified ? getValueString() : self.name)
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
@@ -370,7 +370,7 @@ class CodeFragment          : Codable, Equatable
         } else
         if fragmentType == .Primitive {
             let rStart = ctx.rectStart()
-            var name = (isNegated() ? "-" : "")
+            var name = (isNegated() ? " -" : "")
             
             if let referalUUID = referseTo {
                 // This is a function reference!
@@ -459,7 +459,7 @@ class CodeFragment          : Codable, Equatable
             var name : String
             if let ref = referseTo {
                 if let v = ctx.cVariables[ref] {
-                    name = (isNegated() ? "-" : "") + v.name
+                    name = (isNegated() ? " -" : "") + v.name
                     v.references += 1
                 } else {
                     name = "NOT FOUND"
@@ -558,6 +558,15 @@ class CodeFragment          : Codable, Equatable
                 }
             }
             
+            // FuncData as last argument for FreeFlow functions
+            if fragmentType == .Primitive && referseTo != nil {
+                if ctx.cFunction!.functionType == .FreeFlow {
+                    ctx.addCode( ", __funcData" )
+                } else {
+                    ctx.addCode( ", &__funcData" )
+                }
+            }
+            
             if !arguments.isEmpty {
                 let op = ")"
                 ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -584,7 +593,7 @@ class CodeFragment          : Codable, Equatable
                     mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
                 }
                 ctx.cX += ctx.tempRect.width + ctx.gapX
-                ctx.addCode( "()" )
+                ctx.addCode( "(__funcData)" )
             }
         }
     }
@@ -680,8 +689,8 @@ class CodeBlock             : Codable, Equatable
 
     var rect                : MMRect = MMRect()
     
-    var parentFunction      : CodeFunction? = nil
-    var parentBlock         : CodeBlock? = nil
+    weak var parentFunction : CodeFunction? = nil
+    weak var parentBlock    : CodeBlock? = nil
 
     private enum CodingKeys: String, CodingKey {
         case blockType
@@ -833,8 +842,15 @@ class CodeBlock             : Codable, Equatable
             ctx.drawText(")", mmView.skin.Code.constant)
             ctx.cX += ctx.tempRect.width + ctx.gapX
             
+            // FreeFlow Function Definition
             if fragment.fragmentType == .TypeDefinition {
-                ctx.addCode(")\n{\nfloat4 __monitorOut = float4(0,0,0,0);\n" + fragment.typeName + " out" + " = " + fragment.typeName + "(0);\n")
+                ctx.addCode(", thread FuncData *__funcData)\n")
+                ctx.addCode("{\n")
+                ctx.addCode("float GlobalTime = __funcData->GlobalTime;")
+                if ctx.monitorFragment != nil {
+                    ctx.addCode("float4 __monitorOut = *__funcData->__monitorOut;")
+                }
+                ctx.addCode(fragment.typeName + " out" + " = " + fragment.typeName + "(0);\n")
             }
  
             ctx.cY += ctx.lineHeight + ctx.gapY
@@ -884,20 +900,27 @@ class CodeBlock             : Codable, Equatable
             if let _ = propIndex {
                 // PROPERTY!!!!
                 let code = ctx.cComponent!.code!
+                let globalCode = ctx.cComponent!.globalCode!
                 statement.draw(mmView, ctx)
                 ctx.cComponent!.code = code
+                ctx.cComponent!.globalCode = globalCode
                 let dataIndex = ctx.propertyDataOffset
                 let components = fragment.evaluateComponents()
-                if components == 1 {
-                    ctx.addCode( "__data[\(dataIndex)].x" )
-                } else
-                if components == 2 {
-                    ctx.addCode( "__data[\(dataIndex)].xy" )
-                } else
-                if components == 3 {
-                    ctx.addCode( "__data[\(dataIndex)].xyz" )
+                
+                if ctx.cFunction!.functionType == .FreeFlow {
+                    ctx.addCode( "__funcData->__data[\(dataIndex)]" )
                 } else {
                     ctx.addCode( "__data[\(dataIndex)]" )
+                }
+                
+                if components == 1 {
+                    ctx.addCode( ".x" )
+                } else
+                if components == 2 {
+                    ctx.addCode( ".xy" )
+                } else
+                if components == 3 {
+                    ctx.addCode( ".xyz" )
                 }
                 ctx.propertyDataOffset += 1
             } else {
@@ -1101,6 +1124,14 @@ class CodeFunction          : Codable, Equatable
         for v in header.statement.fragments {
             //ctx.cVariables[v.uuid] = v
             ctx.registerVariableForSyntaxBlock(v)
+        }
+        
+        //
+        if functionType == .FreeFlow && ctx.monitorFragment != nil && body.count > 0 {
+            let outFragment = body[body.count-1].fragment
+            // Correct the out fragment return type
+            outFragment.typeName = outFragment.parentBlock!.parentFunction!.header.fragment.typeName
+            ctx.registerVariableForSyntaxBlock(outFragment)
         }
         
         let rStart = ctx.rectStart()
@@ -1576,6 +1607,8 @@ class CodeComponent         : Codable, Equatable
                 ctx.insideGlobalCode = false
             }
             
+            ctx.functionHasMonitor = false
+            
             ctx.cFunction = f
             ctx.cX = ctx.border + ctx.startX
             ctx.cIndent = 0
@@ -1583,6 +1616,9 @@ class CodeComponent         : Codable, Equatable
             f.draw(mmView, ctx)
             
             if f.functionType == .FreeFlow {
+                if ctx.monitorFragment != nil && ctx.functionHasMonitor == true {
+                    ctx.addCode("*__funcData->__monitorOut = __monitorOut;\n")
+                }
                 ctx.addCode("return out;\n")
                 ctx.addCode("}\n")
             }
@@ -1658,6 +1694,7 @@ class CodeContext
     var insideGlobalCode    : Bool = false
     
     var functionMap         : [UUID:CodeFunction] = [:]
+    var functionHasMonitor  : Bool = false
     
     static var fSpace       : Float = 30
 
@@ -1714,29 +1751,29 @@ class CodeContext
     func insertMonitorCode(_ fragment: CodeFragment)
     {
         let outVariableName = "__monitorOut"
-        let components = monitorComponents
         
+        functionHasMonitor = true
+                
         var code : String = ""
-        if components == 1 {
-            code += "\(outVariableName) = float4(float3(" + fragment.name + "),1);\n";
-        } else
-        if components == 2 {
+        if fragment.typeName.contains("2") {
             code += "\(outVariableName).x = " + fragment.name + ".x;\n";
             code += "\(outVariableName).y = " + fragment.name + ".y;\n";
             code += "\(outVariableName).z = 0;\n";
             code += "\(outVariableName).w = 1;\n";
         } else
-        if components == 3 {
+        if fragment.typeName.contains("3") {
             code += "\(outVariableName).x = " + fragment.name + ".x;\n";
             code += "\(outVariableName).y = " + fragment.name + ".y;\n";
             code += "\(outVariableName).z = " + fragment.name + ".z;\n";
             code += "\(outVariableName).w = 1;\n";
         } else
-        if components == 4 {
+        if fragment.typeName.contains("4") {
             code += "\(outVariableName).x = " + fragment.name + ".x;\n";
             code += "\(outVariableName).y = " + fragment.name + ".y;\n";
             code += "\(outVariableName).z = " + fragment.name + ".z;\n";
             code += "\(outVariableName).w = " + fragment.name + ".w;\n";
+        } else {
+            code += "\(outVariableName) = float4(float3(" + fragment.name + "),1);\n";
         }
         addCode(code)
     }

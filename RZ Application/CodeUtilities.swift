@@ -175,7 +175,7 @@ func encodeComponentToJSON(_ component: CodeComponent) -> String
 /// Runs the component to generate code without any drawing
 func dryRunComponent(_ comp: CodeComponent,_ propertyOffset: Int = 0,_ monitor: CodeFragment? = nil)
 {
-    let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, 0.5)
+    let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
     ctx.reset(1000, propertyOffset, monitor)
     comp.draw(globalApp!.mmView, ctx)
 }

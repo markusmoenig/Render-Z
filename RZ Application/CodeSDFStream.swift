@@ -33,12 +33,19 @@ class CodeSDFStream
         instance.properties = []
         
         if type == .SDF2D {
-            instance.code +=
+            instance.code =
             """
             
             #include <metal_stdlib>
             #include <simd/simd.h>
             using namespace metal;
+            
+            struct FuncData
+            {
+                float               GlobalTime;
+                thread float4      *__monitorOut;
+                constant float4    *__data;
+            };
                         
             float2 __translate(float2 p, float2 t)
             {
@@ -65,6 +72,11 @@ class CodeSDFStream
                 float GlobalTime = __data[0].x;
                 float outDistance = 10;
                 float4 outShape = float4(100000, 0,0,0);
+            
+                struct FuncData __funcData;
+                __funcData.GlobalTime = GlobalTime;
+                __funcData.__monitorOut = &__monitorOut;
+                __funcData.__data = __data;
             
             """
         }

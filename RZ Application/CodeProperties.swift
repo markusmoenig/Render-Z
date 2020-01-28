@@ -677,9 +677,8 @@ class CodeProperties    : MMWidget
             }
 
             // Setup the monitor
-            if fragment.supports(.Monitorable) {
-                //setupMonitorData(comp, fragment, ctx)
-                
+            if fragment.supports(.Monitorable) && fragment.fragmentType != .VariableReference {
+                //setupMonitorData(comp, fragment, ctx)                
                 if nodeUIMonitor == nil {
                     nodeUIMonitor = NodeUIMonitor(c2Node!, variable: "monitor", title: "Variable Monitor")
                     c2Node!.uiItems.append(nodeUIMonitor!)

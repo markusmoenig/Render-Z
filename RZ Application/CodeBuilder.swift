@@ -10,7 +10,7 @@ import MetalKit
 
 class CodeBuilderInstance
 {
-    var component           : CodeComponent? = nil
+    weak var component      : CodeComponent? = nil
     var code                : String = ""
     
     var computeState        : MTLComputePipelineState? = nil
@@ -99,6 +99,13 @@ class CodeBuilder
         #include <simd/simd.h>
         using namespace metal;
                 
+        struct FuncData
+        {
+            float               GlobalTime;
+            thread float4      *__monitorOut;
+            constant float4    *__data;
+        };
+        
         """
         
         // Time
@@ -112,6 +119,10 @@ class CodeBuilder
         
         // Compute monitor components
         if let fragment = monitor {
+            if fragment.name == "out" {
+                // Correct the out fragment return type
+                fragment.typeName = fragment.parentBlock!.parentFunction!.header.fragment.typeName
+            }
             inst.monitorComponents = 1
             if fragment.typeName.contains("2") {
                 inst.monitorComponents = 2
@@ -194,6 +205,7 @@ class CodeBuilder
         uint2 __gid                               [[thread_position_in_grid]])
         {
             float4 __monitorOut = float4(0,0,0,0);
+        
             float2 uv = float2(__gid.x, __gid.y);
             float2 size = float2(__outTexture.get_width(), __outTexture.get_height() );
             uv /= size;
@@ -202,6 +214,11 @@ class CodeBuilder
 
             float4 outColor = float4(0,0,0,1);
             float GlobalTime = __data[0].x;
+        
+            struct FuncData __funcData;
+            __funcData.GlobalTime = GlobalTime;
+            __funcData.__monitorOut = &__monitorOut;
+            __funcData.__data = __data;
 
         """
         
@@ -250,6 +267,11 @@ class CodeBuilder
 
             float4 outColor = float4(0,0,0,1);
             float GlobalTime = __data[0].x;
+        
+            struct FuncData __funcData;
+            __funcData.GlobalTime = GlobalTime;
+            __funcData.__monitorOut = &__monitorOut;
+            __funcData.__data = __data;
         
         """
         
@@ -316,6 +338,12 @@ class CodeBuilder
 
             float4 __depthIn = float4(__depthTexture.sample(__textureSampler, uv / size ));
             float distance = __depthIn.x;
+            float GlobalTime = __data[0].x;
+
+            struct FuncData __funcData;
+            __funcData.GlobalTime = GlobalTime;
+            __funcData.__monitorOut = &__monitorOut;
+            __funcData.__data = __data;
 
         """
      
