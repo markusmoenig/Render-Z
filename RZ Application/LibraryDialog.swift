@@ -23,10 +23,22 @@ class LibraryItem {
     {
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title)
         descriptionLabel = MMTextLabel(mmView, font: mmView.openSans, text: description, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
+        
+        var categoryText : String = ""
         if category.starts(with: "Func") {
-            let name = String(category.dropFirst(4))
-            categoryLabel = MMTextLabel(mmView, font: mmView.openSans, text: name, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
+            categoryText = String(category.dropFirst(4))
+        } else
+        if category == "Boolean" {
+            categoryText = "Boolean"
+        } else
+        if category.starts(with: "Render") {
+            categoryText = category
         }
+
+        if categoryText.count > 0 {
+            categoryLabel = MMTextLabel(mmView, font: mmView.openSans, text: categoryText, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
+        }
+
         self.json = json
         self.type = type
     }
@@ -257,36 +269,6 @@ class LibraryDialog: MMDialog {
                         
             y += scrollOffset
         }
-        /*
-        for (index,item) in items.enumerated() {
-            
-            var x : Float = rect.x + 3
-            
-            let borderColor = selectedItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
-            let textColor = selectedItem === item ? mmView.skin.Item.selectionColor : SIMD4<Float>(1,1,1,1)
-
-            x += (Float(index).truncatingRemainder(dividingBy: 3)) * (itemSize + 2)
-
-            mmView.drawBox.draw( x: x, y: y, width: itemSize, height: itemSize, round: 26, borderSize: 2, fillColor: mmView.skin.Item.color, borderColor: borderColor)//, maskRoundingSize: 26, maskRect: SIMD4<Float>(boxRect.x, boxRect.y, boxRect.width, boxRect.height))
-
-            if selectedItem === item {
-                //mmView.drawTexture.draw(blueTexture!, x: x + (itemSize - Float(blueTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
-            } else {
-                //mmView.drawTexture.draw(greyTexture!, x: x + (itemSize - Float(greyTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
-            }
-            
-            item.rect.set(x, y, itemSize, itemSize)
-            item.titleLabel.color = textColor
-            item.titleLabel.drawCentered(x: x, y: y + itemSize - 40, width: itemSize, height: 35)
-            
-            if index > 0 && Float(index).truncatingRemainder(dividingBy: 2) == 0 {
-                y += itemSize + 2
-                
-                if rect.y != 0 {
-                    break
-                }
-            }
-        }*/
         
         var fillColor = mmView.skin.Item.color
         let alpha : Float = 1
