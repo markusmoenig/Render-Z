@@ -1642,16 +1642,16 @@ class CodeContext
     let font                : MMFont
     var fontScale           : Float = 0.45
     
-    var fragment            : MMFragment? = nil
+    weak var fragment       : MMFragment? = nil
     
     // Running vars
     var cX                  : Float = 0
     var cY                  : Float = 0
     var cIndent             : Float = 0
 
-    var cComponent          : CodeComponent? = nil
-    var cFunction           : CodeFunction? = nil
-    var cBlock              : CodeBlock? = nil
+    weak var cComponent     : CodeComponent? = nil
+    weak var cFunction      : CodeFunction? = nil
+    weak var cBlock         : CodeBlock? = nil
     
     var cVariables          : [UUID:CodeFragment] = [:]
     var cSyntaxBlocks       : [UUID:[CodeFragment]] = [:]
@@ -1672,15 +1672,15 @@ class CodeContext
     
     var editorWidth         : Float = 0
     
-    var hoverFunction       : CodeFunction? = nil
-    var hoverBlock          : CodeBlock? = nil
-    var hoverFragment       : CodeFragment? = nil
+    weak var hoverFunction  : CodeFunction? = nil
+    weak var hoverBlock     : CodeBlock? = nil
+    weak var hoverFragment  : CodeFragment? = nil
     
-    var selectedFunction    : CodeFunction? = nil
-    var selectedBlock       : CodeBlock? = nil
-    var selectedFragment    : CodeFragment? = nil
+    weak var selectedFunction: CodeFunction? = nil
+    weak var selectedBlock   : CodeBlock? = nil
+    weak var selectedFragment: CodeFragment? = nil
     
-    var dropFragment        : CodeFragment? = nil
+    weak var dropFragment   : CodeFragment? = nil
     var dropIsValid         : Bool = false
     var dropOriginalUUID    : UUID = UUID()
 
@@ -1688,7 +1688,7 @@ class CodeContext
     
     var propertyDataOffset  : Int = 0
     
-    var monitorFragment     : CodeFragment? = nil
+    weak var monitorFragment: CodeFragment? = nil
     var monitorComponents   : Int = 0
     
     var insideGlobalCode    : Bool = false

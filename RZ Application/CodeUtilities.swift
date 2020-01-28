@@ -75,7 +75,8 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
         componentToUse = CodeComponent(.FunctionContainer)
         componentToUse.libraryCategory = component.libraryCategory
         componentToUse.libraryName = component.libraryName
-        
+        componentToUse.libraryComment = function.libraryComment
+
         for f in function.dependsOn {
             componentToUse.functions.append(f)
         }
@@ -117,7 +118,8 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
         let record    = CKRecord(recordType: "components", recordID: recordID)
         
         record["json"] = encodedObjectJsonString
-        
+        record["description"] = componentToUse.libraryComment
+
         var uploadComponents = [CKRecord]()
         uploadComponents.append(record)
 

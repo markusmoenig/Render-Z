@@ -13,15 +13,20 @@ class LibraryItem {
     
     var titleLabel          : MMTextLabel
     var descriptionLabel    : MMTextLabel
+    var categoryLabel       : MMTextLabel? = nil
     var rect                : MMRect = MMRect()
     var thumbnail           : MTLTexture? = nil
     var json                : String
     var type                : String
     
-    init(_ mmView: MMView,_ title: String,_ description: String = "", _ json: String = "",_ type: String = "")
+    init(_ mmView: MMView,_ title: String,_ description: String = "", _ json: String = "",_ type: String = "",_ category: String = "")
     {
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title)
-        self.descriptionLabel = MMTextLabel(mmView, font: mmView.openSans, text: description, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
+        descriptionLabel = MMTextLabel(mmView, font: mmView.openSans, text: description, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
+        if category.starts(with: "Func") {
+            let name = String(category.dropFirst(4))
+            categoryLabel = MMTextLabel(mmView, font: mmView.openSans, text: name, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
+        }
         self.json = json
         self.type = type
     }
@@ -29,6 +34,11 @@ class LibraryItem {
 
 class LibraryDialog: MMDialog {
     
+    enum Style {
+        case Icon, List
+    }
+    
+    var style           : Style = .Icon
     var itemMap         : [String:[LibraryItem]] = [:]
 
     var currentItems    : [LibraryItem]? = nil
@@ -81,8 +91,13 @@ class LibraryDialog: MMDialog {
                 let arr = record.recordID.recordName.components(separatedBy: " :: ")
                 let name = arr[0]
                 let type = arr[1]
+                
+                var description : String = ""
+                if let desc = record.value(forKey: "description") {
+                    description = desc as! String
+                }
 
-                let item = LibraryItem(view, name, "", record.value(forKey: "json") as! String, record.recordID.recordName)
+                let item = LibraryItem(view, name, description, record.value(forKey: "json") as! String, record.recordID.recordName, type)
                 
                 if self.itemMap[type] == nil {
                     self.itemMap[type] = []
@@ -102,13 +117,27 @@ class LibraryDialog: MMDialog {
     
     func setType(_ id: String,_ contextItem: ContextItem)
     {
+        style = .List
+
+        if id.starts(with: "SDF") {
+            style = .Icon
+        }
         currentItems = itemMap[id]
+        
+        if currentItems != nil && currentItems!.count > 0 {
+            selectedItem = currentItems![0]
+        }
         self.contextItem = contextItem
     }
     
     func setOverview()
     {
+        style = .List
         currentItems = itemMap["FuncNoise"]
+        
+        if currentItems != nil && currentItems!.count > 0 {
+            selectedItem = currentItems![0]
+        }
         contextItem = nil
     }
     
@@ -191,6 +220,126 @@ class LibraryDialog: MMDialog {
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0) {
+        if style == .Icon {
+            drawIconView(xOffset: xOffset, yOffset: yOffset)
+        } else {
+            drawListView(xOffset: xOffset, yOffset: yOffset)
+        }
+    }
+    
+    func drawListView(xOffset: Float = 0, yOffset: Float = 0) {
+        super.draw(xOffset: xOffset, yOffset: yOffset)
+        if currentItems == nil { return }
+        let items = currentItems!
+        
+        let itemWidth : Float = (rect.width - 4 - 2)
+        let itemHeight : Float = 30
+        var y : Float = rect.y + 38
+
+        if rect.y == 0 {
+            
+            let scrollHeight : Float = rect.height - 90 - 46
+            let scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
+            
+            mmView.renderer.setClipRect(scrollRect)
+            var maxHeight : Float = Float(items.count) * itemHeight
+            if items.count > 0 {
+                maxHeight += 2 * Float(items.count-1)
+            }
+            
+            if scrollOffset < -(maxHeight - scrollHeight) {
+                scrollOffset = -(maxHeight - scrollHeight)
+            }
+            
+            if scrollOffset > 0 {
+                scrollOffset = 0
+            }
+                        
+            y += scrollOffset
+        }
+        /*
+        for (index,item) in items.enumerated() {
+            
+            var x : Float = rect.x + 3
+            
+            let borderColor = selectedItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
+            let textColor = selectedItem === item ? mmView.skin.Item.selectionColor : SIMD4<Float>(1,1,1,1)
+
+            x += (Float(index).truncatingRemainder(dividingBy: 3)) * (itemSize + 2)
+
+            mmView.drawBox.draw( x: x, y: y, width: itemSize, height: itemSize, round: 26, borderSize: 2, fillColor: mmView.skin.Item.color, borderColor: borderColor)//, maskRoundingSize: 26, maskRect: SIMD4<Float>(boxRect.x, boxRect.y, boxRect.width, boxRect.height))
+
+            if selectedItem === item {
+                //mmView.drawTexture.draw(blueTexture!, x: x + (itemSize - Float(blueTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
+            } else {
+                //mmView.drawTexture.draw(greyTexture!, x: x + (itemSize - Float(greyTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
+            }
+            
+            item.rect.set(x, y, itemSize, itemSize)
+            item.titleLabel.color = textColor
+            item.titleLabel.drawCentered(x: x, y: y + itemSize - 40, width: itemSize, height: 35)
+            
+            if index > 0 && Float(index).truncatingRemainder(dividingBy: 2) == 0 {
+                y += itemSize + 2
+                
+                if rect.y != 0 {
+                    break
+                }
+            }
+        }*/
+        
+        var fillColor = mmView.skin.Item.color
+        let alpha : Float = 1
+        fillColor.w = alpha
+        
+        for item in items {
+            
+            let x : Float = rect.x + 3
+            
+            var borderColor = selectedItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
+            var textColor = selectedItem === item ? mmView.skin.Item.selectionColor : SIMD4<Float>(1,1,1,1)
+            borderColor.w = alpha
+            textColor.w = alpha
+
+            mmView.drawBox.draw( x: x, y: y, width: itemWidth, height: itemHeight, round: 26, borderSize: 2, fillColor: fillColor, borderColor: borderColor)
+            
+            item.rect.set(x, y, itemWidth, itemHeight)
+            item.titleLabel.color = textColor
+            item.titleLabel.drawCenteredY(x: x + 10, y: y, width: itemWidth, height: itemHeight)
+            
+            if item.categoryLabel != nil {
+                item.categoryLabel!.color = textColor
+                item.categoryLabel!.drawCenteredY(x: x + itemWidth - 10 - item.categoryLabel!.rect.width, y: y, width: itemWidth, height: itemHeight)
+            }
+            
+            y += itemHeight + 2
+        }
+        
+        if rect.y == 0 {
+            mmView.renderer.setClipRect()
+        }
+        
+        let boxRect : MMRect = MMRect(rect.x, rect.y + 35, rect.width, rect.height - 90 - 40)
+        
+        let cb : Float = 1
+        // Erase Edges
+        mmView.drawBox.draw( x: boxRect.x - cb, y: boxRect.y - cb, width: boxRect.width + 2*cb, height: boxRect.height + 2*cb, round: 30, borderSize: 4, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Dialog.color)
+        
+        // Box Border
+        mmView.drawBox.draw( x: boxRect.x, y: boxRect.y, width: boxRect.width, height: boxRect.height, round: 30, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
+        
+        y = rect.y + 35 + rect.height - 90 - 30
+        
+        mmView.drawBox.draw( x: rect.x + 10, y: y, width: rect.width - 20, height: 30, round: 26, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
+        if let item = selectedItem {
+            item.descriptionLabel.drawCentered(x: rect.x + 10, y: y, width: rect.width - 20, height: 30)
+        }
+        
+        // Renew dialog border
+        mmView.drawBox.draw( x: rect.x, y: rect.y - yOffset, width: rect.width, height: rect.height, round: 40, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Dialog.borderColor )
+    }
+    
+    func drawIconView(xOffset: Float = 0, yOffset: Float = 0) {
         super.draw(xOffset: xOffset, yOffset: yOffset)
         if currentItems == nil { return }
         let items = currentItems!

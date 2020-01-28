@@ -200,7 +200,7 @@ class SceneList : MMWidget
                         infoItems = [
                             SceneInfoItem(mmView, "Select from Library", { () in
                                 if let scene = self.currentScene {
-                                    globalApp!.context.setSelected(scene.stages[2].getChildren()[0])
+                                    globalApp!.context.setSelected(scene.getStage(.RenderStage).getChildren()[0])
                                     globalApp!.libraryDialog.setType(globalApp!.context.libraryId, globalApp!.context.currentItem!)
                                     self.mmView.showDialog(globalApp!.libraryDialog)
                                 }
