@@ -87,7 +87,7 @@ class CodeBuilder
         buildClearState()
     }
     
-    func build(_ component: CodeComponent, _ monitor: CodeFragment? = nil) -> CodeBuilderInstance
+    func build(_ component: CodeComponent, camera: CodeComponent? = nil, monitor: CodeFragment? = nil) -> CodeBuilderInstance
     {
         //print("build", component.componentType, monitor)
         let inst = CodeBuilderInstance()
@@ -298,9 +298,9 @@ class CodeBuilder
     }
     
     /// Build the source code for the component
-    func buildSDF2D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    func buildSDF2D(_ inst: CodeBuilderInstance,_ component: CodeComponent,_ monitor: CodeFragment? = nil, camera: CodeComponent? = nil)
     {
-        sdfStream.openStream(.SDF2D, inst, self)
+        sdfStream.openStream(.SDF2D, inst, self, camera: camera)
         sdfStream.pushComponent(component, monitor)
         sdfStream.closeStream()
         
@@ -367,6 +367,34 @@ class CodeBuilder
         }
           
         """
+    }
+    
+    func insertCameraCode(_ inst: CodeBuilderInstance, camera: CodeComponent, uvName: String = "uv", monitor: CodeFragment? = nil)
+    {
+        if camera.componentType == .Camera2D {
+            
+            inst.code +=
+            """
+            
+                {
+                    float2 position = \(uvName);
+                    float2 outPosition = float2(0);
+            
+            """
+        }
+        
+        inst.code += camera.code!
+        
+        if camera.componentType == .Camera2D {
+
+            inst.code +=
+            """
+            
+                    \(uvName) = float2(outPosition.x, -outPosition.y);
+                }
+            
+            """
+        }
     }
     
     /// Build a clear texture shader

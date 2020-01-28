@@ -940,7 +940,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D
     }
     
     let functionType        : FunctionType
@@ -1074,7 +1074,16 @@ class CodeFunction          : Codable, Equatable
             let constant = CodeFragment(.ConstantDefinition, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
             b.statement.fragments.append(constant)
             
-            for index in 0...3 {
+            var components : Int = 4
+            
+            if typeName.contains("2") {
+                components = 2
+            } else
+            if typeName.contains("3") {
+                components = 3
+            }
+            
+            for index in 0..<components {
                 let argStatement = CodeStatement(.Arithmetic)
                 
                 let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
@@ -1187,7 +1196,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1371,7 +1380,7 @@ class CodeComponent         : Codable, Equatable
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
             functions.append(f)
-        }
+        } else
         if type == .Boolean {
             let f = CodeFunction(type, "booleanOperator")
             f.comment = "Choose between the two shapes based on their distances stored in .x"
@@ -1386,6 +1395,19 @@ class CodeComponent         : Codable, Equatable
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outShape"))
+            functions.append(f)
+        } else
+        if type == .Camera2D {
+            let f = CodeFunction(type, "camera")
+            f.comment = "Translates an incoming position."
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "position", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg1)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float2", "outPosition"))
             functions.append(f)
         }
     }

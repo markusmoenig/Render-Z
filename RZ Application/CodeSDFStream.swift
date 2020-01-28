@@ -22,7 +22,7 @@ class CodeSDFStream
         
     }
     
-    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder)
+    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil)
     {
         self.type = type
         self.instance = instance
@@ -54,6 +54,15 @@ class CodeSDFStream
             
             """
             
+            // Generate the camera code and add the global camera code
+            if let camera = camera {
+                dryRunComponent(camera, instance.data.count, monitor)
+                instance.collectProperties(camera)
+                if let globalCode = camera.globalCode {
+                    instance.code += globalCode
+                }
+            }
+            
             instance.code +=
                 
             """
@@ -79,6 +88,10 @@ class CodeSDFStream
                 __funcData.__data = __data;
             
             """
+            
+            if let camera = camera {
+                codeBuilder.insertCameraCode(instance, camera: camera, uvName: "__origin", monitor: monitor)
+            }
         }
     }
 

@@ -210,6 +210,21 @@ class SceneList : MMWidget
                 }
                 
                 if let stageItem = treeWidget.infoAreaItem {
+                    
+                    if stageItem.stageItemType == .PreStage {
+                        if let comp = stageItem.components[stageItem.defaultName] {
+                            if comp.componentType == .Camera2D {
+                                infoItems = [
+                                    SceneInfoItem(mmView, "Change", { () in
+                                        globalApp!.context.setSelected(stageItem)
+                                        globalApp!.libraryDialog.setType(globalApp!.context.libraryId, globalApp!.context.currentItem!)
+                                        self.mmView.showDialog(globalApp!.libraryDialog)
+                                    })
+                                ]
+                            }
+                        }
+                    }
+                    
                     if stageItem.stageItemType == .ShapeStage {
                         infoItems = [
                              SceneInfoItem(mmView, "Add Child", { () in

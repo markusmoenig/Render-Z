@@ -172,6 +172,14 @@ class Stage                 : Codable, Equatable
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
             
+            item = StageItem(.PreStage, "Camera")
+            //codeComponent = CodeComponent(.Camera2D)
+            //codeComponent.createDefaultFunction(.Camera2D)
+            codeComponent = decodeComponentFromJSON(defaultCamera2D)!
+            codeComponent.selected = nil
+            item.components[item.defaultName] = codeComponent
+            children2D.append(item)
+            
             item = StageItem(.PreStage, "Sky Dome")
             codeComponent = CodeComponent(.SkyDome)
             codeComponent.createDefaultFunction(.SkyDome)

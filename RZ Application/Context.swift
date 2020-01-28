@@ -418,6 +418,18 @@ class ContextWidget         : MMWidget
         currentList = []
         
         if let item = selItem {
+            if item.stageItemType == .PreStage {
+                nextState = .Closed
+                if let comp = item.components[item.defaultName] {
+                    listToUse = [comp]
+                    if comp.componentType == .Camera2D {
+                        libraryId = "Camera2D"
+                    } else
+                    if comp.componentType == .Camera3D {
+                        libraryId = "Camera3D"
+                    }
+                }
+            } else
             if item.stageItemType == .ShapeStage {
                 nextState = .Open
                 scrollButton.setItems(["Shapes", "Material", "Domain"])
@@ -479,6 +491,11 @@ class ContextWidget         : MMWidget
             globalApp!.currentEditor.setComponent(comp)
             globalApp!.currentEditor.updateOnNextDraw(compile: true)
             
+            if comp.componentType == .Camera2D || comp.componentType == .Camera3D {
+                comp.uuid = contextItem.component!.uuid
+                globalApp!.project.selected!.updateComponent(comp)
+                contextItem.component = comp
+            } else
             if comp.componentType == .SDF2D || comp.componentType == .SDF3D {
                 // If SDF, add the default boolean operator as subcomponent
                 

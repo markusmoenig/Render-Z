@@ -111,6 +111,12 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             } else
             if component.componentType == .Boolean {
                 libName += " :: Boolean"
+            } else
+            if component.componentType == .Camera2D {
+                libName += " :: Camera2D"
+            } else
+            if component.componentType == .Camera3D {
+                libName += " :: Camera3D"
             }
         }
         

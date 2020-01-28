@@ -39,12 +39,27 @@ class Pipeline
 
         instanceMap = [:]
         
+        func getFirstComponentOfType(_ list: [StageItem],_ type: CodeComponent.ComponentType) -> CodeComponent?
+        {
+            for item in list {
+                if let c = item.components[item.defaultName] {
+                    if c.componentType == type {
+                        return c
+                    }
+                }
+            }
+            return nil
+        }
+        
         // Background
         let preStage = scene.getStage(.PreStage)
+        let camera : CodeComponent = getFirstComponentOfType(preStage.getChildren(), typeId == .SDF2D ? .Camera2D : .Camera3D)!
+
         for item in preStage.getChildren() {
-            if let comp = item.components[item.defaultName] {
+            if let comp = item.components[item.defaultName], comp.componentType == .Colorize {
                 dryRunComponent(comp)
-                instanceMap["pre"] = codeBuilder.build(comp)
+                instanceMap["pre"] = codeBuilder.build(comp, camera: camera)
+                break
             }
         }
 
@@ -54,7 +69,7 @@ class Pipeline
             if let shapes = item.componentLists["shapes" + modeId] {
                 let instance = CodeBuilderInstance()
                 instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
-                codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder)
+                codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: camera)
                 for shape in shapes {
                     codeBuilder.sdfStream.pushComponent(shape)
                 }
@@ -84,7 +99,7 @@ class Pipeline
             if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
                 monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba32Float)
                 if monitorInstance == nil {
-                    monitorInstance = codeBuilder.build(monitorComponent!, monitorFragment)
+                    monitorInstance = codeBuilder.build(monitorComponent!, monitor: monitorFragment)
                 }
                 if let mInstance = monitorInstance {
                     codeBuilder.render(mInstance, monitorTexture!, inTextures, syncronize: true)
