@@ -728,6 +728,21 @@ class CodeEditor        : MMWidget
                 createFragmentArguments(destFrag, sourceFrag)
                 destFrag.addProperty(.Targetable)
                 destFrag.qualifier = compName
+                
+                if destFrag.parentBlock!.blockType == .ForHeader && sourceFrag.fragmentType == .VariableReference {
+                    // If destination is a for header, need to reset the variable references in the header
+                    for stats in destFrag.parentBlock!.fragment.arguments {
+                        for frag in stats.fragments {
+                            if frag.fragmentType == .ConstantValue {
+                                frag.typeName = sourceFrag.typeName
+                                frag.values["precision"] = sourceFrag.values["precision"]
+                            } else
+                            if frag.fragmentType == .VariableReference {
+                                frag.referseTo = sourceFrag.referseTo
+                            }
+                        }
+                    }
+                }
                 #if DEBUG
                 print("Drop #1")
                 #endif

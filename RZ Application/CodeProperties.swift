@@ -296,6 +296,42 @@ class CodeProperties    : MMWidget
                     }
                 }
             } else
+            // --- For loop variable definition
+            if fragment.fragmentType == .VariableDefinition && fragment.parentBlock != nil && fragment.parentBlock!.blockType == .ForHeader {
+                let items : [String] = ["int", "float"]
+                c1Node?.uiItems.append( NodeUISelector(c1Node!, variable: "type", title: "Type", items: items, index: Float(items.firstIndex(of: fragment.typeName)!) ) )
+                                
+                c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "type" {
+
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Type Changed") : nil
+                        fragment.typeName = items[Int(newValue)]
+                        if fragment.typeName == "float" {
+                            fragment.values["precision"] = 3
+                            for stats in fragment.parentBlock!.fragment.arguments {
+                                for frag in stats.fragments {
+                                    if frag.fragmentType == .ConstantValue {
+                                        frag.typeName = "float"
+                                        frag.values["precision"] = 3
+                                    }
+                                }
+                            }
+                        } else {
+                            fragment.values["precision"] = 0
+                            for stats in fragment.parentBlock!.fragment.arguments {
+                                for frag in stats.fragments {
+                                    if frag.fragmentType == .ConstantValue {
+                                        frag.typeName = "int"
+                                        frag.values["precision"] = 0
+                                    }
+                                }
+                            }
+                        }
+                        self.editor.updateOnNextDraw(compile: true)
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    }
+                }
+            } else
             // --- FreeFlow argument
             if fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.parentFunction != nil && fragment.parentBlock!.parentFunction!.functionType == .FreeFlow && fragment.parentBlock!.parentFunction!.header.statement.fragments.contains(fragment) {
 
@@ -596,7 +632,7 @@ class CodeProperties    : MMWidget
             }
             
             // Delete, only if parent statement has enough content
-            if let pStatement = fragment.parentStatement {
+            if let pStatement = fragment.parentStatement, fragment.parentBlock != nil && fragment.parentBlock!.blockType != .ForHeader {
                 
                 var canDelete : Bool = false
                 var contentCount : Int = 0
