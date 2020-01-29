@@ -77,10 +77,25 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
         componentToUse.libraryName = component.libraryName
         componentToUse.libraryComment = function.libraryComment
 
-        for f in function.dependsOn {
-            componentToUse.functions.append(f)
-        }
         componentToUse.functions.append(function)
+
+        // Recursively add all functions the function depends on
+        func addFunctions(_ function: CodeFunction)
+        {
+            for f in function.dependsOn {
+                if componentToUse.functions.contains(f) == false {
+                    componentToUse.functions.insert(f, at: 0)
+                }
+                addFunctions(f)
+            }
+        }
+                
+        for f in function.dependsOn {
+            if componentToUse.functions.contains(f) == false {
+                componentToUse.functions.insert(f, at: 0)
+            }
+            addFunctions(f)
+        }
     }
     
     let encodedData = try? JSONEncoder().encode(componentToUse)

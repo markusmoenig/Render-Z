@@ -117,7 +117,7 @@ class CodeEditor        : MMWidget
             
             dndFunction = nil
 
-            needsUpdate = true
+            editor.updateOnNextDraw(compile: true)
             mmView.update()
         }
     }
@@ -586,7 +586,7 @@ class CodeEditor        : MMWidget
                 self.undoEnd(undo)
             } else
             // If switch
-                if sourceFrag.typeName == "block" && (sourceFrag.name == "if" || sourceFrag.name == "if else"){
+            if sourceFrag.typeName == "block" && (sourceFrag.name == "if" || sourceFrag.name == "if else"){
                 destBlock.blockType = .IfHeader
                 destBlock.fragment.fragmentType = .If
                 destBlock.fragment.typeName = "bool"
@@ -638,6 +638,69 @@ class CodeEditor        : MMWidget
                         block.children[1].fragment.addProperty(.Selectable)
                     }
                 }
+            } else
+            // For switch
+            if sourceFrag.typeName == "block" && sourceFrag.name == "for" {
+                destBlock.blockType = .ForHeader
+                destBlock.fragment.fragmentType = .For
+                destBlock.fragment.typeName = ""
+                destBlock.fragment.name = "for"
+                destBlock.fragment.properties = [.Selectable]
+                            
+                // Left part
+                var statement = CodeStatement(.List)
+                var frag = CodeFragment(.VariableDefinition, "int", "i", [.Selectable, .Dragable, .Targetable])
+                let varUUID = frag.uuid
+                statement.fragments.append(frag)
+                
+                frag = CodeFragment(.Assignment, "", "=", [.Selectable])
+                statement.fragments.append(frag)
+
+                frag = CodeFragment(.ConstantValue, "int", "", [.Selectable, .Dragable, .Targetable])
+                frag.values["value"] = 0
+                frag.values["max"] = 10
+                statement.fragments.append(frag)
+        
+                destBlock.fragment.arguments.append(statement)
+
+                // Middle part
+                statement = CodeStatement(.Boolean)
+                frag = CodeFragment(.VariableReference, "int", "i", [.Selectable, .Dragable, .Targetable])
+                frag.referseTo = varUUID
+                statement.fragments.append(frag)
+                
+                frag = CodeFragment(.Comparison, "", "<", [.Selectable])
+                statement.fragments.append(frag)
+
+                frag = CodeFragment(.ConstantValue, "int", "", [.Selectable, .Dragable, .Targetable])
+                frag.values["value"] = 10
+                frag.values["max"] = 100
+                statement.fragments.append(frag)
+                
+                destBlock.fragment.arguments.append(statement)
+
+                // Right part
+                statement = CodeStatement(.Arithmetic)
+                frag = CodeFragment(.VariableReference, "int", "i", [.Selectable, .Dragable, .Targetable])
+                frag.referseTo = varUUID
+                statement.fragments.append(frag)
+                
+                frag = CodeFragment(.Assignment, "", "+=", [.Selectable])
+                statement.fragments.append(frag)
+
+                frag = CodeFragment(.ConstantValue, "int", "", [.Selectable, .Dragable, .Targetable])
+                frag.values["value"] = 1
+                frag.values["max"] = 100
+                statement.fragments.append(frag)
+                
+                destBlock.fragment.arguments.append(statement)
+                //
+                
+                destBlock.children.append(CodeBlock(.Empty))
+                destBlock.children.append(CodeBlock(.Empty))
+                
+                destBlock.children[0].fragment.addProperty(.Selectable)
+                destBlock.children[1].fragment.addProperty(.Selectable)
             }
         } else
         {

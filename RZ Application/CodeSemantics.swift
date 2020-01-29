@@ -27,7 +27,8 @@ class CodeFragment          : Codable, Equatable
                 Assignment,             // =, +=, *= etc
                 Comparison,             // ==, <=, >= etc
                 If,                     // If
-                Else                    // Else
+                Else,                   // Else
+                For                     // For
     }
     
     enum FragmentProperties : Int, Codable{
@@ -397,7 +398,7 @@ class CodeFragment          : Codable, Equatable
             
             ctx.addCode(name)
         } else
-        if fragmentType == .If || fragmentType == .Else {
+        if fragmentType == .If || fragmentType == .Else || fragmentType == .For {
             let rStart = ctx.rectStart()
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -548,13 +549,13 @@ class CodeFragment          : Codable, Equatable
                 arg.draw(mmView, ctx)
                 
                 if index != arguments.endIndex - 1 {
-                    let op = ","
+                    let op = fragmentType == .For ? ";" : ","
                     ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
                     if let frag = ctx.fragment {
                         mmView.drawText.drawText(ctx.font, text: op, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
                     }
                     ctx.cX += ctx.tempRect.width + ctx.gapX
-                    ctx.addCode( ", " )
+                    ctx.addCode( op + " " )
                 }
             }
             
@@ -673,7 +674,7 @@ class CodeStatement         : Codable, Equatable
 class CodeBlock             : Codable, Equatable
 {
     enum BlockType          : Int, Codable {
-        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference, IfHeader, ElseHeader
+        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference, IfHeader, ElseHeader, ForHeader
     }
     
     var blockType           : BlockType
@@ -681,6 +682,9 @@ class CodeBlock             : Codable, Equatable
     var fragment            : CodeFragment = CodeFragment(.Undefined)
     var assignment          : CodeFragment = CodeFragment(.Assignment, "", "=", [.Selectable])
     var statement           : CodeStatement
+    
+    // Additional header statements (for)
+    var headerStatements    : [String:CodeStatement]? = nil
     
     var uuid                : UUID = UUID()
     var comment             : String = ""
@@ -697,6 +701,7 @@ class CodeBlock             : Codable, Equatable
         case fragment
         case assignment
         case statement
+        case headerStatements
         case uuid
         case comment
         case children
@@ -709,6 +714,9 @@ class CodeBlock             : Codable, Equatable
         fragment = try container.decode(CodeFragment.self, forKey: .fragment)
         assignment = try container.decode(CodeFragment.self, forKey: .assignment)
         statement = try container.decode(CodeStatement.self, forKey: .statement)
+        if let headerStatements = try container.decodeIfPresent([String:CodeStatement]?.self, forKey: .headerStatements) {
+            self.headerStatements = headerStatements
+        }
         uuid = try container.decode(UUID.self, forKey: .uuid)
         comment = try container.decode(String.self, forKey: .comment)
         if let children = try container.decodeIfPresent([CodeBlock].self, forKey: .children) {
@@ -723,6 +731,7 @@ class CodeBlock             : Codable, Equatable
         try container.encode(fragment, forKey: .fragment)
         try container.encode(assignment, forKey: .assignment)
         try container.encode(statement, forKey: .statement)
+        try container.encode(headerStatements, forKey: .headerStatements)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(comment, forKey: .comment)
         try container.encode(children, forKey: .children)
@@ -860,7 +869,7 @@ class CodeBlock             : Codable, Equatable
             
             ctx.cIndent = ctx.indent
         } else
-        if blockType == .IfHeader || blockType == .ElseHeader {
+        if blockType == .IfHeader || blockType == .ElseHeader || blockType == .ForHeader {
             //let rStart = ctx.rectStart()
             
             fragment.draw(mmView, ctx)
@@ -1460,7 +1469,7 @@ class CodeComponent         : Codable, Equatable
             }
             
             // Parse If, Else
-            if b.fragment.fragmentType == .If || b.fragment.fragmentType == .Else {
+            if b.fragment.fragmentType == .If || b.fragment.fragmentType == .Else || b.fragment.fragmentType == .For {
                 for statement in b.fragment.arguments {
                     for fragment in statement.fragments {
                         parseFragments(fragment)
@@ -1915,7 +1924,7 @@ class CodeContext
             }
             
             // Drop on an empty line (.VariableDefinition)
-            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) ) {
+            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) || (drop.name.starts(with: "for") && drop.typeName == "block" ) ) {
                 drawHighlight(fragment.rect, hoverAlpha)
                 dropIsValid = true
             } else
