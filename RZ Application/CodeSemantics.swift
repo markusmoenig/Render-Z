@@ -1945,11 +1945,13 @@ class CodeContext
             
             // Dragging a function, need to check for recursion
             if drop.fragmentType == .Primitive && drop.referseTo != nil {
-                let function = drop.parentBlock!.parentFunction!
-                                
-                if function.rect.contains(fragment.rect.x, fragment.rect.y) || function.rect.y > fragment.rect.y {
-                    dropIsValid = false
-                    return
+                if let pBlock = drop.parentBlock {
+                    if let function = pBlock.parentFunction {
+                        if function.rect.contains(fragment.rect.x, fragment.rect.y) || function.rect.y > fragment.rect.y {
+                            dropIsValid = false
+                            return
+                        }
+                    }
                 }
             }
             
@@ -2001,6 +2003,12 @@ class CodeContext
                     // Exclusion: When the .Primitive does not support the type of the destination
                     #if DEBUG
                     print("Exclusion #7")
+                    #endif
+                } else
+                if drop.fragmentType == .Primitive && fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.blockType == .ForHeader {
+                    // Exclusion: Dont allow to drop a primitive on the left side of a variable definition
+                    #if DEBUG
+                    print("Exclusion #8")
                     #endif
                 } else
                 // Allow drop when not .VariableDefinition (coming straight from the source list)

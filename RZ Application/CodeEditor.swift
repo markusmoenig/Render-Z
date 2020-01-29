@@ -731,14 +731,18 @@ class CodeEditor        : MMWidget
                 
                 if destFrag.parentBlock!.blockType == .ForHeader && sourceFrag.fragmentType == .VariableReference {
                     // If destination is a for header, need to reset the variable references in the header
-                    for stats in destFrag.parentBlock!.fragment.arguments {
-                        for frag in stats.fragments {
-                            if frag.fragmentType == .ConstantValue {
-                                frag.typeName = sourceFrag.typeName
-                                frag.values["precision"] = sourceFrag.values["precision"]
-                            } else
-                            if frag.fragmentType == .VariableReference {
-                                frag.referseTo = sourceFrag.referseTo
+                    if let index = destFrag.parentBlock!.fragment.arguments[0].fragments.firstIndex(of: destFrag) {
+                        if index == 0 {
+                            for stats in destFrag.parentBlock!.fragment.arguments {
+                                for frag in stats.fragments {
+                                    if frag.fragmentType == .ConstantValue {
+                                        frag.typeName = sourceFrag.typeName
+                                        frag.values["precision"] = sourceFrag.values["precision"]
+                                    } else
+                                    if frag.fragmentType == .VariableReference {
+                                        frag.referseTo = sourceFrag.referseTo
+                                    }
+                                }
                             }
                         }
                     }
