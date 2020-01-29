@@ -28,7 +28,8 @@ class CodeFragment          : Codable, Equatable
                 Comparison,             // ==, <=, >= etc
                 If,                     // If
                 Else,                   // Else
-                For                     // For
+                For,                    // For
+                End
     }
     
     enum FragmentProperties : Int, Codable{
@@ -354,6 +355,19 @@ class CodeFragment          : Codable, Equatable
             
             ctx.addCode(name)
         } else
+        if fragmentType == .End {
+            let rStart = ctx.rectStart()
+            let name = "end"
+                        
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.reserved, fragment: frag)
+            }
+            
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+        } else
         if fragmentType == .ConstantDefinition {
             let rStart = ctx.rectStart()
             let name = (isNegated() && isSimplified == false ? " -" : "") + (isSimplified ? getValueString() : self.name)
@@ -674,7 +688,7 @@ class CodeStatement         : Codable, Equatable
 class CodeBlock             : Codable, Equatable
 {
     enum BlockType          : Int, Codable {
-        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference, IfHeader, ElseHeader, ForHeader
+        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference, IfHeader, ElseHeader, ForHeader, End
     }
     
     var blockType           : BlockType
@@ -682,9 +696,6 @@ class CodeBlock             : Codable, Equatable
     var fragment            : CodeFragment = CodeFragment(.Undefined)
     var assignment          : CodeFragment = CodeFragment(.Assignment, "", "=", [.Selectable])
     var statement           : CodeStatement
-    
-    // Additional header statements (for)
-    var headerStatements    : [String:CodeStatement]? = nil
     
     var uuid                : UUID = UUID()
     var comment             : String = ""
@@ -701,7 +712,6 @@ class CodeBlock             : Codable, Equatable
         case fragment
         case assignment
         case statement
-        case headerStatements
         case uuid
         case comment
         case children
@@ -714,9 +724,6 @@ class CodeBlock             : Codable, Equatable
         fragment = try container.decode(CodeFragment.self, forKey: .fragment)
         assignment = try container.decode(CodeFragment.self, forKey: .assignment)
         statement = try container.decode(CodeStatement.self, forKey: .statement)
-        if let headerStatements = try container.decodeIfPresent([String:CodeStatement]?.self, forKey: .headerStatements) {
-            self.headerStatements = headerStatements
-        }
         uuid = try container.decode(UUID.self, forKey: .uuid)
         comment = try container.decode(String.self, forKey: .comment)
         if let children = try container.decodeIfPresent([CodeBlock].self, forKey: .children) {
@@ -731,7 +738,6 @@ class CodeBlock             : Codable, Equatable
         try container.encode(fragment, forKey: .fragment)
         try container.encode(assignment, forKey: .assignment)
         try container.encode(statement, forKey: .statement)
-        try container.encode(headerStatements, forKey: .headerStatements)
         try container.encode(uuid, forKey: .uuid)
         try container.encode(comment, forKey: .comment)
         try container.encode(children, forKey: .children)
@@ -748,6 +754,9 @@ class CodeBlock             : Codable, Equatable
 
         if type == .FunctionHeader {
             statement.statementType = .List
+        } else
+        if type == .End {
+            fragment.fragmentType = .End
         }
     }
     
@@ -767,6 +776,7 @@ class CodeBlock             : Codable, Equatable
         }
         
         let rStart = ctx.rectStart()
+        var maxRight : Float = 0
 
         // Border
         if blockType == .FunctionHeader {
@@ -799,7 +809,12 @@ class CodeBlock             : Codable, Equatable
             ctx.rectEnd(fragment.rect, rStart)
             ctx.cY += ctx.lineHeight + ctx.gapY
             ctx.drawFragmentState(fragment)
-        } else if blockType == .FunctionHeader {
+        } else
+        if blockType == .End {
+            fragment.draw(mmView, ctx)
+            ctx.cY += ctx.lineHeight + ctx.gapY
+        } else
+        if blockType == .FunctionHeader {
             let rStart = ctx.rectStart()
 
             // Return type
@@ -870,13 +885,24 @@ class CodeBlock             : Codable, Equatable
             ctx.cIndent = ctx.indent
         } else
         if blockType == .IfHeader || blockType == .ElseHeader || blockType == .ForHeader {
-            //let rStart = ctx.rectStart()
-            
+
             fragment.draw(mmView, ctx)
             ctx.drawFragmentState(fragment)
             ctx.cY += ctx.lineHeight + ctx.gapY
             ctx.blockNumber += 1
             
+            if fragment.rect.right() > maxRight {
+                maxRight = fragment.rect.right()
+            }
+            
+            for args in fragment.arguments {
+                for frags in args.fragments {
+                    if frags.rect.right() > maxRight {
+                        maxRight = frags.rect.right() + 16
+                    }
+                }
+            }
+                        
             ctx.addCode("{\n")
             ctx.openSyntaxBlock(uuid)
             
@@ -888,12 +914,13 @@ class CodeBlock             : Codable, Equatable
                 ctx.cX = ctx.border + ctx.startX + ctx.cIndent
                 b.draw(mmView, ctx)
                 ctx.blockNumber += 1
+                
+                if b.rect.right() > maxRight {
+                    maxRight = b.rect.right()
+                }
             }
             ctx.closeSyntaxBlock(uuid)
             ctx.addCode("}\n")
-
-            //ctx.rectEnd(rect, rStart)
-
         } else {
             let propIndex = ctx.cComponent!.properties.firstIndex(of: fragment.uuid)
             
@@ -941,6 +968,9 @@ class CodeBlock             : Codable, Equatable
         }
         
         ctx.rectEnd(rect, rStart)
+        if rect.right() < maxRight {
+            rect.width = maxRight - rect.x
+        }
         ctx.drawBlockState(self)
     }
 }

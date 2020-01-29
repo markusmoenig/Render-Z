@@ -196,10 +196,12 @@ class CodeProperties    : MMWidget
                     block.blockType = .Empty
                     block.uuid = UUID()
                     block.fragment.fragmentType = .Undefined
+                    block.fragment.arguments = []
                     block.fragment.name = ""
                     block.fragment.qualifier = ""
                     block.fragment.properties = [.Selectable]
                     block.statement = CodeStatement(.Arithmetic)
+                    block.children = []
 
                     self.editor.updateOnNextDraw()
                     self.needsUpdate = true
@@ -207,7 +209,7 @@ class CodeProperties    : MMWidget
                     self.editor.codeEditor.undoEnd(undo)
                     b2.removeState(.Checked)
                 }
-                b2.isDisabled = /*block.blockType == .OutVariable ||*/ block.blockType == .Empty
+                b2.isDisabled = /*block.blockType == .OutVariable ||*/ block.blockType == .Empty || block.blockType == .End
                 addButton(b2)
                 
                 let b3 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Line", fixedWidth: buttonWidth)
@@ -239,7 +241,7 @@ class CodeProperties    : MMWidget
 
                     b3.removeState(.Checked)
                 }
-                //b.isDisabled = block.blockType == .OutVariable
+                b3.isDisabled = block.blockType == .End
                 addButton(b3)
             }
             

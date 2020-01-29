@@ -607,7 +607,8 @@ class CodeEditor        : MMWidget
                 
                 destBlock.children.append(CodeBlock(.Empty))
                 destBlock.children.append(CodeBlock(.Empty))
-                
+                destBlock.children.append(CodeBlock(.End))
+
                 destBlock.children[0].fragment.addProperty(.Selectable)
                 destBlock.children[1].fragment.addProperty(.Selectable)
                 
@@ -633,7 +634,8 @@ class CodeEditor        : MMWidget
                         
                         block.children.append(CodeBlock(.Empty))
                         block.children.append(CodeBlock(.Empty))
-                        
+                        block.children.append(CodeBlock(.End))
+
                         block.children[0].fragment.addProperty(.Selectable)
                         block.children[1].fragment.addProperty(.Selectable)
                     }
@@ -698,7 +700,8 @@ class CodeEditor        : MMWidget
                 
                 destBlock.children.append(CodeBlock(.Empty))
                 destBlock.children.append(CodeBlock(.Empty))
-                
+                destBlock.children.append(CodeBlock(.End))
+
                 destBlock.children[0].fragment.addProperty(.Selectable)
                 destBlock.children[1].fragment.addProperty(.Selectable)
             }
