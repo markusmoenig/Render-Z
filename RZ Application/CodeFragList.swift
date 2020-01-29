@@ -151,15 +151,16 @@ class CodeFragList : MMWidget
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
         
         let lineHeight = font.getLineHeight(fontScale)
+        let radius : Float = lineHeight * 0.75
         
-        var cX : Float = 10
-        var cY : Float = rect.y + rect.height - 40
+        var cX : Float = 15
+        var cY : Float = rect.y + rect.height - 65
         
         let tempRect = MMRect()
         
         for (index,item) in items.enumerated() {
             font.getTextRect(text: item.char, scale: fontScale, rectToUse: tempRect)
-            mmView.drawText.drawText(font, text: item.char, x: cX + (lineHeight - tempRect.width)/2, y: cY, scale: fontScale, color: mmView.skin.Widget.textColor)
+            mmView.drawText.drawText(font, text: item.char, x: cX + (radius - tempRect.width)/2, y: cY - 2, scale: fontScale, color: mmView.skin.Widget.textColor)
             
             item.rect.x = cX
             item.rect.y = cY
@@ -168,21 +169,21 @@ class CodeFragList : MMWidget
             
             if hoverItem === item || selectedItem === item {
                 let alpha : Float = selectedItem === item ? 0.7 : 0.5
-                mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
+                mmView.drawSphere.draw( x: item.rect.x - radius / 2, y: item.rect.y - radius / 2, radius: radius, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
             }
             
-            if index > 0 && index % 8 == 0 {
-                cX = 10
-                cY += lineHeight + 2
+            if index > 0 && index % 5 == 0 {
+                cX = 15
+                cY += lineHeight * 1.7
             } else {
-                cX += lineHeight
+                cX += lineHeight * 1.5
             }
         }
         
         listWidget.rect.x = rect.x
         listWidget.rect.y = rect.y
         listWidget.rect.width = rect.width
-        listWidget.rect.height = rect.height - 40
+        listWidget.rect.height = rect.height - 70
         
         listWidget.draw(xOffset: globalApp!.leftRegion!.rect.width - SceneList.openWidth)
         

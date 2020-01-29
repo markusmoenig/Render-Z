@@ -2006,7 +2006,7 @@ class CodeContext
                     #endif
                 } else
                 if drop.fragmentType == .Primitive && fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.blockType == .ForHeader {
-                    // Exclusion: Dont allow to drop a primitive on the left side of a variable definition
+                    // Exclusion: Dont allow to drop a primitive on the left side of a variable definition in a for header
                     #if DEBUG
                     print("Exclusion #8")
                     #endif
@@ -2017,7 +2017,6 @@ class CodeContext
                     dropIsValid = true
                 }
             }
-        
         } else
         if fragment === hoverFragment || fragment.uuid == cComponent!.selected {
             let alpha : Float = fragment.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
