@@ -749,7 +749,7 @@ class CodeProperties    : MMWidget
         if hoverMode == .NodeUI {
             hoverUIItem!.mouseDown(event)
             hoverMode = .NodeUIMouseLocked
-            //globalApp?.mmView.mouseTrackWidget = self
+            globalApp?.mmView.mouseTrackWidget = self
         }
     }
     

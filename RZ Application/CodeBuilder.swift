@@ -93,20 +93,7 @@ class CodeBuilder
         let inst = CodeBuilderInstance()
         inst.component = component
         
-        inst.code =
-        """
-        #include <metal_stdlib>
-        #include <simd/simd.h>
-        using namespace metal;
-                
-        struct FuncData
-        {
-            float               GlobalTime;
-            thread float4      *__monitorOut;
-            constant float4    *__data;
-        };
-        
-        """
+        inst.code = getHeaderCode()
         
         // Time
         inst.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
@@ -561,5 +548,36 @@ class CodeBuilder
         inst.computeResult.y = result[1]
         inst.computeResult.z = result[2]
         inst.computeResult.w = result[3]
+    }
+    
+    /// Returns the header code required by every shader
+    func getHeaderCode() -> String
+    {
+        return """
+        
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+                
+        struct FuncData
+        {
+            float               GlobalTime;
+            thread float4      *__monitorOut;
+            constant float4    *__data;
+        };
+        
+        #define PI 3.14159265359
+
+        float degrees(float radians)
+        {
+            return radians * 180.0 / PI;
+        }
+        
+        float radians(float degrees)
+        {
+            return degrees * PI / 180.0;
+        }
+        
+        """
     }
 }

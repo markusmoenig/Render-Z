@@ -221,6 +221,15 @@ class SceneList : MMWidget
                                         self.mmView.showDialog(globalApp!.libraryDialog)
                                     })
                                 ]
+                            } else
+                            if comp.componentType == .Camera3D {
+                                infoItems = [
+                                    SceneInfoItem(mmView, "Change", { () in
+                                        globalApp!.context.setSelected(stageItem)
+                                        globalApp!.libraryDialog.setType(globalApp!.context.libraryId, globalApp!.context.currentItem!)
+                                        self.mmView.showDialog(globalApp!.libraryDialog)
+                                    })
+                                ]
                             }
                         }
                     }

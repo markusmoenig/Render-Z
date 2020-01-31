@@ -186,6 +186,14 @@ class Stage                 : Codable, Equatable
             item.components[item.defaultName] = codeComponent
             children3D.append(item)
             
+            item = StageItem(.PreStage, "Camera")
+            //codeComponent = CodeComponent(.Camera3D)
+            //codeComponent.createDefaultFunction(.Camera3D)
+            codeComponent = decodeComponentFromJSON(defaultCamera3D)!
+            codeComponent.selected = nil
+            item.components[item.defaultName] = codeComponent
+            children3D.append(item)
+            
             folderIsOpen = true
         }
         

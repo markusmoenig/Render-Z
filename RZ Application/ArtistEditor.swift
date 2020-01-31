@@ -22,12 +22,13 @@ class ArtistEditor          : Editor
     
     let designEditor        : DesignEditor
     var designProperties    : DesignProperties
-    
+    var designContext       : DesignContext
+
     var timelineButton      : MMButtonWidget
     var timeline            : MMTimeline
 
     var sceneList           : SceneList
-    
+
     var bottomHeight        : Float = 0
 
     required init(_ view: MMView,_ sceneList: SceneList)
@@ -37,7 +38,8 @@ class ArtistEditor          : Editor
 
         designEditor = DesignEditor(view)
         designProperties = DesignProperties(view)
-        
+        designContext = DesignContext(view)
+
         timelineButton = MMButtonWidget( view, text: "Timeline" )
         timeline = MMTimeline(view)
 
@@ -58,7 +60,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: sceneList, designEditor, timelineButton)
+        mmView.registerWidgets(widgets: sceneList, designEditor, designContext, timelineButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -67,7 +69,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: sceneList, designEditor, timelineButton)
+        mmView.deregisterWidgets(widgets: sceneList, designEditor, designContext, timelineButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -101,7 +103,12 @@ class ArtistEditor          : Editor
         } else
         if region.type == .Left {
             sceneList.rect.copy(region.rect)
+            sceneList.rect.height -= region.rect.height / 3
             sceneList.draw()
+            designContext.rect.copy(region.rect)
+            designContext.rect.y = sceneList.rect.bottom() + 1
+            designContext.rect.height = region.rect.height / 3 - 1
+            designContext.draw()
         } else
         if region.type == .Right {
             if globalApp!.context.currentWidth > 0 {

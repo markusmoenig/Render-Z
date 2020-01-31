@@ -410,6 +410,10 @@ class CodeFragment          : Codable, Equatable
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
             
+            // Replace mod with fmod
+            if name == "mod" {
+                name = "fmod"
+            }
             ctx.addCode(name)
         } else
         if fragmentType == .If || fragmentType == .Else || fragmentType == .For {
@@ -1447,6 +1451,23 @@ class CodeComponent         : Codable, Equatable
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float2", "outPosition"))
+            functions.append(f)
+        } else
+        if type == .Camera3D {
+            let f = CodeFunction(type, "camera")
+            f.comment = "Generates a camera ray."
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float3", "outPosition"))
+            f.body.append(f.createOutVariableBlock("float3", "outDirection"))
             functions.append(f)
         }
     }

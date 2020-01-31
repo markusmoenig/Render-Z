@@ -35,19 +35,10 @@ class CodeSDFStream
         instance.properties = []
                 
         if type == .SDF2D {
-            headerCode =
+            headerCode = codeBuilder.getHeaderCode()
+            
+            headerCode +=
             """
-            
-            #include <metal_stdlib>
-            #include <simd/simd.h>
-            using namespace metal;
-            
-            struct FuncData
-            {
-                float               GlobalTime;
-                thread float4      *__monitorOut;
-                constant float4    *__data;
-            };
                         
             float2 __translate(float2 p, float2 t)
             {
