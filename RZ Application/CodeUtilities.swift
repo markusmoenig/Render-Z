@@ -102,9 +102,9 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
     if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
     {
         var libName = name
-        if let _ = functionOnly {
+        if let function = functionOnly {
             libName += " :: Func"
-            libName += component.libraryCategory
+            libName += function.libraryCategory
         } else {
             if component.componentType == .Colorize {
                 libName += " :: Colorize"

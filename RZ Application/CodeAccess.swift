@@ -45,6 +45,7 @@ class CodeAccess            : MMWidget
     var selectedButton          : AccessButton? = nil
     
     let arithmetics             : [String] = ["+", "-", "*", "/"]
+    //let arithmetics             : [String] = ["+", "-", "*", "/", "^", "<<", ">>"]
     let assignments             : [String] = ["=", "+=", "-=", "*=", "/="]
     let comparisons             : [String] = ["==", "!=", "<", ">", "<=", ">="]
     let freeFlowArguments       : [String] = ["int", "float", "float2", "float3", "float4"]

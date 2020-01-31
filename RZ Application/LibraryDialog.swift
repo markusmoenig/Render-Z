@@ -145,7 +145,7 @@ class LibraryDialog: MMDialog {
     func setOverview()
     {
         style = .List
-        currentItems = itemMap["FuncNoise"]
+        currentItems = itemMap["FuncNoise"]! + itemMap["FuncHash"]!
         
         if currentItems != nil && currentItems!.count > 0 {
             selectedItem = currentItems![0]

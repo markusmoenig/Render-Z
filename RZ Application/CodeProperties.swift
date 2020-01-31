@@ -277,7 +277,7 @@ class CodeProperties    : MMWidget
                         }
                     }
                     
-                    let items : [String] = ["int", "float", "float2", "float3", "float4"]
+                    let items : [String] = ["int", "uint", "float", "float2", "float3", "float4"]
                     c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "returnType", title: "Returns", items: items, index: Float(items.firstIndex(of: fragment.typeName)!) ) )
                     
                     let cFunction = fragment.parentBlock!.parentFunction!
@@ -298,7 +298,7 @@ class CodeProperties    : MMWidget
             } else
             // --- For loop variable definition
             if fragment.fragmentType == .VariableDefinition && fragment.parentBlock != nil && fragment.parentBlock!.blockType == .ForHeader {
-                let items : [String] = ["int", "float"]
+                let items : [String] = ["int", "uint", "float"]
                 c1Node?.uiItems.append( NodeUISelector(c1Node!, variable: "type", title: "Type", items: items, index: Float(items.firstIndex(of: fragment.typeName)!) ) )
                                 
                 c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
@@ -346,7 +346,7 @@ class CodeProperties    : MMWidget
                     }
                 }
                 
-                let items : [String] = ["int", "float", "float2", "float3", "float4"]
+                let items : [String] = ["int", "uint", "float", "float2", "float3", "float4"]
                 c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "argumentType", title: "Argument Type", items: items, index: Float(items.firstIndex(of: fragment.typeName)!) ) )
                 
                 let cFunction = fragment.parentBlock!.parentFunction!

@@ -168,6 +168,13 @@ class CodeFragList : MMWidget
         item.items.append( SourceListItem("sqrt", CodeFragment(.Primitive, "float", "sqrt", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         item.items.append( SourceListItem("step", CodeFragment(.Primitive, "float", "step", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4"], "input0"  ) ) )
         item.items.append( SourceListItem("tan", CodeFragment(.Primitive, "float", "tan", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
+        
+        item = FragItem("U")
+        items.append(item)
+        item.items.append( SourceListItem("uint", CodeFragment(.VariableDefinition, "uint", "", [.Selectable, .Dragable, .Monitorable], ["uint"], "uint" ) ) )
+        //item.items.append( SourceListItem("uint2", CodeFragment(.VariableDefinition, "uint2", "", [.Selectable, .Dragable, .Monitorable], ["uint2"], "uint2" ) ) )
+        //item.items.append( SourceListItem("uint3", CodeFragment(.VariableDefinition, "uint3", "", [.Selectable, .Dragable, .Monitorable], ["uint3"], "uint3" ) ) )
+        //item.items.append( SourceListItem("uint4", CodeFragment(.VariableDefinition, "uint4", "", [.Selectable, .Dragable, .Monitorable], ["uint4"], "uint4" ) ) )
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
