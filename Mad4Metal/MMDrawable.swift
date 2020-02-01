@@ -30,7 +30,7 @@ class MMDrawSphere : MMDrawable
         mmRenderer = renderer
     }
     
-    func draw( x: Float, y: Float, radius: Float, borderSize: Float, fillColor: SIMD4<Float>, borderColor: SIMD4<Float> = SIMD4<Float>(0,0,0,0))
+    func draw( x: Float, y: Float, radius: Float, borderSize: Float, fillColor: SIMD4<Float>, borderColor: SIMD4<Float> = SIMD4<Float>(0,0,0,0), fragment: MMFragment? = nil)
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
         let settings: [Float] = [
@@ -39,14 +39,14 @@ class MMDrawSphere : MMDrawable
             radius * scaleFactor, borderSize * scaleFactor,
             0, 0
         ];
-        
-        let renderEncoder = mmRenderer.renderEncoder!
-        
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( x - borderSize / 2, y - borderSize / 2, radius * 2 + borderSize, radius * 2 + borderSize, scale: scaleFactor ) )
+                
+        let rect = MMRect( x - borderSize / 2, y - borderSize / 2, radius * 2 + borderSize, radius * 2 + borderSize, scale: scaleFactor )
+
+        let renderEncoder = fragment == nil ? mmRenderer.renderEncoder! : fragment!.renderEncoder!
+        let vertexBuffer = fragment == nil ? mmRenderer.createVertexBuffer( rect ) : fragment!.createVertexBuffer( rect )
+
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        
         let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
-        
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
         
         renderEncoder.setRenderPipelineState( state! )

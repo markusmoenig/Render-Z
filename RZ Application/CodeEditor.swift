@@ -460,6 +460,11 @@ class CodeEditor        : MMWidget
         if codeAccess.accessState != .Closed {
             codeAccess.draw()
         }
+        
+        //
+        let sceneGraph = globalApp!.sceneGraph
+        sceneGraph.rect.copy(rect)
+        sceneGraph.draw()
     }
     
     /// Update the code syntax and redraws

@@ -31,6 +31,7 @@ class App
 
     var artistEditor    : ArtistEditor
     var developerEditor : DeveloperEditor
+    var sceneGraph      : SceneGraph
     
     var currentEditor   : Editor
     
@@ -57,6 +58,7 @@ class App
         mmFile = MMFile( view, "render-z" )
         
         mmView.registerIcon("rz_toolbar")
+        sceneGraph = SceneGraph(mmView)
 
         sceneList = SceneList(mmView)
         artistEditor = ArtistEditor(mmView, sceneList)

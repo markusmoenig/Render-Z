@@ -22,6 +22,8 @@ class StageItem             : Codable, Equatable
     var children            : [StageItem] = []
     
     var defaultName         : String = "main"
+    
+    var values              : [String:Float] = [:]
 
     private enum CodingKeys: String, CodingKey {
         case stageItemType
@@ -32,6 +34,7 @@ class StageItem             : Codable, Equatable
         case componentLists
         case children
         case defaultName
+        case values
     }
     
     required init(from decoder: Decoder) throws
@@ -45,6 +48,7 @@ class StageItem             : Codable, Equatable
         componentLists = try container.decode([String:[CodeComponent]].self, forKey: .componentLists)
         children = try container.decode([StageItem].self, forKey: .children)
         defaultName = try container.decode(String.self, forKey: .defaultName)
+        values = try container.decode([String:Float].self, forKey: .values)
     }
     
     func encode(to encoder: Encoder) throws
@@ -58,6 +62,7 @@ class StageItem             : Codable, Equatable
         try container.encode(componentLists, forKey: .componentLists)
         try container.encode(children, forKey: .children)
         try container.encode(defaultName, forKey: .defaultName)
+        try container.encode(values, forKey: .values)
     }
     
     static func ==(lhs:StageItem, rhs:StageItem) -> Bool {
@@ -68,6 +73,9 @@ class StageItem             : Codable, Equatable
     {
         self.stageItemType = stageItemType
         self.name = name
+        
+        values["graphX"] = 0
+        values["graphY"] = 0
     }
 
     /// Recursively update the component
@@ -101,6 +109,13 @@ class StageItem             : Codable, Equatable
         for item in children {
             item.updateStageItem(item)
         }
+    }
+    
+    /// Return the component list of the given base name
+    func getComponentList(_ name: String ) -> [CodeComponent]?
+    {
+        let id = name + (globalApp!.currentSceneMode == .TwoD ? "2D" : "3D")
+        return componentLists[id]
     }
 }
 
@@ -207,6 +222,8 @@ class Stage                 : Codable, Equatable
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
         }
+        
+        if let app = globalApp { app.sceneGraph.needsUpdate = true }
     }
     
     /// Returns the 2D or 3D children depending on the current scene mode
@@ -457,6 +474,7 @@ class Scene                 : Codable, Equatable
             globalApp!.currentEditor.setComponent(defaultComponent)
         }
         globalApp!.context.setSelected(item)
+        if let app = globalApp { app.sceneGraph.needsUpdate = true }
     }
 }
 
