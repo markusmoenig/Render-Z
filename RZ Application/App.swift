@@ -47,7 +47,7 @@ class App
 
     var project         : Project
     var currentSceneMode: Scene.SceneMode = .TwoD
-    
+        
     #if os(iOS)
     var viewController  : ViewController?
     #endif

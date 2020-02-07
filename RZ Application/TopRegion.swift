@@ -29,7 +29,8 @@ class TopRegion: MMRegion
     var playButton      : MMButtonWidget!
     
     var tabButton       : MMTabButtonWidget
-    
+    var graphButton     : MMButtonWidget!
+
     var libraryButton   : MMButtonWidget!
 
     var app             : App
@@ -200,10 +201,23 @@ class TopRegion: MMRegion
             }
         }
 
+        graphButton = MMButtonWidget( mmView, text: "Scene Graph" )
+        graphButton.clicked = { (event) -> Void in
+            if globalApp!.project.graphIsActive {
+                globalApp!.project.graphIsActive = false
+                self.graphButton.removeState(.Checked)
+            } else {
+                globalApp!.project.graphIsActive = true
+                self.graphButton.addState(.Checked)
+            }
+            self.mmView.update()
+        }
+        graphButton.addState(.Checked)
+
         layoutH(startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
         layoutH(startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton)
         layoutH(startX: saveButton.rect.right() + 20, startY: 8, spacing: 10, widgets: libraryButton)
-        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, libraryButton, helpButton, playButton, tabButton )
+        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, libraryButton, helpButton, playButton, tabButton, graphButton )
     }
     
     override func build()
@@ -243,8 +257,9 @@ class TopRegion: MMRegion
         helpButton.draw()
         playButton.draw()
         
-        layoutH( startX: 3, startY: 4 + 44, spacing: 10, widgets: tabButton)
+        layoutH( startX: 3, startY: 4 + 44, spacing: 50, widgets: tabButton, graphButton)
         tabButton.draw()
+        graphButton.draw()
 
         #if os(OSX)
         mmView.window!.isDocumentEdited = !undoButton.isDisabled

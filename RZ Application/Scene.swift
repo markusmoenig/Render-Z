@@ -487,12 +487,15 @@ class Project               : Codable, Equatable
     
     var selectedUUID        : UUID? = nil
     var selected            : Scene? = nil
+    
+    var graphIsActive       : Bool = true
    
     private enum CodingKeys: String, CodingKey {
         case name
         case uuid
         case selectedUUID
         case scenes
+        case graphIsActive
     }
    
     required init(from decoder: Decoder) throws
@@ -502,7 +505,8 @@ class Project               : Codable, Equatable
         uuid = try container.decode(UUID.self, forKey: .uuid)
         selectedUUID = try container.decode(UUID?.self, forKey: .selectedUUID)
         scenes = try container.decode([Scene].self, forKey: .scenes)
-        
+        graphIsActive = try container.decode(Bool.self, forKey: .graphIsActive)
+
         if let uuid = selectedUUID {
             if let scene = sceneOfUUID(uuid) {
                 setSelected(scene: scene)
@@ -517,6 +521,7 @@ class Project               : Codable, Equatable
         try container.encode(uuid, forKey: .uuid)
         try container.encode(selectedUUID, forKey: .selectedUUID)
         try container.encode(scenes, forKey: .scenes)
+        try container.encode(graphIsActive, forKey: .graphIsActive)
     }
    
     static func ==(lhs:Project, rhs:Project) -> Bool {

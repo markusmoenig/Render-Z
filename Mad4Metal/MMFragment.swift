@@ -110,7 +110,7 @@ class MMFragment {
     }
     
     /// Allocate the output texture, optionally can be used to create an arbitray texture by setting output to false
-    @discardableResult func allocateTexture( width: Float, height: Float, output: Bool? = true ) -> MTLTexture?
+    @discardableResult func allocateTexture( width: Float, height: Float, output: Bool? = true, mipMaps: Bool = false ) -> MTLTexture?
     {
         if output! {
             self.texture = nil
@@ -123,6 +123,15 @@ class MMFragment {
         textureDescriptor.height = Int(height)
         
         textureDescriptor.usage = MTLTextureUsage.unknown;
+
+        
+        if mipMaps {
+            let heightLevels = ceil(log2(height));
+            let widthLevels = ceil(log2(width));
+            let mipCount = (heightLevels > widthLevels) ? heightLevels : widthLevels;
+            
+            textureDescriptor.mipmapLevelCount = Int(max(mipCount,1))
+        }
 
         let texture = device.makeTexture( descriptor: textureDescriptor )
         if output! {

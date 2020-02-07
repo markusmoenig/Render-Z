@@ -266,6 +266,14 @@ class CodeEditor        : MMWidget
             return
         }
         
+        // Check Scene Graph
+        if globalApp!.project.graphIsActive {
+            let consumed = globalApp!.sceneGraph.clickAt(x: event.x, y: event.y)
+            if consumed {
+                return
+            }
+        }
+        
         mouseIsDown = true
         mouseDownPos.x = event.x
         mouseDownPos.y = event.y
@@ -330,6 +338,12 @@ class CodeEditor        : MMWidget
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
+        // If active scroll scene graph
+        if globalApp!.project.graphIsActive {
+            globalApp!.sceneGraph.mouseScrolled(event)
+            return
+        }
+        
         var prevScale = codeContext.fontScale
         
         #if os(OSX)
@@ -370,7 +384,7 @@ class CodeEditor        : MMWidget
         
         let height : Float = codeContext.cY == 0 ? 500 : codeContext.cY
         if fragment.width != rect.width * zoom || fragment.height != height * zoom {
-            fragment.allocateTexture(width: rect.width * zoom, height: height * zoom)
+            fragment.allocateTexture(width: rect.width * zoom, height: height * zoom, mipMaps: true)
         }
         textureWidget.setTexture(fragment.texture)
                 
@@ -382,6 +396,11 @@ class CodeEditor        : MMWidget
             }
    
             fragment.encodeEnd()
+            
+            if let blitEncoder = fragment.commandBuffer!.makeBlitCommandEncoder() {
+                blitEncoder.generateMipmaps(for: fragment.texture)
+                blitEncoder.endEncoding()
+            }
             
             if codeChanged {
                 globalApp!.pipeline.build(scene: globalApp!.project.selected!)
@@ -461,10 +480,15 @@ class CodeEditor        : MMWidget
             codeAccess.draw()
         }
         
-        //
-        let sceneGraph = globalApp!.sceneGraph
-        sceneGraph.rect.copy(rect)
-        sceneGraph.draw()
+        // Scene Graph
+        if globalApp!.project.graphIsActive {
+            
+            mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0,0,0, 0.6))
+            
+            let sceneGraph = globalApp!.sceneGraph
+            sceneGraph.rect.copy(rect)
+            sceneGraph.draw()
+        }
     }
     
     /// Update the code syntax and redraws
