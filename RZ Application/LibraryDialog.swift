@@ -66,6 +66,8 @@ class LibraryDialog: MMDialog {
     
     var currentType     : String = ""
     var contextItem     : ContextItem? = nil
+    
+    var _cb             : ((String)->())? = nil
 
     init(_ view: MMView) {
         super.init(view, title: "Choose Library Item", cancelText: "Cancel", okText: "Select")
@@ -142,6 +144,22 @@ class LibraryDialog: MMDialog {
         self.contextItem = contextItem
     }
     
+    func show(id: String, cb: @escaping (String)->())
+    {
+        style = .List
+
+        if id.starts(with: "SDF") {
+            style = .Icon
+        }
+        currentItems = itemMap[id]
+        
+        if currentItems != nil && currentItems!.count > 0 {
+            selectedItem = currentItems![0]
+        }
+        _cb = cb
+        mmView.showDialog(self)
+    }
+    
     func setOverview()
     {
         style = .List
@@ -161,6 +179,14 @@ class LibraryDialog: MMDialog {
     override func ok() {
         super.ok()
         
+        if let selected = selectedItem {
+            DispatchQueue.main.async {
+                if let cb = self._cb {
+                    cb(selected.json)
+                }
+            }
+        }
+        /*
         if let selected = selectedItem {
             if let context = contextItem {
                 DispatchQueue.main.async {
@@ -183,7 +209,7 @@ class LibraryDialog: MMDialog {
                     }
                 }
             }
-        }
+        }*/
         
         okButton.removeState(.Checked)
     }

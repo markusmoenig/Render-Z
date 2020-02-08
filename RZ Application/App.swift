@@ -94,7 +94,8 @@ class App
         //let shapeStage = project.selected!.stages[1]
         let selected = backStage.getChildren()[0]
         //_ = shapeStage.createChild("2D Object")
-        project.scenes[0].setSelected(selected)
+        //project.scenes[0].setSelected(selected)
+        sceneGraph.setCurrent(stageItem: selected)
 
         sceneList.setScene(project.selected!)
 
@@ -164,7 +165,8 @@ class App
                 project.selected!.updateStageItem(stageItem)
                 sceneList.setScene(self.project.selected!)
                 if let selected = project.selected!.getSelected() {
-                    project.selected!.setSelected(selected)
+                    //project.selected!.setSelected(selected)
+                    sceneGraph.setCurrent(stageItem: selected)
                 }
             }
         }

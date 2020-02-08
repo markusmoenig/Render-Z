@@ -189,7 +189,8 @@ class SceneList : MMWidget
                                         let shapeStage = scene.stages[1]
                                         let shape = shapeStage.createChild(value)
 
-                                        scene.setSelected(shape)
+                                        //scene.setSelected(shape)
+                                        globalApp!.sceneGraph.setCurrent(stageItem: shape)
                                         self.treeWidget.build(scene: scene, fixedWidth: SceneList.openWidth)
                                     }
                                 } )

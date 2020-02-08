@@ -254,3 +254,8 @@ func setDefaultComponentValues(_ comp: CodeComponent)
     }
 }
 
+func getCurrentModeId() -> String
+{
+    let modeId : String = globalApp!.currentSceneMode == .TwoD ? "2D" : "3D"
+    return modeId
+}

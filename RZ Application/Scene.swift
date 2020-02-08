@@ -469,12 +469,13 @@ class Scene                 : Codable, Equatable
     func setSelected(_ item: StageItem)
     {
         setSelectedUUID(item.uuid)
-        
+        /*
         if let defaultComponent = item.components[item.defaultName] {
             globalApp!.currentEditor.setComponent(defaultComponent)
         }
         globalApp!.context.setSelected(item)
         if let app = globalApp { app.sceneGraph.needsUpdate = true }
+        */
     }
 }
 
