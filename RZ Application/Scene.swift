@@ -74,8 +74,8 @@ class StageItem             : Codable, Equatable
         self.stageItemType = stageItemType
         self.name = name
         
-        values["graphX"] = 0
-        values["graphY"] = 0
+        values["_graphX"] = 0
+        values["_graphY"] = 0
     }
 
     /// Recursively update the component

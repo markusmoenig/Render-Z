@@ -206,9 +206,11 @@ class TopRegion: MMRegion
             if globalApp!.project.graphIsActive {
                 globalApp!.project.graphIsActive = false
                 self.graphButton.removeState(.Checked)
+                globalApp!.sceneGraph.deactivate()
             } else {
                 globalApp!.project.graphIsActive = true
                 self.graphButton.addState(.Checked)
+                globalApp!.sceneGraph.setCurrent(stageItem: globalApp!.sceneGraph.currentStageItem, component: globalApp!.sceneGraph.currentComponent)
             }
             self.mmView.update()
         }

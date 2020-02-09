@@ -36,16 +36,16 @@ class SceneGraphItem {
     
     let stageItem               : StageItem
     let component               : CodeComponent?
-    let subComponent            : CodeComponent?
+    let parentComponent         : CodeComponent?
     
     let rect                    : MMRect = MMRect()
     
-    init(_ type: SceneGraphItemType, stageItem: StageItem, component: CodeComponent? = nil, subComponent: CodeComponent? = nil)
+    init(_ type: SceneGraphItemType, stageItem: StageItem, component: CodeComponent? = nil, parentComponent: CodeComponent? = nil)
     {
         itemType = type
         self.stageItem = stageItem
         self.component = component
-        self.subComponent = subComponent
+        self.parentComponent = parentComponent
     }
 }
 
@@ -59,7 +59,7 @@ class SceneGraph                : MMWidget
     var needsUpdate             : Bool = true
     var graphRect               : MMRect = MMRect()
     
-    var items                   : [SceneGraphItem] = []
+    var itemMap                  : [UUID:SceneGraphItem] = [:]
     
     var graphX                  : Float = 100
     var graphY                  : Float = 100
@@ -69,12 +69,16 @@ class SceneGraph                : MMWidget
     
     var currentStageItem        : StageItem? = nil
     var currentComponent        : CodeComponent? = nil
+    
+    var menuWidget              : MMMenuWidget
+    var menuUUID                : UUID? = nil
 
     //var map             : [MMRe]
     
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
+        menuWidget = MMMenuWidget(view)
 
         fragment = MMFragment(view)
         fragment.allocateTexture(width: 10, height: 10)
@@ -84,6 +88,16 @@ class SceneGraph                : MMWidget
         
         zoom = view.scaleFactor
         textureWidget.zoom = zoom
+    }
+    
+    func activate()
+    {
+        mmView.widgets.insert(menuWidget, at: 0)
+    }
+    
+    func deactivate()
+    {
+        mmView.deregisterWidgets(widgets: menuWidget)
     }
      
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -133,6 +147,7 @@ class SceneGraph                : MMWidget
     {
         currentStageItem = stageItem
         currentComponent = nil
+        menuUUID = nil
         
         if let stageItem = stageItem {
             globalApp!.project.selected?.setSelected(stageItem)
@@ -141,15 +156,25 @@ class SceneGraph                : MMWidget
                 //globalApp!.currentEditor.updateOnNextDraw(compile: false)
                 currentComponent = defaultComponent
             }
+            menuUUID = stageItem.uuid
         }
         
         if let component = component {
             globalApp!.currentEditor.setComponent(component)
             globalApp!.currentEditor.updateOnNextDraw(compile: true)
             currentComponent = component
+            
+            menuUUID = component.uuid
+        }
+        
+        if let _ = menuUUID {
+            activate()
+        } else {
+            deactivate()
         }
         
         needsUpdate = true
+        mmView.update()
     }
     
     func setCurrent(component: CodeComponent? = nil)
@@ -168,50 +193,16 @@ class SceneGraph                : MMWidget
         let realX : Float = (x - rect.x - graphX) / graphZoom
         let realY : Float = (y - rect.y - graphY) / graphZoom
 
-        for item in items {
+        for (_,item) in itemMap {
             
             if item.rect.contains(realX, realY) {
                 consumed = true
                 
                 if item.itemType == .EmptyShape {
-                    
-                    // Empty Shape
-                    globalApp!.libraryDialog.show(id: "SDF" + getCurrentModeId(), cb: { (json) in
-                        if let comp = decodeComponentFromJSON(json) {
-                            let undo = globalApp!.currentEditor.undoStageItemStart("Add Shape")
-
-                            comp.uuid = UUID()
-                            comp.selected = nil
-                            comp.subComponent = nil
-
-                            globalApp!.currentEditor.setComponent(comp)
-                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                            setDefaultComponentValues(comp)
-                            
-                            if let current = self.currentStageItem {
-                                current.componentLists["shapes" + getCurrentModeId()]?.append(comp)
-                            }
-                            
-                            if comp.subComponent == nil {
-                                if let bComp = decodeComponentFromJSON(defaultBoolean) {
-                                    //CodeComponent(.Boolean)
-                                    //bComp.createDefaultFunction(.Boolean)
-                                    bComp.uuid = UUID()
-                                    bComp.selected = nil
-                                    comp.subComponent = bComp
-                                }
-                            }
-                            
-                            globalApp!.currentEditor.undoStageItemEnd(undo)
-                            
-                            self.currentComponent = comp
-                            self.needsUpdate = true
-                        }
-                    })
+                    getShape(item: item, replace: false)
                 } else {
                     setCurrent(stageItem: item.stageItem, component: item.component)
                 }
-                
                 break
             }
         }
@@ -237,6 +228,10 @@ class SceneGraph                : MMWidget
             blitEncoder.endEncoding()
         }
         
+        if let uuid = menuUUID {
+            buildMenu(uuid: uuid)
+        }
+        
         needsUpdate = false
     }
      
@@ -248,7 +243,107 @@ class SceneGraph                : MMWidget
 
         mmView.renderer.setClipRect(rect)
         mmView.drawTexture.draw(fragment.texture, x: rect.x + graphX, y: rect.y + graphY, zoom: zoom / graphZoom)
+        
+        if let uuid = menuUUID {
+            if let item = itemMap[uuid]{
+                
+                menuWidget.rect.x = rect.x + item.rect.x * graphZoom + graphX// / graphZoom
+                menuWidget.rect.y = rect.y + item.rect.y * graphZoom + graphY// / graphZoom
+                menuWidget.rect.width = 24 * graphZoom //30
+                menuWidget.rect.height = 22 * graphZoom //28
+                menuWidget.draw()
+            }
+        }
+        
         mmView.renderer.setClipRect()
+    }
+    
+    /// Replaces the shape for the given scene graph item
+    func getShape(item: SceneGraphItem, replace: Bool)
+    {
+        // Empty Shape
+        globalApp!.libraryDialog.show(id: "SDF" + getCurrentModeId(), cb: { (json) in
+            if let comp = decodeComponentFromJSON(json) {
+                let undo = globalApp!.currentEditor.undoStageItemStart(replace == false ? "Add Shape" : "Replace Shape")
+
+                comp.uuid = UUID()
+                comp.selected = nil
+
+                globalApp!.currentEditor.setComponent(comp)
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                setDefaultComponentValues(comp)
+                
+                if replace == false {
+                    // Add it
+                    comp.subComponent = nil
+                    if let current = self.currentStageItem {
+                        current.componentLists["shapes" + getCurrentModeId()]?.append(comp)
+                    }
+                } else {
+                    // Replace it
+                    comp.uuid = item.component!.uuid
+                    globalApp!.project.selected!.updateComponent(comp)
+                }
+                
+                if comp.subComponent == nil {
+                    if let bComp = decodeComponentFromJSON(defaultBoolean) {
+                        //CodeComponent(.Boolean)
+                        //bComp.createDefaultFunction(.Boolean)
+                        bComp.uuid = UUID()
+                        bComp.selected = nil
+                        comp.subComponent = bComp
+                    }
+                }
+                
+                globalApp!.currentEditor.undoStageItemEnd(undo)
+                self.setCurrent(stageItem: item.stageItem, component: comp)
+            }
+        })
+    }
+    
+    ///Build the menu
+    func buildMenu(uuid: UUID)
+    {
+        var items : [MMMenuItem] = []
+        if let item = itemMap[uuid] {
+            
+            if item.itemType == .ShapeItem {
+                
+                items.append(MMMenuItem(text: "Change", cb: { () in
+                    self.getShape(item: item, replace: true)
+                }))
+                
+                items.append(MMMenuItem(text: "Delete", cb: { () in
+                    
+                }))
+            } else
+            if item.itemType == .BooleanItem {
+                
+                items.append(MMMenuItem(text: "Change", cb: { () in
+                    globalApp!.libraryDialog.show(id: "Boolean", cb: { (json) in
+                        if let comp = decodeComponentFromJSON(json) {
+                            let undo = globalApp!.currentEditor.undoStageItemStart("Change Boolean")
+                            
+                            comp.uuid = UUID()
+                            comp.selected = nil
+                            globalApp!.currentEditor.setComponent(comp)
+                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            
+                            if let parent = item.parentComponent {
+                                parent.subComponent = comp
+                                globalApp!.project.selected!.updateComponent(parent)
+                            }
+                                                        
+                            globalApp!.currentEditor.undoStageItemEnd(undo)
+                            self.setCurrent(stageItem: item.stageItem, component: comp)
+                        }
+                    })
+                }))
+
+            }
+        }
+        
+        menuWidget.setItems(items)
     }
     
     /// Increases the scene graph rect by the given rect if necessary
@@ -285,14 +380,14 @@ class SceneGraph                : MMWidget
     func parse(scene: Scene, draw: Bool = true)
     {
         graphRect.clear()
-        items = []
+        itemMap = [:]
         let skin : SceneGraphSkin = SceneGraphSkin(mmView.openSans)
         
         let stage = scene.getStage(.ShapeStage)
         let objects = stage.getChildren()
         for o in objects {
-            var x = o.values["graphX"]!
-            var y = o.values["graphY"]!
+            var x = o.values["_graphX"]!
+            var y = o.values["_graphY"]!
             
             skin.font.getTextRect(text: o.name, scale: skin.fontScale, rectToUse: skin.tempRect)
 
@@ -304,7 +399,7 @@ class SceneGraph                : MMWidget
             
             let item = SceneGraphItem(.StageItem, stageItem: o)
             item.rect.set(x + drawXOffset(), y + drawYOffset(), radius, radius)
-            items.append(item)
+            itemMap[o.uuid] = item
             
             if draw {
                 mmView.drawSphere.draw(x: x + drawXOffset(), y: y + drawYOffset(), radius: radius / zoom, borderSize: 2, fillColor: o === currentStageItem ? skin.normalBorderColor : skin.normalInteriorColor, borderColor: skin.normalBorderColor, fragment: fragment)
@@ -353,7 +448,7 @@ class SceneGraph                : MMWidget
                 
                     let item = SceneGraphItem(.ShapeItem, stageItem: stageItem, component: comp)
                     item.rect.set(x + drawXOffset(), y + top + drawYOffset(), totalWidth, itemSize)
-                    items.append(item)
+                    itemMap[comp.uuid] = item
                     
                     if comp === currentComponent {
                         mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: totalWidth, height: itemSize, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: skin.normalBorderColor, fragment: fragment)
@@ -365,10 +460,10 @@ class SceneGraph                : MMWidget
                 
                     top += itemSize
                     if let sub = comp.subComponent, index < list.count - 1 {
-                        let subItem = SceneGraphItem(.BooleanItem, stageItem: stageItem, component: sub)
+                        let subItem = SceneGraphItem(.BooleanItem, stageItem: stageItem, component: sub, parentComponent: comp)
                         subItem.rect.set(x + drawXOffset(), y + top + drawYOffset(), totalWidth, spacing)
-                        items.append(subItem)
-                        
+                        itemMap[sub.uuid] = subItem
+
                         if sub === currentComponent {
                             mmView.drawBox.draw( x: subItem.rect.x, y: subItem.rect.y, width: totalWidth, height: spacing, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: skin.normalBorderColor, fragment: fragment)
                         }
@@ -385,7 +480,7 @@ class SceneGraph                : MMWidget
 //                }
                 let item = SceneGraphItem(.EmptyShape, stageItem: stageItem)
                 item.rect.set(x + drawXOffset() + (totalWidth - itemSize) / 2, y + drawYOffset() + top, itemSize, itemSize)
-                items.append(item)
+                itemMap[UUID()] = item
                 
                 mmView.drawBox.draw(x: item.rect.x, y: item.rect.y, width: itemSize, height: itemSize, round: 0, borderSize: 2, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor, fragment: fragment)
             }

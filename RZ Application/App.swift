@@ -96,6 +96,7 @@ class App
         //_ = shapeStage.createChild("2D Object")
         //project.scenes[0].setSelected(selected)
         sceneGraph.setCurrent(stageItem: selected)
+        sceneGraph.activate()
 
         sceneList.setScene(project.selected!)
 
