@@ -66,8 +66,8 @@ class DeveloperEditor   : Editor
     override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Top {
-            //region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: globalApp!.topRegion!.libraryButton)
-            //globalApp!.topRegion!.libraryButton.draw()
+            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: globalApp!.topRegion!.graphButton)
+            globalApp!.topRegion!.graphButton.draw()
         } else
         if region.type == .Left {
             codeList.sceneList.rect.copy(region.rect)
@@ -86,10 +86,10 @@ class DeveloperEditor   : Editor
             codeEditor.draw()
         } else
         if region.type == .Right {
-            if globalApp!.context.currentWidth > 0 {
+            if globalApp!.sceneGraph.currentWidth > 0 {
                 region.rect.x = globalApp!.mmView.renderer.cWidth - region.rect.width
-                globalApp!.context.rect.copy(region.rect)
-                globalApp!.context.draw()
+                globalApp!.sceneGraph.rect.copy(region.rect)
+                globalApp!.sceneGraph.draw()
             }
         } else
         if region.type == .Bottom {

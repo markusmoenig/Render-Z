@@ -489,7 +489,7 @@ class Project               : Codable, Equatable
     var selectedUUID        : UUID? = nil
     var selected            : Scene? = nil
     
-    var graphIsActive       : Bool = true
+    var graphIsActive       : Bool = false
    
     private enum CodingKeys: String, CodingKey {
         case name

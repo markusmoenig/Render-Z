@@ -51,6 +51,13 @@ class SceneGraphItem {
 
 class SceneGraph                : MMWidget
 {
+    enum SceneGraphState {
+        case Closed, Open
+    }
+    
+    var sceneGraphState         : SceneGraphState = .Closed
+    var animating               : Bool = false
+
     var fragment                : MMFragment
     
     var textureWidget           : MMTextureWidget
@@ -72,6 +79,9 @@ class SceneGraph                : MMWidget
     
     var menuWidget              : MMMenuWidget
     var menuUUID                : UUID? = nil
+    
+    var currentWidth            : Float = 0
+    var openWidth               : Float = 400
 
     //var map             : [MMRe]
     
@@ -104,8 +114,8 @@ class SceneGraph                : MMWidget
     {
         #if os(iOS)
         // If there is a selected shape, don't scroll
-        xGraph -= event.deltaX! * 2
-        yGraph -= event.deltaY! * 2
+        graphX -= event.deltaX! * 2
+        graphY -= event.deltaY! * 2
         #elseif os(OSX)
         if mmView.commandIsDown && event.deltaY! != 0 {
             graphZoom += event.deltaY! * 0.003
@@ -186,17 +196,19 @@ class SceneGraph                : MMWidget
         }
     }
     
-    func clickAt(x: Float, y: Float) -> Bool
+    override func mouseDown(_ event: MMMouseEvent)
     {
-        var consumed : Bool = false
-        
+        globalApp!.sceneGraph.clickAt(x: event.x, y: event.y)
+    }
+    
+    func clickAt(x: Float, y: Float)
+    {
         let realX : Float = (x - rect.x - graphX) / graphZoom
         let realY : Float = (y - rect.y - graphY) / graphZoom
 
         for (_,item) in itemMap {
             
             if item.rect.contains(realX, realY) {
-                consumed = true
                 
                 if item.itemType == .EmptyShape {
                     getShape(item: item, replace: false)
@@ -206,8 +218,42 @@ class SceneGraph                : MMWidget
                 break
             }
         }
+    }
+    
+    /// Switches between open and close states
+    func switchState() {
+        if animating { return }
+        let rightRegion = globalApp!.rightRegion!
         
-        return consumed
+        if sceneGraphState == .Open {
+            globalApp!.mmView.startAnimate( startValue: rightRegion.rect.width, endValue: 0, duration: 500, cb: { (value,finished) in
+                self.currentWidth = value
+                if finished {
+                    self.animating = false
+                    self.sceneGraphState = .Closed
+                    
+                    self.mmView.deregisterWidget(self)
+                    self.deactivate()
+                    globalApp!.topRegion?.graphButton.removeState(.Checked)
+                }
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+            } )
+            animating = true
+        } else if rightRegion.rect.height != openWidth {
+            
+            globalApp!.mmView.startAnimate( startValue: rightRegion.rect.width, endValue: openWidth, duration: 500, cb: { (value,finished) in
+                if finished {
+                    self.animating = false
+                    self.sceneGraphState = .Open
+                    self.activate()
+                    self.mmView.registerWidget(self)
+                    globalApp!.topRegion?.graphButton.addState(.Checked)
+                }
+                self.currentWidth = value
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+            } )
+            animating = true
+        }
     }
      
     override func update()
@@ -241,6 +287,8 @@ class SceneGraph                : MMWidget
             update()
         }
 
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
+        
         mmView.renderer.setClipRect(rect)
         mmView.drawTexture.draw(fragment.texture, x: rect.x + graphX, y: rect.y + graphY, zoom: zoom / graphZoom)
         

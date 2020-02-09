@@ -203,18 +203,8 @@ class TopRegion: MMRegion
 
         graphButton = MMButtonWidget( mmView, text: "Scene Graph" )
         graphButton.clicked = { (event) -> Void in
-            if globalApp!.project.graphIsActive {
-                globalApp!.project.graphIsActive = false
-                self.graphButton.removeState(.Checked)
-                globalApp!.sceneGraph.deactivate()
-            } else {
-                globalApp!.project.graphIsActive = true
-                self.graphButton.addState(.Checked)
-                globalApp!.sceneGraph.setCurrent(stageItem: globalApp!.sceneGraph.currentStageItem, component: globalApp!.sceneGraph.currentComponent)
-            }
-            self.mmView.update()
+            globalApp!.sceneGraph.switchState()
         }
-        graphButton.addState(.Checked)
 
         layoutH(startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
         layoutH(startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton)
@@ -259,9 +249,8 @@ class TopRegion: MMRegion
         helpButton.draw()
         playButton.draw()
         
-        layoutH( startX: 3, startY: 4 + 44, spacing: 50, widgets: tabButton, graphButton)
+        layoutH( startX: 3, startY: 4 + 44, spacing: 50, widgets: tabButton)
         tabButton.draw()
-        graphButton.draw()
 
         #if os(OSX)
         mmView.window!.isDocumentEdited = !undoButton.isDisabled

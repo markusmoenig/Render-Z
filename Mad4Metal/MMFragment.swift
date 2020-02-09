@@ -124,7 +124,6 @@ class MMFragment {
         
         textureDescriptor.usage = MTLTextureUsage.unknown;
 
-        
         if mipMaps {
             let heightLevels = ceil(log2(height));
             let widthLevels = ceil(log2(width));
