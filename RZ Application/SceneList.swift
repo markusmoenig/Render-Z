@@ -147,13 +147,6 @@ class SceneList : MMWidget
             let changed = treeWidget.selectAt(event.x - rect.x, (event.y - rect.y))
             if changed {
                 treeWidget.build(scene: globalApp!.project.scenes[0], fixedWidth: SceneList.openWidth)
-                
-                if let scene = currentScene {
-                    if scene.getSelectedUUID() == nil {
-                        globalApp!.context.setSelected(nil)
-                    }
-                }
-                
                 infoItems = []
                 
                 if let stage = treeWidget.infoAreaStage {
@@ -200,11 +193,11 @@ class SceneList : MMWidget
                     if stage.stageType == .RenderStage {
                         infoItems = [
                             SceneInfoItem(mmView, "Select from Library", { () in
-                                if let scene = self.currentScene {
-                                    globalApp!.context.setSelected(scene.getStage(.RenderStage).getChildren()[0])
-                                    globalApp!.libraryDialog.setType(globalApp!.context.libraryId, globalApp!.context.currentItem!)
-                                    self.mmView.showDialog(globalApp!.libraryDialog)
-                                }
+                                //if let scene = self.currentScene {
+                                    //globalApp!.context.setSelected(scene.getStage(.RenderStage).getChildren()[0])
+                                    //globalApp!.libraryDialog.setType(globalApp!.context.libraryId, globalApp!.context.currentItem!)
+                                    //self.mmView.showDialog(globalApp!.libraryDialog)
+                                //}
                             })
                         ]
                     }
@@ -217,18 +210,18 @@ class SceneList : MMWidget
                             if comp.componentType == .Camera2D {
                                 infoItems = [
                                     SceneInfoItem(mmView, "Change", { () in
-                                        globalApp!.context.setSelected(stageItem)
-                                        globalApp!.libraryDialog.setType(globalApp!.context.libraryId, globalApp!.context.currentItem!)
-                                        self.mmView.showDialog(globalApp!.libraryDialog)
+                                        //globalApp!.context.setSelected(stageItem)
+                                        //globalApp!.libraryDialog.setType(globalApp!.context.libraryId, globalApp!.context.currentItem!)
+                                        //self.mmView.showDialog(globalApp!.libraryDialog)
                                     })
                                 ]
                             } else
                             if comp.componentType == .Camera3D {
                                 infoItems = [
                                     SceneInfoItem(mmView, "Change", { () in
-                                        globalApp!.context.setSelected(stageItem)
-                                        globalApp!.libraryDialog.setType(globalApp!.context.libraryId, globalApp!.context.currentItem!)
-                                        self.mmView.showDialog(globalApp!.libraryDialog)
+                                        //globalApp!.context.setSelected(stageItem)
+                                        //globalApp!.libraryDialog.setType(globalApp!.context.libraryId, globalApp!.context.currentItem!)
+                                        //self.mmView.showDialog(globalApp!.libraryDialog)
                                     })
                                 ]
                             }

@@ -43,7 +43,6 @@ class App
     let publicDatabase  : CKDatabase
 
     let libraryDialog   : LibraryDialog
-    let context         : ContextWidget
 
     var project         : Project
     var currentSceneMode: Scene.SceneMode = .TwoD
@@ -74,7 +73,6 @@ class App
         publicDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase
         
         libraryDialog = LibraryDialog(mmView)
-        context = ContextWidget(mmView)
 
         topRegion = TopRegion( mmView, app: self )
         leftRegion = LeftRegion( mmView, app: self )
@@ -238,7 +236,7 @@ class Editor
     func undoStageItemStart(_ name: String) -> StageItemUndo
     {
         let undo = StageItemUndo(name)
-        if let current = globalApp!.context.selectedItem {
+        if let current = globalApp!.sceneGraph.currentStageItem {
             let encodedData = try? JSONEncoder().encode(current)
             if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
                 undo.originalData = encodedObjectJsonString
@@ -252,7 +250,7 @@ class Editor
     
     func undoStageItemEnd(_ undoComponent: StageItemUndo)
     {
-        if let current = globalApp!.context.selectedItem {
+        if let current = globalApp!.sceneGraph.currentStageItem {
             let encodedData = try? JSONEncoder().encode(current)
             if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
                 undoComponent.processedData = encodedObjectJsonString

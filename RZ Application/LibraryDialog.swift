@@ -65,7 +65,6 @@ class LibraryDialog: MMDialog {
     var dispatched      : Bool = false
     
     var currentType     : String = ""
-    var contextItem     : ContextItem? = nil
     
     var _cb             : ((String)->())? = nil
 
@@ -129,21 +128,6 @@ class LibraryDialog: MMDialog {
         }
     }
     
-    func setType(_ id: String,_ contextItem: ContextItem)
-    {
-        style = .List
-
-        if id.starts(with: "SDF") {
-            style = .Icon
-        }
-        currentItems = itemMap[id]
-        
-        if currentItems != nil && currentItems!.count > 0 {
-            selectedItem = currentItems![0]
-        }
-        self.contextItem = contextItem
-    }
-    
     func show(id: String, cb: @escaping (String)->())
     {
         style = .List
@@ -168,7 +152,7 @@ class LibraryDialog: MMDialog {
         if currentItems != nil && currentItems!.count > 0 {
             selectedItem = currentItems![0]
         }
-        contextItem = nil
+        //contextItem = nil
     }
     
     override func cancel() {
