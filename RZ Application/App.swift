@@ -85,13 +85,9 @@ class App
                 
         globalApp = self
         
-        let backStage = project.selected!.getStage(.PreStage)
-        //let shapeStage = project.selected!.stages[1]
-        let selected = backStage.getChildren()[0]
-        //_ = shapeStage.createChild("2D Object")
-        //project.scenes[0].setSelected(selected)
-        sceneGraph.setCurrent(stageItem: selected)
-        //sceneGraph.activate()
+        let preStage = project.selected!.getStage(.PreStage)
+        let selected = preStage.getChildren()[0]
+        sceneGraph.setCurrent(stage: preStage, stageItem: selected)
 
         currentEditor.activate()
     }
@@ -155,10 +151,10 @@ class App
             
             if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
                 project.selected!.updateStageItem(stageItem)
-                if let selected = project.selected!.getSelected() {
+                //if let selected = project.selected!.getSelected() {
                     //project.selected!.setSelected(selected)
-                    sceneGraph.setCurrent(stageItem: selected)
-                }
+                    // TODO get stage sceneGraph.setCurrent(stageItem: selected)
+                //}
             }
         }
     }

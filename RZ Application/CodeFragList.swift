@@ -73,6 +73,7 @@ class CodeFragList : MMWidget
     var selectedItem        : FragItem? = nil
     
     var dragSource          : SourceListDrag?
+    var buildIt             : Bool = true
     
     static var openWidth    : Float = 120
         
@@ -187,6 +188,12 @@ class CodeFragList : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
+        if buildIt {
+            selectItem(items[0])
+            listWidget.build(items: selectedItem!.items, fixedWidth: CodeFragList.openWidth)
+            buildIt = false
+        }
+
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
         
         let lineHeight = font.getLineHeight(fontScale)
@@ -225,10 +232,6 @@ class CodeFragList : MMWidget
         listWidget.rect.height = rect.height - 140
         
         listWidget.draw(xOffset: globalApp!.leftRegion!.rect.width - CodeFragList.openWidth)
-        
-        if selectedItem == nil {
-            selectItem(items[0])
-        }
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -317,7 +320,7 @@ class CodeFragList : MMWidget
             item.color = item.codeFragment!.fragmentType == .Primitive ? mmView.skin.Code.name : mmView.skin.Code.reserved
         }
         
-        listWidget.build(items: item.items, fixedWidth: SceneList.openWidth)
+        listWidget.build(items: item.items, fixedWidth: CodeFragList.openWidth)
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)

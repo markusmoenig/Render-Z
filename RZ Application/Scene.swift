@@ -180,12 +180,18 @@ class Stage                 : Codable, Equatable
         self.stageType = stageType
         self.name = name
         
+        values["_graphX"] = 0
+        values["_graphY"] = 0
+        
         if stageType == .PreStage {
             var item = StageItem(.PreStage, "Background")
             var codeComponent = CodeComponent(.Colorize)
             codeComponent.createDefaultFunction(.Colorize)
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
+            
+            item.values["_graphX"] = 100
+            item.values["_graphY"] = -50
             
             item = StageItem(.PreStage, "Camera")
             //codeComponent = CodeComponent(.Camera2D)
@@ -194,6 +200,9 @@ class Stage                 : Codable, Equatable
             codeComponent.selected = nil
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
+            
+            item.values["_graphX"] = 130
+            item.values["_graphY"] = 70
             
             item = StageItem(.PreStage, "Sky Dome")
             codeComponent = CodeComponent(.SkyDome)
@@ -222,8 +231,6 @@ class Stage                 : Codable, Equatable
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
         }
-        
-        if let app = globalApp { app.sceneGraph.needsUpdate = true }
     }
     
     /// Returns the 2D or 3D children depending on the current scene mode

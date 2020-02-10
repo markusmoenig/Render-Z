@@ -499,8 +499,6 @@
 		2B9B29EC23BB45CA00C2F387 /* CodeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */; };
 		2B9B29ED23BB45CA00C2F387 /* CodeSemantics.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */; };
 		2B9B29EE23BB45CA00C2F387 /* CodeFragList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */; };
-		2B9B29F023BC2F0900C2F387 /* SceneList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */; };
-		2B9B29F123BC2F0900C2F387 /* SceneList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */; };
 		2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B29F523BF1DD700C2F387 /* Dialogs.swift */; };
 		2B9B29F723BF1DDC00C2F387 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9B29F523BF1DD700C2F387 /* Dialogs.swift */; };
 		2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B9F42F023B9CB2800885B40 /* CodeProperties.swift */; };
@@ -1740,7 +1738,6 @@
 				2B7A3C1E23B46546002EC5FC /* MMAnimate.swift in Sources */,
 				2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */,
 				2B65083323D69922003DE093 /* CodeSDFStream.swift in Sources */,
-				2B9B29F023BC2F0900C2F387 /* SceneList.swift in Sources */,
 				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
@@ -1995,7 +1992,6 @@
 				2B65083423D69922003DE093 /* CodeSDFStream.swift in Sources */,
 				2B9B29D523BB453400C2F387 /* MMAnimate.swift in Sources */,
 				2BD291BB23D43AB2006F66BC /* Base.swift in Sources */,
-				2B9B29F123BC2F0900C2F387 /* SceneList.swift in Sources */,
 				2B9B29E523BB45C000C2F387 /* BottomRegion.swift in Sources */,
 				2B65083723D6F182003DE093 /* Thumbnail.swift in Sources */,
 				2BD291B823D435B6006F66BC /* Combo2D.metal in Sources */,
