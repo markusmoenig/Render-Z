@@ -10,16 +10,16 @@ import Foundation
 
 class DeveloperEditor   : Editor
 {
-    let codeList        : CodeList
+    let codeList        : CodeFragList
     let mmView          : MMView!
     
     let codeEditor      : CodeEditor
     var codeProperties  : CodeProperties
 
-    required init(_ view: MMView,_ sceneList: SceneList)
+    required init(_ view: MMView)
     {
         mmView = view
-        codeList = CodeList(view, sceneList)
+        codeList = CodeFragList(view)
         codeEditor = CodeEditor(view)
         codeProperties = CodeProperties(view)
         
@@ -31,13 +31,13 @@ class DeveloperEditor   : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: codeList.sceneList, codeList.fragList, codeEditor, codeProperties)
+        mmView.registerWidgets(widgets: codeList, codeEditor, codeProperties)
     }
     
     override func deactivate()
     {
         codeProperties.clear()
-        mmView.deregisterWidgets(widgets: codeList.sceneList, codeList.fragList, codeEditor, codeProperties)
+        mmView.deregisterWidgets(widgets: codeList, codeEditor, codeProperties)
     }
     
     override func setComponent(_ component: CodeComponent)
@@ -70,15 +70,8 @@ class DeveloperEditor   : Editor
             globalApp!.topRegion!.graphButton.draw()
         } else
         if region.type == .Left {
-            codeList.sceneList.rect.copy(region.rect)
-            codeList.sceneList.rect.height /= 2
-            codeList.sceneList.rect.height += SceneList.InfoHeight
-            codeList.draw()
-            codeList.fragList.rect.copy(region.rect)
-            codeList.fragList.rect.y += codeList.sceneList.rect.height + 1
-            codeList.fragList.rect.height /= 2
-            codeList.fragList.rect.height -= SceneList.InfoHeight
-            codeList.fragList.rect.height -= 1
+            region.rect.width = CodeFragList.openWidth
+            codeList.rect.copy(region.rect)
             codeList.draw()
         } else
         if region.type == .Editor {

@@ -16,8 +16,6 @@ class LeftRegion: MMRegion
     {
         self.app = app
         super.init( view, type: .Left )
-        
-        rect.width = SceneList.openWidth
     }
 
     override func build()

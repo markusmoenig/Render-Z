@@ -27,8 +27,6 @@ class App
     var pipeline        : Pipeline
     var thumbnail       : Thumbnail
 
-    var sceneList       : SceneList
-
     var artistEditor    : ArtistEditor
     var developerEditor : DeveloperEditor
     var sceneGraph      : SceneGraph
@@ -59,9 +57,8 @@ class App
         mmView.registerIcon("rz_toolbar")
         sceneGraph = SceneGraph(mmView)
 
-        sceneList = SceneList(mmView)
-        artistEditor = ArtistEditor(mmView, sceneList)
-        developerEditor = DeveloperEditor(mmView, sceneList)
+        artistEditor = ArtistEditor(mmView)
+        developerEditor = DeveloperEditor(mmView)
         codeBuilder = CodeBuilder(mmView)
         pipeline = Pipeline(mmView)
         thumbnail = Thumbnail(mmView)
@@ -96,8 +93,6 @@ class App
         sceneGraph.setCurrent(stageItem: selected)
         //sceneGraph.activate()
 
-        sceneList.setScene(project.selected!)
-
         currentEditor.activate()
     }
     
@@ -118,7 +113,6 @@ class App
             if let project =  try? JSONDecoder().decode(Project.self, from: jsonData) {
                 //currentEditor.setComponent(component)
                 self.project = project
-                self.sceneList.setScene(self.project.selected!)
                 self.mmView.update()
             }
         }
@@ -140,7 +134,6 @@ class App
             
             if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
                 project.selected!.updateComponent(component)
-                self.sceneList.setScene(self.project.selected!)
                 currentEditor.setComponent(component)
             }
         }
@@ -162,7 +155,6 @@ class App
             
             if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
                 project.selected!.updateStageItem(stageItem)
-                sceneList.setScene(self.project.selected!)
                 if let selected = project.selected!.getSelected() {
                     //project.selected!.setSelected(selected)
                     sceneGraph.setCurrent(stageItem: selected)

@@ -22,23 +22,18 @@ class ArtistEditor          : Editor
     
     let designEditor        : DesignEditor
     var designProperties    : DesignProperties
-    var designContext       : DesignContext
 
     var timelineButton      : MMButtonWidget
     var timeline            : MMTimeline
 
-    var sceneList           : SceneList
-
     var bottomHeight        : Float = 0
 
-    required init(_ view: MMView,_ sceneList: SceneList)
+    required init(_ view: MMView)
     {
         mmView = view
-        self.sceneList = sceneList
 
         designEditor = DesignEditor(view)
         designProperties = DesignProperties(view)
-        designContext = DesignContext(view)
 
         timelineButton = MMButtonWidget( view, text: "Timeline" )
         timeline = MMTimeline(view)
@@ -60,7 +55,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: sceneList, designEditor, designContext, timelineButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -69,7 +64,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: sceneList, designEditor, designContext, timelineButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -102,13 +97,7 @@ class ArtistEditor          : Editor
             globalApp!.topRegion!.graphButton.draw()
         } else
         if region.type == .Left {
-            sceneList.rect.copy(region.rect)
-            sceneList.rect.height -= region.rect.height / 3
-            sceneList.draw()
-            designContext.rect.copy(region.rect)
-            designContext.rect.y = sceneList.rect.bottom() + 1
-            designContext.rect.height = region.rect.height / 3 - 1
-            designContext.draw()
+            region.rect.width = 0
         } else
         if region.type == .Right {
             if globalApp!.sceneGraph.currentWidth > 0 {

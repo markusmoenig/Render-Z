@@ -73,6 +73,8 @@ class CodeFragList : MMWidget
     var selectedItem        : FragItem? = nil
     
     var dragSource          : SourceListDrag?
+    
+    static var openWidth    : Float = 120
         
     override init(_ view: MMView)
     {
@@ -103,14 +105,14 @@ class CodeFragList : MMWidget
         item.items.append( SourceListItem("cos", CodeFragment(.Primitive, "float", "cos", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         item.items.append( SourceListItem("cross", CodeFragment(.Primitive, "float", "cross", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "input" ) ) )
         
-        item = FragItem("DE")
+        item = FragItem("D")
         items.append(item)
         item.items.append( SourceListItem("degrees", CodeFragment(.Primitive, "float", "degrees", [.Selectable, .Dragable, .Targetable], ["float"], "float" ) ) )
         item.items.append( SourceListItem("distance", CodeFragment(.Primitive, "float", "distance", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "float" ) ) )
         item.items.append( SourceListItem("dot", CodeFragment(.Primitive, "float", "dot", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "input" ) ) )
 
-        //item = FragItem("E")
-        //items.append(item)
+        item = FragItem("E")
+        items.append(item)
         item.items.append( SourceListItem("exp", CodeFragment(.Primitive, "float", "exp", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         item.items.append( SourceListItem("exp2", CodeFragment(.Primitive, "float", "exp2", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         
@@ -129,15 +131,15 @@ class CodeFragList : MMWidget
         items.append(item)
         item.items.append( SourceListItem("GlobalTime", CodeFragment(.Primitive, "float", "GlobalTime", [.Selectable, .Dragable, .Targetable], nil, "float" ) ) )
         
-        item = FragItem("IL")
+        item = FragItem("I")
         items.append(item)
         item.items.append( SourceListItem("if (...)", CodeFragment(.Primitive, "block", "if")))
         item.items.append( SourceListItem("if (...) else ", CodeFragment(.Primitive, "block", "if else")))
         item.items.append( SourceListItem("int", CodeFragment(.VariableDefinition, "int", "", [.Selectable, .Dragable, .Monitorable], ["int"], "int" ) ) )
         //?? item.items.append( SourceListItem("inversesqrt", CodeFragment(.Primitive, "float", "inversesqrt", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         
-        //item = FragItem("L")
-        //items.append(item)
+        item = FragItem("L")
+        items.append(item)
         item.items.append( SourceListItem("length", CodeFragment(.Primitive, "float", "length", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4"], "float" ) ) )
         item.items.append( SourceListItem("log", CodeFragment(.Primitive, "float", "log", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         item.items.append( SourceListItem("log2", CodeFragment(.Primitive, "float", "log2", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
@@ -153,20 +155,26 @@ class CodeFragList : MMWidget
         items.append(item)
         item.items.append( SourceListItem("normalize", CodeFragment(.Primitive, "float", "normalize", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4"], "input0" ) ) )
         
-        item = FragItem("PR")
+        item = FragItem("P")
         items.append(item)
         item.items.append( SourceListItem("pow", CodeFragment(.Primitive, "float", "pow", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4"], "input0" ) ) )
+        
+        item = FragItem("R")
+        items.append(item)
         item.items.append( SourceListItem("radians", CodeFragment(.Primitive, "float", "radians", [.Selectable, .Dragable, .Targetable], ["float"], "float" ) ) )
         item.items.append( SourceListItem("reflect", CodeFragment(.Primitive, "float", "reflect", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "input0"  ) ) )
         item.items.append( SourceListItem("refract", CodeFragment(.Primitive, "float", "refract", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4", "float"], "input0"  ) ) )
         
-        item = FragItem("ST")
+        item = FragItem("S")
         items.append(item)
         item.items.append( SourceListItem("sign", CodeFragment(.Primitive, "float", "sign", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         item.items.append( SourceListItem("sin", CodeFragment(.Primitive, "float", "sin", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         item.items.append( SourceListItem("smoothstep", CodeFragment(.Primitive, "float", "smoothstep", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4", "float"], "input0"  ) ) )
         item.items.append( SourceListItem("sqrt", CodeFragment(.Primitive, "float", "sqrt", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         item.items.append( SourceListItem("step", CodeFragment(.Primitive, "float", "step", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4"], "input0"  ) ) )
+        
+        item = FragItem("T")
+        items.append(item)
         item.items.append( SourceListItem("tan", CodeFragment(.Primitive, "float", "tan", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         
         item = FragItem("U")
@@ -185,7 +193,7 @@ class CodeFragList : MMWidget
         let radius : Float = lineHeight * 0.75
         
         var cX : Float = 15
-        var cY : Float = rect.y + rect.height - 65
+        var cY : Float = rect.y + rect.height - 140
         
         let tempRect = MMRect()
         
@@ -203,7 +211,7 @@ class CodeFragList : MMWidget
                 mmView.drawSphere.draw( x: item.rect.x - radius / 2, y: item.rect.y - radius / 2, radius: radius, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
             }
             
-            if index > 0 && index % 5 == 0 {
+            if (index+1) % 4 == 0 {
                 cX = 15
                 cY += lineHeight * 1.7
             } else {
@@ -214,9 +222,9 @@ class CodeFragList : MMWidget
         listWidget.rect.x = rect.x
         listWidget.rect.y = rect.y
         listWidget.rect.width = rect.width
-        listWidget.rect.height = rect.height - 70
+        listWidget.rect.height = rect.height - 140
         
-        listWidget.draw(xOffset: globalApp!.leftRegion!.rect.width - SceneList.openWidth)
+        listWidget.draw(xOffset: globalApp!.leftRegion!.rect.width - CodeFragList.openWidth)
         
         if selectedItem == nil {
             selectItem(items[0])
@@ -232,7 +240,7 @@ class CodeFragList : MMWidget
             let changed = listWidget.selectAt(event.x - rect.x, (event.y - rect.y), items: selectedItem!.items)
             if changed {
                 
-                listWidget.build(items: selectedItem!.items, fixedWidth: SceneList.openWidth)
+                listWidget.build(items: selectedItem!.items, fixedWidth: CodeFragList.openWidth)
               //  mmView.update()
             }
             return

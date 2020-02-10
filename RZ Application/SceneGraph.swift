@@ -77,19 +77,24 @@ class SceneGraph                : MMWidget
     var currentStageItem        : StageItem? = nil
     var currentComponent        : CodeComponent? = nil
     
-    var menuWidget              : MMMenuWidget
-    var menuUUID                : UUID? = nil
+    var currentUUID             : UUID? = nil
     
     var currentWidth            : Float = 0
-    var openWidth               : Float = 400
+    var openWidth               : Float = 300
 
+    var toolBarWidgets          : [MMWidget] = []
+
+    var addMenuWidget           : MMMenuWidget
+    
     //var map             : [MMRe]
     
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .Vertical)
-        menuWidget = MMMenuWidget(view)
-
+        
+        addMenuWidget = MMMenuWidget(view, type: .LabelMenu)
+        addMenuWidget.setText("Add", 0.45)
+        
         fragment = MMFragment(view)
         fragment.allocateTexture(width: 10, height: 10)
         textureWidget = MMTextureWidget( view, texture: fragment.texture )
@@ -98,16 +103,36 @@ class SceneGraph                : MMWidget
         
         zoom = view.scaleFactor
         textureWidget.zoom = zoom
+
+        addMenuWidget.setItems([
+            MMMenuItem(text: "Object", cb: { () in
+                getStringDialog(view: self.mmView, title: "New Object", message: "Object name", defaultValue: "New Object", cb: { (value) -> Void in
+                    if let scene = globalApp!.project.selected {
+                        
+                        let shapeStage = scene.getStage(.ShapeStage)
+                        let shape = shapeStage.createChild(value)
+
+                        globalApp!.sceneGraph.setCurrent(stageItem: shape)
+                    }
+                } )
+            })
+        ])
     }
     
     func activate()
     {
-        mmView.widgets.insert(menuWidget, at: 0)
+        for w in toolBarWidgets {
+            mmView.widgets.insert(w, at: 0)
+        }
+        mmView.widgets.insert(addMenuWidget, at: 0)
     }
     
     func deactivate()
     {
-        mmView.deregisterWidgets(widgets: menuWidget)
+        for w in toolBarWidgets {
+            mmView.deregisterWidget(w)
+        }
+        mmView.deregisterWidget(addMenuWidget)
     }
      
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -157,7 +182,7 @@ class SceneGraph                : MMWidget
     {
         currentStageItem = stageItem
         currentComponent = nil
-        menuUUID = nil
+        currentUUID = nil
         
         if let stageItem = stageItem {
             globalApp!.project.selected?.setSelected(stageItem)
@@ -166,7 +191,7 @@ class SceneGraph                : MMWidget
                 //globalApp!.currentEditor.updateOnNextDraw(compile: false)
                 currentComponent = defaultComponent
             }
-            menuUUID = stageItem.uuid
+            currentUUID = stageItem.uuid
         }
         
         if let component = component {
@@ -174,14 +199,15 @@ class SceneGraph                : MMWidget
             globalApp!.currentEditor.updateOnNextDraw(compile: true)
             currentComponent = component
             
-            menuUUID = component.uuid
+            currentUUID = component.uuid
         }
         
+        /*
         if let _ = menuUUID {
             activate()
         } else {
             deactivate()
-        }
+        }*/
         
         needsUpdate = true
         mmView.update()
@@ -274,9 +300,7 @@ class SceneGraph                : MMWidget
             blitEncoder.endEncoding()
         }
         
-        if let uuid = menuUUID {
-            buildMenu(uuid: uuid)
-        }
+        buildToolbar(uuid: currentUUID)
         
         needsUpdate = false
     }
@@ -287,22 +311,24 @@ class SceneGraph                : MMWidget
             update()
         }
 
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1), borderColor: SIMD4<Float>( 0, 0, 0, 1 ) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1))
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, fillColor : SIMD4<Float>(0.165, 0.169, 0.173, 1.000) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: 1, round: 0, fillColor : SIMD4<Float>(0, 0, 0, 1) )
         
-        mmView.renderer.setClipRect(rect)
-        mmView.drawTexture.draw(fragment.texture, x: rect.x + graphX, y: rect.y + graphY, zoom: zoom / graphZoom)
-        
-        if let uuid = menuUUID {
-            if let item = itemMap[uuid]{
-                
-                menuWidget.rect.x = rect.x + item.rect.x * graphZoom + graphX// / graphZoom
-                menuWidget.rect.y = rect.y + item.rect.y * graphZoom + graphY// / graphZoom
-                menuWidget.rect.width = 24 * graphZoom //30
-                menuWidget.rect.height = 22 * graphZoom //28
-                menuWidget.draw()
-            }
+        var left: Float = 5
+        for w in toolBarWidgets {
+            w.rect.x = rect.x + left
+            w.rect.y = rect.y + 4
+            w.draw()
+            left += w.rect.width
         }
         
+        addMenuWidget.rect.x = rect.right() - addMenuWidget.rect.width - 5
+        addMenuWidget.rect.y = rect.y + 4
+        addMenuWidget.draw()
+        
+        mmView.renderer.setClipRect(MMRect(rect.x, rect.y + 30, rect.width, rect.height - 30))
+        mmView.drawTexture.draw(fragment.texture, x: rect.x + graphX, y: rect.y + graphY, zoom: zoom / graphZoom)
         mmView.renderer.setClipRect()
     }
     
@@ -350,8 +376,13 @@ class SceneGraph                : MMWidget
     }
     
     ///Build the menu
-    func buildMenu(uuid: UUID)
+    func buildToolbar(uuid: UUID?)
     {
+        deactivate()
+        toolBarWidgets = []
+        activate()
+
+        /*
         var items : [MMMenuItem] = []
         if let item = itemMap[uuid] {
             
@@ -392,6 +423,7 @@ class SceneGraph                : MMWidget
         }
         
         menuWidget.setItems(items)
+        */
     }
     
     /// Increases the scene graph rect by the given rect if necessary
