@@ -104,7 +104,7 @@ class MMTabButtonWidget: MMWidget
         }
     }
     
-    func draw(xOffset: Float = 0)
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         if items.count == 0 { return }
                 

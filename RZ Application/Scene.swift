@@ -24,6 +24,8 @@ class StageItem             : Codable, Equatable
     var defaultName         : String = "main"
     
     var values              : [String:Float] = [:]
+    
+    var label               : MMTextLabel? = nil
 
     private enum CodingKeys: String, CodingKey {
         case stageItemType
@@ -76,6 +78,9 @@ class StageItem             : Codable, Equatable
         
         values["_graphX"] = 0
         values["_graphY"] = 0
+        
+        values["_graphShapesX"] = 120
+        values["_graphShapesY"] = 40
     }
 
     /// Recursively update the component
@@ -136,6 +141,8 @@ class Stage                 : Codable, Equatable
     var children3D          : [StageItem] = []
 
     var values              : [String:Float] = [:]
+    
+    var label               : MMTextLabel? = nil
     
     private enum CodingKeys: String, CodingKey {
         case stageType
@@ -210,6 +217,9 @@ class Stage                 : Codable, Equatable
             item.components[item.defaultName] = codeComponent
             children3D.append(item)
             
+            item.values["_graphX"] = 100
+            item.values["_graphY"] = -50
+            
             item = StageItem(.PreStage, "Camera")
             //codeComponent = CodeComponent(.Camera3D)
             //codeComponent.createDefaultFunction(.Camera3D)
@@ -217,6 +227,9 @@ class Stage                 : Codable, Equatable
             codeComponent.selected = nil
             item.components[item.defaultName] = codeComponent
             children3D.append(item)
+            
+            item.values["_graphX"] = 130
+            item.values["_graphY"] = 70
             
             folderIsOpen = true
         }
