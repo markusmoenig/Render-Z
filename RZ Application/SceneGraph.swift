@@ -320,12 +320,11 @@ class SceneGraph                : MMWidget
             for b in buttons {
                 if b.rect!.contains(event.x, event.y) {
                     hoverButton = b
-                    clickWasConsumed = true
                     break
                 }
             }
             
-            if mouseIsDown && clickWasConsumed == false {
+            if mouseIsDown && clickWasConsumed == false && pressedButton == nil {
                 graphX = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
                 graphY = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
                 mmView.update()
