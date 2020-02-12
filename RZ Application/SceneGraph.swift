@@ -19,7 +19,7 @@ class SceneGraphSkin {
     let fontScale               : Float
     let font                    : MMFont
     let lineHeight              : Float
-    
+        
     init(_ font: MMFont, fontScale: Float = 0.4) {
         self.font = font
         self.fontScale = fontScale
@@ -103,7 +103,7 @@ class SceneGraph                : MMWidget
 
     var toolBarWidgets          : [MMWidget] = []
 
-    var addMenuWidget           : MMMenuWidget
+    var menuWidget              : MMMenuWidget
     
     var plusLabel               : MMTextLabel? = nil
     
@@ -111,12 +111,14 @@ class SceneGraph                : MMWidget
     
     var zoomBuffer              : Float = 0
     
+    var mouseIsDown             : Bool = false
+    var clickWasConsumed        : Bool = false
+
     //var map             : [MMRe]
     
     override init(_ view: MMView)
     {
-        addMenuWidget = MMMenuWidget(view, type: .LabelMenu)
-        addMenuWidget.setText("Add", 0.45)
+        menuWidget = MMMenuWidget(view, type: .Hidden)
         
         toolBarButtonSkin = MMSkinButton()
         toolBarButtonSkin.margin = MMMargin( 4, 4, 4, 4 )
@@ -129,15 +131,16 @@ class SceneGraph                : MMWidget
         
         zoom = view.scaleFactor
 
-        addMenuWidget.setItems([
-            MMMenuItem(text: "Object", cb: { () in
+        menuWidget.setItems([
+            MMMenuItem(text: "Add Object", cb: { () in
                 getStringDialog(view: self.mmView, title: "New Object", message: "Object name", defaultValue: "New Object", cb: { (value) -> Void in
                     if let scene = globalApp!.project.selected {
                         
                         let shapeStage = scene.getStage(.ShapeStage)
                         let objectItem = shapeStage.createChild(value)
                         
-                        objectItem.values["_graphX"]! += 100
+                        objectItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x - self.graphX) * self.graphZoom
+                        objectItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y - self.graphY) * self.graphZoom
 
                         globalApp!.sceneGraph.setCurrent(stage: shapeStage, stageItem: objectItem)
                     }
@@ -151,7 +154,7 @@ class SceneGraph                : MMWidget
         for w in toolBarWidgets {
             mmView.widgets.insert(w, at: 0)
         }
-        mmView.widgets.insert(addMenuWidget, at: 0)
+        mmView.widgets.insert(menuWidget, at: 0)
     }
     
     func deactivate()
@@ -159,7 +162,7 @@ class SceneGraph                : MMWidget
         for w in toolBarWidgets {
             mmView.deregisterWidget(w)
         }
-        mmView.deregisterWidget(addMenuWidget)
+        mmView.deregisterWidget(menuWidget)
     }
      
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -241,6 +244,9 @@ class SceneGraph                : MMWidget
     override func mouseDown(_ event: MMMouseEvent)
     {
         dragItem = nil
+        mouseIsDown = true
+        clickWasConsumed = false
+        
         #if os(iOS)
         for b in buttons {
             if b.rect!.contains(event.x, event.y) {
@@ -255,34 +261,36 @@ class SceneGraph                : MMWidget
             return
         }
         
-        print(1, dragItem)
-        
-        globalApp!.sceneGraph.clickAt(x: event.x, y: event.y)
-        
-        if let uuid = currentUUID {
-            dragItem = itemMap[uuid]
-        
-            print(2, dragItem)
-
-            mouseDownPos.x = event.x
-            mouseDownPos.y = event.y
-            
-            if let drag = dragItem {
-
-                if let stageItem = drag.stageItem, drag.itemType == .ShapesContainer {
-                    mouseDownItemPos.x = stageItem.values["_graphShapesX"]!
-                    mouseDownItemPos.y = stageItem.values["_graphShapesY"]!
-                } else
-                if let stageItem = drag.stageItem {
-                    mouseDownItemPos.x = stageItem.values["_graphX"]!
-                    mouseDownItemPos.y = stageItem.values["_graphY"]!
-                } else {
-                    mouseDownItemPos.x = drag.stage.values["_graphX"]!
-                    mouseDownItemPos.y = drag.stage.values["_graphY"]!
-                }
+        mouseDownPos.x = event.x
+        mouseDownPos.y = event.y
                 
-                mmView.mouseTrackWidget = self
+        mouseDownItemPos.x = graphX
+        mouseDownItemPos.y = graphY
+
+        if globalApp!.sceneGraph.clickAt(x: event.x, y: event.y) {
+            clickWasConsumed = true
+            if let uuid = currentUUID {
+                dragItem = itemMap[uuid]
+                
+                if let drag = dragItem {
+
+                    if let stageItem = drag.stageItem, drag.itemType == .ShapesContainer {
+                        mouseDownItemPos.x = stageItem.values["_graphShapesX"]!
+                        mouseDownItemPos.y = stageItem.values["_graphShapesY"]!
+                    } else
+                    if let stageItem = drag.stageItem {
+                        mouseDownItemPos.x = stageItem.values["_graphX"]!
+                        mouseDownItemPos.y = stageItem.values["_graphY"]!
+                    } else {
+                        mouseDownItemPos.x = drag.stage.values["_graphX"]!
+                        mouseDownItemPos.y = drag.stage.values["_graphY"]!
+                    }
+                    
+                    mmView.mouseTrackWidget = self
+                }
             }
+        } else {
+            
         }
     }
     
@@ -315,23 +323,40 @@ class SceneGraph                : MMWidget
                     break
                 }
             }
+            
+            if mouseIsDown && clickWasConsumed == false {
+                graphX = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
+                graphY = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
+                mmView.update()
+            }
         }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        dragItem = nil
-        mmView.mouseTrackWidget = nil
-        
         if let pressedButton = pressedButton {
             pressedButton.cb!()
+        } else
+        if clickWasConsumed == false {
+            // Check for showing menu
+            
+            if menuWidget.states.contains(.Opened) == false && distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) < 5 {
+                menuWidget.rect.x = event.x
+                menuWidget.rect.y = event.y
+                menuWidget.activateHidden()
+            }
         }
         
+        dragItem = nil
+        if menuWidget.states.contains(.Opened) == false {
+            mmView.mouseTrackWidget = nil
+        }
+        mouseIsDown = false
         pressedButton = nil
     }
     
     /// Click at the given position
-    func clickAt(x: Float, y: Float)
+    func clickAt(x: Float, y: Float) -> Bool
     {
         let realX       : Float = (x - rect.x)
         let realY       : Float = (y - rect.y)
@@ -354,7 +379,10 @@ class SceneGraph                : MMWidget
         
         if let uuid = contUUID, consumed == false {
             currentUUID = uuid
+            consumed = true
         }
+        
+        return consumed
     }
     
     /// Switches between open and close states
@@ -418,9 +446,9 @@ class SceneGraph                : MMWidget
             left += w.rect.width + 5
         }
         
-        addMenuWidget.rect.x = rect.right() - addMenuWidget.rect.width - 5
-        addMenuWidget.rect.y = rect.y + 4
-        addMenuWidget.draw()
+        if menuWidget.states.contains(.Opened) {
+            menuWidget.draw()
+        }
         
         if let scene = globalApp!.project.selected {
             mmView.renderer.setClipRect(MMRect(rect.x, rect.y + 31, rect.width, rect.height - 31))

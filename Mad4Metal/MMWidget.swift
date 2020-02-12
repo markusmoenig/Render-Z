@@ -467,7 +467,7 @@ struct MMMenuItem
 class MMMenuWidget : MMWidget
 {
     enum MenuType {
-        case BoxedMenu, LabelMenu
+        case BoxedMenu, LabelMenu, Hidden
     }
     
     var menuType    : MenuType = .BoxedMenu
@@ -496,8 +496,13 @@ class MMMenuWidget : MMWidget
         
         name = "MMMenuWidget"
         
-        rect.width = skin.button.width
-        rect.height = skin.button.height
+        if menuType != .Hidden {
+            rect.width = skin.button.width
+            rect.height = skin.button.height
+        } else {
+            rect.width = 0
+            rect.height = 0
+        }
         
         validStates = [.Checked]
         setItems(items)
@@ -600,8 +605,13 @@ class MMMenuWidget : MMWidget
             let oldSelIndex = selIndex
             selIndex = -1
             
-            let x = event.x - rect.x - rect.width + menuRect.width
-            let y : Int = Int(event.y - rect.y - rect.height - skin.margin.top)
+            var x = event.x - rect.x
+            var y : Int = Int(event.y - rect.y - skin.margin.top)
+            
+            if menuType != .Hidden {
+                x += -rect.width + menuRect.width
+                y += Int(-rect.height)
+            }
             
             if  y >= 0 && Float(y) <= menuRect.height - skin.margin.height() && x >= 0 && x <= menuRect.width {
                  selIndex = y / (Int(itemHeight) + Int(skin.spacing))
@@ -610,6 +620,16 @@ class MMMenuWidget : MMWidget
                 }
             }
         }
+    }
+    
+    /// If the menu is of type hidden, activates the menu
+    func activateHidden()
+    {
+        addState( .Checked )
+        addState( .Opened )
+        selIndex = -1
+        mmView.mouseTrackWidget = self
+        firstClick = true
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -635,8 +655,13 @@ class MMMenuWidget : MMWidget
         
         if states.contains(.Opened) && items.count > 0 {
             
-            var x = rect.x + rect.width - menuRect.width
-            var y = rect.y + rect.height
+            var x = rect.x
+            var y = rect.y
+            
+            if menuType != .Hidden {
+                x += rect.width - menuRect.width
+                y += rect.height
+            }
 
             mmView.drawBox.draw( x: x, y: y, width: menuRect.width, height: menuRect.height, round: skin.round, borderSize: skin.borderSize, fillColor : skin.color, borderColor: skin.borderColor )
 
