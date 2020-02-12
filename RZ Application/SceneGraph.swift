@@ -113,6 +113,9 @@ class SceneGraph                : MMWidget
     
     var mouseIsDown             : Bool = false
     var clickWasConsumed        : Bool = false
+    var isDraggingKnob          : Bool = false
+    
+    var knobRect                : MMRect = MMRect()
 
     //var map             : [MMRe]
     
@@ -247,6 +250,16 @@ class SceneGraph                : MMWidget
         mouseIsDown = true
         clickWasConsumed = false
         
+        // Clicked on the knob
+        if knobRect.contains(event.x, event.y) {
+            isDraggingKnob = true
+            mouseDownPos.x = event.x
+            mouseDownPos.y = event.y
+            mouseDownItemPos.x = currentWidth
+            mmView.mouseTrackWidget = self
+            return
+        }
+        
         #if os(iOS)
         for b in buttons {
             if b.rect!.contains(event.x, event.y) {
@@ -324,6 +337,12 @@ class SceneGraph                : MMWidget
                 }
             }
             
+            if isDraggingKnob {
+                currentWidth = min(max(mouseDownItemPos.x + (mouseDownPos.x - event.x), 300), 900)
+                openWidth = currentWidth
+                globalApp!.rightRegion!.rect.width = currentWidth
+                mmView.update()
+            } else
             if mouseIsDown && clickWasConsumed == false && pressedButton == nil {
                 graphX = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
                 graphY = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
@@ -353,6 +372,7 @@ class SceneGraph                : MMWidget
         }
         mouseIsDown = false
         pressedButton = nil
+        isDraggingKnob = false
     }
     
     /// Click at the given position
@@ -453,6 +473,19 @@ class SceneGraph                : MMWidget
                 menuWidget.draw()
             }
             mmView.renderer.setClipRect()
+        }
+        
+        let halfKnobWidth : Float = 6
+        knobRect.x = rect.x - halfKnobWidth
+        knobRect.y = rect.y + rect.height / 2 - halfKnobWidth * 2
+        knobRect.width = halfKnobWidth * 3
+        knobRect.height = halfKnobWidth * 4
+
+        if isDraggingKnob == false {
+            mmView.drawBox.draw( x: knobRect.x, y: knobRect.y, width: knobRect.width - halfKnobWidth, height: knobRect.height, round: 6, fillColor : SIMD4<Float>( 0, 0, 0, 1))
+        } else {
+            mmView.drawBox.draw( x: knobRect.x, y: knobRect.y, width: knobRect.width - halfKnobWidth, height: knobRect.height, round: 6, fillColor : SIMD4<Float>( 0.5, 0.5, 0.5, 1))
+
         }
     }
     

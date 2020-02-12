@@ -226,7 +226,6 @@
 		2B7A3C2223B46546002EC5FC /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
 		2B7A3C2423B46560002EC5FC /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C2323B46560002EC5FC /* App.swift */; };
 		2B7A3C3723B46838002EC5FC /* EditorRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3623B46838002EC5FC /* EditorRegion.swift */; };
-		2B7A3C3823B46838002EC5FC /* EditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3423B46838002EC5FC /* EditorWidget.swift */; };
 		2B7A3C3923B46838002EC5FC /* LeftRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3523B46838002EC5FC /* LeftRegion.swift */; };
 		2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3123B46837002EC5FC /* TopRegion.swift */; };
 		2B7A3C3B23B46838002EC5FC /* RightRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3223B46837002EC5FC /* RightRegion.swift */; };
@@ -491,7 +490,6 @@
 		2B9B29E423BB45C000C2F387 /* RightRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3223B46837002EC5FC /* RightRegion.swift */; };
 		2B9B29E523BB45C000C2F387 /* BottomRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3323B46838002EC5FC /* BottomRegion.swift */; };
 		2B9B29E623BB45C000C2F387 /* EditorRegion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3623B46838002EC5FC /* EditorRegion.swift */; };
-		2B9B29E723BB45C000C2F387 /* EditorWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3423B46838002EC5FC /* EditorWidget.swift */; };
 		2B9B29E823BB45C000C2F387 /* Mad4Metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C3D23B469AD002EC5FC /* Mad4Metal.metal */; };
 		2B9B29E923BB45CA00C2F387 /* ArtistEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5223B4768D002EC5FC /* ArtistEditor.swift */; };
 		2B9B29EA23BB45CA00C2F387 /* CodeEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */; };
@@ -691,7 +689,6 @@
 		2B7A3C3123B46837002EC5FC /* TopRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopRegion.swift; sourceTree = "<group>"; };
 		2B7A3C3223B46837002EC5FC /* RightRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RightRegion.swift; sourceTree = "<group>"; };
 		2B7A3C3323B46838002EC5FC /* BottomRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomRegion.swift; sourceTree = "<group>"; };
-		2B7A3C3423B46838002EC5FC /* EditorWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorWidget.swift; sourceTree = "<group>"; };
 		2B7A3C3523B46838002EC5FC /* LeftRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeftRegion.swift; sourceTree = "<group>"; };
 		2B7A3C3623B46838002EC5FC /* EditorRegion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorRegion.swift; sourceTree = "<group>"; };
 		2B7A3C3D23B469AD002EC5FC /* Mad4Metal.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Mad4Metal.metal; sourceTree = "<group>"; };
@@ -926,7 +923,6 @@
 				2B7A3C3223B46837002EC5FC /* RightRegion.swift */,
 				2B7A3C3323B46838002EC5FC /* BottomRegion.swift */,
 				2B7A3C3623B46838002EC5FC /* EditorRegion.swift */,
-				2B7A3C3423B46838002EC5FC /* EditorWidget.swift */,
 				2B7A3C3D23B469AD002EC5FC /* Mad4Metal.metal */,
 				2B7A3C3E23B469AD002EC5FC /* Mad4Metal_types.h */,
 				2B7A3C5223B4768D002EC5FC /* ArtistEditor.swift */,
@@ -1742,7 +1738,6 @@
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
-				2B7A3C3823B46838002EC5FC /* EditorWidget.swift in Sources */,
 				2B50635923CEC98600124517 /* LibraryDialog.swift in Sources */,
 				2B7A3C1623B46546002EC5FC /* MMTabButtonWidget.swift in Sources */,
 				2B7A3C1723B46546002EC5FC /* MMCompute.swift in Sources */,
@@ -1983,7 +1978,6 @@
 				2B65083D23E50133003DE093 /* SceneGraph.swift in Sources */,
 				2B8CC6CF23C55DAD00CFCB93 /* CodeAccess.swift in Sources */,
 				2B9B29CB23BB453400C2F387 /* MMColorWidget.swift in Sources */,
-				2B9B29E723BB45C000C2F387 /* EditorWidget.swift in Sources */,
 				2B9B29A923BB44BF00C2F387 /* SceneDelegate.swift in Sources */,
 				2B59875923D15BD0007E335F /* Combo2D.swift in Sources */,
 				2B9B29E123BB45B900C2F387 /* App.swift in Sources */,
