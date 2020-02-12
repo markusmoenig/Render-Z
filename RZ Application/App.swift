@@ -130,7 +130,18 @@ class App
             
             if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
                 project.selected!.updateComponent(component)
-                currentEditor.setComponent(component)
+                
+                var selectedViaSceneGraph : Bool = false
+                if sceneGraph.currentWidth > 0 {
+                    if let item = sceneGraph.itemMap[component.uuid] {
+                        sceneGraph.setCurrent(stage: item.stage, stageItem: item.stageItem, component: component)
+                        selectedViaSceneGraph = true
+                    }
+                }
+
+                if selectedViaSceneGraph == false {
+                    currentEditor.setComponent(component)
+                }
             }
         }
     }

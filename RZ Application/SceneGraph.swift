@@ -320,6 +320,7 @@ class SceneGraph                : MMWidget
             for b in buttons {
                 if b.rect!.contains(event.x, event.y) {
                     hoverButton = b
+                    clickWasConsumed = true
                     break
                 }
             }
@@ -446,13 +447,12 @@ class SceneGraph                : MMWidget
             left += w.rect.width + 5
         }
         
-        if menuWidget.states.contains(.Opened) {
-            menuWidget.draw()
-        }
-        
         if let scene = globalApp!.project.selected {
             mmView.renderer.setClipRect(MMRect(rect.x, rect.y + 31, rect.width, rect.height - 31))
             parse(scene: scene)
+            if menuWidget.states.contains(.Opened) {
+                menuWidget.draw()
+            }
             mmView.renderer.setClipRect()
         }
     }

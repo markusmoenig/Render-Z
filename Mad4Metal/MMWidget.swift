@@ -629,7 +629,7 @@ class MMMenuWidget : MMWidget
         addState( .Opened )
         selIndex = -1
         mmView.mouseTrackWidget = self
-        firstClick = true
+        firstClick = false
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
