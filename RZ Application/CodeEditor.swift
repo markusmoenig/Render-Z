@@ -782,11 +782,26 @@ class CodeEditor        : MMWidget
             // Copy a variable
             if sourceFrag.fragmentType == .VariableReference || sourceFrag.fragmentType == .OutVariable {
                 let sourceComponents = sourceFrag.evaluateComponents()
-                let destComponents = destFrag.evaluateComponents()
+                var destComponents = destFrag.evaluateComponents()
+                                
+                // Check if we can adjust the typeName of the destFrag to that of the source based on the argumentFormat
+                if let pStatement = destFrag.parentStatement, sourceComponents != destComponents {
+                    let argumentIndex = pStatement.isArgumentIndexOf
+                    if let argumentFormat = destFrag.argumentFormat {
+                        // Only suppport adjusting formats for single arguments like length (for now)
+                        if argumentFormat.count == 1 && argumentIndex == 0 {
+                            let argument = argumentFormat[argumentIndex]
+                            if argument.contains(sourceFrag.typeName) {
+                                destFrag.typeName = sourceFrag.typeName
+                                destComponents = destFrag.evaluateComponents()
+                            }
+                        }
+                    }
+                }
                 
                 sourceFrag.copyTo(destFrag)
                 destFrag.addProperty(.Targetable)
-
+                
                 if sourceComponents != destComponents && sourceComponents > 1 {
                     // --- Need to add a qualification to match
                     
@@ -863,6 +878,7 @@ class CodeEditor        : MMWidget
                     let typeName = types[0]
                     
                     let constant = defaultConstantForType(typeName)
+                    constant.argumentFormat = sourceFormats // Copy the argumentFormat
                     
                     let statement = CodeStatement(.List)
                     statement.fragments.append(constant)

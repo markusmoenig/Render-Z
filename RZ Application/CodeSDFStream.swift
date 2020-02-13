@@ -16,7 +16,8 @@ class CodeSDFStream
     var componentCounter    : Int = 0
     
     var headerCode          : String = ""
-    
+    var mapCode             : String = ""
+
     var monitor             : CodeFragment? = nil
     
     init()
@@ -36,7 +37,6 @@ class CodeSDFStream
                 
         if type == .SDF2D {
             headerCode = codeBuilder.getHeaderCode()
-            
             headerCode +=
             """
                         
@@ -82,7 +82,7 @@ class CodeSDFStream
             
             """
             
-            if let camera = camera {                
+            if let camera = camera {
                 instance.code +=
                 """
                 
@@ -100,6 +100,72 @@ class CodeSDFStream
                 
                 """
             }
+        } else
+        if type == .SDF3D {
+            headerCode = codeBuilder.getHeaderCode()
+            headerCode +=
+            """
+            
+            """
+            
+            mapCode =
+            """
+            
+            float4 map( float3 pos, thread struct FuncData *__funcData )
+            {
+                float4 outShape = float4(100000, -1, -1, 1);
+                float outDistance = 10;
+            
+                constant float4 *__data = __funcData->__data;
+                float4 __monitorOut = *__funcData->__monitorOut;
+                float GlobalTime = __funcData->GlobalTime;
+
+            
+            """
+            
+            instance.code =
+                
+            """
+            kernel void componentBuilder(
+            texture2d<half, access::write>          __outTexture  [[texture(0)]],
+            constant float4                        *__data   [[ buffer(1) ]],
+            texture2d<half, access::sample>         __rayOriginTexture [[texture(2)]],
+            texture2d<half, access::sample>         __rayDirectionTexture [[texture(3)]],
+            uint2 __gid                             [[thread_position_in_grid]])
+            {
+                constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+
+                float4 __monitorOut = float4(0,0,0,0);
+            
+                float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
+
+                float GlobalTime = __data[0].x;
+            
+                float2 __uv = float2(__gid.x, __gid.y);
+                float3 __ro = float4(__rayOriginTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 __rd = float4(__rayDirectionTexture.sample(__textureSampler, __uv / __size )).xyz;
+
+                struct FuncData __funcData;
+                __funcData.GlobalTime = GlobalTime;
+                __funcData.__monitorOut = &__monitorOut;
+                __funcData.__data = __data;
+            
+                //float4 outShape = map( float3(0,0,0), &__funcData );
+                float4 outShape = float4(0);
+            
+                float t = 0.001;
+                for( int i=0; i < 70; i++ )
+                {
+                    float4 h = map( __ro + __rd * t, &__funcData );
+                    if( abs(h.x)<(0.001 /**t*/) )
+                    {
+                        outShape = h;
+                        break;
+                    }
+                    t += h.x;
+                }
+            
+            """
         }
     }
 
@@ -123,18 +189,28 @@ class CodeSDFStream
             }
         }
         
+        instance.code +=
+        """
+        
+            __outTexture.write(half4(outShape), __gid);
+        }
+        """
+    
         if type == .SDF2D {
-            instance.code +=
+            instance.code = headerCode + instance.code
+        } else
+        if type == .SDF3D {
+            mapCode +=
             """
             
-                __outTexture.write(half4(outShape), __gid);
-             }
+                return outShape;
+            }
+            
             """
+            instance.code = headerCode + mapCode + instance.code
         }
         
-        instance.code = headerCode + instance.code
-        
-        //print(instance.code)
+        print(instance.code)
         codeBuilder.buildInstance(instance)
     }
     
@@ -148,12 +224,14 @@ class CodeSDFStream
             headerCode += globalCode
         }
         
+        var code = ""
+        
         if type == .SDF2D
         {
             let posX = instance.getTransformPropertyIndex(component, "_posX")
             let posY = instance.getTransformPropertyIndex(component, "_posY")
 
-            instance.code +=
+            code +=
             """
                 {
                     float2 pos = __translate(__origin, float2(__data[\(posX)].x, -__data[\(posY)].x));
@@ -161,14 +239,24 @@ class CodeSDFStream
             """
         }
         
-        instance.code += component.code!
+        if type == .SDF3D
+        {
+            code +=
+            """
+                {
+            
+            """
+        }
+
+        
+        code += component.code!
 
         if componentCounter > 0 {
-            instance.code +=
+            code +=
             """
             
                 float4 shapeA = outShape;
-                float4 shapeB = float4(outDistance,0,0,0);
+                float4 shapeB = float4(outDistance,0,0,1);
             
             """
             
@@ -178,15 +266,21 @@ class CodeSDFStream
                 instance.code += subComponent.code!
             }
         } else {
-            instance.code +=
+            code +=
             """
             
-                outShape = float4(outDistance,0,0,0);
+                outShape = float4(outDistance,0,0,1);
             
             """
         }
     
-        instance.code += "\n    }\n"
+        code += "\n    }\n"
+        if type == .SDF2D {
+            instance.code += code
+        } else
+        if type == .SDF3D {
+            mapCode += code
+        }
         componentCounter += 1
     }
 }

@@ -95,9 +95,7 @@ class Pipeline
                 instanceMap["render"] = codeBuilder.build(renderComp)
             }
         } else {
-            
             // 3D
-            
             // Background
             let preStage = scene.getStage(.PreStage)
             let cameraComponent : CodeComponent = getFirstComponentOfType(preStage.getChildren(), .Camera3D)!
@@ -114,6 +112,7 @@ class Pipeline
             dryRunComponent(cameraComponent)
             instanceMap["camera3D"] = codeBuilder.build(cameraComponent, camera: cameraComponent)
             
+            
             // Objects
             let shapeStage = scene.getStage(.ShapeStage)
             for item in shapeStage.getChildren() {
@@ -127,16 +126,6 @@ class Pipeline
                     instanceMap["shape"] = instance
                     codeBuilder.sdfStream.closeStream()
                 }
-            }
-            
-            // Render
-            let renderStage = scene.getStage(.RenderStage)
-            let renderChildren = renderStage.getChildren()
-            if renderChildren.count > 0 {
-                let renderColor = renderChildren[0]
-                let renderComp = renderColor.components[renderColor.defaultName]!
-                dryRunComponent(renderComp)
-                instanceMap["render"] = codeBuilder.build(renderComp)
             }
         }
     }
@@ -163,9 +152,7 @@ class Pipeline
         }
         
         if globalApp!.currentSceneMode == .TwoD {
-            
             // 2D
-            
             // Render the background into backTexture
             backTexture = checkTextureSize(width, height, backTexture)
             if let inst = instanceMap["pre"] {
@@ -192,18 +179,30 @@ class Pipeline
             }
         } else {
             // 3D
-            
             // Render the Camera Textures
             rayOriginTexture = checkTextureSize(width, height, rayOriginTexture, .rgba16Float)
             rayDirectionTexture = checkTextureSize(width, height, rayDirectionTexture, .rgba16Float)
             if let inst = instanceMap["camera3D"] {
                 codeBuilder.render(inst, rayOriginTexture, outTextures: [rayDirectionTexture!])
                 computeMonitor(inst)
+            }
+            
+            // Render the shape distance into depthTexture (float)
+            depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
+            if let inst = instanceMap["shape"] {
+                codeBuilder.render(inst, depthTexture, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+                computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             } else {
                 codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 10000, 10000, 10000))
             }
-            
-            resultTexture = rayDirectionTexture
+            /*
+            // Render it all
+            if let inst = instanceMap["render"] {
+                resultTexture = checkTextureSize(width, height, resultTexture)
+                codeBuilder.render(inst, resultTexture, inTextures: [depthTexture!, backTexture!])
+                computeMonitor(inst, inTextures: [depthTexture!, backTexture!])
+            }*/
+            resultTexture = depthTexture
         }
     }
     

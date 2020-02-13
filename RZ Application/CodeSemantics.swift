@@ -283,7 +283,21 @@ class CodeFragment          : Codable, Equatable
         dest.typeName = typeName
         dest.name = name
         dest.properties = properties
+        let destFormat = dest.argumentFormat
         dest.argumentFormat = argumentFormat
+        if let destFormat = destFormat {
+            // Check if the mutliple choice argumentFormat is replaced by a single format, if yes, keep the multiple choice one
+            // This is needed to preserve a multi choice list when an argument is replaced (like for length etc)
+            if let sourceFormat = argumentFormat {
+                if destFormat.count == 1 && sourceFormat.count == 1 {
+                    if destFormat[0].contains("|") && !sourceFormat[0].contains("|") {
+                        dest.argumentFormat = destFormat
+                    }
+                }
+            } else {
+                dest.argumentFormat = destFormat
+            }
+        }
         dest.evaluatesTo = evaluatesTo
         dest.values = values
         dest.referseTo = referseTo
@@ -1391,6 +1405,19 @@ class CodeComponent         : Codable, Equatable
             f.comment = "Returns the distance to the shape for the given position"
             
             let arg1 = CodeFragment(.VariableDefinition, "float2", "pos", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg1)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float", "outDistance"))
+            functions.append(f)
+        } else
+        if type == .SDF3D {
+            let f = CodeFunction(type, "shapeDistance")
+            f.comment = "Returns the distance to the shape for the given position"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float3", "pos", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)
             
             let b = CodeBlock(.Empty)

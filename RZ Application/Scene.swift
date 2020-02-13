@@ -271,9 +271,12 @@ class Stage                 : Codable, Equatable
             
             //let defComponent = CodeComponent(.SDF2D, "Empty")
             //defComponent.createDefaultFunction(.SDF2D)
+            
+            let defComponent3D = CodeComponent(.SDF3D, "Empty")
+            defComponent3D.createDefaultFunction(.SDF3D)
 
             stageItem.componentLists["shapes2D"] = []//[defComponent]
-            stageItem.componentLists["shapes3D"] = []
+            stageItem.componentLists["shapes3D"] = [defComponent3D]
 
             stageItem.componentLists["materials2D"] = []
             stageItem.componentLists["materials3D"] = []

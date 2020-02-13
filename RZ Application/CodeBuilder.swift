@@ -136,6 +136,9 @@ class CodeBuilder
         if component.componentType == .SDF2D {
             buildSDF2D(inst, component, monitor)
         } else
+        if component.componentType == .SDF3D {
+            buildSDF3D(inst, component, monitor)
+        } else
         if component.componentType == .Render2D {
             buildRender2D(inst, component, monitor)
         }
@@ -317,6 +320,17 @@ class CodeBuilder
     func buildSDF2D(_ inst: CodeBuilderInstance,_ component: CodeComponent,_ monitor: CodeFragment? = nil, camera: CodeComponent? = nil)
     {
         sdfStream.openStream(.SDF2D, inst, self, camera: camera)
+        sdfStream.pushComponent(component, monitor)
+        sdfStream.closeStream()
+        
+        // Position
+        inst.data.append(SIMD4<Float>(0,0,0,0))
+    }
+    
+    /// Build the source code for the component
+    func buildSDF3D(_ inst: CodeBuilderInstance,_ component: CodeComponent,_ monitor: CodeFragment? = nil, camera: CodeComponent? = nil)
+    {
+        sdfStream.openStream(.SDF3D, inst, self, camera: camera)
         sdfStream.pushComponent(component, monitor)
         sdfStream.closeStream()
         
