@@ -102,7 +102,7 @@ class MMCompute {
     }
 
     /// Run the given state
-    func run(_ state: MTLComputePipelineState?, outTexture: MTLTexture? = nil, inBuffer: MTLBuffer? = nil, inTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], syncronize: Bool = false )
+    func run(_ state: MTLComputePipelineState?, outTexture: MTLTexture? = nil, inBuffer: MTLBuffer? = nil, inTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], syncronize: Bool = false )
     {
         commandBuffer = commandQueue!.makeCommandBuffer()!
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
@@ -124,6 +124,12 @@ class MMCompute {
         }
         
         for (index,texture) in inTextures.enumerated() {
+            computeEncoder.setTexture(texture, index: texStartIndex + index)
+        }
+        
+        texStartIndex += inTextures.count
+
+        for (index,texture) in outTextures.enumerated() {
             computeEncoder.setTexture(texture, index: texStartIndex + index)
         }
         

@@ -130,6 +130,9 @@ class CodeBuilder
         if component.componentType == .SkyDome {
             buildSkyDome(inst, component, monitor)
         } else
+        if component.componentType == .Camera3D {
+            buildCamera3D(inst, component, monitor)
+        } else
         if component.componentType == .SDF2D {
             buildSDF2D(inst, component, monitor)
         } else
@@ -150,33 +153,6 @@ class CodeBuilder
 
         let library = compute.createLibraryFromSource(source: inst.code)
         inst.computeState = compute.createState(library: library, name: "componentBuilder")
-    }
-    
-    func insertMonitorCode(_ fragment: CodeFragment,_ outVariableName: String,_ components: Int) -> String
-    {
-        var code : String = ""
-        if components == 1 {
-            code += "\(outVariableName) = float4(float3(" + fragment.name + "),1);\n";
-        } else
-        if components == 2 {
-            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
-            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
-            code += "\(outVariableName).z = 0;\n";
-            code += "\(outVariableName).w = 1;\n";
-        } else
-        if components == 3 {
-            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
-            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
-            code += "\(outVariableName).z = " + fragment.name + ".z;\n";
-            code += "\(outVariableName).w = 1;\n";
-        } else
-        if components == 4 {
-            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
-            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
-            code += "\(outVariableName).z = " + fragment.name + ".z;\n";
-            code += "\(outVariableName).w = " + fragment.name + ".w;\n";
-        }
-        return code
     }
     
     /// Build the source code for the component
@@ -285,6 +261,59 @@ class CodeBuilder
     }
     
     /// Build the source code for the component
+    func buildCamera3D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    {
+        inst.code +=
+        """
+        
+        kernel void componentBuilder(
+        texture2d<half, access::write>          __outOriginTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
+        texture2d<half, access::write>          __outDirectionTexture  [[texture(2)]],
+        uint2 __gid                             [[thread_position_in_grid]])
+        {
+            float4 __monitorOut = float4(0,0,0,0);
+            float2 uv = float2(__gid.x, __gid.y);
+            float2 size = float2( __outOriginTexture.get_width(), __outOriginTexture.get_height() );
+            uv /= size;
+            uv.y = 1.0 - uv.y;
+
+            float3 outPosition = float3(0,0,0);
+            float3 outDirection = float3(0,0,0);
+            float GlobalTime = __data[0].x;
+        
+            struct FuncData __funcData;
+            __funcData.GlobalTime = GlobalTime;
+            __funcData.__monitorOut = &__monitorOut;
+            __funcData.__data = __data;
+        
+        """
+        
+        if let code = component.code {
+            inst.code += code
+        }
+
+        if let monitorFragment = monitor, monitorFragment.name != "outPosition", monitorFragment.name != "outDirection" {
+            inst.code +=
+            """
+            
+                __outOriginTexture.write(half4(__monitorOut), __gid);
+            }
+            """
+        } else {
+
+            inst.code +=
+            """
+            
+                __outOriginTexture.write(half4(half3(outPosition), 0), __gid);
+                __outDirectionTexture.write(half4(half3(outDirection), 0), __gid);
+            }
+            
+            """
+        }
+    }
+    
+    /// Build the source code for the component
     func buildSDF2D(_ inst: CodeBuilderInstance,_ component: CodeComponent,_ monitor: CodeFragment? = nil, camera: CodeComponent? = nil)
     {
         sdfStream.openStream(.SDF2D, inst, self, camera: camera)
@@ -356,34 +385,6 @@ class CodeBuilder
         """
     }
     
-    func insertCameraCode(_ inst: CodeBuilderInstance, camera: CodeComponent, uvName: String = "uv", monitor: CodeFragment? = nil)
-    {
-        if camera.componentType == .Camera2D {
-            
-            inst.code +=
-            """
-            
-                {
-                    float2 position = \(uvName);
-                    float2 outPosition = float2(0);
-            
-            """
-        }
-        
-        inst.code += camera.code!
-        
-        if camera.componentType == .Camera2D {
-
-            inst.code +=
-            """
-            
-                    \(uvName) = float2(outPosition.x, outPosition.y);
-                }
-            
-            """
-        }
-    }
-    
     /// Build a clear texture shader
     func buildClearState()
     {
@@ -410,18 +411,6 @@ class CodeBuilder
 
         let library = compute.createLibraryFromSource(source: code)
         clearState = compute.createState(library: library, name: "clearBuilder")
-    }
-    
-    ///
-    func openSDFStream()
-    {
-        
-    }
-    
-    ///
-    func closeSDFStream()
-    {
-        
     }
     
     /// Update the instance buffer
@@ -526,11 +515,11 @@ class CodeBuilder
     }
     
     // Render the component into a texture
-    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil,_ inTextures: [MTLTexture] = [], syncronize: Bool = false)
+    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], syncronize: Bool = false)
     {
         updateData(inst)
         
-        compute.run( inst.computeState!, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, syncronize: syncronize)
+        compute.run( inst.computeState!, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, outTextures: outTextures, syncronize: syncronize)
         
         compute.commandBuffer.waitUntilCompleted()
     }

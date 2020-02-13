@@ -340,7 +340,6 @@ class SceneGraph                : MMWidget
             if isDraggingKnob {
                 currentWidth = min(max(mouseDownItemPos.x + (mouseDownPos.x - event.x), 300), 900)
                 openWidth = currentWidth
-                globalApp!.rightRegion!.rect.width = currentWidth
                 mmView.update()
             } else
             if mouseIsDown && clickWasConsumed == false && pressedButton == nil {

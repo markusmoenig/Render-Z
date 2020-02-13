@@ -44,7 +44,7 @@ class Thumbnail
             codeBuilder.render(instance, depthTexture)
             
             let renderInstance = codeBuilder.build(componentMap["render2D"]!)
-            codeBuilder.render(renderInstance, result, [depthTexture!, backTexture!])
+            codeBuilder.render(renderInstance, result, inTextures: [depthTexture!, backTexture!])
         }
         return result
     }

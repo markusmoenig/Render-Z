@@ -82,8 +82,23 @@ class CodeSDFStream
             
             """
             
-            if let camera = camera {
-                codeBuilder.insertCameraCode(instance, camera: camera, uvName: "__origin", monitor: monitor)
+            if let camera = camera {                
+                instance.code +=
+                """
+                
+                    {
+                        float2 position = __origin;
+                        float2 outPosition = float2(0);
+                
+                """
+                instance.code += camera.code!
+                instance.code +=
+                """
+                
+                        __origin = float2(outPosition.x, outPosition.y);
+                    }
+                
+                """
             }
         }
     }
