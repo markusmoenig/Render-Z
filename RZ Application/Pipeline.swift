@@ -19,6 +19,7 @@ class Pipeline
     
     var rayOriginTexture    : MTLTexture? = nil
     var rayDirectionTexture : MTLTexture? = nil
+    var normalTexture       : MTLTexture? = nil
 
     var instanceMap         : [String:CodeBuilderInstance] = [:]
 
@@ -78,7 +79,7 @@ class Pipeline
                     instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
                     codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: camera)
                     for shape in shapes {
-                        codeBuilder.sdfStream.pushComponent(shape)
+                        codeBuilder.sdfStream.pushComponent(shape, stageItem: item)
                     }
                     instanceMap["shape"] = instance
                     codeBuilder.sdfStream.closeStream()
@@ -112,7 +113,6 @@ class Pipeline
             dryRunComponent(cameraComponent)
             instanceMap["camera3D"] = codeBuilder.build(cameraComponent, camera: cameraComponent)
             
-            
             // Objects
             let shapeStage = scene.getStage(.ShapeStage)
             for item in shapeStage.getChildren() {
@@ -121,11 +121,21 @@ class Pipeline
                     instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
                     codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent)
                     for shape in shapes {
-                        codeBuilder.sdfStream.pushComponent(shape)
+                        codeBuilder.sdfStream.pushComponent(shape, stageItem: item)
                     }
                     instanceMap["shape"] = instance
                     codeBuilder.sdfStream.closeStream()
                 }
+            }
+            
+            // Render
+            let renderStage = scene.getStage(.RenderStage)
+            let renderChildren = renderStage.getChildren()
+            if renderChildren.count > 0 {
+                let renderColor = renderChildren[0]
+                let renderComp = renderColor.components[renderColor.defaultName]!
+                dryRunComponent(renderComp)
+                instanceMap["render"] = codeBuilder.build(renderComp)
             }
         }
     }
@@ -179,6 +189,14 @@ class Pipeline
             }
         } else {
             // 3D
+            
+            // Render the background into backTexture
+            backTexture = checkTextureSize(width, height, backTexture)
+            if let inst = instanceMap["pre"] {
+                codeBuilder.render(inst, backTexture)
+                computeMonitor(inst)
+            }
+            
             // Render the Camera Textures
             rayOriginTexture = checkTextureSize(width, height, rayOriginTexture, .rgba16Float)
             rayDirectionTexture = checkTextureSize(width, height, rayDirectionTexture, .rgba16Float)
@@ -188,21 +206,24 @@ class Pipeline
             }
             
             // Render the shape distance into depthTexture (float)
+            normalTexture = checkTextureSize(width, height, normalTexture, .rgba16Float)
             depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
             if let inst = instanceMap["shape"] {
-                codeBuilder.render(inst, depthTexture, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+                codeBuilder.render(inst, depthTexture, inTextures: [rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!])
                 computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             } else {
                 codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 10000, 10000, 10000))
             }
-            /*
+            
             // Render it all
             if let inst = instanceMap["render"] {
                 resultTexture = checkTextureSize(width, height, resultTexture)
-                codeBuilder.render(inst, resultTexture, inTextures: [depthTexture!, backTexture!])
+                codeBuilder.render(inst, resultTexture, inTextures: [depthTexture!, backTexture!, normalTexture!])
                 computeMonitor(inst, inTextures: [depthTexture!, backTexture!])
-            }*/
-            resultTexture = depthTexture
+            } else {
+                resultTexture = backTexture
+            }
+            //resultTexture = depthTexture
         }
     }
     

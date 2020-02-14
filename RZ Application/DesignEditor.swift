@@ -116,6 +116,32 @@ class DesignEditor          : MMWidget
         if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
             editor.designProperties.mouseDown(event)
         }
+        
+        if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
+            
+            let x : Float = event.x - rect.x
+            let y : Float = event.y - rect.y
+            
+            if let texture = globalApp!.pipeline.depthTexture {
+                
+                if let convertTo = globalApp!.pipeline.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
+                
+                    globalApp!.pipeline.codeBuilder.renderCopyNearest(texture: convertTo, inTexture: texture, syncronize: true)
+                    
+                    let region = MTLRegionMake2D(min(Int(x), convertTo.width-1), min(Int(y), convertTo.height-1), 1, 1)
+
+                    let texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(repeating: 0), count: 1)
+                    convertTo.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * convertTo.width), from: region, mipmapLevel: 0)
+                    let value = texArray[0]
+                    
+                    if value.x < 0 {
+                        if let id = globalApp!.pipeline.codeBuilder.sdfStream.ids[Int(value.w)] {
+                            globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0, component: id.1)
+                        }
+                    }
+                }
+            }
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)

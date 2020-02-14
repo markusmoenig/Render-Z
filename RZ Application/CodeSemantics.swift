@@ -1426,31 +1426,6 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float", "outDistance"))
             functions.append(f)
         } else
-        if type == .Render2D {
-            let f = CodeFunction(type, "computeColor")
-            f.comment = "Computes the pixel color for the given material"
-            
-            let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
-            f.header.statement.fragments.append(arg1)
-            
-            let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
-            f.header.statement.fragments.append(arg2)
-            
-            let arg3 = CodeFragment(.VariableDefinition, "float", "distance", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
-            f.header.statement.fragments.append(arg3)
-            
-            let arg4 = CodeFragment(.VariableDefinition, "float4", "backColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
-            f.header.statement.fragments.append(arg4)
-            
-            let arg5 = CodeFragment(.VariableDefinition, "float4", "matColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
-            f.header.statement.fragments.append(arg5)
-            
-            let b = CodeBlock(.Empty)
-            b.fragment.addProperty(.Selectable)
-            f.body.append(b)
-            f.body.append(f.createOutVariableBlock("float4", "outColor"))
-            functions.append(f)
-        } else
         if type == .Boolean {
             let f = CodeFunction(type, "booleanOperator")
             f.comment = "Choose between the two shapes based on their distances stored in .x"
@@ -1495,6 +1470,59 @@ class CodeComponent         : Codable, Equatable
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float3", "outPosition"))
             f.body.append(f.createOutVariableBlock("float3", "outDirection"))
+            functions.append(f)
+        } else
+        if type == .Render2D {
+            let f = CodeFunction(type, "computeColor")
+            f.comment = "Computes the pixel color for the given material"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg2)
+            
+            let arg3 = CodeFragment(.VariableDefinition, "float", "distance", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+            f.header.statement.fragments.append(arg3)
+            
+            let arg4 = CodeFragment(.VariableDefinition, "float4", "backColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            f.header.statement.fragments.append(arg4)
+            
+            let arg5 = CodeFragment(.VariableDefinition, "float4", "matColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            f.header.statement.fragments.append(arg5)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float4", "outColor"))
+            functions.append(f)
+        } else
+        if type == .Render3D {
+            let f = CodeFunction(type, "computeColor")
+            f.comment = "Computes the pixel color for the given material"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg2)
+            
+            let arg3 = CodeFragment(.VariableDefinition, "float4", "shape", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            f.header.statement.fragments.append(arg3)
+            
+            let arg4 = CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg4)
+            
+            let arg5 = CodeFragment(.VariableDefinition, "float4", "backColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            f.header.statement.fragments.append(arg5)
+            
+            let arg6 = CodeFragment(.VariableDefinition, "float4", "matColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            f.header.statement.fragments.append(arg6)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float4", "outColor"))
             functions.append(f)
         }
     }

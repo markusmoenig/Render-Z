@@ -30,7 +30,7 @@ class SceneGraphSkin {
 class SceneGraphItem {
         
     enum SceneGraphItemType {
-        case Stage, StageItem, ShapeItem, BooleanItem, EmptyShape, ShapesContainer
+        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem
     }
     
     var itemType                : SceneGraphItemType
@@ -607,6 +607,29 @@ class SceneGraph                : MMWidget
                         })
                     }
                     toolBarWidgets.append(button)
+                } else
+                if let comp = item.component, comp.componentType == .Render2D || comp.componentType == .Render3D {
+                    
+                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
+                    button.clicked = { (event) in
+                        globalApp!.libraryDialog.show(id: comp.componentType == .Render2D ? "Render2D" : "Render3D", cb: { (json) in
+                            if let comp = decodeComponentFromJSON(json) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Change Renderer")
+                                
+                                comp.uuid = UUID()
+                                comp.selected = nil
+                                globalApp!.currentEditor.setComponent(comp)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                
+                                comp.uuid = item.component!.uuid
+                                globalApp!.project.selected!.updateComponent(comp)
+                                                            
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                            }
+                        })
+                    }
+                    toolBarWidgets.append(button)
                 }
             }
         }
@@ -706,16 +729,16 @@ class SceneGraph                : MMWidget
         if stage.label == nil || stage.label!.scale != skin.fontScale {
             stage.label = MMTextLabel(mmView, font: mmView.openSans, text: stage.name + " " + getCurrentModeId(), scale: skin.fontScale, color: skin.normalTextColor)
         }
-        let diameter : Float = stage.label!.rect.width + 10 * graphZoom
+        var diameter : Float = stage.label!.rect.width + 10 * graphZoom
 
-        let x = (graphX + stage.values["_graphX"]!) * graphZoom - diameter / 2
-        let y = (graphY + stage.values["_graphY"]!) * graphZoom - diameter / 2
+        var x : Float = (graphX + stage.values["_graphX"]!) * graphZoom - diameter / 2
+        var y : Float = (graphY + stage.values["_graphY"]!) * graphZoom - diameter / 2
         
         let worldItem = SceneGraphItem(.Stage, stage: stage)
         worldItem.rect.set(x, y, diameter, diameter)
         itemMap[stage.uuid] = worldItem
         
-        let childs = stage.getChildren()
+        var childs = stage.getChildren()
         for childItem in childs {
 
             if childItem.label == nil || childItem.label!.scale != skin.fontScale {
@@ -771,6 +794,52 @@ class SceneGraph                : MMWidget
             o.label!.rect.y = rect.y + y + (diameter - skin.lineHeight) / 2
             o.label!.draw()
         }
+        
+        // Draw Render Stage
+        stage = scene.getStage(.RenderStage)
+        
+        if stage.label == nil || stage.label!.scale != skin.fontScale {
+            stage.label = MMTextLabel(mmView, font: mmView.openSans, text: stage.name, scale: skin.fontScale, color: skin.normalTextColor)
+        }
+        diameter = stage.label!.rect.width + 10 * graphZoom
+
+        x = (graphX + stage.values["_graphX"]!) * graphZoom - diameter / 2
+        y = (graphY + stage.values["_graphY"]!) * graphZoom - diameter / 2
+        
+        let renderItem = SceneGraphItem(.Stage, stage: stage)
+        renderItem.rect.set(x, y, diameter, diameter)
+        itemMap[stage.uuid] = renderItem
+        
+        childs = stage.getChildren()
+        for childItem in childs {
+
+            if childItem.label == nil || childItem.label!.scale != skin.fontScale {
+                childItem.label = MMTextLabel(mmView, font: mmView.openSans, text: childItem.name, scale: skin.fontScale, color: skin.normalTextColor)
+            }
+            let diameter : Float = childItem.label!.rect.width + 10 * graphZoom
+
+            let cX = x + childItem.values["_graphX"]! * graphZoom - diameter / 2
+            let cY = y + childItem.values["_graphY"]! * graphZoom - diameter / 2
+
+            let comp = childItem.components[childItem.defaultName]!
+            let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem, component: comp)
+            item.rect.set(cX, cY, diameter, diameter)
+            itemMap[comp.uuid] = item
+            
+            drawLineBetweenCircles(renderItem, item, skin)
+
+            mmView.drawSphere.draw(x: rect.x + cX, y: rect.y + cY, radius: diameter / 2, borderSize: 1, fillColor: childItem === currentStageItem ? skin.normalBorderColor : skin.normalInteriorColor, borderColor: skin.normalBorderColor)
+            
+            childItem.label!.rect.x = rect.x + cX + (diameter - childItem.label!.rect.width) / 2
+            childItem.label!.rect.y = rect.y + cY + (diameter - skin.lineHeight) / 2
+            childItem.label!.draw()
+        }
+        
+        mmView.drawSphere.draw(x: rect.x + x, y: rect.y + y, radius: diameter / 2, borderSize: 1, fillColor: stage === currentStage ? skin.normalBorderColor : skin.normalInteriorColor, borderColor: skin.normalBorderColor)
+        
+        stage.label!.rect.x = rect.x + x + (diameter - stage.label!.rect.width) / 2
+        stage.label!.rect.y = rect.y + y + (diameter - skin.lineHeight) / 2
+        stage.label!.draw()
     }
     
     func drawShapesBox(parent: SceneGraphItem, skin: SceneGraphSkin)

@@ -235,14 +235,33 @@ class Stage                 : Codable, Equatable
         }
         
         if stageType == .RenderStage {
-            let item = StageItem(.RenderStage, "Compute Color")
-            let codeComponent = decodeComponentFromJSON(defaultRender2D)!
+            
+            values["_graphX"] = 200
+            values["_graphY"] = 0
+            
+            var item = StageItem(.RenderStage, "Color")
+            var codeComponent = decodeComponentFromJSON(defaultRender2D)!
             //let codeComponent = CodeComponent(.Render2D, "Black")
             //codeComponent.createDefaultFunction(.Render2D)
             codeComponent.uuid = UUID()
             codeComponent.selected = nil
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
+            
+            item.values["_graphX"] = 130
+            item.values["_graphY"] = 70
+            
+            item = StageItem(.RenderStage, "Color")
+            //codeComponent = decodeComponentFromJSON(defaultRender2D)!
+            codeComponent = CodeComponent(.Render3D, "Black")
+            codeComponent.createDefaultFunction(.Render3D)
+            codeComponent.uuid = UUID()
+            codeComponent.selected = nil
+            item.components[item.defaultName] = codeComponent
+            children3D.append(item)
+            
+            item.values["_graphX"] = 130
+            item.values["_graphY"] = 70
         }
     }
     
@@ -272,11 +291,11 @@ class Stage                 : Codable, Equatable
             //let defComponent = CodeComponent(.SDF2D, "Empty")
             //defComponent.createDefaultFunction(.SDF2D)
             
-            let defComponent3D = CodeComponent(.SDF3D, "Empty")
-            defComponent3D.createDefaultFunction(.SDF3D)
+            //let defComponent3D = CodeComponent(.SDF3D, "Empty")
+            //defComponent3D.createDefaultFunction(.SDF3D)
 
             stageItem.componentLists["shapes2D"] = []//[defComponent]
-            stageItem.componentLists["shapes3D"] = [defComponent3D]
+            stageItem.componentLists["shapes3D"] = []//defComponent3D]
 
             stageItem.componentLists["materials2D"] = []
             stageItem.componentLists["materials3D"] = []

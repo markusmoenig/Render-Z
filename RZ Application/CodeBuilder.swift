@@ -23,7 +23,7 @@ class CodeBuilderInstance
     var monitorComponents   : Int = 1
         
     var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent)] = []
-    
+        
     /// Collect all the properties of the component and create a data entry for it
     func collectProperties(_ component: CodeComponent)
     {
@@ -74,7 +74,8 @@ class CodeBuilder
     
     var clearBuffer         : MTLBuffer!
     var clearState          : MTLComputePipelineState? = nil
-    
+    var copyNearestState    : MTLComputePipelineState? = nil
+
     var sdfStream           : CodeSDFStream
 
     init(_ view: MMView)
@@ -85,6 +86,7 @@ class CodeBuilder
         sdfStream = CodeSDFStream()
         
         buildClearState()
+        buildCopyStates()
     }
     
     func build(_ component: CodeComponent, camera: CodeComponent? = nil, monitor: CodeFragment? = nil) -> CodeBuilderInstance
@@ -141,6 +143,9 @@ class CodeBuilder
         } else
         if component.componentType == .Render2D {
             buildRender2D(inst, component, monitor)
+        } else
+        if component.componentType == .Render3D {
+            buildRender3D(inst, component, monitor)
         }
         
         //print( inst.code )
@@ -399,6 +404,71 @@ class CodeBuilder
         """
     }
     
+    /// Build the source code for the component
+    func buildRender3D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    {
+        inst.code +=
+        """
+        
+        float2 __translate(float2 p, float2 t)
+        {
+            return p - t;
+        }
+        
+        kernel void componentBuilder(
+        texture2d<half, access::write>          __outTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
+        texture2d<half, access::sample>         __depthTexture [[texture(2)]],
+        texture2d<half, access::sample>         __backTexture [[texture(3)]],
+        texture2d<half, access::sample>         __normalTexture [[texture(4)]],
+        uint2 __gid                             [[thread_position_in_grid]])
+        {
+            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+            float4 __monitorOut = float4(0,0,0,0);
+
+            float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
+            float2 uv = float2(__gid.x, __gid.y);
+
+            float4 outColor = float4(0, 0, 0, 1);
+            float4 backColor = float4(__backTexture.sample(__textureSampler, uv / size ));
+            float4 matColor = float4(1, 1, 1, 1);
+        
+            float3 normal = float4(__normalTexture.sample(__textureSampler, uv / size )).xyz;
+
+            float4 __depthIn = float4(__depthTexture.sample(__textureSampler, uv / size ));
+            float4 shape = __depthIn;
+            float GlobalTime = __data[0].x;
+
+            struct FuncData __funcData;
+            __funcData.GlobalTime = GlobalTime;
+            __funcData.__monitorOut = &__monitorOut;
+            __funcData.__data = __data;
+
+        """
+     
+        if let code = component.code {
+            inst.code += code
+        }
+
+        if let monitorFragment = monitor, monitorFragment.name != "outColor" {
+            inst.code +=
+            """
+            
+            outColor = __monitorOut;
+            
+            """
+        }
+
+        inst.code +=
+        """
+                       
+            __outTexture.write(half4(outColor), __gid);
+        }
+          
+        """
+    }
+
+    
     /// Build a clear texture shader
     func buildClearState()
     {
@@ -425,6 +495,34 @@ class CodeBuilder
 
         let library = compute.createLibraryFromSource(source: code)
         clearState = compute.createState(library: library, name: "clearBuilder")
+    }
+    
+    /// Build a copy texture shader
+    func buildCopyStates()
+    {
+        let code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void copyNearestBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        texture2d<half, access::sample>         inTexture [[texture(2)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+            constexpr sampler sampler(mag_filter::nearest, min_filter::nearest);
+
+            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            float2 uv = float2(gid.x, gid.y) / size;
+
+            outTexture.write( inTexture.sample(sampler, uv), gid);
+        }
+         
+        """
+
+        let library = compute.createLibraryFromSource(source: code)
+        copyNearestState = compute.createState(library: library, name: "copyNearestBuilder")
     }
     
     /// Update the instance buffer
@@ -519,12 +617,19 @@ class CodeBuilder
         updateBuffer(inst)
     }
 
-    // Cear the texture
+    // Clear the texture
     func renderClear(texture: MTLTexture, data: SIMD4<Float>)
     {
         clearBuffer = compute.device.makeBuffer(bytes: [data], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
         compute.run( clearState!, outTexture: texture, inBuffer: clearBuffer)
+        compute.commandBuffer.waitUntilCompleted()
+    }
+    
+    // Copy the texture using nearest sampling
+    func renderCopyNearest(texture: MTLTexture, inTexture: MTLTexture, syncronize: Bool = false)
+    {
+        compute.run( copyNearestState!, outTexture: texture, inTexture: inTexture, syncronize: syncronize)
         compute.commandBuffer.waitUntilCompleted()
     }
     

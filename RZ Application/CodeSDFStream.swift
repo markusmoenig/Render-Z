@@ -19,7 +19,10 @@ class CodeSDFStream
     var mapCode             : String = ""
 
     var monitor             : CodeFragment? = nil
-    
+
+    var ids                 : [Int:(StageItem?, CodeComponent?)] = [:]
+    var idCounter           : Int = 0
+
     init()
     {
         
@@ -34,6 +37,9 @@ class CodeSDFStream
         monitor = nil
         componentCounter = 0        
         instance.properties = []
+        
+        ids = [:]
+        idCounter = 0
                 
         if type == .SDF2D {
             headerCode = codeBuilder.getHeaderCode()
@@ -113,7 +119,7 @@ class CodeSDFStream
             
             float4 map( float3 pos, thread struct FuncData *__funcData )
             {
-                float4 outShape = float4(100000, -1, -1, 1);
+                float4 outShape = float4(100000, -1, -1, -1);
                 float outDistance = 10;
             
                 constant float4 *__data = __funcData->__data;
@@ -131,6 +137,7 @@ class CodeSDFStream
             constant float4                        *__data   [[ buffer(1) ]],
             texture2d<half, access::sample>         __rayOriginTexture [[texture(2)]],
             texture2d<half, access::sample>         __rayDirectionTexture [[texture(3)]],
+            texture2d<half, access::write>          __normalTexture [[texture(4)]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
@@ -150,16 +157,26 @@ class CodeSDFStream
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
-                //float4 outShape = map( float3(0,0,0), &__funcData );
-                float4 outShape = float4(0);
+                float4 outShape = float4(100000, -1, -1, -1);
+                float4 outNormal = float4(0);
             
                 float t = 0.001;
                 for( int i=0; i < 70; i++ )
                 {
                     float4 h = map( __ro + __rd * t, &__funcData );
-                    if( abs(h.x)<(0.001 /**t*/) )
+                    if( h.x <(0.001 * t) )
                     {
                         outShape = h;
+                        outShape.y = t;
+            
+                        float3 pos = __ro + t * __rd;
+            
+                        float2 e = float2(1.0,-1.0)*0.5773*0.0005;
+                        outNormal.xyz = normalize( e.xyy*map( pos + e.xyy, &__funcData ).x +
+                              e.yyx*map( pos + e.yyx, &__funcData ).x +
+                              e.yxy*map( pos + e.yxy, &__funcData ).x +
+                              e.xxx*map( pos + e.xxx, &__funcData ).x );
+                        
                         break;
                     }
                     t += h.x;
@@ -188,18 +205,24 @@ class CodeSDFStream
                 """
             }
         }
-        
-        instance.code +=
-        """
-        
-            __outTexture.write(half4(outShape), __gid);
-        }
-        """
     
         if type == .SDF2D {
+            instance.code +=
+            """
+            
+                __outTexture.write(half4(outShape), __gid);
+            }
+            """
             instance.code = headerCode + instance.code
         } else
         if type == .SDF3D {
+            instance.code +=
+            """
+            
+                __normalTexture.write(half4(outNormal), __gid);
+                __outTexture.write(half4(outShape), __gid);
+            }
+            """
             mapCode +=
             """
             
@@ -210,11 +233,11 @@ class CodeSDFStream
             instance.code = headerCode + mapCode + instance.code
         }
         
-        print(instance.code)
+        //print(instance.code)
         codeBuilder.buildInstance(instance)
     }
     
-    func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil, stageItem: StageItem? = nil)
     {
         dryRunComponent(component, instance.data.count, monitor)
         instance.collectProperties(component)
@@ -256,20 +279,20 @@ class CodeSDFStream
             """
             
                 float4 shapeA = outShape;
-                float4 shapeB = float4(outDistance,0,0,1);
+                float4 shapeB = float4(outDistance,0,0,\(idCounter));
             
             """
             
             if let subComponent = component.subComponent {
                 dryRunComponent(subComponent, instance.data.count, monitor)
                 instance.collectProperties(subComponent)
-                instance.code += subComponent.code!
+                code += subComponent.code!
             }
         } else {
             code +=
             """
             
-                outShape = float4(outDistance,0,0,1);
+                outShape = float4(outDistance,0,0,\(idCounter));
             
             """
         }
@@ -281,6 +304,12 @@ class CodeSDFStream
         if type == .SDF3D {
             mapCode += code
         }
+        
+        // If we have a stageItem, store the id
+        if let stageItem = stageItem {
+            ids[idCounter] = (stageItem, component)
+        }
+        idCounter += 1
         componentCounter += 1
     }
 }
