@@ -590,7 +590,7 @@ class SceneGraph                : MMWidget
                         globalApp!.libraryDialog.show(id: "Boolean", cb: { (json) in
                             if let comp = decodeComponentFromJSON(json) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart("Change Boolean")
-                                
+                                                                
                                 comp.uuid = UUID()
                                 comp.selected = nil
                                 globalApp!.currentEditor.setComponent(comp)
@@ -878,7 +878,6 @@ class SceneGraph                : MMWidget
             mmView.drawText.drawText(skin.font, text: "Shapes", x: rect.x + x + (totalWidth - skin.tempRect.width) / 2, y: rect.y + y + 4, scale: skin.fontScale, color: skin.normalTextColor)
     
             for (index, comp) in list.enumerated() {
-            
                 let item = SceneGraphItem(.ShapeItem, stage: parent.stage, stageItem: stageItem, component: comp)
                 item.rect.set(x, y + top, totalWidth, itemSize)
                 itemMap[comp.uuid] = item
@@ -892,17 +891,21 @@ class SceneGraph                : MMWidget
                 }
             
                 top += itemSize
-                if let sub = comp.subComponent, index < list.count - 1 {
-                    let subItem = SceneGraphItem(.BooleanItem, stage: parent.stage, stageItem: stageItem, component: sub, parentComponent: comp)
-                    subItem.rect.set(x, y + top, totalWidth, spacing)
-                    itemMap[sub.uuid] = subItem
+                // Take the subComponent of the NEXT item as the boolean
+                if index < list.count - 1 {
+                    let next = list[index+1]
+                    if let sub = next.subComponent {
+                        let subItem = SceneGraphItem(.BooleanItem, stage: parent.stage, stageItem: stageItem, component: sub, parentComponent: next)
+                        subItem.rect.set(x, y + top, totalWidth, spacing)
+                        itemMap[sub.uuid] = subItem
 
-                    if sub === currentComponent {
-                        mmView.drawBox.draw( x: rect.x + subItem.rect.x, y: rect.y + subItem.rect.y, width: totalWidth, height: spacing, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: skin.normalBorderColor)
+                        if sub === currentComponent {
+                            mmView.drawBox.draw( x: rect.x + subItem.rect.x, y: rect.y + subItem.rect.y, width: totalWidth, height: spacing, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: skin.normalBorderColor)
+                        }
+                        
+                        skin.font.getTextRect(text: sub.libraryName, scale: skin.fontScale, rectToUse: skin.tempRect)
+                        mmView.drawText.drawText(skin.font, text: sub.libraryName, x: rect.x + x + (totalWidth - skin.tempRect.width) / 2, y: rect.y + y + top + 2, scale: skin.fontScale, color: skin.normalTextColor)
                     }
-                    
-                    skin.font.getTextRect(text: sub.libraryName, scale: skin.fontScale, rectToUse: skin.tempRect)
-                    mmView.drawText.drawText(skin.font, text: sub.libraryName, x: rect.x + x + (totalWidth - skin.tempRect.width) / 2, y: rect.y + y + top + 2, scale: skin.fontScale, color: skin.normalTextColor)
                 }
                 top += spacing
             }

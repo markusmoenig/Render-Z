@@ -36,7 +36,7 @@ class Pipeline
     }
     
     // Build the pipeline elements
-    func build(scene: Scene, upUntil: StageItem? = nil, monitor: CodeFragment? = nil)
+    func build(scene: Scene, monitor: CodeFragment? = nil)
     {
         let modeId : String = getCurrentModeId()
         let typeId : CodeComponent.ComponentType = globalApp!.currentSceneMode == .TwoD ? .SDF2D : .SDF3D
@@ -74,7 +74,7 @@ class Pipeline
             // Objects
             let shapeStage = scene.getStage(.ShapeStage)
             for item in shapeStage.getChildren() {
-                if let shapes = item.componentLists["shapes" + modeId] {
+                if let shapes = item.getComponentList("shapes") {
                     let instance = CodeBuilderInstance()
                     instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
                     codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: camera)
@@ -116,7 +116,7 @@ class Pipeline
             // Objects
             let shapeStage = scene.getStage(.ShapeStage)
             for item in shapeStage.getChildren() {
-                if let shapes = item.componentLists["shapes" + modeId] {
+                if let shapes = item.getComponentList("shapes") {
                     let instance = CodeBuilderInstance()
                     instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
                     codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent)
