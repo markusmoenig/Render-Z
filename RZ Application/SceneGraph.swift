@@ -221,7 +221,7 @@ class SceneGraph                : MMWidget
             globalApp!.project.selected?.setSelected(stageItem)
             if let defaultComponent = stageItem.components[stageItem.defaultName] {
                 globalApp!.currentEditor.setComponent(defaultComponent)
-                //globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
                 currentComponent = defaultComponent
             } else {
                 globalApp!.currentEditor.setComponent(CodeComponent())
@@ -231,7 +231,7 @@ class SceneGraph                : MMWidget
         
         if let component = component {
             globalApp!.currentEditor.setComponent(component)
-            globalApp!.currentEditor.updateOnNextDraw(compile: true)
+            globalApp!.currentEditor.updateOnNextDraw(compile: false)
             currentComponent = component
             
             currentUUID = component.uuid

@@ -43,7 +43,7 @@ class DeveloperEditor   : Editor
     override func setComponent(_ component: CodeComponent)
     {
         codeEditor.codeComponent = component
-        updateOnNextDraw()
+        updateOnNextDraw(compile: false)
         if let uuid = component.selected {
             component.selectUUID(uuid, codeEditor.codeContext)
             codeProperties.needsUpdate = true
@@ -59,7 +59,12 @@ class DeveloperEditor   : Editor
     override func updateOnNextDraw(compile: Bool = true)
     {
         codeEditor.needsUpdate = true
-        codeEditor.codeChanged = compile
+        if codeEditor.codeChanged == false {
+            codeEditor.codeChanged = compile
+        }
+        if codeEditor.rect.width > 0 && codeEditor.codeChanged == false {
+            codeEditor.update()
+        }
         mmView.update()
     }
     

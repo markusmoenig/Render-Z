@@ -162,6 +162,7 @@ class App
             
             if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
                 project.selected!.updateStageItem(stageItem)
+                currentEditor.updateOnNextDraw()
                 //if let selected = project.selected!.getSelected() {
                     //project.selected!.setSelected(selected)
                     // TODO get stage sceneGraph.setCurrent(stageItem: selected)

@@ -85,8 +85,10 @@ class ArtistEditor          : Editor
     override func updateOnNextDraw(compile: Bool = true)
     {
         designEditor.needsUpdate = true
-        designEditor.designChanged = compile
-        mmView.update()
+        if designEditor.designChanged == false {
+            designEditor.designChanged = compile
+        }
+        mmView.update()    
     }
     
     override func drawRegion(_ region: MMRegion)
