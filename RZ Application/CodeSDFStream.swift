@@ -240,7 +240,7 @@ class CodeSDFStream
     func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil, stageItem: StageItem? = nil)
     {
         dryRunComponent(component, instance.data.count, monitor)
-        instance.collectProperties(component)
+        instance.collectProperties(component, stageItem)
         self.monitor = monitor
         
         if let globalCode = component.globalCode {

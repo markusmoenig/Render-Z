@@ -23,4 +23,39 @@ class GizmoBase              : MMWidget
     {
         component = comp
     }
+    
+    /// Returns the stage item for the given component (from the stream ids)
+    func getStageItemOfComponent(_ comp: CodeComponent) -> StageItem?
+    {
+        var stageItem : StageItem? = nil
+        
+        for item in globalApp!.pipeline.codeBuilder.sdfStream.ids.values {
+            if item.1 === comp {
+                stageItem = item.0
+                break
+            }
+        }
+        return stageItem
+    }
+    
+    /// Returns the stage item for the given component (from the stream ids)
+    func getParentValue(_ comp: CodeComponent,_ name: String) -> Float
+    {
+        let timeline = globalApp!.artistEditor.timeline
+        var value : Float = 0
+        
+        if let stageItem = getStageItemOfComponent(comp) {
+            if let transComponent = stageItem.components[stageItem.defaultName] {
+
+                // Transform
+                var properties : [String:Float] = [:]
+                properties[name] = transComponent.values[name]!
+                
+                let transformed = timeline.transformProperties(sequence: transComponent.sequence, uuid: transComponent.uuid, properties: properties, frame: timeline.currentFrame)
+                
+                value += transformed[name]!
+            }
+        }
+        return value
+    }
 }

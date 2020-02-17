@@ -288,6 +288,11 @@ class Stage                 : Codable, Equatable
         
         if stageItem.stageItemType == .ShapeStage {
             
+            let transformComponent = CodeComponent( globalApp!.currentSceneMode == .TwoD ? .Transform2D : .Transform3D, "Transform")
+            transformComponent.createDefaultFunction(globalApp!.currentSceneMode == .TwoD ? .Transform2D : .Transform3D)
+            stageItem.components[stageItem.defaultName] = transformComponent
+            setDefaultComponentValues(transformComponent)
+            
             //let defComponent = CodeComponent(.SDF2D, "Empty")
             //defComponent.createDefaultFunction(.SDF2D)
             

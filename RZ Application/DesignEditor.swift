@@ -53,7 +53,7 @@ class DesignEditor          : MMWidget
         gizmoState = .None
         
         if let comp = designComponent {
-            if comp.componentType == .SDF2D {
+            if comp.componentType == .SDF2D || comp.componentType == .Transform2D {
                 gizmoState = .Combo2D
                 currentGizmo = gizmoCombo2D
             }

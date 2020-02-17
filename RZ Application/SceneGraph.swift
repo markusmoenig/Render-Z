@@ -219,12 +219,14 @@ class SceneGraph                : MMWidget
 
         if let stageItem = stageItem {
             globalApp!.project.selected?.setSelected(stageItem)
-            if let defaultComponent = stageItem.components[stageItem.defaultName] {
-                globalApp!.currentEditor.setComponent(defaultComponent)
-                globalApp!.currentEditor.updateOnNextDraw(compile: false)
-                currentComponent = defaultComponent
-            } else {
-                globalApp!.currentEditor.setComponent(CodeComponent())
+            if component == nil {
+                if let defaultComponent = stageItem.components[stageItem.defaultName] {
+                    globalApp!.currentEditor.setComponent(defaultComponent)
+                    globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                    currentComponent = defaultComponent
+                } else {
+                    globalApp!.currentEditor.setComponent(CodeComponent())
+                }
             }
             currentUUID = stageItem.uuid
         }

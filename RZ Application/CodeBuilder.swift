@@ -22,28 +22,28 @@ class CodeBuilderInstance
     var computeResult       : SIMD4<Float> = SIMD4<Float>(0,0,0,0)
     var monitorComponents   : Int = 1
         
-    var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent)] = []
+    var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent, StageItem?)] = []
         
     /// Collect all the properties of the component and create a data entry for it
-    func collectProperties(_ component: CodeComponent)
+    func collectProperties(_ component: CodeComponent,_ stageItem: StageItem? = nil)
     {
         // Collect properties, stored in the value property of the CodeFragment
         for uuid in component.properties
         {
             let rc = component.getPropertyOfUUID(uuid)
             if rc.0 != nil && rc.1 != nil {
-                properties.append((rc.0, rc.1, nil, data.count, component))
+                properties.append((rc.0, rc.1, nil, data.count, component, stageItem))
                 data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
             }
         }
         
         // Collect transforms, stored in the values map of the component
-        if component.componentType == .SDF2D {
-            properties.append((nil, nil, "_posX", data.count, component))
+        if component.componentType == .SDF2D || component.componentType == .Transform2D {
+            properties.append((nil, nil, "_posX", data.count, component, stageItem))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_posY", data.count, component))
+            properties.append((nil, nil, "_posY", data.count, component, stageItem))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_rotate", data.count, component))
+            properties.append((nil, nil, "_rotate", data.count, component, stageItem))
             data.append(SIMD4<Float>(0,0,0,0))
         }
     }
@@ -606,8 +606,22 @@ class CodeBuilder
             if let name = property.2 {
                 // Transform property, stored in the values of the component
                 
+                // Recursively add the parent values for this transform
+                var parentValue : Float = 0
+                if let stageItem = property.5 {
+                    if let transComponent = stageItem.components[stageItem.defaultName] {
+                        // Transform
+                        var properties : [String:Float] = [:]
+                        properties[name] = transComponent.values[name]!
+                        
+                        let transformed = timeline.transformProperties(sequence: transComponent.sequence, uuid: transComponent.uuid, properties: properties, frame: timeline.currentFrame)
+                        
+                        parentValue += transformed[name]!
+                    }
+                }
+                
                 var properties : [String:Float] = [:]
-                properties[name] = component.values[name]!
+                properties[name] = component.values[name]! + parentValue
 
                 let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
                 

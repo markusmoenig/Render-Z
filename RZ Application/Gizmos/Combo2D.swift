@@ -59,7 +59,7 @@ class GizmoCombo2D          : GizmoBase
                 designProperties.updatePreview()
                 designProperties.addKey([variable:newValue])
                 if let undo = codeUndo { designEditor.undoEnd(undo) }
-            }            
+            }
             tNode.setupUI(mmView: mmView)
         }
     }
@@ -180,10 +180,7 @@ class GizmoCombo2D          : GizmoBase
     /// Updates the UI properties
     func updateUIProperties()
     {
-        // Show the supported transform values
-        //let designEditor = globalApp!.artistEditor.designEditor
         let designProperties = globalApp!.artistEditor.designProperties
-
         
         if let tNode = designProperties.c2Node {
             for item in tNode.uiItems {
@@ -232,10 +229,19 @@ class GizmoCombo2D          : GizmoBase
 
          // --- Core Gizmo
          //let attributes = getCurrentGizmoAttributes()
-        var posX : Float = component.values["_posX"]!
-        var posY : Float = -component.values["_posY"]!
+        //var posX : Float = component.values["_posX"]! + getParentValue(component, "_posX")
+        //var posY : Float = -(component.values["_posY"]! + getParentValue(component, "_posY"))
          
-        gizmoCenter = convertToScreenSpace(x: posX, y: posY)
+        var properties : [String:Float] = [:]
+        properties["_posX"] = component.values["_posX"]! + getParentValue(component, "_posX")
+        properties["_posY"] = component.values["_posY"]! + getParentValue(component, "_posY")
+
+        let timeline = globalApp!.artistEditor.timeline
+        let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+        
+        gizmoCenter = convertToScreenSpace(x: transformed["_posX"]!, y: -transformed["_posY"]!)
+        
+        //gizmoCenter = convertToScreenSpace(x: posX, y: posY)
 
         let gizmoRect : MMRect =  MMRect()
          
@@ -355,7 +361,15 @@ class GizmoCombo2D          : GizmoBase
         ];
         
         mmView.renderer.setClipRect(rect)
-        let screenSpace = convertToScreenSpace(x: component.values["_posX"]!, y: -component.values["_posY"]!)
+        
+        var properties : [String:Float] = [:]
+        properties["_posX"] = component.values["_posX"]! + getParentValue(component, "_posX")
+        properties["_posY"] = component.values["_posY"]! + getParentValue(component, "_posY")
+
+        let timeline = globalApp!.artistEditor.timeline
+        let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+        
+        let screenSpace = convertToScreenSpace(x: transformed["_posX"]!, y: -transformed["_posY"]!)
         
         let mmRenderer = mmView.renderer!
         let renderEncoder = mmRenderer.renderEncoder!

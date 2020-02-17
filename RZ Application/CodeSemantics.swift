@@ -997,7 +997,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D
     }
     
     let functionType        : FunctionType
@@ -1104,7 +1104,7 @@ class CodeFunction          : Codable, Equatable
         }
     }
     
-    func createOutVariableBlock(_ typeName: String,_ name: String) -> CodeBlock
+    func createOutVariableBlock(_ typeName: String,_ name: String, refTo: CodeFragment? = nil) -> CodeBlock
     {
         let b = CodeBlock(CodeBlock.BlockType.OutVariable)
         
@@ -1118,57 +1118,65 @@ class CodeFunction          : Codable, Equatable
         b.fragment.name = name
         b.fragment.evaluatesTo = typeName
         
-        if typeName == "float" {
-            let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
-            b.statement.fragments.append(constValue)
-            
-            if name == "outDistance" {
-                constValue.values["min"] = -10000
-                constValue.values["max"] = 10000
-                constValue.values["value"] = 0
-            }
+        if let refTo = refTo {
+            // Reference
+            let reference = CodeFragment(.VariableReference, refTo.typeName, refTo.name, [.Selectable, .Dragable, .Targetable])
+            reference.referseTo = refTo.uuid
+            b.statement.fragments.append(reference)
         } else {
-            let constant = CodeFragment(.ConstantDefinition, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
-            b.statement.fragments.append(constant)
-            
-            var components : Int = 4
-            
-            if typeName.contains("2") {
-                components = 2
-            } else
-            if typeName.contains("3") {
-                components = 3
-            }
-            
-            for index in 0..<components {
-                let argStatement = CodeStatement(.Arithmetic)
-                
+            // Constant Value
+            if typeName == "float" {
                 let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
-                if name == "outColor" {
-                    if functionType == .Colorize || functionType == .SkyDome {
-                        if index == 0 {
-                            constValue.setValue(0.161)
-                        } else
-                        if index == 1 {
-                            constValue.setValue(0.165)
-                        } else
-                        if index == 2 {
-                            constValue.setValue(0.184)
-                        }
-                    } else {
-                        if index == 0 {
-                            constValue.setValue(0)
-                        } else
-                        if index == 1 {
-                            constValue.setValue(0)
-                        } else
-                        if index == 2 {
-                            constValue.setValue(0)
+                b.statement.fragments.append(constValue)
+                
+                if name == "outDistance" {
+                    constValue.values["min"] = -10000
+                    constValue.values["max"] = 10000
+                    constValue.values["value"] = 0
+                }
+            } else {
+                let constant = CodeFragment(.ConstantDefinition, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
+                b.statement.fragments.append(constant)
+                
+                var components : Int = 4
+                
+                if typeName.contains("2") {
+                    components = 2
+                } else
+                if typeName.contains("3") {
+                    components = 3
+                }
+                
+                for index in 0..<components {
+                    let argStatement = CodeStatement(.Arithmetic)
+                    
+                    let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
+                    if name == "outColor" {
+                        if functionType == .Colorize || functionType == .SkyDome {
+                            if index == 0 {
+                                constValue.setValue(0.161)
+                            } else
+                            if index == 1 {
+                                constValue.setValue(0.165)
+                            } else
+                            if index == 2 {
+                                constValue.setValue(0.184)
+                            }
+                        } else {
+                            if index == 0 {
+                                constValue.setValue(0)
+                            } else
+                            if index == 1 {
+                                constValue.setValue(0)
+                            } else
+                            if index == 2 {
+                                constValue.setValue(0)
+                            }
                         }
                     }
+                    argStatement.fragments.append(constValue)
+                    constant.arguments.append(argStatement)
                 }
-                argStatement.fragments.append(constValue)
-                constant.arguments.append(argStatement)
             }
         }
         return b
@@ -1253,7 +1261,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1404,7 +1412,7 @@ class CodeComponent         : Codable, Equatable
             let f = CodeFunction(type, "shapeDistance")
             f.comment = "Returns the distance to the shape for the given position"
             
-            let arg1 = CodeFragment(.VariableDefinition, "float2", "pos", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "position", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg1)
             
             let b = CodeBlock(.Empty)
@@ -1417,7 +1425,7 @@ class CodeComponent         : Codable, Equatable
             let f = CodeFunction(type, "shapeDistance")
             f.comment = "Returns the distance to the shape for the given position"
             
-            let arg1 = CodeFragment(.VariableDefinition, "float3", "pos", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)
             
             let b = CodeBlock(.Empty)
@@ -1523,6 +1531,23 @@ class CodeComponent         : Codable, Equatable
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
+            functions.append(f)
+        } else
+        if type == .Transform2D {
+            let f = CodeFunction(type, "transform")
+            f.comment = "Transform the artist properties"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float2", "position", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float", "rotation", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float2", "outPosition", refTo: arg1))
+            f.body.append(f.createOutVariableBlock("float", "outRotation", refTo: arg2))
             functions.append(f)
         }
     }
