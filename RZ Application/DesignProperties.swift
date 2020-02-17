@@ -300,6 +300,8 @@ class DesignProperties      : MMWidget
         
         if let node = c2Node {
             
+            node.rect.x = rect.right() - node.uiArea.width - 10
+            
             let uiItemX : Float = rect.x + node.rect.x
             var uiItemY : Float = rect.y + node.rect.y
             

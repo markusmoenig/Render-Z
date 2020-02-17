@@ -113,15 +113,19 @@ class DesignEditor          : MMWidget
         if let gizmo = currentGizmo {
             gizmo.mouseDown(event)
         }
+        
+        // Handle properties click
         if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
             editor.designProperties.mouseDown(event)
         }
         
-        if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
+        //  Handle selection click
+        if editor.designProperties.hoverMode == .None && (currentGizmo == nil || currentGizmo!.hoverState == .Inactive) {
             
             let x : Float = event.x - rect.x
             let y : Float = event.y - rect.y
             
+            // Selection
             if let texture = globalApp!.pipeline.depthTexture {
                 
                 if let convertTo = globalApp!.pipeline.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
@@ -141,6 +145,8 @@ class DesignEditor          : MMWidget
                     }
                 }
             }
+            
+            // Camera
         }
     }
     

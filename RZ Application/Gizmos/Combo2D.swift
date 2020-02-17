@@ -38,6 +38,30 @@ class GizmoCombo2D          : GizmoBase
     override func setComponent(_ comp: CodeComponent)
     {
         component = comp
+        
+        // Show the supported transform values
+        let designEditor = globalApp!.artistEditor.designEditor
+        let designProperties = globalApp!.artistEditor.designProperties
+
+        if let tNode = designProperties.c2Node {
+            
+            let xVar = NodeUINumber(tNode, variable: "_posX", title: "X", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posX"]!, precision: 1)
+            let yVar = NodeUINumber(tNode, variable: "_posY", title: "Y", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posY"]!, precision: 1)
+            let rotateVar = NodeUINumber(tNode, variable: "_rotate", title: "Rotate", range: SIMD2<Float>(0, 360), value: comp.values["_rotate"]!, precision: 1)
+            tNode.uiItems.append(xVar)
+            tNode.uiItems.append(yVar)
+            tNode.uiItems.append(rotateVar)
+
+            tNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                comp.values[variable] = oldValue
+                let codeUndo : CodeUndoComponent? = continous == false ? designEditor.undoStart("Value Changed") : nil
+                comp.values[variable] = newValue
+                designProperties.updatePreview()
+                designProperties.addKey([variable:newValue])
+                if let undo = codeUndo { designEditor.undoEnd(undo) }
+            }            
+            tNode.setupUI(mmView: mmView)
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -135,6 +159,8 @@ class GizmoCombo2D          : GizmoBase
             if undoComponent == nil {
                 undoComponent = globalApp!.currentEditor.undoComponentStart("Gizmo Action")
             }
+            
+            updateUIProperties()
         }
     }
     
@@ -149,6 +175,25 @@ class GizmoCombo2D          : GizmoBase
             undoComponent = nil
         }
         mmView.update()
+    }
+    
+    /// Updates the UI properties
+    func updateUIProperties()
+    {
+        // Show the supported transform values
+        //let designEditor = globalApp!.artistEditor.designEditor
+        let designProperties = globalApp!.artistEditor.designProperties
+
+        
+        if let tNode = designProperties.c2Node {
+            for item in tNode.uiItems {
+                if item.brand == .Number {
+                    if let number = item as? NodeUINumber {
+                        number.value = component.values[item.variable]!
+                    }
+                }
+            }
+        }
     }
     
     ///
@@ -301,7 +346,7 @@ class GizmoCombo2D          : GizmoBase
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
-    {        
+    {
         // --- Render Gizmo
         
         let data: [Float] = [
@@ -309,6 +354,7 @@ class GizmoCombo2D          : GizmoBase
             hoverState.rawValue, 0
         ];
         
+        mmView.renderer.setClipRect(rect)
         let screenSpace = convertToScreenSpace(x: component.values["_posX"]!, y: -component.values["_posY"]!)
         
         let mmRenderer = mmView.renderer!
@@ -323,6 +369,7 @@ class GizmoCombo2D          : GizmoBase
         
         renderEncoder.setRenderPipelineState(state!)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+        mmView.renderer.setClipRect()
     }
     
     /// Converts the coordinate from scene space to screen space
