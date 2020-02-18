@@ -257,3 +257,15 @@ func getCurrentModeId() -> String
     let modeId : String = globalApp!.currentSceneMode == .TwoD ? "2D" : "3D"
     return modeId
 }
+
+func getFirstComponentOfType(_ list: [StageItem],_ type: CodeComponent.ComponentType) -> CodeComponent?
+{
+    for item in list {
+        if let c = item.components[item.defaultName] {
+            if c.componentType == type {
+                return c
+            }
+        }
+    }
+    return nil
+}

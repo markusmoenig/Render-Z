@@ -43,18 +43,6 @@ class Pipeline
 
         instanceMap = [:]
         
-        func getFirstComponentOfType(_ list: [StageItem],_ type: CodeComponent.ComponentType) -> CodeComponent?
-        {
-            for item in list {
-                if let c = item.components[item.defaultName] {
-                    if c.componentType == type {
-                        return c
-                    }
-                }
-            }
-            return nil
-        }
-        
         /// Recursively iterate the object hierarchy
         func processChildren(_ stageItem: StageItem)
         {

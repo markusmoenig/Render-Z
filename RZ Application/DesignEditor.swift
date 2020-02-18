@@ -29,6 +29,9 @@ class DesignEditor          : MMWidget
     
     var gizmoCombo2D        : GizmoCombo2D
     var currentGizmo        : GizmoBase? = nil
+    
+    var dispatched          : Bool = false
+    var zoomBuffer          : Float = 0
 
     override init(_ view: MMView)
     {
@@ -157,6 +160,105 @@ class DesignEditor          : MMWidget
         }
         if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
             editor.designProperties.mouseUp(event)
+        }
+    }
+    
+    override func mouseScrolled(_ event: MMMouseEvent)
+    {
+        #if os(iOS)
+        // On iOS only scroll when nothing else is going on
+        if let gizmo = currentGizmo {
+            if gizmo.hoverState != .Inactive {
+                return
+            }
+        }
+        #endif
+
+        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
+
+        var xFrag : CodeFragment? = nil
+        var yFrag : CodeFragment? = nil
+        var scale : CodeFragment? = nil
+
+        for uuid in camera.properties {
+            let rc = camera.getPropertyOfUUID(uuid)
+            if let frag = rc.0 {
+                if frag.name == "cameraX" {
+                    xFrag = rc.1
+                } else
+                if frag.name == "cameraY" {
+                    yFrag = rc.1
+                } else
+                if frag.name == "scale" {
+                    scale = rc.1
+                }
+            }
+        }
+        
+        #if os(iOS)
+        if let frag = xFrag {
+            frag.values["value"]! -= event.deltaX!
+        }
+        if let frag = yFrag {
+            frag.values["value"]! += event.deltaY!
+        }
+        #elseif os(OSX)
+        if mmView.commandIsDown && event.deltaY! != 0 {
+            if let frag = scale {
+                frag.values["value"]! -= event.deltaY! * 0.03
+                frag.values["value"]! = max(0.001, frag.values["value"]!)
+                frag.values["value"]! = min(20, frag.values["value"]!)
+            }
+        } else {
+            if let frag = xFrag {
+                frag.values["value"]! += event.deltaX! * 2
+            }
+            if let frag = yFrag {
+                frag.values["value"]! -= event.deltaY! * 2
+            }
+        }
+        #endif
+        
+        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        
+        if !dispatched {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.mmView.unlockFramerate()
+                self.dispatched = false
+            }
+            dispatched = true
+        }
+        
+        if mmView.maxFramerateLocks == 0 {
+            mmView.lockFramerate()
+        }
+    }
+    
+    override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
+    {
+        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
+
+        var scaleFrag : CodeFragment? = nil
+
+        for uuid in camera.properties {
+            let rc = camera.getPropertyOfUUID(uuid)
+            if let frag = rc.0 {
+                if frag.name == "scale" {
+                    scaleFrag = rc.1
+                }
+            }
+        }
+        
+        if let frag = scaleFrag {
+            if firstTouch == true {
+                zoomBuffer = frag.values["value"]!
+            }
+            
+            frag.values["value"]! = zoomBuffer / scale
+            frag.values["value"]! = max(0.001, frag.values["value"]!)
+            frag.values["value"]! = min(20, frag.values["value"]!)
+            
+            editor.updateOnNextDraw(compile: false)
         }
     }
     

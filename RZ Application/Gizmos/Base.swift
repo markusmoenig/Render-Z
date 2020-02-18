@@ -55,4 +55,21 @@ class GizmoBase              : MMWidget
         }
         return value
     }
+    
+    /// Returns a property value of the camera
+    func getCameraPropertyValue(_ name: String, defaultValue: Float = 0) -> Float
+    {
+        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
+
+        for uuid in camera.properties {
+            let rc = camera.getPropertyOfUUID(uuid)
+            if let frag = rc.0 {
+                if frag.name == name {
+                    return rc.1!.values["value"]!
+                }
+            }
+        }
+        
+        return defaultValue
+    }
 }

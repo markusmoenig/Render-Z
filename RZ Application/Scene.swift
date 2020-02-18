@@ -285,7 +285,7 @@ class Stage                 : Codable, Equatable
     @discardableResult func createChild(_ name: String = "", parent: StageItem? = nil ) -> StageItem
     {
         let stageItem = StageItem(stageType, name)
-        
+
         if stageItem.stageItemType == .ShapeStage {
             
             let transformComponent = CodeComponent( globalApp!.currentSceneMode == .TwoD ? .Transform2D : .Transform3D, "Transform")
@@ -308,7 +308,7 @@ class Stage                 : Codable, Equatable
             stageItem.componentLists["domain2D"] = []
             stageItem.componentLists["domain3D"] = []
         }
-        
+
         if let parent = parent {
             parent.children.append(stageItem)
         } else {
@@ -322,7 +322,7 @@ class Stage                 : Codable, Equatable
         folderIsOpen = true
         return stageItem
     }
-    
+
     /// Recursively update the component
     func updateComponent(_ comp: CodeComponent)
     {
@@ -333,7 +333,7 @@ class Stage                 : Codable, Equatable
             item.updateComponent(comp)
         }
     }
-    
+
     /// Recursively update the item
     func updateStageItem(_ item: StageItem)
     {

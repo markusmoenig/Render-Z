@@ -26,7 +26,7 @@ class GizmoCombo2D          : GizmoBase
     var scaleYFragment      : CodeFragment? = nil
     
     var undoComponent       : CodeUndoComponent? = nil
-
+    
     override init(_ view: MMView)
     {
         let function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmoCombo2D" )
@@ -114,23 +114,24 @@ class GizmoCombo2D          : GizmoBase
             }
         } else {
             let pos = convertToSceneSpace(x: event.x, y: event.y)
+            let scale : Float = getCameraPropertyValue("scale", defaultValue: 1)
 
             if dragState == .CenterMove {
                 let properties : [String:Float] = [
-                    "_posX" : initialValues["_posX"]! + (pos.x - dragStartOffset!.x),
-                    "_posY" : initialValues["_posY"]! - (pos.y - dragStartOffset!.y),
+                    "_posX" : initialValues["_posX"]! + (pos.x - dragStartOffset!.x) * scale,
+                    "_posY" : initialValues["_posY"]! - (pos.y - dragStartOffset!.y) * scale,
                 ]
                 processGizmoProperties(properties)
             } else
             if dragState == .xAxisMove {
                 let properties : [String:Float] = [
-                    "_posX" : initialValues["_posX"]! + (pos.x - dragStartOffset!.x),
+                    "_posX" : initialValues["_posX"]! + (pos.x - dragStartOffset!.x) * scale,
                 ]
                 processGizmoProperties(properties)
             } else
             if dragState == .yAxisMove {
                 let properties : [String:Float] = [
-                    "_posY" : initialValues["_posY"]! - (pos.y - dragStartOffset!.y),
+                    "_posY" : initialValues["_posY"]! - (pos.y - dragStartOffset!.y) * scale,
                 ]
                 processGizmoProperties(properties)
             } else
@@ -147,12 +148,12 @@ class GizmoCombo2D          : GizmoBase
             } else
             if dragState == .xAxisScale {
                 if let fragment = scaleXFragment {
-                    processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (pos.x - dragStartOffset!.x), 0.001))
+                    processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (pos.x - dragStartOffset!.x) * scale, 0.001))
                 }
             } else
             if dragState == .yAxisScale {
                 if let fragment = scaleYFragment {
-                    processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (pos.y - dragStartOffset!.y), 0.001))
+                    processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (pos.y - dragStartOffset!.y) * scale, 0.001))
                 }
             }
             
@@ -226,15 +227,12 @@ class GizmoCombo2D          : GizmoBase
      func updateHoverState(_ event: MMMouseEvent)
      {
          hoverState = .Inactive
-
-         // --- Core Gizmo
-         //let attributes = getCurrentGizmoAttributes()
-        //var posX : Float = component.values["_posX"]! + getParentValue(component, "_posX")
-        //var posY : Float = -(component.values["_posY"]! + getParentValue(component, "_posY"))
          
+        let scale : Float = getCameraPropertyValue("scale", defaultValue: 1)
+
         var properties : [String:Float] = [:]
-        properties["_posX"] = component.values["_posX"]! + getHierarchyValue(component, "_posX")
-        properties["_posY"] = component.values["_posY"]! + getHierarchyValue(component, "_posY")
+        properties["_posX"] = (component.values["_posX"]! + getHierarchyValue(component, "_posX")) / scale
+        properties["_posY"] = (component.values["_posY"]! + getHierarchyValue(component, "_posY")) / scale
 
         let timeline = globalApp!.artistEditor.timeline
         let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
@@ -362,9 +360,11 @@ class GizmoCombo2D          : GizmoBase
         
         mmView.renderer.setClipRect(rect)
         
+        let scale : Float = getCameraPropertyValue("scale", defaultValue: 1)
+
         var properties : [String:Float] = [:]
-        properties["_posX"] = component.values["_posX"]! + getHierarchyValue(component, "_posX")
-        properties["_posY"] = component.values["_posY"]! + getHierarchyValue(component, "_posY")
+        properties["_posX"] = (component.values["_posX"]! + getHierarchyValue(component, "_posX")) / scale
+        properties["_posY"] = (component.values["_posY"]! + getHierarchyValue(component, "_posY")) / scale
 
         let timeline = globalApp!.artistEditor.timeline
         let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
@@ -390,11 +390,9 @@ class GizmoCombo2D          : GizmoBase
     func convertToScreenSpace(x: Float, y: Float) -> SIMD2<Float>
     {
         var result : SIMD2<Float> = SIMD2<Float>()
-        
-        //let camera = maxDelegate!.getCamera()!
-        
-        result.x = (x - /*camera.xPos*/ 0.0 + 0.5)// / 700 * rect.width
-        result.y = (y - /*camera.yPos*/ 0.0 + 0.5)// / 700 * rect.width
+                
+        result.x = x - getCameraPropertyValue("cameraX") + 0.5
+        result.y = y + getCameraPropertyValue("cameraY") + 0.5
         
         result.x += rect.width/2
         result.y += rect.width/2 * rect.height / rect.width
@@ -410,14 +408,12 @@ class GizmoCombo2D          : GizmoBase
     {
         var result : SIMD2<Float> = SIMD2<Float>()
         
-        result.x = (x - rect.x)// * 700 / rect.width
-        result.y = (y - rect.y)// * 700 / rect.width
+        result.x = x - rect.x
+        result.y = y - rect.y
         
-        //let camera = maxDelegate!.getCamera()!
-
         // --- Center
-        result.x -= rect.width / 2 - 0.0//camera.xPos
-        result.y += 0.0//camera.yPos
+        result.x -= rect.width / 2 - getCameraPropertyValue("cameraX")
+        result.y += getCameraPropertyValue("cameraY")
         result.y -= rect.width / 2 * rect.height / rect.width
         
         return result
