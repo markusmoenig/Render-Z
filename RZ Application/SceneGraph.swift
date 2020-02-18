@@ -373,6 +373,7 @@ class SceneGraph                : MMWidget
         }
         mouseIsDown = false
         pressedButton = nil
+        hoverButton = nil
         isDraggingKnob = false
     }
     
