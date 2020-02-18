@@ -24,27 +24,24 @@ class GizmoBase              : MMWidget
         component = comp
     }
     
-    /// Returns the stage item for the given component (from the stream ids)
-    func getStageItemOfComponent(_ comp: CodeComponent) -> StageItem?
+    /// Returns the StageItem hierarchy for the given component
+    func getHierarchyOfComponent(_ comp: CodeComponent) -> [StageItem]
     {
-        var stageItem : StageItem? = nil
-        
         for item in globalApp!.pipeline.codeBuilder.sdfStream.ids.values {
             if item.1 === comp {
-                stageItem = item.0
-                break
+                return item.0
             }
         }
-        return stageItem
+        return []
     }
     
     /// Returns the stage item for the given component (from the stream ids)
-    func getParentValue(_ comp: CodeComponent,_ name: String) -> Float
+    func getHierarchyValue(_ comp: CodeComponent,_ name: String) -> Float
     {
         let timeline = globalApp!.artistEditor.timeline
         var value : Float = 0
         
-        if let stageItem = getStageItemOfComponent(comp) {
+        for stageItem in getHierarchyOfComponent(comp).reversed() {
             if let transComponent = stageItem.components[stageItem.defaultName] {
 
                 // Transform

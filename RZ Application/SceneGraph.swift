@@ -124,10 +124,10 @@ class SceneGraph                : MMWidget
         menuWidget = MMMenuWidget(view, type: .Hidden)
         
         toolBarButtonSkin = MMSkinButton()
-        toolBarButtonSkin.margin = MMMargin( 4, 4, 4, 4 )
+        toolBarButtonSkin.margin = MMMargin( 8, 4, 8, 4 )
         toolBarButtonSkin.borderSize = 0
         toolBarButtonSkin.height = view.skin.Button.height - 5
-        toolBarButtonSkin.fontScale = 0.44
+        toolBarButtonSkin.fontScale = 0.40
         toolBarButtonSkin.round = 20
         
         super.init(view)
@@ -586,7 +586,6 @@ class SceneGraph                : MMWidget
                     toolBarWidgets.append(button)
                 } else
                 if item.itemType == .BooleanItem {
-                    
                     let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
                     button.clicked = { (event) in
                         globalApp!.libraryDialog.show(id: "Boolean", cb: { (json) in
@@ -610,6 +609,7 @@ class SceneGraph                : MMWidget
                     }
                     toolBarWidgets.append(button)
                 } else
+                // Renderer
                 if let comp = item.component, comp.componentType == .Render2D || comp.componentType == .Render3D {
                     
                     let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
@@ -630,6 +630,30 @@ class SceneGraph                : MMWidget
                                 self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
                             }
                         })
+                    }
+                    toolBarWidgets.append(button)
+                } else
+                if item.itemType == .StageItem && item.stageItem!.stageItemType == .ShapeStage {
+                    var button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Add Child")
+                    button.clicked = { (event) in
+                        getStringDialog(view: self.mmView, title: "Child Object", message: "Object name", defaultValue: "Child Object", cb: { (value) -> Void in
+                            if let scene = globalApp!.project.selected {
+                                
+                                let shapeStage = scene.getStage(.ShapeStage)
+                                let objectItem = shapeStage.createChild(value, parent: item.stageItem!)
+                                
+                                objectItem.values["_graphX"]! = objectItem.values["_graphX"]!
+                                objectItem.values["_graphY"]! = objectItem.values["_graphY"]! + 270
+
+                                globalApp!.sceneGraph.setCurrent(stage: shapeStage, stageItem: objectItem)
+                            }
+                        } )
+                    }
+                    toolBarWidgets.append(button)
+                    
+                    button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Delete")
+                    button.clicked = { (event) in
+
                     }
                     toolBarWidgets.append(button)
                 }
@@ -775,26 +799,7 @@ class SceneGraph                : MMWidget
         stage = scene.getStage(.ShapeStage)
         let objects = stage.getChildren()
         for o in objects {
-
-            if o.label == nil || o.label!.scale != skin.fontScale {
-                o.label = MMTextLabel(mmView, font: mmView.openSans, text: o.name, scale: skin.fontScale, color: skin.normalTextColor)
-            }
-            let diameter : Float = o.label!.rect.width + 10 * graphZoom
-            
-            let x = (graphX + o.values["_graphX"]!) * graphZoom - diameter / 2
-            let y = (graphY + o.values["_graphY"]!) * graphZoom - diameter / 2
-            
-            let item = SceneGraphItem(.StageItem, stage: stage, stageItem: o)
-            item.rect.set(x, y, diameter, diameter)
-            itemMap[o.uuid] = item
-            
-            drawShapesBox(parent: item, skin: skin)
-
-            mmView.drawSphere.draw(x: rect.x + x, y: rect.y + y, radius: diameter / zoom, borderSize: 1, fillColor: o === currentStageItem ? skin.normalBorderColor : skin.normalInteriorColor, borderColor: skin.normalBorderColor)
-            
-            o.label!.rect.x = rect.x + x + (diameter - o.label!.rect.width) / 2
-            o.label!.rect.y = rect.y + y + (diameter - skin.lineHeight) / 2
-            o.label!.draw()
+            drawObject(stage: stage, o: o, skin: skin)
         }
         
         // Draw Render Stage
@@ -842,6 +847,37 @@ class SceneGraph                : MMWidget
         stage.label!.rect.x = rect.x + x + (diameter - stage.label!.rect.width) / 2
         stage.label!.rect.y = rect.y + y + (diameter - skin.lineHeight) / 2
         stage.label!.draw()
+    }
+    
+    /// Draws an object hierarchy
+    func drawObject(stage: Stage,o: StageItem, parent: SceneGraphItem? = nil, skin: SceneGraphSkin)
+    {
+        if o.label == nil || o.label!.scale != skin.fontScale {
+            o.label = MMTextLabel(mmView, font: mmView.openSans, text: o.name, scale: skin.fontScale, color: skin.normalTextColor)
+        }
+        let diameter : Float = o.label!.rect.width + 10 * graphZoom
+        
+        let x = (graphX + o.values["_graphX"]!) * graphZoom - diameter / 2
+        let y = (graphY + o.values["_graphY"]!) * graphZoom - diameter / 2
+        
+        let item = SceneGraphItem(.StageItem, stage: stage, stageItem: o)
+        item.rect.set(x, y, diameter, diameter)
+        itemMap[o.uuid] = item
+        
+        if let p = parent {
+            drawLineBetweenCircles(item, p, skin)
+        }
+        
+        drawShapesBox(parent: item, skin: skin)
+        
+        for c in o.children {
+            drawObject(stage: stage, o: c, parent: item, skin: skin)
+        }
+        
+        mmView.drawSphere.draw(x: rect.x + x, y: rect.y + y, radius: diameter / zoom, borderSize: 1, fillColor: o === currentStageItem ? skin.normalBorderColor : skin.normalInteriorColor, borderColor: skin.normalBorderColor)
+        o.label!.rect.x = rect.x + x + (diameter - o.label!.rect.width) / 2
+        o.label!.rect.y = rect.y + y + (diameter - skin.lineHeight) / 2
+        o.label!.draw()
     }
     
     func drawShapesBox(parent: SceneGraphItem, skin: SceneGraphSkin)

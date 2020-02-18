@@ -282,7 +282,7 @@ class Stage                 : Codable, Equatable
     }
     
     /// Adds a new stage item to the children list and returns it
-    @discardableResult func createChild(_ name: String = "") -> StageItem
+    @discardableResult func createChild(_ name: String = "", parent: StageItem? = nil ) -> StageItem
     {
         let stageItem = StageItem(stageType, name)
         
@@ -309,11 +309,15 @@ class Stage                 : Codable, Equatable
             stageItem.componentLists["domain3D"] = []
         }
         
-        if globalApp!.currentSceneMode == .TwoD
-        {
-            children2D.append(stageItem)
+        if let parent = parent {
+            parent.children.append(stageItem)
         } else {
-            children3D.append(stageItem)
+            if globalApp!.currentSceneMode == .TwoD
+            {
+                children2D.append(stageItem)
+            } else {
+                children3D.append(stageItem)
+            }
         }
         folderIsOpen = true
         return stageItem

@@ -140,7 +140,7 @@ class DesignEditor          : MMWidget
                     
                     if value.x < 0 {
                         if let id = globalApp!.pipeline.codeBuilder.sdfStream.ids[Int(value.w)] {
-                            globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0, component: id.1)
+                            globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: id.1)
                         }
                     }
                 }

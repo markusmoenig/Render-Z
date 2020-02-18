@@ -233,8 +233,8 @@ class GizmoCombo2D          : GizmoBase
         //var posY : Float = -(component.values["_posY"]! + getParentValue(component, "_posY"))
          
         var properties : [String:Float] = [:]
-        properties["_posX"] = component.values["_posX"]! + getParentValue(component, "_posX")
-        properties["_posY"] = component.values["_posY"]! + getParentValue(component, "_posY")
+        properties["_posX"] = component.values["_posX"]! + getHierarchyValue(component, "_posX")
+        properties["_posY"] = component.values["_posY"]! + getHierarchyValue(component, "_posY")
 
         let timeline = globalApp!.artistEditor.timeline
         let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
@@ -363,8 +363,8 @@ class GizmoCombo2D          : GizmoBase
         mmView.renderer.setClipRect(rect)
         
         var properties : [String:Float] = [:]
-        properties["_posX"] = component.values["_posX"]! + getParentValue(component, "_posX")
-        properties["_posY"] = component.values["_posY"]! + getParentValue(component, "_posY")
+        properties["_posX"] = component.values["_posX"]! + getHierarchyValue(component, "_posX")
+        properties["_posY"] = component.values["_posY"]! + getHierarchyValue(component, "_posY")
 
         let timeline = globalApp!.artistEditor.timeline
         let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)

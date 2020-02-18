@@ -55,6 +55,21 @@ class Pipeline
             return nil
         }
         
+        /// Recursively iterate the object hierarchy
+        func processChildren(_ stageItem: StageItem)
+        {
+            for child in stageItem.children {
+                if let shapes = child.getComponentList("shapes") {
+                    codeBuilder.sdfStream.pushStageItem(child)
+                    for shape in shapes {
+                        codeBuilder.sdfStream.pushComponent(shape)
+                    }
+                    processChildren(child)
+                    codeBuilder.sdfStream.pullStageItem()
+                }
+            }
+        }
+        
         if globalApp!.currentSceneMode == .TwoD {
             
             // 2D
@@ -77,10 +92,14 @@ class Pipeline
                 if let shapes = item.getComponentList("shapes") {
                     let instance = CodeBuilderInstance()
                     instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+                    
                     codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: camera)
+                    codeBuilder.sdfStream.pushStageItem(item)
                     for shape in shapes {
-                        codeBuilder.sdfStream.pushComponent(shape, stageItem: item)
+                        codeBuilder.sdfStream.pushComponent(shape)
                     }
+                    processChildren(item)
+                    codeBuilder.sdfStream.pullStageItem()
                     instanceMap["shape"] = instance
                     codeBuilder.sdfStream.closeStream()
                 }
@@ -120,9 +139,12 @@ class Pipeline
                     let instance = CodeBuilderInstance()
                     instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
                     codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent)
+                    codeBuilder.sdfStream.pushStageItem(item)
                     for shape in shapes {
-                        codeBuilder.sdfStream.pushComponent(shape, stageItem: item)
+                        codeBuilder.sdfStream.pushComponent(shape)
                     }
+                    processChildren(item)
+                    codeBuilder.sdfStream.pullStageItem()
                     instanceMap["shape"] = instance
                     codeBuilder.sdfStream.closeStream()
                 }

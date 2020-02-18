@@ -20,8 +20,10 @@ class CodeSDFStream
 
     var monitor             : CodeFragment? = nil
 
-    var ids                 : [Int:(StageItem?, CodeComponent?)] = [:]
+    var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
     var idCounter           : Int = 0
+    
+    var hierarchy           : [StageItem] = []
 
     init()
     {
@@ -40,6 +42,8 @@ class CodeSDFStream
         
         ids = [:]
         idCounter = 0
+        
+        hierarchy = []
                 
         if type == .SDF2D {
             headerCode = codeBuilder.getHeaderCode()
@@ -237,10 +241,10 @@ class CodeSDFStream
         codeBuilder.buildInstance(instance)
     }
     
-    func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil, stageItem: StageItem? = nil)
+    func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)
     {
         dryRunComponent(component, instance.data.count, monitor)
-        instance.collectProperties(component, stageItem)
+        instance.collectProperties(component, hierarchy)
         self.monitor = monitor
         
         if let globalCode = component.globalCode {
@@ -306,10 +310,20 @@ class CodeSDFStream
         }
         
         // If we have a stageItem, store the id
-        if let stageItem = stageItem {
-            ids[idCounter] = (stageItem, component)
+        if hierarchy.count > 0 {
+            ids[idCounter] = (hierarchy, component)
         }
         idCounter += 1
         componentCounter += 1
+    }
+    
+    func pushStageItem(_ stageItem: StageItem)
+    {
+        hierarchy.append(stageItem)
+    }
+    
+    func pullStageItem()
+    {
+        hierarchy.removeLast()
     }
 }

@@ -22,28 +22,28 @@ class CodeBuilderInstance
     var computeResult       : SIMD4<Float> = SIMD4<Float>(0,0,0,0)
     var monitorComponents   : Int = 1
         
-    var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent, StageItem?)] = []
+    var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent, [StageItem])] = []
         
     /// Collect all the properties of the component and create a data entry for it
-    func collectProperties(_ component: CodeComponent,_ stageItem: StageItem? = nil)
+    func collectProperties(_ component: CodeComponent,_ hierarchy: [StageItem] = [])
     {
         // Collect properties, stored in the value property of the CodeFragment
         for uuid in component.properties
         {
             let rc = component.getPropertyOfUUID(uuid)
             if rc.0 != nil && rc.1 != nil {
-                properties.append((rc.0, rc.1, nil, data.count, component, stageItem))
+                properties.append((rc.0, rc.1, nil, data.count, component, hierarchy))
                 data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
             }
         }
         
         // Collect transforms, stored in the values map of the component
         if component.componentType == .SDF2D || component.componentType == .Transform2D {
-            properties.append((nil, nil, "_posX", data.count, component, stageItem))
+            properties.append((nil, nil, "_posX", data.count, component, hierarchy))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_posY", data.count, component, stageItem))
+            properties.append((nil, nil, "_posY", data.count, component, hierarchy))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_rotate", data.count, component, stageItem))
+            properties.append((nil, nil, "_rotate", data.count, component, hierarchy))
             data.append(SIMD4<Float>(0,0,0,0))
         }
     }
@@ -608,7 +608,7 @@ class CodeBuilder
                 
                 // Recursively add the parent values for this transform
                 var parentValue : Float = 0
-                if let stageItem = property.5 {
+                for stageItem in property.5.reversed() {
                     if let transComponent = stageItem.components[stageItem.defaultName] {
                         // Transform
                         var properties : [String:Float] = [:]
