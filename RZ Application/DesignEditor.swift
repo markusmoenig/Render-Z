@@ -113,6 +113,10 @@ class DesignEditor          : MMWidget
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        #if os(iOS)
+        mouseMoved(event)
+        #endif
+        
         if let gizmo = currentGizmo {
             gizmo.mouseDown(event)
         }
@@ -171,6 +175,9 @@ class DesignEditor          : MMWidget
             if gizmo.hoverState != .Inactive {
                 return
             }
+        }
+        if editor.designProperties.hoverMode != .None {
+            return
         }
         #endif
 
