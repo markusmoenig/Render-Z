@@ -45,6 +45,20 @@ class CodeBuilderInstance
             data.append(SIMD4<Float>(0,0,0,0))
             properties.append((nil, nil, "_rotate", data.count, component, hierarchy))
             data.append(SIMD4<Float>(0,0,0,0))
+        } else
+        if component.componentType == .SDF3D || component.componentType == .Transform3D {
+            properties.append((nil, nil, "_posX", data.count, component, hierarchy))
+            data.append(SIMD4<Float>(0,0,0,0))
+            properties.append((nil, nil, "_posY", data.count, component, hierarchy))
+            data.append(SIMD4<Float>(0,0,0,0))
+            properties.append((nil, nil, "_posZ", data.count, component, hierarchy))
+            data.append(SIMD4<Float>(0,0,0,0))
+            properties.append((nil, nil, "_rotateX", data.count, component, hierarchy))
+            data.append(SIMD4<Float>(0,0,0,0))
+            properties.append((nil, nil, "_rotateY", data.count, component, hierarchy))
+            data.append(SIMD4<Float>(0,0,0,0))
+            properties.append((nil, nil, "_rotateZ", data.count, component, hierarchy))
+            data.append(SIMD4<Float>(0,0,0,0))
         }
     }
     

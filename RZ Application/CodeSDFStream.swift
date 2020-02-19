@@ -116,12 +116,17 @@ class CodeSDFStream
             headerCode +=
             """
             
+            float3 __translate(float3 p, float3 t)
+            {
+                return p - t;
+            }
+            
             """
             
             mapCode =
             """
             
-            float4 map( float3 pos, thread struct FuncData *__funcData )
+            float4 map( float3 __origin, thread struct FuncData *__funcData )
             {
                 float4 outShape = float4(100000, -1, -1, -1);
                 float outDistance = 10;
@@ -261,20 +266,23 @@ class CodeSDFStream
             code +=
             """
                 {
-                    float2 pos = __translate(__origin, float2(__data[\(posX)].x, -__data[\(posY)].x));
-            
+                    float2 position = __translate(__origin, float2(__data[\(posX)].x, -__data[\(posY)].x));
+
             """
-        }
-        
+        } else
         if type == .SDF3D
         {
+            let posX = instance.getTransformPropertyIndex(component, "_posX")
+            let posY = instance.getTransformPropertyIndex(component, "_posY")
+            let posZ = instance.getTransformPropertyIndex(component, "_posZ")
+
             code +=
             """
                 {
-            
+                    float3 position = __translate(__origin, float3(__data[\(posX)].x, -__data[\(posY)].x, __data[\(posZ)].x));
+
             """
         }
-
         
         code += component.code!
 

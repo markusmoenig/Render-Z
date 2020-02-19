@@ -112,6 +112,8 @@
 		2B333D14226043FF0008A8CF /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
 		2B3AC54C22EBD67F0013A60E /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
 		2B3AC54D22EBD67F0013A60E /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
+		2B40D80623FCCED500D46B2F /* Combo3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B40D80523FCCDB300D46B2F /* Combo3D.swift */; };
+		2B40D80723FCCED600D46B2F /* Combo3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B40D80523FCCDB300D46B2F /* Combo3D.swift */; };
 		2B46E95D2243339A0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B46E95E2243339B0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B46E960224367AF0047A94A /* Material.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95F224367AF0047A94A /* Material.swift */; };
@@ -637,6 +639,8 @@
 		2B1F2E12235EA08200838D46 /* Marble.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Marble.shape-z"; sourceTree = "<group>"; };
 		2B333D12226043FF0008A8CF /* MMScrollButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScrollButton.swift; sourceTree = "<group>"; };
 		2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMInfoArea.swift; sourceTree = "<group>"; };
+		2B40D80423FCCDAF00D46B2F /* Combo3D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo3D.metal; sourceTree = "<group>"; };
+		2B40D80523FCCDB300D46B2F /* Combo3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combo3D.swift; sourceTree = "<group>"; };
 		2B46E95C224330050047A94A /* MMTabWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabWidget.swift; sourceTree = "<group>"; };
 		2B46E95F224367AF0047A94A /* Material.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Material.swift; sourceTree = "<group>"; };
 		2B46E962224466CC0047A94A /* MaterialFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialFactory.swift; sourceTree = "<group>"; };
@@ -883,6 +887,8 @@
 				2BD291B923D43AB0006F66BC /* Base.swift */,
 				2BD291B623D435B6006F66BC /* Combo2D.metal */,
 				2B59875723D15BD0007E335F /* Combo2D.swift */,
+				2B40D80423FCCDAF00D46B2F /* Combo3D.metal */,
+				2B40D80523FCCDB300D46B2F /* Combo3D.swift */,
 			);
 			path = Gizmos;
 			sourceTree = "<group>";
@@ -1749,6 +1755,7 @@
 				2B7A3C3F23B469AD002EC5FC /* Mad4Metal.metal in Sources */,
 				2B7A3BF423B4583A002EC5FC /* AppDelegate.swift in Sources */,
 				2B7A3C1223B46546002EC5FC /* MMSliderWidget.swift in Sources */,
+				2B40D80723FCCED600D46B2F /* Combo3D.swift in Sources */,
 				2B7A3C1423B46546002EC5FC /* MMColorWidget.swift in Sources */,
 				2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */,
 				2B65083623D6F182003DE093 /* Thumbnail.swift in Sources */,
@@ -1976,6 +1983,7 @@
 				2B9B29EB23BB45CA00C2F387 /* CodeProperties.swift in Sources */,
 				2B9B29C423BB453400C2F387 /* MMDrawable.swift in Sources */,
 				2B65083D23E50133003DE093 /* SceneGraph.swift in Sources */,
+				2B40D80623FCCED500D46B2F /* Combo3D.swift in Sources */,
 				2B8CC6CF23C55DAD00CFCB93 /* CodeAccess.swift in Sources */,
 				2B9B29CB23BB453400C2F387 /* MMColorWidget.swift in Sources */,
 				2B9B29A923BB44BF00C2F387 /* SceneDelegate.swift in Sources */,

@@ -225,7 +225,7 @@ class SceneGraph                : MMWidget
                     globalApp!.currentEditor.updateOnNextDraw(compile: false)
                     currentComponent = defaultComponent
                 } else {
-                    globalApp!.currentEditor.setComponent(CodeComponent())
+                    globalApp!.currentEditor.setComponent(CodeComponent(.Dummy))
                 }
             }
             currentUUID = stageItem.uuid
@@ -574,6 +574,8 @@ class SceneGraph                : MMWidget
                             }
                             item.stage.label = nil
                         }
+                        globalApp!.project.selected!.sceneMode = globalApp!.currentSceneMode
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     }
                     
                     toolBarWidgets.append(tabButton)

@@ -249,6 +249,15 @@ func setDefaultComponentValues(_ comp: CodeComponent)
         comp.values["_posX"] = 0
         comp.values["_posY"] = 0
         comp.values["_rotate"] = 0
+    } else
+    if comp.componentType == .SDF3D || comp.componentType == .Transform3D {
+        // Check values
+        comp.values["_posX"] = 0
+        comp.values["_posY"] = 0
+        comp.values["_posZ"] = 0
+        comp.values["_rotateX"] = 0
+        comp.values["_rotateY"] = 0
+        comp.values["_rotateZ"] = 0
     }
 }
 

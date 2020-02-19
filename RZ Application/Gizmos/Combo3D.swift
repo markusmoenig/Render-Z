@@ -1,14 +1,14 @@
 //
-//  Gizmo2D.swift
+//  Gizmo3D.swift
 //  Shape-Z
 //
-//  Created by Markus Moenig on 17/1/20.
+//  Created by Markus Moenig on 19/2/20.
 //  Copyright © 2020 Markus Moenig. All rights reserved.
 //
 
 import MetalKit
 
-class GizmoCombo2D          : GizmoBase
+class GizmoCombo3D          : GizmoBase
 {
     var state               : MTLRenderPipelineState!
     
@@ -38,19 +38,20 @@ class GizmoCombo2D          : GizmoBase
     override func setComponent(_ comp: CodeComponent)
     {
         component = comp
-        
+
         // Show the supported transform values
         let designEditor = globalApp!.artistEditor.designEditor
         let designProperties = globalApp!.artistEditor.designProperties
 
-        if let tNode = designProperties.c2Node {
+        if let tNode = designProperties.c2Node, component.componentType != .Dummy {
             
-            let xVar = NodeUINumber(tNode, variable: "_posX", title: "X", range: SIMD2<Float>(-10000, 10000), value: comp.values["_posX"]!, precision: 1)
-            let yVar = NodeUINumber(tNode, variable: "_posY", title: "Y", range: SIMD2<Float>(-10000, 10000), value: comp.values["_posY"]!, precision: 1)
-            let rotateVar = NodeUINumber(tNode, variable: "_rotate", title: "Rotate", range: SIMD2<Float>(0, 360), value: comp.values["_rotate"]!, precision: 1)
+            let xVar = NodeUINumber(tNode, variable: "_posX", title: "X", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posX"]!, precision: 3)
+            let yVar = NodeUINumber(tNode, variable: "_posY", title: "Y", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posY"]!, precision: 3)
+            let zVar = NodeUINumber(tNode, variable: "_posZ", title: "Z", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posZ"]!, precision: 3)
+            //let rotateVar = NodeUINumber(tNode, variable: "_rotateX", title: "Rotate", range: SIMD2<Float>(0, 360), value: comp.values["_rotateX"]!, precision: 1)
             tNode.uiItems.append(xVar)
             tNode.uiItems.append(yVar)
-            tNode.uiItems.append(rotateVar)
+            tNode.uiItems.append(zVar)
 
             tNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 comp.values[variable] = oldValue
@@ -66,6 +67,8 @@ class GizmoCombo2D          : GizmoBase
     
     override func mouseDown(_ event: MMMouseEvent)
     {
+        if component.componentType == .Dummy { return }
+        
         #if os(iOS)
             mouseMoved(event)
         #endif
@@ -106,6 +109,8 @@ class GizmoCombo2D          : GizmoBase
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        if component.componentType == .Dummy { return }
+
         if dragState == .Inactive {
             let oldState = hoverState
             updateHoverState(event)
@@ -137,12 +142,12 @@ class GizmoCombo2D          : GizmoBase
             } else
             if dragState == .Rotate {
                 let angle = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
-                var value = initialValues["_rotate"]! + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                var value = initialValues["_rotateX"]! + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
                 if value < 0 {
                     value = 360 + value
                 }
                 let properties : [String:Float] = [
-                    "_rotate" : value
+                    "_rotateX" : value
                 ]
                 processGizmoProperties(properties)
             } else
@@ -167,6 +172,8 @@ class GizmoCombo2D          : GizmoBase
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if component.componentType == .Dummy { return }
+
         dragState = .Inactive
         #if os(iOS)
         hoverState = .Inactive
@@ -351,6 +358,8 @@ class GizmoCombo2D          : GizmoBase
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
+        if component.componentType == .Dummy { return }
+
         // --- Render Gizmo
         
         let data: [Float] = [

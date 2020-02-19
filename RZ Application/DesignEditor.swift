@@ -11,7 +11,7 @@ import MetalKit
 class DesignEditor          : MMWidget
 {
     enum GizmoState {
-        case None, Combo2D
+        case None, Combo2D, Combo3D
     }
     
     var fragment            : MMFragment
@@ -28,6 +28,7 @@ class DesignEditor          : MMWidget
     var mouseDownPos        : SIMD2<Float> = SIMD2<Float>()
     
     var gizmoCombo2D        : GizmoCombo2D
+    var gizmoCombo3D        : GizmoCombo3D
     var currentGizmo        : GizmoBase? = nil
     
     var dispatched          : Bool = false
@@ -38,7 +39,8 @@ class DesignEditor          : MMWidget
         fragment = MMFragment(view)
         fragment.allocateTexture(width: 10, height: 10)
         gizmoCombo2D = GizmoCombo2D(view)
-        
+        gizmoCombo3D = GizmoCombo3D(view)
+
         super.init(view)
 
         zoom = mmView.scaleFactor
@@ -59,6 +61,10 @@ class DesignEditor          : MMWidget
             if comp.componentType == .SDF2D || comp.componentType == .Transform2D {
                 gizmoState = .Combo2D
                 currentGizmo = gizmoCombo2D
+            } else
+            if comp.componentType == .SDF3D || comp.componentType == .Transform3D {
+                gizmoState = .Combo3D
+                currentGizmo = gizmoCombo3D
             }
             if let gizmo = currentGizmo {
                 gizmo.setComponent(comp)
@@ -145,10 +151,18 @@ class DesignEditor          : MMWidget
                     convertTo.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * convertTo.width), from: region, mipmapLevel: 0)
                     let value = texArray[0]
                     
-                    if value.x < 0 {
-                        if let id = globalApp!.pipeline.codeBuilder.sdfStream.ids[Int(value.w)] {
-                            globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: id.1)
-                        }
+                    var valid : Bool = true
+                    if globalApp!.currentSceneMode == .TwoD && value.x > 0 {
+                        valid = false
+                    }
+                
+                    if let id = globalApp!.pipeline.codeBuilder.sdfStream.ids[Int(value.w)], valid {
+                        globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: id.1)
+                    } else {
+                        // Select Base Object
+                        //globalApp!.sceneGraph.setCurrent(stage: globalApp!.sceneGraph.currentStage!, stageItem: globalApp!.sceneGraph.currentStageItem)
+                        // Select World
+                        globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.PreStage))
                     }
                 }
             }

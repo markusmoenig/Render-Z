@@ -107,9 +107,9 @@ class App
             }*/
             
             if let project =  try? JSONDecoder().decode(Project.self, from: jsonData) {
-                //currentEditor.setComponent(component)
                 self.project = project
-                self.mmView.update()
+                currentEditor.updateOnNextDraw(compile: true)
+                mmView.update()
             }
         }
     }
