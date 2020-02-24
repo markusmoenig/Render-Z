@@ -63,8 +63,7 @@ fragment float4 drawGizmoCombo2D(RasterizerData        in [[stage_in]],
     float dist;
     float4 color, finalColor = float4( 0 );
     
-//    const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
-    const float4 hoverColor = float4(0.188, 0.933, 0.176, 1.000);
+    const float4 hoverColor = float4(0.263, 0.443, 0.482, 1.000);
     const float4 centerColor = float4(0.996, 0.941, 0.208, 1.000);
     const float4 xAxisColor = float4(0.153, 0.192, 0.984, 1.000);
     const float4 yAxisColor = float4(0.882, 0.102, 0.153, 1.000);
@@ -72,7 +71,7 @@ fragment float4 drawGizmoCombo2D(RasterizerData        in [[stage_in]],
     // Rotation Ring
     tuv = uv;
     dist = length( tuv ) - 70;
-    color = data->hoverState == 4.0 ? hoverColor : centerColor;
+    color = data->hoverState == 5.0 ? hoverColor : centerColor;
     finalColor = mix( finalColor, color, gizmoBorderMask( dist, 3.0 ) * color.w );
 
     // Right arrow - Scale
@@ -84,7 +83,7 @@ fragment float4 drawGizmoCombo2D(RasterizerData        in [[stage_in]],
     d = abs( tuv ) - float2( 8, 7);
     dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
     
-    color = data->hoverState == 5.0 || data->lockedScaleAxes == 1.0 ? hoverColor : xAxisColor;
+    color = data->hoverState == 6.0 || data->lockedScaleAxes == 1.0 ? hoverColor : xAxisColor;
     finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
     
     // Right arrow - Move
@@ -108,7 +107,7 @@ fragment float4 drawGizmoCombo2D(RasterizerData        in [[stage_in]],
     d = abs( tuv ) - float2( 7, 8);
     dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
     
-    color = data->hoverState == 6.0 || data->lockedScaleAxes == 1.0 ? hoverColor : yAxisColor;
+    color = data->hoverState == 7.0 || data->lockedScaleAxes == 1.0 ? hoverColor : yAxisColor;
     finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
     
     // Up arrow Move

@@ -129,12 +129,21 @@ class GizmoCombo3D          : GizmoBase
             let origin = getCameraPropertyValue3("origin")
             let lookAt = getCameraPropertyValue3("lookAt")
             
+            var properties : [String:Float] = [:]
+            properties["_posX"] = (component.values["_posX"]! + getHierarchyValue(component, "_posX"))
+            properties["_posY"] = (component.values["_posY"]! + getHierarchyValue(component, "_posY"))
+            properties["_posZ"] = (component.values["_posZ"]! + getHierarchyValue(component, "_posZ"))
+
+            let timeline = globalApp!.artistEditor.timeline
+            let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+            
             // --- Render Gizmo
             let data: [Float] = [
                 rect.width, rect.height,
                 hoverState.rawValue, 0,
                 origin.x, origin.y, origin.z, 0,
                 lookAt.x, lookAt.y, lookAt.z, 0,
+                transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
             ];
             
             let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
@@ -372,27 +381,25 @@ class GizmoCombo3D          : GizmoBase
         let origin = getCameraPropertyValue3("origin")
         let lookAt = getCameraPropertyValue3("lookAt")
         
+        var properties : [String:Float] = [:]
+        properties["_posX"] = (component.values["_posX"]! + getHierarchyValue(component, "_posX"))
+        properties["_posY"] = (component.values["_posY"]! + getHierarchyValue(component, "_posY"))
+        properties["_posZ"] = (component.values["_posZ"]! + getHierarchyValue(component, "_posZ"))
+
+        let timeline = globalApp!.artistEditor.timeline
+        let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+        
         // --- Render Gizmo
         let data: [Float] = [
             rect.width, rect.height,
             hoverState.rawValue, 0,
             origin.x, origin.y, origin.z, 0,
             lookAt.x, lookAt.y, lookAt.z, 0,
+            transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
         ];
         
         mmView.renderer.setClipRect(rect)
-        
-        let scale : Float = getCameraPropertyValue("scale", defaultValue: 1)
 
-        var properties : [String:Float] = [:]
-        properties["_posX"] = (component.values["_posX"]! + getHierarchyValue(component, "_posX")) / scale
-        properties["_posY"] = (component.values["_posY"]! + getHierarchyValue(component, "_posY")) / scale
-
-        let timeline = globalApp!.artistEditor.timeline
-        let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
-        
-        //let screenSpace = convertToScreenSpace(x: transformed["_posX"]!, y: -transformed["_posY"]!)
-        
         let mmRenderer = mmView.renderer!
         let renderEncoder = mmRenderer.renderEncoder!
 

@@ -23,6 +23,7 @@ typedef struct
     
     float4  origin;
     float4  lookAt;
+    float4  position;
     
 } GIZMO3D;
 
@@ -80,22 +81,22 @@ float sdCylinder( float3 p, float2 h )
     return min(max(d.x,d.y),0.0) + length(max(d,0.0));
 }
 
-float3 map( float3 pos )
+float3 map(float3 pos, float3 off)
 {
     float3 res = float3( 100000, 0, 0);
     
-    float3 p = gizmo3DTranslate(pos, float3(0, -0.25, 0));
+    float3 p = gizmo3DTranslate(pos, off + float3(0, -0.25, 0));
 
     float3 center = float3(sdCylinder(p, float2(0.02, 0.25)), 3, 3);
     res = opU(center, res);
 
-    p = gizmo3DTranslate(pos, float3(0.25, 0, 0));
+    p = gizmo3DTranslate(pos, off + float3(0.25, 0, 0));
     p.xy = gimzo3DRotateCW( p.xy, radians(90) );
     float3 xMove = float3(sdCylinder(p, float2(0.02, 0.25)), 2, 2);
 
     res = opU(xMove, res);
     
-    p = gizmo3DTranslate(pos, float3(0, 0, 0.25));
+    p = gizmo3DTranslate(pos, off + float3(0, 0, 0.25));
     p.yz = gimzo3DRotateCW( p.yz, radians(90) );
     float3 zMove = float3(sdCylinder(p, float2(0.02, 0.25)), 4, 4);
 
@@ -104,7 +105,7 @@ float3 map( float3 pos )
     return res;
 }
 
-float3 castRay( float3 ro, float3 rd )
+float3 castRay(float3 ro, float3 rd, float3 off)
 {
     float tmin=0.001, tmax=100.0;
 
@@ -119,7 +120,7 @@ float3 castRay( float3 ro, float3 rd )
             // float precis = 0.02;
             float precis = 0.0005*t;
 
-            float3 res = map( ro+rd*t );
+            float3 res = map(ro+rd*t, off);
             if( t < precis || t>tmax ) break;
             t += res.x * 0.7;
             m = res.y;
@@ -152,7 +153,8 @@ kernel void idsGizmoCombo3D(
 
     float3 origin = data->origin.xyz;
     float3 lookAt = data->lookAt.xyz;
-    
+    float3 pos = data->position.xyz;
+
     float ratio = size.x / size.y;
     float2 pixelSize = float2(1.0) / size.xy;
 
@@ -180,7 +182,7 @@ kernel void idsGizmoCombo3D(
     dir += horizontal * (pixelSize.x * rand.x + uv.x);
     dir += vertical * (pixelSize.y * rand.y + 1.0 - uv.y);
 
-    float3 hit = castRay(origin, dir);
+    float3 hit = castRay(origin, dir, pos);
 
     outTexture.write(half(hit.y), gid);
 }
@@ -195,7 +197,8 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     float3 origin = data->origin.xyz;
     float3 lookAt = data->lookAt.xyz;
     float hoverState = data->hoverState;
-    
+    float3 pos = data->position.xyz;
+
     float4 finalColor = float4( 0 );
 
     float ratio = size.x / size.y;
@@ -225,14 +228,13 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     dir += horizontal * (pixelSize.x * rand.x + uv.x);
     dir += vertical * (pixelSize.y * rand.y + 1.0 - uv.y);
     
-    //const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
-    const float4 hoverColor = float4(0.188, 0.933, 0.176, 1.000);
+    const float4 hoverColor = float4(0.263, 0.443, 0.482, 1.000);
     //const float4 centerColor = float4(0.996, 0.941, 0.208, 1.000);
     const float4 xAxisColor = float4(0.153, 0.192, 0.984, 1.000);
     const float4 yAxisColor = float4(0.882, 0.102, 0.153, 1.000);
-    const float4 zAxisColor = float4( 0.102, 0.882, 0.153, 1.000);
+    const float4 zAxisColor = float4(0.188, 0.933, 0.176, 1.000);
 
-    float3 hit = castRay(origin, dir);
+    float3 hit = castRay(origin, dir, pos);
     
     if (hit.y == 2) {
         finalColor = hoverState == 2 ? hoverColor : xAxisColor;
