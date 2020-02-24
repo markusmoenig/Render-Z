@@ -114,6 +114,8 @@
 		2B3AC54D22EBD67F0013A60E /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
 		2B40D80623FCCED500D46B2F /* Combo3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B40D80523FCCDB300D46B2F /* Combo3D.swift */; };
 		2B40D80723FCCED600D46B2F /* Combo3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B40D80523FCCDB300D46B2F /* Combo3D.swift */; };
+		2B40D80A23FE0D8200D46B2F /* Combo3D.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B40D80423FCCDAF00D46B2F /* Combo3D.metal */; };
+		2B40D80B23FE0D8300D46B2F /* Combo3D.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B40D80423FCCDAF00D46B2F /* Combo3D.metal */; };
 		2B46E95D2243339A0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B46E95E2243339B0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B46E960224367AF0047A94A /* Material.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95F224367AF0047A94A /* Material.swift */; };
@@ -1713,6 +1715,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B8CC6CE23C55DAD00CFCB93 /* CodeAccess.swift in Sources */,
+				2B40D80A23FE0D8200D46B2F /* Combo3D.metal in Sources */,
 				2BE9488723D0675600DB0BCD /* DefaultItems.swift in Sources */,
 				2B7A3C3B23B46838002EC5FC /* RightRegion.swift in Sources */,
 				2B8E2FD923C5CF40005619E4 /* Scene.swift in Sources */,
@@ -1960,6 +1963,7 @@
 				2B9B29F723BF1DDC00C2F387 /* Dialogs.swift in Sources */,
 				2B9B29EE23BB45CA00C2F387 /* CodeFragList.swift in Sources */,
 				2B9B29CE23BB453400C2F387 /* MMCompute.swift in Sources */,
+				2B40D80B23FE0D8300D46B2F /* Combo3D.metal in Sources */,
 				2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
 				2B9B29A723BB44BF00C2F387 /* AppDelegate.swift in Sources */,
 				2B9B29C723BB453400C2F387 /* MMLabel.swift in Sources */,

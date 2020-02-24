@@ -11,7 +11,7 @@ import Foundation
 class GizmoBase              : MMWidget
 {
     enum GizmoState         : Float {
-        case Inactive, CenterMove, xAxisMove, yAxisMove, Rotate, xAxisScale, yAxisScale, xyAxisScale
+        case Inactive, CenterMove, xAxisMove, yAxisMove, zAxisMove, Rotate, xAxisScale, yAxisScale, zAxisScale, xyAxisScale
     }
     
     var hoverState          : GizmoState = .Inactive
@@ -66,6 +66,24 @@ class GizmoBase              : MMWidget
             if let frag = rc.0 {
                 if frag.name == name {
                     return rc.1!.values["value"]!
+                }
+            }
+        }
+        
+        return defaultValue
+    }
+    
+    /// Returns a property value of the camera
+    func getCameraPropertyValue3(_ name: String, defaultValue: SIMD3<Float> = SIMD3<Float>(0,0,0)) -> SIMD3<Float>
+    {
+        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
+
+        for uuid in camera.properties {
+            let rc = camera.getPropertyOfUUID(uuid)
+            if let frag = rc.0 {
+                if frag.name == name && frag.typeName == "float3" {
+                    let value = extractValueFromFragment( rc.1! )
+                    return SIMD3<Float>(value.x, value.y, value.z)
                 }
             }
         }

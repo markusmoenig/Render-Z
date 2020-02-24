@@ -37,8 +37,28 @@ func extractValueFromFragment(_ fragment: CodeFragment) -> SIMD4<Float>
     return value
 }
 
+// Extracts an SIMD3<Float> value from a given fragment
+func extractValueFromFragment3(_ fragment: CodeFragment) -> SIMD3<Float>
+{
+    var value: SIMD3<Float> = SIMD3<Float>(0,0,0)
+    
+    if fragment.fragmentType == .ConstantValue {
+        value.x = fragment.values["value"]!
+    }
+    if fragment.fragmentType == .ConstantDefinition {
+        let components = fragment.evaluateComponents()
+
+        if fragment.arguments.count == components {
+            for (index,arg) in fragment.arguments.enumerated() {
+                value[index] = arg.fragments[0].values["value"]!
+            }
+        }
+    }
+    return value
+}
+
 // Inserts an SIMD3<Float> value to a given fragment
-func insertValueToFragment(_ fragment: CodeFragment,_ value: SIMD3<Float>)
+func insertValueToFragment3(_ fragment: CodeFragment,_ value: SIMD3<Float>)
 {
     if fragment.fragmentType == .ConstantDefinition {
         let components = fragment.evaluateComponents()

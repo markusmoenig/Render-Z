@@ -1549,6 +1549,23 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float2", "outPosition", refTo: arg1))
             f.body.append(f.createOutVariableBlock("float", "outRotation", refTo: arg2))
             functions.append(f)
+        } else
+        if type == .Transform3D {
+            let f = CodeFunction(type, "transform")
+            f.comment = "Transform the artist properties"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float3", "rotation", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float3", "outPosition", refTo: arg1))
+            f.body.append(f.createOutVariableBlock("floa3t", "outRotation", refTo: arg2))
+            functions.append(f)
         }
     }
     

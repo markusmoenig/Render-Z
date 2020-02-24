@@ -126,9 +126,9 @@ class DesignProperties      : MMWidget
                     
                     c1Node?.float3ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                         if variable == frag.name {
-                            insertValueToFragment(rc.1!, oldValue)
+                            insertValueToFragment3(rc.1!, oldValue)
                             let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Color Value Changed") : nil
-                            insertValueToFragment(rc.1!, newValue)
+                            insertValueToFragment3(rc.1!, newValue)
                             self.updatePreview()
                             var props : [String:Float] = [:]
                             props[frag.name + "_x"] = newValue.x

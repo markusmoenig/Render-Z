@@ -152,7 +152,7 @@ class LibraryDialog: MMDialog {
         if currentItems != nil && currentItems!.count > 0 {
             selectedItem = currentItems![0]
         }
-        //contextItem = nil
+        _cb = nil;
     }
     
     override func cancel() {
@@ -164,36 +164,31 @@ class LibraryDialog: MMDialog {
         super.ok()
         
         if let selected = selectedItem {
-            DispatchQueue.main.async {
-                if let cb = self._cb {
-                    cb(selected.json)
-                }
-            }
-        }
-        /*
-        if let selected = selectedItem {
-            if let context = contextItem {
+            if _cb != nil {
                 DispatchQueue.main.async {
-                    globalApp!.context.replaceJSONForItem(context, selected.json)
+                    if let cb = self._cb {
+                        cb(selected.json)
+                    }
                 }
-            } else
-            if globalApp?.currentEditor === globalApp?.developerEditor {
-                if let component = globalApp?.developerEditor.codeEditor.codeComponent {
-                    if let from = decodeComponentFromJSON(selected.json) {
-                        var counter : Int = 0
-                        var inserted : [UUID] = []
-                        for f in from.functions {
-                            if inserted.contains(f.uuid) == false {
-                                component.functions.insert(f, at: counter)
-                                counter += 1
-                                inserted.append(f.uuid)
+            } else {
+                if globalApp?.currentEditor === globalApp?.developerEditor {
+                    if let component = globalApp?.developerEditor.codeEditor.codeComponent {
+                        if let from = decodeComponentFromJSON(selected.json) {
+                            var counter : Int = 0
+                            var inserted : [UUID] = []
+                            for f in from.functions {
+                                if inserted.contains(f.uuid) == false {
+                                    component.functions.insert(f, at: counter)
+                                    counter += 1
+                                    inserted.append(f.uuid)
+                                }
                             }
+                            globalApp?.currentEditor.updateOnNextDraw()
                         }
-                        globalApp?.currentEditor.updateOnNextDraw()
                     }
                 }
             }
-        }*/
+        }
         
         okButton.removeState(.Checked)
     }

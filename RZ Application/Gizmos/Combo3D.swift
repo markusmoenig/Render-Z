@@ -11,7 +11,8 @@ import MetalKit
 class GizmoCombo3D          : GizmoBase
 {
     var state               : MTLRenderPipelineState!
-    
+    var idState             : MTLComputePipelineState!
+
     let width               : Float = 260
     let height              : Float = 260
     
@@ -27,10 +28,18 @@ class GizmoCombo3D          : GizmoBase
     
     var undoComponent       : CodeUndoComponent? = nil
     
+    var dispatched          : Bool = false
+    var zoomBuffer          : Float = 0
+    
+    var compute             : MMCompute
+    
     override init(_ view: MMView)
     {
-        let function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmoCombo2D" )
+        let function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmoCombo3D" )
         state = view.renderer.createNewPipelineState( function! )
+       
+        compute = MMCompute()
+        idState = compute.createState(name: "idsGizmoCombo3D")
         
         super.init(view)
     }
@@ -112,8 +121,38 @@ class GizmoCombo3D          : GizmoBase
         if component.componentType == .Dummy { return }
 
         if dragState == .Inactive {
+            
+            if compute.texture == nil || compute.texture.width != Int(rect.width) || compute.texture.height != Int(rect.height) {
+                compute.texture = compute.allocateTexture(width: rect.width, height: rect.height, pixelFormat: .r32Float)
+            }
+            
+            let origin = getCameraPropertyValue3("origin")
+            let lookAt = getCameraPropertyValue3("lookAt")
+            
+            // --- Render Gizmo
+            let data: [Float] = [
+                rect.width, rect.height,
+                hoverState.rawValue, 0,
+                origin.x, origin.y, origin.z, 0,
+                lookAt.x, lookAt.y, lookAt.z, 0,
+            ];
+            
+            let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
+            
+            compute.run(idState, outTexture: compute.texture, inBuffer: buffer, syncronize: true)
+                        
+            let region = MTLRegionMake2D(min(Int(event.x - rect.x), compute.texture!.width-1), min(Int(rect.height - (event.y - rect.y)), compute.texture!.height-1), 1, 1)
+
+            let texArray = Array<Float>(repeating: Float(0), count: 1)
+            compute.texture!.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<Float>.size * compute.texture!.width), from: region, mipmapLevel: 0)
+            let value = texArray[0]
+            //print(value)
+
             let oldState = hoverState
-            updateHoverState(event)
+            hoverState = .Inactive
+            if let state = GizmoState(rawValue: value) {
+                hoverState = state
+            }
             if oldState != hoverState {
                 mmView.update()
             }
@@ -185,6 +224,102 @@ class GizmoCombo3D          : GizmoBase
         mmView.update()
     }
     
+    override func mouseScrolled(_ event: MMMouseEvent)
+    {
+        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
+
+        var originFrag : CodeFragment? = nil
+        var lookAtFrag : CodeFragment? = nil
+
+        for uuid in camera.properties {
+            let rc = camera.getPropertyOfUUID(uuid)
+            if let frag = rc.0 {
+                if frag.name == "origin" {
+                    originFrag = rc.1
+                } else
+                if frag.name == "lookAt" {
+                    lookAtFrag = rc.1
+                }
+            }
+        }
+        
+        #if os(iOS)
+        if let frag = xFrag {
+            frag.values["value"]! -= event.deltaX!
+        }
+        if let frag = yFrag {
+            frag.values["value"]! += event.deltaY!
+        }
+        #elseif os(OSX)
+        if mmView.commandIsDown && event.deltaY! != 0 {
+            /*
+            if let frag = scale {
+                frag.values["value"]! -= event.deltaY! * 0.03
+                frag.values["value"]! = max(0.001, frag.values["value"]!)
+                frag.values["value"]! = min(20, frag.values["value"]!)
+            }*/
+        } else
+        if originFrag != nil && lookAtFrag != nil {
+            
+            var origin = extractValueFromFragment3(originFrag!)
+            var lookAt = extractValueFromFragment3(lookAtFrag!)
+            
+            let scale : Float = 8
+            
+            origin.x += event.deltaX! / scale
+            origin.y += event.deltaY! / scale
+
+            lookAt.x += event.deltaX! / scale
+            lookAt.y += event.deltaY! / scale
+            
+            insertValueToFragment3(originFrag!, origin)
+            insertValueToFragment3(lookAtFrag!, lookAt)
+        }
+        #endif
+        
+        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        
+        if !dispatched {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.mmView.unlockFramerate()
+                self.dispatched = false
+            }
+            dispatched = true
+        }
+        
+        if mmView.maxFramerateLocks == 0 {
+            mmView.lockFramerate()
+        }
+    }
+    
+    override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
+    {
+        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
+
+        var scaleFrag : CodeFragment? = nil
+
+        for uuid in camera.properties {
+            let rc = camera.getPropertyOfUUID(uuid)
+            if let frag = rc.0 {
+                if frag.name == "scale" {
+                    scaleFrag = rc.1
+                }
+            }
+        }
+        
+        if let frag = scaleFrag {
+            if firstTouch == true {
+                zoomBuffer = frag.values["value"]!
+            }
+            
+            frag.values["value"]! = zoomBuffer / scale
+            frag.values["value"]! = max(0.001, frag.values["value"]!)
+            frag.values["value"]! = min(20, frag.values["value"]!)
+            
+            globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        }
+    }
+    
     /// Updates the UI properties
     func updateUIProperties()
     {
@@ -229,142 +364,20 @@ class GizmoCombo3D          : GizmoBase
         }
         globalApp!.currentEditor.updateOnNextDraw(compile: false)
     }
-
-    /// Update the hover state fo
-     func updateHoverState(_ event: MMMouseEvent)
-     {
-         hoverState = .Inactive
-         
-        let scale : Float = getCameraPropertyValue("scale", defaultValue: 1)
-
-        var properties : [String:Float] = [:]
-        properties["_posX"] = (component.values["_posX"]! + getHierarchyValue(component, "_posX")) / scale
-        properties["_posY"] = (component.values["_posY"]! + getHierarchyValue(component, "_posY")) / scale
-
-        let timeline = globalApp!.artistEditor.timeline
-        let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
-        
-        gizmoCenter = convertToScreenSpace(x: transformed["_posX"]!, y: -transformed["_posY"]!)
-        
-        //gizmoCenter = convertToScreenSpace(x: posX, y: posY)
-
-        let gizmoRect : MMRect =  MMRect()
-         
-        gizmoRect.x = gizmoCenter.x - width / 2
-        gizmoRect.y = gizmoCenter.y - height / 2
-        gizmoRect.width = width
-        gizmoRect.height = height
-
-        if gizmoRect.contains( event.x, event.y ) {
-         
-            func sdTriangleIsosceles(_ uv : SIMD2<Float>, q : SIMD2<Float>) -> Float
-            {
-                var p : SIMD2<Float> = uv
-                p.x = abs(p.x)
-                 
-                let a : SIMD2<Float> = p - q * simd_clamp( dot(p,q)/dot(q,q), 0.0, 1.0 )
-                let b : SIMD2<Float> = p - q*SIMD2<Float>( simd_clamp( p.x/q.x, 0.0, 1.0 ), 1.0 )
-                let s : Float = -sign( q.y )
-                let d : SIMD2<Float> = min( SIMD2<Float>( dot(a,a), s*(p.x*q.y-p.y*q.x) ),
-                                 SIMD2<Float>( dot(b,b), s*(p.y-q.y)  ));
-                 
-                return -sqrt(d.x)*sign(d.y);
-            }
-             
-            func rotateCW(_ pos : SIMD2<Float>, angle: Float) -> SIMD2<Float>
-            {
-                let ca : Float = cos(angle), sa = sin(angle)
-                return pos * float2x2(SIMD2<Float>(ca, -sa), SIMD2<Float>(sa, ca))
-            }
-             
-            let x = event.x - gizmoRect.x
-            let y = event.y - gizmoRect.y
-             
-            var center = simd_float2(x:x, y:y)
-            center = center - simd_float2(x:width/2, y: height/2)
-             
-            var uv = center
-            var dist = simd_length( uv ) - 15
-             
-            if dist < 4 {
-                hoverState = .CenterMove
-                return
-            }
-             
-            // Right Arrow - Move
-            uv -= SIMD2<Float>(75,0);
-            var d : SIMD2<Float> = simd_abs( uv ) - SIMD2<Float>( 18, 3)
-            dist = simd_length(max(d,SIMD2<Float>(repeating: 0))) + min(max(d.x,d.y),0.0);
-            uv = center - SIMD2<Float>(110,0);
-            uv = rotateCW(uv, angle: 1.5708 );
-            dist = min( dist, sdTriangleIsosceles(uv, q: SIMD2<Float>(10,-20)))
-             
-            if dist < 4 {
-                hoverState = .xAxisMove
-                return
-            }
-             
-            // Right Arrow - Scale
-            uv = center - SIMD2<Float>(25,0);
-            d = simd_abs( uv ) - SIMD2<Float>( 25, 3)
-            dist = simd_length(max(d,SIMD2<Float>(repeating: 0))) + min(max(d.x,d.y),0.0);
-             
-            uv = center - SIMD2<Float>(50,0.4);
-            d = simd_abs( uv ) - SIMD2<Float>( 8, 7)
-            dist = min( dist, length(max(d,SIMD2<Float>(repeating: 0))) + min(max(d.x,d.y),0.0) );
-             
-            if dist < 4 {
-                hoverState = .xAxisScale
-                return
-            }
-             
-            // Up Arrow - Move
-            uv = center + SIMD2<Float>(0,75);
-            d = simd_abs( uv ) - SIMD2<Float>( 3, 18)
-            dist = simd_length(max(d,SIMD2<Float>(repeating: 0))) + min(max(d.x,d.y),0.0);
-            uv = center + SIMD2<Float>(0,110);
-            dist = min( dist, sdTriangleIsosceles(uv, q: SIMD2<Float>(10,20)))
-             
-            if dist < 4 {
-                hoverState = .yAxisMove
-                return
-            }
-             
-            // Up Arrow - Scale
-            uv = center + SIMD2<Float>(0,25);
-            d = simd_abs( uv ) - SIMD2<Float>( 3, 25)
-            dist = simd_length(max(d,SIMD2<Float>(repeating: 0))) + min(max(d.x,d.y),0.0);
-
-            uv = center + SIMD2<Float>(0.4,50);
-            d = simd_abs( uv ) - SIMD2<Float>( 7, 8)
-            dist = min( dist, length(max(d,SIMD2<Float>(repeating: 0))) + min(max(d.x,d.y),0.0) );
-             
-            if dist < 4 {
-                hoverState = .yAxisScale
-                return
-            }
-             
-            // Rotate
-            dist = simd_length( center ) - 73
-            let ringSize : Float = 10//6
-             
-            let border = simd_clamp(dist + ringSize, 0.0, 1.0) - simd_clamp(dist, 0.0, 1.0)
-            if ( border > 0.0 ) {
-                hoverState = .Rotate
-                return
-            }
-        }
-    }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         if component.componentType == .Dummy { return }
 
-        // --- Render Gizmo
+        let origin = getCameraPropertyValue3("origin")
+        let lookAt = getCameraPropertyValue3("lookAt")
         
+        // --- Render Gizmo
         let data: [Float] = [
-            width, height,
-            hoverState.rawValue, 0
+            rect.width, rect.height,
+            hoverState.rawValue, 0,
+            origin.x, origin.y, origin.z, 0,
+            lookAt.x, lookAt.y, lookAt.z, 0,
         ];
         
         mmView.renderer.setClipRect(rect)
@@ -378,12 +391,12 @@ class GizmoCombo3D          : GizmoBase
         let timeline = globalApp!.artistEditor.timeline
         let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
         
-        let screenSpace = convertToScreenSpace(x: transformed["_posX"]!, y: -transformed["_posY"]!)
+        //let screenSpace = convertToScreenSpace(x: transformed["_posX"]!, y: -transformed["_posY"]!)
         
         let mmRenderer = mmView.renderer!
         let renderEncoder = mmRenderer.renderEncoder!
 
-        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( screenSpace.x - width / 2, screenSpace.y - height / 2, width, height, scale: mmView.scaleFactor ) )
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( rect.x, rect.y, rect.width, rect.height, scale: mmView.scaleFactor ) )
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         
         let buffer = mmRenderer.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!

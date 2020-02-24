@@ -1,5 +1,5 @@
 //
-//  Gizmo.metal
+//  Combo3DGizmo.metal
 //  Shape-Z
 //
 //  Created by Markus Moenig on 23/1/19.
@@ -21,54 +21,230 @@ typedef struct
     float   hoverState;
     float   lockedScaleAxes;
     
-} GIZMO;
+    float4  origin;
+    float4  lookAt;
+    
+} GIZMO3D;
 
-float gizmoFillMask(float dist)
+#define PI 3.14159265359
+
+float degrees(float radians)
 {
-    return clamp(-dist, 0.0, 1.0);
+    return radians * 180.0 / PI;
 }
 
-float gizmoBorderMask(float dist, float width)
+float radians(float degrees)
 {
-    return clamp(dist + width, 0.0, 1.0) - clamp(dist, 0.0, 1.0);
+    return degrees * PI / 180.0;
 }
 
-float2 rotateCW(float2 pos, float angle)
+float3 opU( float3 a, float3 b)
+{
+    if (a.x < b.x) return a;
+    else return b;
+}
+
+float3 gizmo3DTranslate(float3 p, float3 t)
+{
+    return p - t;
+}
+
+float2 gimzo3DRotateCW(float2 pos, float angle)
 {
     float ca = cos(angle), sa = sin(angle);
     return pos * float2x2(ca, -sa, sa, ca);
 }
 
-float sdTriangleIsosceles( float2 p, float2 q )
+float2 gimzo3DRotateCWWithPivot(float2 pos, float angle, float2 pivot)
 {
-    p.x = abs(p.x);
+    float ca = cos(angle), sa = sin(angle);
+    return pivot + (pos-pivot) * float2x2(ca, -sa, sa, ca);
+}
+
+/*
+float2 rotateCCW (float2 pos, float angle)
+{
+    float ca = cos(angle), sa = sin(angle);
+    return pos * float2x2(ca, sa, -sa, ca);
+}
+
+float2 rotateCCWWithPivot (float2 pos, float angle, float2 pivot)
+{
+    float ca = cos(angle), sa = sin(angle);
+    return pivot + (pos-pivot) * float2x2(ca, sa, -sa, ca);
+}*/
+
+float sdCylinder( float3 p, float2 h )
+{
+    float2 d = abs(float2(length(p.xz),p.y)) - h;
+    return min(max(d.x,d.y),0.0) + length(max(d,0.0));
+}
+
+float3 map( float3 pos )
+{
+    float3 res = float3( 100000, 0, 0);
     
-    float2 a = p - q*clamp( dot(p,q)/dot(q,q), 0.0, 1.0 );
-    float2 b = p - q*float2( clamp( p.x/q.x, 0.0, 1.0 ), 1.0 );
-    float s = -sign( q.y );
-    float2 d = min( float2( dot(a,a), s*(p.x*q.y-p.y*q.x) ),
-                 float2( dot(b,b), s*(p.y-q.y)  ));
+    float3 p = gizmo3DTranslate(pos, float3(0, -0.25, 0));
+
+    float3 center = float3(sdCylinder(p, float2(0.02, 0.25)), 3, 3);
+    res = opU(center, res);
+
+    p = gizmo3DTranslate(pos, float3(0.25, 0, 0));
+    p.xy = gimzo3DRotateCW( p.xy, radians(90) );
+    float3 xMove = float3(sdCylinder(p, float2(0.02, 0.25)), 2, 2);
+
+    res = opU(xMove, res);
     
-    return -sqrt(d.x)*sign(d.y);
+    p = gizmo3DTranslate(pos, float3(0, 0, 0.25));
+    p.yz = gimzo3DRotateCW( p.yz, radians(90) );
+    float3 zMove = float3(sdCylinder(p, float2(0.02, 0.25)), 4, 4);
+
+    res = opU(zMove, res);
+    
+    return res;
+}
+
+float3 castRay( float3 ro, float3 rd )
+{
+    float tmin=0.001, tmax=100.0;
+
+    float t=-1.0;
+    float m=-1.0, id=-1.0;
+
+    // if ( bbox( ro, rd, bounds, tmin, tmax ) )
+    {
+        float t=tmin;
+        for( int i=0; i< 200; i++ )
+        {
+            // float precis = 0.02;
+            float precis = 0.0005*t;
+
+            float3 res = map( ro+rd*t );
+            if( t < precis || t>tmax ) break;
+            t += res.x * 0.7;
+            m = res.y;
+            id = res.z;
+        }
+
+        if( t > tmax ) { m=-1.0; id=-1.0; }
+    }
+    return float3( t, m, id );
+}
+
+/*
+float3 calcNormal(float3 pos){
+    float3 eps = float3(.0001,0,0);
+    float3 nor = float3(
+        map(pos+eps.xyy).x - map(pos-eps.xyy).x,
+        map(pos+eps.yxy).x - map(pos-eps.yxy).x,
+        map(pos+eps.yyx).x - map(pos-eps.yyx).x
+    );
+    return normalize(nor);
+}*/
+
+kernel void idsGizmoCombo3D(
+                            texture2d<half, access::write>  outTexture  [[texture(0)]],
+                            constant GIZMO3D               *data        [[ buffer(1) ]],
+                            uint2                           gid         [[thread_position_in_grid]])
+{
+    float2 size = data->size;
+    float2 uv = float2( gid.x, gid.y ) / size;
+
+    float3 origin = data->origin.xyz;
+    float3 lookAt = data->lookAt.xyz;
+    
+    float ratio = size.x / size.y;
+    float2 pixelSize = float2(1.0) / size.xy;
+
+    // --- Camera
+
+    const float fov = 80.0;
+    float halfWidth = tan(radians(fov) * 0.5);
+    float halfHeight = halfWidth / ratio;
+
+    float3 upVector = float3(0.0, 1.0, 0.0);
+
+    float3 w = normalize(origin - lookAt);
+    float3 u = cross(upVector, w);
+    float3 v = cross(w, u);
+
+    float3 lowerLeft = origin - halfWidth * u - halfHeight * v - w;
+    float3 horizontal = u * halfWidth * 2.0;
+    float3 vertical = v * halfHeight * 2.0;
+
+    // ---
+
+    float3 dir = lowerLeft - origin;
+    float2 rand = float2(0.5);
+
+    dir += horizontal * (pixelSize.x * rand.x + uv.x);
+    dir += vertical * (pixelSize.y * rand.y + 1.0 - uv.y);
+
+    float3 hit = castRay(origin, dir);
+
+    outTexture.write(half(hit.y), gid);
 }
 
 // --- Normal Gizmo
-
 fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
-                          constant GIZMO       *data [[ buffer(0) ]] )
+                          constant GIZMO3D       *data [[ buffer(0) ]] )
 {
-    float2 uv = in.textureCoordinate * data->size;
-    uv -= float2( data->size / 2 );
-    float2 tuv = uv, d;
-    float dist;
-    float4 color, finalColor = float4( 0 );
+    float2 uv = in.textureCoordinate;
     
-//    const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
+    float2 size = data->size;
+    float3 origin = data->origin.xyz;
+    float3 lookAt = data->lookAt.xyz;
+    float hoverState = data->hoverState;
+    
+    float4 finalColor = float4( 0 );
+
+    float ratio = size.x / size.y;
+    float2 pixelSize = float2(1.0) / size.xy;
+
+    // --- Camera
+
+    const float fov = 80.0;
+    float halfWidth = tan(radians(fov) * 0.5);
+    float halfHeight = halfWidth / ratio;
+
+    float3 upVector = float3(0.0, 1.0, 0.0);
+
+    float3 w = normalize(origin - lookAt);
+    float3 u = cross(upVector, w);
+    float3 v = cross(w, u);
+
+    float3 lowerLeft = origin - halfWidth * u - halfHeight * v - w;
+    float3 horizontal = u * halfWidth * 2.0;
+    float3 vertical = v * halfHeight * 2.0;
+
+    // ---
+
+    float3 dir = lowerLeft - origin;
+    float2 rand = float2(0.5);
+
+    dir += horizontal * (pixelSize.x * rand.x + uv.x);
+    dir += vertical * (pixelSize.y * rand.y + 1.0 - uv.y);
+    
+    //const float4 inactiveColor = float4(0.545, 0.545, 0.545, 1.000);
     const float4 hoverColor = float4(0.188, 0.933, 0.176, 1.000);
-    const float4 centerColor = float4(0.996, 0.941, 0.208, 1.000);
+    //const float4 centerColor = float4(0.996, 0.941, 0.208, 1.000);
     const float4 xAxisColor = float4(0.153, 0.192, 0.984, 1.000);
     const float4 yAxisColor = float4(0.882, 0.102, 0.153, 1.000);
+    const float4 zAxisColor = float4( 0.102, 0.882, 0.153, 1.000);
 
+    float3 hit = castRay(origin, dir);
+    
+    if (hit.y == 2) {
+        finalColor = hoverState == 2 ? hoverColor : xAxisColor;
+    } else
+    if (hit.y == 3) {
+        finalColor =  hoverState == 3 ? hoverColor : yAxisColor;
+    } else
+    if (hit.y == 4) {
+        finalColor =  hoverState == 4 ? hoverColor : zAxisColor;
+    }
+    
+    /*
     // Rotation Ring
     tuv = uv;
     dist = length( tuv ) - 70;
@@ -137,6 +313,7 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
             finalColor = mix( finalColor, overlayColor, 0.7 );
         }
     }
+    */
     
     finalColor.r /= finalColor.a;
     finalColor.g /= finalColor.a;
