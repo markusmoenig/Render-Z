@@ -180,7 +180,7 @@ kernel void cameraGizmoCombo3D(
     float2 rand = float2(0.5);
 
     dir += horizontal * (pixelSize.x * rand.x + uv.x);
-    dir += vertical * (pixelSize.y * rand.y + 1.0 - uv.y);
+    dir += vertical * (pixelSize.y * rand.y + uv.y);
     
     dir = normalize(dir);
 
@@ -224,7 +224,7 @@ kernel void idsGizmoCombo3D(
     float2 rand = float2(0.5);
 
     dir += horizontal * (pixelSize.x * rand.x + uv.x);
-    dir += vertical * (pixelSize.y * rand.y + 1.0 - uv.y);
+    dir += vertical * (pixelSize.y * rand.y + uv.y);
     
     dir = normalize(dir);
 

@@ -477,7 +477,10 @@ class CodeProperties    : MMWidget
                 if let mapping = comp.propertyGizmoMap[fragment.uuid] {
                     mapIndex = Float(mapping.rawValue)
                 }
-                let gizmoMappingUI = NodeUISelector(c2Node!, variable: "gizmoMap", title: "Gizmo", items: ["No", "Scale (All)", "Scale X", "Scale Y"], index: mapIndex )
+                
+                let gizmoItems = comp.componentType == .SDF2D ? ["No", "Scale (All)", "Scale X", "Scale Y"] : ["No", "Scale (All)", "Scale X", "Scale Y", "Scale Z"]
+                
+                let gizmoMappingUI = NodeUISelector(c2Node!, variable: "gizmoMap", title: "Gizmo", items: gizmoItems, index: mapIndex )
                 gizmoMappingUI.isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
                 c2Node?.uiItems.append( gizmoMappingUI )
 

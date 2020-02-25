@@ -98,7 +98,7 @@ class GizmoCombo3D          : GizmoBase
                 dragStartOffset = SIMD2<Float>(hit.y, 0)
             }
             if dragState == .zAxisMove {
-                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(-1,0,0))
+                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(1,0,0))
                 dragStartOffset = SIMD2<Float>(hit.z, 0)
             }
             
@@ -161,14 +161,14 @@ class GizmoCombo3D          : GizmoBase
                 hoverState.rawValue, 0,
                 origin.x, origin.y, origin.z, 0,
                 lookAt.x, lookAt.y, lookAt.z, 0,
-                transformed["_posX"]!, -transformed["_posY"]!, transformed["_posZ"]!, 0
+                transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
             ];
             
             let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
             
             compute.run(idState, outTexture: compute.texture, inBuffer: buffer, syncronize: true)
                         
-            let region = MTLRegionMake2D(min(Int(event.x - rect.x), compute.texture!.width-1), min(Int(rect.height - (event.y - rect.y)), compute.texture!.height-1), 1, 1)
+            let region = MTLRegionMake2D(min(Int(event.x - rect.x), compute.texture!.width-1), min(Int(event.y - rect.y), compute.texture!.height-1), 1, 1)
 
             let texArray = Array<Float>(repeating: Float(0), count: 1)
             compute.texture!.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<Float>.size * compute.texture!.width), from: region, mipmapLevel: 0)
@@ -212,7 +212,7 @@ class GizmoCombo3D          : GizmoBase
             } else
             if dragState == .zAxisMove {
                 let camera = getScreenCameraDir(event)
-                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(-1,0,0))
+                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(1,0,0))
                 let properties : [String:Float] = [
                     "_posZ" : initialValues["_posZ"]! + (hit.z - dragStartOffset!.x),
                 ]
@@ -427,7 +427,7 @@ class GizmoCombo3D          : GizmoBase
             hoverState.rawValue, 0,
             origin.x, origin.y, origin.z, 0,
             lookAt.x, lookAt.y, lookAt.z, 0,
-            transformed["_posX"]!, -transformed["_posY"]!, transformed["_posZ"]!, 0
+            transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
         ];
         
         mmView.renderer.setClipRect(rect)
