@@ -9,6 +9,13 @@
 #include <metal_stdlib>
 using namespace metal;
 
+#define MOVE_X 2.0
+#define MOVE_Y 3.0
+#define MOVE_Z 4.0
+#define SCALE_X 6.0
+#define SCALE_Y 7.0
+#define SCALE_Z 8.0
+
 typedef struct
 {
     float4 clipSpacePosition [[position]];
@@ -81,26 +88,53 @@ float sdCylinder( float3 p, float2 h )
     return min(max(d.x,d.y),0.0) + length(max(d,0.0));
 }
 
+float sdConeSection(float3 p, float h, float r1, float r2)
+{
+    float d1 = -p.y - h;
+    float q = p.y - h;
+    float si = 0.5*(r1-r2)/h;
+    float d2 = max( sqrt( dot(p.xz,p.xz)*(1.0-si*si)) + q*si - r2, q );
+    return length(max(float2(d1,d2),0.0)) + min(max(d1,d2), 0.);
+}
+
+float sdBox( float3 p, float3 b )
+{
+    float3 q = abs(p) - b;
+    return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+}
+
+float3 translateForXAxis(float3 pos, float3 off, float3 move)
+{
+    float3 p = gizmo3DTranslate(pos, off + move);
+    p.xy = gimzo3DRotateCW( p.xy, radians(-90) );
+    return p;
+}
+
+float3 translateForZAxis(float3 pos, float3 off, float3 move)
+{
+    float3 p = gizmo3DTranslate(pos, off + move);
+    p.yz = gimzo3DRotateCW( p.yz, radians(90) );
+    return p;
+}
+
 float3 map(float3 pos, float3 off)
 {
     float3 res = float3( 100000, 0, 0);
     
-    float3 p = gizmo3DTranslate(pos, off + float3(0, -0.25, 0));
-
-    float3 center = float3(sdCylinder(p, float2(0.02, 0.25)), 3, 3);
-    res = opU(center, res);
-
-    p = gizmo3DTranslate(pos, off + float3(0.25, 0, 0));
-    p.xy = gimzo3DRotateCW( p.xy, radians(90) );
-    float3 xMove = float3(sdCylinder(p, float2(0.02, 0.25)), 2, 2);
-
-    res = opU(xMove, res);
+    res = opU(float3(sdCylinder(gizmo3DTranslate(pos, off + float3(0, -0.15, 0)), float2(0.02, 0.15)), SCALE_Y, SCALE_Y), res);
+    res = opU(float3(sdBox(gizmo3DTranslate(pos, off + float3(0, -0.30, 0)), float3(0.04, 0.04, 0.04)), SCALE_Y, SCALE_Y), res);
+    res = opU(float3(sdCylinder(gizmo3DTranslate(pos, off + float3(0, -0.45, 0)), float2(0.02, 0.15)), MOVE_Y, MOVE_Y), res);
+    res = opU(float3(sdConeSection(gizmo3DTranslate(pos, off + float3(0, -0.65, 0)), 0.05, 0.001, 0.05), MOVE_Y, MOVE_Y), res);
     
-    p = gizmo3DTranslate(pos, off + float3(0, 0, 0.25));
-    p.yz = gimzo3DRotateCW( p.yz, radians(90) );
-    float3 zMove = float3(sdCylinder(p, float2(0.02, 0.25)), 4, 4);
+    res = opU(float3(sdCylinder(translateForXAxis(pos, off, float3(0.15, 0, 0)), float2(0.02, 0.15)), SCALE_X, SCALE_X), res);
+    res = opU(float3(sdBox(translateForXAxis(pos, off, float3(0.30, 0, 0)), float3(0.04, 0.04, 0.04)), SCALE_X, SCALE_X), res);
+    res = opU(float3(sdCylinder(translateForXAxis(pos, off, float3(0.45, 0, 0)), float2(0.02, 0.15)), MOVE_X, MOVE_X), res);
+    res = opU(float3(sdConeSection(translateForXAxis(pos, off, float3(0.65, 0, 0)), 0.05, 0.001, 0.05), MOVE_X, MOVE_X), res);
 
-    res = opU(zMove, res);
+    res = opU(float3(sdCylinder(translateForZAxis(pos, off, float3(0, 0, 0.15)), float2(0.02, 0.15)), SCALE_Z, SCALE_Z), res);
+    res = opU(float3(sdBox(translateForZAxis(pos, off, float3(0, 0, 0.30)), float3(0.04, 0.04, 0.04)), SCALE_Z, SCALE_Z), res);
+    res = opU(float3(sdCylinder(translateForZAxis(pos, off, float3(0, 0, 0.45)), float2(0.02, 0.15)), MOVE_Z, MOVE_Z), res);
+    res = opU(float3(sdConeSection(translateForZAxis(pos, off, float3(0, 0, 0.65)), 0.05, 0.001, 0.05), MOVE_Z, MOVE_Z), res);
     
     return res;
 }
@@ -283,86 +317,24 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     dir = normalize(dir);
     float3 hit = castRay(origin, dir, pos);
     
-    if (hit.y == 2) {
-        finalColor = hoverState == 2 ? hoverColor : xAxisColor;
+    if (hit.y == MOVE_X) {
+        finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;
     } else
-    if (hit.y == 3) {
-        finalColor =  hoverState == 3 ? hoverColor : yAxisColor;
+    if (hit.y == MOVE_Y) {
+        finalColor =  hoverState == MOVE_Y ? hoverColor : yAxisColor;
     } else
-    if (hit.y == 4) {
-        finalColor =  hoverState == 4 ? hoverColor : zAxisColor;
+    if (hit.y == MOVE_Z) {
+        finalColor =  hoverState == MOVE_Z ? hoverColor : zAxisColor;
+    } else
+    if (hit.y == SCALE_X) {
+        finalColor = hoverState == SCALE_X ? hoverColor : xAxisColor;
+    } else
+    if (hit.y == SCALE_Y) {
+        finalColor =  hoverState == SCALE_Y ? hoverColor : yAxisColor;
+    } else
+    if (hit.y == SCALE_Z) {
+        finalColor =  hoverState == SCALE_Z ? hoverColor : zAxisColor;
     }
-    
-    /*
-    // Rotation Ring
-    tuv = uv;
-    dist = length( tuv ) - 70;
-    color = data->hoverState == 4.0 ? hoverColor : centerColor;
-    finalColor = mix( finalColor, color, gizmoBorderMask( dist, 3.0 ) * color.w );
-
-    // Right arrow - Scale
-    tuv = uv - float2(25,0);
-    d = abs( tuv ) -  float2( 25, 3);
-    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
-    
-    tuv = uv - float2(50,0.4);
-    d = abs( tuv ) - float2( 8, 7);
-    dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
-    
-    color = data->hoverState == 5.0 || data->lockedScaleAxes == 1.0 ? hoverColor : xAxisColor;
-    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
-    
-    // Right arrow - Move
-    tuv = uv - float2(75,0);
-    d = abs( tuv ) -  float2( 18, 3);
-    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
-    
-    tuv = uv - float2(110,0);
-    tuv = rotateCW( tuv, 1.5708 );
-    dist = min( dist, sdTriangleIsosceles( tuv, float2( 10, -20 ) ) );
-    
-    color = data->hoverState == 2.0 ? hoverColor : xAxisColor;
-    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
-
-    // Up arrow Scale
-    tuv = uv - float2(0,25);
-    d = abs( tuv ) -  float2( 3, 25);
-    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
-    
-    tuv = uv - float2(0.4,50);
-    d = abs( tuv ) - float2( 7, 8);
-    dist = min( dist, length(max(d,float2(0))) + min(max(d.x,d.y),0.0) );
-    
-    color = data->hoverState == 6.0 || data->lockedScaleAxes == 1.0 ? hoverColor : yAxisColor;
-    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
-    
-    // Up arrow Move
-    tuv = uv - float2(0,75);
-    d = abs( tuv ) -  float2( 3, 18);
-    dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0);
-    tuv = uv - float2(0,110);
-    dist = min( dist, sdTriangleIsosceles( tuv, float2( 10, -20 ) ) );
-    
-    color = data->hoverState == 3.0 ? hoverColor : yAxisColor;
-    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
-
-    // Center
-    
-    tuv = uv;
-    dist = length( tuv ) - 5;
-    color = data->hoverState == 1.0 ? hoverColor : centerColor;
-    finalColor = mix( finalColor, color, gizmoFillMask( dist ) * color.w );
-
-    dist = length( tuv ) - 15;
-    if ( dist <= 0 ) {
-        
-        if ( data->hoverState == 1 ) finalColor = float4( hoverColor.xyz, gizmoFillMask( dist ) );
-        else {
-            float4 overlayColor = float4( centerColor.xyz, gizmoFillMask( dist ) );
-            finalColor = mix( finalColor, overlayColor, 0.7 );
-        }
-    }
-    */
     
     finalColor.r /= finalColor.a;
     finalColor.g /= finalColor.a;

@@ -25,9 +25,11 @@ class GizmoCombo3D          : GizmoBase
 
     var scaleXFragmentName  : String? = nil
     var scaleYFragmentName  : String? = nil
+    var scaleZFragmentName  : String? = nil
     var scaleXFragment      : CodeFragment? = nil
     var scaleYFragment      : CodeFragment? = nil
-    
+    var scaleZFragment      : CodeFragment? = nil
+
     var undoComponent       : CodeUndoComponent? = nil
     
     var dispatched          : Bool = false
@@ -89,28 +91,29 @@ class GizmoCombo3D          : GizmoBase
             
             let camera = getScreenCameraDir(event)
 
-            if dragState == .xAxisMove {
+            if dragState == .xAxisMove || dragState == .xAxisScale {
                 let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
                 dragStartOffset = SIMD2<Float>(hit.x, 0)
             }
-            if dragState == .yAxisMove {
+            if dragState == .yAxisMove || dragState == .yAxisScale {
                 let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
                 dragStartOffset = SIMD2<Float>(hit.y, 0)
             }
-            if dragState == .zAxisMove {
-                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(1,0,0))
-                dragStartOffset = SIMD2<Float>(hit.z, 0)
+            if dragState == .zAxisMove || dragState == .zAxisScale  {
+                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
+                dragStartOffset = SIMD2<Float>(hit.x, 0)
             }
             
-            //dragStartOffset = convertToSceneSpace(x: event.x, y: event.y)
             initialValues = component.values
             startRotate = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
             
             scaleXFragmentName = nil
             scaleYFragmentName = nil
+            scaleZFragmentName = nil
             scaleXFragment = nil
             scaleYFragment = nil
-            
+            scaleZFragment = nil
+
             // Get the scale gizmo mapping for the properties
             for prop in component.properties {
                 if let gizmoMap = component.propertyGizmoMap[prop] {
@@ -121,11 +124,16 @@ class GizmoCombo3D          : GizmoBase
                                 scaleXFragmentName = frag.name
                                 scaleXFragment = rc.1!
                                 initialValues["_scaleX"] = rc.1!.values["value"]!
-                            }
+                            } else
                             if gizmoMap == .AllScale || gizmoMap == .YScale {
                                 scaleYFragmentName = frag.name
                                 scaleYFragment = rc.1!
                                 initialValues["_scaleY"] = rc.1!.values["value"]!
+                            } else
+                            if gizmoMap == .AllScale || gizmoMap == .ZScale {
+                                scaleZFragmentName = frag.name
+                                scaleZFragment = rc.1!
+                                initialValues["_scaleZ"] = rc.1!.values["value"]!
                             }
                         }
                     }
@@ -184,18 +192,9 @@ class GizmoCombo3D          : GizmoBase
                 mmView.update()
             }
         } else {
-            let pos = convertToSceneSpace(x: event.x, y: event.y)
-            let scale : Float = getCameraPropertyValue("scale", defaultValue: 1)
+            let camera = getScreenCameraDir(event)
 
-            if dragState == .CenterMove {
-                let properties : [String:Float] = [
-                    "_posX" : initialValues["_posX"]! + (pos.x - dragStartOffset!.x) * scale,
-                    "_posY" : initialValues["_posY"]! - (pos.y - dragStartOffset!.y) * scale,
-                ]
-                processGizmoProperties(properties)
-            } else
             if dragState == .xAxisMove {
-                let camera = getScreenCameraDir(event)
                 let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
                 let properties : [String:Float] = [
                     "_posX" : initialValues["_posX"]! + (hit.x - dragStartOffset!.x),
@@ -203,7 +202,6 @@ class GizmoCombo3D          : GizmoBase
                 processGizmoProperties(properties)
             } else
             if dragState == .yAxisMove {
-                let camera = getScreenCameraDir(event)
                 let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
                 let properties : [String:Float] = [
                     "_posY" : initialValues["_posY"]! + (hit.y - dragStartOffset!.x),
@@ -211,10 +209,9 @@ class GizmoCombo3D          : GizmoBase
                 processGizmoProperties(properties)
             } else
             if dragState == .zAxisMove {
-                let camera = getScreenCameraDir(event)
-                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(1,0,0))
+                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
                 let properties : [String:Float] = [
-                    "_posZ" : initialValues["_posZ"]! + (hit.z - dragStartOffset!.x),
+                    "_posZ" : initialValues["_posZ"]! + (hit.x - dragStartOffset!.x),
                 ]
                 processGizmoProperties(properties)
             }
@@ -233,12 +230,20 @@ class GizmoCombo3D          : GizmoBase
             } else
             if dragState == .xAxisScale {
                 if let fragment = scaleXFragment {
-                    processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (pos.x - dragStartOffset!.x) * scale, 0.001))
+                    let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
+                    processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (hit.x - dragStartOffset!.x), 0.001))
                 }
             } else
             if dragState == .yAxisScale {
                 if let fragment = scaleYFragment {
-                    processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (pos.y - dragStartOffset!.y) * scale, 0.001))
+                    let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
+                    processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (hit.y - dragStartOffset!.x), 0.001))
+                }
+            } else
+            if dragState == .zAxisScale {
+                if let fragment = scaleZFragment {
+                    let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(1,0,0))
+                    processProperty(fragment, name: scaleZFragmentName!, value: max(initialValues["_scaleZ"]! + (hit.x - dragStartOffset!.x), 0.001))
                 }
             }
             
@@ -508,9 +513,11 @@ class GizmoCombo3D          : GizmoBase
     {
         let denom : Float = simd_dot( planeNormal, camera.1)
         if abs(denom) > 0.0001 {
+            //print(0, denom)
             let t : Float = simd_dot( planeCenter - camera.0, planeNormal)
             if t >= 0 {
                 let hit = camera.0 + camera.1 * t
+                //print(1, hit)
                 return hit
             }
         }
