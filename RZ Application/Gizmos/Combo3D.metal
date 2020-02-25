@@ -143,6 +143,50 @@ float3 calcNormal(float3 pos){
     return normalize(nor);
 }*/
 
+kernel void cameraGizmoCombo3D(
+                               constant GIZMO3D               *data        [[ buffer(1) ]],
+                               device float4                  *out         [[ buffer(0) ]],
+                               uint                            gid         [[thread_position_in_grid]])
+{
+    float2 size = data->size;
+    float3 pos = data->position.xyz;
+    float2 uv = float2( pos.x, pos.y ) / size;
+
+    float3 origin = data->origin.xyz;
+    float3 lookAt = data->lookAt.xyz;
+
+    float ratio = size.x / size.y;
+    float2 pixelSize = float2(1.0) / size.xy;
+
+    // --- Camera
+
+    const float fov = 80.0;
+    float halfWidth = tan(radians(fov) * 0.5);
+    float halfHeight = halfWidth / ratio;
+
+    float3 upVector = float3(0.0, 1.0, 0.0);
+
+    float3 w = normalize(origin - lookAt);
+    float3 u = cross(upVector, w);
+    float3 v = cross(w, u);
+
+    float3 lowerLeft = origin - halfWidth * u - halfHeight * v - w;
+    float3 horizontal = u * halfWidth * 2.0;
+    float3 vertical = v * halfHeight * 2.0;
+
+    // ---
+
+    float3 dir = lowerLeft - origin;
+    float2 rand = float2(0.5);
+
+    dir += horizontal * (pixelSize.x * rand.x + uv.x);
+    dir += vertical * (pixelSize.y * rand.y + 1.0 - uv.y);
+    
+    dir = normalize(dir);
+
+    out[gid] = float4(dir, 0);
+}
+
 kernel void idsGizmoCombo3D(
                             texture2d<half, access::write>  outTexture  [[texture(0)]],
                             constant GIZMO3D               *data        [[ buffer(1) ]],
@@ -181,6 +225,8 @@ kernel void idsGizmoCombo3D(
 
     dir += horizontal * (pixelSize.x * rand.x + uv.x);
     dir += vertical * (pixelSize.y * rand.y + 1.0 - uv.y);
+    
+    dir = normalize(dir);
 
     float3 hit = castRay(origin, dir, pos);
 
@@ -234,6 +280,7 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     const float4 yAxisColor = float4(0.882, 0.102, 0.153, 1.000);
     const float4 zAxisColor = float4(0.188, 0.933, 0.176, 1.000);
 
+    dir = normalize(dir);
     float3 hit = castRay(origin, dir, pos);
     
     if (hit.y == 2) {

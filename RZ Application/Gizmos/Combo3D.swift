@@ -7,11 +7,13 @@
 //
 
 import MetalKit
+import simd
 
 class GizmoCombo3D          : GizmoBase
 {
     var state               : MTLRenderPipelineState!
     var idState             : MTLComputePipelineState!
+    var cameraState         : MTLComputePipelineState!
 
     let width               : Float = 260
     let height              : Float = 260
@@ -40,7 +42,8 @@ class GizmoCombo3D          : GizmoBase
        
         compute = MMCompute()
         idState = compute.createState(name: "idsGizmoCombo3D")
-        
+        cameraState = compute.createState(name: "cameraGizmoCombo3D")
+
         super.init(view)
     }
     
@@ -84,7 +87,22 @@ class GizmoCombo3D          : GizmoBase
         if hoverState != .Inactive {
             dragState = hoverState
             
-            dragStartOffset = convertToSceneSpace(x: event.x, y: event.y)
+            let camera = getScreenCameraDir(event)
+
+            if dragState == .xAxisMove {
+                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
+                dragStartOffset = SIMD2<Float>(hit.x, 0)
+            }
+            if dragState == .yAxisMove {
+                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
+                dragStartOffset = SIMD2<Float>(hit.y, 0)
+            }
+            if dragState == .zAxisMove {
+                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(-1,0,0))
+                dragStartOffset = SIMD2<Float>(hit.z, 0)
+            }
+            
+            //dragStartOffset = convertToSceneSpace(x: event.x, y: event.y)
             initialValues = component.values
             startRotate = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
             
@@ -143,7 +161,7 @@ class GizmoCombo3D          : GizmoBase
                 hoverState.rawValue, 0,
                 origin.x, origin.y, origin.z, 0,
                 lookAt.x, lookAt.y, lookAt.z, 0,
-                transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
+                transformed["_posX"]!, -transformed["_posY"]!, transformed["_posZ"]!, 0
             ];
             
             let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
@@ -177,17 +195,31 @@ class GizmoCombo3D          : GizmoBase
                 processGizmoProperties(properties)
             } else
             if dragState == .xAxisMove {
+                let camera = getScreenCameraDir(event)
+                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
                 let properties : [String:Float] = [
-                    "_posX" : initialValues["_posX"]! + (pos.x - dragStartOffset!.x) * scale,
+                    "_posX" : initialValues["_posX"]! + (hit.x - dragStartOffset!.x),
                 ]
                 processGizmoProperties(properties)
             } else
             if dragState == .yAxisMove {
+                let camera = getScreenCameraDir(event)
+                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(0,0,-1))
                 let properties : [String:Float] = [
-                    "_posY" : initialValues["_posY"]! - (pos.y - dragStartOffset!.y) * scale,
+                    "_posY" : initialValues["_posY"]! + (hit.y - dragStartOffset!.x),
                 ]
                 processGizmoProperties(properties)
             } else
+            if dragState == .zAxisMove {
+                let camera = getScreenCameraDir(event)
+                let hit = getPlaneIntersection(camera: camera, planeNormal: SIMD3<Float>(-1,0,0))
+                let properties : [String:Float] = [
+                    "_posZ" : initialValues["_posZ"]! + (hit.z - dragStartOffset!.x),
+                ]
+                processGizmoProperties(properties)
+            }
+            
+            else
             if dragState == .Rotate {
                 let angle = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
                 var value = initialValues["_rotateX"]! + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
@@ -395,7 +427,7 @@ class GizmoCombo3D          : GizmoBase
             hoverState.rawValue, 0,
             origin.x, origin.y, origin.z, 0,
             lookAt.x, lookAt.y, lookAt.z, 0,
-            transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
+            transformed["_posX"]!, -transformed["_posY"]!, transformed["_posZ"]!, 0
         ];
         
         mmView.renderer.setClipRect(rect)
@@ -470,5 +502,41 @@ class GizmoCombo3D          : GizmoBase
             a = a*180/Float.pi; //convert to deg
         }
         return a;
+    }
+    
+    func getPlaneIntersection(camera: (SIMD3<Float>, SIMD3<Float>), planeNormal: SIMD3<Float>, planeCenter: SIMD3<Float> = SIMD3<Float>(0,0,0)) -> SIMD3<Float>
+    {
+        let denom : Float = simd_dot( planeNormal, camera.1)
+        if abs(denom) > 0.0001 {
+            let t : Float = simd_dot( planeCenter - camera.0, planeNormal)
+            if t >= 0 {
+                let hit = camera.0 + camera.1 * t
+                return hit
+            }
+        }
+        return SIMD3<Float>(0,0,0)
+    }
+    
+    func getScreenCameraDir(_ event: MMMouseEvent) -> (SIMD3<Float>, SIMD3<Float>)
+    {
+        let origin = getCameraPropertyValue3("origin")
+        let lookAt = getCameraPropertyValue3("lookAt")
+        
+        // --- Render Gizmo
+        let data: [Float] = [
+            rect.width, rect.height,
+            hoverState.rawValue, 0,
+            origin.x, origin.y, origin.z, 0,
+            lookAt.x, lookAt.y, lookAt.z, 0,
+            event.x - rect.x, event.y - rect.y, 0, 0
+        ];
+        
+        let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
+        let outBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
+
+        compute.runBuffer(cameraState, outBuffer: outBuffer, inBuffer: buffer, wait: true)
+        let result = outBuffer.contents().bindMemory(to: Float.self, capacity: 4)
+
+        return (origin, SIMD3<Float>(result[0], result[1], result[2]))
     }
 }
