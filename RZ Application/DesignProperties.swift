@@ -113,11 +113,11 @@ class DesignProperties      : MMWidget
                     c1Node?.uiItems.append(numberVar)
                     
                     argFrag = rc.1!.arguments[1].fragments[0]
-                    numberVar = NodeUINumber(c1Node!, variable: frag.name + "_y", title: "Y", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.y, precision: Int(argFrag.values["precision"]!))
+                    numberVar = NodeUINumber(c1Node!, variable: frag.name + "_y", title: comp.artistPropertyNames[uuid]! + " Y", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.y, precision: Int(argFrag.values["precision"]!))
                     c1Node?.uiItems.append(numberVar)
                     
                     argFrag = rc.1!.arguments[2].fragments[0]
-                    numberVar = NodeUINumber(c1Node!, variable: frag.name + "_z", title: "Z", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.z, precision: Int(argFrag.values["precision"]!))
+                    numberVar = NodeUINumber(c1Node!, variable: frag.name + "_z", title: comp.artistPropertyNames[uuid]! + " Z", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.z, precision: Int(argFrag.values["precision"]!))
                     c1Node?.uiItems.append(numberVar)
                 } else
                 if components == 4 {
