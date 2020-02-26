@@ -38,6 +38,7 @@ public class MMBaseView : MTKView
     
     var firstTouch      : Bool = false
     var pinchCenter     : SIMD2<Float> = SIMD2<Float>(0,0)
+    var numberOfTouches : Int = 0
 
     func update()
     {
@@ -105,8 +106,9 @@ public class MMBaseView : MTKView
                 event.deltaY = Float(translation.y) - lastY!
                 event.deltaZ = 0
                 
+                numberOfTouches = recognizer.numberOfTouches
                 hoverWidget?.mouseScrolled(event)
-                
+                                
                 if recognizer.numberOfTouches > 1 {
                     // Only scroll when using with more than 1 finger
                     lastX = Float(translation.x)

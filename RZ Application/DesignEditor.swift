@@ -194,16 +194,30 @@ class DesignEditor          : MMWidget
             return
         }
         #endif
-
-        if let gizmo = currentGizmo {
-            gizmo.mouseScrolled(event)
+        
+        if globalApp!.currentSceneMode == .TwoD {
+            gizmoCombo2D.mouseScrolled(event)
+        } else {
+            gizmoCombo3D.mouseScrolled(event)
+            if let comp = designComponent {
+                if comp.componentType == .Camera3D {
+                    editor.designProperties.setSelected(comp)
+                }
+            }
         }
     }
     
     override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
-        if let gizmo = currentGizmo {
-            gizmo.pinchGesture(scale, firstTouch)
+        if globalApp!.currentSceneMode == .TwoD {
+            gizmoCombo2D.pinchGesture(scale, firstTouch)
+        } else {
+            gizmoCombo3D.pinchGesture(scale, firstTouch)
+            if let comp = designComponent {
+                if comp.componentType == .Camera3D {
+                    editor.designProperties.setSelected(comp)
+                }
+            }
         }
     }
     

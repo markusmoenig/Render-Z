@@ -121,10 +121,10 @@ float3 map(float3 pos, float3 off)
 {
     float3 res = float3( 100000, 0, 0);
     
-    res = opU(float3(sdCylinder(gizmo3DTranslate(pos, off + float3(0, -0.15, 0)), float2(0.02, 0.15)), SCALE_Y, SCALE_Y), res);
-    res = opU(float3(sdBox(gizmo3DTranslate(pos, off + float3(0, -0.30, 0)), float3(0.04, 0.04, 0.04)), SCALE_Y, SCALE_Y), res);
-    res = opU(float3(sdCylinder(gizmo3DTranslate(pos, off + float3(0, -0.45, 0)), float2(0.02, 0.15)), MOVE_Y, MOVE_Y), res);
-    res = opU(float3(sdConeSection(gizmo3DTranslate(pos, off + float3(0, -0.65, 0)), 0.05, 0.001, 0.05), MOVE_Y, MOVE_Y), res);
+    res = opU(float3(sdCylinder(gizmo3DTranslate(pos, off + float3(0, 0.15, 0)), float2(0.02, 0.15)), SCALE_Y, SCALE_Y), res);
+    res = opU(float3(sdBox(gizmo3DTranslate(pos, off + float3(0, 0.30, 0)), float3(0.04, 0.04, 0.04)), SCALE_Y, SCALE_Y), res);
+    res = opU(float3(sdCylinder(gizmo3DTranslate(pos, off + float3(0, 0.45, 0)), float2(0.02, 0.15)), MOVE_Y, MOVE_Y), res);
+    res = opU(float3(sdConeSection(gizmo3DTranslate(pos, off + float3(0, 0.65, 0)), 0.05, 0.05, 0.001), MOVE_Y, MOVE_Y), res);
     
     res = opU(float3(sdCylinder(translateForXAxis(pos, off, float3(0.15, 0, 0)), float2(0.02, 0.15)), SCALE_X, SCALE_X), res);
     res = opU(float3(sdBox(translateForXAxis(pos, off, float3(0.30, 0, 0)), float3(0.04, 0.04, 0.04)), SCALE_X, SCALE_X), res);
@@ -194,7 +194,7 @@ kernel void cameraGizmoCombo3D(
 
     // --- Camera
 
-    const float fov = 80.0;
+    const float fov = data->origin.w;
     float halfWidth = tan(radians(fov) * 0.5);
     float halfHeight = halfWidth / ratio;
 
@@ -238,7 +238,7 @@ kernel void idsGizmoCombo3D(
 
     // --- Camera
 
-    const float fov = 80.0;
+    const float fov = data->origin.w;
     float halfWidth = tan(radians(fov) * 0.5);
     float halfHeight = halfWidth / ratio;
 
@@ -286,7 +286,7 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
 
     // --- Camera
 
-    const float fov = 80.0;
+    const float fov = data->origin.w;
     float halfWidth = tan(radians(fov) * 0.5);
     float halfHeight = halfWidth / ratio;
 
@@ -306,7 +306,7 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     float2 rand = float2(0.5);
 
     dir += horizontal * (pixelSize.x * rand.x + uv.x);
-    dir += vertical * (pixelSize.y * rand.y + 1.0 - uv.y);
+    dir += vertical * (pixelSize.y * rand.y + uv.y);
     
     const float4 hoverColor = float4(0.263, 0.443, 0.482, 1.000);
     //const float4 centerColor = float4(0.996, 0.941, 0.208, 1.000);

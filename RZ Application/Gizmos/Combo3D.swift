@@ -33,9 +33,12 @@ class GizmoCombo3D          : GizmoBase
     var undoComponent       : CodeUndoComponent? = nil
     
     var dispatched          : Bool = false
-    var zoomBuffer          : Float = 0
+    var zoomBuffer          : SIMD3<Float> = SIMD3<Float>(0,0,0)
     
     var compute             : MMCompute
+    
+    var camera3D            : Camera3D = Camera3D()
+    var mouseIsDown         : Bool = false
     
     override init(_ view: MMView)
     {
@@ -82,13 +85,14 @@ class GizmoCombo3D          : GizmoBase
     override func mouseDown(_ event: MMMouseEvent)
     {
         if component.componentType == .Dummy { return }
+        mouseIsDown = true
         
         #if os(iOS)
             mouseMoved(event)
         #endif
         if hoverState != .Inactive {
             dragState = hoverState
-            
+                        
             let camera = getScreenCameraDir(event)
 
             if dragState == .xAxisMove || dragState == .xAxisScale {
@@ -154,7 +158,8 @@ class GizmoCombo3D          : GizmoBase
             
             let origin = getCameraPropertyValue3("origin")
             let lookAt = getCameraPropertyValue3("lookAt")
-            
+            let fov = getCameraPropertyValue("fov")
+
             var properties : [String:Float] = [:]
             properties["_posX"] = (component.values["_posX"]! + getHierarchyValue(component, "_posX"))
             properties["_posY"] = (component.values["_posY"]! + getHierarchyValue(component, "_posY"))
@@ -167,16 +172,16 @@ class GizmoCombo3D          : GizmoBase
             let data: [Float] = [
                 rect.width, rect.height,
                 hoverState.rawValue, 0,
-                origin.x, origin.y, origin.z, 0,
+                origin.x, origin.y, origin.z, fov,
                 lookAt.x, lookAt.y, lookAt.z, 0,
-                transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
+                transformed["_posX"]!, -transformed["_posY"]!, transformed["_posZ"]!, 0
             ];
-            
+                        
             let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
             
             compute.run(idState, outTexture: compute.texture, inBuffer: buffer, syncronize: true)
                         
-            let region = MTLRegionMake2D(min(Int(event.x - rect.x), compute.texture!.width-1), min(Int(event.y - rect.y), compute.texture!.height-1), 1, 1)
+            let region = MTLRegionMake2D(min(Int(event.x - rect.x), compute.texture!.width-1), min(Int(rect.height - (event.y - rect.y)), compute.texture!.height-1), 1, 1)
 
             let texArray = Array<Float>(repeating: Float(0), count: 1)
             compute.texture!.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<Float>.size * compute.texture!.width), from: region, mipmapLevel: 0)
@@ -268,14 +273,16 @@ class GizmoCombo3D          : GizmoBase
             undoComponent = nil
         }
         mmView.update()
+        mouseIsDown = false
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
         let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
 
-        var originFrag : CodeFragment? = nil
-        var lookAtFrag : CodeFragment? = nil
+        var originFrag  : CodeFragment? = nil
+        var lookAtFrag  : CodeFragment? = nil
+        var fovFrag     : CodeFragment? = nil
 
         for uuid in camera.properties {
             let rc = camera.getPropertyOfUUID(uuid)
@@ -285,41 +292,32 @@ class GizmoCombo3D          : GizmoBase
                 } else
                 if frag.name == "lookAt" {
                     lookAtFrag = rc.1
+                } else
+                if frag.name == "fov" {
+                    fovFrag = rc.1
                 }
             }
         }
         
+        camera3D.initFromCamera(aspect: rect.width/rect.height, originFrag: originFrag, lookAtFrag: lookAtFrag, fovFrag: fovFrag)
+        
         #if os(iOS)
-        if let frag = xFrag {
-            frag.values["value"]! -= event.deltaX!
-        }
-        if let frag = yFrag {
-            frag.values["value"]! += event.deltaY!
+        if mmView.numberOfTouches > 1 {
+            camera3D.rotate(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
+        } else {
+            camera3D.pan(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
         }
         #elseif os(OSX)
-        if mmView.commandIsDown && event.deltaY! != 0 {
-            /*
-            if let frag = scale {
-                frag.values["value"]! -= event.deltaY! * 0.03
-                frag.values["value"]! = max(0.001, frag.values["value"]!)
-                frag.values["value"]! = min(20, frag.values["value"]!)
-            }*/
-        } else
-        if originFrag != nil && lookAtFrag != nil {
-            
-            var origin = extractValueFromFragment3(originFrag!)
-            var lookAt = extractValueFromFragment3(lookAtFrag!)
-            
-            let scale : Float = 8
-            
-            origin.x += event.deltaX! / scale
-            origin.y += event.deltaY! / scale
-
-            lookAt.x += event.deltaX! / scale
-            lookAt.y += event.deltaY! / scale
-            
-            insertValueToFragment3(originFrag!, origin)
-            insertValueToFragment3(lookAtFrag!, lookAt)
+        if mmView.commandIsDown {
+            if event.deltaY! != 0 {
+                camera3D.zoom(dx: 0, dy: event.deltaY! * 0.03)
+            }
+        } else {
+            if mmView.shiftIsDown {
+                camera3D.rotate(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
+            } else {
+                camera3D.pan(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
+            }
         }
         #endif
         
@@ -342,27 +340,35 @@ class GizmoCombo3D          : GizmoBase
     {
         let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
 
-        var scaleFrag : CodeFragment? = nil
+        var originFrag  : CodeFragment? = nil
+        var lookAtFrag  : CodeFragment? = nil
+        var fovFrag     : CodeFragment? = nil
 
         for uuid in camera.properties {
             let rc = camera.getPropertyOfUUID(uuid)
             if let frag = rc.0 {
-                if frag.name == "scale" {
-                    scaleFrag = rc.1
+                if frag.name == "origin" {
+                    originFrag = rc.1
+                } else
+                if frag.name == "lookAt" {
+                    lookAtFrag = rc.1
+                } else
+                if frag.name == "fov" {
+                    fovFrag = rc.1
                 }
             }
         }
-        
-        if let frag = scaleFrag {
-            if firstTouch == true {
-                zoomBuffer = frag.values["value"]!
+    
+        camera3D.initFromCamera(aspect: rect.width/rect.height, originFrag: originFrag, lookAtFrag: lookAtFrag, fovFrag: fovFrag)
+
+        if let origin = originFrag {
+            if let lookAt = lookAtFrag {
+                if firstTouch == true {
+                    zoomBuffer = extractValueFromFragment3(origin) - extractValueFromFragment3(lookAt)
+                }
+                camera3D.zoomRelative(dx: 0, dy: scale, start: zoomBuffer)
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
             }
-            
-            frag.values["value"]! = zoomBuffer / scale
-            frag.values["value"]! = max(0.001, frag.values["value"]!)
-            frag.values["value"]! = min(20, frag.values["value"]!)
-            
-            globalApp!.currentEditor.updateOnNextDraw(compile: false)
         }
     }
     
@@ -417,7 +423,8 @@ class GizmoCombo3D          : GizmoBase
 
         let origin = getCameraPropertyValue3("origin")
         let lookAt = getCameraPropertyValue3("lookAt")
-        
+        let fov = getCameraPropertyValue("fov")
+
         var properties : [String:Float] = [:]
         properties["_posX"] = (component.values["_posX"]! + getHierarchyValue(component, "_posX"))
         properties["_posY"] = (component.values["_posY"]! + getHierarchyValue(component, "_posY"))
@@ -430,11 +437,11 @@ class GizmoCombo3D          : GizmoBase
         let data: [Float] = [
             rect.width, rect.height,
             hoverState.rawValue, 0,
-            origin.x, origin.y, origin.z, 0,
+            origin.x, origin.y, origin.z, fov,
             lookAt.x, lookAt.y, lookAt.z, 0,
-            transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
+            transformed["_posX"]!, -transformed["_posY"]!, transformed["_posZ"]!, 0
         ];
-        
+                
         mmView.renderer.setClipRect(rect)
 
         let mmRenderer = mmView.renderer!
@@ -450,39 +457,6 @@ class GizmoCombo3D          : GizmoBase
         renderEncoder.setRenderPipelineState(state!)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         mmView.renderer.setClipRect()
-    }
-    
-    /// Converts the coordinate from scene space to screen space
-    func convertToScreenSpace(x: Float, y: Float) -> SIMD2<Float>
-    {
-        var result : SIMD2<Float> = SIMD2<Float>()
-                
-        result.x = x - getCameraPropertyValue("cameraX") + 0.5
-        result.y = y + getCameraPropertyValue("cameraY") + 0.5
-        
-        result.x += rect.width/2
-        result.y += rect.width/2 * rect.height / rect.width
-        
-        result.x += rect.x
-        result.y += rect.y
-        
-        return result
-    }
-    
-    /// Converts the coordinate from screen space to scene space
-    func convertToSceneSpace(x: Float, y: Float) -> SIMD2<Float>
-    {
-        var result : SIMD2<Float> = SIMD2<Float>()
-        
-        result.x = x - rect.x
-        result.y = y - rect.y
-        
-        // --- Center
-        result.x -= rect.width / 2 - getCameraPropertyValue("cameraX")
-        result.y += getCameraPropertyValue("cameraY")
-        result.y -= rect.width / 2 * rect.height / rect.width
-        
-        return result
     }
     
     /// Returns the angle between the start / end points
@@ -528,12 +502,13 @@ class GizmoCombo3D          : GizmoBase
     {
         let origin = getCameraPropertyValue3("origin")
         let lookAt = getCameraPropertyValue3("lookAt")
-        
+        let fov = getCameraPropertyValue("fov")
+
         // --- Render Gizmo
         let data: [Float] = [
             rect.width, rect.height,
             hoverState.rawValue, 0,
-            origin.x, origin.y, origin.z, 0,
+            origin.x, origin.y, origin.z, fov,
             lookAt.x, lookAt.y, lookAt.z, 0,
             event.x - rect.x, event.y - rect.y, 0, 0
         ];
