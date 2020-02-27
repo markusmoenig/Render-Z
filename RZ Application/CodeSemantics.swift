@@ -997,7 +997,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless
     }
     
     let functionType        : FunctionType
@@ -1223,11 +1223,13 @@ class CodeFunction          : Codable, Equatable
             }
         }
 
-        ctx.cBlock = header
-        header.parentFunction = self
-        header.draw(mmView, ctx)
-        if header.rect.right() > maxRight {
-            maxRight = header.rect.right()
+        if functionType != .Headerless {
+            ctx.cBlock = header
+            header.parentFunction = self
+            header.draw(mmView, ctx)
+            if header.rect.right() > maxRight {
+                maxRight = header.rect.right()
+            }
         }
         
         for b in body {
@@ -1261,7 +1263,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1399,7 +1401,7 @@ class CodeComponent         : Codable, Equatable
             let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg2)
             
-            let arg3 = CodeFragment(.VariableDefinition, "float3", "dir", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg3 = CodeFragment(.VariableDefinition, "float3", "rayDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg3)
             
             let b = CodeBlock(.Empty)
@@ -1567,6 +1569,28 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("floa3t", "outRotation", refTo: arg2))
             functions.append(f)
         }
+    }
+    
+    func createVariableFunction(_ name: String,_ typeName: String,_ artistName: String, _ defaultValue: Any? = nil)
+    {
+        let f = CodeFunction(.Headerless, "")
+
+        let b = CodeBlock(.VariableDefinition)
+        let frag = CodeFragment(.VariableDefinition, typeName, name, [.Selectable,.Dragable])
+        properties.append(frag.uuid)
+        artistPropertyNames[frag.uuid] = artistName
+        
+        b.fragment = frag
+        let const = defaultConstantForType(typeName)
+        if let value3 = defaultValue as? SIMD3<Float> {
+            insertValueToFragment3(const, value3)
+        }
+        b.statement.fragments.append(const)
+        f.body.append(b)
+        f.body.append(CodeBlock(.Empty))
+        f.body.append(CodeBlock(.Empty))
+
+        functions.append(f)
     }
     
     func codeAt(_ x: Float,_ y: Float,_ ctx: CodeContext)

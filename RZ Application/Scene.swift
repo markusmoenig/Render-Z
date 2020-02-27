@@ -26,6 +26,7 @@ class StageItem             : Codable, Equatable
     var values              : [String:Float] = [:]
     
     var label               : MMTextLabel? = nil
+    var componentLabels     : [String:MMTextLabel] = [:]
 
     private enum CodingKeys: String, CodingKey {
         case stageItemType
@@ -127,7 +128,7 @@ class StageItem             : Codable, Equatable
 class Stage                 : Codable, Equatable
 {
     enum StageType          : Int, Codable {
-        case PreStage, ShapeStage, LightStage, RenderStage, PostStage
+        case PreStage, ShapeStage, LightStage, RenderStage, PostStage, VariablePool
     }
     
     var stageType           : StageType = .PreStage
@@ -262,6 +263,22 @@ class Stage                 : Codable, Equatable
             
             item.values["_graphX"] = 130
             item.values["_graphY"] = 70
+        }
+        
+        if stageType == .VariablePool {
+            values["_graphX"] = 0
+            values["_graphY"] = 170
+            
+            // Create Sun Pool
+            let sunPool = StageItem(.VariablePool, "Sun")
+            children3D.append(sunPool)
+            sunPool.values["_graphX"] = 130
+            sunPool.values["_graphY"] = 70
+            
+            let sunDirComponent = CodeComponent(.Variable, "SunDirection")
+            sunDirComponent.createVariableFunction("sunDirection", "float3", "Sun Direction", SIMD3<Float>(0,1,0))
+
+            sunPool.componentLists["variables"] = [sunDirComponent]
         }
     }
     
@@ -432,7 +449,8 @@ class Scene                 : Codable, Equatable
         stages.append(Stage(.LightStage, "Lights"))
         stages.append(Stage(.RenderStage, "Render"))
         stages.append(Stage(.PostStage, "Post FX"))
-        
+        stages.append(Stage(.VariablePool, "Variables"))
+
         selectedUUID2D = stages[0].children2D[0].uuid
         selectedUUID3D = stages[0].children3D[0].uuid
     }
@@ -448,12 +466,15 @@ class Scene                 : Codable, Equatable
         } else
         if stageType == .LightStage {
             return stages[2]
-        }
+        } else
         if stageType == .RenderStage {
             return stages[3]
-        }
+        } else
         if stageType == .PostStage {
             return stages[4]
+        } else
+        if stageType == .VariablePool {
+            return stages[5]
         }
         return stages[0]
     }

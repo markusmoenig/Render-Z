@@ -30,7 +30,7 @@ class SceneGraphSkin {
 class SceneGraphItem {
         
     enum SceneGraphItemType {
-        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem
+        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem, VariableContainer, VariableItem
     }
     
     var itemType                : SceneGraphItemType
@@ -850,6 +850,47 @@ class SceneGraph                : MMWidget
         stage.label!.rect.x = rect.x + x + (diameter - stage.label!.rect.width) / 2
         stage.label!.rect.y = rect.y + y + (diameter - skin.lineHeight) / 2
         stage.label!.draw()
+        
+        // Draw Variable Pool
+        stage = scene.getStage(.VariablePool)
+        
+        if stage.label == nil || stage.label!.scale != skin.fontScale {
+            stage.label = MMTextLabel(mmView, font: mmView.openSans, text: stage.name, scale: skin.fontScale, color: skin.normalTextColor)
+        }
+        diameter = stage.label!.rect.width + 10 * graphZoom
+
+        x = (graphX + stage.values["_graphX"]!) * graphZoom - diameter / 2
+        y = (graphY + stage.values["_graphY"]!) * graphZoom - diameter / 2
+        
+        let variableItem = SceneGraphItem(.Stage, stage: stage)
+        variableItem.rect.set(x, y, diameter, diameter)
+        itemMap[stage.uuid] = variableItem
+        
+        childs = stage.getChildren()
+        for childItem in childs {
+
+            if childItem.label == nil || childItem.label!.scale != skin.fontScale {
+                childItem.label = MMTextLabel(mmView, font: mmView.openSans, text: childItem.name, scale: skin.fontScale, color: skin.normalTextColor)
+            }
+            let diameter : Float = childItem.label!.rect.width + 10 * graphZoom
+
+            let cX = x + childItem.values["_graphX"]! * graphZoom - diameter / 2
+            let cY = y + childItem.values["_graphY"]! * graphZoom - diameter / 2
+
+            let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
+            item.rect.set(cX, cY, diameter, diameter)
+            itemMap[childItem.uuid] = item
+            
+            drawLineBetweenCircles(variableItem, item, skin)
+
+            drawVariablesPool(parent: item, skin: skin)
+        }
+        
+        mmView.drawSphere.draw(x: rect.x + x, y: rect.y + y, radius: diameter / 2, borderSize: 1, fillColor: stage === currentStage ? skin.normalBorderColor : skin.normalInteriorColor, borderColor: skin.normalBorderColor)
+        
+        stage.label!.rect.x = rect.x + x + (diameter - stage.label!.rect.width) / 2
+        stage.label!.rect.y = rect.y + y + (diameter - skin.lineHeight) / 2
+        stage.label!.draw()
     }
     
     /// Draws an object hierarchy
@@ -949,6 +990,63 @@ class SceneGraph                : MMWidget
                     }
                 }
                 top += spacing
+            }
+        }
+    }
+    
+    func drawVariablesPool(parent: SceneGraphItem, skin: SceneGraphSkin)
+    {
+        let itemSize    : Float = 35 * graphZoom
+        let totalWidth  : Float = 140 * graphZoom
+        let headerHeight: Float = 20 * graphZoom
+        var top         : Float = headerHeight + 7.5 * graphZoom
+        
+        let stageItem   = parent.stageItem!
+        
+        let x           : Float = parent.rect.x
+        let y           : Float = parent.rect.y
+
+        if let list = parent.stageItem!.componentLists["variables"] {
+            
+            let amount : Float = Float(list.count)
+            let height : Float = amount * itemSize + headerHeight + 15 * graphZoom
+            
+            let variableContainer = SceneGraphItem(.VariableContainer, stage: parent.stage, stageItem: stageItem)
+            variableContainer.rect.set(x, y, totalWidth, height)
+            itemMap[UUID()] = variableContainer
+            
+            //mmView.drawLine.draw(sx: rect.x + parent.rect.x + parent.rect.width / 2, sy: rect.y + parent.rect.y + parent.rect.height / 2, ex: rect.x + x + totalWidth / 2, ey: rect.y + y + height / 2, radius: 1, fillColor: skin.normalBorderColor)
+            
+            mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
+            
+            drawPlusButton(item: variableContainer, rect: MMRect(rect.x + x, rect.y + y, headerHeight, headerHeight), cb: { () in
+                self.getShape(item: variableContainer, replace: false)
+            }, skin: skin)
+            
+            //mmView.drawBox.draw(x: x + drawXOffset(), y: y + drawYOffset(), width: totalWidth, height: headerHeight, round: 0, borderSize: 0, fillColor: skin.normalBorderColor, borderColor: skin.normalInteriorColor, fragment: fragment)
+            
+            skin.font.getTextRect(text: parent.stageItem!.name, scale: skin.fontScale, rectToUse: skin.tempRect)
+            mmView.drawText.drawText(skin.font, text: parent.stageItem!.name, x: rect.x + x + (totalWidth - skin.tempRect.width) / 2, y: rect.y + y + 4, scale: skin.fontScale, color: skin.normalTextColor)
+
+            for comp in list {
+                
+                let item = SceneGraphItem(.VariableItem, stage: parent.stage, stageItem: stageItem, component: comp)
+                item.rect.set(x, y + top, totalWidth, itemSize)
+                itemMap[comp.uuid] = item
+                
+                if comp === currentComponent {
+                    mmView.drawBox.draw( x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: totalWidth, height: itemSize, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: skin.normalBorderColor)
+                }
+                
+                if stageItem.componentLabels[comp.libraryName] == nil || stageItem.componentLabels[comp.libraryName]!.scale != skin.fontScale {
+                    stageItem.componentLabels[comp.libraryName] = MMTextLabel(mmView, font: mmView.openSans, text: comp.libraryName, scale: skin.fontScale, color: skin.normalTextColor)
+                }
+                if let label = stageItem.componentLabels[comp.libraryName] {
+                    label.rect.x = rect.x + item.rect.x + (totalWidth - label.rect.width) / 2
+                    label.rect.y = rect.y + item.rect.y + (itemSize - skin.lineHeight) / 2
+                    label.draw()
+                }
+                top += itemSize
             }
         }
     }
