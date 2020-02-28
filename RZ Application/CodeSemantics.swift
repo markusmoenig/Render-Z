@@ -486,7 +486,8 @@ class CodeFragment          : Codable, Equatable
         } else
         if fragmentType == .VariableReference {
             let rStart = ctx.rectStart()
-            var invalid : Bool = false
+            var invalid     : Bool = false
+            var isGlobalVar : Bool = false
             
             // Get the name of the variable
             var name : String
@@ -495,8 +496,37 @@ class CodeFragment          : Codable, Equatable
                     name = (isNegated() ? " -" : "") + v.name
                     v.references += 1
                 } else {
-                    name = "NOT FOUND"
-                    invalid = true
+                    // Check for global variable
+                    let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getVariableComponents()
+                    if let variableComp = globalVars[ref] {
+                        // Global!
+                        name = (isNegated() ? " -" : "") + variableComp.libraryName
+                        ctx.cComponent!.globalVariables[variableComp.uuid] = variableComp
+                        isGlobalVar = true
+                        
+                        let dataIndex = ctx.propertyDataOffset
+                        let components = evaluateComponents()
+                        
+                        if ctx.cFunction!.functionType == .FreeFlow {
+                            ctx.addCode( "__funcData->__data[\(dataIndex)]" )
+                        } else {
+                            ctx.addCode( "__data[\(dataIndex)]" )
+                        }
+                        
+                        if components == 1 {
+                            ctx.addCode( ".x" )
+                        } else
+                        if components == 2 {
+                            ctx.addCode( ".xy" )
+                        } else
+                        if components == 3 {
+                            ctx.addCode( ".xyz" )
+                        }
+                        ctx.propertyDataOffset += 1
+                    } else {
+                        name = "NOT FOUND"
+                        invalid = true
+                    }
                 }
             } else {
                 name = "NIL"
@@ -520,7 +550,9 @@ class CodeFragment          : Codable, Equatable
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
             
-            ctx.addCode(name)
+            if isGlobalVar == false {
+                ctx.addCode(name)
+            }
         } else
         if fragmentType == .Arithmetic || fragmentType == .Assignment || fragmentType == .Comparison {
             let rStart = ctx.rectStart()
@@ -578,6 +610,7 @@ class CodeFragment          : Codable, Equatable
             
             for (index, arg) in arguments.enumerated() {
                 arg.isArgumentIndexOf = index
+                arg.parentFragment = self
                 arg.draw(mmView, ctx)
                 
                 if index != arguments.endIndex - 1 {
@@ -659,6 +692,7 @@ class CodeStatement         : Codable, Equatable
     var fragments           : [CodeFragment] = []
     var uuid                : UUID = UUID()
 
+    weak var parentFragment : CodeFragment? = nil
     var isArgumentIndexOf   : Int = 0
 
     private enum CodingKeys: String, CodingKey {
@@ -951,7 +985,7 @@ class CodeBlock             : Codable, Equatable
             ctx.drawFragmentState(assignment)
 
             // statement
-            if let _ = propIndex {
+            if propIndex != nil {
                 // PROPERTY!!!!
                 let code = ctx.cComponent!.code!
                 let globalCode = ctx.cComponent!.globalCode!
@@ -1289,6 +1323,9 @@ class CodeComponent         : Codable, Equatable
     var libraryName         : String = ""
     var libraryCategory     : String = "Noise"
     var libraryComment      : String = ""
+    
+    // The global variables, does not get stored, just for reference
+    var globalVariables    : [UUID:CodeComponent] = [:]
 
     // Values
     var values              : [String:Float] = [:]
@@ -1571,12 +1608,14 @@ class CodeComponent         : Codable, Equatable
         }
     }
     
-    func createVariableFunction(_ name: String,_ typeName: String,_ artistName: String, _ defaultValue: Any? = nil)
+    func createVariableFunction(_ name: String,_ typeName: String,_ artistName: String, _ defaultValue: Any? = nil, gizmo: Float = 0)
     {
         let f = CodeFunction(.Headerless, "")
 
         let b = CodeBlock(.VariableDefinition)
-        let frag = CodeFragment(.VariableDefinition, typeName, name, [.Selectable,.Dragable])
+        let frag = CodeFragment(.VariableDefinition, typeName, name, [.Selectable,.Dragable,.Monitorable])
+        frag.values["gizmo"] = gizmo
+        frag.values["variable"] = 1 // To identify the variable from other exposed vars, dont delete!
         properties.append(frag.uuid)
         artistPropertyNames[frag.uuid] = artistName
         
@@ -1798,6 +1837,7 @@ class CodeComponent         : Codable, Equatable
     {
         let rStart = ctx.rectStart()
         ctx.cComponent = self
+        globalVariables = [:]
         
         code = ""
         globalCode = ""
@@ -2141,12 +2181,13 @@ class CodeContext
                     print("Exclusion #6")
                     #endif
                 } else
+                    /*
                 if drop.fragmentType == .Primitive && drop.supportsType( fragment.evaluateType() ) == false {
                     // Exclusion: When the .Primitive does not support the type of the destination
                     #if DEBUG
                     print("Exclusion #7")
                     #endif
-                } else
+                } else*/
                 if drop.fragmentType == .Primitive && fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.blockType == .ForHeader {
                     // Exclusion: Dont allow to drop a primitive on the left side of a variable definition in a for header
                     #if DEBUG

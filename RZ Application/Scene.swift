@@ -275,10 +275,13 @@ class Stage                 : Codable, Equatable
             sunPool.values["_graphX"] = 130
             sunPool.values["_graphY"] = 70
             
-            let sunDirComponent = CodeComponent(.Variable, "SunDirection")
-            sunDirComponent.createVariableFunction("sunDirection", "float3", "Sun Direction", SIMD3<Float>(0,1,0))
+            let sunDirComponent = CodeComponent(.Variable, "Sun Direction")
+            sunDirComponent.createVariableFunction("sunDirection", "float3", "Sun Direction", SIMD3<Float>(0,1,0), gizmo: 1)
+            
+            let sunStrengthComponent = CodeComponent(.Variable, "Sun Strength")
+            sunStrengthComponent.createVariableFunction("sunStrength", "float", "Sun Strength")
 
-            sunPool.componentLists["variables"] = [sunDirComponent]
+            sunPool.componentLists["variables"] = [sunDirComponent,sunStrengthComponent]
         }
     }
     
@@ -369,6 +372,20 @@ class Stage                 : Codable, Equatable
         for item in children3D {
             item.updateStageItem(item)
         }
+    }
+    
+    // Only for VariablePool, get all Variable Components
+    func getVariableComponents() -> [UUID:CodeComponent]
+    {
+        var compMap : [UUID:CodeComponent] = [:]
+        for child in getChildren() {
+            if let vars = child.componentLists["variables"] {
+                for c in vars {
+                    compMap[c.uuid] = c
+                }
+            }
+        }
+        return compMap
     }
 }
 

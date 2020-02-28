@@ -788,13 +788,26 @@ class CodeEditor        : MMWidget
                 if let pStatement = destFrag.parentStatement, sourceComponents != destComponents {
                     let argumentIndex = pStatement.isArgumentIndexOf
                     if let argumentFormat = destFrag.argumentFormat {
-                        // Only suppport adjusting formats for single arguments like length (for now)
-                        if argumentFormat.count == 1 && argumentIndex == 0 {
-                            let argument = argumentFormat[argumentIndex]
-                            if argument.contains(sourceFrag.typeName) {
-                                destFrag.typeName = sourceFrag.typeName
-                                destComponents = destFrag.evaluateComponents()
+
+                        let argument = argumentFormat[argumentIndex]
+                        if argument.contains(sourceFrag.typeName) {
+                            
+                            // Replace all arguments of the parent which have the old typeName with a constant of the new type
+                            if let parent = pStatement.parentFragment {
+                                for (index,statement) in parent.arguments.enumerated() {
+                                    for arg in statement.fragments {
+                                        if arg !== destFrag && arg.typeName == destFrag.typeName && parent.argumentFormat != nil {
+                                            let aFormat = parent.argumentFormat![index]
+                                            if aFormat.contains(sourceFrag.typeName) {
+                                                defaultConstantForType(sourceFrag.typeName).copyTo(arg)
+                                            }
+                                        }
+                                    }
+                                }
                             }
+                            
+                            destFrag.typeName = sourceFrag.typeName
+                            destComponents = destFrag.evaluateComponents()
                         }
                     }
                 }

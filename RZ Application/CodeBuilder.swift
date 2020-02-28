@@ -37,6 +37,18 @@ class CodeBuilderInstance
             }
         }
         
+        // Collect all global variables
+        for (_, variableComp) in component.globalVariables {
+            // Extract the CodeFragment from the VariableComponent
+            for uuid in variableComp.properties {
+                let rc = variableComp.getPropertyOfUUID(uuid)
+                if rc.0!.values["variable"] == 1 {
+                    properties.append((rc.0, rc.1, nil, data.count, component, []))
+                    data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
+                }
+            }
+        }
+        
         // Collect transforms, stored in the values map of the component
         if component.componentType == .SDF2D || component.componentType == .Transform2D {
             properties.append((nil, nil, "_posX", data.count, component, hierarchy))
@@ -240,15 +252,17 @@ class CodeBuilder
         kernel void componentBuilder(
         texture2d<half, access::write>          __outTexture  [[texture(0)]],
         constant float4                        *__data   [[ buffer(1) ]],
-        //texture2d<half, access::sample>       fontTexture [[texture(2)]],
+        texture2d<half, access::sample>         __rayDirectionTexture [[texture(2)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
+            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+
             float4 __monitorOut = float4(0,0,0,0);
             float2 uv = float2(__gid.x, __gid.y);
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
+            float3 rayDirection = float4(__rayDirectionTexture.sample(__textureSampler, uv / size )).xyz;
             uv /= size;
             uv.y = 1.0 - uv.y;
-            float3 dir = float3(0,0,0);
 
             float4 outColor = float4(0,0,0,1);
             float GlobalTime = __data[0].x;

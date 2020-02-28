@@ -107,7 +107,12 @@ class Pipeline
             // Background
             let preStage = scene.getStage(.PreStage)
             let cameraComponent : CodeComponent = getFirstComponentOfType(preStage.getChildren(), .Camera3D)!
-
+            
+            // Build 3D Camera (Initialization of rayOrigin and rayDirection Textures)
+            dryRunComponent(cameraComponent)
+            instanceMap["camera3D"] = codeBuilder.build(cameraComponent, camera: cameraComponent)
+            
+            // SkyDome
             for item in preStage.getChildren() {
                 if let comp = item.components[item.defaultName], comp.componentType == .SkyDome {
                     dryRunComponent(comp)
@@ -115,10 +120,6 @@ class Pipeline
                     break
                 }
             }
-            
-            // Build 3D Camera (Initialization of rayOrigin and rayDirection Textures)
-            dryRunComponent(cameraComponent)
-            instanceMap["camera3D"] = codeBuilder.build(cameraComponent, camera: cameraComponent)
             
             // Objects
             let shapeStage = scene.getStage(.ShapeStage)
@@ -200,18 +201,18 @@ class Pipeline
         } else {
             // 3D
             
-            // Render the background into backTexture
-            backTexture = checkTextureSize(width, height, backTexture)
-            if let inst = instanceMap["pre"] {
-                codeBuilder.render(inst, backTexture)
-                computeMonitor(inst)
-            }
-            
             // Render the Camera Textures
             rayOriginTexture = checkTextureSize(width, height, rayOriginTexture, .rgba16Float)
             rayDirectionTexture = checkTextureSize(width, height, rayDirectionTexture, .rgba16Float)
             if let inst = instanceMap["camera3D"] {
                 codeBuilder.render(inst, rayOriginTexture, outTextures: [rayDirectionTexture!])
+                computeMonitor(inst)
+            }
+            
+            // Render the SkyDome into backTexture
+            backTexture = checkTextureSize(width, height, backTexture)
+            if let inst = instanceMap["pre"] {
+                codeBuilder.render(inst, backTexture, inTextures: [rayDirectionTexture!])
                 computeMonitor(inst)
             }
             

@@ -116,6 +116,8 @@ class SceneGraph                : MMWidget
     var isDraggingKnob          : Bool = false
     
     var knobRect                : MMRect = MMRect()
+    
+    var selectedVariable        : SceneGraphItem? = nil
 
     //var map             : [MMRe]
     
@@ -251,6 +253,7 @@ class SceneGraph                : MMWidget
         dragItem = nil
         mouseIsDown = true
         clickWasConsumed = false
+        selectedVariable = nil
         
         // Clicked on the knob
         if knobRect.contains(event.x, event.y) {
@@ -307,11 +310,59 @@ class SceneGraph                : MMWidget
         } else {
             
         }
+        
+        // Prevent dragging for selected variable items
+        if let drag = selectedVariable {
+            if drag.itemType == .VariableItem {
+                dragItem = nil
+                mmView.mouseTrackWidget = nil
+            }
+        }
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
         hoverButton = nil
+        
+        if let varItem = selectedVariable, mmView.dragSource == nil {
+            if distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) > 5 {
+                // VARIABLE, START A DRAG OPERATION WITH A CODE FRAGMENT
+                //CodeFragment(.VariableDefinition, "float", "", [.Selectable, .Dragable, .Monitorable], ["float"], "float" )
+                if let comp = varItem.component {
+                    dryRunComponent(comp)
+                    var variable : CodeFragment? = nil
+                    for uuid in comp.properties {
+                        if let p = comp.getPropertyOfUUID(uuid).0 {
+                            if p.values["variable"] == 1 {
+                                variable = p
+                                break
+                            }
+                        }
+                    }
+                    if let variable = variable {
+                        let frag = CodeFragment(.VariableReference, variable.typeName, variable.name, [.Selectable, .Dragable, .Monitorable], [variable.typeName], variable.typeName )
+                        frag.referseTo = comp.uuid
+                        frag.values["variable"] = 1
+                        
+                        // Create Drag Item
+                        var drag = SourceListDrag()
+                        drag.id = "SourceFragmentItem"
+                        drag.name = variable.name
+                        drag.pWidgetOffset!.x = 0//event.x
+                        drag.pWidgetOffset!.y = 0//event.y//y.truncatingRemainder(dividingBy: listWidget.unitSize)
+                        
+                        drag.codeFragment = frag
+                                                        
+                        let texture = globalApp!.developerEditor.codeList.listWidget.createGenericThumbnail(variable.name, 140 * graphZoom)
+                        drag.previewWidget = MMTextureWidget(mmView, texture: texture)
+                        drag.previewWidget!.zoom = 2
+                        
+                        drag.sourceWidget = globalApp!.developerEditor.codeEditor
+                        mmView.dragStarted(source: drag)
+                    }
+                }
+            }
+        }
 
         if let drag = dragItem {
 
@@ -354,6 +405,12 @@ class SceneGraph                : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if let varItem = selectedVariable {
+            if distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) < 10 {
+                setCurrent(stage: varItem.stage, stageItem: varItem.stageItem, component: varItem.component)
+            }
+        }
+        
         if let pressedButton = pressedButton {
             pressedButton.cb!()
         } else
@@ -375,6 +432,7 @@ class SceneGraph                : MMWidget
         pressedButton = nil
         hoverButton = nil
         isDraggingKnob = false
+        selectedVariable = nil
     }
     
     /// Click at the given position
@@ -388,12 +446,16 @@ class SceneGraph                : MMWidget
         for (uuid,item) in itemMap {
             if item.rect.contains(realX, realY) {
                 
-                if item.itemType == .ShapesContainer {
+                if item.itemType == .ShapesContainer || item.itemType == .VariableContainer {
                     contUUID = uuid
                     continue
                 }
                 
-                setCurrent(stage: item.stage, stageItem: item.stageItem, component: item.component)
+                if item.itemType != .VariableItem {
+                    setCurrent(stage: item.stage, stageItem: item.stageItem, component: item.component)
+                } else {
+                    selectedVariable = item
+                }
                 consumed = true
                 break
             }
