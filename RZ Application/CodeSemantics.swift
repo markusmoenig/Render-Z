@@ -487,7 +487,7 @@ class CodeFragment          : Codable, Equatable
         if fragmentType == .VariableReference {
             let rStart = ctx.rectStart()
             var invalid     : Bool = false
-            var isGlobalVar : Bool = false
+            var addCode     : Bool = true
             
             // Get the name of the variable
             var name : String
@@ -502,7 +502,7 @@ class CodeFragment          : Codable, Equatable
                         // Global!
                         name = (isNegated() ? " -" : "") + variableComp.libraryName
                         ctx.cComponent!.globalVariables[variableComp.uuid] = variableComp
-                        isGlobalVar = true
+                        addCode = false
                         
                         let dataIndex = ctx.propertyDataOffset
                         let components = evaluateComponents()
@@ -535,8 +535,18 @@ class CodeFragment          : Codable, Equatable
 
             if invalid {
                 // If reference is invalid, replace this with a constant
-                let constant = defaultConstantForType(typeName)
-                constant.copyTo(self)
+                
+                if parentBlock!.fragment === self {
+                    // If a missing reference is on the left side, we have to create a dummy variable, can only be deleted
+                    // But at least it does not crash
+                    let code = typeName + " " + "dwde"
+                    ctx.addCode(code)
+                    addCode = false
+                    removeState(.Selectable)
+                } else {
+                    let constant = defaultConstantForType(typeName)
+                    constant.copyTo(self)
+                }
             }
             
             name += getQualifierString()
@@ -550,7 +560,7 @@ class CodeFragment          : Codable, Equatable
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
             
-            if isGlobalVar == false {
+            if addCode == true {
                 ctx.addCode(name)
             }
         } else
