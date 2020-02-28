@@ -576,7 +576,8 @@ class CodeEditor        : MMWidget
                 destBlock.fragment.typeName = sourceFrag.typeName
                 destBlock.fragment.name = sourceFrag.name
                 destBlock.fragment.referseTo = sourceFrag.referseTo
-                
+                destBlock.fragment.qualifier = sourceFrag.qualifier
+
                 let constant = defaultConstantForType(sourceFrag.evaluateType())
                 destBlock.statement.fragments.append(constant)
 
@@ -592,6 +593,7 @@ class CodeEditor        : MMWidget
                 destBlock.fragment.typeName = sourceFrag.typeName
                 destBlock.fragment.name = sourceFrag.name
                 destBlock.fragment.referseTo = sourceFrag.referseTo
+                destBlock.fragment.qualifier = sourceFrag.qualifier
                 
                 let constant = defaultConstantForType(sourceFrag.evaluateType())
                 destBlock.statement.fragments.append(constant)
