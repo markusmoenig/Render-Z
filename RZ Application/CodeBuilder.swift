@@ -42,7 +42,7 @@ class CodeBuilderInstance
                 for uuid in variableComp.properties {
                     let rc = variableComp.getPropertyOfUUID(uuid)
                     if rc.0!.values["variable"] == 1 {
-                        properties.append((rc.0, rc.1, nil, data.count, variableComp, hierarchy))
+                        properties.append((rc.0, rc.1, nil, data.count, variableComp, []))
                         data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
                     }
                 }
