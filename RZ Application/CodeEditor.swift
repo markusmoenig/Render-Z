@@ -173,8 +173,8 @@ class CodeEditor        : MMWidget
                 
                 drag.id = "SourceFragmentItem"
                 drag.name = selFragment.name
-                drag.pWidgetOffset!.x = (event.x - (selFragment.rect.x)) - rect.x
-                drag.pWidgetOffset!.y = ((event.y - selFragment.rect.y) - rect.y).truncatingRemainder(dividingBy: editor.codeList.listWidget.unitSize)
+                drag.pWidgetOffset!.x = event.x - selFragment.rect.x - rect.x
+                drag.pWidgetOffset!.y = event.y - selFragment.rect.y - rect.y - scrollArea.offsetY
                 
                 drag.codeFragment = selFragment.createCopy()
                 codeContext.dropOriginalUUID = selFragment.uuid
