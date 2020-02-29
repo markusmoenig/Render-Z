@@ -67,6 +67,9 @@ class CodeFragment          : Codable, Equatable
     // How many times we get referenced
     var references          : Int = 0
     
+    // The code name of this variable
+    var codeName            : String? = nil
+    
     private enum CodingKeys: String, CodingKey {
         case fragmentType
         case properties
@@ -400,7 +403,8 @@ class CodeFragment          : Codable, Equatable
         if fragmentType == .Primitive {
             let rStart = ctx.rectStart()
             var name = (isNegated() ? " -" : "")
-            
+            var codeName = name
+
             if let referalUUID = referseTo {
                 // This is a function reference!
                 if let referencedFunction = ctx.functionMap[referalUUID] {
@@ -409,10 +413,12 @@ class CodeFragment          : Codable, Equatable
                         ctx.cFunction!.dependsOn.append(referencedFunction)
                     }
                     name += referencedFunction.name
+                    codeName += referencedFunction.header.fragment.codeName!
                     self.name = referencedFunction.name
                 }
             } else {
                 name += self.name
+                codeName += self.name
             }
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -425,10 +431,10 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.gapX
             
             // Replace mod with fmod
-            if name == "mod" {
-                name = "fmod"
+            if self.name == "mod" {
+                codeName = codeName.replacingOccurrences(of: "mod", with: "fmod", options: .literal, range: nil)
             }
-            ctx.addCode(name)
+            ctx.addCode(codeName)
         } else
         if fragmentType == .If || fragmentType == .Else || fragmentType == .For {
             let rStart = ctx.rectStart()
@@ -466,7 +472,11 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.gapX
             
             if !properties.contains(.NotCodeable) {
-                ctx.addCode(typeName + " " + name)
+                if let codeName = self.codeName {
+                    ctx.addCode(typeName + " " + codeName)
+                } else {
+                    ctx.addCode(typeName + " " + name)
+                }
             }
         } else
         if fragmentType == .ConstantValue {
@@ -491,9 +501,15 @@ class CodeFragment          : Codable, Equatable
             
             // Get the name of the variable
             var name : String
+            var codeName : String = ""
             if let ref = referseTo {
                 if let v = ctx.cVariables[ref] {
                     name = (isNegated() ? " -" : "") + v.name
+                    if let refName = v.codeName {
+                        codeName = (isNegated() ? " -" : "") + refName
+                    } else {
+                        codeName = name
+                    }
                     v.references += 1
                 } else {
                     // Check for global variable
@@ -501,6 +517,7 @@ class CodeFragment          : Codable, Equatable
                     if let variableComp = globalVars[ref] {
                         // Global!
                         name = (isNegated() ? " -" : "") + variableComp.libraryName
+                        codeName = (isNegated() ? " -" : "") + variableComp.libraryName
                         ctx.cComponent!.globalVariables[variableComp.uuid] = variableComp
                         addCode = false
                         
@@ -551,7 +568,8 @@ class CodeFragment          : Codable, Equatable
             }
             
             name += getQualifierString()
-            
+            codeName += getQualifierString()
+
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
                 mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.name, fragment: frag)
@@ -562,7 +580,7 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.gapX
             
             if addCode == true {
-                ctx.addCode(name)
+                ctx.addCode(codeName)
             }
         } else
         if fragmentType == .Arithmetic || fragmentType == .Assignment || fragmentType == .Comparison {
@@ -671,6 +689,19 @@ class CodeFragment          : Codable, Equatable
                 }
                 ctx.cX += ctx.tempRect.width + ctx.gapX
                 ctx.addCode( "(__funcData)" )
+            }
+            
+            // Append a possible qualifier after the arguments
+            if fragmentType != .VariableReference {
+                let qualifier = getQualifierString()
+                if qualifier.isEmpty == false {
+                    ctx.font.getTextRect(text: qualifier, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+                    if let frag = ctx.fragment {
+                        mmView.drawText.drawText(ctx.font, text: qualifier, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.nameHighlighted, fragment: frag)
+                    }
+                    ctx.cX += ctx.tempRect.width + ctx.gapX
+                    ctx.addCode( qualifier )
+                }
             }
         }
     }
@@ -897,7 +928,7 @@ class CodeBlock             : Codable, Equatable
             
             ctx.rectEnd(fragment.rect, rStart)
             if fragment.fragmentType == .TypeDefinition {
-                ctx.addCode(fragment.typeName + " " + fragment.name + "( ")
+                ctx.addCode(fragment.typeName + " " + fragment.codeName! + "( ")
             }
             ctx.cX += ctx.gapX
 
@@ -1066,6 +1097,9 @@ class CodeFunction          : Codable, Equatable
     
     // Depends on these other functions
     var dependsOn           : [CodeFunction] = []
+    
+    // The code name of this function
+    var codeName            : String? = nil
 
     private enum CodingKeys: String, CodingKey {
         case functionType
@@ -1233,9 +1267,11 @@ class CodeFunction          : Codable, Equatable
         ctx.cVariables = [:]
         ctx.cSyntaxBlocks = [:]
         ctx.cSyntaxLevel = []
-        
+
+        if header.fragment.codeName == nil { header.fragment.codeName = generateToken() }
+
         ctx.openSyntaxBlock(uuid)
-        
+                
         references = 0
         dependsOn = []
         
@@ -2011,27 +2047,28 @@ class CodeContext
         let outVariableName = "__monitorOut"
         
         functionHasMonitor = true
-                
+        let name : String = fragment.codeName == nil ? fragment.name : fragment.codeName!
+        
         var code : String = ""
         if fragment.typeName.contains("2") {
-            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
-            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
+            code += "\(outVariableName).x = " + name + ".x;\n";
+            code += "\(outVariableName).y = " + name + ".y;\n";
             code += "\(outVariableName).z = 0;\n";
             code += "\(outVariableName).w = 1;\n";
         } else
         if fragment.typeName.contains("3") {
-            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
-            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
-            code += "\(outVariableName).z = " + fragment.name + ".z;\n";
+            code += "\(outVariableName).x = " + name + ".x;\n";
+            code += "\(outVariableName).y = " + name + ".y;\n";
+            code += "\(outVariableName).z = " + name + ".z;\n";
             code += "\(outVariableName).w = 1;\n";
         } else
         if fragment.typeName.contains("4") {
-            code += "\(outVariableName).x = " + fragment.name + ".x;\n";
-            code += "\(outVariableName).y = " + fragment.name + ".y;\n";
-            code += "\(outVariableName).z = " + fragment.name + ".z;\n";
-            code += "\(outVariableName).w = " + fragment.name + ".w;\n";
+            code += "\(outVariableName).x = " + name + ".x;\n";
+            code += "\(outVariableName).y = " + name + ".y;\n";
+            code += "\(outVariableName).z = " + name + ".z;\n";
+            code += "\(outVariableName).w = " + name + ".w;\n";
         } else {
-            code += "\(outVariableName) = float4(float3(" + fragment.name + "),1);\n";
+            code += "\(outVariableName) = float4(float3(" + name + "),1);\n";
         }
         addCode(code)
     }
@@ -2079,6 +2116,10 @@ class CodeContext
     
     func registerVariableForSyntaxBlock(_ variable: CodeFragment)
     {
+        if variable.properties.contains(.NotCodeable) == false {
+            // NotCodeable == Function Arguments passed from the shader directly
+            if variable.codeName == nil { variable.codeName = generateToken() }
+        }
         cVariables[variable.uuid] = variable
         if let currentSyntaxUUID = cSyntaxLevel.last {
             cSyntaxBlocks[currentSyntaxUUID]?.append(variable)

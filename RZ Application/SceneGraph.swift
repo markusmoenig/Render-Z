@@ -348,8 +348,9 @@ class SceneGraph                : MMWidget
                         var drag = SourceListDrag()
                         drag.id = "SourceFragmentItem"
                         drag.name = variable.name
-                        drag.pWidgetOffset!.x = 0//event.x
-                        drag.pWidgetOffset!.y = 0//event.y//y.truncatingRemainder(dividingBy: listWidget.unitSize)
+                        
+                        drag.pWidgetOffset!.x = (event.x - rect.x) - varItem.rect.x
+                        drag.pWidgetOffset!.y = (event.y - rect.y) - varItem.rect.y
                         
                         drag.codeFragment = frag
                                                         
@@ -359,6 +360,8 @@ class SceneGraph                : MMWidget
                         
                         drag.sourceWidget = globalApp!.developerEditor.codeEditor
                         mmView.dragStarted(source: drag)
+                        
+                        selectedVariable = nil
                     }
                 }
             }
