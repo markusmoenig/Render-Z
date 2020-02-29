@@ -110,6 +110,7 @@ class DesignEditor          : MMWidget
     override func mouseMoved(_ event: MMMouseEvent)
     {
         if let gizmo = currentGizmo {
+            gizmo.rect.copy(rect)
             gizmo.mouseMoved(event)
         }
         if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {

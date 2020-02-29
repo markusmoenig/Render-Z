@@ -504,7 +504,9 @@ class CodeFragment          : Codable, Equatable
                         ctx.cComponent!.globalVariables[variableComp.uuid] = variableComp
                         addCode = false
                         
-                        let dataIndex = ctx.propertyDataOffset
+                        let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
+                        ctx.cComponent!.inputDataList.append(ref)
+
                         let components = evaluateComponents()
                         
                         if ctx.cFunction!.functionType == .FreeFlow {
@@ -522,7 +524,6 @@ class CodeFragment          : Codable, Equatable
                         if components == 3 {
                             ctx.addCode( ".xyz" )
                         }
-                        ctx.propertyDataOffset += 1
                     } else {
                         name = "NOT FOUND"
                         invalid = true
@@ -539,7 +540,7 @@ class CodeFragment          : Codable, Equatable
                 if parentBlock!.fragment === self {
                     // If a missing reference is on the left side, we have to create a dummy variable, can only be deleted
                     // But at least it does not crash
-                    let code = typeName + " " + "dwde"
+                    let code = typeName + " " + generateToken()
                     ctx.addCode(code)
                     addCode = false
                     removeState(.Selectable)
@@ -1002,7 +1003,8 @@ class CodeBlock             : Codable, Equatable
                 statement.draw(mmView, ctx)
                 ctx.cComponent!.code = code
                 ctx.cComponent!.globalCode = globalCode
-                let dataIndex = ctx.propertyDataOffset
+                let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
+                ctx.cComponent!.inputDataList.append(fragment.uuid)
                 let components = fragment.evaluateComponents()
                 
                 if ctx.cFunction!.functionType == .FreeFlow {
@@ -1020,7 +1022,6 @@ class CodeBlock             : Codable, Equatable
                 if components == 3 {
                     ctx.addCode( ".xyz" )
                 }
-                ctx.propertyDataOffset += 1
             } else {
                 statement.draw(mmView, ctx)
             }
@@ -1335,7 +1336,10 @@ class CodeComponent         : Codable, Equatable
     var libraryComment      : String = ""
     
     // The global variables, does not get stored, just for reference
-    var globalVariables    : [UUID:CodeComponent] = [:]
+    var globalVariables     : [UUID:CodeComponent] = [:]
+    
+    // List of CodeFragment UUIDs which access the input data, either properties or globalVariables
+    var inputDataList       : [UUID] = []
 
     // Values
     var values              : [String:Float] = [:]
@@ -1848,6 +1852,7 @@ class CodeComponent         : Codable, Equatable
         let rStart = ctx.rectStart()
         ctx.cComponent = self
         globalVariables = [:]
+        inputDataList = []
         
         code = ""
         globalCode = ""

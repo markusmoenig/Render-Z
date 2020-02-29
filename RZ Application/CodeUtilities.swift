@@ -298,3 +298,11 @@ func getFirstComponentOfType(_ list: [StageItem],_ type: CodeComponent.Component
     }
     return nil
 }
+
+/// Returns a random token of the given length
+func generateToken(length: Int = 6) -> String
+{
+    let characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    let randomCharacters = (0..<length).map{_ in characters.randomElement()!}
+    return String(randomCharacters)
+}
