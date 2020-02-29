@@ -2195,8 +2195,21 @@ class CodeContext
             
             // Drop on an empty line (.VariableDefinition)
             if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) || (drop.name.starts(with: "for") && drop.typeName == "block" ) ) {
-                drawHighlight(fragment.rect, hoverAlpha)
-                dropIsValid = true
+                
+                var valid = true
+                // Do not allow references to global variables to be on the left side (crash)
+                if drop.fragmentType == .VariableReference {
+                    if let ref = drop.referseTo {
+                        if cComponent!.inputDataList.contains(ref) == true {
+                            valid = false
+                        }
+                    }
+                }
+                
+                if valid {
+                    drawHighlight(fragment.rect, hoverAlpha)
+                    dropIsValid = true
+                }
             } else
             if fragment.supports(.Targetable)
             {
