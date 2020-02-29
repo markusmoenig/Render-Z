@@ -2205,6 +2205,10 @@ class CodeContext
                         }
                     }
                 }
+                // Do not allow global variables themselves to be on the left side
+                if drop.values["variable"] != nil {
+                    valid = false
+                }
                 
                 if valid {
                     drawHighlight(fragment.rect, hoverAlpha)
