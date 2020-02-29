@@ -45,6 +45,7 @@ class CodeEditor        : MMWidget
     var dndFunction     : CodeFunction? = nil
     
     var orientationDrag : Bool = false
+    var orientationHeight: Float = 0
     
     override init(_ view: MMView)
     {
@@ -270,7 +271,8 @@ class CodeEditor        : MMWidget
         mouseDownPos.x = event.x
         mouseDownPos.y = event.y
         
-        if event.x > rect.right() - 100 {
+        // Click in Orientation Slider
+        if event.x > rect.right() - 100 && event.y <= (rect.y + orientationHeight) {
             orientationDrag = true;
             
             var offset : Float = event.y - rect.y
@@ -451,7 +453,8 @@ class CodeEditor        : MMWidget
         let factor : Float = 1.8
         var ratio : Float = 100 / Float(fragment.width)
         ratio = ratio * Float(fragment.height)
-        mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100 * factor, height: ratio * factor)
+        orientationHeight = ratio * factor
+        mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100 * factor, height: orientationHeight)
         
         ratio = 100 / rect.width
         ratio = ratio * rect.height
