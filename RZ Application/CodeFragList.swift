@@ -104,13 +104,13 @@ class CodeFragList : MMWidget
         items.append(item)
         item.items.append( SourceListItem("clamp", CodeFragment(.Primitive, "float", "clamp", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4", "float|float2|float3|float4"], "input0"  ) ) )
         item.items.append( SourceListItem("cos", CodeFragment(.Primitive, "float", "cos", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
-        item.items.append( SourceListItem("cross", CodeFragment(.Primitive, "float", "cross", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "input" ) ) )
+        item.items.append( SourceListItem("cross", CodeFragment(.Primitive, "float3", "cross", [.Selectable, .Dragable, .Targetable], ["float3|float4", "float3|float4"], "input" ) ) )
         
         item = FragItem("D")
         items.append(item)
         item.items.append( SourceListItem("degrees", CodeFragment(.Primitive, "float", "degrees", [.Selectable, .Dragable, .Targetable], ["float"], "float" ) ) )
         item.items.append( SourceListItem("distance", CodeFragment(.Primitive, "float", "distance", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "float" ) ) )
-        item.items.append( SourceListItem("dot", CodeFragment(.Primitive, "float", "dot", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "input" ) ) )
+        item.items.append( SourceListItem("dot", CodeFragment(.Primitive, "float", "dot", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "float" ) ) )
 
         item = FragItem("E")
         items.append(item)
@@ -154,7 +154,7 @@ class CodeFragList : MMWidget
         
         item = FragItem("N")
         items.append(item)
-        item.items.append( SourceListItem("normalize", CodeFragment(.Primitive, "float", "normalize", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4"], "input0" ) ) )
+        item.items.append( SourceListItem("normalize", CodeFragment(.Primitive, "float2", "normalize", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4"], "input0" ) ) )
         
         item = FragItem("P")
         items.append(item)

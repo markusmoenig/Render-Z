@@ -528,7 +528,7 @@ class CodeProperties    : MMWidget
                 
             } else
             // --- Variable Reference
-            if fragment.fragmentType == .VariableReference || fragment.fragmentType == .OutVariable {
+            if fragment.fragmentType == .VariableReference || fragment.fragmentType == .OutVariable || fragment.fragmentType == .Primitive {
                 let textVar = NodeUIText(c1Node!, variable: "qualifier", title: "Qualifier", value: fragment.qualifier)
                 textVar.isDisabled = fragment.evaluateComponents(ignoreQualifiers: true) == 1
                 c1Node?.uiItems.append(textVar)
