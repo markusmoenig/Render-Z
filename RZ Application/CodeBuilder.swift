@@ -27,29 +27,6 @@ class CodeBuilderInstance
     /// Collect all the properties of the component and create a data entry for it
     func collectProperties(_ component: CodeComponent,_ hierarchy: [StageItem] = [])
     {
-        /*
-        // Collect properties, stored in the value property of the CodeFragment
-        for uuid in component.properties
-        {
-            let rc = component.getPropertyOfUUID(uuid)
-            if rc.0 != nil && rc.1 != nil {
-                properties.append((rc.0, rc.1, nil, data.count, component, hierarchy))
-                data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
-            }
-        }
-        
-        // Collect all global variables
-        for (_, variableComp) in component.globalVariables {
-            // Extract the CodeFragment from the VariableComponent
-            for uuid in variableComp.properties {
-                let rc = variableComp.getPropertyOfUUID(uuid)
-                if rc.0!.values["variable"] == 1 {
-                    properties.append((rc.0, rc.1, nil, data.count, component, []))
-                    data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
-                }
-            }
-        }*/
-        
         // Collect properties and globalVariables
         for uuid in component.inputDataList {
             if component.properties.contains(uuid) {
@@ -65,7 +42,7 @@ class CodeBuilderInstance
                 for uuid in variableComp.properties {
                     let rc = variableComp.getPropertyOfUUID(uuid)
                     if rc.0!.values["variable"] == 1 {
-                        properties.append((rc.0, rc.1, nil, data.count, component, []))
+                        properties.append((rc.0, rc.1, nil, data.count, variableComp, hierarchy))
                         data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
                     }
                 }
