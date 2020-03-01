@@ -306,3 +306,18 @@ func generateToken(length: Int = 6) -> String
     let randomCharacters = (0..<length).map{_ in characters.randomElement()!}
     return String(randomCharacters)
 }
+
+/// Places a child in a circle around the parent
+func placeChild(modeId: String, parent: Stage, child: StageItem, stepSize: Float, radius: Float, defaultStart: Float = 90)
+{
+    let id : String = "childLocator" + modeId
+    
+    if parent.values[id] == nil {
+        parent.values[id] = defaultStart
+    }
+    
+    child.values["_graphX"] = radius * sin( toRadians(parent.values[id]!) )
+    child.values["_graphY"] = radius * cos( toRadians(parent.values[id]!) )
+
+    parent.values[id]! += -stepSize
+}

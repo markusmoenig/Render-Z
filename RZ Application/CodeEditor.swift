@@ -459,7 +459,7 @@ class CodeEditor        : MMWidget
         ratio = 100 / rect.width
         ratio = ratio * rect.height
 
-        let height : Float = ratio * factor
+        let height : Float = min(ratio * factor, orientationHeight)
         let y : Float = (100 / rect.width) * -scrollArea.offsetY * 1.8
         mmView.drawBox.draw(x: rect.right() - 100, y: rect.y + y, width: 100, height: height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
         mmView.renderer.setClipRect()

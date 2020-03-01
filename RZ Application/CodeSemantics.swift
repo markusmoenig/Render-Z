@@ -960,6 +960,12 @@ class CodeBlock             : Codable, Equatable
             ctx.drawText(")", mmView.skin.Code.constant)
             ctx.cX += ctx.tempRect.width + ctx.gapX
             
+            if ctx.cFunction!.functionType == .Prototype {
+                ctx.font.getTextRect(text: ";", scale: ctx.fontScale, rectToUse: ctx.tempRect)
+                ctx.drawText(";", mmView.skin.Code.constant)
+                ctx.cX += ctx.tempRect.width + ctx.gapX
+            }
+            
             // FreeFlow Function Definition
             if fragment.fragmentType == .TypeDefinition {
                 ctx.addCode(", thread FuncData *__funcData)\n")
@@ -1073,7 +1079,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype
     }
     
     let functionType        : FunctionType
@@ -1175,9 +1181,9 @@ class CodeFunction          : Codable, Equatable
             funcName = "computeColor"
         }
 
-        header.fragment = CodeFragment(type == .FreeFlow ? .TypeDefinition : .ConstTypeDefinition, returnType, funcName)
+        header.fragment = CodeFragment(type == .FreeFlow || type == .Prototype ? .TypeDefinition : .ConstTypeDefinition, returnType, funcName)
         
-        if type == .FreeFlow {
+        if type == .FreeFlow || type == .Prototype {
             header.fragment.addProperty(.Selectable)
             header.fragment.addProperty(.Dragable)
         }
@@ -1344,7 +1350,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1655,6 +1661,36 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float3", "outPosition", refTo: arg1))
             f.body.append(f.createOutVariableBlock("floa3t", "outRotation", refTo: arg2))
             functions.append(f)
+        } else
+        if type == .RayMarch3D {
+            
+            let map = CodeFunction(.Prototype, "map")
+            map.comment = "Returns the closest shape for the given position"
+            let posArg = CodeFragment(.VariableDefinition, "float3", "position", [], ["float3"], "float3")
+            map.header.fragment.typeName = "float4"
+            map.header.fragment.name = "map"
+            map.header.statement.fragments.append(posArg)
+            
+            functions.append(map)
+
+            let f = CodeFunction(type, "rayMarch")
+            f.comment = "Raymarch the scene by evaluating the map function"
+            
+            let arg3 = CodeFragment(.VariableDefinition, "float4", "inShape", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            f.header.statement.fragments.append(arg3)
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float3", "rayOrigin", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg1)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float3", "rayDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float4", "outShape"))
+            f.body.append(f.createOutVariableBlock("floa3t", "outNormal"))
+            functions.append(f)
         }
     }
     
@@ -1769,7 +1805,7 @@ class CodeComponent         : Codable, Equatable
             
             // Check for func marker
             let fY : Float = f.rect.y + (f.comment.isEmpty ? 0 : ctx.lineHeight + ctx.gapY)
-            if y >= fY && y <= fY + ctx.lineHeight && x <= ctx.border {
+            if f.functionType != .Prototype && y >= fY && y <= fY + ctx.lineHeight && x <= ctx.border {
                 ctx.hoverFunction = f
                 break
             }
@@ -1783,10 +1819,13 @@ class CodeComponent         : Codable, Equatable
             }
             
             // Function argument
-            for arg in f.header.statement.fragments {
-                if arg.rect.contains(x, y) {
-                    ctx.hoverFragment = arg
-                    break
+            
+            if f.functionType != .Prototype {
+                for arg in f.header.statement.fragments {
+                    if arg.rect.contains(x, y) {
+                        ctx.hoverFragment = arg
+                        break
+                    }
                 }
             }
             
@@ -1895,7 +1934,7 @@ class CodeComponent         : Codable, Equatable
         
         for f in functions {
             
-            if f.functionType == .FreeFlow {
+            if f.functionType == .FreeFlow || f.functionType == .Prototype {
                 ctx.insideGlobalCode = true
             } else {
                 ctx.insideGlobalCode = false
@@ -1903,11 +1942,18 @@ class CodeComponent         : Codable, Equatable
             
             ctx.functionHasMonitor = false
             
+            let globalCodeBuffer = globalCode
+            
             ctx.cFunction = f
             ctx.cX = ctx.border + ctx.startX
             ctx.cIndent = 0
             
             f.draw(mmView, ctx)
+            
+            // Prototype functions don't generate code (only their references)
+            if f.functionType == .Prototype {
+                globalCode = globalCodeBuffer
+            }
             
             if f.functionType == .FreeFlow {
                 if ctx.monitorFragment != nil && ctx.functionHasMonitor == true {

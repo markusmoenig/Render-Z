@@ -516,10 +516,6 @@ class SceneGraph                : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        if needsUpdate {
-            update()
-        }
-
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1))
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, fillColor : SIMD4<Float>(0.165, 0.169, 0.173, 1.000) )
         mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: 1, round: 0, fillColor : SIMD4<Float>(0, 0, 0, 1) )
@@ -553,6 +549,11 @@ class SceneGraph                : MMWidget
         } else {
             mmView.drawBox.draw( x: knobRect.x, y: knobRect.y, width: knobRect.width - halfKnobWidth, height: knobRect.height, round: 6, fillColor : SIMD4<Float>( 0.5, 0.5, 0.5, 1))
 
+        }
+        
+        // Build the toolbar
+        if needsUpdate {
+            update()
         }
     }
     
@@ -604,7 +605,7 @@ class SceneGraph                : MMWidget
     {
         deactivate()
         toolBarWidgets = []
-
+        
         if let uuid = uuid {
             if let item = itemMap[uuid] {
                 if item.itemType == .Stage && item.stage.stageType == .PreStage {
@@ -652,6 +653,19 @@ class SceneGraph                : MMWidget
                         self.getShape(item: item, replace: true)
                     }
                     toolBarWidgets.append(button)
+                    
+                    let deleteButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Delete")
+                    deleteButton.clicked = { (event) in
+                        let id = "shapes" + getCurrentModeId()
+                        
+                        if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
+                            print("index", index)
+                            let undo = globalApp!.currentEditor.undoStageItemStart("Remove Shape")
+                            item.stageItem!.componentLists[id]!.remove(at: index)
+                            globalApp!.currentEditor.undoStageItemEnd(undo)
+                        }
+                    }
+                    toolBarWidgets.append(deleteButton)
                 } else
                 if item.itemType == .BooleanItem {
                     let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")

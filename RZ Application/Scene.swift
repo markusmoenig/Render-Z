@@ -261,8 +261,18 @@ class Stage                 : Codable, Equatable
             item.components[item.defaultName] = codeComponent
             children3D.append(item)
             
-            item.values["_graphX"] = 130
-            item.values["_graphY"] = 70
+            placeChild(modeId: "3D", parent: self, child: item, stepSize: 40, radius: 130)
+            
+            // RayMarch
+            let rayMarchItem = StageItem(.VariablePool, "Ray March")
+            children3D.append(rayMarchItem)
+            placeChild(modeId: "3D", parent: self, child: rayMarchItem, stepSize: 60, radius: 150)
+            
+            codeComponent = CodeComponent(.RayMarch3D, "Ray March")
+            codeComponent.createDefaultFunction(.RayMarch3D)
+            codeComponent.uuid = UUID()
+            codeComponent.selected = nil
+            rayMarchItem.components[item.defaultName] = codeComponent
         }
         
         if stageType == .VariablePool {
@@ -272,13 +282,14 @@ class Stage                 : Codable, Equatable
             // Create Sun Pool
             let sunPool = StageItem(.VariablePool, "Sun")
             children3D.append(sunPool)
-            sunPool.values["_graphX"] = 130
-            sunPool.values["_graphY"] = 70
+            placeChild(modeId: "3D", parent: self, child: sunPool, stepSize: 90, radius: 130)
             
             let sunDirComponent = CodeComponent(.Variable, "Sun Direction")
+            sunDirComponent.values["locked"] = 1
             sunDirComponent.createVariableFunction("sunDirection", "float3", "Sun Direction", SIMD3<Float>(0,1,0), gizmo: 1)
             
             let sunStrengthComponent = CodeComponent(.Variable, "Sun Strength")
+            sunStrengthComponent.values["locked"] = 1
             sunStrengthComponent.createVariableFunction("sunStrength", "float", "Sun Strength")
 
             sunPool.componentLists["variables"] = [sunDirComponent,sunStrengthComponent]

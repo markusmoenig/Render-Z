@@ -262,7 +262,7 @@ class CodeProperties    : MMWidget
             
             // --- FreeFlow Function Header
             
-            if fragment.fragmentType == .TypeDefinition {
+            if fragment.fragmentType == .TypeDefinition && ctx.cFunction!.functionType == .FreeFlow {
                 // Function Parameter and name
                 if fragment.parentBlock!.fragment === fragment {
                 
