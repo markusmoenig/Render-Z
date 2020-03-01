@@ -1666,7 +1666,7 @@ class CodeComponent         : Codable, Equatable
             
             let map = CodeFunction(.Prototype, "map")
             map.comment = "Returns the closest shape for the given position"
-            let posArg = CodeFragment(.VariableDefinition, "float3", "position", [], ["float3"], "float3")
+            let posArg = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3")
             map.header.fragment.typeName = "float4"
             map.header.fragment.name = "map"
             map.header.statement.fragments.append(posArg)
@@ -1689,7 +1689,7 @@ class CodeComponent         : Codable, Equatable
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outShape"))
-            f.body.append(f.createOutVariableBlock("floa3t", "outNormal"))
+            f.body.append(f.createOutVariableBlock("float3", "outNormal"))
             functions.append(f)
         }
     }
@@ -1819,7 +1819,6 @@ class CodeComponent         : Codable, Equatable
             }
             
             // Function argument
-            
             if f.functionType != .Prototype {
                 for arg in f.header.statement.fragments {
                     if arg.rect.contains(x, y) {

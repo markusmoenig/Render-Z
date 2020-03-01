@@ -262,11 +262,12 @@ class CodeProperties    : MMWidget
             
             // --- FreeFlow Function Header
             
-            if fragment.fragmentType == .TypeDefinition && ctx.cFunction!.functionType == .FreeFlow {
+            if fragment.fragmentType == .TypeDefinition {
                 // Function Parameter and name
                 if fragment.parentBlock!.fragment === fragment {
                 
                     c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Function Name", value: fragment.name) )
+                    c1Node?.uiItems[0].isDisabled = fragment.parentBlock!.parentFunction!.functionType == .Prototype
                     c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                         if variable == "name" {
                             let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Function Name Changed") : nil
@@ -281,7 +282,7 @@ class CodeProperties    : MMWidget
                     c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "returnType", title: "Returns", items: items, index: Float(items.firstIndex(of: fragment.typeName)!) ) )
                     
                     let cFunction = fragment.parentBlock!.parentFunction!
-                    c2Node?.uiItems[0].isDisabled = cFunction.references > 0
+                    c2Node?.uiItems[0].isDisabled = cFunction.references > 0 || fragment.parentBlock!.parentFunction!.functionType == .Prototype
                     
                     c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                         if variable == "returnType" {
