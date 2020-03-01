@@ -1668,6 +1668,8 @@ class CodeComponent         : Codable, Equatable
             map.comment = "Returns the closest shape for the given position"
             let posArg = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3")
             map.header.fragment.typeName = "float4"
+            map.header.fragment.evaluatesTo = "float4"
+            map.header.fragment.argumentFormat = ["float4"]
             map.header.fragment.name = "map"
             map.header.statement.fragments.append(posArg)
             

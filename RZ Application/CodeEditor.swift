@@ -873,6 +873,27 @@ class CodeEditor        : MMWidget
                     
                     destFrag.arguments.append(statement)
                 }
+                
+                let sourceComponents = sourceFrag.evaluateComponents()
+                let destComponents = destFrag.evaluateComponents()
+                
+                if sourceComponents != destComponents && sourceComponents > 1 {
+                    // --- Need to add a qualification to match
+                    
+                    let compArray = ["x", "y", "z", "w"]
+                    let validRange = sourceComponents - 1
+                    
+                    var counter = 0
+                    for _ in 0..<destComponents {
+                        if counter > validRange {
+                            counter = 0
+                        }
+                        
+                        destFrag.qualifier += compArray[counter]
+                        counter += 1
+                    }
+                }
+                
                 #if DEBUG
                 print("Drop #6")
                 #endif
