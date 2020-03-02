@@ -190,6 +190,7 @@ class DesignEditor          : MMWidget
         }
     }
     
+    /*
     override func mouseScrolled(_ event: MMMouseEvent)
     {
         #if os(iOS)
@@ -228,7 +229,7 @@ class DesignEditor          : MMWidget
                 }
             }
         }
-    }
+    }*/
     
     override func update()
     {

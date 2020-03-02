@@ -183,21 +183,20 @@ class GizmoCamera3D         : GizmoBase
             }
 
             if dragState == .CameraMove {
-                
                 let diffX : Float = (p.x - dragStartOffset!.x) * 0.0006
                 let diffY : Float = (p.y - dragStartOffset!.y) * 0.0006
                 
                 camera3D.move(dx: diffX, dy: diffY)
-                dragStartOffset!.x = p.x
-                dragStartOffset!.y = p.y
 
-                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
                 let properties : [String:Float] = [
-                    "origin" : camera3D.originFrag!.values["value"]!,
-                    "lookAt" : camera3D.lookAtFrag!.values["value"]!
+                    "origin_x" : camera3D.originFrag!.arguments[0].fragments[0].values["value"]!,
+                    "origin_y" : camera3D.originFrag!.arguments[1].fragments[0].values["value"]!,
+                    "origin_z" : camera3D.originFrag!.arguments[2].fragments[0].values["value"]!,
+                    "lookAt_x" : camera3D.lookAtFrag!.arguments[0].fragments[0].values["value"]!,
+                    "lookAt_y" : camera3D.lookAtFrag!.arguments[1].fragments[0].values["value"]!,
+                    "lookAt_z" : camera3D.lookAtFrag!.arguments[2].fragments[0].values["value"]!,
                 ]
-                //print(camera3D.originFrag!.values["value"]!, camera3D.lookAtFrag!.values["value"]!)
-                //processGizmoProperties(properties)
+                processGizmoProperties(properties)
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
 
             } else
@@ -207,115 +206,55 @@ class GizmoCamera3D         : GizmoBase
                 let diffY : Float = (p.y - dragStartOffset!.y) * 0.003
                 
                 camera3D.pan(dx: diffX, dy: diffY)
-                dragStartOffset!.x = p.x
-                dragStartOffset!.y = p.y
 
-                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
                 let properties : [String:Float] = [
-                    "origin" : camera3D.originFrag!.values["value"]!,
-                    "lookAt" : camera3D.lookAtFrag!.values["value"]!
+                    "origin_x" : camera3D.originFrag!.arguments[0].fragments[0].values["value"]!,
+                    "origin_y" : camera3D.originFrag!.arguments[1].fragments[0].values["value"]!,
+                    "origin_z" : camera3D.originFrag!.arguments[2].fragments[0].values["value"]!,
                 ]
-                //print(camera3D.originFrag!.values["value"]!, camera3D.lookAtFrag!.values["value"]!)
-                //processGizmoProperties(properties)
+                processGizmoProperties(properties)
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
 
-            }
-            
+            } else
             if dragState == .CameraRotate {
-                
                 let diffX : Float = (p.x - dragStartOffset!.x) * 0.003
                 let diffY : Float = (p.y - dragStartOffset!.y) * 0.003
                 
                 camera3D.rotate(dx: diffX, dy: diffY)
-                dragStartOffset!.x = p.x
-                dragStartOffset!.y = p.y
 
-                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
                 let properties : [String:Float] = [
-                    "origin" : camera3D.originFrag!.values["value"]!,
-                    "lookAt" : camera3D.lookAtFrag!.values["value"]!
+                    "origin_x" : camera3D.originFrag!.arguments[0].fragments[0].values["value"]!,
+                    "origin_y" : camera3D.originFrag!.arguments[1].fragments[0].values["value"]!,
+                    "origin_z" : camera3D.originFrag!.arguments[2].fragments[0].values["value"]!,
+                    "lookAt_x" : camera3D.lookAtFrag!.arguments[0].fragments[0].values["value"]!,
+                    "lookAt_y" : camera3D.lookAtFrag!.arguments[1].fragments[0].values["value"]!,
+                    "lookAt_z" : camera3D.lookAtFrag!.arguments[2].fragments[0].values["value"]!,
                 ]
-                //print(camera3D.originFrag!.values["value"]!, camera3D.lookAtFrag!.values["value"]!)
-                //processGizmoProperties(properties)
+                processGizmoProperties(properties)
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
-
-            }
-            
+            } else
             if dragState == .CameraZoom {
-                
                 camera3D.zoom(dx: diff * 0.003, dy: diff * 0.003)
-                dragStartOffset!.x = p.x
-                dragStartOffset!.y = p.y
-
-                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
-                let properties : [String:Float] = [
-                    "origin" : camera3D.originFrag!.values["value"]!,
-                    "lookAt" : camera3D.lookAtFrag!.values["value"]!
-                ]
-                //print(camera3D.originFrag!.values["value"]!, camera3D.lookAtFrag!.values["value"]!)
-                //processGizmoProperties(properties)
-                globalApp!.currentEditor.updateOnNextDraw(compile: false)
-
-            } else
                 
-            if dragState == .yAxisMove {
-                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoYAxisNormal, planeCenter: planeCenter)
                 let properties : [String:Float] = [
-                    //"_posY" : initialValues["_posY"]! + (hit.y - dragStartOffset!.x),
-                    "_posY" : initialValues["_posY"]! + diff
+                    "origin_x" : camera3D.originFrag!.arguments[0].fragments[0].values["value"]!,
+                    "origin_y" : camera3D.originFrag!.arguments[1].fragments[0].values["value"]!,
+                    "origin_z" : camera3D.originFrag!.arguments[2].fragments[0].values["value"]!,
+                    "lookAt_x" : camera3D.lookAtFrag!.arguments[0].fragments[0].values["value"]!,
+                    "lookAt_y" : camera3D.lookAtFrag!.arguments[1].fragments[0].values["value"]!,
+                    "lookAt_z" : camera3D.lookAtFrag!.arguments[2].fragments[0].values["value"]!,
                 ]
                 processGizmoProperties(properties)
-            } else
-            if dragState == .zAxisMove {
-                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoZAxisNormal, planeCenter: planeCenter)
-                let properties : [String:Float] = [
-                    //"_posZ" : initialValues["_posZ"]! + (hit.z - dragStartOffset!.x),
-                    "_posZ" : initialValues["_posZ"]! + diff,
-                ]
-                processGizmoProperties(properties)
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
             }
             
-            else
-            if dragState == .Rotate {
-                /*
-                let angle = 0//getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
-                var value = 0//initialValues["_rotateX"]! + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
-                if value < 0 {
-                    value = 360 + value
-                }
-                let properties : [String:Float] = [
-                    "_rotateX" : value
-                ]
-                processGizmoProperties(properties)
-                */
-            } else
-            if dragState == .xAxisScale {
-                if let fragment = scaleXFragment {
-                    //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
-                    //processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (hit.x - dragStartOffset!.x), 0.001))
-                    processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + diff, 0.001))
-                }
-            } else
-            if dragState == .yAxisScale {
-                if let fragment = scaleYFragment {
-                    //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoYAxisNormal, planeCenter: planeCenter)
-                    //processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (hit.y - dragStartOffset!.x), 0.001))
-                    processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - diff, 0.001))
-                }
-            } else
-            if dragState == .zAxisScale {
-                if let fragment = scaleZFragment {
-                    //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoZAxisNormal, planeCenter: planeCenter)
-                    //processProperty(fragment, name: scaleZFragmentName!, value: max(initialValues["_scaleZ"]! + (hit.z - dragStartOffset!.x), 0.001))
-                    processProperty(fragment, name: scaleZFragmentName!, value: max(initialValues["_scaleZ"]! + diff, 0.001))
-                }
-            }
+            dragStartOffset!.x = p.x
+            dragStartOffset!.y = p.y
             
             if undoComponent == nil {
-                //undoComponent = globalApp!.currentEditor.undoComponentStart("Gizmo Action")
+                undoComponent = globalApp!.currentEditor.undoComponentStart("Camera Change")
             }
             
-            //updateUIProperties()
             globalApp!.artistEditor.designProperties.setSelected(component)
         }
     }
@@ -335,7 +274,7 @@ class GizmoCamera3D         : GizmoBase
         hoverState = .Inactive
         #endif
         if undoComponent != nil {
-            //globalApp!.currentEditor.undoComponentEnd(undoComponent!)
+            globalApp!.currentEditor.undoComponentEnd(undoComponent!)
             undoComponent = nil
         }
         mmView.update()
