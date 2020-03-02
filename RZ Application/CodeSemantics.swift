@@ -29,7 +29,8 @@ class CodeFragment          : Codable, Equatable
                 If,                     // If
                 Else,                   // Else
                 For,                    // For
-                End
+                End,                    // End Block Statement
+                Break                   // Break (Inside Loops)
     }
     
     enum FragmentProperties : Int, Codable{
@@ -385,6 +386,21 @@ class CodeFragment          : Codable, Equatable
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
         } else
+        if fragmentType == .Break {
+            let rStart = ctx.rectStart()
+            let name = "break"
+                        
+            ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
+            if let frag = ctx.fragment {
+                mmView.drawText.drawText(ctx.font, text: name, x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.reserved, fragment: frag)
+            }
+            
+            ctx.cX += ctx.tempRect.width
+            ctx.rectEnd(rect, rStart)
+            ctx.cX += ctx.gapX
+            
+            ctx.addCode(name + ";\n")
+        } else
         if fragmentType == .ConstantDefinition {
             let rStart = ctx.rectStart()
             let name = (isNegated() && isSimplified == false ? " -" : "") + (isSimplified ? getValueString() : self.name)
@@ -413,7 +429,13 @@ class CodeFragment          : Codable, Equatable
                         ctx.cFunction!.dependsOn.append(referencedFunction)
                     }
                     name += referencedFunction.name
-                    codeName += referencedFunction.header.fragment.codeName!
+                    if let fName = referencedFunction.header.fragment.codeName {
+                        // FreeFlow
+                        codeName += fName
+                    } else {
+                        // Prototype
+                        codeName += referencedFunction.header.fragment.name
+                    }
                     self.name = referencedFunction.name
                 }
             } else {
@@ -782,7 +804,7 @@ class CodeStatement         : Codable, Equatable
 class CodeBlock             : Codable, Equatable
 {
     enum BlockType          : Int, Codable {
-        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference, IfHeader, ElseHeader, ForHeader, End
+        case Empty, FunctionHeader, OutVariable, VariableDefinition, VariableReference, IfHeader, ElseHeader, ForHeader, End, Break
     }
     
     var blockType           : BlockType
@@ -904,7 +926,7 @@ class CodeBlock             : Codable, Equatable
             ctx.cY += ctx.lineHeight + ctx.gapY
             ctx.drawFragmentState(fragment)
         } else
-        if blockType == .End {
+        if blockType == .End || blockType == .Break {
             fragment.draw(mmView, ctx)
             ctx.cY += ctx.lineHeight + ctx.gapY
         } else
@@ -928,7 +950,11 @@ class CodeBlock             : Codable, Equatable
             
             ctx.rectEnd(fragment.rect, rStart)
             if fragment.fragmentType == .TypeDefinition {
-                ctx.addCode(fragment.typeName + " " + fragment.codeName! + "( ")
+                if let codeName = fragment.codeName {
+                    ctx.addCode(fragment.typeName + " " + codeName + "( ")
+                } else {
+                    ctx.addCode(fragment.typeName + " " + fragment.name + "( ")
+                }
             }
             ctx.cX += ctx.gapX
 
@@ -1274,7 +1300,9 @@ class CodeFunction          : Codable, Equatable
         ctx.cSyntaxBlocks = [:]
         ctx.cSyntaxLevel = []
 
-        if header.fragment.codeName == nil { header.fragment.codeName = generateToken() }
+        if functionType != .Prototype {
+            if header.fragment.codeName == nil { header.fragment.codeName = generateToken() }
+        }
 
         ctx.openSyntaxBlock(uuid)
                 
@@ -1664,19 +1692,19 @@ class CodeComponent         : Codable, Equatable
         } else
         if type == .RayMarch3D {
             
-            let map = CodeFunction(.Prototype, "map")
-            map.comment = "Returns the closest shape for the given position"
+            let map = CodeFunction(.Prototype, "sceneMap")
+            map.comment = "Returns the closest shape for the given position in the scene"
             let posArg = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3")
             map.header.fragment.typeName = "float4"
             map.header.fragment.evaluatesTo = "float4"
             map.header.fragment.argumentFormat = ["float4"]
-            map.header.fragment.name = "map"
+            map.header.fragment.name = "sceneMap"
             map.header.statement.fragments.append(posArg)
             
             functions.append(map)
 
             let f = CodeFunction(type, "rayMarch")
-            f.comment = "Raymarch the scene by evaluating the map function"
+            f.comment = "Raymarch the scene by evaluating the sceneMap function"
             
             let arg3 = CodeFragment(.VariableDefinition, "float4", "inShape", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
             f.header.statement.fragments.append(arg3)
@@ -2241,7 +2269,7 @@ class CodeContext
             }
             
             // Drop on an empty line (.VariableDefinition)
-            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) || (drop.name.starts(with: "for") && drop.typeName == "block" ) ) {
+            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) || (drop.name.starts(with: "for") && drop.typeName == "block" ) || (drop.name == "break" && drop.typeName == "block" ) ) {
                 
                 var valid = true
                 // Do not allow references to global variables to be on the left side (crash)
@@ -2301,13 +2329,12 @@ class CodeContext
                     print("Exclusion #6")
                     #endif
                 } else
-                    /*
-                if drop.fragmentType == .Primitive && drop.supportsType( fragment.evaluateType() ) == false {
+                    if drop.fragmentType == .Primitive && drop.supportsType( fragment.evaluateType() ) == false && (drop.typeName == "float" || drop.typeName == "block") {
                     // Exclusion: When the .Primitive does not support the type of the destination
                     #if DEBUG
                     print("Exclusion #7")
                     #endif
-                } else*/
+                } else
                 if drop.fragmentType == .Primitive && fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.blockType == .ForHeader {
                     // Exclusion: Dont allow to drop a primitive on the left side of a variable definition in a for header
                     #if DEBUG

@@ -152,6 +152,9 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             } else
             if component.componentType == .Camera3D {
                 libName += " :: Camera3D"
+            } else
+            if component.componentType == .RayMarch3D {
+                libName += " :: RayMarch3D"
             }
         }
         
@@ -320,4 +323,21 @@ func placeChild(modeId: String, parent: Stage, child: StageItem, stepSize: Float
     child.values["_graphY"] = radius * cos( toRadians(parent.values[id]!) )
 
     parent.values[id]! += -stepSize
+}
+
+/// Find the child component of the stage of the given type
+func findDefaultComponentForStageChildren(stageType: Stage.StageType, componentType: CodeComponent.ComponentType) -> CodeComponent?
+{
+    var result : CodeComponent? = nil
+    let renderStage = globalApp!.project.selected!.getStage(stageType)
+    let children = renderStage.getChildren()
+    for c in children {
+        if let defaultComponent = c.components[c.defaultName] {
+            if defaultComponent.componentType == componentType {
+                result = defaultComponent
+                break
+            }
+        }
+    }
+    return result
 }

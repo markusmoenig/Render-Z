@@ -126,7 +126,7 @@ class CodeSDFStream
             mapCode =
             """
             
-            float4 map( float3 __origin, thread struct FuncData *__funcData )
+            float4 sceneMap( float3 __origin, thread struct FuncData *__funcData )
             {
                 float4 outShape = float4(100000, -1, -1, -1);
                 float outDistance = 10;
@@ -158,17 +158,19 @@ class CodeSDFStream
                 float GlobalTime = __data[0].x;
             
                 float2 __uv = float2(__gid.x, __gid.y);
-                float3 __ro = float4(__rayOriginTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float3 __rd = float4(__rayDirectionTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 rayOrigin = float4(__rayOriginTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 rayDirection = float4(__rayDirectionTexture.sample(__textureSampler, __uv / __size )).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
+                float4 inShape = float4(100000, -1, -1, -1);
                 float4 outShape = float4(100000, -1, -1, -1);
-                float4 outNormal = float4(0);
+                float3 outNormal = float3(0);
             
+                /*
                 float t = 0.001;
                 for( int i=0; i < 70; i++ )
                 {
@@ -181,7 +183,7 @@ class CodeSDFStream
                         float3 pos = __ro + t * __rd;
             
                         float2 e = float2(1.0,-1.0)*0.5773*0.0005;
-                        outNormal.xyz = normalize( e.xyy*map( pos + e.xyy, &__funcData ).x +
+                        outNormal = normalize( e.xyy*map( pos + e.xyy, &__funcData ).x +
                               e.yyx*map( pos + e.yyx, &__funcData ).x +
                               e.yxy*map( pos + e.yxy, &__funcData ).x +
                               e.xxx*map( pos + e.xxx, &__funcData ).x );
@@ -189,9 +191,21 @@ class CodeSDFStream
                         break;
                     }
                     t += h.x;
-                }
+                }*/
             
             """
+            
+            if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D) {
+                dryRunComponent(rayMarch, instance.data.count)
+                instance.collectProperties(rayMarch)
+                if let globalCode = rayMarch.globalCode {
+                    headerCode += globalCode
+                }
+                if let code = rayMarch.code {
+                    instance.code += code
+                    print("Code", code)
+                }
+            }
         }
     }
 
@@ -228,7 +242,7 @@ class CodeSDFStream
             instance.code +=
             """
             
-                __normalTexture.write(half4(outNormal), __gid);
+                __normalTexture.write(half4(float4(outNormal, 0)), __gid);
                 __outTexture.write(half4(outShape), __gid);
             }
             """

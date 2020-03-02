@@ -604,6 +604,33 @@ class CodeEditor        : MMWidget
                 self.updateCode(compile: true)
                 self.undoEnd(undo)
             } else
+            // Break, only inside loops
+            if sourceFrag.typeName == "block" && (sourceFrag.name == "break") {
+                var insideLoop = false
+                
+                func testParent(_ parent: CodeBlock)
+                {
+                    if parent.blockType == .ForHeader {
+                        insideLoop = true
+                    } else {
+                        if let p = parent.parentBlock {
+                            testParent(p)
+                        }
+                    }
+                }
+                
+                if let p = destBlock.parentBlock {
+                    testParent(p)
+                }
+                
+                if insideLoop {
+                    destBlock.blockType = .Break
+                    destBlock.fragment.fragmentType = .Break
+                    destBlock.fragment.typeName = "block"
+                    destBlock.fragment.name = "break"
+                    destBlock.fragment.properties = []
+                }
+            } else
             // If switch
             if sourceFrag.typeName == "block" && (sourceFrag.name == "if" || sourceFrag.name == "if else"){
                 destBlock.blockType = .IfHeader
@@ -727,12 +754,13 @@ class CodeEditor        : MMWidget
         } else
         {
             let undo = self.undoStart("Drag and Drop")
-            
+
             // Drag on a constant value or when the target has only one component, i.e. single float values
             if (destFrag.fragmentType == .ConstantValue || destFrag.evaluateComponents() == 1) {
                 let sourceComponents = sourceFrag.evaluateComponents()
                 var compName : String = sourceFrag.qualifier
                 if sourceComponents > 1 {
+
                     let compArray : [String] = ["x", "y", "z", "w"]
                     if let parentStatement = destFrag.parentStatement {
                         let argumentIndex = parentStatement.isArgumentIndexOf
@@ -766,6 +794,7 @@ class CodeEditor        : MMWidget
                         }
                     }
                 }
+                
                 #if DEBUG
                 print("Drop #1")
                 #endif
@@ -857,21 +886,32 @@ class CodeEditor        : MMWidget
              
                 // TODO make sure all arguments comform to their formats
                 
-                for format in sourceFrag.argumentFormat! {
-                    
-                    var argFormatToUse = typeName
-                    let supportedFormats = format.components(separatedBy: "|")
-                    
-                    if supportedFormats.contains(typeName) == false {
-                        argFormatToUse = supportedFormats[0]
+                if let argumentFormat = sourceFrag.argumentFormat {
+                    for format in argumentFormat {
+                        
+                        var argFormatToUse = typeName
+                        let supportedFormats = format.components(separatedBy: "|")
+                        
+                        if supportedFormats.contains(typeName) == false {
+                            argFormatToUse = supportedFormats[0]
+                        }
+                        
+                        let constant = defaultConstantForType(argFormatToUse)
+                        
+                        let statement = CodeStatement(.List)
+                        statement.fragments.append(constant)
+                        
+                        destFrag.arguments.append(statement)
                     }
-                    
-                    let constant = defaultConstantForType(argFormatToUse)
-                    
-                    let statement = CodeStatement(.List)
-                    statement.fragments.append(constant)
-                    
-                    destFrag.arguments.append(statement)
+                }
+                
+                // If the typeNames don't match, check if we can set the typeName of the source to that of the destination
+                // This is possible when the evaluatesTo string has an input0 parameter (i.e. output adjusts to the input)
+                let typeNameBuffer = sourceFrag.typeName
+                if sourceFrag.typeName != destFrag.typeName {
+                    if sourceFrag.supportsType(destFrag.typeName) {
+                        sourceFrag.typeName = destFrag.typeName
+                    }
                 }
                 
                 let sourceComponents = sourceFrag.evaluateComponents()
@@ -893,6 +933,9 @@ class CodeEditor        : MMWidget
                         counter += 1
                     }
                 }
+                
+                // Not allowed to change the source frag, if we change the typeName, need to set it back
+                sourceFrag.typeName = typeNameBuffer
                 
                 #if DEBUG
                 print("Drop #6")

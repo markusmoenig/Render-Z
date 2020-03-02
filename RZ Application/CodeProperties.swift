@@ -541,11 +541,13 @@ class CodeProperties    : MMWidget
                             newValueToUse.remove(at: fragment.qualifier.startIndex)
                         }
                         
+                        // TODO Max Components needs to be the maximum components for the destination expression, how to compute ?
                         fragment.qualifier = ""
-                        let maxComponents = fragment.evaluateComponents()
+                        var maxComponents = fragment.evaluateComponents()
                         
                         fragment.qualifier = oldValue
                         let fragComponents = fragment.evaluateComponents()
+                        maxComponents = max(maxComponents, fragComponents)
                         
                         var validComponents = fragComponents
                         let qArray = ["x", "y", "z", "w"]
@@ -567,7 +569,7 @@ class CodeProperties    : MMWidget
                             // Too many chars, invalid
                             newQualifiersAreValid = false
                         }
-                        
+
                         if let block = fragment.parentBlock, newQualifiersAreValid {
                             if (block.blockType == .VariableReference || block.blockType == .OutVariable) && block.fragment === fragment {
                                 

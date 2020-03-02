@@ -264,11 +264,11 @@ class Stage                 : Codable, Equatable
             placeChild(modeId: "3D", parent: self, child: item, stepSize: 40, radius: 130)
             
             // RayMarch
-            let rayMarchItem = StageItem(.VariablePool, "Ray March")
+            let rayMarchItem = StageItem(.VariablePool, "RayMarch")
             children3D.append(rayMarchItem)
             placeChild(modeId: "3D", parent: self, child: rayMarchItem, stepSize: 60, radius: 150)
             
-            codeComponent = CodeComponent(.RayMarch3D, "Ray March")
+            codeComponent = CodeComponent(.RayMarch3D, "RayMarch")
             codeComponent.createDefaultFunction(.RayMarch3D)
             codeComponent.uuid = UUID()
             codeComponent.selected = nil
