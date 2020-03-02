@@ -29,8 +29,8 @@ class GizmoCamera3D         : GizmoBase
 
     var moveButton          : MMButtonWidget
     var panButton           : MMButtonWidget
-    var rotateButton          : MMButtonWidget
-    var zoomButton           : MMButtonWidget
+    var rotateButton        : MMButtonWidget
+    var zoomButton          : MMButtonWidget
     
     var hoverButton         : MMButtonWidget? = nil
     var activeButton        : MMButtonWidget? = nil

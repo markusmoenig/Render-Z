@@ -399,7 +399,7 @@ func showHelp(_ urlString: String? = nil)
         guard let url = URL(string: urlString!) else { return }
         UIApplication.shared.open(url)
     } else {
-        guard let url = URL(string: "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5406721/Getting+Started") else { return }
+        guard let url = URL(string: "https://www.moenig.io/forum/main-forum/tutorials") else { return }
         UIApplication.shared.open(url)
     }
 }

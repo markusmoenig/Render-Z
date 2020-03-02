@@ -57,3 +57,28 @@ class ViewController: NSViewController, NSWindowDelegate {
     }
 }
 
+import WebKit
+
+class HelpViewController: NSViewController, WKUIDelegate {
+    
+    override func viewDidLoad() {
+
+        super.viewDidLoad()
+        
+        let helpView = view.subviews[0] as? WKWebView
+        if helpView != nil {
+            let appDelegate = (NSApplication.shared.delegate as! AppDelegate)
+            appDelegate.webView = helpView
+
+             //let urlString = "http://www.youtube.com";
+             //let request = URLRequest(url:URL(string: urlString)!)
+             //helpView!.load(request)
+        }
+    }
+    
+    override var representedObject: Any? {
+        didSet {
+            // Update the view, if already loaded.
+        }
+    }
+}

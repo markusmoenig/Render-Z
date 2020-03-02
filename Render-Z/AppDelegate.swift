@@ -12,10 +12,10 @@ import WebKit
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
 
-    weak var app: App!
+    weak var app                : App!
     
-    var helpWindowController: NSWindowController!
-    var webView             : WKWebView!
+    var helpWindowController    : NSWindowController!
+    var webView                 : WKWebView!
     
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
@@ -26,7 +26,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let window = app.mmView.window!
 
         window.setFrameAutosaveName("MainWindow")
-        //let mainStoryboard = NSStoryboard.init(name: "Main", bundle: nil)
+        
+        let mainStoryboard = NSStoryboard.init(name: "Main", bundle: nil)
+        helpWindowController = (mainStoryboard.instantiateController(withIdentifier: "HelpWindow") as! NSWindowController)
+        //let request = URLRequest(url:URL(string: "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5406721/Getting+Started")!)
+        //webView.load(request)
     }
     
     func windowWillReturnUndoManager(window: NSWindow) -> UndoManager? {
