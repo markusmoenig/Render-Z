@@ -196,14 +196,13 @@ class CodeSDFStream
             """
             
             if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D) {
-                dryRunComponent(rayMarch, instance.data.count)
+                dryRunComponent(rayMarch, instance.data.count, monitor)
                 instance.collectProperties(rayMarch)
                 if let globalCode = rayMarch.globalCode {
                     headerCode += globalCode
                 }
                 if let code = rayMarch.code {
                     instance.code += code
-                    print("Code", code)
                 }
             }
         }
