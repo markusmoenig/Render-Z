@@ -11,7 +11,7 @@ import MetalKit
 class DesignEditor          : MMWidget
 {
     enum GizmoState {
-        case None, Combo2D, Combo3D, Camera3D
+        case None, Combo2D, Combo3D, Camera2D, Camera3D
     }
     
     var fragment            : MMFragment
@@ -29,6 +29,7 @@ class DesignEditor          : MMWidget
     
     var gizmoCombo2D        : GizmoCombo2D
     var gizmoCombo3D        : GizmoCombo3D
+    var gizmoCamera2D       : GizmoCamera2D
     var gizmoCamera3D       : GizmoCamera3D
     var currentGizmo        : GizmoBase? = nil
     
@@ -41,14 +42,13 @@ class DesignEditor          : MMWidget
         fragment.allocateTexture(width: 10, height: 10)
         gizmoCombo2D = GizmoCombo2D(view)
         gizmoCombo3D = GizmoCombo3D(view)
+        gizmoCamera2D = GizmoCamera2D(view)
         gizmoCamera3D = GizmoCamera3D(view)
 
         super.init(view)
 
         zoom = mmView.scaleFactor
-        
-        //dropTargets.append( "SourceFragmentItem" )
-        
+                
         needsUpdate = true
         designChanged = true
     }
@@ -68,10 +68,15 @@ class DesignEditor          : MMWidget
                 gizmoState = .Combo3D
                 currentGizmo = gizmoCombo3D
             } else
+            if comp.componentType == .Camera2D  {
+                gizmoState = .Camera2D
+                currentGizmo = gizmoCamera2D
+            } else
             if comp.componentType == .Camera3D  {
                 gizmoState = .Camera3D
                 currentGizmo = gizmoCamera3D
             }
+            
             if let gizmo = currentGizmo {
                 gizmo.rect.copy(rect)
                 gizmo.setComponent(comp)

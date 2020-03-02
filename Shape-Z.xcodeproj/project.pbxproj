@@ -600,6 +600,8 @@
 		2BE5A4D42405EF8000890281 /* CamHelper3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE5A4D22405EF8000890281 /* CamHelper3D.swift */; };
 		2BE5A4D9240CBB1B00890281 /* Camera3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE5A4D8240CBB1B00890281 /* Camera3D.swift */; };
 		2BE5A4DA240CBB1B00890281 /* Camera3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE5A4D8240CBB1B00890281 /* Camera3D.swift */; };
+		2BE5A4DC240CE5E700890281 /* Camera2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE5A4DB240CE5A600890281 /* Camera2D.swift */; };
+		2BE5A4DD240CE5E700890281 /* Camera2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE5A4DB240CE5A600890281 /* Camera2D.swift */; };
 		2BE67102221259F500B95241 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67101221259F500B95241 /* Node.swift */; };
 		2BE67103221259F500B95241 /* Node.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67101221259F500B95241 /* Node.swift */; };
 		2BE6710522125D7D00B95241 /* NodeGraph.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710422125D7D00B95241 /* NodeGraph.swift */; };
@@ -809,6 +811,7 @@
 		2BD291B923D43AB0006F66BC /* Base.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base.swift; sourceTree = "<group>"; };
 		2BE5A4D22405EF8000890281 /* CamHelper3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CamHelper3D.swift; sourceTree = "<group>"; };
 		2BE5A4D8240CBB1B00890281 /* Camera3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera3D.swift; sourceTree = "<group>"; };
+		2BE5A4DB240CE5A600890281 /* Camera2D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera2D.swift; sourceTree = "<group>"; };
 		2BE67101221259F500B95241 /* Node.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Node.swift; sourceTree = "<group>"; };
 		2BE6710422125D7D00B95241 /* NodeGraph.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeGraph.swift; sourceTree = "<group>"; };
 		2BE67107221291D200B95241 /* Node.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Node.metal; sourceTree = "<group>"; };
@@ -898,6 +901,7 @@
 				2B40D80423FCCDAF00D46B2F /* Combo3D.metal */,
 				2B40D80523FCCDB300D46B2F /* Combo3D.swift */,
 				2BE5A4D22405EF8000890281 /* CamHelper3D.swift */,
+				2BE5A4DB240CE5A600890281 /* Camera2D.swift */,
 				2BE5A4D8240CBB1B00890281 /* Camera3D.swift */,
 			);
 			path = Gizmos;
@@ -1762,6 +1766,7 @@
 				2B7A3C1923B46546002EC5FC /* MMScrollArea.swift in Sources */,
 				2B8E2FE823C7FE25005619E4 /* DesignProperties.swift in Sources */,
 				2BD291B723D435B6006F66BC /* Combo2D.metal in Sources */,
+				2BE5A4DC240CE5E700890281 /* Camera2D.swift in Sources */,
 				2B7A3C1123B46546002EC5FC /* MMFloatWidget.swift in Sources */,
 				2B7A3C2223B46546002EC5FC /* MMInfoArea.swift in Sources */,
 				2B7A3C3F23B469AD002EC5FC /* Mad4Metal.metal in Sources */,
@@ -1977,6 +1982,7 @@
 				2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
 				2B9B29A723BB44BF00C2F387 /* AppDelegate.swift in Sources */,
 				2B9B29C723BB453400C2F387 /* MMLabel.swift in Sources */,
+				2BE5A4DD240CE5E700890281 /* Camera2D.swift in Sources */,
 				2B9B29E023BB45A700C2F387 /* Node.swift in Sources */,
 				2B9B29CA23BB453400C2F387 /* MMFloatPopUp.swift in Sources */,
 				2BE9488823D0677700DB0BCD /* DefaultItems.swift in Sources */,

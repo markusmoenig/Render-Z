@@ -46,7 +46,7 @@ class GizmoCombo3D          : GizmoBase
 
     var compute             : MMCompute
     
-    var camera3D            : CamHelper3D = CamHelper3D()
+    //var camera3D            : CamHelper3D = CamHelper3D()
     var mouseIsDown         : Bool = false
     
     override init(_ view: MMView)
@@ -331,6 +331,7 @@ class GizmoCombo3D          : GizmoBase
         mouseIsDown = false
     }
     
+    /*
     override func mouseScrolled(_ event: MMMouseEvent)
     {
         let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
@@ -425,7 +426,7 @@ class GizmoCombo3D          : GizmoBase
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
             }
         }
-    }
+    }*/
     
     /// Updates the UI properties
     func updateUIProperties()
