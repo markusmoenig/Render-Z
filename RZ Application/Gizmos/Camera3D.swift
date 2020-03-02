@@ -1,185 +1,410 @@
 //
-//  Camera3D.swift
+//  Gizmo3D.swift
 //  Shape-Z
 //
-//  Created by Markus Moenig on 26/2/20.
+//  Created by Markus Moenig on 19/2/20.
 //  Copyright © 2020 Markus Moenig. All rights reserved.
 //
 
 import MetalKit
 import simd
 
-class Camera3D
+class GizmoCamera3D         : GizmoBase
 {
-    var eye             : SIMD3<Float> = SIMD3<Float>(0,0,0)
-    var center          : SIMD3<Float> = SIMD3<Float>(0,0,0)
-    var fov             : Float = 60
-    var aspect          : Float = 0
+    var dragStartOffset     : SIMD2<Float>?
+    var gizmoCenter         : SIMD2<Float> = SIMD2<Float>()
+    var initialValues       : [String:Float] = [:]
+    var startRotate         : Float = 0
 
-    let up              : SIMD3<Float> = SIMD3<Float>(0,1,0)
-    
-    var projMatrix      : simd_float4x4 = matrix_identity_float4x4
+    var scaleXFragmentName  : String? = nil
+    var scaleYFragmentName  : String? = nil
+    var scaleZFragmentName  : String? = nil
+    var scaleXFragment      : CodeFragment? = nil
+    var scaleYFragment      : CodeFragment? = nil
+    var scaleZFragment      : CodeFragment? = nil
 
-    let near            : Float = 1
-    let far             : Float = 100
+    var undoComponent       : CodeUndoComponent? = nil
     
-    var originFrag      : CodeFragment? = nil
-    var lookAtFrag      : CodeFragment? = nil
-    var fovFrag         : CodeFragment? = nil
+    var dispatched          : Bool = false
     
-    func initFromCamera(aspect: Float, originFrag: CodeFragment?, lookAtFrag: CodeFragment?, fovFrag : CodeFragment?)
+    var gizmoDistance       : Float = 0
+    var gizmoDragLocked     : Int = 0
+
+    var mouseIsDown         : Bool = false
+    
+    var camera3D            : CamHelper3D = CamHelper3D()
+
+    var moveButton          : MMButtonWidget
+    var panButton           : MMButtonWidget
+    var rotateButton          : MMButtonWidget
+    var zoomButton           : MMButtonWidget
+    
+    var hoverButton         : MMButtonWidget? = nil
+    var activeButton        : MMButtonWidget? = nil
+    
+    var originFrag          : CodeFragment? = nil
+    var lookAtFrag          : CodeFragment? = nil
+    var fovFrag             : CodeFragment? = nil
+    
+    var camIsValid          : Bool = false
+
+    override init(_ view: MMView)
     {
-        self.aspect = aspect
+        var smallButtonSkin = MMSkinButton()
+        smallButtonSkin.height = view.skin.Button.height
+        smallButtonSkin.round = view.skin.Button.round
+        smallButtonSkin.fontScale = view.skin.Button.fontScale
+
+        moveButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Move" )
+        panButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Pan" )
+        rotateButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Rotate" )
+        zoomButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Zoom" )
         
-        self.originFrag = originFrag
-        self.lookAtFrag = lookAtFrag
-        self.fovFrag = fovFrag
+        moveButton.rect.width = rotateButton.rect.width
+        panButton.rect.width = rotateButton.rect.width
+        rotateButton.rect.width = rotateButton.rect.width
+        zoomButton.rect.width = rotateButton.rect.width
+
+        super.init(view)
+    }
+    
+    override func setComponent(_ comp: CodeComponent)
+    {
+        component = comp
         
-        if let frag = originFrag {
-            eye = extractValueFromFragment3(frag)
+        originFrag = nil
+        lookAtFrag = nil
+        fovFrag = nil
+
+        for uuid in comp.properties {
+            let rc = comp.getPropertyOfUUID(uuid)
+            if let frag = rc.0 {
+                if frag.name == "origin" {
+                    originFrag = rc.1
+                } else
+                if frag.name == "lookAt" {
+                    lookAtFrag = rc.1
+                } else
+                if frag.name == "fov" {
+                    fovFrag = rc.1
+                }
+            }
         }
-        if let frag = lookAtFrag {
-            center = extractValueFromFragment3(frag)
-        }
-        if let frag = fovFrag {
-            fov = extractValueFromFragment(frag).x
+        
+        if originFrag != nil && lookAtFrag != nil && fovFrag != nil {
+            camIsValid = true
         }
     }
     
-    func updateProjection()
+    override func mouseDown(_ event: MMMouseEvent)
     {
-        projMatrix = matrix_identity_float4x4
+        if component.componentType == .Dummy { return }
+        mouseIsDown = true
+        
+        #if os(iOS)
+            mouseMoved(event)
+        #endif
 
-        let fovy : Float = Float.pi * fov / 180 / 2
-        let s : Float = sin(fovy)
+        if camIsValid {
+            activeButton = hoverButton
+            dragState = hoverState
+            dragStartOffset = SIMD2<Float>(event.x, event.y)
+            gizmoDragLocked = 0
 
-        let rd : Float = 1 / (far - near)
-        let ct : Float = cos(fovy) / s
-        
-        projMatrix[0, 0] = ct / aspect
-        projMatrix[0, 1] = 0
-        projMatrix[0, 2] = 0
-        projMatrix[0, 3] = 0
-
-        projMatrix[1, 0] = 0
-        projMatrix[1, 1] = ct
-        projMatrix[1, 2] = 0
-        projMatrix[1, 3] = 0
-        
-        projMatrix[2, 0] = 0
-        projMatrix[2, 1] = 0
-        projMatrix[2, 2] = -(far + near) * rd
-        projMatrix[2, 3] = -1
-        
-        projMatrix[3, 0] = 0
-        projMatrix[3, 1] = 0
-        projMatrix[3, 2] = -2 * near * far * rd
-        projMatrix[3, 3] = 0
-    }
-    
-    func calculateDirXY() -> (SIMD3<Float>, SIMD3<Float>)
-    {
-        let c_eye = center - eye
-        
-        let dirX : SIMD3<Float> = up
-        let dirY : SIMD3<Float> = simd_normalize(simd_cross(up, c_eye))
-        
-        return (dirX, dirY)
-    }
-    
-    func rotateToAPoint(p: SIMD3<Float>, o: SIMD3<Float>, v: SIMD3<Float>, alpha: Float) -> SIMD3<Float>
-    {
-        let c : Float = cos(alpha);
-        let s : Float = sin(alpha);
-        let C : Float = 1.0 - c;
-        var m = matrix_identity_float4x4
-        
-        m[0, 0] = v.x * v.x * C + c
-        m[0, 1] = v.y * v.x * C + v.z * s
-        m[0, 2] = v.z * v.x * C - v.y * s
-        m[0, 3] = 0
-
-        m[1, 0] = v.x * v.y * C - v.z * s
-        m[1, 1] = v.y * v.y * C + c
-        m[1, 2] = v.z * v.y * C + v.x * s
-        m[1, 3] = 0
-        
-        m[2, 0] = v.x * v.z * C + v.y * s
-        m[2, 1] = v.y * v.z * C - v.x * s
-        m[2, 2] = v.z * v.z * C + c
-        m[2, 3] = 0
-        
-        m[3, 0] = 0
-        m[3, 1] = 0
-        m[3, 2] = 0
-        m[3, 3] = 1
-        
-        let P = p - o
-        var out = o
-        
-        out.x += P.x * m[0, 0] + P.y * m[1, 0] + P.z * m[2, 0] + m[3, 0]
-        out.y += P.x * m[0, 1] + P.y * m[1, 1] + P.z * m[2, 1] + m[3, 1]
-        out.z += P.x * m[0, 2] + P.y * m[1, 2] + P.z * m[2, 2] + m[3, 2]
-        
-        return out
-    }
-
-    // Zooms the camera in / out
-    func zoom(dx: Float, dy: Float)
-    {
-        eye -= center
-        eye *= dy + 1
-        eye += center
-        
-        if let frag = originFrag {
-            insertValueToFragment3(frag, eye)
+            camera3D.initFromCamera(aspect: rect.width/rect.height, originFrag: originFrag, lookAtFrag: lookAtFrag, fovFrag: fovFrag)
+            
+            initialValues = [:]
+            initialValues["origin"] = originFrag!.values["value"]!
+            initialValues["lookAt"] = lookAtFrag!.values["value"]!
         }
     }
     
-    // Zooms the camera in / out
-    func zoomRelative(dx: Float, dy: Float, start: SIMD3<Float>)
+    override func mouseMoved(_ event: MMMouseEvent)
     {
-        eye -= center
-        eye = start / dy
-        eye += center
-        
-        if let frag = originFrag {
-            insertValueToFragment3(frag, eye)
-        }
-    }
-    
-    // Pans the camera
-    func pan(dx: Float, dy: Float)
-    {
-        let dir = calculateDirXY()
-        let e = eye - center
-        let t : Float = tan(fov/2 * Float.pi / 180)
-        let len = 2 * length(e) * t
-        
-        let add : SIMD3<Float> = dir.1 * (dx * len * aspect) + dir.0 * (dy * len)
-        
-        center += add
-        eye += add
-        
-        if let frag = originFrag {
-            insertValueToFragment3(frag, eye)
-        }
-        
-        if let frag = lookAtFrag {
-            insertValueToFragment3(frag, center)
-        }
-    }
-    
-    // Rotates the camera
-    func rotate(dx: Float, dy: Float)
-    {
-        let dir = calculateDirXY()
+        if component.componentType == .Dummy { return }
 
-        eye = rotateToAPoint(p: eye, o: center, v: dir.0, alpha: -dx * Float.pi)
-        eye = rotateToAPoint(p: eye, o: center, v: dir.1, alpha: dy * Float.pi)
-        
-        if let frag = originFrag {
-            insertValueToFragment3(frag, eye)
+        if dragState == .Inactive {
+            let oldHoverButton = hoverButton
+            if let hover = hoverButton {
+                hover.removeState(.Hover)
+            }
+            hoverButton = nil
+            hoverState = .Inactive
+            if moveButton.rect.contains(event.x, event.y) {
+                hoverButton = moveButton
+                hoverState = .CameraMove
+                moveButton.addState(.Hover)
+            } else
+            if panButton.rect.contains(event.x, event.y) {
+                hoverButton = panButton
+                hoverState = .CameraPan
+                panButton.addState(.Hover)
+            } else
+            if rotateButton.rect.contains(event.x, event.y) {
+                hoverButton = rotateButton
+                hoverState = .CameraRotate
+                rotateButton.addState(.Hover)
+            } else
+            if zoomButton.rect.contains(event.x, event.y) {
+                hoverButton = zoomButton
+                hoverState = .CameraZoom
+                zoomButton.addState(.Hover)
+            }
+            if oldHoverButton !== hoverButton {
+                mmView.update()
+            }
         }
+        if dragState != .Inactive && camIsValid {
+    
+            let p = SIMD2<Float>(event.x, event.y)
+            var diff : Float
+
+            // Figure out the drag direction and calculate the diff
+            if gizmoDragLocked == 0 {
+                var dx = p.x - dragStartOffset!.x; dx *= dx
+                var dy = p.y - dragStartOffset!.y; dy *= dy
+                
+                if dx > dy {
+                    diff = (p.x - dragStartOffset!.x)
+                    if dx > 10 {
+                        gizmoDragLocked = 1
+                    }
+                } else {
+                    diff = (p.y - dragStartOffset!.y)
+                    if dy > 10 {
+                        gizmoDragLocked = 2
+                    }
+                }
+            } else
+            if gizmoDragLocked == 1 {
+                diff = (p.x - dragStartOffset!.x)
+            } else {
+                diff = (p.y - dragStartOffset!.y)
+            }
+
+            if dragState == .CameraMove {
+                
+                let diffX : Float = (p.x - dragStartOffset!.x) * 0.0006
+                let diffY : Float = (p.y - dragStartOffset!.y) * 0.0006
+                
+                camera3D.move(dx: diffX, dy: diffY)
+                dragStartOffset!.x = p.x
+                dragStartOffset!.y = p.y
+
+                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
+                let properties : [String:Float] = [
+                    "origin" : camera3D.originFrag!.values["value"]!,
+                    "lookAt" : camera3D.lookAtFrag!.values["value"]!
+                ]
+                //print(camera3D.originFrag!.values["value"]!, camera3D.lookAtFrag!.values["value"]!)
+                //processGizmoProperties(properties)
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+
+            } else
+            if dragState == .CameraPan {
+                
+                let diffX : Float = (p.x - dragStartOffset!.x) * 0.003
+                let diffY : Float = (p.y - dragStartOffset!.y) * 0.003
+                
+                camera3D.pan(dx: diffX, dy: diffY)
+                dragStartOffset!.x = p.x
+                dragStartOffset!.y = p.y
+
+                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
+                let properties : [String:Float] = [
+                    "origin" : camera3D.originFrag!.values["value"]!,
+                    "lookAt" : camera3D.lookAtFrag!.values["value"]!
+                ]
+                //print(camera3D.originFrag!.values["value"]!, camera3D.lookAtFrag!.values["value"]!)
+                //processGizmoProperties(properties)
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+
+            }
+            
+            if dragState == .CameraRotate {
+                
+                let diffX : Float = (p.x - dragStartOffset!.x) * 0.003
+                let diffY : Float = (p.y - dragStartOffset!.y) * 0.003
+                
+                camera3D.rotate(dx: diffX, dy: diffY)
+                dragStartOffset!.x = p.x
+                dragStartOffset!.y = p.y
+
+                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
+                let properties : [String:Float] = [
+                    "origin" : camera3D.originFrag!.values["value"]!,
+                    "lookAt" : camera3D.lookAtFrag!.values["value"]!
+                ]
+                //print(camera3D.originFrag!.values["value"]!, camera3D.lookAtFrag!.values["value"]!)
+                //processGizmoProperties(properties)
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+
+            }
+            
+            if dragState == .CameraZoom {
+                
+                camera3D.zoom(dx: diff * 0.003, dy: diff * 0.003)
+                dragStartOffset!.x = p.x
+                dragStartOffset!.y = p.y
+
+                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
+                let properties : [String:Float] = [
+                    "origin" : camera3D.originFrag!.values["value"]!,
+                    "lookAt" : camera3D.lookAtFrag!.values["value"]!
+                ]
+                //print(camera3D.originFrag!.values["value"]!, camera3D.lookAtFrag!.values["value"]!)
+                //processGizmoProperties(properties)
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+
+            } else
+                
+            if dragState == .yAxisMove {
+                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoYAxisNormal, planeCenter: planeCenter)
+                let properties : [String:Float] = [
+                    //"_posY" : initialValues["_posY"]! + (hit.y - dragStartOffset!.x),
+                    "_posY" : initialValues["_posY"]! + diff
+                ]
+                processGizmoProperties(properties)
+            } else
+            if dragState == .zAxisMove {
+                //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoZAxisNormal, planeCenter: planeCenter)
+                let properties : [String:Float] = [
+                    //"_posZ" : initialValues["_posZ"]! + (hit.z - dragStartOffset!.x),
+                    "_posZ" : initialValues["_posZ"]! + diff,
+                ]
+                processGizmoProperties(properties)
+            }
+            
+            else
+            if dragState == .Rotate {
+                /*
+                let angle = 0//getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
+                var value = 0//initialValues["_rotateX"]! + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                if value < 0 {
+                    value = 360 + value
+                }
+                let properties : [String:Float] = [
+                    "_rotateX" : value
+                ]
+                processGizmoProperties(properties)
+                */
+            } else
+            if dragState == .xAxisScale {
+                if let fragment = scaleXFragment {
+                    //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
+                    //processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (hit.x - dragStartOffset!.x), 0.001))
+                    processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + diff, 0.001))
+                }
+            } else
+            if dragState == .yAxisScale {
+                if let fragment = scaleYFragment {
+                    //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoYAxisNormal, planeCenter: planeCenter)
+                    //processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (hit.y - dragStartOffset!.x), 0.001))
+                    processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - diff, 0.001))
+                }
+            } else
+            if dragState == .zAxisScale {
+                if let fragment = scaleZFragment {
+                    //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoZAxisNormal, planeCenter: planeCenter)
+                    //processProperty(fragment, name: scaleZFragmentName!, value: max(initialValues["_scaleZ"]! + (hit.z - dragStartOffset!.x), 0.001))
+                    processProperty(fragment, name: scaleZFragmentName!, value: max(initialValues["_scaleZ"]! + diff, 0.001))
+                }
+            }
+            
+            if undoComponent == nil {
+                //undoComponent = globalApp!.currentEditor.undoComponentStart("Gizmo Action")
+            }
+            
+            //updateUIProperties()
+            globalApp!.artistEditor.designProperties.setSelected(component)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        if component.componentType == .Dummy { return }
+
+        if let hover = hoverButton {
+            hover.removeState(.Hover)
+        }
+        
+        dragState = .Inactive
+        activeButton = nil
+        hoverButton = nil
+        #if os(iOS)
+        hoverState = .Inactive
+        #endif
+        if undoComponent != nil {
+            //globalApp!.currentEditor.undoComponentEnd(undoComponent!)
+            undoComponent = nil
+        }
+        mmView.update()
+        mouseIsDown = false
+    }
+    
+    /// Updates the UI properties
+    func updateUIProperties()
+    {
+        let designProperties = globalApp!.artistEditor.designProperties
+        
+        if let tNode = designProperties.c2Node {
+            for item in tNode.uiItems {
+                if item.brand == .Number {
+                    if let number = item as? NodeUINumber {
+                        number.value = component.values[item.variable]!
+                    }
+                }
+            }
+        }
+    }
+    
+    ///
+    func processGizmoProperties(_ properties: [String:Float])
+    {
+        let timeline = globalApp!.artistEditor.timeline
+        
+        if !timeline.isRecording {
+            for(name, value) in properties {
+                component.values[name] = value
+            }
+        } else {
+            timeline.addKeyProperties(sequence: component.sequence, uuid: component.uuid, properties: properties)
+        }
+        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+    }
+    
+    ///
+    func processProperty(_ fragment: CodeFragment, name: String, value: Float)
+    {
+        let timeline = globalApp!.artistEditor.timeline
+        
+        if !timeline.isRecording {
+            fragment.values["value"] = value
+        } else {
+            let properties : [String:Float] = [name:value]
+            timeline.addKeyProperties(sequence: component.sequence, uuid: component.uuid, properties: properties)
+        }
+        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    {
+        if component.componentType == .Dummy { return }
+
+        moveButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2
+        moveButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2 - 40
+        moveButton.draw()
+        
+        panButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2
+        panButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2 + 40
+        panButton.draw()
+        
+        rotateButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2 + 40
+        rotateButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2
+        rotateButton.draw()
+        
+        zoomButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2 - 60
+        zoomButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2
+        zoomButton.draw()
     }
 }

@@ -11,7 +11,7 @@ import Foundation
 class GizmoBase              : MMWidget
 {
     enum GizmoState         : Float {
-        case Inactive, CenterMove, xAxisMove, yAxisMove, zAxisMove, Rotate, xAxisScale, yAxisScale, zAxisScale, xyAxisScale
+        case Inactive, CenterMove, xAxisMove, yAxisMove, zAxisMove, Rotate, xAxisScale, yAxisScale, zAxisScale, xyAxisScale, CameraMove, CameraPan, CameraRotate, CameraZoom
     }
     
     var hoverState          : GizmoState = .Inactive

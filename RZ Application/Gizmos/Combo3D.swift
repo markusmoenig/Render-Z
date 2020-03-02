@@ -46,7 +46,7 @@ class GizmoCombo3D          : GizmoBase
 
     var compute             : MMCompute
     
-    var camera3D            : Camera3D = Camera3D()
+    var camera3D            : CamHelper3D = CamHelper3D()
     var mouseIsDown         : Bool = false
     
     override init(_ view: MMView)
