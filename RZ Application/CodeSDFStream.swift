@@ -30,6 +30,14 @@ class CodeSDFStream
         
     }
     
+    func reset()
+    {
+        ids = [:]
+        idCounter = 0
+        
+        hierarchy = []
+    }
+    
     func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil)
     {
         self.type = type
@@ -39,11 +47,6 @@ class CodeSDFStream
         monitor = nil
         componentCounter = 0        
         instance.properties = []
-        
-        ids = [:]
-        idCounter = 0
-        
-        hierarchy = []
                 
         if type == .SDF2D {
             headerCode = codeBuilder.getHeaderCode()
@@ -73,7 +76,7 @@ class CodeSDFStream
             texture2d<half, access::write>          __outTexture  [[texture(0)]],
             constant float4                        *__data   [[ buffer(1) ]],
             //texture2d<half, access::sample>       fontTexture [[texture(2)]],
-            uint2 __gid                               [[thread_position_in_grid]])
+            uint2 __gid                             [[thread_position_in_grid]])
             {
                 float4 __monitorOut = float4(0,0,0,0);
                 float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
@@ -144,9 +147,11 @@ class CodeSDFStream
             kernel void componentBuilder(
             texture2d<half, access::write>          __outTexture  [[texture(0)]],
             constant float4                        *__data   [[ buffer(1) ]],
-            texture2d<half, access::sample>         __rayOriginTexture [[texture(2)]],
-            texture2d<half, access::sample>         __rayDirectionTexture [[texture(3)]],
-            texture2d<half, access::write>          __normalTexture [[texture(4)]],
+            texture2d<half, access::sample>         __depthInTexture [[texture(2)]],
+            texture2d<half, access::sample>         __normalInTexture [[texture(3)]],
+            texture2d<half, access::sample>         __rayOriginTexture [[texture(4)]],
+            texture2d<half, access::sample>         __rayDirectionTexture [[texture(5)]],
+            texture2d<half, access::write>          __normalTexture [[texture(6)]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
@@ -166,10 +171,10 @@ class CodeSDFStream
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
-                float4 inShape = float4(100000, -1, -1, -1);
-                float4 outShape = float4(100000, -1, -1, -1);
-                float3 outNormal = float3(0);
-            
+                float4 outShape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
+                float4 inShape = outShape;
+                float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
+
                 /*
                 float t = 0.001;
                 for( int i=0; i < 70; i++ )
@@ -205,6 +210,60 @@ class CodeSDFStream
                     instance.code += code
                 }
             }
+            
+            // SoftShadows
+            
+            instance.code +=
+            """
+            
+            /*
+            if (outShape.x != inShape.x) {
+                float res = 1.0;
+                float t = 0.001;
+                float3 ro = rayOrigin;
+                float3 rd = rayDirection;
+                for( int i = 0; i < 16; i++ )
+                {
+                    float h = sceneMap( ro + rd*t, &__funcData ).x;
+                    float s = clamp(8.0*h/t,0.0,1.0);
+                    res = min( res, s*s*(3.0-2.0*s) );
+                    t += clamp( h, 0.02, 0.10 );
+                    if( res<0.005 ) break;
+                }
+                outShape.z = clamp( res, 0.0, 1.0 );
+            }*/
+            
+                
+            float gt = (0.0-rayOrigin.y)/rayDirection.y;
+            if ( gt > 0. && gt < outShape.y ) {
+                outShape.x = 0.0;
+                outShape.y = gt;
+                
+                //inShape = outShape;
+                outNormal = float3(0,1,0);
+            }
+            
+            
+            if (outShape.x != inShape.x) {
+
+                float occ = 0.0;
+                float sca = 1.0;
+                float3 nor = outNormal;
+                float3 pos = rayOrigin + outShape.y * rayDirection;
+
+                for( int i=0; i<5; i++ )
+                {
+                    float hr = 0.01 + 0.12*float(i)/4.0;
+                    float3 aopos =  nor * hr + pos;
+                    float dd = sceneMap( aopos, &__funcData ).x;
+                    occ += -(dd-hr)*sca;
+                    sca *= 0.95;
+                }
+                outShape.z = min(outShape.z, clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y) );
+                outShape.z = clamp( 1.0 - 3.0*occ, 0.0, 1.0 );
+            }
+            
+            """
         }
     }
 
@@ -304,7 +363,7 @@ class CodeSDFStream
             """
             
                 float4 shapeA = outShape;
-                float4 shapeB = float4(outDistance,0,0,\(idCounter));
+                float4 shapeB = float4(outDistance, 0, 0, \(idCounter));
             
             """
             
@@ -317,7 +376,7 @@ class CodeSDFStream
             code +=
             """
             
-                outShape = float4(outDistance,0,0,\(idCounter));
+                outShape = float4(outDistance, 0, 0, \(idCounter));
             
             """
         }

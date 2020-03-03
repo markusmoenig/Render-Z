@@ -15,11 +15,17 @@ class Pipeline
 
     var backTexture         : MTLTexture? = nil
     var depthTexture        : MTLTexture? = nil
+    var depthTexture2       : MTLTexture? = nil
     var resultTexture       : MTLTexture? = nil
+    
+    var depthTextureResult  : MTLTexture? = nil
     
     var rayOriginTexture    : MTLTexture? = nil
     var rayDirectionTexture : MTLTexture? = nil
+
     var normalTexture       : MTLTexture? = nil
+    var normalTexture2      : MTLTexture? = nil
+    var normalTextureResult : MTLTexture? = nil
 
     var instanceMap         : [String:CodeBuilderInstance] = [:]
 
@@ -76,6 +82,7 @@ class Pipeline
 
             // Objects
             let shapeStage = scene.getStage(.ShapeStage)
+            codeBuilder.sdfStream.reset()
             for item in shapeStage.getChildren() {
                 if let shapes = item.getComponentList("shapes") {
                     let instance = CodeBuilderInstance()
@@ -123,7 +130,8 @@ class Pipeline
             
             // Objects
             let shapeStage = scene.getStage(.ShapeStage)
-            for item in shapeStage.getChildren() {
+            codeBuilder.sdfStream.reset()
+            for (index, item) in shapeStage.getChildren().enumerated() {
                 if let shapes = item.getComponentList("shapes") {
                     let instance = CodeBuilderInstance()
                     instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
@@ -134,7 +142,7 @@ class Pipeline
                     }
                     processChildren(item)
                     codeBuilder.sdfStream.pullStageItem()
-                    instanceMap["shape"] = instance
+                    instanceMap["shape_\(index)"] = instance
                     codeBuilder.sdfStream.closeStream()
                 }
             }
@@ -218,19 +226,47 @@ class Pipeline
             
             // Render the shape distance into depthTexture (float)
             normalTexture = checkTextureSize(width, height, normalTexture, .rgba16Float)
+            normalTexture2 = checkTextureSize(width, height, normalTexture, .rgba16Float)
             depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
+            depthTexture2 = checkTextureSize(width, height, depthTexture, .rgba16Float)
+            
+            codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 10000, 10000, 10000))
+            depthTextureResult = depthTexture
+            normalTextureResult = normalTexture
+
+            var objectIndex : Int = 0
+            var shapeText : String = "shape_" + String(objectIndex)
+            
+            while let inst = instanceMap[shapeText] {
+                if depthTextureResult === depthTexture {
+                    codeBuilder.render(inst, depthTexture2, inTextures: [depthTexture!, normalTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture2!])
+                    depthTextureResult = depthTexture2
+                    normalTextureResult = normalTexture2
+                    //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+                } else
+                if depthTextureResult === depthTexture2 {
+                    codeBuilder.render(inst, depthTexture, inTextures: [depthTexture2!, normalTexture2!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!])
+                    depthTextureResult = depthTexture
+                    normalTextureResult = normalTexture
+                    //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+                }
+                objectIndex += 1
+                shapeText = "shape_" + String(objectIndex)
+            }
+
+            /*
             if let inst = instanceMap["shape"] {
                 codeBuilder.render(inst, depthTexture, inTextures: [rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!])
                 computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             } else {
                 codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 10000, 10000, 10000))
-            }
+            }*/
             
             // Render it all
             if let inst = instanceMap["render"] {
                 resultTexture = checkTextureSize(width, height, resultTexture)
-                codeBuilder.render(inst, resultTexture, inTextures: [depthTexture!, backTexture!, normalTexture!])
-                computeMonitor(inst, inTextures: [depthTexture!, backTexture!])
+                codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!])
+                computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
             } else {
                 resultTexture = backTexture
             }

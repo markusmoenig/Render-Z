@@ -30,7 +30,8 @@ class CodeFragment          : Codable, Equatable
                 Else,                   // Else
                 For,                    // For
                 End,                    // End Block Statement
-                Break                   // Break (Inside Loops)
+                Break,                  // Break (Inside Loops)
+                Logic                   // &&, ||
     }
     
     enum FragmentProperties : Int, Codable{
@@ -605,7 +606,7 @@ class CodeFragment          : Codable, Equatable
                 ctx.addCode(codeName)
             }
         } else
-        if fragmentType == .Arithmetic || fragmentType == .Assignment || fragmentType == .Comparison {
+        if fragmentType == .Arithmetic || fragmentType == .Assignment || fragmentType == .Comparison || fragmentType == .Logic {
             let rStart = ctx.rectStart()
            
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -1457,6 +1458,13 @@ class CodeComponent         : Codable, Equatable
         libraryComment = try container.decode(String.self, forKey: .libraryComment)
         values = try container.decode([String:Float].self, forKey: .values)
         subComponent = try container.decode(CodeComponent?.self, forKey: .subComponent)
+        
+        /*
+        if componentType == .RayMarch3D {
+            let f = functions[1]
+            let arg2 = CodeFragment(.VariableDefinition, "float", "maxDistance", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+            f.header.statement.fragments.append(arg2)
+        }*/
     }
     
     func encode(to encoder: Encoder) throws
@@ -1705,9 +1713,6 @@ class CodeComponent         : Codable, Equatable
 
             let f = CodeFunction(type, "rayMarch")
             f.comment = "Raymarch the scene by evaluating the sceneMap function"
-            
-            let arg3 = CodeFragment(.VariableDefinition, "float4", "inShape", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
-            f.header.statement.fragments.append(arg3)
             
             let arg1 = CodeFragment(.VariableDefinition, "float3", "rayOrigin", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)

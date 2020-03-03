@@ -26,7 +26,7 @@ class AccessButton
 class CodeAccess            : MMWidget
 {
     enum AccessState {
-        case Closed, Arithmetic, ArithmeticOperator, AssignmentOperator, ComparisonOperator, FreeFlowFunctionArgument
+        case Closed, Arithmetic, ArithmeticOperator, AssignmentOperator, ComparisonOperator, FreeFlowFunctionArgument, LogicOperator
     }
     
     var accessState             : AccessState = .Closed
@@ -48,6 +48,7 @@ class CodeAccess            : MMWidget
     //let arithmetics             : [String] = ["+", "-", "*", "/", "^", "<<", ">>"]
     let assignments             : [String] = ["=", "+=", "-=", "*=", "/="]
     let comparisons             : [String] = ["==", "!=", "<", ">", "<=", ">="]
+    let logical                 : [String] = ["&&", "||"]
     let freeFlowArguments       : [String] = ["int", "float", "float2", "float3", "float4"]
 
     init(_ view: MMView,_ codeEditor: CodeEditor)
@@ -109,6 +110,14 @@ class CodeAccess            : MMWidget
             rightButtons.append(b)
         }
         
+        func addMiddleButton(_ name: String) {
+            let b = AccessButton(mmView, mmView.sourceCodePro, name)
+            if b.label.rect.width > maxButtonSize {
+                maxButtonSize = b.label.rect.width
+            }
+            middleButtons.append(b)
+        }
+        
         if let fragment = ctx.selectedFragment {
             
             // --- FreeFlow argument
@@ -152,18 +161,41 @@ class CodeAccess            : MMWidget
                     addLeftButton(a)
                 }
             } else
-            if fragment.fragmentType == .Assignment {
-                accessState = .AssignmentOperator
+            if fragment.fragmentType == .Assignment  {
+                var isValid = true
+                // Disable if previous statement was a variable definition
+                if let pStatement = fragment.parentStatement {
+                    if let pIndex = pStatement.fragments.firstIndex(of: fragment), pIndex > 0 {
+                        let previous = pStatement.fragments[pIndex-1]
+                        if previous.fragmentType == .VariableDefinition {
+                            isValid = false
+                        }
+                    }
+                }
                 
-                for a in assignments {
-                    addLeftButton(a)
+                if isValid {
+                    accessState = .AssignmentOperator
+                    for a in assignments {
+                        addMiddleButton(a)
+                    }
                 }
             } else
             if fragment.fragmentType == .Comparison {
                 accessState = .ComparisonOperator
                 
                 for a in comparisons {
-                    addLeftButton(a)
+                    addMiddleButton(a)
+                }
+                
+                for l in logical {
+                    addButtonBothSides(l)
+                }
+            } else
+            if fragment.fragmentType == .Logic {
+                accessState = .LogicOperator
+                
+                for l in logical {
+                    addMiddleButton(l)
                 }
             }
         }
@@ -431,7 +463,42 @@ class CodeAccess            : MMWidget
         } else
         if accessState == .ComparisonOperator {
 
-             if let frag = codeEditor.codeContext.selectedFragment {
+            if logical.contains(button.name) {
+                // Add a new logical statement to the left or right
+                
+                if let frag = codeEditor.codeContext.selectedFragment {
+                    let pStatement = frag.parentStatement!
+                    if let pIndex = pStatement.fragments.firstIndex(of: frag) {
+                    
+                        let leftIndex : Int = 0
+                        let rightIndex : Int = pStatement.fragments.count - 1
+                        
+                        let logic = CodeFragment(.Logic, "float", button.name, [.Selectable, .Dragable, .Targetable])
+                        let value1 = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
+                        let comparison = CodeFragment(.Comparison, "bool", "==", [.Selectable])
+                        let value2 = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
+                        
+                        let undo = codeEditor.undoStart("Added Logic")
+
+                        if button.isLeft {
+                            pStatement.fragments.insert(value1, at: leftIndex)
+                            pStatement.fragments.insert(comparison, at: leftIndex + 1)
+                            pStatement.fragments.insert(value2, at: leftIndex + 2)
+                            pStatement.fragments.insert(logic, at: leftIndex + 3)
+                        } else {
+                            pStatement.fragments.insert(logic, at: rightIndex + 1)
+                            pStatement.fragments.insert(value1, at: rightIndex + 2)
+                            pStatement.fragments.insert(comparison, at: rightIndex + 3)
+                            pStatement.fragments.insert(value2, at: rightIndex + 4)
+                        }
+                        
+                        codeEditor.editor.codeProperties.needsUpdate = true
+                        codeEditor.updateCode(compile: true)
+                        codeEditor.undoEnd(undo)
+                    }
+                }
+            } else
+            if let frag = codeEditor.codeContext.selectedFragment {
                 let undo = codeEditor.undoStart("Changed Comparison")
                 frag.name = button.name
                 codeEditor.editor.codeProperties.needsUpdate = true
@@ -439,6 +506,16 @@ class CodeAccess            : MMWidget
                 codeEditor.undoEnd(undo)
             }
         } else
+        if accessState == .LogicOperator {
+            if let frag = codeEditor.codeContext.selectedFragment {
+                let undo = codeEditor.undoStart("Changed Logic")
+                frag.name = button.name
+                codeEditor.editor.codeProperties.needsUpdate = true
+                codeEditor.updateCode(compile: true)
+                codeEditor.undoEnd(undo)
+            }
+        }
+        else
         if accessState == .FreeFlowFunctionArgument {
             if let frag = codeEditor.codeContext.selectedFragment {
                 let pBlock = frag.parentBlock!

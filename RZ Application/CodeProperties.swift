@@ -334,7 +334,9 @@ class CodeProperties    : MMWidget
                 }
             } else
             // --- FreeFlow argument
-            if fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.parentFunction != nil && fragment.parentBlock!.parentFunction!.functionType == .FreeFlow && fragment.parentBlock!.parentFunction!.header.statement.fragments.contains(fragment) {
+            if fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.parentFunction != nil && fragment.parentBlock!.parentFunction!.functionType == .FreeFlow && fragment.parentBlock!.parentFunction!.header.statement.fragments.contains(fragment)
+                //|| true // Enable this if you want to emergency edit function arguments
+            {
 
                 c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Argument Name", value: fragment.name) )
                 c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
