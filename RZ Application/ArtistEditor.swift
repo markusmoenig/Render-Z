@@ -55,7 +55,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, globalApp!.topRegion!.cameraButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -64,7 +64,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, timelineButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton, globalApp!.topRegion!.cameraButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -97,6 +97,11 @@ class ArtistEditor          : Editor
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton, globalApp!.topRegion!.graphButton)
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
+            
+            let cameraButton = globalApp!.topRegion!.cameraButton!
+            cameraButton.rect.x = (globalApp!.topRegion!.rect.width - cameraButton.rect.width) / 2
+            cameraButton.rect.y = 4 + 44
+            cameraButton.draw()
         } else
         if region.type == .Left {
             region.rect.width = 0

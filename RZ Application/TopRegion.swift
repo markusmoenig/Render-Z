@@ -32,6 +32,7 @@ class TopRegion: MMRegion
     var graphButton     : MMButtonWidget!
 
     var libraryButton   : MMButtonWidget!
+    var cameraButton    : MMButtonWidget!
 
     var app             : App
 
@@ -172,6 +173,21 @@ class TopRegion: MMRegion
             self.libraryButton.removeState(.Checked)
         }
         libraryButton.isDisabled = true
+        
+        cameraButton = MMButtonWidget( mmView, text: "Camera" )
+        cameraButton.clicked = { (event) -> Void in
+            let preStage = globalApp!.project.selected!.getStage(.PreStage)
+            let preStageChildren = preStage.getChildren()
+            for stageItem in preStageChildren {
+                if let c = stageItem.components[stageItem.defaultName] {
+                    if c.componentType == .Camera2D || c.componentType == .Camera3D {
+                        globalApp!.sceneGraph.setCurrent(stage: preStage, stageItem: stageItem, component: c)
+                        break
+                    }
+                }
+            }
+            self.cameraButton.removeState(.Checked)
+        }
         
         helpButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Help" )
         helpButton.isDisabled = false
