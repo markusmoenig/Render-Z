@@ -325,8 +325,8 @@ class CodeBuilder
             //randv2 += float2(1.0,1.0);
             //float2 jitter = float2(fract(sin(dot(randv2.xy ,float2(12.9898,78.233))) * 43758.5453), fract(cos(dot(randv2.xy ,float2(4.898,7.23))) * 23421.631));
         
-            //float2 jitter = float2(0.5, 0.5);
-            float2 jitter = float2(__data[0].z, __data[0].w);
+            float2 jitter = float2(0.5, 0.5);
+            //float2 jitter = float2(__data[0].z, __data[0].w);
 
             float3 outPosition = float3(0,0,0);
             float3 outDirection = float3(0,0,0);
@@ -581,16 +581,17 @@ class CodeBuilder
         texture2d<half, access::sample>         resultTexture [[texture(3)]],
         uint2 gid                               [[thread_position_in_grid]])
         {
-            constexpr sampler sampler(mag_filter::linear, min_filter::linear);
+            constexpr sampler linear_sampler(mag_filter::linear, min_filter::linear);
+            constexpr sampler nearest_sampler(mag_filter::nearest, min_filter::nearest);
 
             float2 size = float2( outTexture.get_width(), outTexture.get_height() );
             float2 uv = float2(gid.x, gid.y) / size;
 
             float frame = data[0].x;
 
-            float4 sample = float4(sampleTexture.sample(sampler, uv));
-            float4 result = float4(resultTexture.sample(sampler, uv));
-            float4 final = result * (1.0 - 1./frame) + sample * 1./frame;;
+            float4 sample = float4(sampleTexture.sample(nearest_sampler, uv));
+            float4 result = float4(resultTexture.sample(linear_sampler, uv));
+            float4 final = mix(sample, result, 1./frame);
 
             outTexture.write(half4(final), gid);
         }

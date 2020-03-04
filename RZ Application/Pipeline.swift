@@ -227,21 +227,23 @@ class Pipeline
             }
         } else {
             // 3D
-
-            finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
-            sampleCounter = 2
             
             createRender3DSample(width, height)
-            codeBuilder.compute.copyTexture(finalTexture!, resultTexture!)
-            //codeBuilder.renderCopyNearest(texture: finalTexture!, inTexture:  resultTexture!)
+            finalTexture = resultTexture
 
+            /*
+            finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
+            sampleCounter = 1
             
-            for i in 0...20 {
+            //createRender3DSample(width, height)
+            //codeBuilder.compute.copyTexture(finalTexture!, resultTexture!)
+            
+            for _ in 0..<10 {
                 createRender3DSample(width, height)
                 codeBuilder.compute.copyTexture(normalTexture!, finalTexture!)
                 codeBuilder.renderSample(texture: finalTexture!, sampleTexture: normalTexture!, resultTexture: resultTexture!, frame: sampleCounter)
                 sampleCounter += 1
-            }
+            }*/
         }
     }
     
