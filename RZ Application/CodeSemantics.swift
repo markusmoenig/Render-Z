@@ -1106,7 +1106,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D
     }
     
     let functionType        : FunctionType
@@ -1379,7 +1379,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1463,6 +1463,13 @@ class CodeComponent         : Codable, Equatable
         if componentType == .RayMarch3D {
             let f = functions[1]
             let arg2 = CodeFragment(.VariableDefinition, "float", "maxDistance", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+            f.header.statement.fragments.append(arg2)
+        }*/
+        
+        /*
+        if componentType == .Camera3D {
+            let f = functions[0]
+            let arg2 = CodeFragment(.VariableDefinition, "float2", "jitter", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg2)
         }*/
     }
@@ -1565,6 +1572,22 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float", "outDistance"))
             functions.append(f)
         } else
+        if type == .Ground3D {
+            let f = CodeFunction(type, "groundDistance")
+            f.comment = "Returns the distance to the ground"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float3", "rayOrigin", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg1)
+            let arg2 = CodeFragment(.VariableDefinition, "float3", "rayDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float4", "outShape"))
+            f.body.append(f.createOutVariableBlock("float3", "outNormal"))
+            functions.append(f)
+        } else
         if type == .Boolean {
             let f = CodeFunction(type, "booleanOperator")
             f.comment = "Choose between the two shapes based on their distances stored in .x"
@@ -1603,6 +1626,9 @@ class CodeComponent         : Codable, Equatable
             
             let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg2)
+            
+            let arg3 = CodeFragment(.VariableDefinition, "float2", "jitter", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg3)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)

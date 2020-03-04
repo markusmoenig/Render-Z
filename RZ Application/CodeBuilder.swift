@@ -99,8 +99,11 @@ class CodeBuilder
     var isPlaying           : Bool = false
     
     var clearBuffer         : MTLBuffer!
+    var sampleBuffer        : MTLBuffer!
+
     var clearState          : MTLComputePipelineState? = nil
     var copyNearestState    : MTLComputePipelineState? = nil
+    var sampleState         : MTLComputePipelineState? = nil
 
     var sdfStream           : CodeSDFStream
 
@@ -113,6 +116,7 @@ class CodeBuilder
         
         buildClearState()
         buildCopyStates()
+        buildSampleState()
     }
     
     func build(_ component: CodeComponent, camera: CodeComponent? = nil, monitor: CodeFragment? = nil) -> CodeBuilderInstance
@@ -313,10 +317,19 @@ class CodeBuilder
             float2 size = float2( __outOriginTexture.get_width(), __outOriginTexture.get_height() );
             uv /= size;
             uv.y = 1.0 - uv.y;
+        
+            float GlobalTime = __data[0].x;
+
+            //float2 randv2 = fract(cos((uv.xy+uv.yx*float2(1000.0,1000.0))+float2(GlobalTime)*10.0));
+
+            //randv2 += float2(1.0,1.0);
+            //float2 jitter = float2(fract(sin(dot(randv2.xy ,float2(12.9898,78.233))) * 43758.5453), fract(cos(dot(randv2.xy ,float2(4.898,7.23))) * 23421.631));
+        
+            //float2 jitter = float2(0.5, 0.5);
+            float2 jitter = float2(__data[0].z, __data[0].w);
 
             float3 outPosition = float3(0,0,0);
             float3 outDirection = float3(0,0,0);
-            float GlobalTime = __data[0].x;
         
             struct FuncData __funcData;
             __funcData.GlobalTime = GlobalTime;
@@ -518,7 +531,6 @@ class CodeBuilder
         """
         
         let data : [SIMD4<Float>] = [SIMD4<Float>(0,0,0,0)]
-        
         clearBuffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
         let library = compute.createLibraryFromSource(source: code)
@@ -539,7 +551,7 @@ class CodeBuilder
         texture2d<half, access::sample>         inTexture [[texture(2)]],
         uint2 gid                               [[thread_position_in_grid]])
         {
-            constexpr sampler sampler(mag_filter::nearest, min_filter::nearest);
+            constexpr sampler sampler(mag_filter::linear, min_filter::linear);
 
             float2 size = float2( outTexture.get_width(), outTexture.get_height() );
             float2 uv = float2(gid.x, gid.y) / size;
@@ -551,6 +563,45 @@ class CodeBuilder
 
         let library = compute.createLibraryFromSource(source: code)
         copyNearestState = compute.createState(library: library, name: "copyNearestBuilder")
+    }
+    
+    /// Build a copy texture shader
+    func buildSampleState()
+    {
+        let code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void sampleBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *data   [[ buffer(1) ]],
+        texture2d<half, access::sample>         sampleTexture [[texture(2)]],
+        texture2d<half, access::sample>         resultTexture [[texture(3)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+            constexpr sampler sampler(mag_filter::linear, min_filter::linear);
+
+            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            float2 uv = float2(gid.x, gid.y) / size;
+
+            float frame = data[0].x;
+
+            float4 sample = float4(sampleTexture.sample(sampler, uv));
+            float4 result = float4(resultTexture.sample(sampler, uv));
+            float4 final = result * (1.0 - 1./frame) + sample * 1./frame;;
+
+            outTexture.write(half4(final), gid);
+        }
+         
+        """
+
+        let data : [SIMD4<Float>] = [SIMD4<Float>(0,0,0,0)]
+        sampleBuffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        
+        let library = compute.createLibraryFromSource(source: code)
+        sampleState = compute.createState(library: library, name: "sampleBuilder")
     }
     
     /// Update the instance buffer
@@ -578,6 +629,8 @@ class CodeBuilder
         }
         
         inst.data[0].x = time
+        inst.data[0].z = Float.random(in: 0...1)
+        inst.data[0].w = Float.random(in: 0...1)
         for property in inst.properties {
             
             let dataIndex = property.3
@@ -674,6 +727,16 @@ class CodeBuilder
         compute.run( copyNearestState!, outTexture: texture, inTexture: inTexture, syncronize: syncronize)
         compute.commandBuffer.waitUntilCompleted()
     }
+    
+    // Copy the texture using nearest sampling
+    func renderSample(texture: MTLTexture, sampleTexture: MTLTexture, resultTexture: MTLTexture, frame: Int)
+    {
+        sampleBuffer = compute.device.makeBuffer(bytes: [SIMD4<Float>(Float(frame), 0, 0, 0)], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+
+        compute.run( sampleState!, outTexture: texture, inBuffer: sampleBuffer, inTextures: [sampleTexture, resultTexture])
+        compute.commandBuffer.waitUntilCompleted()
+    }
+    
     
     // Render the component into a texture
     func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], syncronize: Bool = false)

@@ -738,6 +738,30 @@ class SceneGraph                : MMWidget
 
                     }
                     toolBarWidgets.append(button)
+                } else
+                if let comp = item.component {
+                    if comp.componentType == .RayMarch3D {
+                        let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
+                        button.clicked = { (event) in
+                            globalApp!.libraryDialog.show(id: "RayMarch3D", cb: { (json) in
+                                if let comp = decodeComponentFromJSON(json) {
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Change RayMarcher")
+                                    
+                                    comp.uuid = UUID()
+                                    comp.selected = nil
+                                    globalApp!.currentEditor.setComponent(comp)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                    
+                                    comp.uuid = item.component!.uuid
+                                    globalApp!.project.selected!.updateComponent(comp)
+                                                                
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                }
+                            })
+                        }
+                        toolBarWidgets.append(button)
+                    }
                 }
             }
         }
@@ -976,7 +1000,14 @@ class SceneGraph                : MMWidget
     func drawObject(stage: Stage,o: StageItem, parent: SceneGraphItem? = nil, skin: SceneGraphSkin)
     {
         if o.label == nil || o.label!.scale != skin.fontScale {
-            o.label = MMTextLabel(mmView, font: mmView.openSans, text: o.name, scale: skin.fontScale, color: skin.normalTextColor)
+            let name : String = o.name
+            /*
+            if let def = o.components[o.defaultName] {
+                if def.componentType == .Ground3D {
+                    name += ": " + def.libraryName
+                }
+            }*/
+            o.label = MMTextLabel(mmView, font: mmView.openSans, text: name, scale: skin.fontScale, color: skin.normalTextColor)
         }
         let diameter : Float = o.label!.rect.width + 10 * graphZoom
         

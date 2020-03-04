@@ -17,7 +17,8 @@ class Pipeline
     var depthTexture        : MTLTexture? = nil
     var depthTexture2       : MTLTexture? = nil
     var resultTexture       : MTLTexture? = nil
-    
+    var finalTexture       : MTLTexture? = nil
+
     var depthTextureResult  : MTLTexture? = nil
     
     var rayOriginTexture    : MTLTexture? = nil
@@ -34,6 +35,8 @@ class Pipeline
     var monitorFragment     : CodeFragment? = nil
 
     var monitorTexture      : MTLTexture? = nil
+    
+    var sampleCounter       : Int = 0
 
     init(_ mmView: MMView)
     {
@@ -132,6 +135,8 @@ class Pipeline
             let shapeStage = scene.getStage(.ShapeStage)
             codeBuilder.sdfStream.reset()
             for (index, item) in shapeStage.getChildren().enumerated() {
+                
+                // Normal Object
                 if let shapes = item.getComponentList("shapes") {
                     let instance = CodeBuilderInstance()
                     instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
@@ -141,6 +146,20 @@ class Pipeline
                         codeBuilder.sdfStream.pushComponent(shape)
                     }
                     processChildren(item)
+                    codeBuilder.sdfStream.pullStageItem()
+                    instanceMap["shape_\(index)"] = instance
+                    codeBuilder.sdfStream.closeStream()
+                } else
+                if let ground = item.components[item.defaultName]
+                {
+                    // Ground Object
+                    let instance = CodeBuilderInstance()
+                    instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+                    codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, groundComponent: ground)
+                    codeBuilder.sdfStream.pushStageItem(item)
+                    //for shape in shapes {
+                    //    codeBuilder.sdfStream.pushComponent(shape)
+                    //}
                     codeBuilder.sdfStream.pullStageItem()
                     instanceMap["shape_\(index)"] = instance
                     codeBuilder.sdfStream.closeStream()
@@ -208,70 +227,100 @@ class Pipeline
             }
         } else {
             // 3D
-            
-            // Render the Camera Textures
-            rayOriginTexture = checkTextureSize(width, height, rayOriginTexture, .rgba16Float)
-            rayDirectionTexture = checkTextureSize(width, height, rayDirectionTexture, .rgba16Float)
-            if let inst = instanceMap["camera3D"] {
-                codeBuilder.render(inst, rayOriginTexture, outTextures: [rayDirectionTexture!])
-                computeMonitor(inst)
-            }
-            
-            // Render the SkyDome into backTexture
-            backTexture = checkTextureSize(width, height, backTexture)
-            if let inst = instanceMap["pre"] {
-                codeBuilder.render(inst, backTexture, inTextures: [rayDirectionTexture!])
-                computeMonitor(inst)
-            }
-            
-            // Render the shape distance into depthTexture (float)
-            normalTexture = checkTextureSize(width, height, normalTexture, .rgba16Float)
-            normalTexture2 = checkTextureSize(width, height, normalTexture, .rgba16Float)
-            depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
-            depthTexture2 = checkTextureSize(width, height, depthTexture, .rgba16Float)
-            
-            codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 10000, 10000, 10000))
-            depthTextureResult = depthTexture
-            normalTextureResult = normalTexture
 
-            var objectIndex : Int = 0
-            var shapeText : String = "shape_" + String(objectIndex)
+            finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
+            sampleCounter = 2
             
-            while let inst = instanceMap[shapeText] {
-                if depthTextureResult === depthTexture {
-                    codeBuilder.render(inst, depthTexture2, inTextures: [depthTexture!, normalTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture2!])
-                    depthTextureResult = depthTexture2
-                    normalTextureResult = normalTexture2
-                    //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-                } else
-                if depthTextureResult === depthTexture2 {
-                    codeBuilder.render(inst, depthTexture, inTextures: [depthTexture2!, normalTexture2!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!])
-                    depthTextureResult = depthTexture
-                    normalTextureResult = normalTexture
-                    //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-                }
-                objectIndex += 1
-                shapeText = "shape_" + String(objectIndex)
-            }
+            createRender3DSample(width, height)
+            codeBuilder.compute.copyTexture(finalTexture!, resultTexture!)
+            //codeBuilder.renderCopyNearest(texture: finalTexture!, inTexture:  resultTexture!)
 
-            /*
-            if let inst = instanceMap["shape"] {
-                codeBuilder.render(inst, depthTexture, inTextures: [rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!])
-                computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-            } else {
-                codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 10000, 10000, 10000))
-            }*/
             
-            // Render it all
-            if let inst = instanceMap["render"] {
-                resultTexture = checkTextureSize(width, height, resultTexture)
-                codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!])
-                computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
-            } else {
-                resultTexture = backTexture
+            for i in 0...20 {
+                createRender3DSample(width, height)
+                codeBuilder.compute.copyTexture(normalTexture!, finalTexture!)
+                codeBuilder.renderSample(texture: finalTexture!, sampleTexture: normalTexture!, resultTexture: resultTexture!, frame: sampleCounter)
+                sampleCounter += 1
             }
-            //resultTexture = depthTexture
         }
+    }
+    
+    func createRender3DSample(_ width: Float,_ height: Float)
+    {
+        // Monitor
+        func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
+        {
+            // Monitor
+            if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
+                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba32Float)
+                if monitorInstance == nil {
+                    monitorInstance = codeBuilder.build(monitorComponent!, monitor: monitorFragment)
+                }
+                if let mInstance = monitorInstance {
+                    codeBuilder.render(mInstance, monitorTexture!, inTextures: inTextures, syncronize: true)
+                    if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
+                        monitorUI.setTexture(monitorTexture!)
+                    }
+                }
+            }
+        }
+        
+        // Render the Camera Textures
+        rayOriginTexture = checkTextureSize(width, height, rayOriginTexture, .rgba16Float)
+        rayDirectionTexture = checkTextureSize(width, height, rayDirectionTexture, .rgba16Float)
+        if let inst = instanceMap["camera3D"] {
+            codeBuilder.render(inst, rayOriginTexture, outTextures: [rayDirectionTexture!])
+            computeMonitor(inst)
+        }
+        
+        // Render the SkyDome into backTexture
+        backTexture = checkTextureSize(width, height, backTexture, .rgba16Float)
+        if let inst = instanceMap["pre"] {
+            codeBuilder.render(inst, backTexture, inTextures: [rayDirectionTexture!])
+            computeMonitor(inst)
+        }
+        
+        // Render the shape distance into depthTexture (float)
+        depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
+        depthTexture2 = checkTextureSize(width, height, depthTexture, .rgba16Float)
+        normalTexture = checkTextureSize(width, height, normalTexture, .rgba16Float)
+        normalTexture2 = checkTextureSize(width, height, normalTexture, .rgba16Float)
+
+        codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 1000000, 1, -1))
+
+        depthTextureResult = depthTexture
+        normalTextureResult = normalTexture
+
+        var objectIndex : Int = 0
+        var shapeText : String = "shape_" + String(objectIndex)
+        
+        while let inst = instanceMap[shapeText] {
+            
+            if depthTextureResult === depthTexture {
+                codeBuilder.render(inst, depthTexture2, inTextures: [depthTexture!, normalTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture2!])
+                depthTextureResult = depthTexture2
+                normalTextureResult = normalTexture2
+                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+            } else
+            if depthTextureResult === depthTexture2 {
+                codeBuilder.render(inst, depthTexture, inTextures: [depthTexture2!, normalTexture2!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!])
+                depthTextureResult = depthTexture
+                normalTextureResult = normalTexture
+                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+            }
+            objectIndex += 1
+            shapeText = "shape_" + String(objectIndex)
+        }
+
+        // Render it all
+        if let inst = instanceMap["render"] {
+            resultTexture = checkTextureSize(width, height, resultTexture, .rgba16Float)
+            codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!])
+            computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
+        } else {
+            resultTexture = backTexture
+        }
+
     }
     
     func renderIfResolutionChanged(_ width: Float,_ height: Float)
@@ -286,7 +335,7 @@ class Pipeline
     {
         var result  : MTLTexture? = texture
         
-        if texture == nil || (Float(texture!.width) != width || Float(texture!.height) != height) {
+        if texture == nil || (Float(texture!.width) != width || Float(texture!.height) != height || texture?.pixelFormat != pixelFormat) {
             result = codeBuilder.compute.allocateTexture(width: width, height: height, output: true, pixelFormat: pixelFormat)
         }
         

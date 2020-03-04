@@ -153,6 +153,24 @@ class MMCompute {
         
         commandBuffer.commit()
     }
+    
+    func copyTexture(_ to: MTLTexture, _ from: MTLTexture)
+    {
+        commandBuffer = commandQueue!.makeCommandBuffer()!
+
+        let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
+        
+        let width = min(from.width, to.width)
+        let height = min(from.height, to.height)
+        let depth = min(from.depth, to.depth)
+        let size = MTLSize(width: width, height: height, depth: depth)
+        blitEncoder.copy(from: from, sourceSlice: 0, sourceLevel: 0, sourceOrigin: MTLOriginMake(0, 0, 0), sourceSize: size,
+                     to: to, destinationSlice: 0, destinationLevel: 0, destinationOrigin: MTLOriginMake(0, 0, 0))
+        
+        blitEncoder.endEncoding()
+        
+        commandBuffer.commit()
+    }
 
     /// Run the given state
     func runBuffer(_ state: MTLComputePipelineState?, outBuffer: MTLBuffer, inBuffer: MTLBuffer? = nil, size: SIMD2<Float>? = nil, inTexture: MTLTexture? = nil, wait: Bool = true )

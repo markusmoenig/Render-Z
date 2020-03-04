@@ -169,7 +169,7 @@ class DesignEditor          : MMWidget
                     if globalApp!.currentSceneMode == .TwoD && value.x > 0 {
                         valid = false
                     }
-                
+                                    
                     if let id = globalApp!.pipeline.codeBuilder.sdfStream.ids[Int(value.w)], valid {
                         globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: id.1)
                     } else {
@@ -269,7 +269,7 @@ class DesignEditor          : MMWidget
         }
         
         // Do the preview
-        if let texture = globalApp!.pipeline.resultTexture {
+        if let texture = globalApp!.pipeline.finalTexture {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
             globalApp!.pipeline.renderIfResolutionChanged(rect.width, rect.height)
         } else {

@@ -235,10 +235,26 @@ class Stage                 : Codable, Equatable
             folderIsOpen = true
         }
         
+        if stageType == .ShapeStage {
+            
+            let item = StageItem(.RenderStage, "Ground")
+            //let codeComponent = CodeComponent(.Ground3D, "Plane")
+            //codeComponent.createDefaultFunction(.Ground3D)
+            let codeComponent = decodeComponentFromJSON(defaultGround3D)!
+            codeComponent.uuid = UUID()
+            codeComponent.selected = nil
+            item.components[item.defaultName] = codeComponent
+            children3D.append(item)
+            
+            item.values["_graphX"] = -20
+            item.values["_graphY"] = 100
+        }
+        
+        
         if stageType == .RenderStage {
             
             values["_graphX"] = 200
-            values["_graphY"] = 0
+            values["_graphY"] = -40
             
             var item = StageItem(.RenderStage, "Color")
             var codeComponent = decodeComponentFromJSON(defaultRender2D)!
@@ -276,7 +292,7 @@ class Stage                 : Codable, Equatable
         }
         
         if stageType == .VariablePool {
-            values["_graphX"] = 0
+            values["_graphX"] = 100
             values["_graphY"] = 170
             
             // Create Sun Pool

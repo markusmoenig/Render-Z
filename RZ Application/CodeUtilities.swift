@@ -155,6 +155,9 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             } else
             if component.componentType == .RayMarch3D {
                 libName += " :: RayMarch3D"
+            } else
+            if component.componentType == .Ground3D {
+                libName += " :: Ground3D"
             }
         }
         

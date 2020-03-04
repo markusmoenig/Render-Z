@@ -38,7 +38,7 @@ class CodeSDFStream
         hierarchy = []
     }
     
-    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil)
+    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil, groundComponent: CodeComponent? = nil)
     {
         self.type = type
         self.instance = instance
@@ -172,6 +172,8 @@ class CodeSDFStream
                 __funcData.__data = __data;
             
                 float4 outShape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
+
+                float maxDistance = outShape.y;
                 float4 inShape = outShape;
                 float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
 
@@ -200,6 +202,22 @@ class CodeSDFStream
             
             """
             
+            if let ground = groundComponent {
+                if ground.componentType == .Ground3D {
+                    
+                    dryRunComponent(ground, instance.data.count, monitor)
+                    instance.collectProperties(ground)
+                    if let globalCode = ground.globalCode {
+                        headerCode += globalCode
+                    }
+                    if let code = ground.code {
+                        instance.code += code
+                    }
+                    
+                    ids[idCounter] = ([globalApp!.project.selected!.getStage(.ShapeStage).getChildren()[0]], ground)
+                    idCounter += 1
+                }
+            } else
             if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D) {
                 dryRunComponent(rayMarch, instance.data.count, monitor)
                 instance.collectProperties(rayMarch)
@@ -209,62 +227,53 @@ class CodeSDFStream
                 if let code = rayMarch.code {
                     instance.code += code
                 }
+                
+                instance.code +=
+                 """
+                 
+                 /*
+                 //if (outShape.x != inShape.x) {
+                     float res = 1.0;
+                     float t = 0.001;
+                     float3 ro = rayOrigin;
+                     float3 rd = rayDirection;
+                     for( int i = 0; i < 16; i++ )
+                     {
+                         float h = sceneMap( ro + rd*t, &__funcData ).x;
+                         float s = clamp(8.0*h/t,0.0,1.0);
+                         res = min( res, s*s*(3.0-2.0*s) );
+                         t += clamp( h, 0.02, 0.10 );
+                         if( res<0.005 ) break;
+                     }
+                     outShape.z = min(outShape.z, clamp( res, 0.0, 1.0 ) );
+                 //}*/
+                 
+                 //if (outShape.w != inShape.w) {
+
+                     float occ = 0.0;
+                     float sca = 1.0;
+                     float3 nor = outNormal;
+                     float3 pos = rayOrigin + outShape.y * rayDirection;
+
+                     for( int i=0; i<5; i++ )
+                     {
+                         float hr = 0.01 + 0.12*float(i)/4.0;
+                         float3 aopos =  nor * hr + pos;
+                         float dd = sceneMap( aopos, &__funcData ).x;
+                         occ += -(dd-hr)*sca;
+                         sca *= 0.95;
+                     }
+                     outShape.z = min(outShape.z, clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y) );
+                     //outShape.z = clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y);//max(outShape.z, clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y) );
+                 //}
+
+                
+                """
             }
             
             // SoftShadows
             
-            instance.code +=
-            """
-            
-            /*
-            if (outShape.x != inShape.x) {
-                float res = 1.0;
-                float t = 0.001;
-                float3 ro = rayOrigin;
-                float3 rd = rayDirection;
-                for( int i = 0; i < 16; i++ )
-                {
-                    float h = sceneMap( ro + rd*t, &__funcData ).x;
-                    float s = clamp(8.0*h/t,0.0,1.0);
-                    res = min( res, s*s*(3.0-2.0*s) );
-                    t += clamp( h, 0.02, 0.10 );
-                    if( res<0.005 ) break;
-                }
-                outShape.z = clamp( res, 0.0, 1.0 );
-            }*/
-            
-                
-            float gt = (0.0-rayOrigin.y)/rayDirection.y;
-            if ( gt > 0. && gt < outShape.y ) {
-                outShape.x = 0.0;
-                outShape.y = gt;
-                
-                //inShape = outShape;
-                outNormal = float3(0,1,0);
-            }
-            
-            
-            if (outShape.x != inShape.x) {
-
-                float occ = 0.0;
-                float sca = 1.0;
-                float3 nor = outNormal;
-                float3 pos = rayOrigin + outShape.y * rayDirection;
-
-                for( int i=0; i<5; i++ )
-                {
-                    float hr = 0.01 + 0.12*float(i)/4.0;
-                    float3 aopos =  nor * hr + pos;
-                    float dd = sceneMap( aopos, &__funcData ).x;
-                    occ += -(dd-hr)*sca;
-                    sca *= 0.95;
-                }
-                outShape.z = min(outShape.z, clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y) );
-                outShape.z = clamp( 1.0 - 3.0*occ, 0.0, 1.0 );
-            }
-            
-            """
-        }
+         }
     }
 
     func closeStream()
@@ -363,7 +372,7 @@ class CodeSDFStream
             """
             
                 float4 shapeA = outShape;
-                float4 shapeB = float4(outDistance, 0, 0, \(idCounter));
+                float4 shapeB = float4(outDistance, -1, 1, \(idCounter));
             
             """
             
@@ -376,7 +385,7 @@ class CodeSDFStream
             code +=
             """
             
-                outShape = float4(outDistance, 0, 0, \(idCounter));
+                outShape = float4(outDistance, -1, 1, \(idCounter));
             
             """
         }
