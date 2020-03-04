@@ -715,7 +715,7 @@ class CodeFragment          : Codable, Equatable
             }
             
             // Append a possible qualifier after the arguments
-            if fragmentType != .VariableReference {
+            if fragmentType != .VariableReference && fragmentType != .OutVariable {
                 let qualifier = getQualifierString()
                 if qualifier.isEmpty == false {
                     ctx.font.getTextRect(text: qualifier, scale: ctx.fontScale, rectToUse: ctx.tempRect)
