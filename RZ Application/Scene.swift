@@ -280,15 +280,51 @@ class Stage                 : Codable, Equatable
             placeChild(modeId: "3D", parent: self, child: item, stepSize: 40, radius: 130)
             
             // RayMarch
-            let rayMarchItem = StageItem(.VariablePool, "RayMarch")
+            let rayMarchItem = StageItem(.RenderStage, "RayMarch")
             children3D.append(rayMarchItem)
-            placeChild(modeId: "3D", parent: self, child: rayMarchItem, stepSize: 60, radius: 150)
+            placeChild(modeId: "3D", parent: self, child: rayMarchItem, stepSize: 40, radius: 150)
             
             codeComponent = CodeComponent(.RayMarch3D, "RayMarch")
             codeComponent.createDefaultFunction(.RayMarch3D)
             codeComponent.uuid = UUID()
             codeComponent.selected = nil
             rayMarchItem.components[item.defaultName] = codeComponent
+            
+            // AO
+            let aoItem = StageItem(.RenderStage, "AO")
+            children3D.append(aoItem)
+            placeChild(modeId: "3D", parent: self, child: aoItem, stepSize: 60, radius: 110)
+            
+            //codeComponent = CodeComponent(.AO3D, "AO")
+            //codeComponent.createDefaultFunction(.AO3D)
+            codeComponent = decodeComponentFromJSON(defaultAO3D)!
+            codeComponent.uuid = UUID()
+            codeComponent.selected = nil
+            aoItem.components[item.defaultName] = codeComponent
+            
+            // Sun
+            let sunItem = StageItem(.RenderStage, "Sun")
+            children3D.append(sunItem)
+            placeChild(modeId: "3D", parent: self, child: sunItem, stepSize: 120, radius: 60)
+            
+            codeComponent = CodeComponent(.SampleSun3D, "Sun")
+            codeComponent.createDefaultFunction(.SampleSun3D)
+            //codeComponent = decodeComponentFromJSON(defaultAO3D)!
+            codeComponent.uuid = UUID()
+            codeComponent.selected = nil
+            sunItem.components[item.defaultName] = codeComponent
+            
+            // Shadows
+            let shadowsItem = StageItem(.RenderStage, "Shadows")
+            children3D.append(shadowsItem)
+            placeChild(modeId: "3D", parent: self, child: shadowsItem, stepSize: 50, radius: 60)
+            
+            codeComponent = CodeComponent(.Shadows3D, "Shadows")
+            codeComponent.createDefaultFunction(.Shadows3D)
+            //codeComponent = decodeComponentFromJSON(defaultAO3D)!
+            codeComponent.uuid = UUID()
+            codeComponent.selected = nil
+            shadowsItem.components[item.defaultName] = codeComponent
         }
         
         if stageType == .VariablePool {

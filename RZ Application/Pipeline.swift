@@ -17,7 +17,7 @@ class Pipeline
     var depthTexture        : MTLTexture? = nil
     var depthTexture2       : MTLTexture? = nil
     var resultTexture       : MTLTexture? = nil
-    var finalTexture       : MTLTexture? = nil
+    var finalTexture        : MTLTexture? = nil
 
     var depthTextureResult  : MTLTexture? = nil
     
@@ -27,6 +27,10 @@ class Pipeline
     var normalTexture       : MTLTexture? = nil
     var normalTexture2      : MTLTexture? = nil
     var normalTextureResult : MTLTexture? = nil
+    
+    var metaTexture         : MTLTexture? = nil
+    var metaTexture2        : MTLTexture? = nil
+    var metaTextureResult   : MTLTexture? = nil
 
     var instanceMap         : [String:CodeBuilderInstance] = [:]
 
@@ -284,14 +288,18 @@ class Pipeline
         
         // Render the shape distance into depthTexture (float)
         depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
-        depthTexture2 = checkTextureSize(width, height, depthTexture, .rgba16Float)
+        depthTexture2 = checkTextureSize(width, height, depthTexture2, .rgba16Float)
         normalTexture = checkTextureSize(width, height, normalTexture, .rgba16Float)
-        normalTexture2 = checkTextureSize(width, height, normalTexture, .rgba16Float)
-
-        codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 1000000, 1, -1))
+        normalTexture2 = checkTextureSize(width, height, normalTexture2, .rgba16Float)
+        metaTexture = checkTextureSize(width, height, metaTexture, .rgba16Float)
+        metaTexture2 = checkTextureSize(width, height, metaTexture2, .rgba16Float)
+        
+        codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 1000000, -1, -1))
+        codeBuilder.renderClear(texture: metaTexture!, data: SIMD4<Float>(1, 1, 0, 0))
 
         depthTextureResult = depthTexture
         normalTextureResult = normalTexture
+        metaTextureResult = metaTexture
 
         var objectIndex : Int = 0
         var shapeText : String = "shape_" + String(objectIndex)
@@ -299,15 +307,17 @@ class Pipeline
         while let inst = instanceMap[shapeText] {
             
             if depthTextureResult === depthTexture {
-                codeBuilder.render(inst, depthTexture2, inTextures: [depthTexture!, normalTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture2!])
+                codeBuilder.render(inst, depthTexture2, inTextures: [depthTexture!, normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture2!, metaTexture2!])
                 depthTextureResult = depthTexture2
                 normalTextureResult = normalTexture2
+                metaTextureResult = metaTexture2
                 //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             } else
             if depthTextureResult === depthTexture2 {
-                codeBuilder.render(inst, depthTexture, inTextures: [depthTexture2!, normalTexture2!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!])
+                codeBuilder.render(inst, depthTexture, inTextures: [depthTexture2!, normalTexture2!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!, metaTexture!])
                 depthTextureResult = depthTexture
                 normalTextureResult = normalTexture
+                metaTextureResult = metaTexture
                 //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             }
             objectIndex += 1
@@ -317,12 +327,11 @@ class Pipeline
         // Render it all
         if let inst = instanceMap["render"] {
             resultTexture = checkTextureSize(width, height, resultTexture, .rgba16Float)
-            codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!])
+            codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
             computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
         } else {
             resultTexture = backTexture
         }
-
     }
     
     func renderIfResolutionChanged(_ width: Float,_ height: Float)

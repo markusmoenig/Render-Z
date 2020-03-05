@@ -462,6 +462,7 @@ class CodeBuilder
         texture2d<half, access::sample>         __depthTexture [[texture(2)]],
         texture2d<half, access::sample>         __backTexture [[texture(3)]],
         texture2d<half, access::sample>         __normalTexture [[texture(4)]],
+        texture2d<half, access::sample>         __metaTexture [[texture(5)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
             constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
@@ -475,9 +476,9 @@ class CodeBuilder
             float4 matColor = float4(1, 1, 1, 1);
         
             float3 normal = float4(__normalTexture.sample(__textureSampler, uv / size )).xyz;
+            float4 meta = float4(__metaTexture.sample(__textureSampler, uv / size ));
 
-            float4 __depthIn = float4(__depthTexture.sample(__textureSampler, uv / size ));
-            float4 shape = __depthIn;
+            float4 shape = float4(__depthTexture.sample(__textureSampler, uv / size ));
             float GlobalTime = __data[0].x;
 
             struct FuncData __funcData;
@@ -503,6 +504,7 @@ class CodeBuilder
         inst.code +=
         """
                        
+            outColor.xyz = pow( outColor.xyz, float3(0.4545) );
             __outTexture.write(half4(outColor), __gid);
         }
           

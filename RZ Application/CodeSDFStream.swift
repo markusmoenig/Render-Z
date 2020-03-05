@@ -17,6 +17,7 @@ class CodeSDFStream
     
     var headerCode          : String = ""
     var mapCode             : String = ""
+    var shadowCode          : String = ""
 
     var monitor             : CodeFragment? = nil
 
@@ -141,6 +142,20 @@ class CodeSDFStream
             
             """
             
+            shadowCode =
+            """
+            
+            float computeShadows( float3 position, float3 direction, float tmin, float tmax, thread struct FuncData *__funcData )
+            {
+                float outShadow = 1.0;
+            
+                constant float4 *__data = __funcData->__data;
+                float4 __monitorOut = *__funcData->__monitorOut;
+                float GlobalTime = __funcData->GlobalTime;
+
+            
+            """
+            
             instance.code =
                 
             """
@@ -149,9 +164,11 @@ class CodeSDFStream
             constant float4                        *__data   [[ buffer(1) ]],
             texture2d<half, access::sample>         __depthInTexture [[texture(2)]],
             texture2d<half, access::sample>         __normalInTexture [[texture(3)]],
-            texture2d<half, access::sample>         __rayOriginTexture [[texture(4)]],
-            texture2d<half, access::sample>         __rayDirectionTexture [[texture(5)]],
-            texture2d<half, access::write>          __normalTexture [[texture(6)]],
+            texture2d<half, access::sample>         __metaInTexture [[texture(4)]],
+            texture2d<half, access::sample>         __rayOriginTexture [[texture(5)]],
+            texture2d<half, access::sample>         __rayDirectionTexture [[texture(6)]],
+            texture2d<half, access::write>          __normalTexture [[texture(7)]],
+            texture2d<half, access::write>          __metaTexture [[texture(8)]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
@@ -176,6 +193,7 @@ class CodeSDFStream
                 float maxDistance = outShape.y;
                 float4 inShape = outShape;
                 float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float4 outMeta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
 
                 /*
                 float t = 0.001;
@@ -228,52 +246,82 @@ class CodeSDFStream
                     instance.code += code
                 }
                 
+                // If this object was hit, reset the AO and Shadows
                 instance.code +=
-                 """
-                 
-                 /*
-                 //if (outShape.x != inShape.x) {
-                     float res = 1.0;
-                     float t = 0.001;
-                     float3 ro = rayOrigin;
-                     float3 rd = rayDirection;
-                     for( int i = 0; i < 16; i++ )
-                     {
-                         float h = sceneMap( ro + rd*t, &__funcData ).x;
-                         float s = clamp(8.0*h/t,0.0,1.0);
-                         res = min( res, s*s*(3.0-2.0*s) );
-                         t += clamp( h, 0.02, 0.10 );
-                         if( res<0.005 ) break;
-                     }
-                     outShape.z = min(outShape.z, clamp( res, 0.0, 1.0 ) );
-                 //}*/
-                 
-                 //if (outShape.w != inShape.w) {
-
-                     float occ = 0.0;
-                     float sca = 1.0;
-                     float3 nor = outNormal;
-                     float3 pos = rayOrigin + outShape.y * rayDirection;
-
-                     for( int i=0; i<5; i++ )
-                     {
-                         float hr = 0.01 + 0.12*float(i)/4.0;
-                         float3 aopos =  nor * hr + pos;
-                         float dd = sceneMap( aopos, &__funcData ).x;
-                         occ += -(dd-hr)*sca;
-                         sca *= 0.95;
-                     }
-                     outShape.z = min(outShape.z, clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y) );
-                     //outShape.z = clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y);//max(outShape.z, clamp( 1.0 - 3.0*occ, 0.0, 1.0 ) * (0.5+0.5*nor.y) );
-                 //}
-
-                
                 """
+                
+                if (outShape.w != inShape.w) {
+                    outMeta.x = 1.0;
+                    outMeta.y = 1.0;
+                }
+
+                """
+                
+                if let ao = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .AO3D) {
+                    dryRunComponent(ao, instance.data.count, monitor)
+                    instance.collectProperties(ao)
+                    if let globalCode = ao.globalCode {
+                        headerCode += globalCode
+                    }
+                    if let code = ao.code {
+                        instance.code +=
+                        """
+                        
+                        {
+                        float3 position = rayOrigin + outShape.y * rayDirection;
+                        float3 normal = outNormal;
+                        float outAO = 1.;
+                        """
+                        instance.code += code
+                        instance.code +=
+                        """
+                        
+                        outMeta.x = min(outMeta.x, outAO);
+                        }
+                        
+                        """
+                    }
+                }
+                
+                if let shadows = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Shadows3D) {
+                    dryRunComponent(shadows, instance.data.count, monitor)
+                    instance.collectProperties(shadows)
+                    if let globalCode = shadows.globalCode {
+                        headerCode += globalCode
+                    }
+                    if let code = shadows.code {
+
+                        shadowCode += code
+                        shadowCode = shadowCode.replacingOccurrences(of: "&__", with: "__")
+                    }
+                }
+                
+                if let sun = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .SampleSun3D) {
+                    dryRunComponent(sun, instance.data.count, monitor)
+                    instance.collectProperties(sun)
+                    if let globalCode = sun.globalCode {
+                        headerCode += globalCode
+                    }
+                    if let code = sun.code {
+                        instance.code +=
+                        """
+                        
+                        {
+                        float3 position = rayOrigin + outShape.y * rayDirection;
+                        float outSun = 1.;
+                        """
+                        instance.code += code
+                        instance.code +=
+                        """
+                        
+                        outMeta.y = min(outMeta.y, outSun);
+                        }
+                        
+                        """
+                    }
+                }
             }
-            
-            // SoftShadows
-            
-         }
+        }
     }
 
     func closeStream()
@@ -310,6 +358,7 @@ class CodeSDFStream
             """
             
                 __normalTexture.write(half4(float4(outNormal, 0)), __gid);
+                __metaTexture.write(half4(outMeta), __gid);
                 __outTexture.write(half4(outShape), __gid);
             }
             """
@@ -320,7 +369,16 @@ class CodeSDFStream
             }
             
             """
-            instance.code = headerCode + mapCode + instance.code
+            
+            shadowCode +=
+            """
+            
+                return outShadow;
+            }
+            
+            """
+            
+            instance.code = headerCode + mapCode + shadowCode + instance.code            
         }
         
         //print(instance.code)

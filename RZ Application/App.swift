@@ -43,7 +43,7 @@ class App
     let libraryDialog   : LibraryDialog
 
     var project         : Project
-    var currentSceneMode: Scene.SceneMode = .TwoD
+    var currentSceneMode: Scene.SceneMode = .ThreeD
         
     #if os(iOS)
     var viewController  : ViewController?

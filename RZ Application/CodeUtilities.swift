@@ -159,6 +159,18 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             if component.componentType == .Ground3D {
                 libName += " :: Ground3D"
             }
+            if component.componentType == .Terrain3D {
+                libName += " :: Terrain3D"
+            }
+            if component.componentType == .AO3D {
+                libName += " :: AO3D"
+            }
+            if component.componentType == .Shadows3D {
+                libName += " :: Shadows3D"
+            }
+            if component.componentType == .SampleSun3D {
+                libName += " :: SampleSun3D"
+            }
         }
         
         let recordID  = CKRecord.ID(recordName: libName)
