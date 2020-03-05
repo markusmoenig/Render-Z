@@ -1682,17 +1682,20 @@ class CodeComponent         : Codable, Equatable
             let arg3 = CodeFragment(.VariableDefinition, "float4", "shape", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
             f.header.statement.fragments.append(arg3)
             
-            let arg4 = CodeFragment(.VariableDefinition, "float4", "meta", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            let arg4 = CodeFragment(.VariableDefinition, "float", "ao", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
             f.header.statement.fragments.append(arg4)
             
-            let arg5 = CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg5 = CodeFragment(.VariableDefinition, "float", "shadows", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
             f.header.statement.fragments.append(arg5)
             
-            let arg6 = CodeFragment(.VariableDefinition, "float4", "backColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            let arg6 = CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg6)
             
-            let arg7 = CodeFragment(.VariableDefinition, "float4", "matColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            let arg7 = CodeFragment(.VariableDefinition, "float4", "backColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
             f.header.statement.fragments.append(arg7)
+            
+            let arg8 = CodeFragment(.VariableDefinition, "float4", "matColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            f.header.statement.fragments.append(arg8)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)

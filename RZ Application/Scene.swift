@@ -253,7 +253,7 @@ class Stage                 : Codable, Equatable
         
         if stageType == .RenderStage {
             
-            values["_graphX"] = 200
+            values["_graphX"] = 240
             values["_graphY"] = -40
             
             var item = StageItem(.RenderStage, "Color")
@@ -265,9 +265,6 @@ class Stage                 : Codable, Equatable
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
             
-            item.values["_graphX"] = 130
-            item.values["_graphY"] = 70
-            
             item = StageItem(.RenderStage, "Color")
             //codeComponent = decodeComponentFromJSON(defaultRender2D)!
             codeComponent = CodeComponent(.Render3D, "Black")
@@ -276,13 +273,11 @@ class Stage                 : Codable, Equatable
             codeComponent.selected = nil
             item.components[item.defaultName] = codeComponent
             children3D.append(item)
-            
-            placeChild(modeId: "3D", parent: self, child: item, stepSize: 40, radius: 130)
-            
+                        
             // RayMarch
             let rayMarchItem = StageItem(.RenderStage, "RayMarch")
             children3D.append(rayMarchItem)
-            placeChild(modeId: "3D", parent: self, child: rayMarchItem, stepSize: 40, radius: 150)
+            placeChild(modeId: "3D", parent: self, child: rayMarchItem, stepSize: 50, radius: 150)
             
             codeComponent = CodeComponent(.RayMarch3D, "RayMarch")
             codeComponent.createDefaultFunction(.RayMarch3D)
@@ -293,7 +288,7 @@ class Stage                 : Codable, Equatable
             // AO
             let aoItem = StageItem(.RenderStage, "AO")
             children3D.append(aoItem)
-            placeChild(modeId: "3D", parent: self, child: aoItem, stepSize: 60, radius: 110)
+            placeChild(modeId: "3D", parent: self, child: aoItem, stepSize: 80, radius: 120)
             
             //codeComponent = CodeComponent(.AO3D, "AO")
             //codeComponent.createDefaultFunction(.AO3D)
@@ -305,7 +300,7 @@ class Stage                 : Codable, Equatable
             // Sun
             let sunItem = StageItem(.RenderStage, "Sun")
             children3D.append(sunItem)
-            placeChild(modeId: "3D", parent: self, child: sunItem, stepSize: 120, radius: 60)
+            placeChild(modeId: "3D", parent: self, child: sunItem, stepSize: 120, radius: 70)
             
             codeComponent = CodeComponent(.SampleSun3D, "Sun")
             codeComponent.createDefaultFunction(.SampleSun3D)
@@ -317,7 +312,7 @@ class Stage                 : Codable, Equatable
             // Shadows
             let shadowsItem = StageItem(.RenderStage, "Shadows")
             children3D.append(shadowsItem)
-            placeChild(modeId: "3D", parent: self, child: shadowsItem, stepSize: 50, radius: 60)
+            placeChild(modeId: "3D", parent: self, child: shadowsItem, stepSize: 50, radius: 70)
             
             codeComponent = CodeComponent(.Shadows3D, "Shadows")
             codeComponent.createDefaultFunction(.Shadows3D)

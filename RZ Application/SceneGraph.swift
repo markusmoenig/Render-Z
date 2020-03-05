@@ -79,9 +79,9 @@ class SceneGraph                : MMWidget
     var itemMap                 : [UUID:SceneGraphItem] = [:]
     var buttons                 : [SceneGraphButton] = []
 
-    var graphX                  : Float = 100
-    var graphY                  : Float = 200
-    var graphZoom               : Float = 1
+    var graphX                  : Float = 70
+    var graphY                  : Float = 250
+    var graphZoom               : Float = 0.62
 
     var dispatched              : Bool = false
     
@@ -102,6 +102,7 @@ class SceneGraph                : MMWidget
     var openWidth               : Float = 300
 
     var toolBarWidgets          : [MMWidget] = []
+    let toolBarHeight           : Float = 30
 
     var menuWidget              : MMMenuWidget
     
@@ -144,8 +145,8 @@ class SceneGraph                : MMWidget
                         let shapeStage = scene.getStage(.ShapeStage)
                         let objectItem = shapeStage.createChild(value)
                         
-                        objectItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x - self.graphX) * self.graphZoom
-                        objectItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y - self.graphY) * self.graphZoom
+                        objectItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x) / self.graphZoom - self.graphX
+                        objectItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y) / self.graphZoom - self.graphY
 
                         globalApp!.sceneGraph.setCurrent(stage: shapeStage, stageItem: objectItem)
                     }
@@ -420,10 +421,12 @@ class SceneGraph                : MMWidget
         if clickWasConsumed == false {
             // Check for showing menu
             
-            if menuWidget.states.contains(.Opened) == false && distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) < 5 {
-                menuWidget.rect.x = event.x
-                menuWidget.rect.y = event.y
-                menuWidget.activateHidden()
+            if menuWidget.states.contains(.Opened) == false && distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) < 5 {                
+                if event.y - rect.y > toolBarHeight {
+                    menuWidget.rect.x = event.x
+                    menuWidget.rect.y = event.y
+                    menuWidget.activateHidden()
+                }
             }
         }
         
@@ -517,8 +520,8 @@ class SceneGraph                : MMWidget
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1))
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: 30, round: 0, fillColor : SIMD4<Float>(0.165, 0.169, 0.173, 1.000) )
-        mmView.drawBox.draw( x: rect.x, y: rect.y + 30, width: rect.width, height: 1, round: 0, fillColor : SIMD4<Float>(0, 0, 0, 1) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: toolBarHeight, round: 0, fillColor : SIMD4<Float>(0.165, 0.169, 0.173, 1.000) )
+        mmView.drawBox.draw( x: rect.x, y: rect.y + toolBarHeight, width: rect.width, height: 1, round: 0, fillColor : SIMD4<Float>(0, 0, 0, 1) )
         
         var left: Float = 5
         for w in toolBarWidgets {
@@ -530,7 +533,7 @@ class SceneGraph                : MMWidget
         }
         
         if let scene = globalApp!.project.selected {
-            mmView.renderer.setClipRect(MMRect(rect.x, rect.y + 31, rect.width, rect.height - 31))
+            mmView.renderer.setClipRect(MMRect(rect.x, rect.y + toolBarHeight + 1, rect.width, rect.height - toolBarHeight + 1))
             parse(scene: scene)
             if menuWidget.states.contains(.Opened) {
                 menuWidget.draw()
@@ -811,49 +814,7 @@ class SceneGraph                : MMWidget
         }
         
         activate()
-
-        /*
-        var items : [MMMenuItem] = []
-        if let item = itemMap[uuid] {
-            
-            if item.itemType == .ShapeItem {
-                
-                items.append(MMMenuItem(text: "Change", cb: { () in
-                    self.getShape(item: item, replace: true)
-                }))
-                
-                items.append(MMMenuItem(text: "Delete", cb: { () in
-                    
-                }))
-            } else
-            if item.itemType == .BooleanItem {
-                
-                items.append(MMMenuItem(text: "Change", cb: { () in
-                    globalApp!.libraryDialog.show(id: "Boolean", cb: { (json) in
-                        if let comp = decodeComponentFromJSON(json) {
-                            let undo = globalApp!.currentEditor.undoStageItemStart("Change Boolean")
-                            
-                            comp.uuid = UUID()
-                            comp.selected = nil
-                            globalApp!.currentEditor.setComponent(comp)
-                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                            
-                            if let parent = item.parentComponent {
-                                parent.subComponent = comp
-                                globalApp!.project.selected!.updateComponent(parent)
-                            }
-                                                        
-                            globalApp!.currentEditor.undoStageItemEnd(undo)
-                            self.setCurrent(stageItem: item.stageItem, component: comp)
-                        }
-                    })
-                }))
-
-            }
-        }
-        
-        menuWidget.setItems(items)
-        */
+        mmView.update()
     }
     
     /// Draws a line between two circles
@@ -963,12 +924,16 @@ class SceneGraph                : MMWidget
         x = (graphX + stage.values["_graphX"]!) * graphZoom - diameter / 2
         y = (graphY + stage.values["_graphY"]!) * graphZoom - diameter / 2
         
-        let renderItem = SceneGraphItem(.Stage, stage: stage)
+        let renderStageItem = stage.getChildren()[0]
+        let renderComponent = renderStageItem.components[renderStageItem.defaultName]!
+        let renderItem = SceneGraphItem(.Stage, stage: stage, component: renderComponent)
         renderItem.rect.set(x, y, diameter, diameter)
-        itemMap[stage.uuid] = renderItem
+        itemMap[renderComponent.uuid] = renderItem
         
         childs = stage.getChildren()
         for childItem in childs {
+            
+            if childItem.name == "Color" { continue }
 
             if childItem.label == nil || childItem.label!.scale != skin.fontScale {
                 childItem.label = MMTextLabel(mmView, font: mmView.openSans, text: childItem.name, scale: skin.fontScale, color: skin.normalTextColor)
