@@ -188,7 +188,7 @@ class Stage                 : Codable, Equatable
         self.stageType = stageType
         self.name = name
         
-        values["_graphX"] = 0
+        values["_graphX"] = -10
         values["_graphY"] = 0
         
         if stageType == .PreStage {
@@ -286,9 +286,9 @@ class Stage                 : Codable, Equatable
             rayMarchItem.components[item.defaultName] = codeComponent
             
             // AO
-            let aoItem = StageItem(.RenderStage, "AO")
+            let aoItem = StageItem(.RenderStage, "Occlusion")
             children3D.append(aoItem)
-            placeChild(modeId: "3D", parent: self, child: aoItem, stepSize: 80, radius: 120)
+            placeChild(modeId: "3D", parent: self, child: aoItem, stepSize: 80, radius: 140)
             
             //codeComponent = CodeComponent(.AO3D, "AO")
             //codeComponent.createDefaultFunction(.AO3D)
@@ -297,24 +297,24 @@ class Stage                 : Codable, Equatable
             codeComponent.selected = nil
             aoItem.components[item.defaultName] = codeComponent
             
-            // Sun
-            let sunItem = StageItem(.RenderStage, "Sun")
-            children3D.append(sunItem)
-            placeChild(modeId: "3D", parent: self, child: sunItem, stepSize: 120, radius: 70)
+            // Normal
+            let normalItem = StageItem(.RenderStage, "Normal")
+            children3D.append(normalItem)
+            placeChild(modeId: "3D", parent: self, child: normalItem, stepSize: 120, radius: 80)
             
-            codeComponent = CodeComponent(.SampleSun3D, "Sun")
-            codeComponent.createDefaultFunction(.SampleSun3D)
+            codeComponent = CodeComponent(.Normal3D, "Normal")
+            codeComponent.createDefaultFunction(.Normal3D)
             //codeComponent = decodeComponentFromJSON(defaultAO3D)!
             codeComponent.uuid = UUID()
             codeComponent.selected = nil
-            sunItem.components[item.defaultName] = codeComponent
+            normalItem.components[item.defaultName] = codeComponent
             
             // Shadows
-            let shadowsItem = StageItem(.RenderStage, "Shadows")
+            let shadowsItem = StageItem(.RenderStage, "Shadow")
             children3D.append(shadowsItem)
             placeChild(modeId: "3D", parent: self, child: shadowsItem, stepSize: 50, radius: 70)
             
-            codeComponent = CodeComponent(.Shadows3D, "Shadows")
+            codeComponent = CodeComponent(.Shadows3D, "Shadow")
             codeComponent.createDefaultFunction(.Shadows3D)
             //codeComponent = decodeComponentFromJSON(defaultAO3D)!
             codeComponent.uuid = UUID()
