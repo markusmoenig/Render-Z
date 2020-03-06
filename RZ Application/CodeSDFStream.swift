@@ -17,7 +17,6 @@ class CodeSDFStream
     
     var headerCode          : String = ""
     var mapCode             : String = ""
-    var rayMarchCode        : String = ""
     var shadowCode          : String = ""
 
     var monitor             : CodeFragment? = nil
@@ -143,21 +142,6 @@ class CodeSDFStream
             
             """
             
-            rayMarchCode =
-            """
-            
-            float4 rayMarch( float3 rayOrigin, float3 rayDirection, float tmin, float tmax, thread struct FuncData *__funcData )
-            {
-                float4 outShape = float4(100000, -1, -1, -1);
-                float maxDistance = 10;
-            
-                constant float4 *__data = __funcData->__data;
-                float4 __monitorOut = *__funcData->__monitorOut;
-                float GlobalTime = __funcData->GlobalTime;
-
-            
-            """
-            
             shadowCode =
             """
             
@@ -259,11 +243,9 @@ class CodeSDFStream
                     headerCode += globalCode
                 }
                 if let code = rayMarch.code {
-                    rayMarchCode += code
-                    rayMarchCode = rayMarchCode.replacingOccurrences(of: "&__", with: "__")
+                    instance.code += code
                 }
                 
-                /*
                 // If this object was hit, reset the AO and Shadows
                 instance.code +=
                 """
@@ -273,7 +255,7 @@ class CodeSDFStream
                     outMeta.y = 1.0;
                 }
 
-                """*/
+                """
                 
                 if let ao = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .AO3D) {
                     dryRunComponent(ao, instance.data.count, monitor)
@@ -314,7 +296,6 @@ class CodeSDFStream
                     }
                 }
                 
-                /*
                 if let sun = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .SampleSun3D) {
                     dryRunComponent(sun, instance.data.count, monitor)
                     instance.collectProperties(sun)
@@ -338,7 +319,7 @@ class CodeSDFStream
                         
                         """
                     }
-                }*/
+                }
             }
         }
     }
@@ -389,14 +370,6 @@ class CodeSDFStream
             
             """
             
-            rayMarchCode +=
-            """
-            
-                return outShape;
-            }
-            
-            """
-            
             shadowCode +=
             """
             
@@ -405,9 +378,7 @@ class CodeSDFStream
             
             """
             
-            print(rayMarchCode)
-            
-            instance.code = headerCode + mapCode + rayMarchCode + shadowCode + instance.code
+            instance.code = headerCode + mapCode + shadowCode + instance.code            
         }
         
         //print(instance.code)

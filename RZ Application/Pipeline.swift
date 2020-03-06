@@ -24,9 +24,9 @@ class Pipeline
     var rayOriginTexture    : MTLTexture? = nil
     var rayDirectionTexture : MTLTexture? = nil
 
-    var colorTexture        : MTLTexture? = nil
-    var colorTexture2       : MTLTexture? = nil
-    var colorTextureResult  : MTLTexture? = nil
+    var normalTexture       : MTLTexture? = nil
+    var normalTexture2      : MTLTexture? = nil
+    var normalTextureResult : MTLTexture? = nil
     
     var metaTexture         : MTLTexture? = nil
     var metaTexture2        : MTLTexture? = nil
@@ -107,7 +107,6 @@ class Pipeline
                 }
             }
             
-            /*
             // Render
             let renderStage = scene.getStage(.RenderStage)
             let renderChildren = renderStage.getChildren()
@@ -116,7 +115,7 @@ class Pipeline
                 let renderComp = renderColor.components[renderColor.defaultName]!
                 dryRunComponent(renderComp)
                 instanceMap["render"] = codeBuilder.build(renderComp)
-            }*/
+            }
         } else {
             // 3D
             // Background
@@ -135,7 +134,6 @@ class Pipeline
                     break
                 }
             }
-            
             
             // Objects
             let shapeStage = scene.getStage(.ShapeStage)
@@ -172,7 +170,6 @@ class Pipeline
                 }
             }
             
-            /*
             // Render
             let renderStage = scene.getStage(.RenderStage)
             let renderChildren = renderStage.getChildren()
@@ -181,7 +178,7 @@ class Pipeline
                 let renderComp = renderColor.components[renderColor.defaultName]!
                 dryRunComponent(renderComp)
                 instanceMap["render"] = codeBuilder.build(renderComp)
-            }*/
+            }
         }
     }
         
@@ -292,8 +289,8 @@ class Pipeline
         // Render the shape distance into depthTexture (float)
         depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
         depthTexture2 = checkTextureSize(width, height, depthTexture2, .rgba16Float)
-        colorTexture = checkTextureSize(width, height, colorTexture, .rgba16Float)
-        colorTexture2 = checkTextureSize(width, height, colorTexture2, .rgba16Float)
+        normalTexture = checkTextureSize(width, height, normalTexture, .rgba16Float)
+        normalTexture2 = checkTextureSize(width, height, normalTexture2, .rgba16Float)
         metaTexture = checkTextureSize(width, height, metaTexture, .rgba16Float)
         metaTexture2 = checkTextureSize(width, height, metaTexture2, .rgba16Float)
         
@@ -301,7 +298,7 @@ class Pipeline
         codeBuilder.renderClear(texture: metaTexture!, data: SIMD4<Float>(1, 1, 0, 0))
 
         depthTextureResult = depthTexture
-        colorTextureResult = colorTexture
+        normalTextureResult = normalTexture
         metaTextureResult = metaTexture
 
         var objectIndex : Int = 0
@@ -310,16 +307,16 @@ class Pipeline
         while let inst = instanceMap[shapeText] {
             
             if depthTextureResult === depthTexture {
-                codeBuilder.render(inst, depthTexture2, inTextures: [depthTexture!, colorTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [colorTexture2!, metaTexture2!])
+                codeBuilder.render(inst, depthTexture2, inTextures: [depthTexture!, normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture2!, metaTexture2!])
                 depthTextureResult = depthTexture2
-                colorTextureResult = colorTexture2
+                normalTextureResult = normalTexture2
                 metaTextureResult = metaTexture2
                 //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             } else
             if depthTextureResult === depthTexture2 {
-                codeBuilder.render(inst, depthTexture, inTextures: [depthTexture2!, colorTexture2!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], outTextures: [colorTexture!, metaTexture!])
+                codeBuilder.render(inst, depthTexture, inTextures: [depthTexture2!, normalTexture2!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!, metaTexture!])
                 depthTextureResult = depthTexture
-                colorTextureResult = colorTexture
+                normalTextureResult = normalTexture
                 metaTextureResult = metaTexture
                 //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             }
@@ -327,7 +324,6 @@ class Pipeline
             shapeText = "shape_" + String(objectIndex)
         }
 
-        /*
         // Render it all
         if let inst = instanceMap["render"] {
             resultTexture = checkTextureSize(width, height, resultTexture, .rgba16Float)
@@ -335,10 +331,7 @@ class Pipeline
             computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
         } else {
             resultTexture = backTexture
-        }*/
-        
-        resultTexture = colorTextureResult
-        finalTexture = resultTexture
+        }
     }
     
     func renderIfResolutionChanged(_ width: Float,_ height: Float)
