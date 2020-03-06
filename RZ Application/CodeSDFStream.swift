@@ -246,7 +246,7 @@ class CodeSDFStream
                     instance.code += code
                 }
                 
-                // If this object was hit, reset the AO and Shadows 
+                // If this object was hit, reset the AO and Shadows  
                 instance.code +=
                 """
                 
