@@ -168,8 +168,8 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             if component.componentType == .Shadows3D {
                 libName += " :: Shadows3D"
             }
-            if component.componentType == .SampleSun3D {
-                libName += " :: SampleSun3D"
+            if component.componentType == .Normal3D {
+                libName += " :: Normal3D"
             }
         }
         

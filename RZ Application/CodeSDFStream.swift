@@ -246,16 +246,48 @@ class CodeSDFStream
                     instance.code += code
                 }
                 
-                // If this object was hit, reset the AO and Shadows  
+                // If we hit something, compute the normal
                 instance.code +=
                 """
                 
                 if (outShape.w != inShape.w) {
                     outMeta.x = 1.0;
                     outMeta.y = 1.0;
+
+
+                """
+                
+                if let normal = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Normal3D) {
+                    dryRunComponent(normal, instance.data.count, monitor)
+                    instance.collectProperties(normal)
+                    if let globalCode = normal.globalCode {
+                        headerCode += globalCode
+                    }
+                    if let code = normal.code {
+                        instance.code +=
+                        """
+                        
+                        {
+                        float3 position = rayOrigin + outShape.y * rayDirection;
+                        """
+                        instance.code += code
+                        instance.code +=
+                        """
+                        
+                        }
+                        
+                        """
+                    }
+                }
+                
+                instance.code +=
+                """
+                
                 }
 
                 """
+                
+                /*
                 
                 if let ao = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .AO3D) {
                     dryRunComponent(ao, instance.data.count, monitor)
@@ -320,6 +352,7 @@ class CodeSDFStream
                         """
                     }
                 }
+                */
             }
         }
     }

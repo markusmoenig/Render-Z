@@ -765,6 +765,28 @@ class SceneGraph                : MMWidget
                         }
                         toolBarWidgets.append(button)
                     } else
+                    if comp.componentType == .Normal3D {
+                        let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
+                        button.clicked = { (event) in
+                            globalApp!.libraryDialog.show(id: "Normal3D", cb: { (json) in
+                                if let comp = decodeComponentFromJSON(json) {
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Change Normal")
+                                    
+                                    comp.uuid = UUID()
+                                    comp.selected = nil
+                                    globalApp!.currentEditor.setComponent(comp)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                    
+                                    comp.uuid = item.component!.uuid
+                                    globalApp!.project.selected!.updateComponent(comp)
+                                                                
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                }
+                            })
+                        }
+                        toolBarWidgets.append(button)
+                    } else
                     if comp.componentType == .SkyDome {
                         let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
                         button.clicked = { (event) in

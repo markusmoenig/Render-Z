@@ -1106,7 +1106,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, Terrain3D, AO3D, Shadows3D, SampleSun3D
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D
     }
     
     let functionType        : FunctionType
@@ -1379,7 +1379,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, Terrain3D, AO3D, Shadows3D, SampleSun3D
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1741,13 +1741,11 @@ class CodeComponent         : Codable, Equatable
             
             let map = CodeFunction(.Prototype, "sceneMap")
             map.comment = "Returns the closest shape for the given position in the scene"
-            let posArg = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3")
             map.header.fragment.typeName = "float4"
             map.header.fragment.evaluatesTo = "float4"
             map.header.fragment.argumentFormat = ["float4"]
             map.header.fragment.name = "sceneMap"
-            map.header.statement.fragments.append(posArg)
-            
+            map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3"))
             functions.append(map)
 
             let f = CodeFunction(type, "rayMarch")
@@ -1763,19 +1761,17 @@ class CodeComponent         : Codable, Equatable
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outShape"))
-            f.body.append(f.createOutVariableBlock("float3", "outNormal"))
             functions.append(f)
         } else
         if type == .AO3D {
             
             let map = CodeFunction(.Prototype, "sceneMap")
             map.comment = "Returns the closest shape for the given position in the scene"
-            let posArg = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3")
             map.header.fragment.typeName = "float4"
             map.header.fragment.evaluatesTo = "float4"
             map.header.fragment.argumentFormat = ["float4"]
             map.header.fragment.name = "sceneMap"
-            map.header.statement.fragments.append(posArg)
+            map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3"))
             functions.append(map)
 
             let f = CodeFunction(type, "computeAO")
@@ -1797,12 +1793,11 @@ class CodeComponent         : Codable, Equatable
             
             let map = CodeFunction(.Prototype, "sceneMap")
             map.comment = "Returns the closest shape for the given position in the scene"
-            let posArg = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3")
             map.header.fragment.typeName = "float4"
             map.header.fragment.evaluatesTo = "float4"
             map.header.fragment.argumentFormat = ["float4"]
             map.header.fragment.name = "sceneMap"
-            map.header.statement.fragments.append(posArg)
+            map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3"))
             functions.append(map)
 
             let f = CodeFunction(type, "computeShadows")
@@ -1826,22 +1821,19 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float", "outShadow"))
             functions.append(f)
         } else
-        if type == .SampleSun3D {
+        if type == .Normal3D {
             
-            let map = CodeFunction(.Prototype, "computeShadows")
-            map.comment = "Returns the shadows for the given position and direction"
-            map.header.fragment.typeName = "float"
-            map.header.fragment.evaluatesTo = "float"
-            map.header.fragment.argumentFormat = ["float"]
-            map.header.fragment.name = "computeShadows"
+            let map = CodeFunction(.Prototype, "sceneMap")
+            map.comment = "Returns the closest shape for the given position in the scene"
+            map.header.fragment.typeName = "float4"
+            map.header.fragment.evaluatesTo = "float4"
+            map.header.fragment.argumentFormat = ["float4"]
+            map.header.fragment.name = "sceneMap"
             map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3"))
-            map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "direction", [.Selectable], ["float3"], "float3"))
-            map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float", "tmin", [.Selectable], ["float"], "float"))
-            map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float", "tmax", [.Selectable], ["float"], "float"))
             functions.append(map)
 
-            let f = CodeFunction(type, "sampleSun")
-            f.comment = "Computes the sun contribution"
+            let f = CodeFunction(type, "computeNormal")
+            f.comment = "Computes the normal for the given position"
             
             let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)
@@ -1849,7 +1841,7 @@ class CodeComponent         : Codable, Equatable
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
-            f.body.append(f.createOutVariableBlock("float", "outSun"))
+            f.body.append(f.createOutVariableBlock("float3", "outNormal"))
             functions.append(f)
         }
     }

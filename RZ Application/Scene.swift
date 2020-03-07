@@ -297,17 +297,17 @@ class Stage                 : Codable, Equatable
             codeComponent.selected = nil
             aoItem.components[item.defaultName] = codeComponent
             
-            // Sun
-            let sunItem = StageItem(.RenderStage, "Sun")
-            children3D.append(sunItem)
-            placeChild(modeId: "3D", parent: self, child: sunItem, stepSize: 120, radius: 70)
+            // Normal
+            let normalItem = StageItem(.RenderStage, "Normal")
+            children3D.append(normalItem)
+            placeChild(modeId: "3D", parent: self, child: normalItem, stepSize: 120, radius: 70)
             
-            codeComponent = CodeComponent(.SampleSun3D, "Sun")
-            codeComponent.createDefaultFunction(.SampleSun3D)
+            codeComponent = CodeComponent(.Normal3D, "Normal")
+            codeComponent.createDefaultFunction(.Normal3D)
             //codeComponent = decodeComponentFromJSON(defaultAO3D)!
             codeComponent.uuid = UUID()
             codeComponent.selected = nil
-            sunItem.components[item.defaultName] = codeComponent
+            normalItem.components[item.defaultName] = codeComponent
             
             // Shadows
             let shadowsItem = StageItem(.RenderStage, "Shadows")
