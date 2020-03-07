@@ -259,7 +259,7 @@ class DesignEditor          : MMWidget
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         // Need to update the code display ?
-        if needsUpdate || fragment.width != rect.width * zoom {
+        if /*needsUpdate ||*/ fragment.width != rect.width * zoom {
             update()
         }
 

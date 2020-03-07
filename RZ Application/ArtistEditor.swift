@@ -27,6 +27,8 @@ class ArtistEditor          : Editor
     var timeline            : MMTimeline
 
     var bottomHeight        : Float = 0
+    
+    var dispatched          : Bool = false
 
     required init(_ view: MMView)
     {
@@ -88,7 +90,17 @@ class ArtistEditor          : Editor
         if designEditor.designChanged == false {
             designEditor.designChanged = compile
         }
-        mmView.update()    
+        
+        if designEditor.rect.width > 0 {
+            designEditor.update()
+        }
+        if !dispatched {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.mmView.update()
+                self.dispatched = false
+            }
+            dispatched = true
+        }
     }
     
     override func drawRegion(_ region: MMRegion)
