@@ -197,7 +197,7 @@ class GizmoCombo3D          : GizmoBase
                 hoverState.rawValue, 0,
                 origin.x, origin.y, origin.z, fov,
                 lookAt.x, lookAt.y, lookAt.z, 0,
-                transformed["_posX"]!, -transformed["_posY"]!, transformed["_posZ"]!, 0
+                transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
             ];
                         
             let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
@@ -260,7 +260,7 @@ class GizmoCombo3D          : GizmoBase
                 //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoYAxisNormal, planeCenter: planeCenter)
                 let properties : [String:Float] = [
                     //"_posY" : initialValues["_posY"]! + (hit.y - dragStartOffset!.x),
-                    "_posY" : initialValues["_posY"]! + diff
+                    "_posY" : initialValues["_posY"]! - diff
                 ]
                 processGizmoProperties(properties)
             } else
@@ -495,10 +495,10 @@ class GizmoCombo3D          : GizmoBase
             hoverState.rawValue, 0,
             origin.x, origin.y, origin.z, fov,
             lookAt.x, lookAt.y, lookAt.z, 0,
-            transformed["_posX"]!, -transformed["_posY"]!, transformed["_posZ"]!, 0
+            transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
         ];
                 
-        gizmoDistance = simd_distance(origin, SIMD3<Float>(transformed["_posX"]!, -transformed["_posY"]!, transformed["_posZ"]!))
+        gizmoDistance = simd_distance(origin, SIMD3<Float>(transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!))
         mmView.renderer.setClipRect(rect)
 
         let mmRenderer = mmView.renderer!

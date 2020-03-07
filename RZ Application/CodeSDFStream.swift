@@ -135,7 +135,7 @@ class CodeSDFStream
             
             float4 sceneMap( float3 __origin, thread struct FuncData *__funcData )
             {
-                float4 outShape = float4(100000, -1, -1, -1);
+                float4 outShape = float4(100000, 100000, -1, -1);
                 float outDistance = 10;
             
                 constant float4 *__data = __funcData->__data;
@@ -404,7 +404,7 @@ class CodeSDFStream
             instance.code = headerCode + mapCode + shadowCode + hitAndNormalsCode + aoCode
         }
         
-        codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: ["computeAO"])
+        codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO"] : [])
     }
     
     func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)

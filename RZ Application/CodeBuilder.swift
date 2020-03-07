@@ -714,7 +714,15 @@ class CodeBuilder
 
                 let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
                 
-                inst.data[dataIndex].x = transformed[name]!
+                if globalApp!.currentSceneMode == .ThreeD {
+                    if name == "_posY" {
+                        inst.data[dataIndex].x = -transformed[name]!
+                    } else {
+                        inst.data[dataIndex].x = transformed[name]!
+                    }
+                } else {
+                    inst.data[dataIndex].x = transformed[name]!
+                }
             }
         }
         updateBuffer(inst)
