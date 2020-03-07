@@ -153,11 +153,11 @@ class DesignEditor          : MMWidget
             let y : Float = event.y - rect.y
             
             // Selection
-            if let texture = globalApp!.pipeline.depthTextureResult {
+            if let texture = globalApp!.currentPipeline!.depthTextureResult {
                 
-                if let convertTo = globalApp!.pipeline.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
+                if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
                 
-                    globalApp!.pipeline.codeBuilder.renderCopyNearest(texture: convertTo, inTexture: texture, syncronize: true)
+                    globalApp!.currentPipeline!.codeBuilder.renderCopyNearest(texture: convertTo, inTexture: texture, syncronize: true)
                     
                     let region = MTLRegionMake2D(min(Int(x), convertTo.width-1), min(Int(y), convertTo.height-1), 1, 1)
 
@@ -170,7 +170,7 @@ class DesignEditor          : MMWidget
                         valid = false
                     }
                                                         
-                    if let id = globalApp!.pipeline.codeBuilder.sdfStream.ids[Int(value.w)], valid {
+                    if let id = globalApp!.currentPipeline!.codeBuilder.sdfStream.ids[Int(value.w)], valid {
                         globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: id.1)
                     } else {
                         // Select Base Object
@@ -244,14 +244,13 @@ class DesignEditor          : MMWidget
                 
         if fragment.encoderStart()
         {
-            
             fragment.encodeEnd()
             
             if designChanged {
-                globalApp!.pipeline.build(scene: globalApp!.project.selected!)
+                globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
                 designChanged = false
             }
-            globalApp!.pipeline.render(rect.width, rect.height)
+            globalApp!.currentPipeline!.render(rect.width, rect.height)
         }
         needsUpdate = false
     }
@@ -264,14 +263,14 @@ class DesignEditor          : MMWidget
         }
 
         // Is playing ?
-        if globalApp!.pipeline.codeBuilder.isPlaying {
-            globalApp!.pipeline.render(rect.width, rect.height)
+        if globalApp!.currentPipeline!.codeBuilder.isPlaying {
+            globalApp!.currentPipeline!.render(rect.width, rect.height)
         }
         
         // Do the preview
-        if let texture = globalApp!.pipeline.finalTexture {
+        if let texture = globalApp!.currentPipeline!.finalTexture {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
-            globalApp!.pipeline.renderIfResolutionChanged(rect.width, rect.height)
+            globalApp!.currentPipeline!.renderIfResolutionChanged(rect.width, rect.height)
         } else {
             mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
         }

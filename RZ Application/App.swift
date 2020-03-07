@@ -24,7 +24,9 @@ class App
     var editorRegion    : EditorRegion?
     
     var codeBuilder     : CodeBuilder
-    var pipeline        : Pipeline
+    var pipeline2D      : Pipeline2D
+    var pipeline3D      : Pipeline3D
+    var currentPipeline : Pipeline?
     var thumbnail       : Thumbnail
 
     var artistEditor    : ArtistEditor
@@ -60,9 +62,11 @@ class App
         artistEditor = ArtistEditor(mmView)
         developerEditor = DeveloperEditor(mmView)
         codeBuilder = CodeBuilder(mmView)
-        pipeline = Pipeline(mmView)
+        pipeline2D = Pipeline2D(mmView)
+        pipeline3D = Pipeline3D(mmView)
+        currentPipeline = pipeline3D
         thumbnail = Thumbnail(mmView)
-
+        
         currentEditor = developerEditor
         project = Project(currentSceneMode)
         

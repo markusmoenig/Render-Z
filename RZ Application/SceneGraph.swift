@@ -631,6 +631,7 @@ class SceneGraph                : MMWidget
                     tabButton.clicked = { (event) -> Void in
                         if tabButton.index == 0 {
                             globalApp!.currentSceneMode = .TwoD
+                            globalApp!.currentPipeline = globalApp!.pipeline2D
                             if let scene = globalApp!.project.selected {
                                 scene.setSelected(item.stage.getChildren()[0])
                             }
@@ -638,6 +639,7 @@ class SceneGraph                : MMWidget
                         } else
                         if tabButton.index == 1 {
                             globalApp!.currentSceneMode = .ThreeD
+                            globalApp!.currentPipeline = globalApp!.pipeline3D
                             if let scene = globalApp!.project.selected {
                                 scene.setSelected(item.stage.getChildren()[0])
                             }

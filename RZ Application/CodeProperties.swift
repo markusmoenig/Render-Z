@@ -89,9 +89,9 @@ class CodeProperties    : MMWidget
         c3Node?.rect.y = 10
         
         nodeUIMonitor = nil
-        globalApp!.pipeline.monitorInstance = nil
-        globalApp!.pipeline.monitorComponent = nil
-        globalApp!.pipeline.monitorFragment = nil
+        globalApp!.currentPipeline!.monitorInstance = nil
+        globalApp!.currentPipeline!.monitorComponent = nil
+        globalApp!.currentPipeline!.monitorFragment = nil
 
         if let function = ctx.selectedFunction {
             
@@ -730,8 +730,8 @@ class CodeProperties    : MMWidget
                     c2Node!.uiItems.append(nodeUIMonitor!)
                 }
                 
-                globalApp!.pipeline.monitorComponent = comp
-                globalApp!.pipeline.monitorFragment = fragment
+                globalApp!.currentPipeline!.monitorComponent = comp
+                globalApp!.currentPipeline!.monitorFragment = fragment
             }
         }
         

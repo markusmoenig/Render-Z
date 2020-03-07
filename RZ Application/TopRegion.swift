@@ -204,16 +204,16 @@ class TopRegion: MMRegion
         
             //globalApp!.pipeline.start(400, 400)
             
-            if app.pipeline.codeBuilder.isPlaying == false {
+            if app.currentPipeline!.codeBuilder.isPlaying == false {
                 self.playButton.addState(.Checked)
                 app.mmView.lockFramerate(true)
-                app.pipeline.codeBuilder.isPlaying = true
-                app.pipeline.codeBuilder.currentFrame = 0
+                app.currentPipeline!.codeBuilder.isPlaying = true
+                app.currentPipeline!.codeBuilder.currentFrame = 0
             } else {
                 self.playButton.removeState(.Checked)
                 app.mmView.unlockFramerate(true)
-                app.pipeline.codeBuilder.isPlaying = false
-                app.pipeline.codeBuilder.currentFrame = 0
+                app.currentPipeline!.codeBuilder.isPlaying = false
+                app.currentPipeline!.codeBuilder.currentFrame = 0
             }
         }
 

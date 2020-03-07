@@ -1271,7 +1271,7 @@ class NodeUIMonitor : NodeUI
             
             // Value Text
             var vString : String = ""
-            let inst = globalApp!.pipeline.monitorInstance!
+            let inst = globalApp!.currentPipeline!.monitorInstance!
             
             if inst.monitorComponents == 1 {
                 vString = "(" + String(format: "%.03f", value.x) + ")"

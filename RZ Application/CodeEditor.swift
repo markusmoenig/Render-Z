@@ -400,10 +400,10 @@ class CodeEditor        : MMWidget
             }*/
             
             if codeChanged {
-                globalApp!.pipeline.build(scene: globalApp!.project.selected!)
+                globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
                 codeChanged = false
             }
-            globalApp!.pipeline.render(rect.width, rect.height)
+            globalApp!.currentPipeline!.render(rect.width, rect.height)
         }
         needsUpdate = false
     }
@@ -419,14 +419,14 @@ class CodeEditor        : MMWidget
         }
 
         // Is playing ?
-        if globalApp!.pipeline.codeBuilder.isPlaying {
-            globalApp!.pipeline.render(rect.width, rect.height)
+        if globalApp!.currentPipeline!.codeBuilder.isPlaying {
+            globalApp!.currentPipeline!.render(rect.width, rect.height)
         }
         
         // Do the preview
-        if let texture = globalApp!.pipeline.resultTexture {
+        if let texture = globalApp!.currentPipeline!.finalTexture {
             mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
-            globalApp!.pipeline.renderIfResolutionChanged(rect.width, rect.height)
+            globalApp!.currentPipeline!.renderIfResolutionChanged(rect.width, rect.height)
             
             mmView.renderer.setClipRect(rect)
             if let comp = codeComponent {

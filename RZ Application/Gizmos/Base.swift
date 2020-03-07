@@ -27,7 +27,7 @@ class GizmoBase              : MMWidget
     /// Returns the StageItem hierarchy for the given component
     func getHierarchyOfComponent(_ comp: CodeComponent) -> [StageItem]
     {
-        for item in globalApp!.pipeline.codeBuilder.sdfStream.ids.values {
+        for item in globalApp!.currentPipeline!.codeBuilder.sdfStream.ids.values {
             if item.1 === comp {
                 return item.0
             }

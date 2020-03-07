@@ -484,6 +484,11 @@ class Scene                 : Codable, Equatable
 
         if sceneMode != globalApp!.currentSceneMode {
             globalApp!.currentSceneMode = sceneMode
+            if sceneMode == .TwoD {
+                globalApp!.currentPipeline = globalApp!.pipeline2D
+            } else {
+                globalApp!.currentPipeline = globalApp!.pipeline3D
+            }
         }
         
         if sceneMode == .TwoD && uuid == selectedUUID2D {
