@@ -37,6 +37,9 @@ class Pipeline3D            : Pipeline
     var instanceMap         : [String:CodeBuilderInstance] = [:]
     
     var sampleCounter       : Int = 0
+    
+    var width               : Float = 0
+    var height              : Float = 0
 
     override init(_ mmView: MMView)
     {
@@ -133,6 +136,8 @@ class Pipeline3D            : Pipeline
     // Render the pipeline
     override func render(_ width: Float,_ height: Float)
     {
+        self.width = width; self.height = height
+        
         // Monitor
         func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
         {
@@ -151,10 +156,10 @@ class Pipeline3D            : Pipeline
             }
         }
  
-        stage_HitAndNormals(width, height)
-        finalTexture = resultTexture
-
+        stage_HitAndNormals()
         currentStage = .HitAndNormals
+        
+        nextStage()
 
         /*
         finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
@@ -175,16 +180,20 @@ class Pipeline3D            : Pipeline
     {
         if currentStage.rawValue < maxStage.rawValue {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-                let nextStage : Stage = Stage(rawValue: self.currentStage.rawValue + 1)!
+                let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
                 
-                if nextStage == .AO {
-                    
+                if let nextStage = nextStage {
+                    if nextStage == .AO {
+                        self.stage_computeAO()
+                        self.currentStage = .AO
+                        self.mmView.update()
+                    }
                 }
             }
         }
     }
     
-    func stage_HitAndNormals(_ width: Float,_ height: Float)
+    func stage_HitAndNormals()
     {
         // Monitor
         func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
@@ -265,5 +274,59 @@ class Pipeline3D            : Pipeline
         } else {
             resultTexture = backTexture
         }
+        finalTexture = resultTexture
+    }
+    
+    func stage_computeAO()
+    {
+        // Monitor
+        func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
+        {
+            // Monitor
+            if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
+                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba32Float)
+                if monitorInstance == nil {
+                    monitorInstance = codeBuilder.build(monitorComponent!, monitor: monitorFragment)
+                }
+                if let mInstance = monitorInstance {
+                    codeBuilder.render(mInstance, monitorTexture!, inTextures: inTextures, syncronize: true)
+                    if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
+                        monitorUI.setTexture(monitorTexture!)
+                    }
+                }
+            }
+        }
+
+        var objectIndex : Int = 0
+        var shapeText : String = "shape_" + String(objectIndex)
+        
+        while let inst = instanceMap[shapeText] {
+            
+            if depthTextureResult === depthTexture {
+                codeBuilder.render(inst, depthTexture2, inTextures: [depthTexture!, normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture2!, metaTexture2!], optionalState: "computeAO")
+                depthTextureResult = depthTexture2
+                normalTextureResult = normalTexture2
+                metaTextureResult = metaTexture2
+                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+            } else
+            if depthTextureResult === depthTexture2 {
+                codeBuilder.render(inst, depthTexture, inTextures: [depthTexture2!, normalTexture2!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!, metaTexture!], optionalState: "computeAO")
+                depthTextureResult = depthTexture
+                normalTextureResult = normalTexture
+                metaTextureResult = metaTexture
+                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+            }
+            objectIndex += 1
+            shapeText = "shape_" + String(objectIndex)
+        }
+
+        // Render it all
+        if let inst = instanceMap["render"] {
+            codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
+            //computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
+        } else {
+            resultTexture = backTexture
+        }
+        finalTexture = resultTexture
     }
 }

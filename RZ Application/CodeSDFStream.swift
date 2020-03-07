@@ -19,6 +19,9 @@ class CodeSDFStream
     var mapCode             : String = ""
     var shadowCode          : String = ""
 
+    var hitAndNormalsCode   : String = ""
+    var aoCode              : String = ""
+
     var monitor             : CodeFragment? = nil
 
     var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
@@ -73,7 +76,7 @@ class CodeSDFStream
             instance.code =
                 
             """
-            kernel void componentBuilder(
+            kernel void hitAndNormals(
             texture2d<half, access::write>          __outTexture  [[texture(0)]],
             constant float4                        *__data   [[ buffer(1) ]],
             //texture2d<half, access::sample>       fontTexture [[texture(2)]],
@@ -156,10 +159,10 @@ class CodeSDFStream
             
             """
             
-            instance.code =
+            hitAndNormalsCode =
                 
             """
-            kernel void componentBuilder(
+            kernel void hitAndNormals(
             texture2d<half, access::write>          __outTexture  [[texture(0)]],
             constant float4                        *__data   [[ buffer(1) ]],
             texture2d<half, access::sample>         __depthInTexture [[texture(2)]],
@@ -189,36 +192,15 @@ class CodeSDFStream
                 __funcData.__data = __data;
             
                 float4 outShape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
-
+            
                 float maxDistance = outShape.y;
                 float4 inShape = outShape;
                 float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
                 float4 outMeta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
-
-                /*
-                float t = 0.001;
-                for( int i=0; i < 70; i++ )
-                {
-                    float4 h = map( __ro + __rd * t, &__funcData );
-                    if( h.x <(0.001 * t) )
-                    {
-                        outShape = h;
-                        outShape.y = t;
-            
-                        float3 pos = __ro + t * __rd;
-            
-                        float2 e = float2(1.0,-1.0)*0.5773*0.0005;
-                        outNormal = normalize( e.xyy*map( pos + e.xyy, &__funcData ).x +
-                              e.yyx*map( pos + e.yyx, &__funcData ).x +
-                              e.yxy*map( pos + e.yxy, &__funcData ).x +
-                              e.xxx*map( pos + e.xxx, &__funcData ).x );
-                        
-                        break;
-                    }
-                    t += h.x;
-                }*/
             
             """
+            
+            aoCode = hitAndNormalsCode.replacingOccurrences(of: "hitAndNormals", with: "computeAO")
             
             if let ground = groundComponent {
                 if ground.componentType == .Ground3D {
@@ -229,7 +211,7 @@ class CodeSDFStream
                         headerCode += globalCode
                     }
                     if let code = ground.code {
-                        instance.code += code
+                        hitAndNormalsCode += code
                     }
                     
                     ids[idCounter] = ([globalApp!.project.selected!.getStage(.ShapeStage).getChildren()[0]], ground)
@@ -243,20 +225,17 @@ class CodeSDFStream
                     headerCode += globalCode
                 }
                 if let code = rayMarch.code {
-                    instance.code += code
+                    hitAndNormalsCode += code
                 }
                 
-                // If we hit something, compute the normal
-                instance.code +=
+                hitAndNormalsCode +=
                 """
                 
                 if (outShape.w != inShape.w) {
-                    outMeta.x = 1.0;
-                    outMeta.y = 1.0;
-
 
                 """
                 
+                // For hitAndNormals Stage compute the normals
                 if let normal = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Normal3D) {
                     dryRunComponent(normal, instance.data.count, monitor)
                     instance.collectProperties(normal)
@@ -264,14 +243,14 @@ class CodeSDFStream
                         headerCode += globalCode
                     }
                     if let code = normal.code {
-                        instance.code +=
+                        hitAndNormalsCode +=
                         """
                         
                         {
                         float3 position = rayOrigin + outShape.y * rayDirection;
                         """
-                        instance.code += code
-                        instance.code +=
+                        hitAndNormalsCode += code
+                        hitAndNormalsCode +=
                         """
                         
                         }
@@ -279,15 +258,6 @@ class CodeSDFStream
                         """
                     }
                 }
-                
-                instance.code +=
-                """
-                
-                }
-
-                """
-                
-                /*
                 
                 if let ao = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .AO3D) {
                     dryRunComponent(ao, instance.data.count, monitor)
@@ -296,7 +266,7 @@ class CodeSDFStream
                         headerCode += globalCode
                     }
                     if let code = ao.code {
-                        instance.code +=
+                        aoCode +=
                         """
                         
                         {
@@ -304,8 +274,8 @@ class CodeSDFStream
                         float3 normal = outNormal;
                         float outAO = 1.;
                         """
-                        instance.code += code
-                        instance.code +=
+                        aoCode += code
+                        aoCode +=
                         """
                         
                         outMeta.x = min(outMeta.x, outAO);
@@ -314,6 +284,15 @@ class CodeSDFStream
                         """
                     }
                 }
+                
+                hitAndNormalsCode +=
+                """
+                
+                }
+
+                """
+                
+                /*
                 
                 if let shadows = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Shadows3D) {
                     dryRunComponent(shadows, instance.data.count, monitor)
@@ -387,7 +366,7 @@ class CodeSDFStream
             instance.code = headerCode + instance.code
         } else
         if type == .SDF3D {
-            instance.code +=
+            hitAndNormalsCode +=
             """
             
                 __normalTexture.write(half4(float4(outNormal, 0)), __gid);
@@ -395,6 +374,17 @@ class CodeSDFStream
                 __outTexture.write(half4(outShape), __gid);
             }
             """
+            
+            aoCode +=
+            """
+            
+                __normalTexture.write(half4(float4(outNormal, 0)), __gid);
+                __metaTexture.write(half4(outMeta), __gid);
+                __outTexture.write(half4(outShape), __gid);
+            }
+            
+            """
+                        
             mapCode +=
             """
             
@@ -411,11 +401,10 @@ class CodeSDFStream
             
             """
             
-            instance.code = headerCode + mapCode + shadowCode + instance.code            
+            instance.code = headerCode + mapCode + shadowCode + hitAndNormalsCode + aoCode
         }
         
-        //print(instance.code)
-        codeBuilder.buildInstance(instance)
+        codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: ["computeAO"])
     }
     
     func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)

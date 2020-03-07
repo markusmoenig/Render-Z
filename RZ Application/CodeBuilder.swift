@@ -14,6 +14,7 @@ class CodeBuilderInstance
     var code                : String = ""
     
     var computeState        : MTLComputePipelineState? = nil
+    var additionalStates    : [String: MTLComputePipelineState] = [:]
 
     var data                : [SIMD4<Float>] = []
     var buffer              : MTLBuffer!
@@ -184,13 +185,17 @@ class CodeBuilder
         return inst
     }
     
-    func buildInstance(_ inst: CodeBuilderInstance)
+    func buildInstance(_ inst: CodeBuilderInstance, name: String = "componentBuilder", additionalNames: [String] = [])
     {
         inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
         let library = compute.createLibraryFromSource(source: inst.code)
-        inst.computeState = compute.createState(library: library, name: "componentBuilder")
+        inst.computeState = compute.createState(library: library, name: name)
+        
+        for name in additionalNames {
+            inst.additionalStates[name] = compute.createState(library: library, name: name)
+        }
     }
     
     /// Build the source code for the component
@@ -742,13 +747,22 @@ class CodeBuilder
     
     
     // Render the component into a texture
-    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], syncronize: Bool = false)
+    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], syncronize: Bool = false, optionalState: String? = nil)
     {
         updateData(inst)
         
-        compute.run( inst.computeState!, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, outTextures: outTextures, syncronize: syncronize)
+        var state : MTLComputePipelineState? = nil
         
-        compute.commandBuffer.waitUntilCompleted()
+        if let oState = optionalState {
+            state = inst.additionalStates[oState]
+        } else {
+            state = inst.computeState
+        }
+        
+        if let state = state {
+            compute.run( state, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, outTextures: outTextures, syncronize: syncronize)
+            compute.commandBuffer.waitUntilCompleted()
+        }
     }
     
     // Compute the monitor data
