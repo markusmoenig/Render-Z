@@ -1106,7 +1106,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D
     }
     
     let functionType        : FunctionType
@@ -1379,7 +1379,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1645,7 +1645,7 @@ class CodeComponent         : Codable, Equatable
             functions.append(f)
         } else
         if type == .Render2D {
-            let f = CodeFunction(type, "computeColor")
+            let f = CodeFunction(type, "render")
             f.comment = "Computes the pixel color for the given material"
             
             let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
@@ -1670,7 +1670,7 @@ class CodeComponent         : Codable, Equatable
             functions.append(f)
         } else
         if type == .Render3D {
-            let f = CodeFunction(type, "computeColor")
+            let f = CodeFunction(type, "render")
             f.comment = "Computes the final pixel color"
             
             let arg1 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
@@ -1774,7 +1774,7 @@ class CodeComponent         : Codable, Equatable
             map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3"))
             functions.append(map)
 
-            let f = CodeFunction(type, "computeAO")
+            let f = CodeFunction(type, "ao")
             f.comment = "Computes the ambient occlusion"
             
             let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
@@ -1800,7 +1800,7 @@ class CodeComponent         : Codable, Equatable
             map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3"))
             functions.append(map)
 
-            let f = CodeFunction(type, "computeShadows")
+            let f = CodeFunction(type, "shadows")
             f.comment = "Computes the sun contribution"
             
             let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
@@ -1832,7 +1832,7 @@ class CodeComponent         : Codable, Equatable
             map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3"))
             functions.append(map)
 
-            let f = CodeFunction(type, "computeNormal")
+            let f = CodeFunction(type, "normal")
             f.comment = "Computes the normal for the given position"
             
             let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
@@ -1842,6 +1842,34 @@ class CodeComponent         : Codable, Equatable
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float3", "outNormal"))
+            functions.append(f)
+        } else
+        if type == .UVMAP3D {
+
+            let f = CodeFunction(type, "uvMap")
+            f.comment = "Translates the 3D position to a 2D UV position"
+            
+            let arg = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float2", "outUV"))
+            functions.append(f)
+        } else
+        if type == .Material3D {
+
+            let f = CodeFunction(type, "material")
+            f.comment = "Computes the color and reflection direction for the given hit point"
+            
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float4", "outColor"))
+            f.body.append(f.createOutVariableBlock("float3", "outReflection"))
             functions.append(f)
         }
     }

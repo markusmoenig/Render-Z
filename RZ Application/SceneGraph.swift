@@ -1044,12 +1044,30 @@ class SceneGraph                : MMWidget
         }
         let diameter : Float = o.label!.rect.width + 10 * graphZoom
         
-        let x = (graphX + o.values["_graphX"]!) * graphZoom - diameter / 2
-        let y = (graphY + o.values["_graphY"]!) * graphZoom - diameter / 2
+        let x       : Float
+        let y       : Float
         
-        let item = SceneGraphItem(.StageItem, stage: stage, stageItem: o)
+        if let parent = parent {
+            x = parent.rect.x + o.values["_graphX"]! * graphZoom
+            y = parent.rect.y + o.values["_graphY"]! * graphZoom
+        } else {
+            x = (graphX + o.values["_graphX"]!) * graphZoom - diameter / 2
+            y = (graphY + o.values["_graphY"]!) * graphZoom - diameter / 2
+        }
+        
+        var uuid : UUID = o.uuid
+
+        var component : CodeComponent? = nil
+        if let comp = o.components[o.defaultName] {
+            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D {
+                component = comp
+                uuid = comp.uuid
+            }
+        }
+        
+        let item = SceneGraphItem(.StageItem, stage: stage, stageItem: o, component: component)
         item.rect.set(x, y, diameter, diameter)
-        itemMap[o.uuid] = item
+        itemMap[uuid] = item
         
         if let p = parent {
             drawLineBetweenCircles(item, p, skin)

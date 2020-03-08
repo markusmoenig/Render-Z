@@ -334,8 +334,27 @@ func placeChild(modeId: String, parent: Stage, child: StageItem, stepSize: Float
         parent.values[id] = defaultStart
     }
     
-    child.values["_graphX"] = radius * sin( toRadians(parent.values[id]!) )
-    child.values["_graphY"] = radius * cos( toRadians(parent.values[id]!) )
+    let angle = toRadians(parent.values[id]!)
+    
+    child.values["_graphX"] = radius * sin( angle )
+    child.values["_graphY"] = radius * cos( angle )
+
+    parent.values[id]! += -stepSize
+}
+
+/// Places a child in a circle around the parent
+func placeChild(modeId: String, parent: StageItem, child: StageItem, stepSize: Float, radius: Float, defaultStart: Float = 90)
+{
+    let id : String = "childLocator" + modeId
+    
+    if parent.values[id] == nil {
+        parent.values[id] = defaultStart
+    }
+    
+    let angle = toRadians(parent.values[id]!)
+    
+    child.values["_graphX"] = radius * sin( angle )
+    child.values["_graphY"] = radius * cos( angle )
 
     parent.values[id]! += -stepSize
 }

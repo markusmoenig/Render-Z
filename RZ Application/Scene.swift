@@ -379,12 +379,29 @@ class Stage                 : Codable, Equatable
 
             stageItem.componentLists["shapes2D"] = []//[defComponent]
             stageItem.componentLists["shapes3D"] = []//defComponent3D]
-
-            stageItem.componentLists["materials2D"] = []
-            stageItem.componentLists["materials3D"] = []
             
             stageItem.componentLists["domain2D"] = []
             stageItem.componentLists["domain3D"] = []
+            
+            let materialItem = StageItem(.RenderStage, "Material")
+            //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
+            var codeComponent = CodeComponent(.Material3D, "Material")
+            codeComponent.createDefaultFunction(.Material3D)
+            codeComponent.uuid = UUID()
+            codeComponent.selected = nil
+            materialItem.components[materialItem.defaultName] = codeComponent
+            stageItem.children.append(materialItem)
+            placeChild(modeId: "3D", parent: stageItem, child: materialItem, stepSize: 50, radius: 140, defaultStart: 0)
+
+            let uvItem = StageItem(.RenderStage, "UV Map")
+            //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
+            codeComponent = CodeComponent(.UVMAP3D, "UV Map")
+            codeComponent.createDefaultFunction(.UVMAP3D)
+            codeComponent.uuid = UUID()
+            codeComponent.selected = nil
+            uvItem.components[uvItem.defaultName] = codeComponent
+            stageItem.children.append(uvItem)
+            placeChild(modeId: "3D", parent: stageItem, child: uvItem, stepSize: 50, radius: 130)
         }
 
         if let parent = parent {
