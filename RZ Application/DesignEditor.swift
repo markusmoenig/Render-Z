@@ -121,7 +121,7 @@ class DesignEditor          : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if let gizmo = currentGizmo {
+        if let gizmo = currentGizmo, editor.designProperties.hoverMode != .NodeUIMouseLocked {
             gizmo.rect.copy(rect)
             gizmo.mouseMoved(event)
         }
@@ -169,7 +169,7 @@ class DesignEditor          : MMWidget
                     if globalApp!.currentSceneMode == .TwoD && value.x > 0 {
                         valid = false
                     }
-                                                        
+                                                                            
                     if let id = globalApp!.currentPipeline!.codeBuilder.sdfStream.ids[Int(value.w)], valid {
                         globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: id.1)
                     } else {

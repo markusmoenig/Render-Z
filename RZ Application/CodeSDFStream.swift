@@ -27,6 +27,11 @@ class CodeSDFStream
     var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
     var idCounter           : Int = 0
     
+    var materialIds         : [Int:StageItem] = [:]
+    var materialIdCounter   : Int = 0
+    var materialIdHierarchy : [Int] = []
+    var currentMaterialId   : Int = 0
+
     var hierarchy           : [StageItem] = []
 
     init()
@@ -38,6 +43,11 @@ class CodeSDFStream
     {
         ids = [:]
         idCounter = 0
+        
+        materialIds = [:]
+        materialIdCounter = 0
+        materialIdHierarchy = []
+        currentMaterialId = 0
         
         hierarchy = []
     }
@@ -452,7 +462,7 @@ class CodeSDFStream
             """
             
                 float4 shapeA = outShape;
-                float4 shapeB = float4(outDistance, -1, 1, \(idCounter));
+                float4 shapeB = float4(outDistance, -1, \(currentMaterialId), \(idCounter));
             
             """
             
@@ -465,7 +475,7 @@ class CodeSDFStream
             code +=
             """
             
-                outShape = float4(outDistance, -1, 1, \(idCounter));
+                outShape = float4(outDistance, -1, \(currentMaterialId), \(idCounter));
             
             """
         }
@@ -489,10 +499,29 @@ class CodeSDFStream
     func pushStageItem(_ stageItem: StageItem)
     {
         hierarchy.append(stageItem)
+        
+        if getFirstComponentOfType(stageItem.children, .Material3D) != nil {
+            // If this item has a material, push it on the stack
+            materialIdHierarchy.append(materialIdCounter)
+            materialIds[materialIdCounter] = stageItem
+            currentMaterialId = materialIdCounter
+            //print(stageItem.name, materialIdCounter, currentMaterialId)
+            materialIdCounter += 1
+        }
     }
     
     func pullStageItem()
     {
-        hierarchy.removeLast()
+        let stageItem = hierarchy.removeLast()
+        
+        // If object had a material, pop the materialHierarchy
+        if getFirstComponentOfType(stageItem.children, .Material3D) != nil {
+            materialIdHierarchy.removeLast()
+            if materialIdHierarchy.count > 0 {
+                currentMaterialId = materialIdHierarchy.last!
+            } else {
+                currentMaterialId = 0
+            }
+        }
     }
 }

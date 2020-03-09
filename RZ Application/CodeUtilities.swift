@@ -158,18 +158,24 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             } else
             if component.componentType == .Ground3D {
                 libName += " :: Ground3D"
-            }
+            } else
             if component.componentType == .Terrain3D {
                 libName += " :: Terrain3D"
-            }
+            } else
             if component.componentType == .AO3D {
                 libName += " :: AO3D"
-            }
+            } else
             if component.componentType == .Shadows3D {
                 libName += " :: Shadows3D"
-            }
+            } else
             if component.componentType == .Normal3D {
                 libName += " :: Normal3D"
+            } else
+            if component.componentType == .Material3D {
+                libName += " :: Material3D"
+            } else
+            if component.componentType == .UVMAP3D {
+                libName += " :: UVMAP3D"
             }
         }
         

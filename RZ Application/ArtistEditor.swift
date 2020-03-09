@@ -80,7 +80,7 @@ class ArtistEditor          : Editor
         designEditor.designComponent = component
         designProperties.setSelected(component)
         designEditor.updateGizmo()
-        updateOnNextDraw()
+        updateOnNextDraw(compile: false)
         mmView.update()
     }
     
@@ -94,8 +94,9 @@ class ArtistEditor          : Editor
         if designEditor.rect.width > 0 {
             designEditor.update()
         }
+        
         if !dispatched {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
                 self.mmView.update()
                 self.dispatched = false
             }

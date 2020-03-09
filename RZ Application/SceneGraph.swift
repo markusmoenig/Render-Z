@@ -491,7 +491,6 @@ class SceneGraph                : MMWidget
                     self.deactivate()
                     globalApp!.topRegion?.graphButton.removeState(.Checked)
                 }
-                globalApp!.currentEditor.updateOnNextDraw(compile: false)
             } )
             animating = true
         } else if rightRegion.rect.height != openWidth {
@@ -505,7 +504,6 @@ class SceneGraph                : MMWidget
                     globalApp!.topRegion?.graphButton.addState(.Checked)
                 }
                 self.currentWidth = value
-                globalApp!.currentEditor.updateOnNextDraw(compile: false)
             } )
             animating = true
         }

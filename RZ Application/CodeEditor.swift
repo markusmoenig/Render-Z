@@ -376,9 +376,11 @@ class CodeEditor        : MMWidget
             }
         }
         
+        let width : Float = max(codeContext.width, 10)
         let height : Float = codeContext.cY == 0 ? 500 : codeContext.cY
-        if fragment.width != rect.width * zoom || fragment.height != height * zoom {
-            fragment.allocateTexture(width: rect.width * zoom, height: height * zoom, mipMaps: true)
+                
+        if fragment.width != width * zoom || fragment.height != height * zoom {
+            fragment.allocateTexture(width: width * zoom, height: height * zoom, mipMaps: true)
         }
         textureWidget.setTexture(fragment.texture)
                 
@@ -411,7 +413,7 @@ class CodeEditor        : MMWidget
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         // Need to update the code display ?
-        if needsUpdate || fragment.width != rect.width * zoom {
+        if needsUpdate {
             update()
             if let comp = codeComponent, editor.codeProperties.needsUpdate {
                 editor.codeProperties.setSelected(comp, codeContext)
@@ -451,12 +453,12 @@ class CodeEditor        : MMWidget
         mmView.renderer.setClipRect(rect)
 
         let factor : Float = 1.8
-        var ratio : Float = 100 / Float(fragment.width)
+        var ratio : Float = 100 / (codeContext.width * mmView.scaleFactor)//Float(fragment.width)
         ratio = ratio * Float(fragment.height)
         orientationHeight = ratio * factor
         mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100 * factor, height: orientationHeight)
         
-        ratio = 100 / rect.width
+        ratio = 100 / codeContext.width//rect.width
         ratio = ratio * rect.height
 
         let height : Float = min(ratio * factor, orientationHeight)

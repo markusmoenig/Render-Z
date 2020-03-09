@@ -1852,6 +1852,8 @@ class CodeComponent         : Codable, Equatable
             let arg = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg)
             
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
+            
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
@@ -1863,7 +1865,9 @@ class CodeComponent         : Codable, Equatable
             let f = CodeFunction(type, "material")
             f.comment = "Computes the color and reflection direction for the given hit point"
             
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "rayDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
@@ -2147,7 +2151,6 @@ class CodeComponent         : Codable, Equatable
         }
         
         ctx.rectEnd(rect, rStart)
-        
         //if globalCode!.count > 0 {
             //print(globalCode!)
         //}
@@ -2167,6 +2170,7 @@ class CodeContext
     var cX                  : Float = 0
     var cY                  : Float = 0
     var cIndent             : Float = 0
+    var width               : Float = 0
 
     weak var cComponent     : CodeComponent? = nil
     weak var cFunction      : CodeFunction? = nil
@@ -2227,7 +2231,7 @@ class CodeContext
     
     func reset(_ editorWidth: Float = 10000,_ propertyDataOffset: Int = 0,_ monitorFragment: CodeFragment? = nil)
     {
-        //fontScale = 0.45
+        width = 0
         startX = 10
         
         cY = CodeContext.fSpace
@@ -2309,6 +2313,9 @@ class CodeContext
         rect.y = start.y - gapY / 2
         rect.width = cX - start.x + gapX
         rect.height = max(cY - start.y, lineHeight) + gapY
+        if cX > width {
+            width = cX
+        }
     }
     
     func openSyntaxBlock(_ uuid: UUID)

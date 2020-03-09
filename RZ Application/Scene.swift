@@ -123,6 +123,30 @@ class StageItem             : Codable, Equatable
         let id = name + (globalApp!.currentSceneMode == .TwoD ? "2D" : "3D")
         return componentLists[id]
     }
+    
+    /// Adds a material to this item
+    func addMaterial()
+    {
+        let materialItem = StageItem(.RenderStage, "Material")
+        //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
+        var codeComponent = CodeComponent(.Material3D, "Material")
+        codeComponent.createDefaultFunction(.Material3D)
+        codeComponent.uuid = UUID()
+        codeComponent.selected = nil
+        materialItem.components[materialItem.defaultName] = codeComponent
+        children.append(materialItem)
+        placeChild(modeId: "3D", parent: self, child: materialItem, stepSize: 50, radius: 140, defaultStart: 0)
+
+        let uvItem = StageItem(.RenderStage, "UV Map")
+        //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
+        codeComponent = CodeComponent(.UVMAP3D, "UV Map")
+        codeComponent.createDefaultFunction(.UVMAP3D)
+        codeComponent.uuid = UUID()
+        codeComponent.selected = nil
+        uvItem.components[uvItem.defaultName] = codeComponent
+        children.append(uvItem)
+        placeChild(modeId: "3D", parent: self, child: uvItem, stepSize: 50, radius: 130)
+    }
 }
 
 class Stage                 : Codable, Equatable
@@ -248,6 +272,8 @@ class Stage                 : Codable, Equatable
             
             item.values["_graphX"] = -20
             item.values["_graphY"] = 100
+            
+            item.addMaterial()
         }
         
         
@@ -383,25 +409,7 @@ class Stage                 : Codable, Equatable
             stageItem.componentLists["domain2D"] = []
             stageItem.componentLists["domain3D"] = []
             
-            let materialItem = StageItem(.RenderStage, "Material")
-            //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
-            var codeComponent = CodeComponent(.Material3D, "Material")
-            codeComponent.createDefaultFunction(.Material3D)
-            codeComponent.uuid = UUID()
-            codeComponent.selected = nil
-            materialItem.components[materialItem.defaultName] = codeComponent
-            stageItem.children.append(materialItem)
-            placeChild(modeId: "3D", parent: stageItem, child: materialItem, stepSize: 50, radius: 140, defaultStart: 0)
-
-            let uvItem = StageItem(.RenderStage, "UV Map")
-            //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
-            codeComponent = CodeComponent(.UVMAP3D, "UV Map")
-            codeComponent.createDefaultFunction(.UVMAP3D)
-            codeComponent.uuid = UUID()
-            codeComponent.selected = nil
-            uvItem.components[uvItem.defaultName] = codeComponent
-            stageItem.children.append(uvItem)
-            placeChild(modeId: "3D", parent: stageItem, child: uvItem, stepSize: 50, radius: 130)
+            stageItem.addMaterial()
         }
 
         if let parent = parent {
@@ -417,7 +425,7 @@ class Stage                 : Codable, Equatable
         folderIsOpen = true
         return stageItem
     }
-
+    
     /// Recursively update the component
     func updateComponent(_ comp: CodeComponent)
     {
