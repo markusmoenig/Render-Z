@@ -275,7 +275,11 @@ class DesignEditor          : MMWidget
         
         // Do the preview
         if let texture = globalApp!.currentPipeline!.finalTexture {
-            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+            if rect.width == Float(texture.width) && rect.height == Float(texture.height) {
+                mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+            } else {
+                mmView.drawTexture.drawScaled(texture, x: rect.x, y: rect.y, width: rect.width, height: rect.height)
+            }
             globalApp!.currentPipeline!.renderIfResolutionChanged(rect.width, rect.height)
         } else {
             mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)

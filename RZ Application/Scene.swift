@@ -212,7 +212,7 @@ class Stage                 : Codable, Equatable
         self.stageType = stageType
         self.name = name
         
-        values["_graphX"] = 0
+        values["_graphX"] = -20
         values["_graphY"] = 0
         
         if stageType == .PreStage {
@@ -270,8 +270,8 @@ class Stage                 : Codable, Equatable
             item.components[item.defaultName] = codeComponent
             children3D.append(item)
             
-            item.values["_graphX"] = -20
-            item.values["_graphY"] = 100
+            item.values["_graphX"] = 80
+            item.values["_graphY"] = 120
             
             item.addMaterial()
         }
@@ -311,10 +311,10 @@ class Stage                 : Codable, Equatable
             codeComponent.selected = nil
             rayMarchItem.components[item.defaultName] = codeComponent
             
-            // AO
-            let aoItem = StageItem(.RenderStage, "AO")
+            // Occlusion
+            let aoItem = StageItem(.RenderStage, "Occlusion")
             children3D.append(aoItem)
-            placeChild(modeId: "3D", parent: self, child: aoItem, stepSize: 80, radius: 120)
+            placeChild(modeId: "3D", parent: self, child: aoItem, stepSize: 80, radius: 140)
             
             //codeComponent = CodeComponent(.AO3D, "AO")
             //codeComponent.createDefaultFunction(.AO3D)
@@ -326,7 +326,7 @@ class Stage                 : Codable, Equatable
             // Normal
             let normalItem = StageItem(.RenderStage, "Normal")
             children3D.append(normalItem)
-            placeChild(modeId: "3D", parent: self, child: normalItem, stepSize: 120, radius: 70)
+            placeChild(modeId: "3D", parent: self, child: normalItem, stepSize: 120, radius: 80)
             
             codeComponent = CodeComponent(.Normal3D, "Normal")
             codeComponent.createDefaultFunction(.Normal3D)
@@ -349,7 +349,7 @@ class Stage                 : Codable, Equatable
         }
         
         if stageType == .VariablePool {
-            values["_graphX"] = 100
+            values["_graphX"] = 180
             values["_graphY"] = 170
             
             // Create Sun Pool

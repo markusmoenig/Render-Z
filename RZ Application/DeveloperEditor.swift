@@ -15,6 +15,8 @@ class DeveloperEditor   : Editor
     
     let codeEditor      : CodeEditor
     var codeProperties  : CodeProperties
+    
+    var dispatched      : Bool = false
 
     required init(_ view: MMView)
     {
@@ -48,7 +50,7 @@ class DeveloperEditor   : Editor
             component.selectUUID(uuid, codeEditor.codeContext)
             codeProperties.needsUpdate = true
         }
-        mmView.update()
+        updateOnNextDraw(compile: false)
     }
     
     override func instantUpdate()
@@ -62,10 +64,17 @@ class DeveloperEditor   : Editor
         if codeEditor.codeChanged == false {
             codeEditor.codeChanged = compile
         }
-        if codeEditor.rect.width > 0 && codeEditor.codeChanged == false {
+        if codeEditor.rect.width > 0 {//&& codeEditor.codeChanged == false {
             codeEditor.update()
         }
-        mmView.update()
+        
+        if !dispatched {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                self.mmView.update()
+                self.dispatched = false
+            }
+            dispatched = true
+        }
     }
     
     override func drawRegion(_ region: MMRegion)

@@ -415,9 +415,11 @@ class CodeEditor        : MMWidget
         // Need to update the code display ?
         if needsUpdate {
             update()
-            if let comp = codeComponent, editor.codeProperties.needsUpdate {
-                editor.codeProperties.setSelected(comp, codeContext)
-            }
+        }
+        
+        // Need to update the codeProperties ?
+        if let comp = codeComponent, editor.codeProperties.needsUpdate {
+            editor.codeProperties.setSelected(comp, codeContext)
         }
 
         // Is playing ?
@@ -427,7 +429,11 @@ class CodeEditor        : MMWidget
         
         // Do the preview
         if let texture = globalApp!.currentPipeline!.finalTexture {
-            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+            if rect.width == Float(texture.width) && rect.height == Float(texture.height) {
+                mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+            } else {
+                mmView.drawTexture.drawScaled(texture, x: rect.x, y: rect.y, width: rect.width, height: rect.height)
+            }
             globalApp!.currentPipeline!.renderIfResolutionChanged(rect.width, rect.height)
             
             mmView.renderer.setClipRect(rect)
