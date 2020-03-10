@@ -11,7 +11,7 @@ import MetalKit
 class Pipeline3D            : Pipeline
 {
     enum Stage : Int {
-        case None, Compiling, Compiled, HitAndNormals, AO
+        case None, Compiling, Compiled, HitAndNormals, AO, ShadowsAndMaterials
     }
     
     var currentStage        : Stage = .None
@@ -179,13 +179,18 @@ class Pipeline3D            : Pipeline
     func nextStage()
     {
         if currentStage.rawValue < maxStage.rawValue {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
                 
                 if let nextStage = nextStage {
                     if nextStage == .AO {
                         self.stage_computeAO()
                         self.currentStage = .AO
+                        //self.mmView.update()
+                    } else
+                    if nextStage == .ShadowsAndMaterials {
+                        self.stage_computeShadowsAndMaterials()
+                        self.currentStage = .ShadowsAndMaterials
                         self.mmView.update()
                     }
                 }
@@ -199,8 +204,8 @@ class Pipeline3D            : Pipeline
         func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
         {
             // Monitor
-            if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
-                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba32Float)
+            if inst.component != nil && inst.component === monitorComponent {
+                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba16Float)
                 if monitorInstance == nil {
                     monitorInstance = codeBuilder.build(monitorComponent!, monitor: monitorFragment)
                 }
@@ -302,17 +307,70 @@ class Pipeline3D            : Pipeline
         
         while let inst = instanceMap[shapeText] {
             
-            if depthTextureResult === depthTexture {
-                codeBuilder.render(inst, depthTexture2, inTextures: [depthTexture!, normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture2!, metaTexture2!], optionalState: "computeAO")
-                depthTextureResult = depthTexture2
-                normalTextureResult = normalTexture2
+            if metaTextureResult === metaTexture {
+                codeBuilder.render(inst, metaTexture2, inTextures: [depthTextureResult!, normalTextureResult!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], optionalState: "computeAO")
                 metaTextureResult = metaTexture2
                 //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             } else
-            if depthTextureResult === depthTexture2 {
-                codeBuilder.render(inst, depthTexture, inTextures: [depthTexture2!, normalTexture2!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!, metaTexture!], optionalState: "computeAO")
-                depthTextureResult = depthTexture
-                normalTextureResult = normalTexture
+            if metaTextureResult === metaTexture2 {
+                codeBuilder.render(inst, metaTexture, inTextures: [depthTextureResult!, normalTextureResult!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], optionalState: "computeAO")
+                metaTextureResult = metaTexture
+                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+            }
+            objectIndex += 1
+            shapeText = "shape_" + String(objectIndex)
+        }
+
+        // Render it all
+        if let inst = instanceMap["render"] {
+            codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
+            //computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
+        } else {
+            resultTexture = backTexture
+        }
+        finalTexture = resultTexture
+        
+        nextStage()
+    }
+    
+    func stage_computeShadowsAndMaterials()
+    {
+        // Monitor
+        func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
+        {
+            // Monitor
+            if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
+                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba32Float)
+                if monitorInstance == nil {
+                    monitorInstance = codeBuilder.build(monitorComponent!, monitor: monitorFragment)
+                }
+                if let mInstance = monitorInstance {
+                    codeBuilder.render(mInstance, monitorTexture!, inTextures: inTextures, syncronize: true)
+                    if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
+                        monitorUI.setTexture(monitorTexture!)
+                    }
+                }
+            }
+        }
+
+        var objectIndex : Int = 0
+        var shapeText : String = "shape_" + String(objectIndex)
+        
+        let sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
+        //sunDirection = -sunDirection!
+
+        let lightdata : [SIMD4<Float>] = [sunDirection!]
+        let lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+                
+        while let inst = instanceMap[shapeText] {
+            
+            if metaTextureResult === metaTexture {
+                codeBuilder.render(inst, metaTexture2, inTextures: [depthTextureResult!, normalTextureResult!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeShadow")
+                metaTextureResult = metaTexture2
+                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+            } else
+            if metaTextureResult === metaTexture2 {
+                codeBuilder.render(inst, metaTexture, inTextures: [depthTextureResult!, normalTextureResult!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeShadow")
                 metaTextureResult = metaTexture
                 //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             }

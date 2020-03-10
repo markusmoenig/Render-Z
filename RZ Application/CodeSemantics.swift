@@ -523,7 +523,7 @@ class CodeFragment          : Codable, Equatable
             var addCode     : Bool = true
             
             // Get the name of the variable
-            var name : String
+            var name : String = ""
             var codeName : String = ""
             if let ref = referseTo {
                 if let v = ctx.cVariables[ref] {
@@ -534,45 +534,47 @@ class CodeFragment          : Codable, Equatable
                         codeName = name
                     }
                     v.references += 1
-                } else {
-                    // Check for global variable
-                    let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getVariableComponents()
-                    if let variableComp = globalVars[ref] {
-                        // Global!
-                        name = (isNegated() ? " -" : "") + variableComp.libraryName
-                        codeName = (isNegated() ? " -" : "") + variableComp.libraryName
-                        ctx.cComponent!.globalVariables[variableComp.uuid] = variableComp
-                        addCode = false
-                        
-                        let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
-                        ctx.cComponent!.inputDataList.append(ref)
-
-                        let components = evaluateComponents()
-                        
-                        if ctx.cFunction!.functionType == .FreeFlow {
-                            ctx.addCode( "__funcData->__data[\(dataIndex)]" )
-                        } else {
-                            ctx.addCode( "__data[\(dataIndex)]" )
-                        }
-                        
-                        if components == 1 {
-                            ctx.addCode( ".x" )
-                        } else
-                        if components == 2 {
-                            ctx.addCode( ".xy" )
-                        } else
-                        if components == 3 {
-                            ctx.addCode( ".xyz" )
-                        }
-                    } else {
-                        name = "NOT FOUND"
-                        invalid = true
-                    }
                 }
             } else {
+                // Check for global variable
+                let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getGlobalVariable()
+                if let variableComp = globalVars[self.name] {
+                    // Global!
+                    name = (isNegated() ? " -" : "") + self.name
+                    codeName = (isNegated() ? " -" : "") + self.name
+                    ctx.cComponent!.globalVariables[variableComp.uuid] = variableComp
+                    addCode = false
+                    
+                    let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
+                    ctx.cComponent!.inputDataList.append(variableComp.uuid)
+
+                    let components = evaluateComponents()
+                    
+                    if ctx.cFunction!.functionType == .FreeFlow {
+                        ctx.addCode( "__funcData->__data[\(dataIndex)]" )
+                    } else {
+                        ctx.addCode( "__data[\(dataIndex)]" )
+                    }
+                    
+                    if components == 1 {
+                        ctx.addCode( ".x" )
+                    } else
+                    if components == 2 {
+                        ctx.addCode( ".xy" )
+                    } else
+                    if components == 3 {
+                        ctx.addCode( ".xyz" )
+                    }
+                } else {
+                    name = "NOT FOUND"
+                    invalid = true
+                }
+            }
+                
+                /*
                 name = "NIL"
                 invalid = true
-            }
+            }*/
 
             if invalid {
                 // If reference is invalid, replace this with a constant
@@ -1479,6 +1481,15 @@ class CodeComponent         : Codable, Equatable
             let arg2 = CodeFragment(.VariableDefinition, "float4", "meta", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
             f.header.statement.fragments.insert(arg2, at: 3)
         }*/
+        
+        /*
+        if componentType == .Shadows3D {
+            let f = functions[1]
+            //let arg2 = CodeFragment(.VariableDefinition, "float", "maxDistance", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+            //f.header.statement.fragments.append(arg2)
+            f.header.statement.fragments.removeLast()
+            f.header.statement.fragments.removeLast()
+        }*/
     }
     
     func encode(to encoder: Encoder) throws
@@ -1801,7 +1812,7 @@ class CodeComponent         : Codable, Equatable
             functions.append(map)
 
             let f = CodeFunction(type, "shadows")
-            f.comment = "Computes the sun contribution"
+            f.comment = "Computes soft shadows"
             
             let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)
@@ -1809,11 +1820,12 @@ class CodeComponent         : Codable, Equatable
             let arg2 = CodeFragment(.VariableDefinition, "float3", "direction", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg2)
             
+            /*
             let arg3 = CodeFragment(.VariableDefinition, "float", "tmin", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
             f.header.statement.fragments.append(arg3)
             
             let arg4 = CodeFragment(.VariableDefinition, "float", "tmax", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
-            f.header.statement.fragments.append(arg4)
+            f.header.statement.fragments.append(arg4)*/
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
@@ -1862,12 +1874,18 @@ class CodeComponent         : Codable, Equatable
         } else
         if type == .Material3D {
 
-            let f = CodeFunction(type, "material")
-            f.comment = "Computes the color and reflection direction for the given hit point"
+            let f = CodeFunction(type, "sampleLight")
+            f.comment = "Computes the color and reflection for the light source"
             
-            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "rayDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
-            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
-            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "incomingDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "hitPosition", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "hitNormal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float4", "light", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "int", "lightType", [.Selectable, .Dragable, .NotCodeable], ["int"], "int"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float4", "lightColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float", "shadow", [.Selectable, .Dragable, .NotCodeable], ["float"], "float"))
+            //f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float", "occlusion", [.Selectable, .Dragable, .NotCodeable], ["float"], "float"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float4", "reflectionColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4"))
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)

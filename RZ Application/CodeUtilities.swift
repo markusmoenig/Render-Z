@@ -381,3 +381,20 @@ func findDefaultComponentForStageChildren(stageType: Stage.StageType, componentT
     }
     return result
 }
+
+func getGlobalVariableValue(withName: String) -> SIMD4<Float>?
+{
+    var result: SIMD4<Float>? = nil
+    let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getGlobalVariable()
+    if let variableComp = globalVars[withName] {
+        for uuid in variableComp.properties {
+            let rc = variableComp.getPropertyOfUUID(uuid)
+            if rc.0!.values["variable"] == 1 {
+                //properties.append((rc.0, rc.1, nil, data.count, variableComp, []))
+                //data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
+                result = extractValueFromFragment(rc.1!)
+            }
+        }
+    }
+    return result
+}

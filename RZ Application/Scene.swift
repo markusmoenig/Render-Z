@@ -458,13 +458,18 @@ class Stage                 : Codable, Equatable
     }
     
     // Only for VariablePool, get all Variable Components
-    func getVariableComponents() -> [UUID:CodeComponent]
+    func getGlobalVariable() -> [String:CodeComponent]
     {
-        var compMap : [UUID:CodeComponent] = [:]
+        var compMap : [String:CodeComponent] = [:]
         for child in getChildren() {
             if let vars = child.componentLists["variables"] {
                 for c in vars {
-                    compMap[c.uuid] = c
+                    for uuid in c.properties {
+                        let rc = c.getPropertyOfUUID(uuid)
+                        if rc.0!.values["variable"] == 1 {
+                            compMap[child.name + "." + rc.0!.name] = c
+                        }
+                    }
                 }
             }
         }

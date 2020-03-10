@@ -471,6 +471,7 @@ class CodeBuilder
         uint2 __gid                             [[thread_position_in_grid]])
         {
             constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+
             float4 __monitorOut = float4(0,0,0,0);
 
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
@@ -597,7 +598,7 @@ class CodeBuilder
             float frame = data[0].x;
 
             float4 sample = float4(sampleTexture.sample(nearest_sampler, uv));
-            float4 result = float4(resultTexture.sample(linear_sampler, uv));
+            float4 result = float4(resultTexture.sample(nearest_sampler, uv));
             float4 final = mix(sample, result, 1./frame);
 
             outTexture.write(half4(final), gid);
@@ -755,7 +756,7 @@ class CodeBuilder
     
     
     // Render the component into a texture
-    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], syncronize: Bool = false, optionalState: String? = nil)
+    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], inBuffers: [MTLBuffer] = [], syncronize: Bool = false, optionalState: String? = nil)
     {
         updateData(inst)
         
@@ -768,7 +769,7 @@ class CodeBuilder
         }
         
         if let state = state {
-            compute.run( state, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, outTextures: outTextures, syncronize: syncronize)
+            compute.run( state, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, outTextures: outTextures, inBuffers: inBuffers, syncronize: syncronize)
             compute.commandBuffer.waitUntilCompleted()
         }
     }

@@ -96,7 +96,7 @@ class ArtistEditor          : Editor
         }
         
         if !dispatched {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.001) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 self.mmView.update()
                 self.dispatched = false
             }

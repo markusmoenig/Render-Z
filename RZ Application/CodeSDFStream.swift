@@ -17,10 +17,10 @@ class CodeSDFStream
     
     var headerCode          : String = ""
     var mapCode             : String = ""
-    var shadowCode          : String = ""
 
     var hitAndNormalsCode   : String = ""
     var aoCode              : String = ""
+    var shadowCode          : String = ""
 
     var monitor             : CodeFragment? = nil
 
@@ -155,20 +155,6 @@ class CodeSDFStream
             
             """
             
-            shadowCode =
-            """
-            
-            float computeShadows( float3 position, float3 direction, float tmin, float tmax, thread struct FuncData *__funcData )
-            {
-                float outShadow = 1.0;
-            
-                constant float4 *__data = __funcData->__data;
-                float4 __monitorOut = *__funcData->__monitorOut;
-                float GlobalTime = __funcData->GlobalTime;
-
-            
-            """
-            
             hitAndNormalsCode =
                 
             """
@@ -210,7 +196,84 @@ class CodeSDFStream
             
             """
             
-            aoCode = hitAndNormalsCode.replacingOccurrences(of: "hitAndNormals", with: "computeAO")
+            aoCode =
+                
+            """
+            kernel void computeAO(
+            texture2d<half, access::write>          __outTexture  [[texture(0)]],
+            constant float4                        *__data   [[ buffer(1) ]],
+            texture2d<half, access::sample>         __depthInTexture [[texture(2)]],
+            texture2d<half, access::sample>         __normalInTexture [[texture(3)]],
+            texture2d<half, access::sample>         __metaInTexture [[texture(4)]],
+            texture2d<half, access::sample>         __rayOriginTexture [[texture(5)]],
+            texture2d<half, access::sample>         __rayDirectionTexture [[texture(6)]],
+            uint2 __gid                             [[thread_position_in_grid]])
+            {
+                constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+
+                float4 __monitorOut = float4(0,0,0,0);
+            
+                float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
+
+                float GlobalTime = __data[0].x;
+            
+                float2 __uv = float2(__gid.x, __gid.y);
+                float3 rayOrigin = float4(__rayOriginTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 rayDirection = float4(__rayDirectionTexture.sample(__textureSampler, __uv / __size )).xyz;
+
+                struct FuncData __funcData;
+                __funcData.GlobalTime = GlobalTime;
+                __funcData.__monitorOut = &__monitorOut;
+                __funcData.__data = __data;
+            
+                float4 outShape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
+            
+                float maxDistance = outShape.y;
+                float4 inShape = outShape;
+                float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float4 outMeta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
+            
+            """
+            
+            shadowCode =
+                
+            """
+            kernel void computeShadow(
+            texture2d<half, access::write>          __outTexture  [[texture(0)]],
+            constant float4                        *__data   [[ buffer(1) ]],
+            texture2d<half, access::sample>         __depthInTexture [[texture(2)]],
+            texture2d<half, access::sample>         __normalInTexture [[texture(3)]],
+            texture2d<half, access::sample>         __metaInTexture [[texture(4)]],
+            texture2d<half, access::sample>         __rayOriginTexture [[texture(5)]],
+            texture2d<half, access::sample>         __rayDirectionTexture [[texture(6)]],
+            constant float4                        *__lightData   [[ buffer(7) ]],
+            uint2 __gid                             [[thread_position_in_grid]])
+            {
+                constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+
+                float4 __monitorOut = float4(0,0,0,0);
+            
+                float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
+
+                float GlobalTime = __data[0].x;
+            
+                float2 __uv = float2(__gid.x, __gid.y);
+                float3 rayOrigin = float4(__rayOriginTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 rayDirection = float4(__rayDirectionTexture.sample(__textureSampler, __uv / __size )).xyz;
+
+                struct FuncData __funcData;
+                __funcData.GlobalTime = GlobalTime;
+                __funcData.__monitorOut = &__monitorOut;
+                __funcData.__data = __data;
+            
+                float4 outShape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
+            
+                float maxDistance = outShape.y;
+                float4 inShape = outShape;
+                float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float4 outMeta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
+            
+            """
             
             if let ground = groundComponent {
                 if ground.componentType == .Ground3D {
@@ -289,6 +352,32 @@ class CodeSDFStream
                         """
                         
                         outMeta.x = min(outMeta.x, outAO);
+                        }
+                        
+                        """
+                    }
+                }
+                
+                if let shadows = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Shadows3D) {
+                    dryRunComponent(shadows, instance.data.count, monitor)
+                    instance.collectProperties(shadows)
+                    if let globalCode = shadows.globalCode {
+                        headerCode += globalCode
+                    }
+                    if let code = shadows.code {
+                        shadowCode +=
+                        """
+                        
+                        {
+                        float3 position = rayOrigin + (outShape.y - 0.025) * rayDirection;
+                        float3 direction = __lightData[0].xyz;
+                        float outShadow = 1.;
+                        """
+                        shadowCode += code
+                        shadowCode +=
+                        """
+                        
+                        outMeta.y = min(outMeta.y, outShadow);
                         }
                         
                         """
@@ -388,9 +477,15 @@ class CodeSDFStream
             aoCode +=
             """
             
-                __normalTexture.write(half4(float4(outNormal, 0)), __gid);
-                __metaTexture.write(half4(outMeta), __gid);
-                __outTexture.write(half4(outShape), __gid);
+                __outTexture.write(half4(outMeta), __gid);
+            }
+            
+            """
+            
+            shadowCode +=
+            """
+            
+                __outTexture.write(half4(outMeta), __gid);
             }
             
             """
@@ -403,18 +498,10 @@ class CodeSDFStream
             
             """
             
-            shadowCode +=
-            """
-            
-                return outShadow;
-            }
-            
-            """
-            
             instance.code = headerCode + mapCode + shadowCode + hitAndNormalsCode + aoCode
         }
         
-        codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO"] : [])
+        codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow"] : [])
     }
     
     func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)

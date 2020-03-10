@@ -225,7 +225,9 @@ class SceneGraph                : MMWidget
             if component == nil {
                 if let defaultComponent = stageItem.components[stageItem.defaultName] {
                     globalApp!.currentEditor.setComponent(defaultComponent)
-                    globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                    if globalApp!.currentEditor === globalApp!.developerEditor {
+                        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                    }
                     currentComponent = defaultComponent
                 } else {
                     globalApp!.currentEditor.setComponent(CodeComponent(.Dummy))
@@ -236,7 +238,9 @@ class SceneGraph                : MMWidget
         
         if let component = component {
             globalApp!.currentEditor.setComponent(component)
-            globalApp!.currentEditor.updateOnNextDraw(compile: false)
+            if globalApp!.currentEditor === globalApp!.developerEditor {
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+            }
             currentComponent = component
             
             currentUUID = component.uuid
@@ -342,7 +346,9 @@ class SceneGraph                : MMWidget
                     }
                     if let variable = variable {
                         let frag = CodeFragment(.VariableReference, variable.typeName, variable.name, [.Selectable, .Dragable, .Monitorable], [variable.typeName], variable.typeName )
-                        frag.referseTo = comp.uuid
+                        frag.referseTo = nil
+                        frag.name = varItem.stageItem!.name + "." + variable.name
+                        print(frag.name)
                         frag.values["variable"] = 1
                         
                         // Create Drag Item
