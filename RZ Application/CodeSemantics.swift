@@ -534,6 +534,14 @@ class CodeFragment          : Codable, Equatable
                         codeName = name
                     }
                     v.references += 1
+                } else {
+                    name = "NOT FOUND"
+                    invalid = true
+                }
+                
+                if name == "" {
+                    name = "NOT FOUND"
+                    invalid = true
                 }
             } else {
                 // Check for global variable
@@ -588,7 +596,9 @@ class CodeFragment          : Codable, Equatable
                     removeState(.Selectable)
                 } else {
                     let constant = defaultConstantForType(typeName)
+                    let qualifier = self.qualifier
                     constant.copyTo(self)
+                    self.qualifier = qualifier
                 }
             }
             
