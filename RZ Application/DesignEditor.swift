@@ -35,6 +35,8 @@ class DesignEditor          : MMWidget
     
     var dispatched          : Bool = false
     var zoomBuffer          : Float = 0
+    
+    var blockRendering      : Bool = false
 
     override init(_ view: MMView)
     {
@@ -171,7 +173,9 @@ class DesignEditor          : MMWidget
                     }
                                                                             
                     if let id = globalApp!.currentPipeline!.codeBuilder.sdfStream.ids[Int(value.w)], valid {
+                        blockRendering = true
                         globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: id.1)
+                        blockRendering = false
                     } else {
                         // Select Base Object
                         //globalApp!.sceneGraph.setCurrent(stage: globalApp!.sceneGraph.currentStage!, stageItem: globalApp!.sceneGraph.currentStageItem)
@@ -250,7 +254,9 @@ class DesignEditor          : MMWidget
                 globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
                 designChanged = false
             }
-            globalApp!.currentPipeline!.render(rect.width, rect.height)
+            if blockRendering == false {
+                globalApp!.currentPipeline!.render(rect.width, rect.height)
+            }
         }
         needsUpdate = false
     }

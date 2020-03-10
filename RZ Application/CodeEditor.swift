@@ -403,9 +403,9 @@ class CodeEditor        : MMWidget
             
             if codeChanged {
                 globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
+                globalApp!.currentPipeline!.render(rect.width, rect.height)
                 codeChanged = false
             }
-            globalApp!.currentPipeline!.render(rect.width, rect.height)
         }
         needsUpdate = false
     }
