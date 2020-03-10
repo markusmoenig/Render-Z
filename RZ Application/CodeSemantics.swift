@@ -538,11 +538,6 @@ class CodeFragment          : Codable, Equatable
                     name = "NOT FOUND"
                     invalid = true
                 }
-                
-                if name == "" {
-                    name = "NOT FOUND"
-                    invalid = true
-                }
             } else {
                 // Check for global variable
                 let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getGlobalVariable()
