@@ -21,6 +21,9 @@ class CodeSDFStream
     var hitAndNormalsCode   : String = ""
     var aoCode              : String = ""
     var shadowCode          : String = ""
+    
+    var materialFuncCode    : String = ""
+    var materialCode        : String = ""
 
     var monitor             : CodeFragment? = nil
 
@@ -275,6 +278,52 @@ class CodeSDFStream
             
             """
             
+            materialCode =
+                
+            """
+            kernel void computeMaterial(
+            texture2d<half, access::write>          __outTexture  [[texture(0)]],
+            constant float4                        *__data   [[ buffer(1) ]],
+            texture2d<half, access::sample>         __colorInTexture [[texture(2)]],
+            texture2d<half, access::sample>         __depthInTexture [[texture(3)]],
+            texture2d<half, access::sample>         __normalInTexture [[texture(4)]],
+            texture2d<half, access::sample>         __metaInTexture [[texture(5)]],
+            texture2d<half, access::sample>         __rayOriginTexture [[texture(6)]],
+            texture2d<half, access::sample>         __rayDirectionTexture [[texture(7)]],
+            constant float4                        *__lightData   [[ buffer(8) ]],
+            uint2 __gid                             [[thread_position_in_grid]])
+            {
+                constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+
+                float4 __monitorOut = float4(0,0,0,0);
+            
+                float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
+
+                float GlobalTime = __data[0].x;
+            
+                float2 __uv = float2(__gid.x, __gid.y);
+                float3 rayOrigin = float4(__rayOriginTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 rayDirection = float4(__rayDirectionTexture.sample(__textureSampler, __uv / __size )).xyz;
+
+                struct FuncData __funcData;
+                __funcData.GlobalTime = GlobalTime;
+                __funcData.__monitorOut = &__monitorOut;
+                __funcData.__data = __data;
+            
+                float4 outShape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
+            
+                float maxDistance = outShape.y;
+                float4 inShape = outShape;
+                float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float4 outMeta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
+            
+                struct MaterialOut __materialOut;
+                __materialOut.color = float4(__colorInTexture.sample(__textureSampler, __uv / __size ));
+            
+            """
+            
+            materialFuncCode = ""
+            
             if let ground = groundComponent {
                 if ground.componentType == .Ground3D {
                     
@@ -390,48 +439,11 @@ class CodeSDFStream
                 }
 
                 """
-                
-                /*
-                
-                if let shadows = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Shadows3D) {
-                    dryRunComponent(shadows, instance.data.count, monitor)
-                    instance.collectProperties(shadows)
-                    if let globalCode = shadows.globalCode {
-                        headerCode += globalCode
-                    }
-                    if let code = shadows.code {
-
-                        shadowCode += code
-                        shadowCode = shadowCode.replacingOccurrences(of: "&__", with: "__")
-                    }
-                }
-                
-                if let sun = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .SampleSun3D) {
-                    dryRunComponent(sun, instance.data.count, monitor)
-                    instance.collectProperties(sun)
-                    if let globalCode = sun.globalCode {
-                        headerCode += globalCode
-                    }
-                    if let code = sun.code {
-                        instance.code +=
-                        """
-                        
-                        {
-                        float3 position = rayOrigin + outShape.y * rayDirection;
-                        float outSun = 1.;
-                        """
-                        instance.code += code
-                        instance.code +=
-                        """
-                        
-                        outMeta.y = min(outMeta.y, outSun);
-                        }
-                        
-                        """
-                    }
-                }
-                */
             }
+            
+            // --- Materials
+            
+            
         }
     }
 
@@ -489,6 +501,14 @@ class CodeSDFStream
             }
             
             """
+            
+            materialCode +=
+            """
+            
+                __outTexture.write(half4(__materialOut.color), __gid);
+            }
+            
+            """
                         
             mapCode +=
             """
@@ -498,10 +518,10 @@ class CodeSDFStream
             
             """
             
-            instance.code = headerCode + mapCode + shadowCode + hitAndNormalsCode + aoCode
+            instance.code = headerCode + mapCode + shadowCode + hitAndNormalsCode + aoCode + materialFuncCode + materialCode
         }
         
-        codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow"] : [])
+        codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow", "computeMaterial"] : [])
     }
     
     func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)
@@ -587,8 +607,52 @@ class CodeSDFStream
     {
         hierarchy.append(stageItem)
         
-        if getFirstComponentOfType(stageItem.children, .Material3D) != nil {
-            // If this item has a material, push it on the stack
+        if let material = getFirstComponentOfType(stageItem.children, .Material3D) {
+            // If this item has a material, generate the material function code and push it on the stack
+            
+            // Material Function Code
+            
+            materialFuncCode +=
+            """
+            
+            void material\(materialIdCounter)( float3 __origin, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData )
+            {
+                float4 outColor = float4(0);
+                float3 outReflectionDir = float3(0);
+
+            """
+            
+            dryRunComponent(material, instance.data.count, monitor)
+            instance.collectProperties(material)
+            if let globalCode = material.globalCode {
+                headerCode += globalCode
+            }
+            if let code = material.code {
+                materialFuncCode += code
+            }
+
+            materialFuncCode +=
+            """
+                
+                __materialOut->color = outColor;
+            }
+            
+            """
+                    
+            print(materialFuncCode)
+            
+            materialCode +=
+            """
+
+            if (outShape.z == \(materialIdCounter) )
+            {
+                material\(materialIdCounter)(float3(0), &__materialOut, &__funcData);
+            }
+
+            """
+            
+            // Push it on the stack
+            
             materialIdHierarchy.append(materialIdCounter)
             materialIds[materialIdCounter] = stageItem
             currentMaterialId = materialIdCounter

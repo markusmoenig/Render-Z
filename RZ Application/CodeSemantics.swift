@@ -1695,23 +1695,11 @@ class CodeComponent         : Codable, Equatable
             let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg2)
             
-            let arg3 = CodeFragment(.VariableDefinition, "float4", "shape", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            let arg3 = CodeFragment(.VariableDefinition, "float4", "backColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
             f.header.statement.fragments.append(arg3)
             
-            let arg4 = CodeFragment(.VariableDefinition, "float", "ao", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+            let arg4 = CodeFragment(.VariableDefinition, "float4", "matColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
             f.header.statement.fragments.append(arg4)
-            
-            let arg5 = CodeFragment(.VariableDefinition, "float", "shadows", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
-            f.header.statement.fragments.append(arg5)
-            
-            let arg6 = CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
-            f.header.statement.fragments.append(arg6)
-            
-            let arg7 = CodeFragment(.VariableDefinition, "float4", "backColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
-            f.header.statement.fragments.append(arg7)
-            
-            let arg8 = CodeFragment(.VariableDefinition, "float4", "matColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
-            f.header.statement.fragments.append(arg8)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
@@ -1879,6 +1867,15 @@ class CodeComponent         : Codable, Equatable
         } else
         if type == .Material3D {
 
+            let map = CodeFunction(.Prototype, "sceneMap")
+            map.comment = "Returns the closest shape for the given position in the scene"
+            map.header.fragment.typeName = "float4"
+            map.header.fragment.evaluatesTo = "float4"
+            map.header.fragment.argumentFormat = ["float4"]
+            map.header.fragment.name = "sceneMap"
+            map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "position", [.Selectable], ["float3"], "float3"))
+            functions.append(map)
+            
             let f = CodeFunction(type, "sampleLight")
             f.comment = "Computes the color and reflection for the light source"
             
@@ -1886,17 +1883,17 @@ class CodeComponent         : Codable, Equatable
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "hitPosition", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "hitNormal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float4", "light", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4"))
-            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "int", "lightType", [.Selectable, .Dragable, .NotCodeable], ["int"], "int"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "int4", "lightType", [.Selectable, .Dragable, .NotCodeable], ["int4"], "int4"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float4", "lightColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float", "shadow", [.Selectable, .Dragable, .NotCodeable], ["float"], "float"))
-            //f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float", "occlusion", [.Selectable, .Dragable, .NotCodeable], ["float"], "float"))
+            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float", "occlusion", [.Selectable, .Dragable, .NotCodeable], ["float"], "float"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float4", "reflectionColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4"))
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
-            f.body.append(f.createOutVariableBlock("float3", "outReflection"))
+            f.body.append(f.createOutVariableBlock("float3", "outReflectionDir"))
             functions.append(f)
         }
     }

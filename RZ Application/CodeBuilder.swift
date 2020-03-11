@@ -805,6 +805,12 @@ class CodeBuilder
             constant float4    *__data;
         };
         
+        struct MaterialOut
+        {
+            float4              color;
+            float3              reflectionDir;
+        };
+        
         #define PI 3.14159265359
 
         float degrees(float radians)

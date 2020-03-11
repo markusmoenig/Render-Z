@@ -370,6 +370,8 @@ class Pipeline3D            : Pipeline
 
         let lightdata : [SIMD4<Float>] = [sunDirection!]
         let lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        
+        // Shadows
                 
         while let inst = instanceMap[shapeText] {
             
@@ -386,7 +388,42 @@ class Pipeline3D            : Pipeline
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
         }
+        
+        // Materials
+        
+        var colorTexture        : MTLTexture? = nil
+        var colorTexture2       : MTLTexture? = nil
+        var colorTextureResult  : MTLTexture? = nil
+        
+        if metaTextureResult === metaTexture { colorTexture = metaTexture2 } else { colorTexture = metaTexture }
+        if normalTextureResult === normalTexture { colorTexture2 = normalTexture2 } else { colorTexture2 = normalTexture }
 
+        colorTextureResult = colorTexture
+        
+        codeBuilder.renderClear(texture: colorTextureResult!, data: SIMD4<Float>(0, 0, 0, 0))
+        
+        objectIndex = 0
+        shapeText = "shape_" + String(objectIndex)
+        while let inst = instanceMap[shapeText] {
+            
+            if colorTextureResult === colorTexture {
+                codeBuilder.render(inst, colorTexture2, inTextures: [colorTexture!, depthTextureResult!, normalTextureResult!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+                colorTextureResult = colorTexture2
+                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+            } else
+            if colorTextureResult === colorTexture2 {
+                codeBuilder.render(inst, colorTexture, inTextures: [colorTexture2!, depthTextureResult!, normalTextureResult!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+                colorTextureResult = colorTexture
+                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
+            }
+            objectIndex += 1
+            shapeText = "shape_" + String(objectIndex)
+        }
+        
+        finalTexture = colorTextureResult
+
+
+        /*
         // Render it all
         if let inst = instanceMap["render"] {
             codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
@@ -395,5 +432,6 @@ class Pipeline3D            : Pipeline
             resultTexture = backTexture
         }
         finalTexture = resultTexture
+        */
     }
 }
