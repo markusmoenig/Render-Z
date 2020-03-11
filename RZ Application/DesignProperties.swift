@@ -29,7 +29,9 @@ class DesignProperties      : MMWidget
     var buttonWidth         : Float = 180
     
     var needsUpdate         : Bool = false
-
+    
+    var propMap             : [String:CodeFragment] = [:]
+    
     override init(_ view: MMView)
     {
         smallButtonSkin = MMSkinButton()
@@ -58,6 +60,9 @@ class DesignProperties      : MMWidget
     /// Clears the property area
     func clear()
     {
+        if c1Node != nil { c1Node!.uiItems = []; c1Node!.floatChangedCB = nil; c1Node!.float3ChangedCB = nil }
+        if c2Node != nil { c2Node!.uiItems = []; c2Node!.floatChangedCB = nil; c2Node!.float3ChangedCB = nil }
+
         c1Node = nil
         c2Node = nil
         
@@ -66,10 +71,7 @@ class DesignProperties      : MMWidget
     
     func setSelected(_ comp: CodeComponent)
     {
-        c1Node = nil
-        c2Node = nil
-                
-        deregisterButtons()
+        clear()
         
         c1Node = Node()
         c1Node?.rect.x = 10
@@ -79,17 +81,20 @@ class DesignProperties      : MMWidget
         c2Node?.rect.x = 200
         c2Node?.rect.y = 10
 
-        var propMap : [String:CodeFragment] = [:]
-
+        propMap = [:]
+        
         for uuid in comp.properties {
             let rc = comp.getPropertyOfUUID(uuid)
+            
             if let frag = rc.0 {
+            
                 propMap[frag.name] = rc.1!
                 let components = frag.evaluateComponents()
                 let data = extractValueFromFragment(rc.1!)
+                
                 if components == 1 {
                     let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), value: data.x, precision: Int(rc.1!.values["precision"]!))
-                    c1Node?.uiItems.append(numberVar)
+                    c1Node!.uiItems.append(numberVar)
                 } else
                 if components == 2 {
                     propMap[frag.name + "_x"] = rc.1!.arguments[0].fragments[0]
@@ -143,7 +148,7 @@ class DesignProperties      : MMWidget
         }
         
         c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
-            if let frag = propMap[variable] {
+            if let frag = self.propMap[variable] {
                 frag.values["value"] = oldValue
                 let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
                 frag.values["value"] = newValue

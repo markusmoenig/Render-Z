@@ -61,6 +61,10 @@ class CodeProperties    : MMWidget
     /// Clears the property area
     func clear()
     {
+        if c1Node != nil { c1Node!.uiItems = []; c1Node!.floatChangedCB = nil; c1Node!.float3ChangedCB = nil }
+        if c2Node != nil { c2Node!.uiItems = []; c2Node!.floatChangedCB = nil; c2Node!.float3ChangedCB = nil }
+        if c3Node != nil { c3Node!.uiItems = []; c3Node!.floatChangedCB = nil; c3Node!.float3ChangedCB = nil }
+
         c1Node = nil
         c2Node = nil
         c3Node = nil
@@ -70,11 +74,7 @@ class CodeProperties    : MMWidget
     
     func setSelected(_ comp: CodeComponent,_ ctx: CodeContext)
     {
-        c1Node = nil
-        c2Node = nil
-        c3Node = nil
-        
-        deregisterButtons()
+        clear()
         
         c1Node = Node()
         c1Node?.rect.x = 10
