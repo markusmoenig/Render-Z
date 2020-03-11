@@ -181,6 +181,8 @@ class CodeFragList : MMWidget
         item = FragItem("T")
         items.append(item)
         item.items.append( SourceListItem("tan", CodeFragment(.Primitive, "float", "tan", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
+        item.items.append( SourceListItem("toGamma", CodeFragment(.Primitive, "float4", "toGamma", [.Selectable, .Dragable, .Targetable], ["float4"], "float4" ) ) )
+        item.items.append( SourceListItem("toLinear", CodeFragment(.Primitive, "float4", "toLinear", [.Selectable, .Dragable, .Targetable], ["float4"], "float4" ) ) )
         
         item = FragItem("U")
         items.append(item)

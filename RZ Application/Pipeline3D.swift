@@ -207,6 +207,7 @@ class Pipeline3D            : Pipeline
         }
     }
     
+    /// Compute the hitpoints and normals
     func stage_HitAndNormals()
     {
         // Monitor
@@ -279,18 +280,15 @@ class Pipeline3D            : Pipeline
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
         }
-
-        // Render it all
-        if let inst = instanceMap["render"] {
-            resultTexture = checkTextureSize(width, height, resultTexture, .rgba16Float)
-            codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
-            computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
-        } else {
-            resultTexture = backTexture
-        }
+        
+        // Preview Render: Fake Lighting + AO
+        resultTexture = checkTextureSize(width, height, resultTexture, .rgba16Float)
+        codeBuilder.compute.run( codeBuilder.previewState!, outTexture: resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
+        codeBuilder.compute.commandBuffer.waitUntilCompleted()
         finalTexture = resultTexture
     }
     
+    /// Compute the AO stage
     func stage_computeAO()
     {
         // Monitor
@@ -329,19 +327,16 @@ class Pipeline3D            : Pipeline
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
         }
-
-        // Render it all
-        if let inst = instanceMap["render"] {
-            codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
-            //computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
-        } else {
-            resultTexture = backTexture
-        }
+        
+        // Preview Render: Fake Lighting + AO
+        codeBuilder.compute.run( codeBuilder.previewState!, outTexture: resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
+        codeBuilder.compute.commandBuffer.waitUntilCompleted()
         finalTexture = resultTexture
         
         nextStage()
     }
     
+    /// Compute shadows and materials
     func stage_computeShadowsAndMaterials()
     {
         // Monitor
@@ -420,18 +415,13 @@ class Pipeline3D            : Pipeline
             shapeText = "shape_" + String(objectIndex)
         }
         
-        finalTexture = colorTextureResult
-
-
-        /*
         // Render it all
         if let inst = instanceMap["render"] {
-            codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
+            codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, colorTextureResult!])
             //computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
         } else {
             resultTexture = backTexture
         }
         finalTexture = resultTexture
-        */
     }
 }

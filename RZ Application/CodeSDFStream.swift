@@ -639,7 +639,7 @@ class CodeSDFStream
             
             """
                     
-            print(materialFuncCode)
+            //print(materialFuncCode)
             
             materialCode +=
             """

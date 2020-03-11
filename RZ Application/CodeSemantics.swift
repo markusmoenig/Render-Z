@@ -1695,11 +1695,14 @@ class CodeComponent         : Codable, Equatable
             let arg2 = CodeFragment(.VariableDefinition, "float2", "size", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
             f.header.statement.fragments.append(arg2)
             
-            let arg3 = CodeFragment(.VariableDefinition, "float4", "backColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            let arg3 = CodeFragment(.VariableDefinition, "float", "shapeId", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
             f.header.statement.fragments.append(arg3)
             
-            let arg4 = CodeFragment(.VariableDefinition, "float4", "matColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            let arg4 = CodeFragment(.VariableDefinition, "float4", "backColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
             f.header.statement.fragments.append(arg4)
+            
+            let arg5 = CodeFragment(.VariableDefinition, "float4", "matColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
+            f.header.statement.fragments.append(arg5)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)

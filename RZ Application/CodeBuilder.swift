@@ -105,6 +105,7 @@ class CodeBuilder
     var clearState          : MTLComputePipelineState? = nil
     var copyNearestState    : MTLComputePipelineState? = nil
     var sampleState         : MTLComputePipelineState? = nil
+    var previewState        : MTLComputePipelineState? = nil
 
     var sdfStream           : CodeSDFStream
 
@@ -118,6 +119,7 @@ class CodeBuilder
         buildClearState()
         buildCopyStates()
         buildSampleState()
+        buildPreviewState()
     }
     
     func build(_ component: CodeComponent, camera: CodeComponent? = nil, monitor: CodeFragment? = nil) -> CodeBuilderInstance
@@ -466,8 +468,7 @@ class CodeBuilder
         constant float4                        *__data   [[ buffer(1) ]],
         texture2d<half, access::sample>         __depthTexture [[texture(2)]],
         texture2d<half, access::sample>         __backTexture [[texture(3)]],
-        texture2d<half, access::sample>         __normalTexture [[texture(4)]],
-        texture2d<half, access::sample>         __metaTexture [[texture(5)]],
+        texture2d<half, access::sample>         __matTexture [[texture(4)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
             constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
@@ -479,12 +480,9 @@ class CodeBuilder
 
             float4 outColor = float4(0, 0, 0, 1);
             float4 backColor = float4(__backTexture.sample(__textureSampler, uv / size ));
-            float4 matColor = float4(1, 1, 1, 1);
-        
-            float3 normal = float4(__normalTexture.sample(__textureSampler, uv / size )).xyz;
-            float4 meta = float4(__metaTexture.sample(__textureSampler, uv / size ));
+            float4 matColor = float4(__matTexture.sample(__textureSampler, uv / size ));
 
-            float4 shape = float4(__depthTexture.sample(__textureSampler, uv / size ));
+            float shapeId = float4(__depthTexture.sample(__textureSampler, uv / size )).w;
             float GlobalTime = __data[0].x;
 
             struct FuncData __funcData;
@@ -510,11 +508,63 @@ class CodeBuilder
         inst.code +=
         """
                        
+            __outTexture.write(half4(outColor), __gid);
+        }
+          
+        """
+    }
+    
+    func buildPreviewState()
+    {
+        let code =
+        """
+        
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void preview(
+        texture2d<half, access::write>          __outTexture  [[texture(0)]],
+        texture2d<half, access::sample>         __depthTexture [[texture(2)]],
+        texture2d<half, access::sample>         __backTexture [[texture(3)]],
+        texture2d<half, access::sample>         __normalTexture [[texture(4)]],
+        texture2d<half, access::sample>         __metaTexture [[texture(5)]],
+        uint2 __gid                             [[thread_position_in_grid]])
+        {
+            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+
+            float4 __monitorOut = float4(0,0,0,0);
+
+            float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
+            float2 uv = float2(__gid.x, __gid.y);
+
+            float4 outColor = float4(0, 0, 0, 1);
+            float4 backColor = float4(__backTexture.sample(__textureSampler, uv / size ));
+            float4 matColor = float4(1, 1, 1, 1);
+        
+            float3 normal = float4(__normalTexture.sample(__textureSampler, uv / size )).xyz;
+            float4 meta = float4(__metaTexture.sample(__textureSampler, uv / size ));
+
+            float4 shape = float4(__depthTexture.sample(__textureSampler, uv / size ));
+
+            float4 result = backColor;
+            if (shape.w >= 0.0) {
+                float3 L = float3(-0.5, 0.3, 0.7);
+                result.xyz = dot(L, normal);
+                result.xyz *= meta.x;
+                result.xyz *= meta.y;
+            }
+        
+            outColor = result;
+                       
             outColor.xyz = pow( outColor.xyz, float3(0.4545) );
             __outTexture.write(half4(outColor), __gid);
         }
           
         """
+
+        let library = compute.createLibraryFromSource(source: code)
+        previewState = compute.createState(library: library, name: "preview")
     }
 
     
@@ -821,6 +871,14 @@ class CodeBuilder
         float radians(float degrees)
         {
             return degrees * PI / 180.0;
+        }
+        
+        float4 toGamma(float4 linearColor) {
+           return float4(pow(linearColor.xyz, float3(1.0/2.2)), linearColor.w);
+        }
+
+        float4 toLinear(float4 gammaColor) {
+           return float4(pow(gammaColor.xyz, float3(2.2)), gammaColor.w);
         }
         
         """
