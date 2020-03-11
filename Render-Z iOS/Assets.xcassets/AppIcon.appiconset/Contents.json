@@ -76,8 +76,9 @@
       "scale" : "1x"
     },
     {
-      "idiom" : "ipad",
       "size" : "76x76",
+      "idiom" : "ipad",
+      "filename" : "Render-Z_icon 1024 x 1024 2-1.png",
       "scale" : "2x"
     },
     {

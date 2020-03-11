@@ -40,6 +40,8 @@ class Pipeline3D            : Pipeline
     
     var width               : Float = 0
     var height              : Float = 0
+    
+    var renderId            : UInt = 0
 
     override init(_ mmView: MMView)
     {
@@ -49,6 +51,8 @@ class Pipeline3D            : Pipeline
     // Build the pipeline elements
     override func build(scene: Scene, monitor: CodeFragment? = nil)
     {
+        renderId += 1
+        
         let modeId : String = getCurrentModeId()
         let typeId : CodeComponent.ComponentType = globalApp!.currentSceneMode == .TwoD ? .SDF2D : .SDF3D
 
@@ -136,6 +140,7 @@ class Pipeline3D            : Pipeline
     // Render the pipeline
     override func render(_ width: Float,_ height: Float)
     {
+        renderId += 1
         self.width = width; self.height = height
         
         // Monitor
@@ -179,7 +184,11 @@ class Pipeline3D            : Pipeline
     func nextStage()
     {
         if currentStage.rawValue < maxStage.rawValue {
+            let startId = renderId
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                
+                if startId < self.renderId { return }
+                
                 let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
                 
                 if let nextStage = nextStage {
