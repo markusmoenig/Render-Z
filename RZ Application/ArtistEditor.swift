@@ -47,7 +47,6 @@ class ArtistEditor          : Editor
         }
         
         timeline.changedCB = { (frame) in
-            self.mmView.update()
             self.updateOnNextDraw(compile: false)
         }
         
