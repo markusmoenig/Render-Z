@@ -117,6 +117,28 @@ float3 translateForZAxis(float3 pos, float3 off, float3 move)
     return p;
 }
 
+float3 mapBig(float3 pos, float3 off)
+{
+    float3 res = float3( 100000, 0, 0);
+    
+    res = opU(float3(sdCylinder(gizmo3DTranslate(pos, off + float3(0, 0.15, 0)), float2(0.08, 0.15)), SCALE_Y, SCALE_Y), res);
+    res = opU(float3(sdBox(gizmo3DTranslate(pos, off + float3(0, 0.30, 0)), float3(0.08, 0.08, 0.08)), SCALE_Y, SCALE_Y), res);
+    res = opU(float3(sdCylinder(gizmo3DTranslate(pos, off + float3(0, 0.45, 0)), float2(0.08, 0.15)), MOVE_Y, MOVE_Y), res);
+    res = opU(float3(sdConeSection(gizmo3DTranslate(pos, off + float3(0, 0.65, 0)), 0.05, 0.05, 0.001), MOVE_Y, MOVE_Y), res);
+    
+    res = opU(float3(sdCylinder(translateForXAxis(pos, off, float3(0.15, 0, 0)), float2(0.08, 0.15)), SCALE_X, SCALE_X), res);
+    res = opU(float3(sdBox(translateForXAxis(pos, off, float3(0.30, 0, 0)), float3(0.08, 0.08, 0.08)), SCALE_X, SCALE_X), res);
+    res = opU(float3(sdCylinder(translateForXAxis(pos, off, float3(0.45, 0, 0)), float2(0.08, 0.15)), MOVE_X, MOVE_X), res);
+    res = opU(float3(sdConeSection(translateForXAxis(pos, off, float3(0.65, 0, 0)), 0.05, 0.001, 0.05), MOVE_X, MOVE_X), res);
+
+    res = opU(float3(sdCylinder(translateForZAxis(pos, off, float3(0, 0, 0.15)), float2(0.08, 0.15)), SCALE_Z, SCALE_Z), res);
+    res = opU(float3(sdBox(translateForZAxis(pos, off, float3(0, 0, 0.30)), float3(0.08, 0.08, 0.08)), SCALE_Z, SCALE_Z), res);
+    res = opU(float3(sdCylinder(translateForZAxis(pos, off, float3(0, 0, 0.45)), float2(0.08, 0.15)), MOVE_Z, MOVE_Z), res);
+    res = opU(float3(sdConeSection(translateForZAxis(pos, off, float3(0, 0, 0.65)), 0.05, 0.001, 0.05), MOVE_Z, MOVE_Z), res);
+    
+    return res;
+}
+
 float3 map(float3 pos, float3 off)
 {
     float3 res = float3( 100000, 0, 0);
@@ -137,6 +159,33 @@ float3 map(float3 pos, float3 off)
     res = opU(float3(sdConeSection(translateForZAxis(pos, off, float3(0, 0, 0.65)), 0.05, 0.001, 0.05), MOVE_Z, MOVE_Z), res);
     
     return res;
+}
+
+float3 castRayBig(float3 ro, float3 rd, float3 off)
+{
+    float tmin=0.001, tmax=100.0;
+
+    float t=-1.0;
+    float m=-1.0, id=-1.0;
+
+    // if ( bbox( ro, rd, bounds, tmin, tmax ) )
+    {
+        float t=tmin;
+        for( int i=0; i< 200; i++ )
+        {
+            // float precis = 0.02;
+            float precis = 0.0005*t;
+
+            float3 res = mapBig(ro+rd*t, off);
+            if( t < precis || t>tmax ) break;
+            t += res.x * 0.7;
+            m = res.y;
+            id = res.z;
+        }
+
+        if( t > tmax ) { m=-1.0; id=-1.0; }
+    }
+    return float3( t, m, id );
 }
 
 float3 castRay(float3 ro, float3 rd, float3 off)
@@ -262,7 +311,7 @@ kernel void idsGizmoCombo3D(
     
     dir = normalize(dir);
 
-    float3 hit = castRay(origin, dir, pos);
+    float3 hit = castRayBig(origin, dir, pos);
 
     outTexture.write(half(hit.y), gid);
 }
