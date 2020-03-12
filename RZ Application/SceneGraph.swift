@@ -612,6 +612,30 @@ class SceneGraph                : MMWidget
         deactivate()
         toolBarWidgets = []
         
+        func buildChangeComponent(_ item: SceneGraphItem, name: String, id: String)
+        {
+            let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change " + name)
+            button.clicked = { (event) in
+                globalApp!.libraryDialog.show(id: id, cb: { (json) in
+                    if let comp = decodeComponentFromJSON(json) {
+                        let undo = globalApp!.currentEditor.undoStageItemStart("Change " + name)
+                        
+                        comp.uuid = UUID()
+                        comp.selected = nil
+                        globalApp!.currentEditor.setComponent(comp)
+                        
+                        comp.uuid = item.component!.uuid
+                        globalApp!.project.selected!.updateComponent(comp)
+                                                    
+                        globalApp!.currentEditor.undoStageItemEnd(undo)
+                        self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                    }
+                })
+            }
+            toolBarWidgets.append(button)
+        }
+        
         if let uuid = uuid {
             if let item = itemMap[uuid] {
                 if item.itemType == .Stage && item.stage.stageType == .PreStage {
@@ -656,7 +680,7 @@ class SceneGraph                : MMWidget
                 } else
                 if item.itemType == .ShapeItem {
                     
-                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
+                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change Shape")
                     button.clicked = { (event) in
                         self.getShape(item: item, replace: true)
                     }
@@ -676,7 +700,7 @@ class SceneGraph                : MMWidget
                     toolBarWidgets.append(deleteButton)
                 } else
                 if item.itemType == .BooleanItem {
-                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
+                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change Boolean")
                     button.clicked = { (event) in
                         globalApp!.libraryDialog.show(id: "Boolean", cb: { (json) in
                             if let comp = decodeComponentFromJSON(json) {
@@ -749,114 +773,19 @@ class SceneGraph                : MMWidget
                 } else
                 if let comp = item.component {
                     if comp.componentType == .RayMarch3D {
-                        let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
-                        button.clicked = { (event) in
-                            globalApp!.libraryDialog.show(id: "RayMarch3D", cb: { (json) in
-                                if let comp = decodeComponentFromJSON(json) {
-                                    let undo = globalApp!.currentEditor.undoStageItemStart("Change RayMarcher")
-                                    
-                                    comp.uuid = UUID()
-                                    comp.selected = nil
-                                    globalApp!.currentEditor.setComponent(comp)
-                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                                    
-                                    comp.uuid = item.component!.uuid
-                                    globalApp!.project.selected!.updateComponent(comp)
-                                                                
-                                    globalApp!.currentEditor.undoStageItemEnd(undo)
-                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                                }
-                            })
-                        }
-                        toolBarWidgets.append(button)
+                        buildChangeComponent(item, name: "RayMarcher", id: "RayMarch3D")
                     } else
                     if comp.componentType == .Normal3D {
-                        let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
-                        button.clicked = { (event) in
-                            globalApp!.libraryDialog.show(id: "Normal3D", cb: { (json) in
-                                if let comp = decodeComponentFromJSON(json) {
-                                    let undo = globalApp!.currentEditor.undoStageItemStart("Change Normal")
-                                    
-                                    comp.uuid = UUID()
-                                    comp.selected = nil
-                                    globalApp!.currentEditor.setComponent(comp)
-                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                                    
-                                    comp.uuid = item.component!.uuid
-                                    globalApp!.project.selected!.updateComponent(comp)
-                                                                
-                                    globalApp!.currentEditor.undoStageItemEnd(undo)
-                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                                }
-                            })
-                        }
-                        toolBarWidgets.append(button)
+                        buildChangeComponent(item, name: "Normal", id: "Normal3D")
                     } else
                     if comp.componentType == .SkyDome {
-                        let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
-                        button.clicked = { (event) in
-                            globalApp!.libraryDialog.show(id: "SkyDome", cb: { (json) in
-                                if let comp = decodeComponentFromJSON(json) {
-                                    let undo = globalApp!.currentEditor.undoStageItemStart("Change SkyDome")
-                                    
-                                    comp.uuid = UUID()
-                                    comp.selected = nil
-                                    globalApp!.currentEditor.setComponent(comp)
-                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                                    
-                                    comp.uuid = item.component!.uuid
-                                    globalApp!.project.selected!.updateComponent(comp)
-                                                                
-                                    globalApp!.currentEditor.undoStageItemEnd(undo)
-                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                                }
-                            })
-                        }
-                        toolBarWidgets.append(button)
+                        buildChangeComponent(item, name: "Sky Dome", id: "SkyDome")
                     } else
                     if comp.componentType == .Shadows3D {
-                        let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
-                        button.clicked = { (event) in
-                            globalApp!.libraryDialog.show(id: "Shadows3D", cb: { (json) in
-                                if let comp = decodeComponentFromJSON(json) {
-                                    let undo = globalApp!.currentEditor.undoStageItemStart("Change Shadows")
-                                    
-                                    comp.uuid = UUID()
-                                    comp.selected = nil
-                                    globalApp!.currentEditor.setComponent(comp)
-                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                                    
-                                    comp.uuid = item.component!.uuid
-                                    globalApp!.project.selected!.updateComponent(comp)
-                                                                
-                                    globalApp!.currentEditor.undoStageItemEnd(undo)
-                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                                }
-                            })
-                        }
-                        toolBarWidgets.append(button)
+                        buildChangeComponent(item, name: "Shadows", id: "Shadows3D")
                     } else
                     if comp.componentType == .Material3D {
-                        let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
-                        button.clicked = { (event) in
-                            globalApp!.libraryDialog.show(id: "Material3D", cb: { (json) in
-                                if let comp = decodeComponentFromJSON(json) {
-                                    let undo = globalApp!.currentEditor.undoStageItemStart("Change Material3D")
-                                    
-                                    comp.uuid = UUID()
-                                    comp.selected = nil
-                                    globalApp!.currentEditor.setComponent(comp)
-                                    
-                                    comp.uuid = item.component!.uuid
-                                    globalApp!.project.selected!.updateComponent(comp)
-                                                                
-                                    globalApp!.currentEditor.undoStageItemEnd(undo)
-                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                                }
-                            })
-                        }
-                        toolBarWidgets.append(button)
+                        buildChangeComponent(item, name: "Material", id: "Material3D")
                     }
                 }
             }

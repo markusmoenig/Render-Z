@@ -128,21 +128,6 @@ class DesignProperties      : MMWidget
                 if components == 4 {
                     
                     c1Node?.uiItems.append( NodeUIColor(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z)))
-                    
-                    c1Node?.float3ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
-                        if variable == frag.name {
-                            insertValueToFragment3(rc.1!, oldValue)
-                            let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Color Value Changed") : nil
-                            insertValueToFragment3(rc.1!, newValue)
-                            self.updatePreview()
-                            var props : [String:Float] = [:]
-                            props[frag.name + "_x"] = newValue.x
-                            props[frag.name + "_y"] = newValue.y
-                            props[frag.name + "_z"] = newValue.z
-                            self.addKey(props)
-                            if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
-                        }
-                    }
                 }
             }
         }
@@ -154,6 +139,21 @@ class DesignProperties      : MMWidget
                 frag.values["value"] = newValue
                 self.updatePreview()
                 self.addKey([variable:newValue])
+                if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
+            }
+        }
+        
+        c1Node?.float3ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+            if let frag = self.propMap[variable] {
+                insertValueToFragment3(frag, oldValue)
+                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Color Value Changed") : nil
+                insertValueToFragment3(frag, newValue)
+                self.updatePreview()
+                var props : [String:Float] = [:]
+                props[frag.name + "_x"] = newValue.x
+                props[frag.name + "_y"] = newValue.y
+                props[frag.name + "_z"] = newValue.z
+                self.addKey(props)
                 if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
             }
         }
