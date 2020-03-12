@@ -197,9 +197,7 @@ class GizmoCamera2D         : GizmoBase
             
             if undoComponent == nil {
                 undoComponent = globalApp!.currentEditor.undoComponentStart("Camera Change")
-            }
-            
-            globalApp!.artistEditor.designProperties.setSelected(component)
+            }            
         }
     }
     

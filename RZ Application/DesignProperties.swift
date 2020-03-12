@@ -185,6 +185,20 @@ class DesignProperties      : MMWidget
                     if let color = item as? NodeUIColor {
                         color.setValue(SIMD3<Float>(data.x, data.y, data.z))
                     }
+                } else
+                if item.variable.starts(with: name) {
+                    // Update the invidual elements
+                    if let number = item as? NodeUINumber {
+                        if item.variable.hasSuffix("_x") {
+                            number.setValue(data.x)
+                        } else
+                        if item.variable.hasSuffix("_y") {
+                            number.setValue(data.y)
+                        } else
+                        if item.variable.hasSuffix("_z") {
+                            number.setValue(data.z)
+                        }
+                    }
                 }
             }
         }
