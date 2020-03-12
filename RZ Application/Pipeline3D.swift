@@ -361,9 +361,8 @@ class Pipeline3D            : Pipeline
         var shapeText : String = "shape_" + String(objectIndex)
         
         let sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
-        //sunDirection = -sunDirection!
 
-        let lightdata : [SIMD4<Float>] = [sunDirection!]
+        let lightdata : [SIMD4<Float>] = [sunDirection!, SIMD4<Float>(0,0,0,0), SIMD4<Float>(1,1,1,1)]
         let lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         
         // Shadows
@@ -393,21 +392,24 @@ class Pipeline3D            : Pipeline
         if metaTextureResult === metaTexture { colorTexture = metaTexture2 } else { colorTexture = metaTexture }
         if normalTextureResult === normalTexture { colorTexture2 = normalTexture2 } else { colorTexture2 = normalTexture }
 
+        //colorTexture = checkTextureSize(width, height, colorTexture, .rgba16Float)
+        //colorTexture2 = checkTextureSize(width, height, colorTexture2, .rgba16Float)
+
         colorTextureResult = colorTexture
         
-        codeBuilder.renderClear(texture: colorTextureResult!, data: SIMD4<Float>(0, 0, 0, 0))
+        codeBuilder.renderClear(texture: colorTextureResult!, data: SIMD4<Float>(0, 0, 0, 1))
         
         objectIndex = 0
         shapeText = "shape_" + String(objectIndex)
         while let inst = instanceMap[shapeText] {
             
             if colorTextureResult === colorTexture {
-                codeBuilder.render(inst, colorTexture2, inTextures: [colorTexture!, depthTextureResult!, normalTextureResult!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+                codeBuilder.render(inst, colorTexture2, inTextures: [colorTexture!, depthTextureResult!, normalTextureResult!, metaTextureResult!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
                 colorTextureResult = colorTexture2
                 //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             } else
             if colorTextureResult === colorTexture2 {
-                codeBuilder.render(inst, colorTexture, inTextures: [colorTexture2!, depthTextureResult!, normalTextureResult!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+                codeBuilder.render(inst, colorTexture, inTextures: [colorTexture2!, depthTextureResult!, normalTextureResult!, metaTextureResult!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
                 colorTextureResult = colorTexture
                 //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
             }

@@ -858,7 +858,9 @@ class CodeBuilder
         struct MaterialOut
         {
             float4              color;
+            float               mask;
             float3              reflectionDir;
+            float               reflectionBlur;
         };
         
         #define PI 3.14159265359

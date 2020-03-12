@@ -348,7 +348,6 @@ class SceneGraph                : MMWidget
                         let frag = CodeFragment(.VariableReference, variable.typeName, variable.name, [.Selectable, .Dragable, .Monitorable], [variable.typeName], variable.typeName )
                         frag.referseTo = nil
                         frag.name = varItem.stageItem!.name + "." + variable.name
-                        print(frag.name)
                         frag.values["variable"] = 1
                         
                         // Create Drag Item
@@ -832,6 +831,28 @@ class SceneGraph                : MMWidget
                                                                 
                                     globalApp!.currentEditor.undoStageItemEnd(undo)
                                     self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                }
+                            })
+                        }
+                        toolBarWidgets.append(button)
+                    } else
+                    if comp.componentType == .Material3D {
+                        let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
+                        button.clicked = { (event) in
+                            globalApp!.libraryDialog.show(id: "Material3D", cb: { (json) in
+                                if let comp = decodeComponentFromJSON(json) {
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Change Material3D")
+                                    
+                                    comp.uuid = UUID()
+                                    comp.selected = nil
+                                    globalApp!.currentEditor.setComponent(comp)
+                                    
+                                    comp.uuid = item.component!.uuid
+                                    globalApp!.project.selected!.updateComponent(comp)
+                                                                
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
                                 }
                             })
                         }

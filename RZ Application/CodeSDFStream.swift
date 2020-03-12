@@ -310,12 +310,18 @@ class CodeSDFStream
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
-                float4 outShape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
+                float4 shape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
+                float4 meta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
+
+                float3 incomingDirection = rayDirection;
+                float3 hitPosition = rayOrigin + shape.y * rayDirection;
+                float3 hitNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float occlusion = meta.x;
+                float shadow = meta.y;
             
-                float maxDistance = outShape.y;
-                float4 inShape = outShape;
-                float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float4 outMeta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
+                float4 light = __lightData[0];
+                float4 lightType = __lightData[1];
+                float4 lightColor = __lightData[2];
             
                 struct MaterialOut __materialOut;
                 __materialOut.color = float4(__colorInTexture.sample(__textureSampler, __uv / __size ));
@@ -615,10 +621,17 @@ class CodeSDFStream
             materialFuncCode +=
             """
             
-            void material\(materialIdCounter)( float3 __origin, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData )
+            void material\(materialIdCounter)( float3 incomingDirection, float3 hitPosition, float3 hitNormal, float4 light, float4 lightType,
+            float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData )
             {
-                float4 outColor = float4(0);
+                constant float4 *__data = __funcData->__data;
+                float4 __monitorOut = *__funcData->__monitorOut;
+                float GlobalTime = __funcData->GlobalTime;
+            
+                float4 outColor = __materialOut->color;
+                float outMask = __materialOut->mask;
                 float3 outReflectionDir = float3(0);
+                float outReflectionBlur = 0.;
 
             """
             
@@ -627,7 +640,8 @@ class CodeSDFStream
             if let globalCode = material.globalCode {
                 headerCode += globalCode
             }
-            if let code = material.code {
+            if var code = material.code {
+                code = code.replacingOccurrences(of: "&__", with: "__")
                 materialFuncCode += code
             }
 
@@ -644,9 +658,9 @@ class CodeSDFStream
             materialCode +=
             """
 
-            if (outShape.z == \(materialIdCounter) )
+            if (shape.z == \(materialIdCounter) )
             {
-                material\(materialIdCounter)(float3(0), &__materialOut, &__funcData);
+                material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, light, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
             }
 
             """

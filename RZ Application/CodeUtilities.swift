@@ -65,7 +65,7 @@ func insertValueToFragment3(_ fragment: CodeFragment,_ value: SIMD3<Float>)
         if components == 3 || components == 4 {
             if fragment.arguments.count == components {
                 for (index,arg) in fragment.arguments.enumerated() {
-                    if index > components {
+                    if index >= 3 {
                         break
                     }
                     arg.fragments[0].values["value"]! = value[index]
