@@ -123,7 +123,7 @@ class DesignEditor          : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if let gizmo = currentGizmo, editor.designProperties.hoverMode != .NodeUIMouseLocked {
+        if let gizmo = currentGizmo, editor.designProperties.hoverMode != .NodeUIMouseLocked, editor.designProperties.hoverUITitle == nil {
             gizmo.rect.copy(rect)
             gizmo.mouseMoved(event)
         }
@@ -149,7 +149,7 @@ class DesignEditor          : MMWidget
         }
         
         //  Handle selection click
-        if editor.designProperties.hoverMode == .None && (currentGizmo == nil || currentGizmo!.hoverState == .Inactive) {
+        if editor.designProperties.hoverMode == .None && editor.designProperties.hoverUITitle == nil && (currentGizmo == nil || currentGizmo!.hoverState == .Inactive) {
             
             let x : Float = event.x - rect.x
             let y : Float = event.y - rect.y

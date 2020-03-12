@@ -740,7 +740,7 @@ class CodeBuilder
                     inst.data[dataIndex].w = transformed[name + "_w"]!
                 }
                 if globalApp!.currentEditor === globalApp!.artistEditor {
-                    globalApp!.artistEditor.designProperties.updateTransformedProperty(name, data: inst.data[dataIndex])
+                    globalApp!.artistEditor.designProperties.updateTransformedProperty(component: property.4, name: name, data: inst.data[dataIndex])
                 }
             } else
             if let name = property.2 {

@@ -620,13 +620,13 @@ class SceneGraph                : MMWidget
                     if let comp = decodeComponentFromJSON(json) {
                         let undo = globalApp!.currentEditor.undoStageItemStart("Change " + name)
                         
-                        comp.uuid = UUID()
+                        //comp.uuid = UUID()
                         comp.selected = nil
-                        globalApp!.currentEditor.setComponent(comp)
                         
                         comp.uuid = item.component!.uuid
+                        globalApp!.currentEditor.setComponent(comp)
                         globalApp!.project.selected!.updateComponent(comp)
-                                                    
+
                         globalApp!.currentEditor.undoStageItemEnd(undo)
                         self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)

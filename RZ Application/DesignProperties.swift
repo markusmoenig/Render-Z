@@ -32,6 +32,8 @@ class DesignProperties      : MMWidget
     
     var propMap             : [String:CodeFragment] = [:]
     
+    var selected            : CodeComponent? = nil
+    
     override init(_ view: MMView)
     {
         smallButtonSkin = MMSkinButton()
@@ -71,6 +73,8 @@ class DesignProperties      : MMWidget
     
     func setSelected(_ comp: CodeComponent)
     {
+        selected = comp
+        
         clear()
         
         c1Node = Node()
@@ -83,6 +87,10 @@ class DesignProperties      : MMWidget
 
         propMap = [:]
         
+        hoverUIItem = nil
+        hoverUITitle = nil
+        hoverMode = .None
+                
         for uuid in comp.properties {
             let rc = comp.getPropertyOfUUID(uuid)
             
@@ -91,7 +99,7 @@ class DesignProperties      : MMWidget
                 propMap[frag.name] = rc.1!
                 let components = frag.evaluateComponents()
                 let data = extractValueFromFragment(rc.1!)
-                
+                                
                 if components == 1 {
                     let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), value: data.x, precision: Int(rc.1!.values["precision"]!))
                     c1Node!.uiItems.append(numberVar)
@@ -126,8 +134,8 @@ class DesignProperties      : MMWidget
                     c1Node?.uiItems.append(numberVar)
                 } else
                 if components == 4 {
-                    
-                    c1Node?.uiItems.append( NodeUIColor(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z)))
+                    let colorItem = NodeUIColor(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z))
+                    c1Node?.uiItems.append(colorItem)
                 }
             }
         }
@@ -165,7 +173,7 @@ class DesignProperties      : MMWidget
     }
     
     /// Update the properties when timeline is moving or playing
-    func updateTransformedProperty(_ name: String, data: SIMD4<Float>)
+    func updateTransformedProperty(component: CodeComponent, name: String, data: SIMD4<Float>)
     {
         func updateNode(_ node: Node)
         {
@@ -181,7 +189,7 @@ class DesignProperties      : MMWidget
             }
         }
         
-        if let node = c1Node {
+        if let node = c1Node, component === selected {
             updateNode(node)
         }
     }
