@@ -116,6 +116,8 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             }
             addFunctions(f)
         }
+        
+        componentToUse.selected = nil
     }
     
     let encodedData = try? JSONEncoder().encode(componentToUse)
@@ -397,4 +399,13 @@ func getGlobalVariableValue(withName: String) -> SIMD4<Float>?
         }
     }
     return result
+}
+
+func setPropertyValue3(component: CodeComponent, name: String, value: SIMD3<Float>)
+{
+    for uuid in component.properties {
+        if let frag = component.getPropertyOfUUID(uuid).1 {
+            insertValueToFragment3(frag, value)
+        }
+    }
 }

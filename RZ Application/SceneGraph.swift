@@ -229,6 +229,7 @@ class SceneGraph                : MMWidget
         currentUUID = nil
         
         currentUUID = stage.uuid
+        globalApp!.artistEditor.designEditor.blockRendering = true
 
         if let stageItem = stageItem {
             globalApp!.project.selected?.setSelected(stageItem)
@@ -259,6 +260,7 @@ class SceneGraph                : MMWidget
             globalApp!.currentEditor.setComponent(CodeComponent())
         }
         
+        globalApp!.artistEditor.designEditor.blockRendering = false
         needsUpdate = true
         mmView.update()
     }
@@ -638,8 +640,8 @@ class SceneGraph                : MMWidget
 
             mmView.drawBox.draw( x:n.navRect!.x, y: n.navRect!.y, width: n.navRect!.width, height: n.navRect!.height, round: 0, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
         }
-                
-        visNavRect.x = navRect.x + border - minX * ratioX
+                        
+        visNavRect.x = navRect.x + border - minX * ratioX + openWidth - rect.width
         visNavRect.y = navRect.y + border - minY * ratioY + toolBarHeight * ratioY
         visNavRect.width = rect.width * ratioX
         visNavRect.height = rect.height * ratioY - toolBarHeight * ratioY
@@ -660,7 +662,6 @@ class SceneGraph                : MMWidget
                 comp.selected = nil
 
                 globalApp!.currentEditor.setComponent(comp)
-                globalApp!.currentEditor.updateOnNextDraw(compile: true)
                 setDefaultComponentValues(comp)
                 
                 if replace == false {
@@ -687,6 +688,7 @@ class SceneGraph                : MMWidget
                 
                 globalApp!.currentEditor.undoStageItemEnd(undo)
                 self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
             }
         })
     }
@@ -776,10 +778,10 @@ class SceneGraph                : MMWidget
                         let id = "shapes" + getCurrentModeId()
                         
                         if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
-                            print("index", index)
                             let undo = globalApp!.currentEditor.undoStageItemStart("Remove Shape")
                             item.stageItem!.componentLists[id]!.remove(at: index)
                             globalApp!.currentEditor.undoStageItemEnd(undo)
+                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
                         }
                     }
                     toolBarWidgets.append(deleteButton)
@@ -794,7 +796,6 @@ class SceneGraph                : MMWidget
                                 comp.uuid = UUID()
                                 comp.selected = nil
                                 globalApp!.currentEditor.setComponent(comp)
-                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
                                 
                                 if let parent = item.parentComponent {
                                     parent.subComponent = comp
@@ -803,6 +804,7 @@ class SceneGraph                : MMWidget
                                                             
                                 globalApp!.currentEditor.undoStageItemEnd(undo)
                                 self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
                             }
                         })
                     }
@@ -820,13 +822,13 @@ class SceneGraph                : MMWidget
                                 comp.uuid = UUID()
                                 comp.selected = nil
                                 globalApp!.currentEditor.setComponent(comp)
-                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
                                 
                                 comp.uuid = item.component!.uuid
                                 globalApp!.project.selected!.updateComponent(comp)
                                                             
                                 globalApp!.currentEditor.undoStageItemEnd(undo)
                                 self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
                             }
                         })
                     }

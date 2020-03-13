@@ -553,6 +553,7 @@ class CodeBuilder
                 result.xyz = dot(L, normal);
                 result.xyz *= meta.x;
                 result.xyz *= meta.y;
+                result.w = 1.0;
             }
         
             outColor = result;

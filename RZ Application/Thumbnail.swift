@@ -18,6 +18,12 @@ class Thumbnail
     var backTexture     : MTLTexture? = nil
     var depthTexture    : MTLTexture? = nil
     
+    var normalTexture   : MTLTexture? = nil
+    var metaTexture     : MTLTexture? = nil
+
+    var rayOriginTexture : MTLTexture? = nil
+    var rayDirectionTexture : MTLTexture? = nil
+
     var componentMap    : [String:CodeComponent] = [:]
 
     init(_ view: MMView)
@@ -25,7 +31,11 @@ class Thumbnail
         mmView = view
         codeBuilder = CodeBuilder(view)
         
+        componentMap["camera3D"] = decodeComponentFromJSON(defaultCamera3D)!
         componentMap["render2D"] = decodeComponentFromJSON(defaultRender2D)!
+        
+        //setPropertyValue3(component: componentMap["camera3D"]!, name: "origin", value: SIMD3<Float>(0,0,3))
+        //setPropertyValue3(component: componentMap["camera3D"]!, name: "lookAt", value: SIMD3<Float>(0,0,0))
     }
     
     func generate(_ comp: CodeComponent,_ width: Float = 200,_ height: Float = 200) -> MTLTexture?
@@ -45,6 +55,36 @@ class Thumbnail
             
             let renderInstance = codeBuilder.build(componentMap["render2D"]!)
             codeBuilder.render(renderInstance, result, inTextures: [depthTexture!, backTexture!])
+        } else
+        if comp.componentType == .SDF3D {
+            depthTexture = checkTextureSize(width, height, depthTexture)
+            backTexture = checkTextureSize(width, height, backTexture)
+            
+            rayOriginTexture = checkTextureSize(width, height, rayOriginTexture)
+            rayDirectionTexture = checkTextureSize(width, height, rayDirectionTexture)
+
+            normalTexture = checkTextureSize(width, height, normalTexture)
+            metaTexture = checkTextureSize(width, height, metaTexture)
+
+            codeBuilder.renderClear(texture: backTexture!, data: SIMD4<Float>(0,0,0,0))
+            codeBuilder.renderClear(texture: result!, data: SIMD4<Float>(10000, 1000000, -1, -1))
+            codeBuilder.renderClear(texture: metaTexture!, data: SIMD4<Float>(1, 1, 0, 0))
+
+            let instance = CodeBuilderInstance()
+            instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+            
+            let cameraInstance = codeBuilder.build(componentMap["camera3D"]!, camera: componentMap["camera3D"]!)
+            codeBuilder.render(cameraInstance, rayOriginTexture, outTextures: [rayDirectionTexture!])
+            
+            codeBuilder.sdfStream.openStream(comp.componentType, instance, codeBuilder, camera: componentMap["camera3D"]! )
+            codeBuilder.sdfStream.pushComponent(comp)
+            codeBuilder.sdfStream.closeStream()
+            
+            codeBuilder.render(instance, depthTexture, inTextures: [result!, rayOriginTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!, metaTexture!])
+            
+            // Render
+            codeBuilder.compute.run( codeBuilder.previewState!, outTexture: result, inTextures: [depthTexture!, backTexture!, normalTexture!, metaTexture!])
+            codeBuilder.compute.commandBuffer.waitUntilCompleted()
         }
         return result
     }
@@ -60,7 +100,7 @@ class Thumbnail
     }
     
     /// Checks the texture size and if needed reallocate the texture
-    func checkTextureSize(_ width: Float,_ height: Float,_ texture: MTLTexture? = nil,_ pixelFormat: MTLPixelFormat = .bgra8Unorm) -> MTLTexture?
+    func checkTextureSize(_ width: Float,_ height: Float,_ texture: MTLTexture? = nil,_ pixelFormat: MTLPixelFormat = .rgba16Float) -> MTLTexture?
     {
         var result  : MTLTexture? = texture
         

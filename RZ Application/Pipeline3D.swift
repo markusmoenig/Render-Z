@@ -134,7 +134,6 @@ class Pipeline3D            : Pipeline
             dryRunComponent(renderComp)
             instanceMap["render"] = codeBuilder.build(renderComp)
         }
-    
     }
         
     // Render the pipeline
