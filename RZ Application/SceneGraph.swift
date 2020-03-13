@@ -615,16 +615,12 @@ class SceneGraph                : MMWidget
             if n.rect.right() > maxX { maxX = n.rect.right() }
             if n.rect.bottom() > maxY { maxY = n.rect.bottom() }
         }
-        
-        //print("min/max", minX, minY, maxX, maxY)
-        
+                
         let border : Float = 10
         
         let ratioX : Float =  (navRect.width - border*2) / (maxX - minX)
         let ratioY : Float =  (navRect.height - border*2) / (maxY - minY)
-        
-        //let ratio : Float = min(ratioX, ratioY)
-        
+                
         for n in navItems {
         //for (_, n) in itemMap {
             
@@ -632,17 +628,22 @@ class SceneGraph                : MMWidget
             n.navRect!.y = border + navRect.y + (n.rect.y - minY) * ratioY
             n.navRect!.width = n.rect.width * ratioX
             n.navRect!.height = n.rect.height * ratioY
+            
+            var selected : Bool = n.stage === currentStage
+            if selected {
+                if ( n.stageItem !== currentStageItem) {
+                    selected = false
+                }
+            }
 
-            mmView.drawBox.draw( x:n.navRect!.x, y: n.navRect!.y, width: n.navRect!.width, height: n.navRect!.height, round: 0, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: n.stage === currentStage || (n.stageItem != nil && n.stageItem === currentStageItem) ? skin.selectedBorderColor : skin.normalBorderColor)
+            mmView.drawBox.draw( x:n.navRect!.x, y: n.navRect!.y, width: n.navRect!.width, height: n.navRect!.height, round: 0, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
         }
                 
-        visNavRect.x = navRect.x + border - minX
-        visNavRect.y = navRect.y + border - minY// + toolBarHeight * ratioY
-        visNavRect.width = rect.width * (maxX - minX) / (rect.width - border * 2)
-        visNavRect.height = rect.height * ((maxY - minY)) / (rect.height - border * 2)
+        visNavRect.x = navRect.x + border - minX * ratioX
+        visNavRect.y = navRect.y + border - minY * ratioY + toolBarHeight * ratioY
+        visNavRect.width = rect.width * ratioX
+        visNavRect.height = rect.height * ratioY - toolBarHeight * ratioY
         
-        //print(visNavRect.x, visNavRect.y, visNavRect.width, visNavRect.height)
-
         mmView.drawBox.draw( x: visNavRect.x, y: visNavRect.y, width: visNavRect.width, height: visNavRect.height, round: 6, fillColor : SIMD4<Float>(1, 1, 1, 0.1) )
         mmView.renderer.setClipRect()
     }
@@ -1177,7 +1178,7 @@ class SceneGraph                : MMWidget
                 itemMap[comp.uuid] = item
                 
                 if comp === currentComponent {
-                    mmView.drawBox.draw( x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: totalWidth, height: itemSize, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: skin.normalBorderColor)
+                    mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 0, fillColor: skin.selectedBorderColor)
                 }
                 
                 if let thumb = globalApp!.thumbnail.request(comp.libraryName + " :: SDF" + getCurrentModeId(), comp) {
@@ -1247,7 +1248,7 @@ class SceneGraph                : MMWidget
                 itemMap[comp.uuid] = item
                 
                 if comp === currentComponent {
-                    mmView.drawBox.draw( x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: totalWidth, height: itemSize, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: skin.normalBorderColor)
+                    mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 0, fillColor: skin.selectedBorderColor)
                 }
                 
                 if stageItem.componentLabels[comp.libraryName] == nil || stageItem.componentLabels[comp.libraryName]!.scale != skin.fontScale {
