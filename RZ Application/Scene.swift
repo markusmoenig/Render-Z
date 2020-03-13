@@ -80,8 +80,8 @@ class StageItem             : Codable, Equatable
         values["_graphX"] = 0
         values["_graphY"] = 0
         
-        values["_graphShapesX"] = 120
-        values["_graphShapesY"] = 40
+        values["_graphShapesX"] = 150
+        values["_graphShapesY"] = 0
     }
 
     /// Recursively update the component
@@ -135,7 +135,7 @@ class StageItem             : Codable, Equatable
         codeComponent.selected = nil
         materialItem.components[materialItem.defaultName] = codeComponent
         children.append(materialItem)
-        placeChild(modeId: "3D", parent: self, child: materialItem, stepSize: 50, radius: 140, defaultStart: 0)
+        placeChild(modeId: "3D", parent: self, child: materialItem, stepSize: 60, radius: 110, defaultStart: 10)
 
         let uvItem = StageItem(.RenderStage, "UV Map")
         //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
@@ -145,7 +145,7 @@ class StageItem             : Codable, Equatable
         codeComponent.selected = nil
         uvItem.components[uvItem.defaultName] = codeComponent
         children.append(uvItem)
-        placeChild(modeId: "3D", parent: self, child: uvItem, stepSize: 50, radius: 130)
+        placeChild(modeId: "3D", parent: self, child: uvItem, stepSize: 50, radius: 110)
     }
 }
 
@@ -212,8 +212,8 @@ class Stage                 : Codable, Equatable
         self.stageType = stageType
         self.name = name
         
-        values["_graphX"] = -20
-        values["_graphY"] = 0
+        values["_graphX"] = 0
+        values["_graphY"] = -40
         
         if stageType == .PreStage {
             var item = StageItem(.PreStage, "Background")
@@ -221,9 +221,7 @@ class Stage                 : Codable, Equatable
             codeComponent.createDefaultFunction(.Colorize)
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
-            
-            item.values["_graphX"] = 100
-            item.values["_graphY"] = -50
+            placeChild(modeId: "2D", parent: self, child: item, stepSize: 50, radius: 150)
             
             item = StageItem(.PreStage, "Camera")
             //codeComponent = CodeComponent(.Camera2D)
@@ -232,18 +230,14 @@ class Stage                 : Codable, Equatable
             codeComponent.selected = nil
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
-            
-            item.values["_graphX"] = 130
-            item.values["_graphY"] = 70
+            placeChild(modeId: "2D", parent: self, child: item, stepSize: 50, radius: 150)
             
             item = StageItem(.PreStage, "Sky Dome")
             codeComponent = CodeComponent(.SkyDome)
             codeComponent.createDefaultFunction(.SkyDome)
             item.components[item.defaultName] = codeComponent
             children3D.append(item)
-            
-            item.values["_graphX"] = 100
-            item.values["_graphY"] = -50
+            placeChild(modeId: "3D", parent: self, child: item, stepSize: 50, radius: 150)
             
             item = StageItem(.PreStage, "Camera")
             //codeComponent = CodeComponent(.Camera3D)
@@ -252,9 +246,7 @@ class Stage                 : Codable, Equatable
             codeComponent.selected = nil
             item.components[item.defaultName] = codeComponent
             children3D.append(item)
-            
-            item.values["_graphX"] = 130
-            item.values["_graphY"] = 70
+            placeChild(modeId: "3D", parent: self, child: item, stepSize: 50, radius: 150)
             
             folderIsOpen = true
         }
@@ -326,7 +318,7 @@ class Stage                 : Codable, Equatable
             // Normal
             let normalItem = StageItem(.RenderStage, "Normal")
             children3D.append(normalItem)
-            placeChild(modeId: "3D", parent: self, child: normalItem, stepSize: 120, radius: 80)
+            placeChild(modeId: "3D", parent: self, child: normalItem, stepSize: 120, radius: 90)
             
             codeComponent = CodeComponent(.Normal3D, "Normal")
             codeComponent.createDefaultFunction(.Normal3D)
@@ -355,7 +347,7 @@ class Stage                 : Codable, Equatable
             // Create Sun Pool
             let sunPool = StageItem(.VariablePool, "Sun")
             children3D.append(sunPool)
-            placeChild(modeId: "3D", parent: self, child: sunPool, stepSize: 90, radius: 130)
+            placeChild(modeId: "3D", parent: self, child: sunPool, stepSize: 90, radius: 150)
             
             let sunDirComponent = CodeComponent(.Variable, "Sun Direction")
             sunDirComponent.values["locked"] = 1
