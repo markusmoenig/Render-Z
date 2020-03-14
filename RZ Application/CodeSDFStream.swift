@@ -356,7 +356,7 @@ class CodeSDFStream
                     float2 uv = __uv / __size;
                     uv.y = 1.0 - uv.y;
                     __materialOut.color = background( uv, __size, hitPosition, rayDirection, &__funcData );
-                    __materialOut.mask = 0.;
+                    __materialOut.mask = float3(0);
                 }
             
             """
@@ -670,7 +670,7 @@ class CodeSDFStream
                 float GlobalTime = __funcData->GlobalTime;
             
                 float4 outColor = __materialOut->color;
-                float outMask = __materialOut->mask;
+                float3 outMask = __materialOut->mask;
                 float3 outReflectionDir = float3(0);
                 float outReflectionBlur = 0.;
 

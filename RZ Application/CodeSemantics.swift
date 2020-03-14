@@ -1495,6 +1495,24 @@ class CodeComponent         : Codable, Equatable
             f.header.statement.fragments.removeLast()
             f.header.statement.fragments.removeLast()
         }*/
+        
+        /*
+        if componentType == .Material3D {
+            for f in functions {
+                //let arg2 = CodeFragment(.VariableDefinition, "float", "maxDistance", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+                //f.header.statement.fragments.append(arg2)
+                //f.header.statement.fragments.removeLast()
+                //f.header.statement.fragments.removeLast()
+                for b in f.body {
+                    if b.blockType == .OutVariable && b.fragment.name == "outMask" {
+                        print("0")
+                        b.fragment.typeName = "float3"
+                        b.statement.fragments[0] = defaultConstantForType("float3")
+                        //insertValueToFragment3( b.statement.fragments[0], SIMD3<Float>(0,0,0))
+                    }
+                }
+            }
+        }*/
     }
     
     func encode(to encoder: Encoder) throws
@@ -1883,7 +1901,7 @@ class CodeComponent         : Codable, Equatable
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
-            f.body.append(f.createOutVariableBlock("float", "outMask"))
+            f.body.append(f.createOutVariableBlock("float3", "outMask"))
             f.body.append(f.createOutVariableBlock("float3", "outReflectionDir"))
             f.body.append(f.createOutVariableBlock("float", "outReflectionBlur"))
             functions.append(f)

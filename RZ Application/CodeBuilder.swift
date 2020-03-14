@@ -855,7 +855,7 @@ class CodeBuilder
         struct MaterialOut
         {
             float4              color;
-            float               mask;
+            float3              mask;
             float3              reflectionDir;
             float               reflectionBlur;
         };
