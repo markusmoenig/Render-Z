@@ -466,9 +466,7 @@ class CodeBuilder
         kernel void componentBuilder(
         texture2d<half, access::write>          __outTexture  [[texture(0)]],
         constant float4                        *__data   [[ buffer(1) ]],
-        texture2d<half, access::sample>         __depthTexture [[texture(2)]],
-        texture2d<half, access::sample>         __backTexture [[texture(3)]],
-        texture2d<half, access::sample>         __matTexture [[texture(4)]],
+        texture2d<half, access::sample>         __colorTexture [[texture(2)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
             constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
@@ -479,10 +477,8 @@ class CodeBuilder
             float2 uv = float2(__gid.x, __gid.y);
 
             float4 outColor = float4(0, 0, 0, 1);
-            float4 backColor = float4(__backTexture.sample(__textureSampler, uv / size ));
-            float4 matColor = float4(__matTexture.sample(__textureSampler, uv / size ));
+            float4 color = float4(__colorTexture.sample(__textureSampler, uv / size ));
 
-            float shapeId = float4(__depthTexture.sample(__textureSampler, uv / size )).w;
             float GlobalTime = __data[0].x;
 
             struct FuncData __funcData;

@@ -21,7 +21,8 @@ class CodeSDFStream
     var hitAndNormalsCode   : String = ""
     var aoCode              : String = ""
     var shadowCode          : String = ""
-    
+    var backgroundCode      : String = ""
+
     var materialFuncCode    : String = ""
     var materialCode        : String = ""
 
@@ -55,7 +56,7 @@ class CodeSDFStream
         hierarchy = []
     }
     
-    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil, groundComponent: CodeComponent? = nil)
+    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil, groundComponent: CodeComponent? = nil, backgroundComponent: CodeComponent? = nil)
     {
         self.type = type
         self.instance = instance
@@ -142,6 +143,31 @@ class CodeSDFStream
             }
             
             """
+            
+            backgroundCode =
+            """
+            
+            float4 background( float2 uv, float2 size, float3 position, float3 rayDirection, thread struct FuncData *__funcData )
+            {
+                float4 outColor = float4(0,0,0,1);
+            
+                constant float4 *__data = __funcData->__data;
+                float4 __monitorOut = *__funcData->__monitorOut;
+                float GlobalTime = __funcData->GlobalTime;
+
+            
+            """
+            
+            if let background = backgroundComponent {
+                dryRunComponent(background, instance.data.count, monitor)
+                instance.collectProperties(background)
+                if let globalCode = background.globalCode {
+                    headerCode += globalCode
+                }
+                if let code = background.code {
+                    backgroundCode += code
+                }
+            }
             
             mapCode =
             """
@@ -325,6 +351,13 @@ class CodeSDFStream
             
                 struct MaterialOut __materialOut;
                 __materialOut.color = float4(__colorInTexture.sample(__textureSampler, __uv / __size ));
+            
+                if (shape.z == -1 ) {
+                    float2 uv = __uv / __size;
+                    uv.y = 1.0 - uv.y;
+                    __materialOut.color = background( uv, __size, hitPosition, rayDirection, &__funcData );
+                    __materialOut.mask = 0.;
+                }
             
             """
             
@@ -524,7 +557,15 @@ class CodeSDFStream
             
             """
             
-            instance.code = headerCode + mapCode + shadowCode + hitAndNormalsCode + aoCode + materialFuncCode + materialCode
+            backgroundCode +=
+            """
+            
+                return outColor;
+            }
+            
+            """
+            
+            instance.code = headerCode + backgroundCode + mapCode + shadowCode + hitAndNormalsCode + aoCode + materialFuncCode + materialCode
         }
         
         codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow", "computeMaterial"] : [])

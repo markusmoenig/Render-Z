@@ -81,9 +81,12 @@ class Pipeline3D            : Pipeline
         dryRunComponent(cameraComponent)
         instanceMap["camera3D"] = codeBuilder.build(cameraComponent, camera: cameraComponent)
         
+        var backComponent : CodeComponent? = nil
+
         // SkyDome
         for item in preStage.getChildren() {
             if let comp = item.components[item.defaultName], comp.componentType == .SkyDome {
+                backComponent = comp
                 dryRunComponent(comp)
                 instanceMap["pre"] = codeBuilder.build(comp, camera: cameraComponent)
                 break
@@ -99,7 +102,7 @@ class Pipeline3D            : Pipeline
             if let shapes = item.getComponentList("shapes") {
                 let instance = CodeBuilderInstance()
                 instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
-                codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent)
+                codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, backgroundComponent: backComponent)
                 codeBuilder.sdfStream.pushStageItem(item)
                 for shape in shapes {
                     codeBuilder.sdfStream.pushComponent(shape)
@@ -114,7 +117,7 @@ class Pipeline3D            : Pipeline
                 // Ground Object
                 let instance = CodeBuilderInstance()
                 instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
-                codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, groundComponent: ground)
+                codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, groundComponent: ground, backgroundComponent: backComponent)
                 codeBuilder.sdfStream.pushStageItem(item)
                 //for shape in shapes {
                 //    codeBuilder.sdfStream.pushComponent(shape)
@@ -418,7 +421,7 @@ class Pipeline3D            : Pipeline
         
         // Render it all
         if let inst = instanceMap["render"] {
-            codeBuilder.render(inst, resultTexture, inTextures: [depthTextureResult!, backTexture!, colorTextureResult!])
+            codeBuilder.render(inst, resultTexture, inTextures: [colorTextureResult!])
             //computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
         } else {
             resultTexture = backTexture
