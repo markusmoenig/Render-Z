@@ -109,6 +109,10 @@ class GizmoCamera3D         : GizmoBase
             initialValues = [:]
             initialValues["origin"] = originFrag!.values["value"]!
             initialValues["lookAt"] = lookAtFrag!.values["value"]!
+            
+            if activeButton != nil {
+                globalApp!.currentPipeline?.setMinimalPreview(true)
+            }
         }
     }
     
@@ -250,6 +254,10 @@ class GizmoCamera3D         : GizmoBase
     {
         if component.componentType == .Dummy { return }
 
+        if activeButton != nil {
+            globalApp!.currentPipeline?.setMinimalPreview()
+        }
+        
         if let hover = hoverButton {
             hover.removeState(.Hover)
         }

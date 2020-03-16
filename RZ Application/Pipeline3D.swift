@@ -28,7 +28,7 @@ class Pipeline3D            : Pipeline
     var maxReflections      : Int = 2
     
     var samples             : Int = 0
-    var maxSamples          : Int = 20
+    var maxSamples          : Int = 1
 
     var renderId            : UInt = 0
 
@@ -214,18 +214,11 @@ class Pipeline3D            : Pipeline
                         self.stage_HitAndNormals()
                         self.currentStage = .HitAndNormals
                     } else {
-                        //self.codeBuilder.compute.copyTexture(self.finalTexture!, self.getTextureOfId("result"))
-                        //self.mmView.update()
-                        
-                        self.codeBuilder.renderCopyNearest(self.getTextureOfId("back"), self.finalTexture!)
-
-                        //self.codeBuilder.compute.copyTexture(self.getTextureOfId("back"), self.finalTexture!)
-                        self.codeBuilder.renderSample(texture: self.finalTexture!, sampleTexture: self.getTextureOfId("back"), resultTexture: self.getTextureOfId("result"), frame: self.samples + 1)
-                        
+                        self.codeBuilder.compute.copyTexture(self.finalTexture!, self.getTextureOfId("result"))
                         self.mmView.update()
                         
+                        self.samples += 1
                         if self.samples < self.maxSamples {
-                            self.samples += 1
                             self.reflections = 0
                             
                             self.resetSample()

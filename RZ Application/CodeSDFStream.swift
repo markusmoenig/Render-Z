@@ -199,7 +199,8 @@ class CodeSDFStream
             texture2d<half, access::write>          __metaTexture [[texture(8)]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+                constexpr sampler __nearestSampler(mag_filter::nearest, min_filter::nearest);
+                constexpr sampler __linearSampler(mag_filter::linear, min_filter::linear);
 
                 float4 __monitorOut = float4(0,0,0,0);
             
@@ -208,20 +209,21 @@ class CodeSDFStream
                 float GlobalTime = __data[0].x;
             
                 float2 __uv = float2(__gid.x, __gid.y);
-                float3 rayOrigin = float4(__rayOriginTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float3 rayDirection = float4(__rayDirectionTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float2 __uvSample = __uv / __size;
+                float3 rayOrigin = float4(__rayOriginTexture.sample(__linearSampler, __uvSample )).xyz;
+                float3 rayDirection = float4(__rayDirectionTexture.sample(__linearSampler, __uvSample )).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
-                float4 outShape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
+                float4 outShape = float4(__depthInTexture.sample(__linearSampler, __uvSample ));
             
                 float maxDistance = outShape.y;
                 float4 inShape = outShape;
-                float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float4 outMeta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
+                float3 outNormal = float4(__normalInTexture.sample(__linearSampler, __uvSample )).xyz;
+                float4 outMeta = float4(__metaInTexture.sample(__linearSampler, __uvSample ));
             
             """
             
@@ -238,8 +240,9 @@ class CodeSDFStream
             texture2d<half, access::sample>         __rayDirectionInTexture [[texture(6)]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
-
+                constexpr sampler __nearestSampler(mag_filter::nearest, min_filter::nearest);
+                constexpr sampler __linearSampler(mag_filter::linear, min_filter::linear);
+            
                 float4 __monitorOut = float4(0,0,0,0);
             
                 float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
@@ -247,20 +250,21 @@ class CodeSDFStream
                 float GlobalTime = __data[0].x;
             
                 float2 __uv = float2(__gid.x, __gid.y);
-                float3 rayOrigin = float4(__rayOriginInTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float3 rayDirection = float4(__rayDirectionInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float2 __uvSample = __uv / __size;
+                float3 rayOrigin = float4(__rayOriginInTexture.sample(__linearSampler, __uvSample )).xyz;
+                float3 rayDirection = float4(__rayDirectionInTexture.sample(__linearSampler, __uvSample )).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
-                float4 outShape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
+                float4 outShape = float4(__depthInTexture.sample(__linearSampler, __uvSample ));
             
                 float maxDistance = outShape.y;
                 float4 inShape = outShape;
-                float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float4 outMeta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
+                float3 outNormal = float4(__normalInTexture.sample(__linearSampler, __uvSample )).xyz;
+                float4 outMeta = float4(__metaInTexture.sample(__linearSampler, __uvSample ));
             
             """
             
@@ -278,8 +282,9 @@ class CodeSDFStream
             constant float4                        *__lightData   [[ buffer(7) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
-
+                constexpr sampler __nearestSampler(mag_filter::nearest, min_filter::nearest);
+                constexpr sampler __linearSampler(mag_filter::linear, min_filter::linear);
+            
                 float4 __monitorOut = float4(0,0,0,0);
             
                 float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
@@ -287,20 +292,21 @@ class CodeSDFStream
                 float GlobalTime = __data[0].x;
             
                 float2 __uv = float2(__gid.x, __gid.y);
-                float3 rayOrigin = float4(__rayOriginTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float3 rayDirection = float4(__rayDirectionTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float2 __uvSample = __uv / __size;
+                float3 rayOrigin = float4(__rayOriginTexture.sample(__linearSampler, __uvSample )).xyz;
+                float3 rayDirection = float4(__rayDirectionTexture.sample(__linearSampler, __uvSample )).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
-                float4 outShape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
+                float4 outShape = float4(__depthInTexture.sample(__linearSampler, __uvSample ));
             
                 float maxDistance = outShape.y;
                 float4 inShape = outShape;
-                float3 outNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float4 outMeta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
+                float3 outNormal = float4(__normalInTexture.sample(__linearSampler, __uvSample )).xyz;
+                float4 outMeta = float4(__metaInTexture.sample(__linearSampler, __uvSample ));
             
             """
             
@@ -323,8 +329,9 @@ class CodeSDFStream
             constant float4                        *__lightData   [[ buffer(12) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
-
+                constexpr sampler __nearestSampler(mag_filter::nearest, min_filter::nearest);
+                constexpr sampler __linearSampler(mag_filter::linear, min_filter::linear);
+            
                 float4 __monitorOut = float4(0,0,0,0);
             
                 float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
@@ -332,24 +339,25 @@ class CodeSDFStream
                 float GlobalTime = __data[0].x;
             
                 float2 __uv = float2(__gid.x, __gid.y);
-                float3 rayOrigin = float4(__rayOriginInTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float3 rayDirection = float4(__rayDirectionInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float2 __uvSample = __uv / __size;
+                float3 rayOrigin = float4(__rayOriginInTexture.sample(__linearSampler, __uvSample )).xyz;
+                float3 rayDirection = float4(__rayDirectionInTexture.sample(__linearSampler, __uvSample )).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
-                float4 shape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
-                float4 meta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
-                float3 mask = float4(__maskInTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float4 color = float4(__colorInTexture.sample(__textureSampler, __uv / __size ));
+                float4 shape = float4(__depthInTexture.sample(__linearSampler, __uvSample ));
+                float4 meta = float4(__metaInTexture.sample(__linearSampler, __uvSample ));
+                float3 mask = float4(__maskInTexture.sample(__linearSampler, __uvSample )).xyz;
+                float4 color = float4(__colorInTexture.sample(__linearSampler, __uvSample ));
 
                 float3 incomingDirection = rayDirection;
                 float3 hitPosition = rayOrigin + shape.y * rayDirection;
                 float3 newPosition = rayOrigin + (shape.y - 0.025) * rayDirection;
 
-                float3 hitNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 hitNormal = float4(__normalInTexture.sample(__linearSampler, __uvSample )).xyz;
                 float occlusion = meta.x;
                 float shadow = meta.y;
             
@@ -723,7 +731,7 @@ class CodeSDFStream
                 //rayOrigin = newPosition;//hitPosition + 0.025 * rayDirection;
                 rayOrigin = newPosition + 0.025 * rayDirection;
                 color.xyz = color.xyz + __materialOut.color.xyz * mask;
-                color = clamp(color, 0.0, 1.0);
+                //color = clamp(color, 0.0, 1.0);
                 mask *= __materialOut.mask;
             }
 

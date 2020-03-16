@@ -469,7 +469,7 @@ class CodeBuilder
         texture2d<half, access::sample>         __colorTexture [[texture(2)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
-            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+            constexpr sampler __textureSampler(mag_filter::nearest, min_filter::nearest);
 
             float4 __monitorOut = float4(0,0,0,0);
 
@@ -685,11 +685,11 @@ class CodeBuilder
         }
         
         inst.data[0].x = time
-        inst.data[0].z = Float.random(in: -0.5...0.5)
-        inst.data[0].w = Float.random(in: -0.5...0.5)
+        //inst.data[0].z = Float.random(in: -0.5...0.5)
+        //inst.data[0].w = Float.random(in: -0.5...0.5)
         
-        //inst.data[0].z = 1
-        //inst.data[0].w = 1
+        inst.data[0].z = 1
+        inst.data[0].w = 1
 
         for property in inst.properties {
             
