@@ -466,18 +466,16 @@ class CodeBuilder
         kernel void componentBuilder(
         texture2d<half, access::write>          __outTexture  [[texture(0)]],
         constant float4                        *__data   [[ buffer(1) ]],
-        texture2d<half, access::sample>         __colorTexture [[texture(2)]],
+        texture2d<half, access::read>           __colorTexture [[texture(2)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
-            constexpr sampler __textureSampler(mag_filter::nearest, min_filter::nearest);
-
             float4 __monitorOut = float4(0,0,0,0);
 
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
             float2 uv = float2(__gid.x, __gid.y);
 
             float4 outColor = float4(0, 0, 0, 1);
-            float4 color = float4(__colorTexture.sample(__textureSampler, uv / size ));
+            float4 color = float4(__colorTexture.read(__gid));
 
             float GlobalTime = __data[0].x;
 
@@ -521,27 +519,25 @@ class CodeBuilder
         
         kernel void preview(
         texture2d<half, access::write>          __outTexture  [[texture(0)]],
-        texture2d<half, access::sample>         __depthTexture [[texture(2)]],
-        texture2d<half, access::sample>         __backTexture [[texture(3)]],
-        texture2d<half, access::sample>         __normalTexture [[texture(4)]],
-        texture2d<half, access::sample>         __metaTexture [[texture(5)]],
+        texture2d<half, access::read>           __depthTexture [[texture(2)]],
+        texture2d<half, access::read>           __backTexture [[texture(3)]],
+        texture2d<half, access::read>           __normalTexture [[texture(4)]],
+        texture2d<half, access::read>           __metaTexture [[texture(5)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
-            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
-
             float4 __monitorOut = float4(0,0,0,0);
 
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
             float2 uv = float2(__gid.x, __gid.y);
 
             float4 outColor = float4(0, 0, 0, 1);
-            float4 backColor = float4(__backTexture.sample(__textureSampler, uv / size ));
+            float4 backColor = float4(__backTexture.read(__gid));
             float4 matColor = float4(1, 1, 1, 1);
         
-            float3 normal = float4(__normalTexture.sample(__textureSampler, uv / size )).xyz;
-            float4 meta = float4(__metaTexture.sample(__textureSampler, uv / size ));
+            float3 normal = float4(__normalTexture.read(__gid)).xyz;
+            float4 meta = float4(__metaTexture.read(__gid));
 
-            float4 shape = float4(__depthTexture.sample(__textureSampler, uv / size ));
+            float4 shape = float4(__depthTexture.read(__gid));
 
             float4 result = backColor;
             if (shape.w >= 0.0) {
@@ -579,7 +575,6 @@ class CodeBuilder
         constant float4                        *data   [[ buffer(1) ]],
         uint2 gid                               [[thread_position_in_grid]])
         {
-        
            outTexture.write(half4(data[0]), gid);
         }
          
@@ -603,15 +598,11 @@ class CodeBuilder
         
         kernel void copyNearestBuilder(
         texture2d<half, access::write>          outTexture  [[texture(0)]],
-        texture2d<half, access::sample>         inTexture [[texture(2)]],
+        texture2d<half, access::read>           inTexture [[texture(2)]],
         uint2 gid                               [[thread_position_in_grid]])
         {
-            constexpr sampler sampler(mag_filter::nearest, min_filter::nearest);
-
             float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-            float2 uv = float2(gid.x, gid.y) / size;
-
-            outTexture.write( inTexture.sample(sampler, uv), gid);
+            outTexture.write(inTexture.read(gid), gid);
         }
          
         """
@@ -636,16 +627,13 @@ class CodeBuilder
         texture2d<half, access::sample>         resultTexture [[texture(3)]],
         uint2 gid                               [[thread_position_in_grid]])
         {
-            constexpr sampler linear_sampler(mag_filter::nearest, min_filter::nearest);
-            constexpr sampler nearest_sampler(mag_filter::nearest, min_filter::nearest);
-
             float2 size = float2( outTexture.get_width(), outTexture.get_height() );
             float2 uv = float2(gid.x, gid.y) / size;
 
             float frame = data[0].x;
 
-            float4 sample = float4(sampleTexture.sample(nearest_sampler, uv));
-            float4 result = float4(resultTexture.sample(nearest_sampler, uv));
+            float4 sample = float4(sampleTexture.read(gid));
+            float4 result = float4(resultTexture.read(gid));
             float4 final = mix(sample, result, 1./frame);
 
             outTexture.write(half4(final), gid);

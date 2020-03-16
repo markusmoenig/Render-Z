@@ -299,6 +299,7 @@ class Pipeline3D            : Pipeline
             codeBuilder.compute.commandBuffer.waitUntilCompleted()
 
             codeBuilder.compute.copyTexture(finalTexture!, getTextureOfId("result"))
+            mmView.update()
         } else {
             nextStage()
         }
