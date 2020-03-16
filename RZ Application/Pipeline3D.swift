@@ -11,11 +11,11 @@ import MetalKit
 class Pipeline3D            : Pipeline
 {
     enum Stage : Int {
-        case None, Compiling, Compiled, HitAndNormals, AO, ShadowsAndMaterials
+        case None, Compiling, Compiled, HitAndNormals, AO, ShadowsAndMaterials, Reflection
     }
     
     var currentStage        : Stage = .None
-    var maxStage            : Stage = .AO
+    var maxStage            : Stage = .Reflection
 
     var instanceMap         : [String:CodeBuilderInstance] = [:]
     
@@ -24,6 +24,9 @@ class Pipeline3D            : Pipeline
     var width               : Float = 0
     var height              : Float = 0
     
+    var reflectionDepth     : Int = 0
+    var maxReflectionDepth  : Int = 2
+
     var renderId            : UInt = 0
 
     override init(_ mmView: MMView)
@@ -127,6 +130,7 @@ class Pipeline3D            : Pipeline
     {
         renderId += 1
         self.width = width; self.height = height
+        reflectionDepth = 0
         
         // Monitor
         func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
@@ -147,13 +151,13 @@ class Pipeline3D            : Pipeline
         }
         
         allocTexturePair("color", width, height, .rgba16Float)
+        allocTexturePair("mask", width, height, .rgba16Float)
         codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
+        codeBuilder.renderClear(texture: getActiveOfPair("mask"), data: SIMD4<Float>(1, 1, 1, 1))
 
         stage_HitAndNormals()
         currentStage = .HitAndNormals
         
-        nextStage()
-
         /*
         finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
         sampleCounter = 1
@@ -171,12 +175,12 @@ class Pipeline3D            : Pipeline
     
     func nextStage()
     {
-        if currentStage.rawValue < maxStage.rawValue {
+        if currentStage.rawValue < maxStage.rawValue || reflectionDepth < maxReflectionDepth {
             let startId = renderId
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 if startId < self.renderId { return }
                 
-                print( "Stage Finished:", self.currentStage, "Alloc", self.textureMap.count)
+                print( "Stage Finished:", self.currentStage, "Reflections:", self.reflectionDepth, "Alloc", self.textureMap.count)
                 
                 let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
                 
@@ -190,6 +194,14 @@ class Pipeline3D            : Pipeline
                         self.stage_computeShadowsAndMaterials()
                         self.currentStage = .ShadowsAndMaterials
                         self.mmView.update()
+                    } else
+                    if nextStage == .Reflection {
+                        self.reflectionDepth += 1
+                        if self.reflectionDepth < self.maxReflectionDepth {
+                            self.stage_HitAndNormals()
+                            self.currentStage = .HitAndNormals
+                            self.mmView.update()
+                        }
                     }
                 }
             }
@@ -217,12 +229,14 @@ class Pipeline3D            : Pipeline
             }
         }
         
-        // Render the Camera Textures
-        allocTexturePair("rayOrigin", width, height, .rgba16Float)
-        allocTexturePair("rayDirection", width, height, .rgba16Float)
-        if let inst = instanceMap["camera3D"] {
-            codeBuilder.render(inst, getActiveOfPair("rayOrigin"), outTextures: [getActiveOfPair("rayDirection")])
-            computeMonitor(inst)
+        if reflectionDepth == 0 {
+            // Render the Camera Textures
+            allocTexturePair("rayOrigin", width, height, .rgba16Float)
+            allocTexturePair("rayDirection", width, height, .rgba16Float)
+            if let inst = instanceMap["camera3D"] {
+                codeBuilder.render(inst, getActiveOfPair("rayOrigin"), outTextures: [getActiveOfPair("rayDirection")])
+                computeMonitor(inst)
+            }
         }
         
         // Render the SkyDome into backTexture
@@ -259,6 +273,8 @@ class Pipeline3D            : Pipeline
         codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getActiveOfPair("depth")!, getTextureOfId("back"), getActiveOfPair("normal"), getActiveOfPair("meta")])
         codeBuilder.compute.commandBuffer.waitUntilCompleted()
         finalTexture = getTextureOfId("result")
+        
+        nextStage()
     }
     
     /// Compute the AO stage
@@ -343,16 +359,18 @@ class Pipeline3D            : Pipeline
         }
         
         // Materials
-        
-        codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
+//        codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
         
         objectIndex = 0
         shapeText = "shape_" + String(objectIndex)
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getInactiveOfPair("color"), inTextures: [getActiveOfPair("color"), getActiveOfPair("depth"), getActiveOfPair("normal"), getActiveOfPair("meta"), getActiveOfPair("rayOrigin"), getActiveOfPair("rayDirection")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+            codeBuilder.render(inst, getInactiveOfPair("color"), inTextures: [getActiveOfPair("color"), getActiveOfPair("depth"), getActiveOfPair("normal"), getActiveOfPair("meta"), getActiveOfPair("rayOrigin"), getActiveOfPair("rayDirection"), getActiveOfPair("mask")], outTextures: [getInactiveOfPair("rayOrigin"), getInactiveOfPair("rayDirection"), getInactiveOfPair("mask")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
             switchPair("color")
-            
+            switchPair("rayOrigin")
+            switchPair("rayDirection")
+            switchPair("mask")
+
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
         }
@@ -363,5 +381,7 @@ class Pipeline3D            : Pipeline
             //computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
         }
         finalTexture = getTextureOfId("result")
+        
+        nextStage()
     }
 }

@@ -234,8 +234,8 @@ class CodeSDFStream
             texture2d<half, access::sample>         __depthInTexture [[texture(2)]],
             texture2d<half, access::sample>         __normalInTexture [[texture(3)]],
             texture2d<half, access::sample>         __metaInTexture [[texture(4)]],
-            texture2d<half, access::sample>         __rayOriginTexture [[texture(5)]],
-            texture2d<half, access::sample>         __rayDirectionTexture [[texture(6)]],
+            texture2d<half, access::sample>         __rayOriginInTexture [[texture(5)]],
+            texture2d<half, access::sample>         __rayDirectionInTexture [[texture(6)]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
@@ -247,8 +247,8 @@ class CodeSDFStream
                 float GlobalTime = __data[0].x;
             
                 float2 __uv = float2(__gid.x, __gid.y);
-                float3 rayOrigin = float4(__rayOriginTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float3 rayDirection = float4(__rayDirectionTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 rayOrigin = float4(__rayOriginInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 rayDirection = float4(__rayDirectionInTexture.sample(__textureSampler, __uv / __size )).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
@@ -314,9 +314,13 @@ class CodeSDFStream
             texture2d<half, access::sample>         __depthInTexture [[texture(3)]],
             texture2d<half, access::sample>         __normalInTexture [[texture(4)]],
             texture2d<half, access::sample>         __metaInTexture [[texture(5)]],
-            texture2d<half, access::sample>         __rayOriginTexture [[texture(6)]],
-            texture2d<half, access::sample>         __rayDirectionTexture [[texture(7)]],
-            constant float4                        *__lightData   [[ buffer(8) ]],
+            texture2d<half, access::sample>         __rayOriginInTexture [[texture(6)]],
+            texture2d<half, access::sample>         __rayDirectionInTexture [[texture(7)]],
+            texture2d<half, access::sample>         __maskInTexture [[texture(8)]],
+            texture2d<half, access::write>          __rayOriginTexture [[texture(9)]],
+            texture2d<half, access::write>          __rayDirectionTexture [[texture(10)]],
+            texture2d<half, access::write>          __maskTexture [[texture(11)]],
+            constant float4                        *__lightData   [[ buffer(12) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
@@ -328,8 +332,8 @@ class CodeSDFStream
                 float GlobalTime = __data[0].x;
             
                 float2 __uv = float2(__gid.x, __gid.y);
-                float3 rayOrigin = float4(__rayOriginTexture.sample(__textureSampler, __uv / __size )).xyz;
-                float3 rayDirection = float4(__rayDirectionTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 rayOrigin = float4(__rayOriginInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float3 rayDirection = float4(__rayDirectionInTexture.sample(__textureSampler, __uv / __size )).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
@@ -338,9 +342,13 @@ class CodeSDFStream
             
                 float4 shape = float4(__depthInTexture.sample(__textureSampler, __uv / __size ));
                 float4 meta = float4(__metaInTexture.sample(__textureSampler, __uv / __size ));
+                float3 mask = float4(__maskInTexture.sample(__textureSampler, __uv / __size )).xyz;
+                float4 color = float4(__colorInTexture.sample(__textureSampler, __uv / __size ));
 
                 float3 incomingDirection = rayDirection;
                 float3 hitPosition = rayOrigin + shape.y * rayDirection;
+                float3 newPosition = rayOrigin + (shape.y - 0.025) * rayDirection;
+
                 float3 hitNormal = float4(__normalInTexture.sample(__textureSampler, __uv / __size )).xyz;
                 float occlusion = meta.x;
                 float shadow = meta.y;
@@ -350,14 +358,18 @@ class CodeSDFStream
                 float4 lightColor = __lightData[2];
             
                 struct MaterialOut __materialOut;
-                __materialOut.color = float4(__colorInTexture.sample(__textureSampler, __uv / __size ));
+                __materialOut.color = float4(1);
+                __materialOut.mask = float3(0);
             
-                if (shape.z == -1 ) {
-                    float2 uv = __uv / __size;
-                    uv.y = 1.0 - uv.y;
-                    __materialOut.color = background( uv, __size, hitPosition, rayDirection, &__funcData );
-                    __materialOut.mask = float3(0);
-                }
+                if (rayDirection.x != 0.0 && rayDirection.y != 0.0 && rayDirection.z != 0.0)
+                {
+                    if (shape.z == -1 ) {
+                        float2 uv = __uv / __size;
+                        uv.y = 1.0 - uv.y;
+                        color.xyz += background( uv, __size, hitPosition, rayDirection, &__funcData ).xyz * mask;
+                        mask = float3(0);
+                        rayDirection = float3(0);
+                    }
             
             """
             
@@ -543,8 +555,11 @@ class CodeSDFStream
             
             materialCode +=
             """
-            
-                __outTexture.write(half4(__materialOut.color), __gid);
+                }
+                __outTexture.write(half4(color), __gid);
+                __rayOriginTexture.write(half4(float4(rayOrigin, 0)), __gid);
+                __rayDirectionTexture.write(half4(float4(rayDirection, 0)), __gid);
+                __maskTexture.write(half4(float4(mask, 0)), __gid);
             }
             
             """
@@ -690,6 +705,8 @@ class CodeSDFStream
             """
                 
                 __materialOut->color = outColor;
+                __materialOut->mask = outMask;
+                __materialOut->reflectionDir = outReflectionDir;
             }
             
             """
@@ -702,6 +719,11 @@ class CodeSDFStream
             if (shape.z == \(materialIdCounter) )
             {
                 material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, light, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
+                rayDirection = __materialOut.reflectionDir;
+                rayOrigin = newPosition;//hitPosition + 0.025 * rayDirection;
+                color.xyz = color.xyz + __materialOut.color.xyz * mask;
+                color = clamp(color, 0.0, 1.0);
+                mask *= __materialOut.mask;
             }
 
             """
