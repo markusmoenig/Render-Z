@@ -159,7 +159,7 @@ class DesignEditor          : MMWidget
                 
                 if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
                 
-                    globalApp!.currentPipeline!.codeBuilder.renderCopyNearest(texture: convertTo, inTexture: texture, syncronize: true)
+                    globalApp!.currentPipeline!.codeBuilder.renderCopyNearest(convertTo, texture, syncronize: true)
                     
                     let region = MTLRegionMake2D(min(Int(x), convertTo.width-1), min(Int(y), convertTo.height-1), 1, 1)
 

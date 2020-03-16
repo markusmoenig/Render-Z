@@ -720,7 +720,8 @@ class CodeSDFStream
             {
                 material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, light, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
                 rayDirection = __materialOut.reflectionDir;
-                rayOrigin = newPosition;//hitPosition + 0.025 * rayDirection;
+                //rayOrigin = newPosition;//hitPosition + 0.025 * rayDirection;
+                rayOrigin = newPosition + 0.025 * rayDirection;
                 color.xyz = color.xyz + __materialOut.color.xyz * mask;
                 color = clamp(color, 0.0, 1.0);
                 mask *= __materialOut.mask;

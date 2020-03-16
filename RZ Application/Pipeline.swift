@@ -113,4 +113,8 @@ class Pipeline
         textureMap[id + "_2"] = nil
         textureMap[id + "_current"] = nil
     }
+    
+    func setMinimalPreview(_ mode: Bool = false)
+    {
+    }
 }

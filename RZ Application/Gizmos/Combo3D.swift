@@ -166,6 +166,7 @@ class GizmoCombo3D          : GizmoBase
                     }
                 }
             }
+            globalApp!.currentPipeline?.setMinimalPreview(true)
         }
     }
     
@@ -319,6 +320,10 @@ class GizmoCombo3D          : GizmoBase
     {
         if component.componentType == .Dummy { return }
 
+        if hoverState != .Inactive {
+            globalApp!.currentPipeline?.setMinimalPreview()
+        }
+        
         dragState = .Inactive
         #if os(iOS)
         hoverState = .Inactive

@@ -24,14 +24,29 @@ class Pipeline3D            : Pipeline
     var width               : Float = 0
     var height              : Float = 0
     
-    var reflectionDepth     : Int = 0
-    var maxReflectionDepth  : Int = 2
+    var reflections         : Int = 0
+    var maxReflections      : Int = 2
+    
+    var samples             : Int = 0
+    var maxSamples          : Int = 20
 
     var renderId            : UInt = 0
 
     override init(_ mmView: MMView)
     {
         super.init(mmView)
+        finalTexture = checkTextureSize(10, 10, nil, .rgba16Float)
+    }
+    
+    override func setMinimalPreview(_ mode: Bool = false)
+    {
+        print("setMinimalPreview", mode)
+        if mode == true {
+            maxStage = .HitAndNormals
+        } else {
+            maxStage = .Reflection
+        }
+        globalApp!.currentEditor.updateOnNextDraw(compile: false)
     }
     
     // Build the pipeline elements
@@ -130,7 +145,9 @@ class Pipeline3D            : Pipeline
     {
         renderId += 1
         self.width = width; self.height = height
-        reflectionDepth = 0
+        
+        reflections = 0
+        samples = 0
         
         // Monitor
         func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
@@ -150,57 +167,71 @@ class Pipeline3D            : Pipeline
             }
         }
         
+        let needsResize = width != Float(finalTexture!.width) || height != Float(finalTexture!.height)
+        finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
+        if needsResize {
+            codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 0, 1))
+        }
+
         allocTexturePair("color", width, height, .rgba16Float)
         allocTexturePair("mask", width, height, .rgba16Float)
-        codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
-        codeBuilder.renderClear(texture: getActiveOfPair("mask"), data: SIMD4<Float>(1, 1, 1, 1))
 
+        resetSample()
+        
         stage_HitAndNormals()
         currentStage = .HitAndNormals
-        
-        /*
-        finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
-        sampleCounter = 1
-        
-        //createRender3DSample(width, height)
-        //codeBuilder.compute.copyTexture(finalTexture!, resultTexture!)
-        
-        for _ in 0..<10 {
-            createRender3DSample(width, height)
-            codeBuilder.compute.copyTexture(normalTexture!, finalTexture!)
-            codeBuilder.renderSample(texture: finalTexture!, sampleTexture: normalTexture!, resultTexture: resultTexture!, frame: sampleCounter)
-            sampleCounter += 1
-        }*/
+    }
+    
+    func resetSample()
+    {
+        codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
+        codeBuilder.renderClear(texture: getActiveOfPair("mask"), data: SIMD4<Float>(1, 1, 1, 1))
     }
     
     func nextStage()
     {
-        if currentStage.rawValue < maxStage.rawValue || reflectionDepth < maxReflectionDepth {
-            let startId = renderId
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                if startId < self.renderId { return }
-                
-                print( "Stage Finished:", self.currentStage, "Reflections:", self.reflectionDepth, "Alloc", self.textureMap.count)
-                
-                let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
-                
-                if let nextStage = nextStage {
-                    if nextStage == .AO {
-                        self.stage_computeAO()
-                        self.currentStage = .AO
+        let startId = renderId
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            if startId < self.renderId { return }
+
+            print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections)
+
+            let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
+            
+            if let nextStage = nextStage {
+                if nextStage == .AO {
+                    self.stage_computeAO()
+                    self.currentStage = .AO
+                } else
+                if nextStage == .ShadowsAndMaterials {
+                    self.stage_computeShadowsAndMaterials()
+                    self.currentStage = .ShadowsAndMaterials
+                } else
+                if nextStage == .Reflection {
+                    self.reflections += 1
+                    if self.reflections < self.maxReflections {
+                        
+                        self.stage_HitAndNormals()
+                        self.currentStage = .HitAndNormals
+                    } else {
+                        //self.codeBuilder.compute.copyTexture(self.finalTexture!, self.getTextureOfId("result"))
                         //self.mmView.update()
-                    } else
-                    if nextStage == .ShadowsAndMaterials {
-                        self.stage_computeShadowsAndMaterials()
-                        self.currentStage = .ShadowsAndMaterials
+                        
+                        self.codeBuilder.renderCopyNearest(self.getTextureOfId("back"), self.finalTexture!)
+
+                        //self.codeBuilder.compute.copyTexture(self.getTextureOfId("back"), self.finalTexture!)
+                        self.codeBuilder.renderSample(texture: self.finalTexture!, sampleTexture: self.getTextureOfId("back"), resultTexture: self.getTextureOfId("result"), frame: self.samples + 1)
+                        
                         self.mmView.update()
-                    } else
-                    if nextStage == .Reflection {
-                        self.reflectionDepth += 1
-                        if self.reflectionDepth < self.maxReflectionDepth {
+                        
+                        if self.samples < self.maxSamples {
+                            self.samples += 1
+                            self.reflections = 0
+                            
+                            self.resetSample()
+                            
                             self.stage_HitAndNormals()
                             self.currentStage = .HitAndNormals
-                            self.mmView.update()
                         }
                     }
                 }
@@ -229,7 +260,7 @@ class Pipeline3D            : Pipeline
             }
         }
         
-        if reflectionDepth == 0 {
+        if reflections == 0 {
             // Render the Camera Textures
             allocTexturePair("rayOrigin", width, height, .rgba16Float)
             allocTexturePair("rayDirection", width, height, .rgba16Float)
@@ -268,13 +299,16 @@ class Pipeline3D            : Pipeline
             shapeText = "shape_" + String(objectIndex)
         }
         
-        // Preview Render: Fake Lighting + AO
         allocTextureId("result", width, height, .rgba16Float)
-        codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getActiveOfPair("depth")!, getTextureOfId("back"), getActiveOfPair("normal"), getActiveOfPair("meta")])
-        codeBuilder.compute.commandBuffer.waitUntilCompleted()
-        finalTexture = getTextureOfId("result")
-        
-        nextStage()
+        if self.maxStage == .HitAndNormals {
+            // Preview Render: Fake Lighting + AO
+            codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getActiveOfPair("depth")!, getTextureOfId("back"), getActiveOfPair("normal"), getActiveOfPair("meta")])
+            codeBuilder.compute.commandBuffer.waitUntilCompleted()
+
+            codeBuilder.compute.copyTexture(finalTexture!, getTextureOfId("result"))
+        } else {
+            nextStage()
+        }
     }
     
     /// Compute the AO stage
@@ -311,9 +345,9 @@ class Pipeline3D            : Pipeline
         }
         
         // Preview Render: Fake Lighting + AO
-        codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getActiveOfPair("depth")!, getTextureOfId("back"), getActiveOfPair("normal"), getActiveOfPair("meta")])
-        codeBuilder.compute.commandBuffer.waitUntilCompleted()
-        finalTexture = getTextureOfId("result")
+        // Not needed to render this right now
+        //codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getActiveOfPair("depth")!, getTextureOfId("back"), getActiveOfPair("normal"), getActiveOfPair("meta")])
+        //codeBuilder.compute.commandBuffer.waitUntilCompleted()
         
         nextStage()
     }
@@ -359,7 +393,7 @@ class Pipeline3D            : Pipeline
         }
         
         // Materials
-//        codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
+        //codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
         
         objectIndex = 0
         shapeText = "shape_" + String(objectIndex)
@@ -380,7 +414,6 @@ class Pipeline3D            : Pipeline
             codeBuilder.render(inst, getTextureOfId("result"), inTextures: [getActiveOfPair("color")])
             //computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
         }
-        finalTexture = getTextureOfId("result")
         
         nextStage()
     }
