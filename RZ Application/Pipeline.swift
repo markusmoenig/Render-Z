@@ -13,8 +13,6 @@ class Pipeline
     var codeBuilder         : CodeBuilder
     var mmView              : MMView
     
-    var depthTextureResult  : MTLTexture? = nil
-
     var finalTexture        : MTLTexture? = nil
     
     var monitorInstance     : CodeBuilderInstance? = nil
@@ -22,6 +20,8 @@ class Pipeline
     var monitorFragment     : CodeFragment? = nil
 
     var monitorTexture      : MTLTexture? = nil
+    
+    var textureMap          : [String:MTLTexture] = [:]
     
     init(_ mmView: MMView)
     {
@@ -56,5 +56,61 @@ class Pipeline
         }
         
         return result
+    }
+    
+    func allocTextureId(_ id: String, _ width: Float,_ height: Float,_ pixelFormat: MTLPixelFormat = .rgba16Float)
+    {
+        textureMap[id] = checkTextureSize(width, height, textureMap[id], pixelFormat)
+    }
+    
+    func allocTexturePair(_ id: String, _ width: Float,_ height: Float,_ pixelFormat: MTLPixelFormat = .rgba16Float)
+    {
+        textureMap[id + "_1"] = checkTextureSize(width, height, textureMap[id + "_1"], pixelFormat)
+        textureMap[id + "_2"] = checkTextureSize(width, height, textureMap[id + "_2"], pixelFormat)
+        textureMap[id + "_current"] = textureMap[id + "_1"]
+    }
+    
+    func getTextureOfId(_ id: String) -> MTLTexture!
+    {
+        return textureMap[id]!
+    }
+    
+    func getActiveOfPair(_ id: String) -> MTLTexture!
+    {
+        if textureMap[id + "_current"] === textureMap[id + "_1"] {
+            return textureMap[id + "_1"]!
+        } else {
+            return textureMap[id + "_2"]!
+        }
+    }
+    
+    func getInactiveOfPair(_ id: String) -> MTLTexture!
+    {
+        if textureMap[id + "_current"] === textureMap[id + "_1"] {
+            return textureMap[id + "_2"]!
+        } else {
+            return textureMap[id + "_1"]!
+        }
+    }
+    
+    func switchPair(_ id: String)
+    {
+        if textureMap[id + "_current"] === textureMap[id + "_1"] {
+            textureMap[id + "_current"] = textureMap[id + "_2"]
+        } else {
+            textureMap[id + "_current"] = textureMap[id + "_1"]
+        }
+    }
+    
+    func freeTextureId(_ id: String)
+    {
+        textureMap[id] = nil
+    }
+    
+    func freeTexturePair(_ id: String)
+    {
+        textureMap[id + "_1"] = nil
+        textureMap[id + "_2"] = nil
+        textureMap[id + "_current"] = nil
     }
 }

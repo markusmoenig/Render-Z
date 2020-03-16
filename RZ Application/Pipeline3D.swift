@@ -17,23 +17,6 @@ class Pipeline3D            : Pipeline
     var currentStage        : Stage = .None
     var maxStage            : Stage = .AO
 
-    var backTexture         : MTLTexture? = nil
-    var depthTexture        : MTLTexture? = nil
-    var depthTexture2       : MTLTexture? = nil
-    
-    var rayOriginTexture    : MTLTexture? = nil
-    var rayDirectionTexture : MTLTexture? = nil
-
-    var normalTexture       : MTLTexture? = nil
-    var normalTexture2      : MTLTexture? = nil
-    var normalTextureResult : MTLTexture? = nil
-    
-    var metaTexture         : MTLTexture? = nil
-    var metaTexture2        : MTLTexture? = nil
-    var metaTextureResult   : MTLTexture? = nil
-
-    var resultTexture       : MTLTexture? = nil
-
     var instanceMap         : [String:CodeBuilderInstance] = [:]
     
     var sampleCounter       : Int = 0
@@ -162,7 +145,10 @@ class Pipeline3D            : Pipeline
                 }
             }
         }
- 
+        
+        allocTexturePair("color", width, height, .rgba16Float)
+        codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
+
         stage_HitAndNormals()
         currentStage = .HitAndNormals
         
@@ -188,8 +174,9 @@ class Pipeline3D            : Pipeline
         if currentStage.rawValue < maxStage.rawValue {
             let startId = renderId
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                
                 if startId < self.renderId { return }
+                
+                print( "Stage Finished:", self.currentStage, "Alloc", self.textureMap.count)
                 
                 let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
                 
@@ -231,63 +218,47 @@ class Pipeline3D            : Pipeline
         }
         
         // Render the Camera Textures
-        rayOriginTexture = checkTextureSize(width, height, rayOriginTexture, .rgba16Float)
-        rayDirectionTexture = checkTextureSize(width, height, rayDirectionTexture, .rgba16Float)
+        allocTexturePair("rayOrigin", width, height, .rgba16Float)
+        allocTexturePair("rayDirection", width, height, .rgba16Float)
         if let inst = instanceMap["camera3D"] {
-            codeBuilder.render(inst, rayOriginTexture, outTextures: [rayDirectionTexture!])
+            codeBuilder.render(inst, getActiveOfPair("rayOrigin"), outTextures: [getActiveOfPair("rayDirection")])
             computeMonitor(inst)
         }
         
         // Render the SkyDome into backTexture
-        backTexture = checkTextureSize(width, height, backTexture, .rgba16Float)
+        allocTextureId("back", width, height, .rgba16Float)
         if let inst = instanceMap["pre"] {
-            codeBuilder.render(inst, backTexture, inTextures: [rayDirectionTexture!])
+            codeBuilder.render(inst, getTextureOfId("back"), inTextures: [getActiveOfPair("rayDirection")])
             computeMonitor(inst)
         }
         
-        // Render the shape distance into depthTexture (float)
-        depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
-        depthTexture2 = checkTextureSize(width, height, depthTexture2, .rgba16Float)
-        normalTexture = checkTextureSize(width, height, normalTexture, .rgba16Float)
-        normalTexture2 = checkTextureSize(width, height, normalTexture2, .rgba16Float)
-        metaTexture = checkTextureSize(width, height, metaTexture, .rgba16Float)
-        metaTexture2 = checkTextureSize(width, height, metaTexture2, .rgba16Float)
+        allocTexturePair("depth", width, height, .rgba16Float)
+        allocTexturePair("normal", width, height, .rgba16Float)
+        allocTexturePair("meta", width, height, .rgba16Float)
         
-        codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 1000000, -1, -1))
-        codeBuilder.renderClear(texture: metaTexture!, data: SIMD4<Float>(1, 1, 0, 0))
-
-        depthTextureResult = depthTexture
-        normalTextureResult = normalTexture
-        metaTextureResult = metaTexture
+        codeBuilder.renderClear(texture: getActiveOfPair("depth"), data: SIMD4<Float>(10000, 1000000, -1, -1))
+        codeBuilder.renderClear(texture: getActiveOfPair("meta"), data: SIMD4<Float>(1, 1, 0, 0))
 
         var objectIndex : Int = 0
         var shapeText : String = "shape_" + String(objectIndex)
         
         while let inst = instanceMap[shapeText] {
             
-            if depthTextureResult === depthTexture {
-                codeBuilder.render(inst, depthTexture2, inTextures: [depthTexture!, normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture2!, metaTexture2!])
-                depthTextureResult = depthTexture2
-                normalTextureResult = normalTexture2
-                metaTextureResult = metaTexture2
-                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-            } else
-            if depthTextureResult === depthTexture2 {
-                codeBuilder.render(inst, depthTexture, inTextures: [depthTexture2!, normalTexture2!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!, metaTexture!])
-                depthTextureResult = depthTexture
-                normalTextureResult = normalTexture
-                metaTextureResult = metaTexture
-                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-            }
+            codeBuilder.render(inst, getInactiveOfPair("depth"), inTextures: [getActiveOfPair("depth"), getActiveOfPair("normal"), getActiveOfPair("meta"), getActiveOfPair("rayOrigin"), getActiveOfPair("rayDirection")], outTextures: [getInactiveOfPair("normal"), getInactiveOfPair("meta")])
+            
+            switchPair("depth")
+            switchPair("normal")
+            switchPair("meta")
+
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
         }
         
         // Preview Render: Fake Lighting + AO
-        resultTexture = checkTextureSize(width, height, resultTexture, .rgba16Float)
-        codeBuilder.compute.run( codeBuilder.previewState!, outTexture: resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
+        allocTextureId("result", width, height, .rgba16Float)
+        codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getActiveOfPair("depth")!, getTextureOfId("back"), getActiveOfPair("normal"), getActiveOfPair("meta")])
         codeBuilder.compute.commandBuffer.waitUntilCompleted()
-        finalTexture = resultTexture
+        finalTexture = getTextureOfId("result")
     }
     
     /// Compute the AO stage
@@ -316,24 +287,17 @@ class Pipeline3D            : Pipeline
         
         while let inst = instanceMap[shapeText] {
             
-            if metaTextureResult === metaTexture {
-                codeBuilder.render(inst, metaTexture2, inTextures: [depthTextureResult!, normalTextureResult!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], optionalState: "computeAO")
-                metaTextureResult = metaTexture2
-                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-            } else
-            if metaTextureResult === metaTexture2 {
-                codeBuilder.render(inst, metaTexture, inTextures: [depthTextureResult!, normalTextureResult!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], optionalState: "computeAO")
-                metaTextureResult = metaTexture
-                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-            }
+            codeBuilder.render(inst, getInactiveOfPair("meta"), inTextures: [getActiveOfPair("depth"), getActiveOfPair("normal"), getActiveOfPair("meta"), getActiveOfPair("rayOrigin"), getActiveOfPair("rayDirection")], optionalState: "computeAO")
+            switchPair("meta")
+            
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
         }
         
         // Preview Render: Fake Lighting + AO
-        codeBuilder.compute.run( codeBuilder.previewState!, outTexture: resultTexture, inTextures: [depthTextureResult!, backTexture!, normalTextureResult!, metaTextureResult!])
+        codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getActiveOfPair("depth")!, getTextureOfId("back"), getActiveOfPair("normal"), getActiveOfPair("meta")])
         codeBuilder.compute.commandBuffer.waitUntilCompleted()
-        finalTexture = resultTexture
+        finalTexture = getTextureOfId("result")
         
         nextStage()
     }
@@ -371,61 +335,33 @@ class Pipeline3D            : Pipeline
                 
         while let inst = instanceMap[shapeText] {
             
-            if metaTextureResult === metaTexture {
-                codeBuilder.render(inst, metaTexture2, inTextures: [depthTextureResult!, normalTextureResult!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeShadow")
-                metaTextureResult = metaTexture2
-                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-            } else
-            if metaTextureResult === metaTexture2 {
-                codeBuilder.render(inst, metaTexture, inTextures: [depthTextureResult!, normalTextureResult!, metaTexture2!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeShadow")
-                metaTextureResult = metaTexture
-                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-            }
+            codeBuilder.render(inst, getInactiveOfPair("meta"), inTextures: [getActiveOfPair("depth"), getActiveOfPair("normal"), getActiveOfPair("meta"), getActiveOfPair("rayOrigin"), getActiveOfPair("rayDirection")], inBuffers: [lightBuffer], optionalState: "computeShadow")
+            switchPair("meta")
+            
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
         }
         
         // Materials
         
-        var colorTexture        : MTLTexture? = nil
-        var colorTexture2       : MTLTexture? = nil
-        var colorTextureResult  : MTLTexture? = nil
-        
-        if metaTextureResult === metaTexture { colorTexture = metaTexture2 } else { colorTexture = metaTexture }
-        if normalTextureResult === normalTexture { colorTexture2 = normalTexture2 } else { colorTexture2 = normalTexture }
-
-        //colorTexture = checkTextureSize(width, height, colorTexture, .rgba16Float)
-        //colorTexture2 = checkTextureSize(width, height, colorTexture2, .rgba16Float)
-
-        colorTextureResult = colorTexture
-        
-        codeBuilder.renderClear(texture: colorTextureResult!, data: SIMD4<Float>(0, 0, 0, 1))
+        codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
         
         objectIndex = 0
         shapeText = "shape_" + String(objectIndex)
         while let inst = instanceMap[shapeText] {
             
-            if colorTextureResult === colorTexture {
-                codeBuilder.render(inst, colorTexture2, inTextures: [colorTexture!, depthTextureResult!, normalTextureResult!, metaTextureResult!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
-                colorTextureResult = colorTexture2
-                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-            } else
-            if colorTextureResult === colorTexture2 {
-                codeBuilder.render(inst, colorTexture, inTextures: [colorTexture2!, depthTextureResult!, normalTextureResult!, metaTextureResult!, rayOriginTexture!, rayDirectionTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
-                colorTextureResult = colorTexture
-                //computeMonitor(inst, inTextures: [rayOriginTexture!, rayDirectionTexture!])
-            }
+            codeBuilder.render(inst, getInactiveOfPair("color"), inTextures: [getActiveOfPair("color"), getActiveOfPair("depth"), getActiveOfPair("normal"), getActiveOfPair("meta"), getActiveOfPair("rayOrigin"), getActiveOfPair("rayDirection")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+            switchPair("color")
+            
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
         }
         
         // Render it all
         if let inst = instanceMap["render"] {
-            codeBuilder.render(inst, resultTexture, inTextures: [colorTextureResult!])
+            codeBuilder.render(inst, getTextureOfId("result"), inTextures: [getActiveOfPair("color")])
             //computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
-        } else {
-            resultTexture = backTexture
         }
-        finalTexture = resultTexture
+        finalTexture = getTextureOfId("result")
     }
 }

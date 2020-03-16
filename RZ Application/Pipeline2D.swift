@@ -155,7 +155,6 @@ class Pipeline2D            : Pipeline
             resultTexture = backTexture
         }
         
-        depthTextureResult = depthTexture
         finalTexture = resultTexture
     }
 }

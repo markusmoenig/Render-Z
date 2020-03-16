@@ -155,7 +155,7 @@ class DesignEditor          : MMWidget
             let y : Float = event.y - rect.y
             
             // Selection
-            if let texture = globalApp!.currentPipeline!.depthTextureResult {
+            if let texture = globalApp!.currentPipeline!.getActiveOfPair("depth") {
                 
                 if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
                 
