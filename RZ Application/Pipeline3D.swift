@@ -170,6 +170,8 @@ class Pipeline3D            : Pipeline
 
         allocTextureId("color", width, height, .rgba16Float)
         allocTextureId("mask", width, height, .rgba16Float)
+        
+        allocTextureId("id", width, height, .rgba16Float)
 
         if justStarted {
             checkFinalTexture(true)
@@ -226,6 +228,7 @@ class Pipeline3D            : Pipeline
                         self.checkFinalTexture()
                         //self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
                         
+                        // Sampling
                         if self.samples == 0 { self.checkFinalTexture(true) }
                         self.codeBuilder.renderSample(sampleTexture: self.finalTexture!, resultTexture: self.getTextureOfId("result"), frame: self.samples + 1)
                         self.mmView.update()
@@ -299,6 +302,11 @@ class Pipeline3D            : Pipeline
 
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
+        }
+        
+        if samples == 0 && reflections == 0 {
+            // On first pass copy the depth buffer to id, which the UI can use for object selection
+            self.codeBuilder.renderCopy(getTextureOfId("id"), getTextureOfId("depth"))
         }
         
         allocTextureId("result", width, height, .rgba16Float)

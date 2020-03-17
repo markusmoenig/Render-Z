@@ -155,7 +155,7 @@ class DesignEditor          : MMWidget
             let y : Float = event.y - rect.y
             
             // Selection
-            if let texture = globalApp!.currentPipeline!.getActiveOfPair("depth") {
+            if let texture = globalApp!.currentPipeline!.getTextureOfId("id") {
                 
                 if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
                 
@@ -171,7 +171,7 @@ class DesignEditor          : MMWidget
                     if globalApp!.currentSceneMode == .TwoD && value.x > 0 {
                         valid = false
                     }
-                                                                            
+                                         
                     if let id = globalApp!.currentPipeline!.codeBuilder.sdfStream.ids[Int(value.w)], valid {
                         blockRendering = true
                         globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: id.1)
