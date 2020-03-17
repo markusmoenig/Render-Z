@@ -329,7 +329,6 @@ class CodeSDFStream
 
                 float3 incomingDirection = rayDirection;
                 float3 hitPosition = rayOrigin + shape.y * rayDirection;
-                float3 newPosition = rayOrigin + (shape.y - 0.025) * rayDirection;
 
                 float3 hitNormal = float4(__normalInTexture.read(__gid)).xyz;
                 float occlusion = meta.x;
@@ -338,6 +337,13 @@ class CodeSDFStream
                 float4 light = __lightData[0];
                 float4 lightType = __lightData[1];
                 float4 lightColor = __lightData[2];
+            
+                float3 directionToLight = float3(0);
+                if (lightType.x == 0.0) {
+                    directionToLight = __lightData[0].xyz;
+                } else {
+                    directionToLight = __lightData[0].xyz - hitPosition;
+                }
             
                 struct MaterialOut __materialOut;
                 __materialOut.color = float4(1);
@@ -659,7 +665,7 @@ class CodeSDFStream
             materialFuncCode +=
             """
             
-            void material\(materialIdCounter)( float3 incomingDirection, float3 hitPosition, float3 hitNormal, float4 light, float4 lightType,
+            void material\(materialIdCounter)( float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
             float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData )
             {
                 constant float4 *__data = __funcData->__data;
@@ -670,7 +676,7 @@ class CodeSDFStream
                 float3 outMask = __materialOut->mask;
                 float3 outReflectionDir = float3(0);
                 float outReflectionBlur = 0.;
-
+            
             """
             
             dryRunComponent(material, instance.data.count, monitor)
@@ -700,10 +706,9 @@ class CodeSDFStream
 
             if (shape.z == \(materialIdCounter) )
             {
-                material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, light, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
+                material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
                 rayDirection = __materialOut.reflectionDir;
                 rayOrigin = hitPosition + 0.001 * rayDirection * shape.y;
-                //rayOrigin = hitPosition;//newPosition + 0.025 * rayDirection;
                 color.xyz = color.xyz + __materialOut.color.xyz * mask;
                 // color = clamp(color, 0.0, 1.0);
                 mask *= __materialOut.mask;

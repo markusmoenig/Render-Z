@@ -76,7 +76,7 @@ class DeveloperEditor   : Editor
             dispatched = true
         }
     }
-    
+
     override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Top {

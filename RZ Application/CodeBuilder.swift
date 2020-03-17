@@ -691,7 +691,7 @@ class CodeBuilder
                 
                 let name = property.0!.name
                 var properties : [String:Float] = [:]
-                
+                                
                 if components == 1 {
                     properties[name] = data.x
                     let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
