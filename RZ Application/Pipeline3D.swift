@@ -28,9 +28,10 @@ class Pipeline3D            : Pipeline
     var maxReflections      : Int = 2
     
     var samples             : Int = 0
-    var maxSamples          : Int = 1
+    var maxSamples          : Int = 4
 
     var renderId            : UInt = 0
+    var justStarted         : Bool = true
 
     override init(_ mmView: MMView)
     {
@@ -166,16 +167,15 @@ class Pipeline3D            : Pipeline
                 }
             }
         }
-        
-        let needsResize = width != Float(finalTexture!.width) || height != Float(finalTexture!.height)
-        finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
-        if needsResize {
-            codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 0, 1))
-        }
 
         allocTextureId("color", width, height, .rgba16Float)
         allocTextureId("mask", width, height, .rgba16Float)
 
+        if justStarted {
+            checkFinalTexture(true)
+            justStarted = false
+        }
+        
         resetSample()
         
         stage_HitAndNormals()
@@ -188,10 +188,19 @@ class Pipeline3D            : Pipeline
         codeBuilder.renderClear(texture: getTextureOfId("mask"), data: SIMD4<Float>(1, 1, 1, 1))
     }
     
+    func checkFinalTexture(_ clear: Bool = false)
+    {
+        let needsResize = width != Float(finalTexture!.width) || height != Float(finalTexture!.height)
+        finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
+        if needsResize || clear {
+            codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 0, 1))
+        }
+    }
+    
     func nextStage()
     {
         let startId = renderId
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
             if startId < self.renderId { return }
 
             print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "Alloc", self.textureMap.count)
@@ -214,7 +223,11 @@ class Pipeline3D            : Pipeline
                         self.stage_HitAndNormals()
                         self.currentStage = .HitAndNormals
                     } else {
-                        self.codeBuilder.compute.copyTexture(self.finalTexture!, self.getTextureOfId("result"))
+                        self.checkFinalTexture()
+                        //self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
+                        
+                        if self.samples == 0 { self.checkFinalTexture(true) }
+                        self.codeBuilder.renderSample(sampleTexture: self.finalTexture!, resultTexture: self.getTextureOfId("result"), frame: self.samples + 1)
                         self.mmView.update()
                         
                         self.samples += 1
@@ -294,7 +307,8 @@ class Pipeline3D            : Pipeline
             codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getTextureOfId("depth")!, getTextureOfId("back"), getTextureOfId("normal"), getTextureOfId("meta")])
             codeBuilder.compute.commandBuffer.waitUntilCompleted()
 
-            codeBuilder.compute.copyTexture(finalTexture!, getTextureOfId("result"))
+            checkFinalTexture()
+            codeBuilder.renderCopy(finalTexture!, getTextureOfId("result"))
             mmView.update()
         } else {
             nextStage()

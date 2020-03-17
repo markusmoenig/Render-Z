@@ -103,7 +103,7 @@ class CodeBuilder
     var sampleBuffer        : MTLBuffer!
 
     var clearState          : MTLComputePipelineState? = nil
-    var copyNearestState    : MTLComputePipelineState? = nil
+    var copyState           : MTLComputePipelineState? = nil
     var sampleState         : MTLComputePipelineState? = nil
     var previewState        : MTLComputePipelineState? = nil
 
@@ -117,7 +117,7 @@ class CodeBuilder
         sdfStream = CodeSDFStream()
         
         buildClearState()
-        buildCopyStates()
+        buildCopyState()
         buildSampleState()
         buildPreviewState()
     }
@@ -588,7 +588,7 @@ class CodeBuilder
     }
     
     /// Build a copy texture shader
-    func buildCopyStates()
+    func buildCopyState()
     {
         let code =
         """
@@ -596,7 +596,7 @@ class CodeBuilder
         #include <simd/simd.h>
         using namespace metal;
         
-        kernel void copyNearestBuilder(
+        kernel void copyBuilder(
         texture2d<half, access::write>          outTexture  [[texture(0)]],
         texture2d<half, access::read>           inTexture [[texture(2)]],
         uint2 gid                               [[thread_position_in_grid]])
@@ -608,7 +608,7 @@ class CodeBuilder
         """
 
         let library = compute.createLibraryFromSource(source: code)
-        copyNearestState = compute.createState(library: library, name: "copyNearestBuilder")
+        copyState = compute.createState(library: library, name: "copyBuilder")
     }
     
     /// Build a copy texture shader
@@ -621,22 +621,18 @@ class CodeBuilder
         using namespace metal;
         
         kernel void sampleBuilder(
-        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        texture2d<half, access::read_write>     sampleTexture  [[texture(0)]],
         constant float4                        *data   [[ buffer(1) ]],
-        texture2d<half, access::sample>         sampleTexture [[texture(2)]],
-        texture2d<half, access::sample>         resultTexture [[texture(3)]],
+        texture2d<half, access::read>           resultTexture [[texture(2)]],
         uint2 gid                               [[thread_position_in_grid]])
         {
-            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
-            float2 uv = float2(gid.x, gid.y) / size;
-
             float frame = data[0].x;
 
             float4 sample = float4(sampleTexture.read(gid));
             float4 result = float4(resultTexture.read(gid));
             float4 final = mix(sample, result, 1./frame);
 
-            outTexture.write(half4(final), gid);
+            sampleTexture.write(half4(final), gid);
         }
          
         """
@@ -673,11 +669,11 @@ class CodeBuilder
         }
         
         inst.data[0].x = time
-        //inst.data[0].z = Float.random(in: -0.5...0.5)
-        //inst.data[0].w = Float.random(in: -0.5...0.5)
+        inst.data[0].z = Float.random(in: 0.0...1.0)
+        inst.data[0].w = Float.random(in: 0.0...1.0)
         
-        inst.data[0].z = 1
-        inst.data[0].w = 1
+        //inst.data[0].z = 1
+        //inst.data[0].w = 1
 
         for property in inst.properties {
             
@@ -778,18 +774,18 @@ class CodeBuilder
     }
     
     // Copy the texture using nearest sampling
-    func renderCopyNearest(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
+    func renderCopy(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
-        compute.run( copyNearestState!, outTexture: to, inTexture: from, syncronize: syncronize)
+        compute.run( copyState!, outTexture: to, inTexture: from, syncronize: syncronize)
         compute.commandBuffer.waitUntilCompleted()
     }
     
     // Copy the texture using nearest sampling
-    func renderSample(texture: MTLTexture, sampleTexture: MTLTexture, resultTexture: MTLTexture, frame: Int)
+    func renderSample(sampleTexture: MTLTexture, resultTexture: MTLTexture, frame: Int)
     {
         sampleBuffer = compute.device.makeBuffer(bytes: [SIMD4<Float>(Float(frame), 0, 0, 0)], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
-        compute.run( sampleState!, outTexture: texture, inBuffer: sampleBuffer, inTextures: [sampleTexture, resultTexture])
+        compute.run( sampleState!, outTexture: sampleTexture, inBuffer: sampleBuffer, inTextures: [resultTexture])
         compute.commandBuffer.waitUntilCompleted()
     }
     

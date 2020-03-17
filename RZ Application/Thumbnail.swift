@@ -67,11 +67,11 @@ class Thumbnail
             metaTexture = checkTextureSize(width, height, metaTexture)
 
             codeBuilder.renderClear(texture: backTexture!, data: SIMD4<Float>(0,0,0,0))
-            codeBuilder.renderClear(texture: result!, data: SIMD4<Float>(10000, 1000000, -1, -1))
+            codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 1000000, -1, -1))
             codeBuilder.renderClear(texture: metaTexture!, data: SIMD4<Float>(1, 1, 0, 0))
 
             let instance = CodeBuilderInstance()
-            instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+            instance.data.append( SIMD4<Float>( 0, 0, 1, 1 ) )
             
             let cameraInstance = codeBuilder.build(componentMap["camera3D"]!, camera: componentMap["camera3D"]!)
             codeBuilder.render(cameraInstance, rayOriginTexture, outTextures: [rayDirectionTexture!])
@@ -80,7 +80,7 @@ class Thumbnail
             codeBuilder.sdfStream.pushComponent(comp)
             codeBuilder.sdfStream.closeStream()
             
-            codeBuilder.render(instance, depthTexture, inTextures: [result!, rayOriginTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!], outTextures: [normalTexture!, metaTexture!])
+            codeBuilder.render(instance, depthTexture, inTextures: [normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!])
             
             // Render
             codeBuilder.compute.run( codeBuilder.previewState!, outTexture: result, inTextures: [depthTexture!, backTexture!, normalTexture!, metaTexture!])
