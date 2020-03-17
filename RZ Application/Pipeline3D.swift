@@ -25,7 +25,7 @@ class Pipeline3D            : Pipeline
     var height              : Float = 0
     
     var reflections         : Int = 0
-    var maxReflections      : Int = 2
+    var maxReflections      : Int = 4
     
     var samples             : Int = 0
     var maxSamples          : Int = 4
@@ -179,6 +179,12 @@ class Pipeline3D            : Pipeline
         }
         
         resetSample()
+        
+        // Get Render Values
+        if let renderComp = getComponent(name: "Renderer") {
+            maxReflections = getComponentPropertyInt(component: renderComp, name: "reflections", defaultValue: 3)
+            maxSamples = getComponentPropertyInt(component: renderComp, name: "antiAliasing", defaultValue: 4)
+        }
         
         stage_HitAndNormals()
         currentStage = .HitAndNormals

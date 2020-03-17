@@ -845,6 +845,7 @@ class CodeBuilder
             float4              color;
             float3              mask;
             float3              reflectionDir;
+            float               reflectionDist;
             float               reflectionBlur;
         };
         

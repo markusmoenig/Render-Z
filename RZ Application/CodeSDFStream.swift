@@ -340,9 +340,9 @@ class CodeSDFStream
             
                 float3 directionToLight = float3(0);
                 if (lightType.x == 0.0) {
-                    directionToLight = __lightData[0].xyz;
+                    directionToLight = normalize(__lightData[0].xyz);
                 } else {
-                    directionToLight = __lightData[0].xyz - hitPosition;
+                    directionToLight = normalize(__lightData[0].xyz - hitPosition);
                 }
             
                 struct MaterialOut __materialOut;
@@ -676,6 +676,7 @@ class CodeSDFStream
                 float3 outMask = __materialOut->mask;
                 float3 outReflectionDir = float3(0);
                 float outReflectionBlur = 0.;
+                float outReflectionDist = 0.;
             
             """
             
@@ -695,12 +696,11 @@ class CodeSDFStream
                 __materialOut->color = outColor;
                 __materialOut->mask = outMask;
                 __materialOut->reflectionDir = outReflectionDir;
+                __materialOut->reflectionDist = outReflectionDist;
             }
             
             """
-                    
-            //print(materialFuncCode)
-            
+
             materialCode +=
             """
 
@@ -708,9 +708,9 @@ class CodeSDFStream
             {
                 material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
                 rayDirection = __materialOut.reflectionDir;
-                rayOrigin = hitPosition + 0.001 * rayDirection * shape.y;
+                rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
                 color.xyz = color.xyz + __materialOut.color.xyz * mask;
-                // color = clamp(color, 0.0, 1.0);
+                color = clamp(color, 0.0, 1.0);
                 mask *= __materialOut.mask;
             }
 

@@ -409,3 +409,36 @@ func setPropertyValue3(component: CodeComponent, name: String, value: SIMD3<Floa
         }
     }
 }
+
+/// Returns a "special" component in the scene graph
+func getComponent(name: String) -> CodeComponent?
+{
+    if name == "Renderer"
+    {
+        let scene = globalApp!.project.selected!
+        
+        let renderStage = scene.getStage(.RenderStage)
+        let renderChildren = renderStage.getChildren()
+        if renderChildren.count > 0 {
+            let render = renderChildren[0]
+            let renderComp = render.components[render.defaultName]
+            return renderComp
+        }
+    }
+    
+    return nil
+}
+
+/// Returns the value of a float property of the given component
+func getComponentPropertyInt(component: CodeComponent, name: String, defaultValue: Int = 1) -> Int
+{
+    for uuid in component.properties {
+        let rc = component.getPropertyOfUUID(uuid)
+        if rc.0 != nil && rc.0!.name == name {
+            if let frag = rc.1 {
+                return Int(frag.values["value"]!)
+            }
+        }
+    }
+    return defaultValue
+}

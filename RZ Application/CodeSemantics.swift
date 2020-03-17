@@ -1253,6 +1253,10 @@ class CodeFunction          : Codable, Equatable
                     constValue.values["max"] = 10000
                     constValue.values["value"] = 0
                 }
+                
+                if name.starts(with: "outReflection") {
+                    constValue.setValue(0.0)
+                }
             } else {
                 let constant = CodeFragment(.ConstantDefinition, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
                 b.statement.fragments.append(constant)
@@ -1903,6 +1907,7 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
             f.body.append(f.createOutVariableBlock("float3", "outMask"))
             f.body.append(f.createOutVariableBlock("float3", "outReflectionDir"))
+            f.body.append(f.createOutVariableBlock("float", "outReflectionDist"))
             f.body.append(f.createOutVariableBlock("float", "outReflectionBlur"))
             functions.append(f)
         }
