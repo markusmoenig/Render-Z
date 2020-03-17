@@ -187,20 +187,17 @@ class CodeSDFStream
                 
             """
             kernel void hitAndNormals(
-            texture2d<half, access::write>          __outTexture  [[texture(0)]],
+            texture2d<half, access::read_write>     __depthTexture  [[texture(0)]],
             constant float4                        *__data   [[ buffer(1) ]],
-            texture2d<half, access::read>           __depthInTexture [[texture(2)]],
-            texture2d<half, access::read>           __normalInTexture [[texture(3)]],
-            texture2d<half, access::read>           __metaInTexture [[texture(4)]],
-            texture2d<half, access::read>           __rayOriginTexture [[texture(5)]],
-            texture2d<half, access::read>           __rayDirectionTexture [[texture(6)]],
-            texture2d<half, access::write>          __normalTexture [[texture(7)]],
-            texture2d<half, access::write>          __metaTexture [[texture(8)]],
+            texture2d<half, access::read_write>     __normalTexture [[texture(2)]],
+            texture2d<half, access::read_write>     __metaTexture [[texture(3)]],
+            texture2d<half, access::read>           __rayOriginTexture [[texture(4)]],
+            texture2d<half, access::read>           __rayDirectionTexture [[texture(5)]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 float4 __monitorOut = float4(0,0,0,0);
             
-                float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
+                float2 __size = float2( __depthTexture.get_width(), __depthTexture.get_height() );
 
                 float GlobalTime = __data[0].x;
             
@@ -213,12 +210,12 @@ class CodeSDFStream
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
-                float4 outShape = float4(__depthInTexture.read(__gid));
+                float4 outShape = float4(__depthTexture.read(__gid));
             
                 float maxDistance = outShape.y;
                 float4 inShape = outShape;
-                float3 outNormal = float4(__normalInTexture.read(__gid)).xyz;
-                float4 outMeta = float4(__metaInTexture.read(__gid));
+                float3 outNormal = float4(__normalTexture.read(__gid)).xyz;
+                float4 outMeta = float4(__metaTexture.read(__gid));
             
             """
             
@@ -226,18 +223,17 @@ class CodeSDFStream
                 
             """
             kernel void computeAO(
-            texture2d<half, access::write>          __outTexture  [[texture(0)]],
+            texture2d<half, access::read_write>     __metaTexture  [[texture(0)]],
             constant float4                        *__data   [[ buffer(1) ]],
             texture2d<half, access::read>           __depthInTexture [[texture(2)]],
             texture2d<half, access::read>           __normalInTexture [[texture(3)]],
-            texture2d<half, access::read>           __metaInTexture [[texture(4)]],
-            texture2d<half, access::read>           __rayOriginInTexture [[texture(5)]],
-            texture2d<half, access::read>           __rayDirectionInTexture [[texture(6)]],
+            texture2d<half, access::read>           __rayOriginInTexture [[texture(4)]],
+            texture2d<half, access::read>           __rayDirectionInTexture [[texture(5)]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 float4 __monitorOut = float4(0,0,0,0);
             
-                float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
+                float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
 
                 float GlobalTime = __data[0].x;
             
@@ -255,7 +251,7 @@ class CodeSDFStream
                 float maxDistance = outShape.y;
                 float4 inShape = outShape;
                 float3 outNormal = float4(__normalInTexture.read(__gid)).xyz;
-                float4 outMeta = float4(__metaInTexture.read(__gid));
+                float4 outMeta = float4(__metaTexture.read(__gid));
             
             """
             
@@ -263,19 +259,18 @@ class CodeSDFStream
                 
             """
             kernel void computeShadow(
-            texture2d<half, access::write>          __outTexture  [[texture(0)]],
+            texture2d<half, access::read_write>     __metaTexture  [[texture(0)]],
             constant float4                        *__data   [[ buffer(1) ]],
             texture2d<half, access::read>           __depthInTexture [[texture(2)]],
             texture2d<half, access::read>           __normalInTexture [[texture(3)]],
-            texture2d<half, access::read>           __metaInTexture [[texture(4)]],
-            texture2d<half, access::read>           __rayOriginTexture [[texture(5)]],
-            texture2d<half, access::read>           __rayDirectionTexture [[texture(6)]],
-            constant float4                        *__lightData   [[ buffer(7) ]],
+            texture2d<half, access::read>           __rayOriginTexture [[texture(4)]],
+            texture2d<half, access::read>           __rayDirectionTexture [[texture(5)]],
+            constant float4                        *__lightData   [[ buffer(6) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 float4 __monitorOut = float4(0,0,0,0);
             
-                float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
+                float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
 
                 float GlobalTime = __data[0].x;
             
@@ -293,7 +288,7 @@ class CodeSDFStream
                 float maxDistance = outShape.y;
                 float4 inShape = outShape;
                 float3 outNormal = float4(__normalInTexture.read(__gid)).xyz;
-                float4 outMeta = float4(__metaInTexture.read(__gid));
+                float4 outMeta = float4(__metaTexture.read(__gid));
             
             """
             
@@ -301,30 +296,26 @@ class CodeSDFStream
                 
             """
             kernel void computeMaterial(
-            texture2d<half, access::write>          __outTexture  [[texture(0)]],
+            texture2d<half, access::read_write>     __colorTexture  [[texture(0)]],
             constant float4                        *__data   [[ buffer(1) ]],
-            texture2d<half, access::read>           __colorInTexture [[texture(2)]],
-            texture2d<half, access::read>           __depthInTexture [[texture(3)]],
-            texture2d<half, access::read>           __normalInTexture [[texture(4)]],
-            texture2d<half, access::read>           __metaInTexture [[texture(5)]],
-            texture2d<half, access::read>           __rayOriginInTexture [[texture(6)]],
-            texture2d<half, access::read>           __rayDirectionInTexture [[texture(7)]],
-            texture2d<half, access::read>           __maskInTexture [[texture(8)]],
-            texture2d<half, access::write>          __rayOriginTexture [[texture(9)]],
-            texture2d<half, access::write>          __rayDirectionTexture [[texture(10)]],
-            texture2d<half, access::write>          __maskTexture [[texture(11)]],
-            constant float4                        *__lightData   [[ buffer(12) ]],
+            texture2d<half, access::read>           __depthInTexture [[texture(2)]],
+            texture2d<half, access::read>           __normalInTexture [[texture(3)]],
+            texture2d<half, access::read>           __metaInTexture [[texture(4)]],
+            texture2d<half, access::read_write>     __rayOriginTexture [[texture(5)]],
+            texture2d<half, access::read_write>     __rayDirectionTexture [[texture(6)]],
+            texture2d<half, access::read_write>     __maskTexture [[texture(7)]],
+            constant float4                        *__lightData   [[ buffer(8) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 float4 __monitorOut = float4(0,0,0,0);
             
-                float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
+                float2 __size = float2( __colorTexture.get_width(), __colorTexture.get_height() );
 
                 float GlobalTime = __data[0].x;
             
                 float2 __uv = float2(__gid.x, __gid.y);
-                float3 rayOrigin = float4(__rayOriginInTexture.read(__gid)).xyz;
-                float3 rayDirection = float4(__rayDirectionInTexture.read(__gid)).xyz;
+                float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
+                float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
@@ -333,8 +324,8 @@ class CodeSDFStream
             
                 float4 shape = float4(__depthInTexture.read(__gid));
                 float4 meta = float4(__metaInTexture.read(__gid));
-                float3 mask = float4(__maskInTexture.read(__gid)).xyz;
-                float4 color = float4(__colorInTexture.read(__gid));
+                float3 mask = float4(__maskTexture.read(__gid)).xyz;
+                float4 color = float4(__colorTexture.read(__gid));
 
                 float3 incomingDirection = rayDirection;
                 float3 hitPosition = rayOrigin + shape.y * rayDirection;
@@ -524,14 +515,14 @@ class CodeSDFStream
             
                 __normalTexture.write(half4(float4(outNormal, 0)), __gid);
                 __metaTexture.write(half4(outMeta), __gid);
-                __outTexture.write(half4(outShape), __gid);
+                __depthTexture.write(half4(outShape), __gid);
             }
             """
             
             aoCode +=
             """
             
-                __outTexture.write(half4(outMeta), __gid);
+                __metaTexture.write(half4(outMeta), __gid);
             }
             
             """
@@ -539,7 +530,7 @@ class CodeSDFStream
             shadowCode +=
             """
             
-                __outTexture.write(half4(outMeta), __gid);
+                __metaTexture.write(half4(outMeta), __gid);
             }
             
             """
@@ -547,7 +538,7 @@ class CodeSDFStream
             materialCode +=
             """
                 }
-                __outTexture.write(half4(color), __gid);
+                __colorTexture.write(half4(color), __gid);
                 __rayOriginTexture.write(half4(float4(rayOrigin, 0)), __gid);
                 __rayDirectionTexture.write(half4(float4(rayDirection, 0)), __gid);
                 __maskTexture.write(half4(float4(mask, 0)), __gid);

@@ -173,8 +173,8 @@ class Pipeline3D            : Pipeline
             codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 0, 1))
         }
 
-        allocTexturePair("color", width, height, .rgba16Float)
-        allocTexturePair("mask", width, height, .rgba16Float)
+        allocTextureId("color", width, height, .rgba16Float)
+        allocTextureId("mask", width, height, .rgba16Float)
 
         resetSample()
         
@@ -184,8 +184,8 @@ class Pipeline3D            : Pipeline
     
     func resetSample()
     {
-        codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
-        codeBuilder.renderClear(texture: getActiveOfPair("mask"), data: SIMD4<Float>(1, 1, 1, 1))
+        codeBuilder.renderClear(texture: getTextureOfId("color"), data: SIMD4<Float>(0, 0, 0, 1))
+        codeBuilder.renderClear(texture: getTextureOfId("mask"), data: SIMD4<Float>(1, 1, 1, 1))
     }
     
     func nextStage()
@@ -194,7 +194,7 @@ class Pipeline3D            : Pipeline
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             if startId < self.renderId { return }
 
-            print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections)
+            print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "Alloc", self.textureMap.count)
 
             let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
             
@@ -255,10 +255,10 @@ class Pipeline3D            : Pipeline
         
         if reflections == 0 {
             // Render the Camera Textures
-            allocTexturePair("rayOrigin", width, height, .rgba16Float)
-            allocTexturePair("rayDirection", width, height, .rgba16Float)
+            allocTextureId("rayOrigin", width, height, .rgba16Float)
+            allocTextureId("rayDirection", width, height, .rgba16Float)
             if let inst = instanceMap["camera3D"] {
-                codeBuilder.render(inst, getActiveOfPair("rayOrigin"), outTextures: [getActiveOfPair("rayDirection")])
+                codeBuilder.render(inst, getTextureOfId("rayOrigin"), outTextures: [getTextureOfId("rayDirection")])
                 computeMonitor(inst)
             }
         }
@@ -266,27 +266,23 @@ class Pipeline3D            : Pipeline
         // Render the SkyDome into backTexture
         allocTextureId("back", width, height, .rgba16Float)
         if let inst = instanceMap["pre"] {
-            codeBuilder.render(inst, getTextureOfId("back"), inTextures: [getActiveOfPair("rayDirection")])
+            codeBuilder.render(inst, getTextureOfId("back"), inTextures: [getTextureOfId("rayDirection")])
             computeMonitor(inst)
         }
         
-        allocTexturePair("depth", width, height, .rgba16Float)
-        allocTexturePair("normal", width, height, .rgba16Float)
-        allocTexturePair("meta", width, height, .rgba16Float)
+        allocTextureId("depth", width, height, .rgba16Float)
+        allocTextureId("normal", width, height, .rgba16Float)
+        allocTextureId("meta", width, height, .rgba16Float)
         
-        codeBuilder.renderClear(texture: getActiveOfPair("depth"), data: SIMD4<Float>(10000, 1000000, -1, -1))
-        codeBuilder.renderClear(texture: getActiveOfPair("meta"), data: SIMD4<Float>(1, 1, 0, 0))
+        codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(10000, 1000000, -1, -1))
+        codeBuilder.renderClear(texture: getTextureOfId("meta"), data: SIMD4<Float>(1, 1, 0, 0))
 
         var objectIndex : Int = 0
         var shapeText : String = "shape_" + String(objectIndex)
         
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getInactiveOfPair("depth"), inTextures: [getActiveOfPair("depth"), getActiveOfPair("normal"), getActiveOfPair("meta"), getActiveOfPair("rayOrigin"), getActiveOfPair("rayDirection")], outTextures: [getInactiveOfPair("normal"), getInactiveOfPair("meta")])
-            
-            switchPair("depth")
-            switchPair("normal")
-            switchPair("meta")
+            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")])
 
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
@@ -295,7 +291,7 @@ class Pipeline3D            : Pipeline
         allocTextureId("result", width, height, .rgba16Float)
         if self.maxStage == .HitAndNormals {
             // Preview Render: Fake Lighting + AO
-            codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getActiveOfPair("depth")!, getTextureOfId("back"), getActiveOfPair("normal"), getActiveOfPair("meta")])
+            codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getTextureOfId("depth")!, getTextureOfId("back"), getTextureOfId("normal"), getTextureOfId("meta")])
             codeBuilder.compute.commandBuffer.waitUntilCompleted()
 
             codeBuilder.compute.copyTexture(finalTexture!, getTextureOfId("result"))
@@ -331,8 +327,7 @@ class Pipeline3D            : Pipeline
         
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getInactiveOfPair("meta"), inTextures: [getActiveOfPair("depth"), getActiveOfPair("normal"), getActiveOfPair("meta"), getActiveOfPair("rayOrigin"), getActiveOfPair("rayDirection")], optionalState: "computeAO")
-            switchPair("meta")
+            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], optionalState: "computeAO")
             
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
@@ -379,8 +374,7 @@ class Pipeline3D            : Pipeline
                 
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getInactiveOfPair("meta"), inTextures: [getActiveOfPair("depth"), getActiveOfPair("normal"), getActiveOfPair("meta"), getActiveOfPair("rayOrigin"), getActiveOfPair("rayDirection")], inBuffers: [lightBuffer], optionalState: "computeShadow")
-            switchPair("meta")
+            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], inBuffers: [lightBuffer], optionalState: "computeShadow")
             
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
@@ -393,11 +387,7 @@ class Pipeline3D            : Pipeline
         shapeText = "shape_" + String(objectIndex)
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getInactiveOfPair("color"), inTextures: [getActiveOfPair("color"), getActiveOfPair("depth"), getActiveOfPair("normal"), getActiveOfPair("meta"), getActiveOfPair("rayOrigin"), getActiveOfPair("rayDirection"), getActiveOfPair("mask")], outTextures: [getInactiveOfPair("rayOrigin"), getInactiveOfPair("rayDirection"), getInactiveOfPair("mask")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
-            switchPair("color")
-            switchPair("rayOrigin")
-            switchPair("rayDirection")
-            switchPair("mask")
+            codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
 
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
@@ -405,7 +395,7 @@ class Pipeline3D            : Pipeline
         
         // Render it all
         if let inst = instanceMap["render"] {
-            codeBuilder.render(inst, getTextureOfId("result"), inTextures: [getActiveOfPair("color")])
+            codeBuilder.render(inst, getTextureOfId("result"), inTextures: [getTextureOfId("color")])
             //computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
         }
         
