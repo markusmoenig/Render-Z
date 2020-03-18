@@ -32,6 +32,7 @@ class Pipeline3D            : Pipeline
 
     var renderId            : UInt = 0
     var justStarted         : Bool = true
+    var startedRender       : Bool = false
 
     override init(_ mmView: MMView)
     {
@@ -41,7 +42,6 @@ class Pipeline3D            : Pipeline
     
     override func setMinimalPreview(_ mode: Bool = false)
     {
-        print("setMinimalPreview", mode)
         if mode == true {
             maxStage = .HitAndNormals
         } else {
@@ -146,7 +146,7 @@ class Pipeline3D            : Pipeline
     {
         renderId += 1
         self.width = width; self.height = height
-        
+                
         reflections = 0
         samples = 0
         
@@ -178,16 +178,22 @@ class Pipeline3D            : Pipeline
             justStarted = false
         }
         
-        resetSample()
-        
-        // Get Render Values
-        if let renderComp = getComponent(name: "Renderer") {
-            maxReflections = getComponentPropertyInt(component: renderComp, name: "reflections", defaultValue: 3)
-            maxSamples = getComponentPropertyInt(component: renderComp, name: "antiAliasing", defaultValue: 4)
+        if startedRender == false {
+            resetSample()
+            
+            // Get Render Values
+            if let renderComp = getComponent(name: "Renderer") {
+                maxReflections = getComponentPropertyInt(component: renderComp, name: "reflections", defaultValue: 3)
+                maxSamples = getComponentPropertyInt(component: renderComp, name: "antiAliasing", defaultValue: 4)
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                self.stage_HitAndNormals()
+                self.currentStage = .HitAndNormals
+                self.startedRender = false
+            }
+            startedRender = true
         }
-        
-        stage_HitAndNormals()
-        currentStage = .HitAndNormals
     }
     
     func resetSample()
@@ -211,7 +217,7 @@ class Pipeline3D            : Pipeline
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
             if startId < self.renderId { return }
 
-            print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "Alloc", self.textureMap.count)
+            //print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "Alloc", self.textureMap.count)
 
             let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
             
