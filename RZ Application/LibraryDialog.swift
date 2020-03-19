@@ -111,11 +111,9 @@ class LibraryDialog: MMDialog {
                 }
 
                 let item = LibraryItem(view, name, description, record.value(forKey: "json") as! String, record.recordID.recordName, type)
-                
                 if self.itemMap[type] == nil {
                     self.itemMap[type] = []
                 }
-                
                 var list = self.itemMap[type]!
                 list.append(item)
                 self.itemMap[type] = list
@@ -373,7 +371,7 @@ class LibraryDialog: MMDialog {
             } else
             if oneThumbnailOnly == false {
                 oneThumbnailOnly =  true
-                item.thumbnail = globalApp!.thumbnail.request(item.type, decodeComponentFromJSON(item.json)!)
+                item.thumbnail = globalApp!.thumbnail.request(item.type)
                 mmView.update()
             }
 

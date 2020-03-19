@@ -89,12 +89,22 @@ class Thumbnail
         return result
     }
     
-    func request(_ type: String,_ comp: CodeComponent,_ width: Float = 200,_ height: Float = 200) -> MTLTexture?
+    func request(_ type: String,_ width: Float = 200,_ height: Float = 200) -> MTLTexture?
     {
         if let thumb = thumbs[type] {
             return thumb
         } else {
-            thumbs[type] = generate(comp, width, height)
+            
+            let id = type.components(separatedBy: " :: ")[1]
+            if let list = globalApp!.libraryDialog.itemMap[id] {
+                for item in list {
+                    if item.type == type {
+                        if let comp = decodeComponentFromJSON(item.json) {
+                            thumbs[type] = generate(comp, width, height)
+                        }
+                    }
+                }
+            }
         }
         return thumbs[type]
     }
