@@ -1151,7 +1151,7 @@ class SceneGraph                : MMWidget
         let spacing     : Float = 22 * graphZoom
         let itemSize    : Float = 70 * graphZoom
         let totalWidth  : Float = 140 * graphZoom
-        let headerHeight: Float = 26 * graphZoom
+        let headerHeight: Float = 30 * graphZoom
         var top         : Float = headerHeight + 7.5 * graphZoom
         
         let stageItem   = parent.stageItem!
@@ -1172,14 +1172,14 @@ class SceneGraph                : MMWidget
             
             mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
             
-            drawPlusButton(item: shapesContainer, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 3 * graphZoom, headerHeight, headerHeight), cb: { () in
+            drawPlusButton(item: shapesContainer, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 4 * graphZoom, headerHeight, headerHeight), cb: { () in
                 self.getShape(item: shapesContainer, replace: false)
             }, skin: skin)
             
             skin.font.getTextRect(text: "Shapes", scale: skin.fontScale, rectToUse: skin.tempRect)
-            mmView.drawText.drawText(skin.font, text: "Shapes", x: rect.x + x + 8 * graphZoom, y: rect.y + y + 6 * graphZoom, scale: skin.fontScale, color: skin.normalTextColor)
+            mmView.drawText.drawText(skin.font, text: "Shapes", x: rect.x + x + 10 * graphZoom, y: rect.y + y + 7 * graphZoom, scale: skin.fontScale, color: skin.normalTextColor)
             
-            mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight + 2, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight + 2, radius: 0.6, fillColor: skin.normalBorderColor)
+            mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight, radius: 0.6, fillColor: skin.normalBorderColor)
     
             for (index, comp) in list.enumerated() {
                 let item = SceneGraphItem(.ShapeItem, stage: parent.stage, stageItem: stageItem, component: comp)
@@ -1220,7 +1220,7 @@ class SceneGraph                : MMWidget
     {
         let itemSize    : Float = 35 * graphZoom
         let totalWidth  : Float = 140 * graphZoom
-        let headerHeight: Float = 26 * graphZoom
+        let headerHeight: Float = 30 * graphZoom
         var top         : Float = headerHeight + 7.5 * graphZoom
         
         let stageItem   = parent.stageItem!
@@ -1239,15 +1239,15 @@ class SceneGraph                : MMWidget
             
             mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
             
-            drawPlusButton(item: variableContainer, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 3 * graphZoom, headerHeight, headerHeight), cb: { () in
+            drawPlusButton(item: variableContainer, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 4 * graphZoom, headerHeight, headerHeight), cb: { () in
                 self.getShape(item: variableContainer, replace: false)
             }, skin: skin)
             
             skin.font.getTextRect(text: parent.stageItem!.name, scale: skin.fontScale, rectToUse: skin.tempRect)
             
-            mmView.drawText.drawText(skin.font, text: parent.stageItem!.name, x: rect.x + x + 8 * graphZoom, y: rect.y + y + 6 * graphZoom, scale: skin.fontScale, color: skin.normalTextColor)
+            mmView.drawText.drawText(skin.font, text: parent.stageItem!.name, x: rect.x + x + 10 * graphZoom, y: rect.y + y + 7 * graphZoom, scale: skin.fontScale, color: skin.normalTextColor)
             
-            mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight + 2, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight + 2, radius: 0.6, fillColor: skin.normalBorderColor)
+            mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight, radius: 0.6, fillColor: skin.normalBorderColor)
 
             for comp in list {
                 

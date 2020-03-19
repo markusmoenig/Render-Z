@@ -76,10 +76,10 @@ class Thumbnail
             let cameraInstance = codeBuilder.build(componentMap["camera3D"]!, camera: componentMap["camera3D"]!)
             codeBuilder.render(cameraInstance, rayOriginTexture, outTextures: [rayDirectionTexture!])
             
-            codeBuilder.sdfStream.openStream(comp.componentType, instance, codeBuilder, camera: componentMap["camera3D"]! )
+            codeBuilder.sdfStream.openStream(comp.componentType, instance, codeBuilder, camera: componentMap["camera3D"]!, thumbNail: true )
             codeBuilder.sdfStream.pushComponent(comp)
             codeBuilder.sdfStream.closeStream()
-            
+                        
             codeBuilder.render(instance, depthTexture, inTextures: [normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!])
             
             // Render

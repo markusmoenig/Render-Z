@@ -56,7 +56,7 @@ class CodeSDFStream
         hierarchy = []
     }
     
-    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil, groundComponent: CodeComponent? = nil, backgroundComponent: CodeComponent? = nil)
+    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil, groundComponent: CodeComponent? = nil, backgroundComponent: CodeComponent? = nil, thumbNail: Bool = false)
     {
         self.type = type
         self.instance = instance
@@ -379,7 +379,7 @@ class CodeSDFStream
                     idCounter += 1
                 }
             } else
-            if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D) {
+            if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false {
                 dryRunComponent(rayMarch, instance.data.count, monitor)
                 instance.collectProperties(rayMarch)
                 if let globalCode = rayMarch.globalCode {
@@ -479,10 +479,36 @@ class CodeSDFStream
 
                 """
             }
-            
-            // --- Materials
-            
-            
+            else {
+               // No Raymarch code, probably thumbnail generation, supply our own
+               hitAndNormalsCode +=
+               """
+               
+               float RJrRIP=0.001;
+               int nRqCSQ=70;
+               for( int noGouA=0; noGouA<nRqCSQ&&RJrRIP<maxDistance; noGouA+=1) {
+                   float4 cKFBUP=sceneMap( rayOrigin+rayDirection*RJrRIP, &__funcData) ;
+                   if( cKFBUP.x<0.001*RJrRIP) {
+                       outShape=cKFBUP;
+                       outShape.y=RJrRIP;
+                       break;
+                   }
+                   RJrRIP+=cKFBUP.x;
+               }
+                
+               if (outShape.w != inShape.w) {
+                   float3 position = rayOrigin + outShape.y * rayDirection;
+
+                   float2 dXjBFB=float2( 1.000, -1.000) *0.5773*0.0005;
+                   outNormal=dXjBFB.xyy*sceneMap( position+dXjBFB.xyy, &__funcData) .x;
+                   outNormal+=dXjBFB.yyx*sceneMap( position+dXjBFB.yyx, &__funcData) .x;
+                   outNormal+=dXjBFB.yxy*sceneMap( position+dXjBFB.yxy, &__funcData) .x;
+                   outNormal+=dXjBFB.xxx*sceneMap( position+dXjBFB.xxx, &__funcData) .x;
+                   outNormal=normalize( outNormal) ;
+               }
+               
+               """
+           }
         }
     }
 
