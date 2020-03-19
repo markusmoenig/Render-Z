@@ -914,10 +914,14 @@ class SceneGraph                : MMWidget
         button.rect = rect
         button.cb = cb
         
-        if plusLabel == nil || plusLabel!.scale != skin.fontScale {
-            plusLabel = MMTextLabel(mmView, font: mmView.openSans, text: "+", scale: skin.fontScale, color: skin.normalTextColor)
+        if plusLabel == nil || plusLabel!.scale != skin.fontScale + 0.1 {
+            plusLabel = MMTextLabel(mmView, font: mmView.openSans, text: "+", scale: skin.fontScale + 0.1, color: skin.normalTextColor)
         }
-        plusLabel!.drawCentered(x: rect.x, y: rect.y, width: rect.width, height: rect.height)
+        plusLabel!.rect.x = rect.x
+        plusLabel!.rect.y = rect.y
+        plusLabel!.draw()
+
+        //plusLabel!.drawCentered(x: rect.x, y: rect.y, width: rect.width, height: rect.height)
         
         buttons.append(button)
     }
@@ -1147,7 +1151,7 @@ class SceneGraph                : MMWidget
         let spacing     : Float = 22 * graphZoom
         let itemSize    : Float = 70 * graphZoom
         let totalWidth  : Float = 140 * graphZoom
-        let headerHeight: Float = 20 * graphZoom
+        let headerHeight: Float = 26 * graphZoom
         var top         : Float = headerHeight + 7.5 * graphZoom
         
         let stageItem   = parent.stageItem!
@@ -1168,14 +1172,14 @@ class SceneGraph                : MMWidget
             
             mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
             
-            drawPlusButton(item: shapesContainer, rect: MMRect(rect.x + x, rect.y + y, headerHeight, headerHeight), cb: { () in
+            drawPlusButton(item: shapesContainer, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 3 * graphZoom, headerHeight, headerHeight), cb: { () in
                 self.getShape(item: shapesContainer, replace: false)
             }, skin: skin)
             
-            //mmView.drawBox.draw(x: x + drawXOffset(), y: y + drawYOffset(), width: totalWidth, height: headerHeight, round: 0, borderSize: 0, fillColor: skin.normalBorderColor, borderColor: skin.normalInteriorColor, fragment: fragment)
-            
             skin.font.getTextRect(text: "Shapes", scale: skin.fontScale, rectToUse: skin.tempRect)
-            mmView.drawText.drawText(skin.font, text: "Shapes", x: rect.x + x + (totalWidth - skin.tempRect.width) / 2, y: rect.y + y + 4, scale: skin.fontScale, color: skin.normalTextColor)
+            mmView.drawText.drawText(skin.font, text: "Shapes", x: rect.x + x + 8 * graphZoom, y: rect.y + y + 6 * graphZoom, scale: skin.fontScale, color: skin.normalTextColor)
+            
+            mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight + 2, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight + 2, radius: 0.6, fillColor: skin.normalBorderColor)
     
             for (index, comp) in list.enumerated() {
                 let item = SceneGraphItem(.ShapeItem, stage: parent.stage, stageItem: stageItem, component: comp)
@@ -1216,7 +1220,7 @@ class SceneGraph                : MMWidget
     {
         let itemSize    : Float = 35 * graphZoom
         let totalWidth  : Float = 140 * graphZoom
-        let headerHeight: Float = 20 * graphZoom
+        let headerHeight: Float = 26 * graphZoom
         var top         : Float = headerHeight + 7.5 * graphZoom
         
         let stageItem   = parent.stageItem!
@@ -1233,18 +1237,17 @@ class SceneGraph                : MMWidget
             variableContainer.rect.set(x, y, totalWidth, height)
             itemMap[UUID()] = variableContainer
             
-            //mmView.drawLine.draw(sx: rect.x + parent.rect.x + parent.rect.width / 2, sy: rect.y + parent.rect.y + parent.rect.height / 2, ex: rect.x + x + totalWidth / 2, ey: rect.y + y + height / 2, radius: 1, fillColor: skin.normalBorderColor)
-            
             mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
             
-            drawPlusButton(item: variableContainer, rect: MMRect(rect.x + x, rect.y + y, headerHeight, headerHeight), cb: { () in
+            drawPlusButton(item: variableContainer, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 3 * graphZoom, headerHeight, headerHeight), cb: { () in
                 self.getShape(item: variableContainer, replace: false)
             }, skin: skin)
             
-            //mmView.drawBox.draw(x: x + drawXOffset(), y: y + drawYOffset(), width: totalWidth, height: headerHeight, round: 0, borderSize: 0, fillColor: skin.normalBorderColor, borderColor: skin.normalInteriorColor, fragment: fragment)
-            
             skin.font.getTextRect(text: parent.stageItem!.name, scale: skin.fontScale, rectToUse: skin.tempRect)
-            mmView.drawText.drawText(skin.font, text: parent.stageItem!.name, x: rect.x + x + (totalWidth - skin.tempRect.width) / 2, y: rect.y + y + 4, scale: skin.fontScale, color: skin.normalTextColor)
+            
+            mmView.drawText.drawText(skin.font, text: parent.stageItem!.name, x: rect.x + x + 8 * graphZoom, y: rect.y + y + 6 * graphZoom, scale: skin.fontScale, color: skin.normalTextColor)
+            
+            mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight + 2, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight + 2, radius: 0.6, fillColor: skin.normalBorderColor)
 
             for comp in list {
                 

@@ -80,7 +80,7 @@ class DeveloperEditor   : Editor
     override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Top {
-            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: globalApp!.topRegion!.graphButton)
+            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 43, spacing: 10, widgets: globalApp!.topRegion!.graphButton)
             globalApp!.topRegion!.graphButton.draw()
         } else
         if region.type == .Left {

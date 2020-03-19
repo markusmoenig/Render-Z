@@ -37,7 +37,10 @@ class ArtistEditor          : Editor
         designEditor = DesignEditor(view)
         designProperties = DesignProperties(view)
 
-        timelineButton = MMButtonWidget( view, text: "Timeline" )
+        timelineButton = MMButtonWidget( view, iconName: "timeline" )
+        timelineButton.iconZoom = 2
+        timelineButton.rect.width += 16
+        timelineButton.rect.height -= 11
         timeline = MMTimeline(view)
 
         super.init()
@@ -106,7 +109,7 @@ class ArtistEditor          : Editor
     override func drawRegion(_ region: MMRegion)
     {
         if region.type == .Top {
-            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 44, spacing: 10, widgets: timelineButton, globalApp!.topRegion!.graphButton)
+            region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 43, spacing: 10, widgets: timelineButton, globalApp!.topRegion!.graphButton)
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
             

@@ -28,8 +28,9 @@ class TopRegion: MMRegion
     var helpButton      : MMButtonWidget!
     var playButton      : MMButtonWidget!
     
-    var tabButton       : MMTabButtonWidget
     var graphButton     : MMButtonWidget!
+    
+    var switchButton    : MMSwitchIconWidget
 
     var libraryButton   : MMButtonWidget!
     var cameraButton    : MMButtonWidget!
@@ -40,17 +41,15 @@ class TopRegion: MMRegion
     {
         self.app = app
         
-        tabButton = MMTabButtonWidget(view)
-        tabButton.addTab("Artist")
-        tabButton.addTab("Developer")
-        tabButton.currentTab = tabButton.items[1]
+        switchButton =  MMSwitchIconWidget( view, leftIconName: "gizmo", rightIconName: "dev")
+        switchButton.setState(.Right)
         
         super.init( view, type: .Top )
         
-        tabButton.clicked = { (event) in
+        switchButton.clicked = { (event) in
             self.app.currentEditor.deactivate()
             let component : CodeComponent
-            if self.tabButton.index == 0 {
+            if self.switchButton.state == .Left {
                 component = self.app.developerEditor.codeEditor.codeComponent!
                 self.app.currentEditor = self.app.artistEditor
             } else {
@@ -174,7 +173,10 @@ class TopRegion: MMRegion
         }
         libraryButton.isDisabled = true
         
-        cameraButton = MMButtonWidget( mmView, text: "Camera" )
+        cameraButton = MMButtonWidget( mmView, iconName: "camera" )
+        cameraButton.iconZoom = 2
+        cameraButton.rect.width += 16
+        cameraButton.rect.height -= 9
         cameraButton.clicked = { (event) -> Void in
             let preStage = globalApp!.project.selected!.getStage(.PreStage)
             let preStageChildren = preStage.getChildren()
@@ -217,7 +219,10 @@ class TopRegion: MMRegion
             }
         }
 
-        graphButton = MMButtonWidget( mmView, text: "Scene Graph" )
+        graphButton = MMButtonWidget( mmView, iconName: "scenegraph" )
+        graphButton.iconZoom = 2
+        graphButton.rect.width += 16
+        graphButton.rect.height -= 2
         graphButton.clicked = { (event) -> Void in
             globalApp!.sceneGraph.switchState()
         }
@@ -225,7 +230,7 @@ class TopRegion: MMRegion
         layoutH(startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
         layoutH(startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton)
         layoutH(startX: saveButton.rect.right() + 20, startY: 8, spacing: 10, widgets: libraryButton)
-        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, libraryButton, helpButton, playButton, tabButton, graphButton )
+        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, libraryButton, helpButton, playButton, switchButton, graphButton )
     }
     
     override func build()
@@ -265,8 +270,8 @@ class TopRegion: MMRegion
         helpButton.draw()
         playButton.draw()
         
-        layoutH( startX: 3, startY: 4 + 44, spacing: 50, widgets: tabButton)
-        tabButton.draw()
+        layoutH( startX: 3, startY: 4 + 44, spacing: 50, widgets: switchButton)
+        switchButton.draw()
 
         #if os(OSX)
         mmView.window!.isDocumentEdited = !undoButton.isDisabled

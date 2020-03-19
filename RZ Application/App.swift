@@ -57,6 +57,13 @@ class App
         mmFile = MMFile( view, "render-z" )
         
         mmView.registerIcon("rz_toolbar")
+        mmView.registerIcon("scenegraph")
+        mmView.registerIcon("timeline")
+        mmView.registerIcon("camera")
+        mmView.registerIcon("gizmo_on")
+        mmView.registerIcon("gizmo_off")
+        mmView.registerIcon("dev_on")
+        mmView.registerIcon("dev_off")
         sceneGraph = SceneGraph(mmView)
 
         artistEditor = ArtistEditor(mmView)

@@ -307,6 +307,10 @@ class MMButtonWidget : MMWidget
 
         if iconName != nil {
             texture = view.icons[iconName!]
+            if let texture = texture {
+                rect.width = Float(texture.width)
+                rect.height = Float(texture.height)
+            }
         }
         
         self.customState = customState
@@ -962,6 +966,216 @@ class MMSwitchButtonWidget : MMWidget
         } else {
             drawDots(rect.x + 15, rect.y + 11, amount: 2, offset: 11, size: 3.5)
             drawDots(rect.x + rect.width - space + 8, rect.y + 11, amount: 2, offset: 11, size: 3.5, dotLocation: .Middle)
+        }
+    }
+}
+
+
+/// Switch icon widget class
+class MMSwitchIconWidget : MMWidget
+{
+    enum State {
+        case Left, Right
+    }
+    
+    enum DotSize {
+        case Small, Large
+    }
+    
+    enum DotLocation {
+        case All, Middle, UpperLeft
+    }
+    
+    enum HoverMode {
+        case Outside, Left, Right
+    }
+    
+    var state       : State = .Left
+    var dotSize     : DotSize = .Small
+    
+    var hoverMode   : HoverMode = .Outside
+    
+    var skin        : MMSkinButton
+    var text        : String!
+    var textYOffset : Float = 0
+    
+    var space       : Float = 70
+    
+    var fingerIsDown: Bool = false
+    
+    var leftIconOnTexture   : MTLTexture?
+    var leftIconOffTexture  : MTLTexture?
+
+    var rightIconOnTexture  : MTLTexture?
+    var rightIconOffTexture : MTLTexture?
+    
+    var onColor             = SIMD4<Float>(1,1,1,1)
+    var offColor            = SIMD4<Float>(0,0,0,1)
+    
+    var iconZoom            : Float = 2
+
+    init( _ view: MMView, skinToUse: MMSkinButton? = nil, leftIconName: String, rightIconName: String )
+    {
+        skin = skinToUse != nil ? skinToUse! : view.skin.ToolBarButton
+        super.init(view)
+        
+        name = "MMSwitchIconWidget"
+        rect.height = skin.height
+        
+        leftIconOnTexture = view.icons[leftIconName + "_on"]
+        leftIconOffTexture = view.icons[leftIconName + "_off"]
+        rightIconOnTexture = view.icons[rightIconName + "_on"]
+        rightIconOffTexture = view.icons[rightIconName + "_off"]
+        
+        validStates = [.Checked]
+        
+        //label.color = float4(0.933, 0.937, 0.941, 1.000)
+        rect.width = 130
+        adjustToState()
+    }
+    
+    func setState(_ state: State)
+    {
+        self.state = state
+        adjustToState()
+        if super.clicked != nil {
+            super.clicked!(MMMouseEvent(0,0))
+        }
+    }
+    
+    func adjustToState()
+    {
+    }
+    
+    func distanceToRRect(_ x: Float,_ y: Float,_ width: Float,_ height: Float, round: Float,_ mouseX: Float,_ mouseY: Float) -> Float
+    {
+        var uv : SIMD2<Float> = SIMD2<Float>(mouseX - x, mouseY - y)
+        uv = uv - SIMD2<Float>(rect.width / 2, rect.height / 2)
+        
+        let d : SIMD2<Float> = simd_abs(uv) - SIMD2<Float>(width/2, height/2) + round / 2
+        let dist : Float = simd_length(max(d,SIMD2<Float>(repeating: 0))) + min(max(d.x,d.y),0.0) - round / 2
+        
+        return dist
+    }
+    
+    override func _clicked(_ event:MMMouseEvent)
+    {
+        if !isDisabled {
+            
+            if hoverMode == .Left {
+                state = .Left
+            } else
+            if hoverMode == .Right {
+                state = .Right
+            }
+            //state = state == .Several ? .One : .Several
+            adjustToState()
+
+            addState( .Checked )
+            if super.clicked != nil {
+                super.clicked!(event)
+            }
+        }
+    }
+    
+    override func mouseUp(_ event:MMMouseEvent)
+    {
+        #if os(iOS)
+        fingerIsDown = false
+        #endif
+    }
+    
+    override func mouseDown(_ event:MMMouseEvent)
+    {
+        #if os(iOS)
+        mouseMoved(event)
+        fingerIsDown = true
+        #endif
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent) {
+        func opIntersection( d1: Float, d2: Float ) -> Float { return max(d1,d2) }
+
+        let oldHoverMode = hoverMode
+        hoverMode = .Outside
+        let dist = distanceToRRect(rect.x, rect.y, rect.width, rect.height, round: skin.round, event.x, event.y)
+        if dist < 0 {
+            if state == .Left {
+                hoverMode = .Left
+                let oneDist = distanceToRRect(rect.x - space / 2, rect.y, rect.width - space, rect.height, round: skin.round, event.x, event.y)
+                let d = opIntersection(d1: oneDist, d2: dist)
+                
+                if d > 0 {
+                    hoverMode = .Right
+                }
+            } else {
+                hoverMode = .Right
+                let severalDist = distanceToRRect(rect.x + space - space / 2, rect.y, rect.width - space, rect.height, round: skin.round, event.x, event.y)
+                let d = opIntersection(d1: severalDist, d2: dist)
+
+                if d > 0 {
+                    hoverMode = .Left
+                }
+            }
+        }
+
+        if oldHoverMode != hoverMode {
+            mmView.update()
+        }
+    }
+    
+    override func mouseLeave(_ event: MMMouseEvent) {
+        let oldHoverMode = hoverMode
+        hoverMode = .Outside
+        
+        if oldHoverMode != hoverMode {
+            mmView.update()
+        }
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    {
+        let checkedState : Bool = states.contains(.Checked)
+        #if os(iOS)
+        if checkedState == false && fingerIsDown == false {
+            hoverMode = .Outside
+        }
+        #endif
+        
+        if state == .Left {
+        
+            var fillColor    : SIMD4<Float> = offColor
+            var borderColor  : SIMD4<Float> = hoverMode == .Right ? skin.hoverColor : fillColor
+            
+            if isDisabled {
+                fillColor.w = mmView.skin.disabledAlpha
+                borderColor.w = mmView.skin.disabledAlpha
+            }
+            
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
+            
+            fillColor = onColor//checkedState ? (hoverMode == .Left ? skin.hoverColor : onColor) : (hoverMode == .Left ? skin.hoverColor : offColor)
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width - space + 10, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
+            
+            mmView.drawTexture.draw(leftIconOnTexture!, x: rect.x + 23, y: rect.y + 8, zoom: iconZoom)
+            mmView.drawTexture.draw(rightIconOffTexture!, x: rect.x + space + 12, y: rect.y + 13, zoom: iconZoom)
+        } else {
+            
+            var fillColor    : SIMD4<Float> = offColor
+            var borderColor  : SIMD4<Float> = hoverMode == .Left ? skin.hoverColor : offColor
+            
+            if isDisabled {
+                fillColor.w = mmView.skin.disabledAlpha
+                borderColor.w = mmView.skin.disabledAlpha
+            }
+            
+            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
+            
+            fillColor = onColor//checkedState ? (hoverMode == .Right ? skin.hoverColor : skin.activeColor) : (hoverMode == .Right ? skin.hoverColor : mmView.skin.ToolBar.color)
+            mmView.drawBox.draw( x: rect.x + space - 10, y: rect.y, width: rect.width - space + 10, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
+            
+            mmView.drawTexture.draw(leftIconOffTexture!, x: rect.x + 23, y: rect.y + 8, zoom: iconZoom)
+            mmView.drawTexture.draw(rightIconOnTexture!, x: rect.x + space + 12, y: rect.y + 13, zoom: iconZoom)
         }
     }
 }
