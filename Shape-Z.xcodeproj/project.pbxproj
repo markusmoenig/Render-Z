@@ -110,20 +110,20 @@
 		2B1AF8B024133D7900AA82B0 /* Pipeline2D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAA45BF24133B0C00744A0A /* Pipeline2D.swift */; };
 		2B1F2E13235EA08200838D46 /* Marble.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B1F2E12235EA08200838D46 /* Marble.shape-z */; };
 		2B1F2E14235EA08200838D46 /* Marble.shape-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B1F2E12235EA08200838D46 /* Marble.shape-z */; };
-		2B2B5FD22422F3FC00B9CCF1 /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FD12422F3FC00B9CCF1 /* scenegraph.tiff */; };
-		2B2B5FD32422F3FC00B9CCF1 /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FD12422F3FC00B9CCF1 /* scenegraph.tiff */; };
-		2B2B5FD52422F55400B9CCF1 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FD42422F55400B9CCF1 /* timeline.tiff */; };
-		2B2B5FD62422F55400B9CCF1 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FD42422F55400B9CCF1 /* timeline.tiff */; };
 		2B2B5FD82422F68A00B9CCF1 /* camera.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FD72422F68A00B9CCF1 /* camera.tiff */; };
 		2B2B5FD92422F68A00B9CCF1 /* camera.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FD72422F68A00B9CCF1 /* camera.tiff */; };
 		2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FDA242306A400B9CCF1 /* gizmo_on.tiff */; };
 		2B2B5FDF242306A400B9CCF1 /* gizmo_on.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FDA242306A400B9CCF1 /* gizmo_on.tiff */; };
 		2B2B5FE0242306A400B9CCF1 /* gizmo_off.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FDB242306A400B9CCF1 /* gizmo_off.tiff */; };
 		2B2B5FE1242306A400B9CCF1 /* gizmo_off.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FDB242306A400B9CCF1 /* gizmo_off.tiff */; };
-		2B2B5FE2242306A400B9CCF1 /* dev_on.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FDC242306A400B9CCF1 /* dev_on.tiff */; };
-		2B2B5FE3242306A400B9CCF1 /* dev_on.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FDC242306A400B9CCF1 /* dev_on.tiff */; };
-		2B2B5FE4242306A400B9CCF1 /* dev_off.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FDD242306A400B9CCF1 /* dev_off.tiff */; };
-		2B2B5FE5242306A400B9CCF1 /* dev_off.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FDD242306A400B9CCF1 /* dev_off.tiff */; };
+		2B2B5FEA242442AD00B9CCF1 /* dev_on.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FE6242442AC00B9CCF1 /* dev_on.tiff */; };
+		2B2B5FEB242442AD00B9CCF1 /* dev_on.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FE6242442AC00B9CCF1 /* dev_on.tiff */; };
+		2B2B5FEC242442AD00B9CCF1 /* dev_off.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FE7242442AC00B9CCF1 /* dev_off.tiff */; };
+		2B2B5FED242442AD00B9CCF1 /* dev_off.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FE7242442AC00B9CCF1 /* dev_off.tiff */; };
+		2B2B5FEE242442AD00B9CCF1 /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FE8242442AD00B9CCF1 /* scenegraph.tiff */; };
+		2B2B5FEF242442AD00B9CCF1 /* scenegraph.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FE8242442AD00B9CCF1 /* scenegraph.tiff */; };
+		2B2B5FF0242442AD00B9CCF1 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FE9242442AD00B9CCF1 /* timeline.tiff */; };
+		2B2B5FF1242442AD00B9CCF1 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FE9242442AD00B9CCF1 /* timeline.tiff */; };
 		2B333D13226043FF0008A8CF /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
 		2B333D14226043FF0008A8CF /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
 		2B3AC54C22EBD67F0013A60E /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
@@ -663,13 +663,13 @@
 		2B1ACBDF23597D2600ED19AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2B1ACC2D23597F0F00ED19AD /* MMBaseView__tvos.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMBaseView__tvos.swift; sourceTree = "<group>"; };
 		2B1F2E12235EA08200838D46 /* Marble.shape-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Marble.shape-z"; sourceTree = "<group>"; };
-		2B2B5FD12422F3FC00B9CCF1 /* scenegraph.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = scenegraph.tiff; sourceTree = "<group>"; };
-		2B2B5FD42422F55400B9CCF1 /* timeline.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline.tiff; sourceTree = "<group>"; };
 		2B2B5FD72422F68A00B9CCF1 /* camera.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = camera.tiff; sourceTree = "<group>"; };
 		2B2B5FDA242306A400B9CCF1 /* gizmo_on.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = gizmo_on.tiff; sourceTree = "<group>"; };
 		2B2B5FDB242306A400B9CCF1 /* gizmo_off.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = gizmo_off.tiff; sourceTree = "<group>"; };
-		2B2B5FDC242306A400B9CCF1 /* dev_on.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = dev_on.tiff; sourceTree = "<group>"; };
-		2B2B5FDD242306A400B9CCF1 /* dev_off.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = dev_off.tiff; sourceTree = "<group>"; };
+		2B2B5FE6242442AC00B9CCF1 /* dev_on.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = dev_on.tiff; sourceTree = "<group>"; };
+		2B2B5FE7242442AC00B9CCF1 /* dev_off.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = dev_off.tiff; sourceTree = "<group>"; };
+		2B2B5FE8242442AD00B9CCF1 /* scenegraph.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = scenegraph.tiff; sourceTree = "<group>"; };
+		2B2B5FE9242442AD00B9CCF1 /* timeline.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline.tiff; sourceTree = "<group>"; };
 		2B333D12226043FF0008A8CF /* MMScrollButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScrollButton.swift; sourceTree = "<group>"; };
 		2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMInfoArea.swift; sourceTree = "<group>"; };
 		2B40D80423FCCDAF00D46B2F /* Combo3D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo3D.metal; sourceTree = "<group>"; };
@@ -1002,13 +1002,13 @@
 		2B7A3C4023B46AD8002EC5FC /* Icons */ = {
 			isa = PBXGroup;
 			children = (
-				2B2B5FDD242306A400B9CCF1 /* dev_off.tiff */,
-				2B2B5FDC242306A400B9CCF1 /* dev_on.tiff */,
+				2B2B5FE7242442AC00B9CCF1 /* dev_off.tiff */,
+				2B2B5FE6242442AC00B9CCF1 /* dev_on.tiff */,
+				2B2B5FE8242442AD00B9CCF1 /* scenegraph.tiff */,
+				2B2B5FE9242442AD00B9CCF1 /* timeline.tiff */,
 				2B2B5FDB242306A400B9CCF1 /* gizmo_off.tiff */,
 				2B2B5FDA242306A400B9CCF1 /* gizmo_on.tiff */,
 				2B2B5FD72422F68A00B9CCF1 /* camera.tiff */,
-				2B2B5FD42422F55400B9CCF1 /* timeline.tiff */,
-				2B2B5FD12422F3FC00B9CCF1 /* scenegraph.tiff */,
 				2B9B299123BA327900C2F387 /* rz_toolbar.tiff */,
 				2B7A3C4323B46AD8002EC5FC /* sz_toolbar.tiff */,
 				2B7A3C4623B46AD8002EC5FC /* sz_ui_grey.tiff */,
@@ -1551,22 +1551,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
-				2B2B5FE2242306A400B9CCF1 /* dev_on.tiff in Resources */,
 				2B7A3C0523B4652E002EC5FC /* GameCuben.tiff in Resources */,
 				2B7A3C0423B4652E002EC5FC /* GameCuben.json in Resources */,
 				2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */,
 				2B7A3C0623B4652E002EC5FC /* OpenSans.json in Resources */,
+				2B2B5FEC242442AD00B9CCF1 /* dev_off.tiff in Resources */,
+				2B2B5FF0242442AD00B9CCF1 /* timeline.tiff in Resources */,
 				2B2B5FD82422F68A00B9CCF1 /* camera.tiff in Resources */,
 				2B7A3C0723B4652E002EC5FC /* OpenSans.tiff in Resources */,
 				2B8E2FE323C71F36005619E4 /* SourceCodePro.json in Resources */,
 				2B7A3C5123B46B53002EC5FC /* sz_ui_blue.tiff in Resources */,
 				2B7A3C4F23B46B53002EC5FC /* sz_toolbar.tiff in Resources */,
 				2B8E2FE523C71F36005619E4 /* SourceCodePro.tiff in Resources */,
-				2B2B5FD22422F3FC00B9CCF1 /* scenegraph.tiff in Resources */,
 				2B2B5FE0242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
 				2B7A3BF823B4583E002EC5FC /* Assets.xcassets in Resources */,
-				2B2B5FD52422F55400B9CCF1 /* timeline.tiff in Resources */,
-				2B2B5FE4242306A400B9CCF1 /* dev_off.tiff in Resources */,
+				2B2B5FEE242442AD00B9CCF1 /* scenegraph.tiff in Resources */,
+				2B2B5FEA242442AD00B9CCF1 /* dev_on.tiff in Resources */,
 				2B7A3BFB23B4583E002EC5FC /* Main.storyboard in Resources */,
 				2B7A3C0223B4652E002EC5FC /* Square.json in Resources */,
 				2B7A3C5023B46B53002EC5FC /* sz_ui_grey.tiff in Resources */,
@@ -1599,24 +1599,24 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B9B29BB23BB452B00C2F387 /* sz_ui_grey.tiff in Resources */,
+				2B2B5FF1242442AD00B9CCF1 /* timeline.tiff in Resources */,
 				2B2B5FD92422F68A00B9CCF1 /* camera.tiff in Resources */,
 				2B9B29B923BB452B00C2F387 /* rz_toolbar.tiff in Resources */,
-				2B2B5FD62422F55400B9CCF1 /* timeline.tiff in Resources */,
 				2B9B29DD23BB453B00C2F387 /* GameCuben.tiff in Resources */,
 				2B2B5FE1242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
 				2B9B29B323BB44C000C2F387 /* LaunchScreen.storyboard in Resources */,
-				2B2B5FE3242306A400B9CCF1 /* dev_on.tiff in Resources */,
 				2B9B29DE23BB453B00C2F387 /* OpenSans.json in Resources */,
 				2B9B29BC23BB452B00C2F387 /* sz_ui_blue.tiff in Resources */,
-				2B2B5FD32422F3FC00B9CCF1 /* scenegraph.tiff in Resources */,
 				2B9B29DA23BB453B00C2F387 /* Square.json in Resources */,
-				2B2B5FE5242306A400B9CCF1 /* dev_off.tiff in Resources */,
 				2B9B29DC23BB453B00C2F387 /* GameCuben.json in Resources */,
 				2B9B29B023BB44C000C2F387 /* Assets.xcassets in Resources */,
 				2B8E2FE623C71F36005619E4 /* SourceCodePro.tiff in Resources */,
 				2B9B29DF23BB453B00C2F387 /* OpenSans.tiff in Resources */,
 				2B9B29AE23BB44BF00C2F387 /* Main.storyboard in Resources */,
 				2B8E2FE423C71F36005619E4 /* SourceCodePro.json in Resources */,
+				2B2B5FEF242442AD00B9CCF1 /* scenegraph.tiff in Resources */,
+				2B2B5FEB242442AD00B9CCF1 /* dev_on.tiff in Resources */,
+				2B2B5FED242442AD00B9CCF1 /* dev_off.tiff in Resources */,
 				2B2B5FDF242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B9B29BA23BB452B00C2F387 /* sz_toolbar.tiff in Resources */,
 				2B9B29DB23BB453B00C2F387 /* Square.tiff in Resources */,

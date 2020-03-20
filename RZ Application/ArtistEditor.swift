@@ -39,7 +39,6 @@ class ArtistEditor          : Editor
 
         timelineButton = MMButtonWidget( view, iconName: "timeline" )
         timelineButton.iconZoom = 2
-        timelineButton.rect.width += 16
         timelineButton.rect.height -= 11
         timeline = MMTimeline(view)
 

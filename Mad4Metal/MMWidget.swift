@@ -1158,7 +1158,7 @@ class MMSwitchIconWidget : MMWidget
             mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width - space + 10, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
             
             mmView.drawTexture.draw(leftIconOnTexture!, x: rect.x + 23, y: rect.y + 8, zoom: iconZoom)
-            mmView.drawTexture.draw(rightIconOffTexture!, x: rect.x + space + 12, y: rect.y + 13, zoom: iconZoom)
+            mmView.drawTexture.draw(rightIconOffTexture!, x: rect.x + space + 16, y: rect.y + 8, zoom: iconZoom)
         } else {
             
             var fillColor    : SIMD4<Float> = offColor
@@ -1175,7 +1175,7 @@ class MMSwitchIconWidget : MMWidget
             mmView.drawBox.draw( x: rect.x + space - 10, y: rect.y, width: rect.width - space + 10, height: rect.height, round: skin.round, borderSize: skin.borderSize, fillColor : fillColor, borderColor: borderColor)
             
             mmView.drawTexture.draw(leftIconOffTexture!, x: rect.x + 23, y: rect.y + 8, zoom: iconZoom)
-            mmView.drawTexture.draw(rightIconOnTexture!, x: rect.x + space + 12, y: rect.y + 13, zoom: iconZoom)
+            mmView.drawTexture.draw(rightIconOnTexture!, x: rect.x + space + 16, y: rect.y + 8, zoom: iconZoom)
         }
     }
 }
