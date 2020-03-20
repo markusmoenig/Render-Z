@@ -1145,7 +1145,7 @@ class MMSwitchIconWidget : MMWidget
         if state == .Left {
         
             var fillColor    : SIMD4<Float> = offColor
-            var borderColor  : SIMD4<Float> = hoverMode == .Right ? skin.hoverColor : fillColor
+            var borderColor  : SIMD4<Float> = fillColor//hoverMode == .Right ? skin.hoverColor : fillColor
             
             if isDisabled {
                 fillColor.w = mmView.skin.disabledAlpha
@@ -1162,7 +1162,7 @@ class MMSwitchIconWidget : MMWidget
         } else {
             
             var fillColor    : SIMD4<Float> = offColor
-            var borderColor  : SIMD4<Float> = hoverMode == .Left ? skin.hoverColor : offColor
+            var borderColor  : SIMD4<Float> = fillColor//hoverMode == .Left ? skin.hoverColor : offColor
             
             if isDisabled {
                 fillColor.w = mmView.skin.disabledAlpha

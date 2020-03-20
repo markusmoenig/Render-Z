@@ -16,10 +16,12 @@ import UIKit
 
 class MMFile
 {
-    var mmView          : MMView!
-    var name            : String = "Untitled"
+    var mmView              : MMView!
+    var name                : String = "Untitled"
+    let appExtension        : String
     
-    let appExtension    : String
+    var query               : NSMetadataQuery!
+    var result              : [NSMetadataItem] = []
     
     var containerUrl: URL? {
         return FileManager.default.url(forUbiquityContainerIdentifier: nil)?.appendingPathComponent("Documents")
@@ -38,6 +40,36 @@ class MMFile
             }
             catch {
                 print(error.localizedDescription)
+            }
+        }
+        
+        query = NSMetadataQuery()
+        query.predicate = NSPredicate.init(format: "%K BEGINSWITH %@", argumentArray: [NSMetadataItemPathKey, self.containerUrl!.path])
+        query.searchScopes = [NSMetadataQueryUbiquitousDocumentsScope]
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(self.updateCloudData), name: NSNotification.Name.NSMetadataQueryDidFinishGathering, object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(self.updateCloudData), name: NSNotification.Name.NSMetadataQueryDidUpdate, object: nil)
+        
+        query.enableUpdates()
+        query.start()
+    }
+    
+    @objc func updateCloudData(notification: NSNotification)
+    {
+        print(query.results)
+        
+        query.disableUpdates()
+        result = query.results as! [NSMetadataItem]
+        query.enableUpdates()
+
+        for item in query.results as! [NSMetadataItem] {
+            let url = item.value(forAttribute: NSMetadataItemURLKey) as! URL
+            let values = try? url.resourceValues(forKeys: [.nameKey, .contentModificationDateKey])
+            if values == nil {
+                let fc = NSFileCoordinator()
+                fc.coordinate(readingItemAt: url, options: .resolvesSymbolicLink, error: nil, byAccessor: { url in
+                })
             }
         }
     }
@@ -118,13 +150,14 @@ class MMFile
     {
         var string : String = ""
         
-        do {
-            string = try String(contentsOf: url, encoding: .utf8)
-        }
-        catch {
-            print(error.localizedDescription)
-        }
-        
+        let fc = NSFileCoordinator()
+        fc.coordinate(readingItemAt: url, options: .forUploading, error: nil, byAccessor: { url in
+            do {
+                string = try String(contentsOf: url, encoding: .utf8)
+            } catch {
+                print(error.localizedDescription)
+            }
+        })
         return string
     }
 

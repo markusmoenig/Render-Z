@@ -273,25 +273,13 @@ class MMFileDialog : MMDialog {
         }
         #endif
         
-        let mmFile = globalApp!.mmFile!
-        var contents : [URL] = []
-        
-        do {
-            contents = try FileManager.default.contentsOfDirectory(at: mmFile.containerUrl!, includingPropertiesForKeys: nil, options: [])
-            
-            for item in contents {
-                
-                let values = try? item.resourceValues(forKeys: [.isRegularFileKey, .nameKey])
-
-                if values!.isRegularFile! {
-                    if values!.name!.contains("." + mmFile.appExtension) && !values!.name!.starts(with: ".") {
-                        items.append( MMFileDialogItem(mmView, item ) )
-                    }
-                }
-            }
-        }
-        catch {
-            print(error.localizedDescription)
+        let fc = NSFileCoordinator()
+        for item in globalApp!.mmFile.result
+        {
+            let itemUrl = item.value(forAttribute: NSMetadataItemURLKey) as! URL
+            fc.coordinate(readingItemAt: itemUrl, options: .resolvesSymbolicLink, error: nil, byAccessor: { url in
+                items.append( MMFileDialogItem(mmView, url ) )
+            })
         }
 
         widgets.append(self)
