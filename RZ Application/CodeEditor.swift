@@ -831,25 +831,27 @@ class CodeEditor        : MMWidget
                     let argumentIndex = pStatement.isArgumentIndexOf
                     if let argumentFormat = destFrag.argumentFormat {
 
-                        let argument = argumentFormat[argumentIndex]
-                        if argument.contains(sourceFrag.typeName) {
-                            
-                            // Replace all arguments of the parent which have the old typeName with a constant of the new type
-                            if let parent = pStatement.parentFragment {
-                                for (index,statement) in parent.arguments.enumerated() {
-                                    for arg in statement.fragments {
-                                        if arg !== destFrag && arg.typeName == destFrag.typeName && parent.argumentFormat != nil {
-                                            let aFormat = parent.argumentFormat![index]
-                                            if aFormat.contains(sourceFrag.typeName) {
-                                                defaultConstantForType(sourceFrag.typeName).copyTo(arg)
+                        if argumentIndex < argumentFormat.count {
+                            let argument = argumentFormat[argumentIndex]
+                            if argument.contains(sourceFrag.typeName) {
+                                
+                                // Replace all arguments of the parent which have the old typeName with a constant of the new type
+                                if let parent = pStatement.parentFragment {
+                                    for (index,statement) in parent.arguments.enumerated() {
+                                        for arg in statement.fragments {
+                                            if arg !== destFrag && arg.typeName == destFrag.typeName && parent.argumentFormat != nil {
+                                                let aFormat = parent.argumentFormat![index]
+                                                if aFormat.contains(sourceFrag.typeName) {
+                                                    defaultConstantForType(sourceFrag.typeName).copyTo(arg)
+                                                }
                                             }
                                         }
                                     }
                                 }
+                                
+                                destFrag.typeName = sourceFrag.typeName
+                                destComponents = destFrag.evaluateComponents()
                             }
-                            
-                            destFrag.typeName = sourceFrag.typeName
-                            destComponents = destFrag.evaluateComponents()
                         }
                     }
                 }

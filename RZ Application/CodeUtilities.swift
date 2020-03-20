@@ -178,6 +178,18 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             } else
             if component.componentType == .UVMAP3D {
                 libName += " :: UVMAP3D"
+            } else
+            if component.componentType == .Domain2D {
+                libName += " :: Domain2D"
+            } else
+            if component.componentType == .Domain3D {
+                libName += " :: Domain3D"
+            } else
+            if component.componentType == .Modifier2D {
+                libName += " :: Modifier2D"
+            } else
+            if component.componentType == .Modifier3D {
+                libName += " :: Modifier3D"
             }
         }
         

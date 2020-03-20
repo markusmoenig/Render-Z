@@ -169,6 +169,7 @@ class CodeFragList : MMWidget
         item.items.append( SourceListItem("radians", CodeFragment(.Primitive, "float", "radians", [.Selectable, .Dragable, .Targetable], ["float"], "float" ) ) )
         item.items.append( SourceListItem("reflect", CodeFragment(.Primitive, "float2", "reflect", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "input0"  ) ) )
         item.items.append( SourceListItem("refract", CodeFragment(.Primitive, "float2", "refract", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4", "float"], "input0"  ) ) )
+        item.items.append( SourceListItem("round", CodeFragment(.Primitive, "float", "round", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         
         item = FragItem("S")
         items.append(item)

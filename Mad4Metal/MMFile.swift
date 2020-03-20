@@ -56,9 +56,7 @@ class MMFile
     }
     
     @objc func updateCloudData(notification: NSNotification)
-    {
-        print(query.results)
-        
+    {        
         query.disableUpdates()
         result = query.results as! [NSMetadataItem]
         query.enableUpdates()

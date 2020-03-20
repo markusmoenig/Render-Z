@@ -34,7 +34,7 @@ class SceneGraphSkin {
 class SceneGraphItem {
         
     enum SceneGraphItemType {
-        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem, VariableContainer, VariableItem
+        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem, VariableContainer, VariableItem, DomainContainer, DomainItem, ModifierContainer, ModifierItem
     }
     
     var itemType                : SceneGraphItemType
@@ -313,6 +313,14 @@ class SceneGraph                : MMWidget
                         mouseDownItemPos.x = stageItem.values["_graphShapesX"]!
                         mouseDownItemPos.y = stageItem.values["_graphShapesY"]!
                     } else
+                    if let stageItem = drag.stageItem, drag.itemType == .DomainContainer {
+                        mouseDownItemPos.x = stageItem.values["_graphDomainX"]!
+                        mouseDownItemPos.y = stageItem.values["_graphDomainY"]!
+                    } else
+                    if let stageItem = drag.stageItem, drag.itemType == .ModifierContainer {
+                        mouseDownItemPos.x = stageItem.values["_graphModifierX"]!
+                        mouseDownItemPos.y = stageItem.values["_graphModifierY"]!
+                    } else
                     if let stageItem = drag.stageItem {
                         mouseDownItemPos.x = stageItem.values["_graphX"]!
                         mouseDownItemPos.y = stageItem.values["_graphY"]!
@@ -406,6 +414,14 @@ class SceneGraph                : MMWidget
                 stageItem.values["_graphShapesX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
                 stageItem.values["_graphShapesY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
             } else
+                if let stageItem = drag.stageItem, drag.itemType == .DomainContainer {
+                stageItem.values["_graphDomainX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
+                stageItem.values["_graphDomainY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
+            } else
+            if let stageItem = drag.stageItem, drag.itemType == .ModifierContainer {
+                stageItem.values["_graphModifierX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
+                stageItem.values["_graphModifierY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
+            } else
             if let stageItem = drag.stageItem {
                 stageItem.values["_graphX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
                 stageItem.values["_graphY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
@@ -485,7 +501,7 @@ class SceneGraph                : MMWidget
         for (uuid,item) in itemMap {
             if item.rect.contains(realX, realY) || (item.navRect != nil && item.navRect!.contains(x, y)) {
                 
-                if item.itemType == .ShapesContainer || item.itemType == .VariableContainer {
+                if item.itemType == .ShapesContainer || item.itemType == .VariableContainer || item.itemType == .DomainContainer || item.itemType == .ModifierContainer {
                     contUUID = uuid
                     continue
                 }
@@ -874,6 +890,9 @@ class SceneGraph                : MMWidget
                     if comp.componentType == .Shadows3D {
                         buildChangeComponent(item, name: "Shadows", id: "Shadows3D")
                     } else
+                    if comp.componentType == .Domain3D {
+                        buildChangeComponent(item, name: "Domain", id: "Domain3D")
+                    } else
                     if comp.componentType == .Material3D {
                         buildChangeComponent(item, name: "Material", id: "Material3D")
                         item.stageItem!.name = item.component!.libraryName
@@ -1084,7 +1103,7 @@ class SceneGraph                : MMWidget
     }
     
     /// Draws an object hierarchy
-    func drawObject(stage: Stage,o: StageItem, parent: SceneGraphItem? = nil, skin: SceneGraphSkin)
+    func drawObject(stage: Stage, o: StageItem, parent: SceneGraphItem? = nil, skin: SceneGraphSkin)
     {
         if o.label == nil || o.label!.scale != skin.fontScale {
             let name : String = o.name
@@ -1131,6 +1150,7 @@ class SceneGraph                : MMWidget
         }
         
         drawShapesBox(parent: item, skin: skin)
+        drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
         
         for c in o.children {
             drawObject(stage: stage, o: c, parent: item, skin: skin)
@@ -1252,6 +1272,72 @@ class SceneGraph                : MMWidget
             for comp in list {
                 
                 let item = SceneGraphItem(.VariableItem, stage: parent.stage, stageItem: stageItem, component: comp)
+                item.rect.set(x, y + top, totalWidth, itemSize)
+                itemMap[comp.uuid] = item
+                
+                if comp === currentComponent {
+                    mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 0, fillColor: skin.selectedBorderColor)
+                }
+                
+                if stageItem.componentLabels[comp.libraryName] == nil || stageItem.componentLabels[comp.libraryName]!.scale != skin.fontScale {
+                    stageItem.componentLabels[comp.libraryName] = MMTextLabel(mmView, font: mmView.openSans, text: comp.libraryName, scale: skin.fontScale, color: skin.normalTextColor)
+                }
+                if let label = stageItem.componentLabels[comp.libraryName] {
+                    label.rect.x = rect.x + item.rect.x + (totalWidth - label.rect.width) / 2
+                    label.rect.y = rect.y + item.rect.y + (itemSize - skin.lineHeight) / 2
+                    label.draw()
+                }
+                top += itemSize
+            }
+        }
+    }
+    
+    func drawItemList(parent: SceneGraphItem, listId: String, graphId: String, name: String, containerId: SceneGraphItem.SceneGraphItemType, itemId: SceneGraphItem.SceneGraphItemType, skin: SceneGraphSkin)
+    {
+        let itemSize    : Float = 35 * graphZoom
+        let totalWidth  : Float = 140 * graphZoom
+        let headerHeight: Float = 30 * graphZoom
+        var top         : Float = headerHeight + 7.5 * graphZoom
+        
+        let stageItem   = parent.stageItem!
+        
+        if stageItem.values["\(graphId)X"] == nil {
+            stageItem.values["\(graphId)X"] = 0
+        }
+        
+        if stageItem.values["\(graphId)Y"] == nil {
+            stageItem.values["\(graphId)Y"] = 0
+        }
+
+        let x           : Float = parent.rect.x + stageItem.values["\(graphId)X"]! * graphZoom
+        let y           : Float = parent.rect.y + stageItem.values["\(graphId)Y"]! * graphZoom
+
+        if let list = parent.stageItem!.componentLists[listId] {
+            
+            let amount : Float = Float(list.count)
+            let height : Float = amount * itemSize + headerHeight + 15 * graphZoom
+            
+            let container = SceneGraphItem(containerId, stage: parent.stage, stageItem: stageItem)
+            container.rect.set(x, y, totalWidth, height)
+            itemMap[UUID()] = container
+            
+            mmView.drawLine.draw(sx: rect.x + parent.rect.x + parent.rect.width / 2, sy: rect.y + parent.rect.y + parent.rect.height / 2, ex: rect.x + x + totalWidth / 2, ey: rect.y + y + headerHeight / 2, radius: 1, fillColor: skin.normalBorderColor)
+            
+            mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
+            
+            drawPlusButton(item: container, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 4 * graphZoom, headerHeight, headerHeight), cb: { () in
+                self.getShape(item: container, replace: false)
+            }, skin: skin)
+            
+            skin.font.getTextRect(text: name, scale: skin.fontScale, rectToUse: skin.tempRect)
+            
+            mmView.drawText.drawText(skin.font, text: name, x: rect.x + x + 10 * graphZoom, y: rect.y + y + 7 * graphZoom, scale: skin.fontScale, color: skin.normalTextColor)
+            
+            mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight, radius: 0.6, fillColor: skin.normalBorderColor)
+
+            for comp in list {
+                
+                let item = SceneGraphItem(itemId, stage: parent.stage, stageItem: stageItem, component: comp)
                 item.rect.set(x, y + top, totalWidth, itemSize)
                 itemMap[comp.uuid] = item
                 

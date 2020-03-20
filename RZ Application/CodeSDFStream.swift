@@ -683,6 +683,32 @@ class CodeSDFStream
     {
         hierarchy.append(stageItem)
         
+        // Handle the domains
+        
+        if type == .SDF3D {
+            if let list = stageItem.componentLists["domain3D"] {
+                for domain in list {
+                    dryRunComponent(domain, instance.data.count, monitor)
+                    instance.collectProperties(domain)
+                    
+                    mapCode +=
+                    """
+                    {
+                    float3 position = __origin, outPosition = position;
+                    
+                    """
+                    mapCode += domain.code!
+                    mapCode +=
+                    """
+                    
+                    __origin = outPosition;
+                    }
+                    """                    
+                }
+            }
+        }
+        
+        // Handle the materials
         if let material = getFirstComponentOfType(stageItem.children, .Material3D) {
             // If this item has a material, generate the material function code and push it on the stack
             
