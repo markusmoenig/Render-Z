@@ -633,12 +633,47 @@ class CodeSDFStream
             code +=
             """
                 {
-                    float3 position = __translate(__origin, float3(__data[\(posX)].x, -__data[\(posY)].x, __data[\(posZ)].x));
+                    float3 __originalPosition = float3(__data[\(posX)].x, -__data[\(posY)].x, __data[\(posZ)].x);
+                    float3 position = __translate(__origin, __originalPosition);
 
             """
         }
         
         code += component.code!
+        
+        if type == .SDF3D
+        {
+            // Modifier 3D
+            
+            if let stageItem = hierarchy.last {
+                if let list = stageItem.componentLists["modifier3D"] {
+                    if list.count > 0 {
+                        
+                        code +=
+                        """
+                        {
+                        float3 offsetFromCenter = __origin - __originalPosition;
+                        float distance = outDistance;
+                        
+                        """
+
+                        for modifier in list {
+                            dryRunComponent(modifier, instance.data.count, monitor)
+                            instance.collectProperties(modifier)
+
+                            code += modifier.code!
+                        }
+                        
+                        code +=
+                        """
+                        
+                        }
+                        """                        
+                    }
+                }
+            }
+        }
+
 
         if componentCounter > 0 {
             code +=
@@ -703,7 +738,7 @@ class CodeSDFStream
                     
                     __origin = outPosition;
                     }
-                    """                    
+                    """
                 }
             }
         }

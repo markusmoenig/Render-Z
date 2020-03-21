@@ -712,6 +712,29 @@ class SceneGraph                : MMWidget
         })
     }
     
+    /// Adds a modifier or domain item to the list
+    func addItem(_ item: SceneGraphItem, name: String, listId: String)
+    {
+        globalApp!.libraryDialog.show(id: name + getCurrentModeId(), cb: { (json) in
+            if let comp = decodeComponentFromJSON(json) {
+                let undo = globalApp!.currentEditor.undoStageItemStart("Add " + name)
+                
+                comp.uuid = UUID()
+                comp.selected = nil
+                
+                globalApp!.currentEditor.setComponent(comp)
+
+                if let current = item.stageItem {
+                    current.componentLists[listId]?.append(comp)
+                }
+                
+                globalApp!.currentEditor.undoStageItemEnd(undo)
+                self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+            }
+        })
+    }
+    
     ///Build the menu
     func buildToolbar(uuid: UUID?)
     {
@@ -892,6 +915,35 @@ class SceneGraph                : MMWidget
                     } else
                     if comp.componentType == .Domain3D {
                         buildChangeComponent(item, name: "Domain", id: "Domain3D")
+                        
+                        let deleteButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
+                        deleteButton.clicked = { (event) in
+                            let id = "domain" + getCurrentModeId()
+                            
+                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Domain")
+                                item.stageItem!.componentLists[id]!.remove(at: index)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            }
+                        }
+                        toolBarWidgets.append(deleteButton)
+                    } else
+                    if comp.componentType == .Modifier3D {
+                        buildChangeComponent(item, name: "Modifier", id: "Modifier3D")
+                        
+                        let deleteButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
+                        deleteButton.clicked = { (event) in
+                            let id = "modifier" + getCurrentModeId()
+                            
+                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Modifier")
+                                item.stageItem!.componentLists[id]!.remove(at: index)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            }
+                        }
+                        toolBarWidgets.append(deleteButton)
                     } else
                     if comp.componentType == .Material3D {
                         buildChangeComponent(item, name: "Material", id: "Material3D")
@@ -1151,6 +1203,7 @@ class SceneGraph                : MMWidget
         
         drawShapesBox(parent: item, skin: skin)
         drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
+        drawItemList(parent: item, listId: "modifier" + getCurrentModeId(), graphId: "_graphModifier", name: "Modifier", containerId: .ModifierContainer, itemId: .ModifierItem, skin: skin)
         
         for c in o.children {
             drawObject(stage: stage, o: c, parent: item, skin: skin)
@@ -1326,7 +1379,7 @@ class SceneGraph                : MMWidget
             mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
             
             drawPlusButton(item: container, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 4 * graphZoom, headerHeight, headerHeight), cb: { () in
-                self.getShape(item: container, replace: false)
+                self.addItem(container, name: name, listId: listId)
             }, skin: skin)
             
             skin.font.getTextRect(text: name, scale: skin.fontScale, rectToUse: skin.tempRect)

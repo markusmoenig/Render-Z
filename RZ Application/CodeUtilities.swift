@@ -116,11 +116,22 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             }
             addFunctions(f)
         }
-        
-        componentToUse.selected = nil
     }
     
+    // For the upload reset the position of the component to 0
+    let oldValues = componentToUse.values
+    let oldSelected = componentToUse.selected
+    
+    componentToUse.selected = nil
+    if componentToUse.values["_posX"] != nil { componentToUse.values["_posX"] = 0.0 }
+    if componentToUse.values["_posY"] != nil { componentToUse.values["_posY"] = 0.0 }
+    if componentToUse.values["_posZ"] != nil { componentToUse.values["_posZ"] = 0.0 }
+
     let encodedData = try? JSONEncoder().encode(componentToUse)
+    
+    componentToUse.values = oldValues
+    componentToUse.selected = oldSelected
+
     if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
     {
         var libName = name

@@ -84,7 +84,10 @@ class StageItem             : Codable, Equatable
         values["_graphShapesY"] = 0
         
         values["_graphDomainX"] = -170
-        values["_graphDomainY"] = -40
+        values["_graphDomainY"] = -50
+        
+        values["_graphModifierX"] = 20
+        values["_graphModifierY"] = -120
     }
 
     /// Recursively update the component
@@ -407,8 +410,11 @@ class Stage                 : Codable, Equatable
             stageItem.componentLists["domain2D"] = []
             stageItem.componentLists["domain3D"] = []
             
+            let defComponent3D = CodeComponent(.Modifier3D, "modifier")
+            defComponent3D.createDefaultFunction(.Modifier3D)
+            
             stageItem.componentLists["modifier2D"] = []
-            stageItem.componentLists["modifier3D"] = []
+            stageItem.componentLists["modifier3D"] = [defComponent3D]
             
             stageItem.addMaterial()
         }
