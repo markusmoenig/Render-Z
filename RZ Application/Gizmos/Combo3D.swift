@@ -48,6 +48,7 @@ class GizmoCombo3D          : GizmoBase
     
     //var camera3D            : CamHelper3D = CamHelper3D()
     var mouseIsDown         : Bool = false
+    var scaleAllAxis        : Bool = false
     
     override init(_ view: MMView)
     {
@@ -140,6 +141,7 @@ class GizmoCombo3D          : GizmoBase
             scaleXFragment = nil
             scaleYFragment = nil
             scaleZFragment = nil
+            scaleAllAxis = false
 
             // Get the scale gizmo mapping for the properties
             for prop in component.properties {
@@ -147,6 +149,9 @@ class GizmoCombo3D          : GizmoBase
                     if gizmoMap != .None {
                         let rc = component.getPropertyOfUUID(prop)
                         if let frag = rc.0, rc.1 != nil {
+                            if gizmoMap == .AllScale {
+                                scaleAllAxis = true
+                            }
                             if gizmoMap == .AllScale || gizmoMap == .XScale {
                                 scaleXFragmentName = frag.name
                                 scaleXFragment = rc.1!
@@ -286,21 +291,21 @@ class GizmoCombo3D          : GizmoBase
                 ]
                 processGizmoProperties(properties)
             } else
-            if dragState == .xAxisScale {
+            if dragState == .xAxisScale || scaleAllAxis {
                 if let fragment = scaleXFragment {
                     //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
                     //processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (hit.x - dragStartOffset!.x), 0.001))
                     processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + diff, 0.001))
                 }
             } else
-            if dragState == .yAxisScale {
+            if dragState == .yAxisScale || scaleAllAxis {
                 if let fragment = scaleYFragment {
                     //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoYAxisNormal, planeCenter: planeCenter)
                     //processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (hit.y - dragStartOffset!.x), 0.001))
                     processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - diff, 0.001))
                 }
             } else
-            if dragState == .zAxisScale {
+            if dragState == .zAxisScale || scaleAllAxis {
                 if let fragment = scaleZFragment {
                     //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoZAxisNormal, planeCenter: planeCenter)
                     //processProperty(fragment, name: scaleZFragmentName!, value: max(initialValues["_scaleZ"]! + (hit.z - dragStartOffset!.x), 0.001))

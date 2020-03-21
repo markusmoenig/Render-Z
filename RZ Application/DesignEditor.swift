@@ -322,6 +322,7 @@ class DesignEditor          : MMWidget
         {
             mmView.undoManager!.registerUndo(withTarget: self) { target in
                 globalApp!.loadComponentFrom(oldState)
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
                 componentChanged(newState, oldState)
             }
             self.mmView.undoManager!.setActionName(undoComponent.name)
