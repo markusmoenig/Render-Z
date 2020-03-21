@@ -64,6 +64,12 @@ class App
         mmView.registerIcon("gizmo_off")
         mmView.registerIcon("dev_on")
         mmView.registerIcon("dev_off")
+        mmView.registerIcon("X")
+        mmView.registerIcon("Y")
+        mmView.registerIcon("Z")
+        mmView.registerIcon("move")
+        mmView.registerIcon("rotate")
+        mmView.registerIcon("scale")
         sceneGraph = SceneGraph(mmView)
 
         artistEditor = ArtistEditor(mmView)

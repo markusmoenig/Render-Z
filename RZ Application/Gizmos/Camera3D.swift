@@ -299,11 +299,11 @@ class GizmoCamera3D         : GizmoBase
         panButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2 + 40
         panButton.draw()
         
-        rotateButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2 + 40
+        rotateButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2 + 50
         rotateButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2
         rotateButton.draw()
         
-        zoomButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2 - 60
+        zoomButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2 - 50
         zoomButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2
         zoomButton.draw()
     }

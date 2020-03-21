@@ -144,12 +144,12 @@ class DesignEditor          : MMWidget
         }
         
         // Handle properties click
-        if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
+        if currentGizmo == nil || (currentGizmo!.hoverState == .Inactive && currentGizmo!.clickWasConsumed == false) {
             editor.designProperties.mouseDown(event)
         }
         
         //  Handle selection click
-        if editor.designProperties.hoverMode == .None && editor.designProperties.hoverUITitle == nil && (currentGizmo == nil || currentGizmo!.hoverState == .Inactive) {
+        if editor.designProperties.hoverMode == .None && editor.designProperties.hoverUITitle == nil && (currentGizmo == nil || (currentGizmo!.hoverState == .Inactive && currentGizmo!.clickWasConsumed == false)) {
             
             let x : Float = event.x - rect.x
             let y : Float = event.y - rect.y

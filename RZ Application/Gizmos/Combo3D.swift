@@ -29,6 +29,19 @@ class GizmoCombo3D          : GizmoBase
     var scaleXFragment      : CodeFragment? = nil
     var scaleYFragment      : CodeFragment? = nil
     var scaleZFragment      : CodeFragment? = nil
+    
+    var moveButton          : MMButtonWidget
+    var scaleButton         : MMButtonWidget
+    var rotateButton        : MMButtonWidget
+    var xAxisButton         : MMButtonWidget
+    var yAxisButton         : MMButtonWidget
+    var zAxisButton         : MMButtonWidget
+
+    var hoverButton         : MMButtonWidget? = nil
+    var activeButton        : MMButtonWidget? = nil
+    
+    var hoverAxisButton     : MMButtonWidget? = nil
+    var activeAxisButton    : MMButtonWidget? = nil
 
     var undoComponent       : CodeUndoComponent? = nil
     
@@ -58,6 +71,38 @@ class GizmoCombo3D          : GizmoBase
         compute = MMCompute()
         idState = compute.createState(name: "idsGizmoCombo3D")
         cameraState = compute.createState(name: "cameraGizmoCombo3D")
+
+        var smallButtonSkin = MMSkinButton()
+        smallButtonSkin.round = 50
+        smallButtonSkin.borderColor = SIMD4<Float>(1,1,1,1)
+        smallButtonSkin.hoverColor = SIMD4<Float>(0.7,0.7,0.7,1)
+
+        moveButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "move" )
+        moveButton.iconZoom = 2
+        moveButton.rect.width = 50
+        moveButton.rect.height = 50
+        rotateButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "rotate" )
+        rotateButton.iconZoom = 2
+        rotateButton.rect.width = 50
+        rotateButton.rect.height = 50
+        scaleButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "scale" )
+        scaleButton.iconZoom = 2
+        scaleButton.rect.width = 50
+        scaleButton.rect.height = 50
+        xAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "X" )
+        xAxisButton.iconZoom = 2
+        xAxisButton.rect.width = 50
+        xAxisButton.rect.height = 50
+        activeAxisButton = xAxisButton
+        xAxisButton.addState(.Hover)
+        yAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Y" )
+        yAxisButton.iconZoom = 2
+        yAxisButton.rect.width = 50
+        yAxisButton.rect.height = 50
+        zAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Z" )
+        zAxisButton.iconZoom = 2
+        zAxisButton.rect.width = 50
+        zAxisButton.rect.height = 50
 
         super.init(view)
     }
@@ -172,6 +217,15 @@ class GizmoCombo3D          : GizmoBase
                 }
             }
             globalApp!.currentPipeline?.setMinimalPreview(true)
+        } else {
+            if let hoverAxis = hoverAxisButton {
+                if let activeAxis = activeAxisButton {
+                    activeAxis.removeState(.Hover)
+                }
+                activeAxisButton = hoverAxis
+                activeAxisButton!.addState(.Hover)
+                clickWasConsumed = true
+            }
         }
     }
     
@@ -224,6 +278,66 @@ class GizmoCombo3D          : GizmoBase
             }
             if oldState != hoverState {
                 mmView.update()
+            }
+            
+            // If still inactive test the buttons
+            
+            if let hover = hoverButton {
+                hover.removeState(.Hover)
+            }
+            hoverButton = nil
+            if hoverState == .Inactive {
+                let oldState = hoverState
+                
+                // Action Buttons
+
+                if moveButton.rect.contains(event.x, event.y) {
+                    hoverButton = moveButton
+                    if activeAxisButton === xAxisButton { hoverState = .xAxisMove }
+                    else if activeAxisButton === yAxisButton { hoverState = .yAxisMove }
+                    else if activeAxisButton === zAxisButton { hoverState = .zAxisMove }
+                    moveButton.addState(.Hover)
+                } else
+                if rotateButton.rect.contains(event.x, event.y) {
+                    hoverButton = rotateButton
+                    //if activeAxisButton === xAxisButton { hoverState = .Rotate }
+                    //else if activeAxisButton === yAxisButton { hoverState = .yAxisMove }
+                    //else if activeAxisButton === zAxisButton { hoverState = .zAxisMove }
+                    rotateButton.addState(.Hover)
+                } else
+                if scaleButton.rect.contains(event.x, event.y) {
+                    hoverButton = scaleButton
+                    if activeAxisButton === xAxisButton { hoverState = .xAxisScale }
+                    else if activeAxisButton === yAxisButton { hoverState = .yAxisScale }
+                    else if activeAxisButton === zAxisButton { hoverState = .zAxisScale }
+                    scaleButton.addState(.Hover)
+                }
+                
+                // Axis Buttons
+                
+                if let hover = hoverAxisButton {
+                    if hover !== activeAxisButton {
+                        hover.removeState(.Hover)
+                    }
+                }
+                
+                hoverAxisButton = nil
+                if xAxisButton.rect.contains(event.x, event.y) {
+                    hoverAxisButton = xAxisButton
+                    xAxisButton.addState(.Hover)
+                } else
+                if yAxisButton.rect.contains(event.x, event.y) {
+                    hoverAxisButton = yAxisButton
+                    yAxisButton.addState(.Hover)
+                } else
+                if zAxisButton.rect.contains(event.x, event.y) {
+                    hoverAxisButton = zAxisButton
+                    zAxisButton.addState(.Hover)
+                }
+                
+                if oldState != hoverState {
+                    mmView.update()
+                }
             }
         } else {
             //let camera = getScreenCameraDir(event)
@@ -339,6 +453,7 @@ class GizmoCombo3D          : GizmoBase
         }
         mmView.update()
         mouseIsDown = false
+        clickWasConsumed = false
     }
     
     /*
@@ -524,6 +639,32 @@ class GizmoCombo3D          : GizmoBase
         renderEncoder.setRenderPipelineState(state!)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         mmView.renderer.setClipRect()
+        
+        let margin : Float = 20
+        
+        xAxisButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2
+        xAxisButton.rect.y = rect.y + (rect.height - 70)
+        xAxisButton.draw()
+        
+        yAxisButton.rect.x = xAxisButton.rect.x
+        yAxisButton.rect.y = xAxisButton.rect.y - xAxisButton.rect.height - margin
+        yAxisButton.draw()
+        
+        zAxisButton.rect.x = xAxisButton.rect.x
+        zAxisButton.rect.y = yAxisButton.rect.y - yAxisButton.rect.height - margin
+        zAxisButton.draw()
+        
+        scaleButton.rect.x = xAxisButton.rect.x - scaleButton.rect.width - margin
+        scaleButton.rect.y = xAxisButton.rect.y
+        scaleButton.draw()
+        
+        rotateButton.rect.x = scaleButton.rect.x - scaleButton.rect.width - margin
+        rotateButton.rect.y = xAxisButton.rect.y
+        rotateButton.draw()
+        
+        moveButton.rect.x = rotateButton.rect.x - rotateButton.rect.width - margin
+        moveButton.rect.y = xAxisButton.rect.y
+        moveButton.draw()
     }
     
     /// Returns the angle between the start / end points

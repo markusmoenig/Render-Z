@@ -17,7 +17,9 @@ class GizmoBase              : MMWidget
     var hoverState          : GizmoState = .Inactive
     var dragState           : GizmoState = .Inactive
     
-    var component            : CodeComponent!
+    var clickWasConsumed    : Bool = false
+    
+    var component           : CodeComponent!
 
     func setComponent(_ comp: CodeComponent)
     {
