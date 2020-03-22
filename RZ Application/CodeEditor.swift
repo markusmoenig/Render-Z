@@ -149,7 +149,7 @@ class CodeEditor        : MMWidget
         if orientationDrag == true {
             var offset : Float = mouseDownPos.y - event.y
             
-            offset /= (100 / rect.width) * 1.8
+            offset /= 100 / rect.width * 2
             scrollArea.offsetY += offset
             
             mouseDownPos.x = event.x
@@ -277,7 +277,7 @@ class CodeEditor        : MMWidget
             
             var offset : Float = event.y - rect.y
             
-            offset /= (100 / rect.width) * 1.8
+            offset /= 100 / rect.width * 2
             scrollArea.offsetY = -offset
 
             scrollArea.checkOffset(widget: textureWidget, area: rect)
@@ -377,7 +377,7 @@ class CodeEditor        : MMWidget
         }
         
         let width : Float = max(codeContext.width, 10)
-        let height : Float = codeContext.cY == 0 ? 500 : codeContext.cY
+        let height : Float = codeContext.height == 0 ? 500 : codeContext.height
                 
         if fragment.width != width * zoom || fragment.height != height * zoom {
             fragment.allocateTexture(width: width * zoom, height: height * zoom, mipMaps: true)
@@ -458,17 +458,12 @@ class CodeEditor        : MMWidget
         // Orientation area
         mmView.renderer.setClipRect(rect)
 
-        let factor : Float = 1.8
-        var ratio : Float = 100 / (codeContext.width * mmView.scaleFactor)//Float(fragment.width)
-        ratio = ratio * Float(fragment.height)
-        orientationHeight = ratio * factor
-        mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100 * factor, height: orientationHeight)
-        
-        ratio = 100 / codeContext.width//rect.width
-        ratio = ratio * rect.height
-
-        let height : Float = min(ratio * factor, orientationHeight)
-        let y : Float = (100 / rect.width) * -scrollArea.offsetY * 1.8
+        let ratio : Float = 100 / rect.width * 2
+        orientationHeight = ratio * codeContext.height
+        mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100, height: orientationHeight)
+                
+        let y : Float = (-scrollArea.offsetY) * ratio
+        let height : Float = min(rect.height * ratio, orientationHeight)
         mmView.drawBox.draw(x: rect.right() - 100, y: rect.y + y, width: 100, height: height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
         mmView.renderer.setClipRect()
         //

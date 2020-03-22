@@ -2220,6 +2220,7 @@ class CodeComponent         : Codable, Equatable
         }
         
         ctx.rectEnd(rect, rStart)
+        ctx.height = ctx.cY
         //if globalCode!.count > 0 {
             //print(globalCode!)
         //}
@@ -2240,6 +2241,7 @@ class CodeContext
     var cY                  : Float = 0
     var cIndent             : Float = 0
     var width               : Float = 0
+    var height              : Float = 0
 
     weak var cComponent     : CodeComponent? = nil
     weak var cFunction      : CodeFunction? = nil
