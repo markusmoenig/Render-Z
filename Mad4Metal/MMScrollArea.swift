@@ -11,7 +11,7 @@ import MetalKit
 class MMScrollArea : MMWidget
 {
     enum MMScrollAreaOrientation {
-        case Horizontal, Vertical
+        case Horizontal, Vertical, HorizontalAndVertical
     }
     
     var offsetX     : Float
@@ -54,6 +54,7 @@ class MMScrollArea : MMWidget
                  if offsetY > 0 {
                      offsetY = 0
                  }
+            break
                  
              case .Horizontal:
                  let wWidth = widget.rect.width / widget.zoom
@@ -67,6 +68,33 @@ class MMScrollArea : MMWidget
                  if offsetX > 0 {
                      offsetX = 0
                  }
+            break
+            
+            case .HorizontalAndVertical:
+            
+                let wHeight = widget.rect.height / widget.zoom
+                                    
+                // --- Check bounds
+                
+                if offsetY < -(wHeight-area.height) {
+                    offsetY = -(wHeight-area.height)
+                }
+                
+                if offsetY > 0 {
+                    offsetY = 0
+                }
+                
+                let wWidth = widget.rect.width / widget.zoom
+                             
+                // --- Check bounds
+                
+                if offsetX < -(wWidth-area.width) {
+                    offsetX = -(wWidth-area.width)
+                }
+                
+                if offsetX > 0 {
+                    offsetX = 0
+                }
          }
     }
     
@@ -93,6 +121,7 @@ class MMScrollArea : MMWidget
                 }
                 
                 widget.rect.y = area.y + offsetY
+            break
             
             case .Horizontal:
                 let wWidth = widget.rect.width / widget.zoom
@@ -110,16 +139,54 @@ class MMScrollArea : MMWidget
                 }
                 
                 widget.rect.x = area.x + offsetX
+            break
+            
+            case .HorizontalAndVertical:
+            
+                let wHeight = widget.rect.height / widget.zoom
+                widget.rect.x = area.x + xOffset
+                widget.rect.y = area.y + yOffset
+
+                // --- Check bounds
+                
+                if offsetY < -(wHeight-area.height) {
+                    offsetY = -(wHeight-area.height)
+                }
+                
+                if offsetY > 0 {
+                    offsetY = 0
+                }
+                
+                widget.rect.y = area.y + offsetY
+                            
+                let wWidth = widget.rect.width / widget.zoom
+                            
+                // --- Check bounds
+                
+                if offsetX < -(wWidth-area.width) {
+                    offsetX = -(wWidth-area.width)
+                }
+                
+                if offsetX > 0 {
+                    offsetX = 0
+                }
+                
+                widget.rect.x = area.x + offsetX
+            break
         }
         widget.draw()
-        
         mmView.renderer.setClipRect()
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
-        offsetY += event.deltaY! * 4
-        
+        if orientation == .Vertical || orientation == .HorizontalAndVertical {
+            offsetY += event.deltaY! * 4
+        }
+        if orientation == .Horizontal || orientation == .HorizontalAndVertical {
+            offsetX += event.deltaX! * 4
+        }
+                
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.mmView.unlockFramerate()
@@ -136,7 +203,7 @@ class MMScrollArea : MMWidget
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         if widget != nil {
-            build(widget: widget!, area: rect, xOffset: xOffset)
+            build(widget: widget!, area: rect, xOffset: xOffset, yOffset: yOffset)
         }
     }
 }

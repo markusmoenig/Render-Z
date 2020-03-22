@@ -49,7 +49,7 @@ class CodeEditor        : MMWidget
     
     override init(_ view: MMView)
     {
-        scrollArea = MMScrollArea(view, orientation: .Vertical)
+        scrollArea = MMScrollArea(view, orientation: .HorizontalAndVertical)
 
         fragment = MMFragment(view)
         fragment.allocateTexture(width: 10, height: 10)
@@ -151,6 +151,7 @@ class CodeEditor        : MMWidget
             
             offset /= 100 / rect.width * 2
             scrollArea.offsetY += offset
+            scrollArea.offsetX += (mouseDownPos.x - event.x) / (100 / codeContext.width)
             
             mouseDownPos.x = event.x
             mouseDownPos.y = event.y
@@ -250,7 +251,7 @@ class CodeEditor        : MMWidget
             let oldBlock = codeContext.hoverBlock
             let oldFrag = codeContext.hoverFragment
             
-            comp.codeAt(event.x - rect.x, event.y - rect.y - scrollArea.offsetY, codeContext)
+            comp.codeAt(event.x - rect.x - scrollArea.offsetX, event.y - rect.y - scrollArea.offsetY, codeContext)
                         
             if oldFunc !== codeContext.hoverFunction || oldBlock !== codeContext.hoverBlock || oldFrag !== codeContext.hoverFragment {
                 needsUpdate = true
@@ -279,6 +280,7 @@ class CodeEditor        : MMWidget
             
             offset /= 100 / rect.width * 2
             scrollArea.offsetY = -offset
+            scrollArea.offsetX = -(event.x - (rect.right() - 100)) / (100 / codeContext.width)
 
             scrollArea.checkOffset(widget: textureWidget, area: rect)
             mmView.update()
@@ -442,9 +444,9 @@ class CodeEditor        : MMWidget
                     var color = mmView.skin.Code.background
                     color.w = 0.9
                     
-                    mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2, y: rect.y + codeContext.gapY / 2 + f.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+                    mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: rect.y + codeContext.gapY / 2 + f.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
                     
-                    mmView.drawBox.draw(x: rect.x + f.rect.x, y: rect.y + f.rect.y + scrollArea.offsetY, width: f.rect.width, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+                    mmView.drawBox.draw(x: rect.x + f.rect.x + scrollArea.offsetX, y: rect.y + f.rect.y + scrollArea.offsetY, width: f.rect.width, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
                 }
             }
             mmView.renderer.setClipRect()
@@ -453,7 +455,7 @@ class CodeEditor        : MMWidget
         }
         
         scrollArea.rect.copy(rect)
-        scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset)
+        scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset, yOffset: yOffset)
         
         // Orientation area
         mmView.renderer.setClipRect(rect)
@@ -464,7 +466,7 @@ class CodeEditor        : MMWidget
                 
         let y : Float = (-scrollArea.offsetY) * ratio
         let height : Float = min(rect.height * ratio, orientationHeight)
-        mmView.drawBox.draw(x: rect.right() - 100, y: rect.y + y, width: 100, height: height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
+        mmView.drawBox.draw(x: rect.right() - 100 + -scrollArea.offsetX * (100 / codeContext.width), y: rect.y + y, width: 100 * rect.width / codeContext.width, height: height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
         mmView.renderer.setClipRect()
         //
         
