@@ -183,9 +183,7 @@ class DesignEditor          : MMWidget
                         //globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.PreStage))
                     }
                 }
-            }
-            
-            // Camera
+            }            
         }
     }
     

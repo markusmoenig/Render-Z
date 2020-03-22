@@ -68,6 +68,8 @@
 	<array>
 		<string>armv7</string>
 	</array>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Export rendered images and videos to the Photo Library</string>
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UISupportedInterfaceOrientations</key>

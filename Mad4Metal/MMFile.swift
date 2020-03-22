@@ -14,7 +14,7 @@ import AppKit
 import UIKit
 #endif
 
-class MMFile
+class MMFile : NSObject
 {
     var mmView              : MMView!
     var name                : String = "Untitled"
@@ -32,6 +32,8 @@ class MMFile
     {
         mmView = view
         appExtension = ext
+        
+        super.init()
         
         // --- Check for iCloud container existence
         if let url = self.containerUrl, !FileManager.default.fileExists(atPath: url.path, isDirectory: nil) {
@@ -143,6 +145,45 @@ class MMFile
         
         #endif
     }
+    
+    func saveImage(image: CGImage)
+    {
+        #if os(OSX)
+
+        let savePanel = NSSavePanel()
+        savePanel.canCreateDirectories = false
+        savePanel.title = "Select Image"
+        savePanel.directoryURL =  containerUrl
+        savePanel.showsHiddenFiles = false
+        savePanel.allowedFileTypes = ["png"]
+        
+        func save(url: URL)
+        {
+            if let imageDestination = CGImageDestinationCreateWithURL(url as CFURL, kUTTypePNG, 1, nil) {
+                CGImageDestinationAddImage(imageDestination, image, nil)
+                CGImageDestinationFinalize(imageDestination)
+            }
+        }
+        
+        savePanel.beginSheetModal(for: self.mmView.window!) { (result) in
+            if result == .OK {
+                save(url: savePanel.url!)
+                self.mmView.undoManager!.removeAllActions()
+            }
+        }
+        
+        #elseif os(iOS)
+                
+        let image = UIImage(cgImage: image)
+        UIImageWriteToSavedPhotosAlbum(image, self, #selector(savingToPhotoLibraryComplete(image:err:context:)), nil)
+        
+        #endif
+    }
+    
+    #if os(iOS)
+    @objc func savingToPhotoLibraryComplete(image:UIImage, err:NSError, context:UnsafeMutableRawPointer?) {
+    }
+    #endif
     
     func loadJSON(url: URL) -> String
     {

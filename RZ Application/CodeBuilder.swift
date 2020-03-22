@@ -104,6 +104,7 @@ class CodeBuilder
 
     var clearState          : MTLComputePipelineState? = nil
     var copyState           : MTLComputePipelineState? = nil
+    var copyAndSwapState    : MTLComputePipelineState? = nil
     var sampleState         : MTLComputePipelineState? = nil
     var previewState        : MTLComputePipelineState? = nil
 
@@ -590,7 +591,7 @@ class CodeBuilder
     /// Build a copy texture shader
     func buildCopyState()
     {
-        let code =
+        var code =
         """
         #include <metal_stdlib>
         #include <simd/simd.h>
@@ -607,8 +608,30 @@ class CodeBuilder
          
         """
 
-        let library = compute.createLibraryFromSource(source: code)
+        var library = compute.createLibraryFromSource(source: code)
         copyState = compute.createState(library: library, name: "copyBuilder")
+        
+        code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void copyBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        texture2d<half, access::read>           inTexture [[texture(2)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
+            half4 color = inTexture.read(gid).zyxw;
+            color.xyz = pow(color.xyz, 2.2);
+            outTexture.write(color, gid);
+        }
+         
+        """
+
+        library = compute.createLibraryFromSource(source: code)
+        copyAndSwapState = compute.createState(library: library, name: "copyBuilder")
     }
     
     /// Build a copy texture shader
@@ -773,10 +796,17 @@ class CodeBuilder
         compute.commandBuffer.waitUntilCompleted()
     }
     
-    // Copy the texture using nearest sampling
+    // Copy the texture
     func renderCopy(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
         compute.run( copyState!, outTexture: to, inTexture: from, syncronize: syncronize)
+        compute.commandBuffer.waitUntilCompleted()
+    }
+    
+    // Copy the texture and swap the rgb values
+    func renderCopyAndSwap(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
+    {
+        compute.run( copyAndSwapState!, outTexture: to, inTexture: from, syncronize: syncronize)
         compute.commandBuffer.waitUntilCompleted()
     }
     

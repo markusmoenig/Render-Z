@@ -26,7 +26,7 @@ class TopRegion: MMRegion
     var saveButton      : MMButtonWidget!
     
     var helpButton      : MMButtonWidget!
-    var playButton      : MMButtonWidget!
+    var exportButton    : MMButtonWidget!
     
     var graphButton     : MMButtonWidget!
     
@@ -199,6 +199,7 @@ class TopRegion: MMRegion
             showHelp()
         }
         
+        /*
         playButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Play" )
         playButton.isDisabled = false
         playButton.textYOffset = -2
@@ -217,8 +218,17 @@ class TopRegion: MMRegion
                 app.currentPipeline!.codeBuilder.isPlaying = false
                 app.currentPipeline!.codeBuilder.currentFrame = 0
             }
-        }
+        }*/
 
+        exportButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Export" )
+        exportButton.isDisabled = false
+        exportButton.textYOffset = -2
+        exportButton.clicked = { (event) -> Void in
+            let exportDialog = ExportDialog(self.mmView)
+            exportDialog.show()
+            self.exportButton.removeState(.Checked)
+        }
+        
         graphButton = MMButtonWidget( mmView, iconName: "scenegraph" )
         graphButton.iconZoom = 2
         graphButton.rect.width += 16
@@ -230,7 +240,7 @@ class TopRegion: MMRegion
         layoutH(startX: 50, startY: 8, spacing: 10, widgets: undoButton, redoButton)
         layoutH(startX: redoButton.rect.right() + 20, startY: 8, spacing: 10, widgets: newButton, openButton, saveButton)
         layoutH(startX: saveButton.rect.right() + 20, startY: 8, spacing: 10, widgets: libraryButton)
-        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, libraryButton, helpButton, playButton, switchButton, graphButton )
+        registerWidgets( widgets: undoButton, redoButton, newButton, openButton, saveButton, libraryButton, helpButton, exportButton, switchButton, graphButton )
     }
     
     override func build()
@@ -265,10 +275,10 @@ class TopRegion: MMRegion
 
         libraryButton.draw()
 
-        layoutHFromRight(startX: rect.x + rect.width - 10, startY: 8, spacing: 10, widgets: helpButton, playButton)
+        layoutHFromRight(startX: rect.x + rect.width - 10, startY: 8, spacing: 10, widgets: helpButton, exportButton)
         
         helpButton.draw()
-        playButton.draw()
+        exportButton.draw()
         
         layoutH( startX: 3, startY: 4 + 44, spacing: 50, widgets: switchButton)
         switchButton.draw()
