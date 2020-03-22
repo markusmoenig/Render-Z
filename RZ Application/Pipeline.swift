@@ -41,7 +41,7 @@ class Pipeline
     
     func renderIfResolutionChanged(_ width: Float,_ height: Float)
     {
-        if (Float(finalTexture!.width) != width || Float(finalTexture!.height) != height) {
+        if Float(finalTexture!.width) != round(width) || Float(finalTexture!.height) != round(height) {
             render(width, height)
         }
     }

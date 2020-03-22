@@ -142,10 +142,10 @@ class Pipeline3D            : Pipeline
     }
         
     // Render the pipeline
-    override func render(_ width: Float,_ height: Float)
+    override func render(_ widthIn: Float,_ heightIn: Float)
     {
         renderId += 1
-        self.width = width; self.height = height
+        width = round(widthIn); height = round(heightIn)
                 
         reflections = 0
         samples = 0
