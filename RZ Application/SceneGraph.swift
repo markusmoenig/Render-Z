@@ -120,9 +120,9 @@ class SceneGraph                : MMWidget
     
     var mouseIsDown             : Bool = false
     var clickWasConsumed        : Bool = false
-    var isDraggingKnob          : Bool = false
+    //var isDraggingKnob          : Bool = false
     
-    var knobRect                : MMRect = MMRect()
+    //var knobRect                : MMRect = MMRect()
     var navRect                 : MMRect = MMRect()
     var visNavRect              : MMRect = MMRect()
     
@@ -273,6 +273,7 @@ class SceneGraph                : MMWidget
         selectedVariable = nil
         
         // Clicked on the knob
+        /*
         if knobRect.contains(event.x, event.y) {
             isDraggingKnob = true
             mouseDownPos.x = event.x
@@ -280,7 +281,7 @@ class SceneGraph                : MMWidget
             mouseDownItemPos.x = currentWidth
             mmView.mouseTrackWidget = self
             return
-        }
+        }*/
         
         #if os(iOS)
         for b in buttons {
@@ -441,12 +442,12 @@ class SceneGraph                : MMWidget
                     break
                 }
             }
-            
+            /*
             if isDraggingKnob {
                 currentWidth = min(max(mouseDownItemPos.x + (mouseDownPos.x - event.x), 300), 900)
                 openWidth = currentWidth
                 mmView.update()
-            } else
+            } else*/
             if mouseIsDown && clickWasConsumed == false && pressedButton == nil {
                 graphX = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
                 graphY = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
@@ -485,7 +486,7 @@ class SceneGraph                : MMWidget
         mouseIsDown = false
         pressedButton = nil
         hoverButton = nil
-        isDraggingKnob = false
+        //isDraggingKnob = false
         selectedVariable = nil
         dragVisNav = false
     }
@@ -593,6 +594,7 @@ class SceneGraph                : MMWidget
             mmView.renderer.setClipRect()
         }
         
+        /*
         let halfKnobWidth : Float = 6
         knobRect.x = rect.x - halfKnobWidth
         knobRect.y = rect.y + rect.height / 2 - halfKnobWidth * 2
@@ -603,8 +605,7 @@ class SceneGraph                : MMWidget
             mmView.drawBox.draw( x: knobRect.x, y: knobRect.y, width: knobRect.width - halfKnobWidth, height: knobRect.height, round: 6, fillColor : SIMD4<Float>( 0, 0, 0, 1))
         } else {
             mmView.drawBox.draw( x: knobRect.x, y: knobRect.y, width: knobRect.width - halfKnobWidth, height: knobRect.height, round: 6, fillColor : SIMD4<Float>( 0.5, 0.5, 0.5, 1))
-
-        }
+        }*/
         
         // Build the toolbar
         if needsUpdate {
