@@ -1105,6 +1105,7 @@ class CodeBlock             : Codable, Equatable
         if rect.right() < maxRight {
             rect.width = maxRight - rect.x
         }
+        ctx.checkForWidth(maxRight)
         ctx.drawBlockState(self)
     }
 }
@@ -1379,6 +1380,8 @@ class CodeFunction          : Codable, Equatable
             rect.width = maxRight - rect.x
         }
         
+        ctx.checkForWidth(maxRight)
+
         //mmView.drawBox.draw( x: ctx.border, y: rect.y, width: 2, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.border, fragment: ctx.fragment )
         ctx.drawFunctionState(self)
         
@@ -2380,7 +2383,14 @@ class CodeContext
         rect.width = cX - start.x + gapX
         rect.height = max(cY - start.y, lineHeight) + gapY
         if cX > width {
-            width = cX
+            width = cX + gapX
+        }
+    }
+    
+    func checkForWidth(_ right: Float)
+    {
+        if right > width {
+            width = right + gapX
         }
     }
     
@@ -2456,7 +2466,7 @@ class CodeContext
         if let frag = fragment {
             if function === hoverFunction || function.uuid == cComponent!.selected {
                 let alpha : Float = function.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
-                mmView.drawBox.draw( x: function.rect.x - gapX / 2, y: function.rect.y, width: function.rect.width, height: function.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
+                mmView.drawBox.draw( x: function.rect.x, y: function.rect.y, width: function.rect.width, height: function.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
             }
         }
     }

@@ -442,7 +442,7 @@ class CodeEditor        : MMWidget
                     var color = mmView.skin.Code.background
                     color.w = 0.9
                     
-                    mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2, y: rect.y + codeContext.gapY / 2 + f.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+                    mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2, y: rect.y + codeContext.gapY / 2 + f.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
                     
                     mmView.drawBox.draw(x: rect.x + f.rect.x, y: rect.y + f.rect.y + scrollArea.offsetY, width: f.rect.width, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
                 }
