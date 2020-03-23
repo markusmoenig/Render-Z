@@ -47,6 +47,8 @@ class CodeEditor        : MMWidget
     var orientationDrag : Bool = false
     var orientationHeight: Float = 0
     
+    var orientationRatio: Float = 0
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .HorizontalAndVertical)
@@ -149,7 +151,7 @@ class CodeEditor        : MMWidget
         if orientationDrag == true {
             var offset : Float = mouseDownPos.y - event.y
             
-            offset /= 100 / rect.width * 2
+            offset /= orientationRatio
             scrollArea.offsetY += offset
             scrollArea.offsetX += (mouseDownPos.x - event.x) / (100 / codeContext.width)
             
@@ -278,7 +280,7 @@ class CodeEditor        : MMWidget
             
             var offset : Float = event.y - rect.y
             
-            offset /= 100 / rect.width * 2
+            offset /= orientationRatio
             scrollArea.offsetY = -offset
             scrollArea.offsetX = -(event.x - (rect.right() - 100)) / (100 / codeContext.width)
 
@@ -460,12 +462,16 @@ class CodeEditor        : MMWidget
         // Orientation area
         mmView.renderer.setClipRect(rect)
 
-        let ratio : Float = 100 / rect.width * 2
-        orientationHeight = ratio * codeContext.height
+        orientationRatio = 100 / rect.width * 2
+        orientationHeight = orientationRatio * codeContext.height
+        while orientationHeight > rect.height {
+            orientationRatio *= 0.75
+            orientationHeight = orientationRatio * codeContext.height
+        }
         mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100, height: orientationHeight)
                 
-        let y : Float = (-scrollArea.offsetY) * ratio
-        let height : Float = min(rect.height * ratio, orientationHeight)
+        let y : Float = (-scrollArea.offsetY) * orientationRatio
+        let height : Float = min(rect.height * orientationRatio, orientationHeight)
         mmView.drawBox.draw(x: rect.right() - 100 + -scrollArea.offsetX * (100 / codeContext.width), y: rect.y + y, width: 100 * rect.width / codeContext.width, height: height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
         mmView.renderer.setClipRect()
         //
