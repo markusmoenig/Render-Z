@@ -33,6 +33,8 @@ class Pipeline3D            : Pipeline
     var renderId            : UInt = 0
     var justStarted         : Bool = true
     var startedRender       : Bool = false
+    
+    var startId             : UInt = 0
 
     override init(_ mmView: MMView)
     {
@@ -147,7 +149,7 @@ class Pipeline3D            : Pipeline
     {
         renderId += 1
         width = round(widthIn); height = round(heightIn)
-                
+            
         reflections = 0
         samples = 0
 
@@ -155,7 +157,6 @@ class Pipeline3D            : Pipeline
 
         allocTextureId("color", width, height, .rgba16Float)
         allocTextureId("mask", width, height, .rgba16Float)
-        
         allocTextureId("id", width, height, .rgba16Float)
 
         if justStarted {
@@ -164,7 +165,6 @@ class Pipeline3D            : Pipeline
         }
         
         if startedRender == false {
-            resetSample()
             
             // Get Render Values
             if let renderComp = getComponent(name: "Renderer") {
@@ -173,6 +173,13 @@ class Pipeline3D            : Pipeline
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                self.startId = self.renderId
+                self.resetSample()
+
+                self.allocTextureId("color", self.width, self.height, .rgba16Float)
+                self.allocTextureId("mask", self.width, self.height, .rgba16Float)
+                self.allocTextureId("id", self.width, self.height, .rgba16Float)
+                
                 self.stage_HitAndNormals()
                 self.currentStage = .HitAndNormals
                 self.startedRender = false
@@ -199,11 +206,10 @@ class Pipeline3D            : Pipeline
     
     func nextStage()
     {
-        let startId = renderId
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-            if startId < self.renderId { return }
+            if self.startId < self.renderId { return }
 
-            //print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "Alloc", self.textureMap.count)
+            //print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "renderId", self.renderId)
 
             let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
             

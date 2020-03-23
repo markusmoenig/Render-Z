@@ -352,15 +352,14 @@ class CodeSDFStream
                 __materialOut.color = float4(1);
                 __materialOut.mask = float3(0);
             
-                if (rayDirection.x != 0.0 && rayDirection.y != 0.0 && rayDirection.z != 0.0)
-                {
-                    if (shape.z == -1 ) {
-                        float2 uv = __uv / __size;
-                        uv.y = 1.0 - uv.y;
-                        color.xyz += background( uv, __size, hitPosition, rayDirection, &__funcData ).xyz * mask;
-                        mask = float3(0);
-                        rayDirection = float3(0);
-                    }
+                if (shape.z == -1 ) {
+                    float2 uv = __uv / __size;
+                    uv.y = 1.0 - uv.y;
+                    color.xyz += background( uv, __size, hitPosition, rayDirection, &__funcData ).xyz * mask;
+                    color = clamp(color, 0.0, 1.0);
+                    mask = float3(0);
+                    rayDirection = float3(0);
+                }
             
             """
             
@@ -557,7 +556,7 @@ class CodeSDFStream
             
             materialCode +=
             """
-                }
+
                 __colorTexture.write(half4(color), __gid);
                 __rayOriginTexture.write(half4(float4(rayOrigin, 0)), __gid);
                 __rayDirectionTexture.write(half4(float4(rayDirection, 0)), __gid);
@@ -781,7 +780,7 @@ class CodeSDFStream
 
             materialCode +=
             """
-
+            else
             if (shape.z == \(materialIdCounter) )
             {
                 material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
