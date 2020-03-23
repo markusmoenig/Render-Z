@@ -48,6 +48,7 @@ class CodeEditor        : MMWidget
     var orientationHeight: Float = 0
     
     var orientationRatio: Float = 0
+    var orientationRect : MMRect = MMRect()
     
     override init(_ view: MMView)
     {
@@ -277,16 +278,16 @@ class CodeEditor        : MMWidget
         // Click in Orientation Slider
         if event.x > rect.right() - 100 && event.y <= (rect.y + orientationHeight) {
             orientationDrag = true;
-            
-            var offset : Float = event.y - rect.y
-            
-            offset /= orientationRatio
-            scrollArea.offsetY = -offset
-            scrollArea.offsetX = -(event.x - (rect.right() - 100)) / (100 / codeContext.width)
+            if orientationRect.contains(event.x, event.y) == false {
+                var offset : Float = event.y - rect.y
+                
+                offset /= orientationRatio
+                scrollArea.offsetY = -offset
+                scrollArea.offsetX = -(event.x - (rect.right() - 100)) / (100 / codeContext.width)
 
-            scrollArea.checkOffset(widget: textureWidget, area: rect)
-            mmView.update()
-            
+                scrollArea.checkOffset(widget: textureWidget, area: rect)
+                mmView.update()
+            }
             return
         }
         
@@ -468,13 +469,17 @@ class CodeEditor        : MMWidget
             orientationRatio *= 0.75
             orientationHeight = orientationRatio * codeContext.height
         }
+        mmView.drawBox.draw(x: rect.right() - 100, y: rect.y, width: 100 , height: orientationHeight, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.0,0.0,0.0,0.3))
         mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100, height: orientationHeight)
-                
+        
         let y : Float = (-scrollArea.offsetY) * orientationRatio
         let height : Float = min(rect.height * orientationRatio, orientationHeight)
-        mmView.drawBox.draw(x: rect.right() - 100 + -scrollArea.offsetX * (100 / codeContext.width), y: rect.y + y, width: 100 * rect.width / codeContext.width, height: height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
+        orientationRect.x = rect.right() - 100 + -scrollArea.offsetX * (100 / codeContext.width)
+        orientationRect.y = rect.y + y
+        orientationRect.width = 100 * rect.width / codeContext.width
+        orientationRect.height = height
+        mmView.drawBox.draw(x: orientationRect.x, y: orientationRect.y, width: orientationRect.width, height: orientationRect.height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
         mmView.renderer.setClipRect()
-        //
         
         // Function DND
         if let f = dndFunction {
