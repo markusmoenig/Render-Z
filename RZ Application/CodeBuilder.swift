@@ -164,10 +164,10 @@ class CodeBuilder
             buildColorize(inst, component, monitor)
         } else
         if component.componentType == .SkyDome {
-            buildSkyDome(inst, component, monitor)
+            buildSkyDome(inst, component)
         } else
         if component.componentType == .Camera3D {
-            buildCamera3D(inst, component, monitor)
+            buildCamera3D(inst, component)
         } else
         if component.componentType == .SDF2D {
             buildSDF2D(inst, component, monitor)
@@ -256,7 +256,7 @@ class CodeBuilder
     }
     
     /// Build the source code for the component
-    func buildSkyDome(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    func buildSkyDome(_ inst: CodeBuilderInstance, _ component: CodeComponent)
     {
         inst.code +=
         """
@@ -264,15 +264,14 @@ class CodeBuilder
         kernel void componentBuilder(
         texture2d<half, access::write>          __outTexture  [[texture(0)]],
         constant float4                        *__data   [[ buffer(1) ]],
-        texture2d<half, access::sample>         __rayDirectionTexture [[texture(2)]],
+        texture2d<half, access::read>           __rayDirectionTexture [[texture(2)]],
+        texture2d<half, access::write>          __monitorTexture [[texture(3)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
-            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
-
             float4 __monitorOut = float4(0,0,0,0);
             float2 uv = float2(__gid.x, __gid.y);
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
-            float3 rayDirection = float4(__rayDirectionTexture.sample(__textureSampler, uv / size )).xyz;
+            float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
             uv /= size;
             uv.y = 1.0 - uv.y;
 
@@ -289,27 +288,19 @@ class CodeBuilder
         if let code = component.code {
             inst.code += code
         }
-
-        if let monitorFragment = monitor, monitorFragment.name != "outColor" {
-            inst.code +=
-            """
-            
-            outColor = __monitorOut;
-            
-            """
-        }
-
+        
         inst.code +=
         """
         
             __outTexture.write(half4(outColor), __gid);
+            if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
         }
         
         """
     }
     
     /// Build the source code for the component
-    func buildCamera3D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    func buildCamera3D(_ inst: CodeBuilderInstance, _ component: CodeComponent)
     {
         inst.code +=
         """
@@ -318,6 +309,7 @@ class CodeBuilder
         texture2d<half, access::write>          __outOriginTexture  [[texture(0)]],
         constant float4                        *__data   [[ buffer(1) ]],
         texture2d<half, access::write>          __outDirectionTexture  [[texture(2)]],
+        texture2d<half, access::write>          __monitorTexture [[texture(3)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
             float4 __monitorOut = float4(0,0,0,0);
@@ -350,31 +342,22 @@ class CodeBuilder
             inst.code += code
         }
 
-        if let monitorFragment = monitor, monitorFragment.name != "outPosition", monitorFragment.name != "outDirection" {
-            inst.code +=
-            """
-            
-                __outOriginTexture.write(half4(__monitorOut), __gid);
-            }
-            """
-        } else {
-
-            inst.code +=
-            """
-            
-                __outOriginTexture.write(half4(half3(outPosition), 0), __gid);
-                __outDirectionTexture.write(half4(half3(outDirection), 0), __gid);
-            }
-            
-            """
+        inst.code +=
+        """
+            __outOriginTexture.write(half4(half3(outPosition), 0), __gid);
+            __outDirectionTexture.write(half4(half3(outDirection), 0), __gid);
+            if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
         }
+        
+        """
+    
     }
     
     /// Build the source code for the component
     func buildSDF2D(_ inst: CodeBuilderInstance,_ component: CodeComponent,_ monitor: CodeFragment? = nil, camera: CodeComponent? = nil)
     {
         sdfStream.openStream(.SDF2D, inst, self, camera: camera)
-        sdfStream.pushComponent(component, monitor)
+        sdfStream.pushComponent(component)
         sdfStream.closeStream()
         
         // Position
@@ -385,7 +368,7 @@ class CodeBuilder
     func buildSDF3D(_ inst: CodeBuilderInstance,_ component: CodeComponent,_ monitor: CodeFragment? = nil, camera: CodeComponent? = nil)
     {
         sdfStream.openStream(.SDF3D, inst, self, camera: camera)
-        sdfStream.pushComponent(component, monitor)
+        sdfStream.pushComponent(component)
         sdfStream.closeStream()
         
         // Position

@@ -373,6 +373,13 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.gapX
             
             ctx.addCode(name)
+            
+            if let monitor = ctx.monitorFragment {
+                if monitor.uuid == uuid  {
+                    // MONITOR FOR AN OUT VARIABLE, PROCESS LATER
+                    ctx.monitorOutVariable = self
+                }
+            }
         } else
         if fragmentType == .End {
             let rStart = ctx.rectStart()
@@ -2219,6 +2226,11 @@ class CodeComponent         : Codable, Equatable
             ctx.functionMap[f.uuid] = f
         }
         
+        // If an out variable was the monitor, add the code here
+        if let monitorOutVariable = ctx.monitorOutVariable {
+            ctx.insertMonitorCode(monitorOutVariable)
+        }
+        
         ctx.rectEnd(rect, rStart)
         ctx.height = ctx.cY
         //if globalCode!.count > 0 {
@@ -2284,6 +2296,7 @@ class CodeContext
     
     weak var monitorFragment: CodeFragment? = nil
     var monitorComponents   : Int = 0
+    var monitorOutVariable  : CodeFragment? = nil
     
     var insideGlobalCode    : Bool = false
     
@@ -2321,6 +2334,8 @@ class CodeContext
         self.editorWidth = editorWidth
         self.propertyDataOffset = propertyDataOffset
         self.monitorFragment = monitorFragment
+        
+        monitorOutVariable = nil
         
         // Compute monitor components
         monitorComponents = 0
@@ -2412,7 +2427,7 @@ class CodeContext
                 cVariables[frag.uuid] = nil
                 
                 if let monitor = monitorFragment {
-                    if monitor.uuid == frag.uuid {
+                    if monitor.uuid == frag.uuid && monitor.codeName == frag.codeName {
                         // MONITOR !!! ADD MONITOR CODE
                         insertMonitorCode(monitor)
                     }

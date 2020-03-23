@@ -112,36 +112,16 @@ class Pipeline2D            : Pipeline
     // Render the pipeline
     override func render(_ width: Float,_ height: Float)
     {
-        // Monitor
-        func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
-        {
-            // Monitor
-            if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
-                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba32Float)
-                if monitorInstance == nil {
-                    monitorInstance = codeBuilder.build(monitorComponent!, monitor: monitorFragment)
-                }
-                if let mInstance = monitorInstance {
-                    codeBuilder.render(mInstance, monitorTexture!, inTextures: inTextures, syncronize: true)
-                    if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
-                        monitorUI.setTexture(monitorTexture!)
-                    }
-                }
-            }
-        }
-        
         // Render the background into backTexture
         backTexture = checkTextureSize(width, height, backTexture)
         if let inst = instanceMap["pre"] {
             codeBuilder.render(inst, backTexture)
-            computeMonitor(inst)
         }
         
         // Render the shape distance into depthTexture (float)
         depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
         if let inst = instanceMap["shape"] {
             codeBuilder.render(inst, depthTexture)
-            computeMonitor(inst)
         } else {
             codeBuilder.renderClear(texture: depthTexture!, data: SIMD4<Float>(10000, 10000, 10000, 10000))
         }
@@ -150,7 +130,6 @@ class Pipeline2D            : Pipeline
         if let inst = instanceMap["render"] {
             resultTexture = checkTextureSize(width, height, resultTexture)
             codeBuilder.render(inst, resultTexture, inTextures: [depthTexture!, backTexture!])
-            computeMonitor(inst, inTextures: [depthTexture!, backTexture!])
         } else {
             resultTexture = backTexture
         }

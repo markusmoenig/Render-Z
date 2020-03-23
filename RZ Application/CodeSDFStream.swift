@@ -62,8 +62,7 @@ class CodeSDFStream
         self.instance = instance
         self.codeBuilder = codeBuilder
         
-        monitor = nil
-        componentCounter = 0        
+        componentCounter = 0
         instance.properties = []
                 
         if type == .SDF2D {
@@ -193,6 +192,7 @@ class CodeSDFStream
             texture2d<half, access::read_write>     __metaTexture [[texture(3)]],
             texture2d<half, access::read>           __rayOriginTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionTexture [[texture(5)]],
+            texture2d<half, access::write>          __monitorTexture [[texture(6)]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 float4 __monitorOut = float4(0,0,0,0);
@@ -229,6 +229,7 @@ class CodeSDFStream
             texture2d<half, access::read>           __normalInTexture [[texture(3)]],
             texture2d<half, access::read>           __rayOriginInTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionInTexture [[texture(5)]],
+            texture2d<half, access::write>          __monitorTexture [[texture(6)]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 float4 __monitorOut = float4(0,0,0,0);
@@ -265,7 +266,8 @@ class CodeSDFStream
             texture2d<half, access::read>           __normalInTexture [[texture(3)]],
             texture2d<half, access::read>           __rayOriginTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionTexture [[texture(5)]],
-            constant float4                        *__lightData   [[ buffer(6) ]],
+            texture2d<half, access::write>          __monitorTexture [[texture(6)]],
+            constant float4                        *__lightData   [[ buffer(7) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 float4 __monitorOut = float4(0,0,0,0);
@@ -304,7 +306,8 @@ class CodeSDFStream
             texture2d<half, access::read_write>     __rayOriginTexture [[texture(5)]],
             texture2d<half, access::read_write>     __rayDirectionTexture [[texture(6)]],
             texture2d<half, access::read_write>     __maskTexture [[texture(7)]],
-            constant float4                        *__lightData   [[ buffer(8) ]],
+            texture2d<half, access::write>          __monitorTexture [[texture(8)]],
+            constant float4                        *__lightData   [[ buffer(9) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 float4 __monitorOut = float4(0,0,0,0);
@@ -514,24 +517,6 @@ class CodeSDFStream
 
     func closeStream()
     {
-        if let monitorFragment = monitor {
-            if monitorFragment.name != "outDistance" {
-                instance.code +=
-                """
-                
-                outShape = __monitorOut;
-                
-                """
-            } else {
-                instance.code +=
-                """
-                
-                outShape = float4(float3(outShape.x), 1);
-                
-                """
-            }
-        }
-    
         if type == .SDF2D {
             instance.code +=
             """
@@ -548,6 +533,7 @@ class CodeSDFStream
                 __normalTexture.write(half4(float4(outNormal, 0)), __gid);
                 __metaTexture.write(half4(outMeta), __gid);
                 __depthTexture.write(half4(outShape), __gid);
+                if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
             }
             """
             
@@ -555,6 +541,7 @@ class CodeSDFStream
             """
             
                 __metaTexture.write(half4(outMeta), __gid);
+                if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
             }
             
             """
@@ -563,6 +550,7 @@ class CodeSDFStream
             """
             
                 __metaTexture.write(half4(outMeta), __gid);
+                if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
             }
             
             """
@@ -574,6 +562,7 @@ class CodeSDFStream
                 __rayOriginTexture.write(half4(float4(rayOrigin, 0)), __gid);
                 __rayDirectionTexture.write(half4(float4(rayDirection, 0)), __gid);
                 __maskTexture.write(half4(float4(mask, 0)), __gid);
+                if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
             }
             
             """
@@ -581,6 +570,7 @@ class CodeSDFStream
             mapCode +=
             """
             
+                *__funcData->__monitorOut = __monitorOut;
                 return outShape;
             }
             
@@ -589,6 +579,7 @@ class CodeSDFStream
             backgroundCode +=
             """
             
+                *__funcData->__monitorOut = __monitorOut;
                 return outColor;
             }
             
@@ -600,11 +591,10 @@ class CodeSDFStream
         codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow", "computeMaterial"] : [])
     }
     
-    func pushComponent(_ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    func pushComponent(_ component: CodeComponent)
     {
         dryRunComponent(component, instance.data.count, monitor)
         instance.collectProperties(component, hierarchy)
-        self.monitor = monitor
         
         if let globalCode = component.globalCode {
             headerCode += globalCode
@@ -784,6 +774,7 @@ class CodeSDFStream
                 __materialOut->mask = outMask;
                 __materialOut->reflectionDir = outReflectionDir;
                 __materialOut->reflectionDist = outReflectionDist;
+                *__funcData->__monitorOut = __monitorOut;
             }
             
             """

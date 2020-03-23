@@ -59,6 +59,7 @@ class Pipeline3D            : Pipeline
         let typeId : CodeComponent.ComponentType = globalApp!.currentSceneMode == .TwoD ? .SDF2D : .SDF3D
 
         instanceMap = [:]
+        computeMonitorComponents(monitorFragment)
         
         /// Recursively iterate the object hierarchy
         func processChildren(_ stageItem: StageItem)
@@ -80,8 +81,7 @@ class Pipeline3D            : Pipeline
         let cameraComponent : CodeComponent = getFirstComponentOfType(preStage.getChildren(), .Camera3D)!
         
         // Build 3D Camera (Initialization of rayOrigin and rayDirection Textures)
-        dryRunComponent(cameraComponent)
-        instanceMap["camera3D"] = codeBuilder.build(cameraComponent, camera: cameraComponent)
+        instanceMap["camera3D"] = codeBuilder.build(cameraComponent, camera: cameraComponent, monitor: monitorFragment)
         
         var backComponent : CodeComponent? = nil
 
@@ -89,11 +89,12 @@ class Pipeline3D            : Pipeline
         for item in preStage.getChildren() {
             if let comp = item.components[item.defaultName], comp.componentType == .SkyDome {
                 backComponent = comp
-                dryRunComponent(comp)
-                instanceMap["pre"] = codeBuilder.build(comp, camera: cameraComponent)
+                instanceMap["pre"] = codeBuilder.build(comp, camera: cameraComponent, monitor: monitorFragment)
                 break
             }
         }
+        
+        codeBuilder.sdfStream.monitor = monitorFragment
         
         // Objects
         let shapeStage = scene.getStage(.ShapeStage)
@@ -149,24 +150,8 @@ class Pipeline3D            : Pipeline
                 
         reflections = 0
         samples = 0
-        
-        // Monitor
-        func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
-        {
-            // Monitor
-            if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
-                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba32Float)
-                if monitorInstance == nil {
-                    monitorInstance = codeBuilder.build(monitorComponent!, monitor: monitorFragment)
-                }
-                if let mInstance = monitorInstance {
-                    codeBuilder.render(mInstance, monitorTexture!, inTextures: inTextures, syncronize: true)
-                    if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
-                        monitorUI.setTexture(monitorTexture!)
-                    }
-                }
-            }
-        }
+
+        monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba16Float)
 
         allocTextureId("color", width, height, .rgba16Float)
         allocTextureId("mask", width, height, .rgba16Float)
@@ -200,6 +185,7 @@ class Pipeline3D            : Pipeline
     {
         codeBuilder.renderClear(texture: getTextureOfId("color"), data: SIMD4<Float>(0, 0, 0, 1))
         codeBuilder.renderClear(texture: getTextureOfId("mask"), data: SIMD4<Float>(1, 1, 1, 1))
+        codeBuilder.renderClear(texture: monitorTexture!, data: SIMD4<Float>(0, 0, 0, 0))
     }
     
     func checkFinalTexture(_ clear: Bool = false)
@@ -231,6 +217,16 @@ class Pipeline3D            : Pipeline
                     self.currentStage = .ShadowsAndMaterials
                 } else
                 if nextStage == .Reflection {
+                    
+                    // Write the monitor data after the first reflection and pass
+                    if self.monitorFragment != nil && self.samples == 0 && self.reflections == 0 {
+                        if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
+                            self.monitorTextureFinal = self.checkTextureSize(self.width, self.height, self.monitorTextureFinal, .rgba32Float)
+                            self.codeBuilder.renderCopy(self.monitorTextureFinal!, self.monitorTexture!, syncronize: true)
+                            monitorUI.setTexture(self.monitorTextureFinal!)
+                        }
+                    }
+                    
                     self.reflections += 1
                     if self.reflections < self.maxReflections {
                         
@@ -263,39 +259,19 @@ class Pipeline3D            : Pipeline
     /// Compute the hitpoints and normals
     func stage_HitAndNormals()
     {
-        // Monitor
-        func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
-        {
-            // Monitor
-            if inst.component != nil && inst.component === monitorComponent {
-                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba16Float)
-                if monitorInstance == nil {
-                    monitorInstance = codeBuilder.build(monitorComponent!, monitor: monitorFragment)
-                }
-                if let mInstance = monitorInstance {
-                    codeBuilder.render(mInstance, monitorTexture!, inTextures: inTextures, syncronize: true)
-                    if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
-                        monitorUI.setTexture(monitorTexture!)
-                    }
-                }
-            }
-        }
-        
         if reflections == 0 {
             // Render the Camera Textures
             allocTextureId("rayOrigin", width, height, .rgba16Float)
             allocTextureId("rayDirection", width, height, .rgba16Float)
             if let inst = instanceMap["camera3D"] {
-                codeBuilder.render(inst, getTextureOfId("rayOrigin"), outTextures: [getTextureOfId("rayDirection")])
-                computeMonitor(inst)
+                codeBuilder.render(inst, getTextureOfId("rayOrigin"), outTextures: [getTextureOfId("rayDirection"), monitorTexture!])
             }
         }
         
         // Render the SkyDome into backTexture
         allocTextureId("back", width, height, .rgba16Float)
         if let inst = instanceMap["pre"] {
-            codeBuilder.render(inst, getTextureOfId("back"), inTextures: [getTextureOfId("rayDirection")])
-            computeMonitor(inst)
+            codeBuilder.render(inst, getTextureOfId("back"), inTextures: [getTextureOfId("rayDirection"), monitorTexture!])
         }
         
         allocTextureId("depth", width, height, .rgba16Float)
@@ -310,7 +286,7 @@ class Pipeline3D            : Pipeline
         
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")])
+            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), monitorTexture!])
 
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
@@ -338,39 +314,16 @@ class Pipeline3D            : Pipeline
     /// Compute the AO stage
     func stage_computeAO()
     {
-        // Monitor
-        func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
-        {
-            // Monitor
-            if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
-                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba32Float)
-                if monitorInstance == nil {
-                    monitorInstance = codeBuilder.build(monitorComponent!, monitor: monitorFragment)
-                }
-                if let mInstance = monitorInstance {
-                    codeBuilder.render(mInstance, monitorTexture!, inTextures: inTextures, syncronize: true)
-                    if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
-                        monitorUI.setTexture(monitorTexture!)
-                    }
-                }
-            }
-        }
-
         var objectIndex : Int = 0
         var shapeText : String = "shape_" + String(objectIndex)
         
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], optionalState: "computeAO")
+            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), monitorTexture!], optionalState: "computeAO")
             
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
         }
-        
-        // Preview Render: Fake Lighting + AO
-        // Not needed to render this right now
-        //codeBuilder.compute.run( codeBuilder.previewState!, outTexture: getTextureOfId("result"), inTextures: [getActiveOfPair("depth")!, getTextureOfId("back"), getActiveOfPair("normal"), getActiveOfPair("meta")])
-        //codeBuilder.compute.commandBuffer.waitUntilCompleted()
         
         nextStage()
     }
@@ -378,24 +331,6 @@ class Pipeline3D            : Pipeline
     /// Compute shadows and materials
     func stage_computeShadowsAndMaterials()
     {
-        // Monitor
-        func computeMonitor(_ inst: CodeBuilderInstance, inTextures: [MTLTexture] = [])
-        {
-            // Monitor
-            if (inst.component != nil && inst.component === monitorComponent) || (monitorComponent != nil && monitorComponent?.componentType == .SDF2D) {
-                monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba32Float)
-                if monitorInstance == nil {
-                    monitorInstance = codeBuilder.build(monitorComponent!, monitor: monitorFragment)
-                }
-                if let mInstance = monitorInstance {
-                    codeBuilder.render(mInstance, monitorTexture!, inTextures: inTextures, syncronize: true)
-                    if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
-                        monitorUI.setTexture(monitorTexture!)
-                    }
-                }
-            }
-        }
-
         var objectIndex : Int = 0
         var shapeText : String = "shape_" + String(objectIndex)
         
@@ -408,20 +343,19 @@ class Pipeline3D            : Pipeline
                 
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], inBuffers: [lightBuffer], optionalState: "computeShadow")
+            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), monitorTexture!], inBuffers: [lightBuffer], optionalState: "computeShadow")
             
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
         }
         
         // Materials
-        //codeBuilder.renderClear(texture: getActiveOfPair("color"), data: SIMD4<Float>(0, 0, 0, 1))
         
         objectIndex = 0
         shapeText = "shape_" + String(objectIndex)
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+            codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), monitorTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
 
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
@@ -430,7 +364,6 @@ class Pipeline3D            : Pipeline
         // Render it all
         if let inst = instanceMap["render"] {
             codeBuilder.render(inst, getTextureOfId("result"), inTextures: [getTextureOfId("color")])
-            //computeMonitor(inst, inTextures: [depthTextureResult!, backTexture!])
         }
         
         nextStage()

@@ -89,7 +89,6 @@ class CodeProperties    : MMWidget
         c3Node?.rect.y = 10
         
         nodeUIMonitor = nil
-        globalApp!.currentPipeline!.monitorInstance = nil
         globalApp!.currentPipeline!.monitorComponent = nil
         globalApp!.currentPipeline!.monitorFragment = nil
 
@@ -729,9 +728,9 @@ class CodeProperties    : MMWidget
                     nodeUIMonitor = NodeUIMonitor(c2Node!, variable: "monitor", title: "Variable Monitor")
                     c2Node!.uiItems.append(nodeUIMonitor!)
                 }
-                
                 globalApp!.currentPipeline!.monitorComponent = comp
                 globalApp!.currentPipeline!.monitorFragment = fragment
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
             }
         }
         

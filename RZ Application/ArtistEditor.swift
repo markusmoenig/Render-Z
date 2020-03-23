@@ -76,6 +76,7 @@ class ArtistEditor          : Editor
     
     override func setComponent(_ component: CodeComponent)
     {
+        globalApp!.currentPipeline?.clearMonitor()
         dryRunComponent(component)
 
         designEditor.designComponent = component

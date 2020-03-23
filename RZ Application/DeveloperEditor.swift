@@ -44,6 +44,7 @@ class DeveloperEditor   : Editor
     
     override func setComponent(_ component: CodeComponent)
     {
+        globalApp!.currentPipeline?.clearMonitor()
         codeEditor.codeComponent = component
         updateOnNextDraw(compile: false)
         if let uuid = component.selected {

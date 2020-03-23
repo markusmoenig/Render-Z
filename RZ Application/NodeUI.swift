@@ -1271,18 +1271,18 @@ class NodeUIMonitor : NodeUI
             
             // Value Text
             var vString : String = ""
-            let inst = globalApp!.currentPipeline!.monitorInstance!
+            let monitorComponents = globalApp!.currentPipeline!.monitorComponents
             
-            if inst.monitorComponents == 1 {
+            if monitorComponents == 1 {
                 vString = "(" + String(format: "%.03f", value.x) + ")"
             } else
-            if inst.monitorComponents == 2 {
+            if monitorComponents == 2 {
                 vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ")"
             } else
-            if inst.monitorComponents == 3 {
+            if monitorComponents == 3 {
                 vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ", " + String(format: "%.03f", value.z) + ")"
             } else
-            if inst.monitorComponents == 4 {
+            if monitorComponents == 4 {
                 vString = "(" + String(format: "%.03f", value.x) + ", " + String(format: "%.03f", value.y) + ", " + String(format: "%.03f", value.z) + ", " + String(format: "%.03f", value.w) + ")"
             }
         
