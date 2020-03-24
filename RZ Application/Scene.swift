@@ -357,13 +357,17 @@ class Stage                 : Codable, Equatable
             
             let sunDirComponent = CodeComponent(.Variable, "Sun Direction")
             sunDirComponent.values["locked"] = 1
-            sunDirComponent.createVariableFunction("sunDirection", "float3", "Sun Direction", SIMD3<Float>(0,1,0), gizmo: 1)
+            sunDirComponent.createVariableFunction("sunDirection", "float3", "Sun Direction", defaultValue: SIMD3<Float>(0,1,0), defaultMinMax: SIMD2<Float>(-1,1), gizmo: 2)
+            
+            let sunColorComponent = CodeComponent(.Variable, "Sun Color")
+            sunColorComponent.values["locked"] = 1
+            sunColorComponent.createVariableFunction("sunColor", "float4", "Sun Color", defaultValue: SIMD4<Float>(1,1,1,1), gizmo: 2)
             
             let sunStrengthComponent = CodeComponent(.Variable, "Sun Strength")
             sunStrengthComponent.values["locked"] = 1
             sunStrengthComponent.createVariableFunction("sunStrength", "float", "Sun Strength")
 
-            sunPool.componentLists["variables"] = [sunDirComponent,sunStrengthComponent]
+            sunPool.componentLists["variables"] = [sunDirComponent,sunColorComponent, sunStrengthComponent]
         }
     }
     

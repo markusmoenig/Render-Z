@@ -1973,7 +1973,7 @@ class CodeComponent         : Codable, Equatable
         }
     }
     
-    func createVariableFunction(_ name: String,_ typeName: String,_ artistName: String, _ defaultValue: Any? = nil, gizmo: Float = 0)
+    func createVariableFunction(_ name: String,_ typeName: String,_ artistName: String, defaultValue: Any? = nil, defaultMinMax: SIMD2<Float>? = nil, gizmo: Float = 0)
     {
         let f = CodeFunction(.Headerless, "")
 
@@ -1981,6 +1981,7 @@ class CodeComponent         : Codable, Equatable
         let frag = CodeFragment(.VariableDefinition, typeName, name, [.Selectable,.Dragable,.Monitorable])
         frag.values["gizmo"] = gizmo
         frag.values["variable"] = 1 // To identify the variable from other exposed vars, dont delete!
+                
         properties.append(frag.uuid)
         artistPropertyNames[frag.uuid] = artistName
         
@@ -1988,6 +1989,13 @@ class CodeComponent         : Codable, Equatable
         let const = defaultConstantForType(typeName)
         if let value3 = defaultValue as? SIMD3<Float> {
             insertValueToFragment3(const, value3)
+        } else
+        if let value4 = defaultValue as? SIMD4<Float> {
+            insertValueToFragment4(const, value4)
+        }
+        
+        if let minMax = defaultMinMax {
+            insertMinMaxToFragment(const, minMax)
         }
         b.statement.fragments.append(const)
         f.body.append(b)

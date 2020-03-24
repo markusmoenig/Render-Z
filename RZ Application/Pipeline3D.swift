@@ -168,7 +168,7 @@ class Pipeline3D            : Pipeline
             
             // Get Render Values
             if let renderComp = getComponent(name: "Renderer") {
-                maxReflections = getComponentPropertyInt(component: renderComp, name: "reflections", defaultValue: 3)
+                maxReflections = getComponentPropertyInt(component: renderComp, name: "reflections", defaultValue: 2) + 1
                 maxSamples = getComponentPropertyInt(component: renderComp, name: "antiAliasing", defaultValue: 4)
             }
             
@@ -347,8 +347,17 @@ class Pipeline3D            : Pipeline
         var shapeText : String = "shape_" + String(objectIndex)
         
         let sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
+        let sunStrength : Float = getGlobalVariableValue(withName: "Sun.sunStrength")!.x
+        var sunColor : SIMD4<Float>? = getGlobalVariableValue(withName: "Sun.sunColor")
+        if sunColor != nil {
+            sunColor!.x *= sunStrength
+            sunColor!.y *= sunStrength
+            sunColor!.z *= sunStrength
+        } else {
+            sunColor = SIMD4<Float>(sunStrength,sunStrength,sunStrength,1)
+        }
 
-        let lightdata : [SIMD4<Float>] = [sunDirection!, SIMD4<Float>(0,0,0,0), SIMD4<Float>(1,1,1,1)]
+        let lightdata : [SIMD4<Float>] = [sunDirection!, SIMD4<Float>(0,0,0,0), sunColor!]
         let lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         
         // Shadows

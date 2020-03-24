@@ -75,6 +75,38 @@ func insertValueToFragment3(_ fragment: CodeFragment,_ value: SIMD3<Float>)
     }
 }
 
+// Inserts an SIMD4<Float> value to a given fragment
+func insertValueToFragment4(_ fragment: CodeFragment,_ value: SIMD4<Float>)
+{
+    if fragment.fragmentType == .ConstantDefinition {
+        let components = fragment.evaluateComponents()
+        if components == 4 {
+            if fragment.arguments.count == components {
+                for (index,arg) in fragment.arguments.enumerated() {
+                    if index >= 4 {
+                        break
+                    }
+                    arg.fragments[0].values["value"]! = value[index]
+                }
+            }
+        }
+    }
+}
+
+// Inserts an SIMD3<Float> value to a given fragment
+func insertMinMaxToFragment(_ fragment: CodeFragment,_ minMax: SIMD2<Float>)
+{
+    if fragment.fragmentType == .ConstantDefinition {
+        let components = fragment.evaluateComponents()
+        if fragment.arguments.count == components {
+            for arg in fragment.arguments {
+                arg.fragments[0].values["min"]! = minMax.x
+                arg.fragments[0].values["max"]! = minMax.y
+            }
+        }
+    }
+}
+
 import CloudKit
 
 /// Upload the given component to the public or private libraries

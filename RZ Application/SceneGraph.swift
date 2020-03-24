@@ -1337,7 +1337,7 @@ class SceneGraph                : MMWidget
                     stageItem.componentLabels[comp.libraryName] = MMTextLabel(mmView, font: mmView.openSans, text: comp.libraryName, scale: skin.fontScale, color: skin.normalTextColor)
                 }
                 if let label = stageItem.componentLabels[comp.libraryName] {
-                    label.rect.x = rect.x + item.rect.x + (totalWidth - label.rect.width) / 2
+                    label.rect.x = rect.x + item.rect.x + 10// + (totalWidth - label.rect.width) / 2
                     label.rect.y = rect.y + item.rect.y + (itemSize - skin.lineHeight) / 2
                     label.draw()
                 }
