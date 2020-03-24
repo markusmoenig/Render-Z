@@ -102,6 +102,7 @@ class DesignProperties      : MMWidget
                                 
                 if components == 1 {
                     let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), value: data.x, precision: Int(rc.1!.values["precision"]!))
+                    numberVar.titleShadows = true
                     c1Node!.uiItems.append(numberVar)
                 } else
                 if components == 2 {
@@ -110,10 +111,12 @@ class DesignProperties      : MMWidget
 
                     var argFrag : CodeFragment = rc.1!.arguments[0].fragments[0]
                     var numberVar = NodeUINumber(c1Node!, variable: frag.name + "_x", title: comp.artistPropertyNames[uuid]! + " X", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.x, precision: Int(argFrag.values["precision"]!))
+                    numberVar.titleShadows = true
                     c1Node?.uiItems.append(numberVar)
                     
                     argFrag = rc.1!.arguments[1].fragments[0]
                     numberVar = NodeUINumber(c1Node!, variable: frag.name + "_y", title: "Y", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.y, precision: Int(argFrag.values["precision"]!))
+                    numberVar.titleShadows = true
                     c1Node?.uiItems.append(numberVar)
                 } else
                 if components == 3 {
@@ -123,18 +126,22 @@ class DesignProperties      : MMWidget
 
                     var argFrag : CodeFragment = rc.1!.arguments[0].fragments[0]
                     var numberVar = NodeUINumber(c1Node!, variable: frag.name + "_x", title: comp.artistPropertyNames[uuid]! + " X", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.x, precision: Int(argFrag.values["precision"]!))
+                    numberVar.titleShadows = true
                     c1Node?.uiItems.append(numberVar)
                     
                     argFrag = rc.1!.arguments[1].fragments[0]
                     numberVar = NodeUINumber(c1Node!, variable: frag.name + "_y", title: comp.artistPropertyNames[uuid]! + " Y", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.y, precision: Int(argFrag.values["precision"]!))
+                    numberVar.titleShadows = true
                     c1Node?.uiItems.append(numberVar)
                     
                     argFrag = rc.1!.arguments[2].fragments[0]
                     numberVar = NodeUINumber(c1Node!, variable: frag.name + "_z", title: comp.artistPropertyNames[uuid]! + " Z", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.z, precision: Int(argFrag.values["precision"]!))
+                    numberVar.titleShadows = true
                     c1Node?.uiItems.append(numberVar)
                 } else
                 if components == 4 {
                     let colorItem = NodeUIColor(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z))
+                    colorItem.titleShadows = true
                     c1Node?.uiItems.append(colorItem)
                 }
             }

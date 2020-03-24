@@ -233,6 +233,13 @@ class Pipeline3D            : Pipeline
                         }
                     }
                     
+                    // Show reflection
+                    if self.samples == 0 {
+                        if self.reflections == 0 { self.checkFinalTexture(true) }
+                        self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
+                        self.mmView.update()
+                    }
+                    
                     self.reflections += 1
                     if self.reflections < self.maxReflections {
                         
@@ -240,10 +247,9 @@ class Pipeline3D            : Pipeline
                         self.currentStage = .HitAndNormals
                     } else {
                         self.checkFinalTexture()
-                        //self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
                         
                         // Sampling
-                        if self.samples == 0 { self.checkFinalTexture(true) }
+                        //if self.samples == 0 { self.checkFinalTexture(true) }
                         self.codeBuilder.renderSample(sampleTexture: self.finalTexture!, resultTexture: self.getTextureOfId("result"), frame: self.samples + 1)
                         self.mmView.update()
                         

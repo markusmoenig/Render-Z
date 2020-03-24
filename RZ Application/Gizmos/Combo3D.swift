@@ -120,6 +120,11 @@ class GizmoCombo3D          : GizmoBase
             let xVar = NodeUINumber(tNode, variable: "_posX", title: "X", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posX"]!, precision: 3)
             let yVar = NodeUINumber(tNode, variable: "_posY", title: "Y", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posY"]!, precision: 3)
             let zVar = NodeUINumber(tNode, variable: "_posZ", title: "Z", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posZ"]!, precision: 3)
+            
+            xVar.titleShadows = true
+            yVar.titleShadows = true
+            zVar.titleShadows = true
+            
             //let rotateVar = NodeUINumber(tNode, variable: "_rotateX", title: "Rotate", range: SIMD2<Float>(0, 360), value: comp.values["_rotateX"]!, precision: 1)
             tNode.uiItems.append(xVar)
             tNode.uiItems.append(yVar)

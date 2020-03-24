@@ -19,29 +19,32 @@ class NodeUI
         case None, MasterPicker, AnimationPicker, FloatVariablePicker, DirectionVariablePicker, LayerAreaPicker, FloatVariableTarget, DirectionVariableTarget, ObjectInstanceTarget, SceneAreaTarget, AnimationTarget, Float2VariableTarget, BehaviorTreeTarget, SceneTarget
     }
     
-    var mmView      : MMView!
+    var mmView              : MMView!
     
-    var brand       : Brand
-    var role        : Role = .None
+    var brand               : Brand
+    var role                : Role = .None
     
-    var node        : Node
-    var variable    : String
-    var title       : String
+    var node                : Node
+    var variable            : String
+    var title               : String
     
-    var rect        : MMRect = MMRect()
-    var titleLabel  : MMTextLabel? = nil
+    var rect                : MMRect = MMRect()
+    var titleLabel          : MMTextLabel? = nil
+    var titleShadowLabel    : MMTextLabel? = nil
+
+    var supportsTitleHover  : Bool = false
+    var titleHover          : Bool = false
     
-    var supportsTitleHover: Bool = false
-    var titleHover  : Bool = false
+    var isDisabled          : Bool = false
     
-    var isDisabled  : Bool = false
+    var linkedTo            : NodeUI? = nil
     
-    var linkedTo    : NodeUI? = nil
-    
-    var dropTarget  : String? = nil
+    var dropTarget          : String? = nil
     
     // Start of the content area
-    var contentY    : Float = 0
+    var contentY            : Float = 0
+    
+    var titleShadows        : Bool = false
 
     // --- Statics
     
@@ -56,6 +59,7 @@ class NodeUI
     static let contentRound         : Float = 22
 
     static let titleTextColor       : SIMD4<Float> = SIMD4<Float>(0.6, 0.6, 0.6, 1.0)
+    static let titleShadowTextColor : SIMD4<Float> = SIMD4<Float>(0.0, 0.0, 0.0, 1.0)
     static let contentColor         : SIMD4<Float> = SIMD4<Float>(0.404, 0.408, 0.412, 1.000)
     static let contentColor2        : SIMD4<Float> = SIMD4<Float>(0.243, 0.247, 0.251, 1.000)
     static let contentTextColor     : SIMD4<Float> = SIMD4<Float>(0.749, 0.753, 0.757, 1.000)
@@ -114,8 +118,22 @@ class NodeUI
     
     func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
     {
+        if titleShadows && titleShadowLabel == nil {
+            titleShadowLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleShadowTextColor)
+        }
+        
         if titleLabel!.scale != NodeUI.titleFontScale * scale {
             titleLabel!.setText(title, scale: NodeUI.titleFontScale * scale)
+            if titleShadowLabel != nil {
+                titleShadowLabel!.setText(title, scale: NodeUI.titleFontScale * scale)
+            }
+        }
+        
+        if titleShadowLabel != nil {
+            titleShadowLabel!.isDisabled = isDisabled
+            titleShadowLabel!.rect.x = rect.x + NodeUI.titleXOffset * scale + 0.5
+            titleShadowLabel!.rect.y = rect.y + 0.5
+            titleShadowLabel!.draw()
         }
         
         titleLabel!.isDisabled = isDisabled
