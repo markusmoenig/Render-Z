@@ -596,6 +596,7 @@ class NodeUINumber : NodeUI
     var contentValue: Float? = nil
     
     var precision   : Int = 3
+    var autoAdjustMargin : Bool = false
     
     init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = SIMD2<Float>(0,1), int: Bool = false, value: Float = 0, precision: Int = 3)
     {
@@ -634,7 +635,7 @@ class NodeUINumber : NodeUI
             return
         }
         getNumberDialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, cb: { (value) -> Void in
-            if self.range != nil {
+            if self.range != nil && self.autoAdjustMargin == false {
                 let oldValue = self.value
                 self.value = max( value, self.range!.x)
                 self.value = min( self.value, self.range!.y)
@@ -642,6 +643,15 @@ class NodeUINumber : NodeUI
             } else {
                 self.node.variableChanged(variable: self.variable, oldValue: self.value, newValue: value, continuous: false)
                 self.value = value
+                
+                if self.range != nil && self.autoAdjustMargin == true {
+                    if value > self.range!.y {
+                        self.range!.y = value
+                    }
+                    if value < self.range!.x {
+                        self.range!.x = value
+                    }
+                }
             }
             self.node.properties[self.variable] = self.value
             self.titleHover = false

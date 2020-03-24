@@ -383,12 +383,25 @@ class CodeProperties    : MMWidget
             if fragment.fragmentType == .ConstantValue || (fragment.fragmentType == .ConstantDefinition && fragment.isSimplified == true) {
                 
                 let numberVar = NodeUINumber(c1Node!, variable: "value", title: "Value", range: SIMD2<Float>(fragment.values["min"]!, fragment.values["max"]!), value: fragment.values["value"]!, precision: Int(fragment.values["precision"]!))
+                numberVar.autoAdjustMargin = true
                 c1Node?.uiItems.append(numberVar)
                 c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "value" {
                         fragment.values["value"] = oldValue
                         let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Float Value Changed") : nil
                         fragment.values["value"] = newValue
+                        
+                        if newValue > fragment.values["max"]! {
+                            fragment.values["max"]! = newValue
+                            self.needsUpdate = true
+                            self.mmView.update()
+                        }
+                        if newValue < fragment.values["min"]! {
+                            fragment.values["min"]! = newValue
+                            self.needsUpdate = true
+                            self.mmView.update()
+                        }
+                        
                         self.editor.updateOnNextDraw()
                         if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                     }
