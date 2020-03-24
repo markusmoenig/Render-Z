@@ -698,7 +698,7 @@ class NodeUINumber : NodeUI
             value = min( value, range!.y)
             
             if int {
-                value = floor(value)
+                value = Float(Int(value))
             }
             
             if oldValue != value {
