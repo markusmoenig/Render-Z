@@ -93,17 +93,20 @@ class GizmoCombo3D          : GizmoBase
         xAxisButton.iconZoom = 2
         xAxisButton.rect.width = 50
         xAxisButton.rect.height = 50
+        xAxisButton.textYOffset = 1
         activeAxisButton = xAxisButton
         xAxisButton.addState(.Hover)
         yAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Y" )
         yAxisButton.iconZoom = 2
         yAxisButton.rect.width = 50
         yAxisButton.rect.height = 50
+        yAxisButton.textYOffset = 1
         zAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Z" )
         zAxisButton.iconZoom = 2
         zAxisButton.rect.width = 50
         zAxisButton.rect.height = 50
-
+        zAxisButton.textYOffset = 1
+        
         super.init(view)
     }
     
@@ -647,16 +650,16 @@ class GizmoCombo3D          : GizmoBase
         
         let margin : Float = 20
         
-        xAxisButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2
+        xAxisButton.rect.x = rect.x + (rect.width - xAxisButton.rect.width) / 2 + (xAxisButton.rect.width * 3 + 3 * 20) / 2
         xAxisButton.rect.y = rect.y + (rect.height - 70)
         xAxisButton.draw()
         
         yAxisButton.rect.x = xAxisButton.rect.x
-        yAxisButton.rect.y = xAxisButton.rect.y - xAxisButton.rect.height - margin
+        yAxisButton.rect.y = xAxisButton.rect.y - xAxisButton.rect.height - margin / 2
         yAxisButton.draw()
         
         zAxisButton.rect.x = xAxisButton.rect.x
-        zAxisButton.rect.y = yAxisButton.rect.y - yAxisButton.rect.height - margin
+        zAxisButton.rect.y = yAxisButton.rect.y - yAxisButton.rect.height - margin / 2
         zAxisButton.draw()
         
         scaleButton.rect.x = xAxisButton.rect.x - scaleButton.rect.width - margin

@@ -368,7 +368,7 @@ class MMButtonWidget : MMWidget
         
         if texture != nil {
             let x = rect.x + (rect.width - Float(texture!.width) / iconZoom) / 2
-            let y = rect.y + (rect.height - Float(texture!.height) / iconZoom) / 2
+            let y = rect.y + textYOffset + (rect.height - Float(texture!.height) / iconZoom) / 2
             mmView.drawTexture.draw(texture!, x: x, y: y, zoom: iconZoom)
         }
         

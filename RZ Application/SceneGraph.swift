@@ -161,6 +161,20 @@ class SceneGraph                : MMWidget
                         globalApp!.sceneGraph.setCurrent(stage: shapeStage, stageItem: objectItem)
                     }
                 } )
+            }),
+            MMMenuItem(text: "Add Light", cb: { () in
+                //getStringDialog(view: self.mmView, title: "New Light", message: "Light name", defaultValue: "Light", cb: { (value) -> Void in
+                    if let scene = globalApp!.project.selected {
+                        
+                        let lightStage = scene.getStage(.LightStage)
+                        let lightItem = lightStage.createChild("Light #" + String(lightStage.getChildren().count + 1))
+                        
+                        lightItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x) / self.graphZoom - self.graphX
+                        lightItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y) / self.graphZoom - self.graphY
+
+                        globalApp!.sceneGraph.setCurrent(stage: lightStage, stageItem: lightItem)
+                    }
+                //} )
             })
         ])
     }
@@ -613,8 +627,8 @@ class SceneGraph                : MMWidget
         }
         
         // Build the navigator
-        navRect.width = 200
-        navRect.height = 160
+        navRect.width = 200 / 2
+        navRect.height = 160 / 2
         navRect.x = rect.right() - navRect.width
         navRect.y = rect.bottom() - navRect.height
         
@@ -911,7 +925,7 @@ class SceneGraph                : MMWidget
                 // Renderer
                 if let comp = item.component, comp.componentType == .Render2D || comp.componentType == .Render3D {
                     
-                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change")
+                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change Renderer")
                     button.clicked = { (event) in
                         globalApp!.libraryDialog.show(id: comp.componentType == .Render2D ? "Render2D" : "Render3D", cb: { (json) in
                             if let comp = decodeComponentFromJSON(json) {
@@ -1130,6 +1144,36 @@ class SceneGraph                : MMWidget
         let objects = stage.getChildren()
         for o in objects {
             drawObject(stage: stage, o: o, skin: skin)
+        }
+        
+        // Draw Lights
+        stage = scene.getStage(.LightStage)
+        
+        //let lightStageItem = stage.getChildren()[0]
+        /*
+        let renderComponent = renderStageItem.components[renderStageItem.defaultName]!
+        let renderItem = SceneGraphItem(.Stage, stage: stage, component: renderComponent)
+        renderItem.rect.set(x, y, diameter, skin.itemHeight * graphZoom)
+        itemMap[renderComponent.uuid] = renderItem
+        navItems.append(renderItem)
+*/
+        childs = stage.getChildren()
+        for childItem in childs {
+            
+            if childItem.label == nil || childItem.label!.scale != skin.fontScale {
+                childItem.label = MMTextLabel(mmView, font: mmView.openSans, text: childItem.name, scale: skin.fontScale, color: skin.normalTextColor)
+            }
+            let diameter : Float = childItem.label!.rect.width + skin.margin * graphZoom
+
+            let cX = graphX * graphZoom + childItem.values["_graphX"]! * graphZoom - diameter / 2
+            let cY = graphY * graphZoom + childItem.values["_graphY"]! * graphZoom - diameter / 2
+
+            let comp = childItem.components[childItem.defaultName]!
+            let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem, component: comp)
+            item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
+            itemMap[comp.uuid] = item
+            
+            drawItem(item, selected: childItem === currentStageItem , parent: nil, skin: skin)
         }
         
         // Draw Render Stage

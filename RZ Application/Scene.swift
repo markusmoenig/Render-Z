@@ -421,6 +421,13 @@ class Stage                 : Codable, Equatable
             stageItem.componentLists["modifier3D"] = [defComponent3D]
             
             stageItem.addMaterial()
+        } else
+        if stageItem.stageItemType == .LightStage {
+            
+            let transformComponent = CodeComponent( globalApp!.currentSceneMode == .TwoD ? .Transform2D : .Transform3D, "Transform")
+            transformComponent.createDefaultFunction(globalApp!.currentSceneMode == .TwoD ? .Transform2D : .Transform3D)
+            stageItem.components[stageItem.defaultName] = transformComponent
+            setDefaultComponentValues(transformComponent)
         }
 
         if let parent = parent {
