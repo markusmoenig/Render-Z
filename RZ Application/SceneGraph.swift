@@ -769,6 +769,8 @@ class SceneGraph                : MMWidget
         if let uuid = uuid {
             if let item = itemMap[uuid] {
                 if item.itemType == .Stage && item.stage.stageType == .PreStage {
+                    // PreStage: 2D / 3D Switch
+                    
                     var borderlessSkin = MMSkinButton()
                     borderlessSkin.margin = MMMargin( 4, 4, 4, 4 )
                     borderlessSkin.borderSize = 0
@@ -807,6 +809,59 @@ class SceneGraph                : MMWidget
                     }
                     
                     toolBarWidgets.append(tabButton)
+                } else
+                if item.itemType == .Stage && item.stage.stageType == .VariablePool {
+                    // Variable Stage
+                    
+                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Add Variable Pool")
+                    button.clicked = { (event) in
+                        getStringDialog(view: self.mmView, title: "Variable Pool", message: "Pool name", defaultValue: "Variables", cb: { (value) -> Void in
+                            
+                            let variablePool = StageItem(.VariablePool, value)
+                            variablePool.componentLists["variables"] = []
+
+                            if globalApp!.currentSceneMode == .ThreeD {
+                                item.stage.children3D.append(variablePool)
+                            } else {
+                                item.stage.children2D.append(variablePool)
+                            }
+                            placeChild(modeId: getCurrentModeId(), parent: item.stage, child: variablePool, stepSize: 90, radius: 150)
+                            self.mmView.update()
+                        } )
+                    }
+                    toolBarWidgets.append(button)
+                } else
+                if item.itemType == .StageItem && item.stage.stageType == .VariablePool {
+                    // Variable Stage
+                    
+                    var button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Pool")
+                    button.isDisabled = item.stageItem!.name == "Sun"
+                    button.clicked = { (event) -> Void in
+                        getStringDialog(view: self.mmView, title: "Variable Pool", message: "Pool name", defaultValue: "Variables", cb: { (value) -> Void in
+                            let undo = globalApp!.currentEditor.undoStageItemStart("Rename Variable Pool")
+                            item.stageItem!.name = value
+                            globalApp!.currentEditor.undoStageItemEnd(undo)
+                            self.mmView.update()
+                        } )
+                    }
+                    toolBarWidgets.append(button)
+                    
+                    button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
+                    button.isDisabled = item.stageItem!.name == "Sun"
+                    button.clicked = { (event) -> Void in
+                        if globalApp!.currentSceneMode == .ThreeD {
+                            let index = item.stage.children3D.firstIndex(of: item.stageItem!)
+                            if let index = index {
+                                item.stage.children3D.remove(at: index)
+                            }
+                        } else {
+                            let index = item.stage.children2D.firstIndex(of: item.stageItem!)
+                            if let index = index {
+                                item.stage.children2D.remove(at: index)
+                            }
+                        }
+                    }
+                    toolBarWidgets.append(button)
                 } else
                 if item.itemType == .ShapeItem {
                     
@@ -950,6 +1005,36 @@ class SceneGraph                : MMWidget
                         buildChangeComponent(item, name: "Material", id: "Material3D")
                         item.stageItem!.name = item.component!.libraryName
                         item.stageItem!.label = nil
+                    } else
+                    if comp.componentType == .Variable {
+                        
+                        var button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Variable")
+                        button.isDisabled = item.stageItem!.name == "Sun"
+                        button.clicked = { (event) -> Void in
+                            if let frag = getVariable(from: comp) {
+                                getStringDialog(view: self.mmView, title: "Variable Name", message: "Variable name", defaultValue: frag.name, cb: { (value) -> Void in
+                                    let undo = globalApp!.currentEditor.undoComponentStart("Rename Variable")
+                                    frag.name = value
+                                    comp.libraryName = value
+                                    globalApp!.project.selected!.updateComponent(comp)
+                                    globalApp!.currentEditor.setComponent(comp)
+                                    globalApp!.currentEditor.undoComponentEnd(undo)
+                                    self.mmView.update()
+                                } )
+                            }
+                        }
+                        toolBarWidgets.append(button)
+                        
+                        button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
+                        button.isDisabled = item.stageItem!.name == "Sun"
+                        button.clicked = { (event) in
+                            if let index = item.stageItem!.componentLists["variables"]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Variable")
+                                item.stageItem!.componentLists["variables"]!.remove(at: index)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                            }
+                        }
+                        toolBarWidgets.append(button)
                     }
                 }
             }
@@ -1313,9 +1398,21 @@ class SceneGraph                : MMWidget
             
             mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
             
-            drawPlusButton(item: variableContainer, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 4 * graphZoom, headerHeight, headerHeight), cb: { () in
-                self.getShape(item: variableContainer, replace: false)
-            }, skin: skin)
+            if parent.stageItem!.name != "Sun" {
+                drawPlusButton(item: variableContainer, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 4 * graphZoom, headerHeight, headerHeight), cb: { () in
+                        getStringDialog(view: self.mmView, title: "New Variable", message: "Variable name", defaultValue: "New Variable", cb: { (variableName) -> Void in
+                                getStringDialog(view: self.mmView, title: "Variable Type", message: "Type", defaultValue: "float4", cb: { (variableType) -> Void in
+                                    let validTypes = ["float", "float2", "float3", "float4", "int"]
+                                    if validTypes.contains(variableType) {
+                                        let varComponent = CodeComponent(.Variable, variableName)
+                                        varComponent.createVariableFunction(variableName, variableType, variableName)
+                                        stageItem.componentLists["variables"]!.append(varComponent)
+                                        self.mmView.update()
+                                    }
+                            } )
+                    } )
+                }, skin: skin)
+            }
             
             skin.font.getTextRect(text: parent.stageItem!.name, scale: skin.fontScale, rectToUse: skin.tempRect)
             
