@@ -342,7 +342,7 @@ class CodeSDFStream
                 float4 lightColor = __lightData[2];
             
                 float3 directionToLight = float3(0);
-                if (lightType.x == 0.0) {
+                if (lightType.y == 0.0) {
                     directionToLight = normalize(__lightData[0].xyz);
                 } else {
                     directionToLight = normalize(__lightData[0].xyz - hitPosition);
@@ -356,7 +356,7 @@ class CodeSDFStream
                     float2 uv = __uv / __size;
                     uv.y = 1.0 - uv.y;
                     color.xyz += background( uv, __size, hitPosition, rayDirection, &__funcData ).xyz * mask;
-                    color = clamp(color, 0.0, 1.0);
+                    //color = clamp(color, 0.0, 1.0);
                     mask = float3(0);
                     rayDirection = float3(0);
                 }
@@ -460,7 +460,15 @@ class CodeSDFStream
                         
                         {
                         float3 position = rayOrigin + (outShape.y - 0.025) * rayDirection;
-                        float3 direction = __lightData[0].xyz;
+                        float3 direction =  float3(0);
+                        
+                        float4 lightType = __lightData[1];
+                        if (lightType.y == 0.0) {
+                            direction = normalize(__lightData[0].xyz);
+                        } else {
+                            direction = normalize(__lightData[0].xyz - position);
+                        }
+                        
                         float outShadow = 1.;
                         """
                         shadowCode += code
@@ -622,7 +630,7 @@ class CodeSDFStream
             code +=
             """
                 {
-                    float3 __originalPosition = float3(__data[\(posX)].x, -__data[\(posY)].x, __data[\(posZ)].x);
+                    float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
                     float3 position = __translate(__origin, __originalPosition);
 
             """
@@ -784,10 +792,12 @@ class CodeSDFStream
             if (shape.z == \(materialIdCounter) )
             {
                 material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
-                rayDirection = __materialOut.reflectionDir;
-                rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
+                if (lightType.w == 0.0) {
+                    rayDirection = __materialOut.reflectionDir;
+                    rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
+                }
                 color.xyz = color.xyz + __materialOut.color.xyz * mask;
-                color = clamp(color, 0.0, 1.0);
+                //color = clamp(color, 0.0, 1.0);
                 mask *= __materialOut.mask;
             }
 

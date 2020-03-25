@@ -233,6 +233,9 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             } else
             if component.componentType == .Modifier3D {
                 libName += " :: Modifier3D"
+            } else
+            if component.componentType == .Light3D {
+                libName += " :: Light3D"
             }
         }
         
@@ -346,19 +349,19 @@ func defaultConstantForType(_ typeName: String) -> CodeFragment
 func setDefaultComponentValues(_ comp: CodeComponent)
 {
     if comp.componentType == .SDF2D || comp.componentType == .Transform2D {
-        // Check values
         comp.values["_posX"] = 0
         comp.values["_posY"] = 0
         comp.values["_rotate"] = 0
     } else
     if comp.componentType == .SDF3D || comp.componentType == .Transform3D {
-        // Check values
         comp.values["_posX"] = 0
         comp.values["_posY"] = 0
         comp.values["_posZ"] = 0
-        comp.values["_rotateX"] = 0
-        comp.values["_rotateY"] = 0
-        comp.values["_rotateZ"] = 0
+    } else
+    if comp.componentType == .Light3D {
+        comp.values["_posX"] = 0
+        comp.values["_posY"] = 0
+        comp.values["_posZ"] = 0
     }
 }
 
@@ -506,4 +509,69 @@ func getComponentPropertyInt(component: CodeComponent, name: String, defaultValu
         }
     }
     return defaultValue
+}
+
+// Returns the transformed values of a CodeComponent, used to get the current position of top level objects (lights)
+func getTransformedComponentValues(_ component: CodeComponent) -> [String:Float]
+{
+    let timeline = globalApp!.artistEditor.timeline
+    let properties : [String:Float] = component.values
+
+    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+    
+    return transformed
+}
+
+func getTransformedComponentProperty(_ component: CodeComponent,_ name: String) ->  SIMD4<Float>
+{
+    let timeline = globalApp!.artistEditor.timeline
+    var result = SIMD4<Float>(0,0,0,0)
+    
+    for uuid in component.properties {
+        let rc = component.getPropertyOfUUID(uuid)
+        if rc.0 != nil && rc.0!.name == name {
+            
+            let data = extractValueFromFragment(rc.1!)
+            let components = rc.1!.evaluateComponents()
+            
+            // Transform the properties inside the artist editor
+            
+            let name = rc.0!.name
+            var properties : [String:Float] = [:]
+                            
+            if components == 1 {
+                properties[name] = data.x
+                let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                result.x = transformed[name]!
+            } else
+            if components == 2 {
+                properties[name + "_x"] = data.x
+                properties[name + "_y"] = data.y
+                let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                result.x = transformed[name + "_x"]!
+                result.y = transformed[name + "_y"]!
+            } else
+            if components == 3 {
+                properties[name + "_x"] = data.x
+                properties[name + "_y"] = data.y
+                properties[name + "_z"] = data.z
+                let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                result.x = transformed[name + "_x"]!
+                result.y = transformed[name + "_y"]!
+                result.z = transformed[name + "_z"]!
+            } else
+            if components == 4 {
+                properties[name + "_x"] = data.x
+                properties[name + "_y"] = data.y
+                properties[name + "_z"] = data.z
+                properties[name + "_w"] = data.w
+                let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                result.x = transformed[name + "_x"]!
+                result.y = transformed[name + "_y"]!
+                result.z = transformed[name + "_z"]!
+                result.w = transformed[name + "_w"]!
+            }
+        }
+    }
+    return result
 }

@@ -173,6 +173,7 @@ class SceneGraph                : MMWidget
                         lightItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y) / self.graphZoom - self.graphY
 
                         globalApp!.sceneGraph.setCurrent(stage: lightStage, stageItem: lightItem)
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     }
                 //} )
             })
@@ -851,7 +852,7 @@ class SceneGraph                : MMWidget
                     var button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Pool")
                     button.isDisabled = item.stageItem!.name == "Sun"
                     button.clicked = { (event) -> Void in
-                        getStringDialog(view: self.mmView, title: "Variable Pool", message: "Pool name", defaultValue: "Variables", cb: { (value) -> Void in
+                        getStringDialog(view: self.mmView, title: "Rename Variable Pool", message: "Pool name", defaultValue: "Variables", cb: { (value) -> Void in
                             let undo = globalApp!.currentEditor.undoStageItemStart("Rename Variable Pool")
                             item.stageItem!.name = value
                             globalApp!.currentEditor.undoStageItemEnd(undo)
@@ -874,6 +875,37 @@ class SceneGraph                : MMWidget
                                 item.stage.children2D.remove(at: index)
                             }
                         }
+                    }
+                    toolBarWidgets.append(button)
+                } else
+                if item.itemType == .StageItem && item.stage.stageType == .LightStage {
+                    // Light
+                    
+                    var button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Light")
+                    button.clicked = { (event) -> Void in
+                        getStringDialog(view: self.mmView, title: "Rename Light", message: "Light name", defaultValue: item.stageItem!.name, cb: { (value) -> Void in
+                            let undo = globalApp!.currentEditor.undoStageItemStart("Rename Light")
+                            item.stageItem!.name = value
+                            globalApp!.currentEditor.undoStageItemEnd(undo)
+                            self.mmView.update()
+                        } )
+                    }
+                    toolBarWidgets.append(button)
+                    
+                    button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
+                    button.clicked = { (event) -> Void in
+                        if globalApp!.currentSceneMode == .ThreeD {
+                            let index = item.stage.children3D.firstIndex(of: item.stageItem!)
+                            if let index = index {
+                                item.stage.children3D.remove(at: index)
+                            }
+                        } else {
+                            let index = item.stage.children2D.firstIndex(of: item.stageItem!)
+                            if let index = index {
+                                item.stage.children2D.remove(at: index)
+                            }
+                        }
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     }
                     toolBarWidgets.append(button)
                 } else
@@ -1026,7 +1058,7 @@ class SceneGraph                : MMWidget
                         button.isDisabled = item.stageItem!.name == "Sun"
                         button.clicked = { (event) -> Void in
                             if let frag = getVariable(from: comp) {
-                                getStringDialog(view: self.mmView, title: "Variable Name", message: "Variable name", defaultValue: frag.name, cb: { (value) -> Void in
+                                getStringDialog(view: self.mmView, title: "Rename Variable", message: "Variable name", defaultValue: frag.name, cb: { (value) -> Void in
                                     let undo = globalApp!.currentEditor.undoComponentStart("Rename Variable")
                                     frag.name = value
                                     comp.libraryName = value
@@ -1148,15 +1180,6 @@ class SceneGraph                : MMWidget
         
         // Draw Lights
         stage = scene.getStage(.LightStage)
-        
-        //let lightStageItem = stage.getChildren()[0]
-        /*
-        let renderComponent = renderStageItem.components[renderStageItem.defaultName]!
-        let renderItem = SceneGraphItem(.Stage, stage: stage, component: renderComponent)
-        renderItem.rect.set(x, y, diameter, skin.itemHeight * graphZoom)
-        itemMap[renderComponent.uuid] = renderItem
-        navItems.append(renderItem)
-*/
         childs = stage.getChildren()
         for childItem in childs {
             

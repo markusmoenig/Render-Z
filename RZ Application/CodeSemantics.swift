@@ -1121,7 +1121,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Domain2D, Domain3D, Modifier2D, Modifier3D, Pattern
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Domain2D, Domain3D, Modifier2D, Modifier3D, Pattern, Light3D
     }
     
     let functionType        : FunctionType
@@ -1313,6 +1313,49 @@ class CodeFunction          : Codable, Equatable
         return b
     }
     
+    func createVariableDefinitionBlock(_ typeName: String,_ name: String) -> CodeBlock
+    {
+        let b = CodeBlock(CodeBlock.BlockType.VariableDefinition)
+         
+        b.fragment.fragmentType = .VariableDefinition
+        b.fragment.addProperty(.Selectable)
+        b.fragment.addProperty(.Monitorable)
+        b.fragment.addProperty(.Dragable)
+         
+        b.fragment.typeName = typeName
+        b.fragment.name = name
+        b.fragment.evaluatesTo = typeName
+
+        // Constant Value
+        if typeName == "float" {
+            let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
+            b.statement.fragments.append(constValue)
+         } else {
+            let constant = CodeFragment(.ConstantDefinition, typeName, typeName, [.Selectable, .Dragable, .Targetable], [typeName], typeName)
+            b.statement.fragments.append(constant)
+             
+            var components : Int = 4
+             
+            if typeName.contains("2") {
+                components = 2
+            } else
+            if typeName.contains("3") {
+                components = 3
+            }
+             
+            for _ in 0..<components {
+                let argStatement = CodeStatement(.Arithmetic)
+                 
+                let constValue = CodeFragment(.ConstantValue, "float", "", [.Selectable, .Dragable, .Targetable])
+
+                argStatement.fragments.append(constValue)
+                constant.arguments.append(argStatement)
+            }
+        }
+        return b
+    }
+
+    
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {
         ctx.blockNumber = 1
@@ -1400,7 +1443,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, Light3D
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1969,6 +2012,30 @@ class CodeComponent         : Codable, Equatable
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
+            functions.append(f)
+        } else
+        if type == .Light3D {
+            let f = CodeFunction(type, "lightSource")
+            f.comment = "Light source properties"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg1)
+            
+            let color = f.createVariableDefinitionBlock("float4", "lightColor")
+            properties.append(color.fragment.uuid)
+            artistPropertyNames[color.fragment.uuid] = "Light Color"
+            f.body.append(color)
+            
+            let strength = f.createVariableDefinitionBlock("float", "lightStrength")
+            strength.statement.fragments[0].values["max"] = 10
+            properties.append(strength.fragment.uuid)
+            artistPropertyNames[strength.fragment.uuid] = "Light Strength"
+            f.body.append(strength)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float3", "outPosition", refTo: arg1))
             functions.append(f)
         }
     }

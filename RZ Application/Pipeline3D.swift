@@ -346,6 +346,34 @@ class Pipeline3D            : Pipeline
     {
         var objectIndex : Int = 0
         var shapeText : String = "shape_" + String(objectIndex)
+     
+        func sampleLightAndMaterial(lightBuffer: MTLBuffer)
+        {
+            // Shadows
+            
+            objectIndex = 0
+            shapeText = "shape_" + String(objectIndex)
+            while let inst = instanceMap[shapeText] {
+                
+                codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), monitorTexture!], inBuffers: [lightBuffer], optionalState: "computeShadow")
+                
+                objectIndex += 1
+                shapeText = "shape_" + String(objectIndex)
+            }
+            
+            // Materials
+            
+            objectIndex = 0
+            shapeText = "shape_" + String(objectIndex)
+            while let inst = instanceMap[shapeText] {
+                
+                codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), monitorTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+
+                objectIndex += 1
+                shapeText = "shape_" + String(objectIndex)
+            }
+        }
+        
         
         let sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
         let sunStrength : Float = getGlobalVariableValue(withName: "Sun.sunStrength")!.x
@@ -357,30 +385,38 @@ class Pipeline3D            : Pipeline
         } else {
             sunColor = SIMD4<Float>(sunStrength,sunStrength,sunStrength,1)
         }
+        
+        // X: Key Light
+        // Y: Directional, Spherical
+        // Z: Attenuation
+        // W: Light Count
 
-        let lightdata : [SIMD4<Float>] = [sunDirection!, SIMD4<Float>(0,0,0,0), sunColor!]
-        let lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        var lightdata : [SIMD4<Float>] = [sunDirection!, SIMD4<Float>(0,0,0,0), sunColor!]
+        var lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         
-        // Shadows
-                
-        while let inst = instanceMap[shapeText] {
-            
-            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), monitorTexture!], inBuffers: [lightBuffer], optionalState: "computeShadow")
-            
-            objectIndex += 1
-            shapeText = "shape_" + String(objectIndex)
-        }
+        // Sample the sun
+        sampleLightAndMaterial(lightBuffer: lightBuffer)
         
-        // Materials
+        // Sample the light sources
         
-        objectIndex = 0
-        shapeText = "shape_" + String(objectIndex)
-        while let inst = instanceMap[shapeText] {
-            
-            codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), monitorTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+        let stage = globalApp!.project.selected!.getStage(.LightStage)
+        let lights = stage.getChildren()
 
-            objectIndex += 1
-            shapeText = "shape_" + String(objectIndex)
+        for (index, lightItem) in lights.enumerated() {
+            
+            let component = lightItem.components[lightItem.defaultName]!
+            let t = getTransformedComponentValues(component)
+            
+            var lightColor = getTransformedComponentProperty(component, "lightColor")
+            let lightStrength = getTransformedComponentProperty(component, "lightStrength")
+            lightColor.x *= lightStrength.x
+            lightColor.y *= lightStrength.x
+            lightColor.z *= lightStrength.x
+
+            lightdata = [SIMD4<Float>(t["_posX"]!, t["_posY"]!, t["_posZ"]!, 0), SIMD4<Float>(1,1,0,Float(index+1)), lightColor]
+            lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+            
+            sampleLightAndMaterial(lightBuffer: lightBuffer)
         }
         
         // Render it all
