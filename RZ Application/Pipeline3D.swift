@@ -35,6 +35,8 @@ class Pipeline3D            : Pipeline
     var startedRender       : Bool = false
     
     var startId             : UInt = 0
+    
+    var settings            : PipelineRenderSettings? = nil
 
     override init(_ mmView: MMView)
     {
@@ -145,8 +147,10 @@ class Pipeline3D            : Pipeline
     }
         
     // Render the pipeline
-    override func render(_ widthIn: Float,_ heightIn: Float)
+    override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
+        self.settings = settings
+        
         renderId += 1
         width = round(widthIn); height = round(heightIn)
             
@@ -167,9 +171,14 @@ class Pipeline3D            : Pipeline
         if startedRender == false {
             
             // Get Render Values
-            if let renderComp = getComponent(name: "Renderer") {
-                maxReflections = getComponentPropertyInt(component: renderComp, name: "reflections", defaultValue: 2)
-                maxSamples = getComponentPropertyInt(component: renderComp, name: "antiAliasing", defaultValue: 4)
+            if settings == nil {
+                if let renderComp = getComponent(name: "Renderer") {
+                    maxReflections = getComponentPropertyInt(component: renderComp, name: "reflections", defaultValue: 2)
+                    maxSamples = getComponentPropertyInt(component: renderComp, name: "antiAliasing", defaultValue: 4)
+                }
+            } else {
+                maxReflections = settings!.reflections
+                maxSamples = settings!.samples
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
@@ -262,6 +271,13 @@ class Pipeline3D            : Pipeline
                             
                             self.stage_HitAndNormals()
                             self.currentStage = .HitAndNormals
+                        } else {
+                            // Finished
+                            if let settings = self.settings {
+                                if let cbFinished = settings.cbFinished {
+                                    cbFinished(self.finalTexture!)
+                                }
+                            }
                         }
                     }
                 }

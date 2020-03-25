@@ -110,7 +110,7 @@ class Pipeline2D            : Pipeline
     }
         
     // Render the pipeline
-    override func render(_ width: Float,_ height: Float)
+    override func render(_ width: Float,_ height: Float, settings: PipelineRenderSettings? = nil)
     {
         // Render the background into backTexture
         backTexture = checkTextureSize(width, height, backTexture)

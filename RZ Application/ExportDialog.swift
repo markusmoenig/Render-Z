@@ -11,13 +11,74 @@ import CloudKit
 
 class ExportDialog: MMDialog {
 
-    init(_ view: MMView) {
-        super.init(view, title: "Choose Library Item", cancelText: "Cancel", okText: "Export")
-        
-        rect.width = 800
-        rect.height = 600
+    enum HoverMode          : Float {
+        case None, NodeUI, NodeUIMouseLocked
+    }
+    
+    var hoverMode               : HoverMode = .None
+    
+    var hoverUIItem             : NodeUI? = nil
+    var hoverUITitle            : NodeUI? = nil
+    
+    var c1Node                  : Node? = nil
+    var c2Node                  : Node? = nil
+    
+    var tabButton               : MMTabButtonWidget!
+    
+    var pipeline                : Pipeline
+    
+    var widthVar                : NodeUINumber!
+    var heightVar               : NodeUINumber!
 
+    init(_ view: MMView) {
+        
+        if globalApp!.currentSceneMode == .ThreeD {
+            pipeline = Pipeline3D(view)
+        } else {
+            pipeline = Pipeline2D(view)
+        }
+        
+        super.init(view, title: "Export Dialog", cancelText: "Cancel", okText: "Export")
+        instantClose = false
+        
+        rect.width = 600
+        rect.height = 300
+        
+        tabButton = MMTabButtonWidget(view)
+        tabButton.addTab("Image")
+        tabButton.addTab("Video")
+        
+        c1Node = Node()
+        c1Node?.rect.x = 60
+        c1Node?.rect.y = 120
+        
+        c2Node = Node()
+        c2Node?.rect.x = 380
+        c2Node?.rect.y = 120
+        
+        hoverUIItem = nil
+        hoverUITitle = nil
+        hoverMode = .None
+        
+        widthVar = NodeUINumber(c1Node!, variable: "width", title: "Width", range: SIMD2<Float>(20, 4096), int: true, value: 800)
+        c1Node!.uiItems.append(widthVar)
+        
+        heightVar = NodeUINumber(c1Node!, variable: "height", title: "Height", range: SIMD2<Float>(20, 4096), int: true, value: 600)
+        c1Node!.uiItems.append(heightVar)
+        
+        let reflectionVar = NodeUINumber(c2Node!, variable: "reflections", title: "Reflections", range: SIMD2<Float>(1, 10), int: true, value: 2)
+        c2Node!.uiItems.append(reflectionVar)
+        
+        let sampleVar = NodeUINumber(c2Node!, variable: "samples", title: "AA Samples", range: SIMD2<Float>(1, 50), int: true, value: 4)
+        c2Node!.uiItems.append(sampleVar)
+        
+        c1Node?.setupUI(mmView: mmView)
+        c2Node?.setupUI(mmView: mmView)
+        
+        widgets.append(tabButton)
         widgets.append(self)
+        
+        pipeline.build(scene: globalApp!.project.selected!)
     }
     
     func show()
@@ -31,20 +92,174 @@ class ExportDialog: MMDialog {
     }
     
     override func ok() {
-        super.ok()
         
-        if let texture = globalApp!.currentPipeline!.finalTexture {
-            if let image = makeCGIImage(texture: texture) {
+        let settings = PipelineRenderSettings()
+        settings.cbFinished = { (texture) in
+            
+            print("finished")
+            super.ok()
+            
+            if let image = self.makeCGIImage(texture: texture) {
                 globalApp!.mmFile.saveImage(image: image)
+                self._ok()
+            }
+            
+            self.okButton.removeState(.Checked)
+        }
+        
+        pipeline.render(widthVar.value, heightVar.value, settings: settings)
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if hoverMode == .NodeUIMouseLocked {
+            hoverUIItem!.mouseMoved(event)
+            return
+        }
+        
+        // Disengage hover types for the ui items
+        if hoverUIItem != nil {
+            hoverUIItem!.mouseLeave()
+        }
+        
+        if hoverUITitle != nil {
+            hoverUITitle?.titleHover = false
+            hoverUITitle = nil
+            mmView.update()
+        }
+        
+        let oldHoverMode = hoverMode
+        
+        hoverUIItem = nil
+        hoverUITitle = nil
+        hoverMode = .None
+                
+        func checkNodeUI(_ node: Node)
+        {
+            // --- Look for NodeUI item under the mouse, master has no UI
+            let uiItemX = rect.x + node.rect.x
+            var uiItemY = rect.y + node.rect.y
+            let uiRect = MMRect()
+            
+            for uiItem in node.uiItems {
+                
+                if uiItem.supportsTitleHover {
+                    uiRect.x = uiItem.titleLabel!.rect.x - 2
+                    uiRect.y = uiItem.titleLabel!.rect.y - 2
+                    uiRect.width = uiItem.titleLabel!.rect.width + 4
+                    uiRect.height = uiItem.titleLabel!.rect.height + 6
+                    
+                    if uiRect.contains(event.x, event.y) {
+                        uiItem.titleHover = true
+                        hoverUITitle = uiItem
+                        mmView.update()
+                        return
+                    }
+                }
+                
+                uiRect.x = uiItemX
+                uiRect.y = uiItemY
+                uiRect.width = uiItem.rect.width
+                uiRect.height = uiItem.rect.height
+                
+                if uiRect.contains(event.x, event.y) {
+                    
+                    hoverUIItem = uiItem
+                    hoverMode = .NodeUI
+                    hoverUIItem!.mouseMoved(event)
+                    mmView.update()
+                    return
+                }
+                uiItemY += uiItem.rect.height
             }
         }
         
-        okButton.removeState(.Checked)
+        if let node = c1Node {
+            checkNodeUI(node)
+        }
+        
+        if let node = c2Node, hoverMode == .None {
+            checkNodeUI(node)
+        }
+        
+        if oldHoverMode != hoverMode {
+            mmView.update()
+        }
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        #if os(iOS)
+        mouseMoved(event)
+        #endif
+
+        #if os(OSX)
+        if hoverUITitle != nil {
+            hoverUITitle?.titleClicked()
+        }
+        #endif
+        
+        if hoverMode == .NodeUI {
+            hoverUIItem!.mouseDown(event)
+            hoverMode = .NodeUIMouseLocked
+            //globalApp?.mmView.mouseTrackWidget = self
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        if hoverMode == .NodeUIMouseLocked {
+            hoverUIItem!.mouseUp(event)
+        }
+        
+        #if os(iOS)
+        if hoverUITitle != nil {
+            hoverUITitle?.titleClicked()
+        }
+        #endif
+        
+        hoverMode = .None
+        mmView.mouseTrackWidget = nil
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0) {
         super.draw(xOffset: xOffset, yOffset: yOffset)
 
+        tabButton.rect.y = rect.y + 40
+        tabButton.rect.x = rect.x + (rect.width - tabButton.rect.width) / 2
+        tabButton.draw()
+        
+        if let node = c1Node {
+            
+            let uiItemX : Float = rect.x + node.rect.x
+            var uiItemY : Float = rect.y + node.rect.y
+            
+            for uiItem in node.uiItems {
+                uiItem.rect.x = uiItemX
+                uiItem.rect.y = uiItemY
+                uiItemY += uiItem.rect.height
+            }
+            
+            for uiItem in node.uiItems {
+                uiItem.draw(mmView: mmView, maxTitleSize: node.uiMaxTitleSize, maxWidth: node.uiMaxWidth, scale: 1)
+            }
+        }
+        
+        if let node = c2Node {
+                        
+            let uiItemX : Float = rect.x + node.rect.x
+            var uiItemY : Float = rect.y + node.rect.y
+            
+            for uiItem in node.uiItems {
+                uiItem.rect.x = uiItemX
+                uiItem.rect.y = uiItemY
+                uiItemY += uiItem.rect.height
+            }
+            
+            for uiItem in node.uiItems {
+                uiItem.draw(mmView: mmView, maxTitleSize: node.uiMaxTitleSize, maxWidth: node.uiMaxWidth, scale: 1)
+            }
+        }
     }
     
     func makeCGIImage(texture: MTLTexture) -> CGImage?

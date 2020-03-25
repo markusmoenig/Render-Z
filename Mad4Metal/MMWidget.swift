@@ -167,6 +167,7 @@ class MMDialog : MMWidget
     var okButton        : MMButtonWidget
     
     var widgets         : [MMWidget] = []
+    var instantClose    : Bool = true
 
     init(_ view: MMView, title: String, cancelText: String, okText: String) {
         
@@ -190,7 +191,11 @@ class MMDialog : MMWidget
         titleLabel.textYOffset = 1
         
         okButton.clicked = { (event) -> Void in
-            self._ok()
+            if self.instantClose == true {
+                self._ok()
+            } else {
+                self.ok()
+            }
         }
         
         if cancelButton != nil {
@@ -232,7 +237,9 @@ class MMDialog : MMWidget
                 self.mmView.startAnimate( startValue: self.rect.y, endValue: self.rect.y - self.rect.height, duration: 500, cb: { (value,finished) in
                     self.mmView.dialogYPos = value
                     if finished {
-                        self.ok()
+                        if self.instantClose == true {
+                            self.ok()
+                        }
                     }
                 } )
             }

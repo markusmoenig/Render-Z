@@ -371,15 +371,20 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.tempRect.width
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
-            
-            ctx.addCode(name)
-            
+                        
             if let monitor = ctx.monitorFragment {
                 if monitor.uuid == uuid  {
                     // MONITOR FOR AN OUT VARIABLE, PROCESS LATER
-                    ctx.monitorOutVariable = self
+                    if let f = ctx.cFunction, f.functionType == .FreeFlow {
+                        // Write to FuncData, TODO
+                        //ctx.insertMonitorCode(self)
+                    } else {
+                        ctx.monitorOutVariable = self
+                    }
                 }
             }
+            
+            ctx.addCode(name)
         } else
         if fragmentType == .End {
             let rStart = ctx.rectStart()
@@ -693,7 +698,11 @@ class CodeFragment          : Codable, Equatable
             // FuncData as last argument for FreeFlow functions
             if fragmentType == .Primitive && referseTo != nil {
                 if ctx.cFunction!.functionType == .FreeFlow {
-                    ctx.addCode( ", __funcData" )
+                    if arguments.count > 0 {
+                        ctx.addCode( ", __funcData" )
+                    } else {
+                        ctx.addCode( "__funcData" )
+                    }
                 } else {
                     ctx.addCode( ", &__funcData" )
                 }
@@ -1009,7 +1018,11 @@ class CodeBlock             : Codable, Equatable
             
             // FreeFlow Function Definition
             if fragment.fragmentType == .TypeDefinition {
-                ctx.addCode(", thread FuncData *__funcData)\n")
+                if statement.fragments.count > 0 {
+                    ctx.addCode(", thread FuncData *__funcData)\n")
+                } else {
+                    ctx.addCode("thread FuncData *__funcData)\n")
+                }
                 ctx.addCode("{\n")
                 ctx.addCode("float GlobalTime = __funcData->GlobalTime;")
                 if ctx.monitorFragment != nil {
@@ -2523,7 +2536,9 @@ class CodeContext
                 if let monitor = monitorFragment {
                     if monitor.uuid == frag.uuid && monitor.codeName == frag.codeName {
                         // MONITOR !!! ADD MONITOR CODE
-                        insertMonitorCode(monitor)
+                        if let f = cFunction, f.functionType != .FreeFlow {
+                            insertMonitorCode(monitor)
+                        }
                     }
                 }
             }

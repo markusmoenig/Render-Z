@@ -8,6 +8,15 @@
 
 import MetalKit
 
+class PipelineRenderSettings
+{
+    var reflections         : Int = 0
+    var samples             : Int = 0
+    
+    var cbProgress          : (Int, Int)? = nil
+    var cbFinished          : ((MTLTexture)->())? = nil
+}
+
 class Pipeline
 {
     var codeBuilder         : CodeBuilder
@@ -55,7 +64,7 @@ class Pipeline
     }
         
     // Render the pipeline
-    func render(_ width: Float,_ height: Float)
+    func render(_ width: Float,_ height: Float, settings: PipelineRenderSettings? = nil)
     {
     }
     

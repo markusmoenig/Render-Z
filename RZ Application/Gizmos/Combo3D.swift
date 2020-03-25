@@ -75,7 +75,7 @@ class GizmoCombo3D          : GizmoBase
         var smallButtonSkin = MMSkinButton()
         smallButtonSkin.round = 50
         smallButtonSkin.borderColor = SIMD4<Float>(1,1,1,1)
-        smallButtonSkin.hoverColor = SIMD4<Float>(0.7,0.7,0.7,1)
+        smallButtonSkin.hoverColor = SIMD4<Float>(1.0,1.0,1.0,0.3)
 
         moveButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "move" )
         moveButton.iconZoom = 2
@@ -451,6 +451,10 @@ class GizmoCombo3D          : GizmoBase
             globalApp!.currentPipeline?.setMinimalPreview()
         }
         
+        if let hb = hoverButton {
+            hb.removeState(.Hover)
+        }
+        
         dragState = .Inactive
         #if os(iOS)
         hoverState = .Inactive
@@ -462,6 +466,7 @@ class GizmoCombo3D          : GizmoBase
         mmView.update()
         mouseIsDown = false
         clickWasConsumed = false
+        activeButton = nil
     }
     
     /*
