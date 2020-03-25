@@ -234,7 +234,7 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             if component.componentType == .Modifier3D {
                 libName += " :: Modifier3D"
             } else
-            if component.componentType == .Light3D {
+            if component.componentType == .PointLight3D {
                 libName += " :: Light3D"
             }
         }
@@ -358,7 +358,7 @@ func setDefaultComponentValues(_ comp: CodeComponent)
         comp.values["_posY"] = 0
         comp.values["_posZ"] = 0
     } else
-    if comp.componentType == .Light3D {
+    if comp.componentType == .PointLight3D {
         comp.values["_posX"] = 0
         comp.values["_posY"] = 0
         comp.values["_posZ"] = 0

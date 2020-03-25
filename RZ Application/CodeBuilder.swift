@@ -103,6 +103,7 @@ class CodeBuilder
     var sampleBuffer        : MTLBuffer!
 
     var clearState          : MTLComputePipelineState? = nil
+    var clearShadowState    : MTLComputePipelineState? = nil
     var copyState           : MTLComputePipelineState? = nil
     var copyAndSwapState    : MTLComputePipelineState? = nil
     var sampleState         : MTLComputePipelineState? = nil
@@ -548,7 +549,7 @@ class CodeBuilder
     /// Build a clear texture shader
     func buildClearState()
     {
-        let code =
+        var code =
         """
         #include <metal_stdlib>
         #include <simd/simd.h>
@@ -567,8 +568,28 @@ class CodeBuilder
         let data : [SIMD4<Float>] = [SIMD4<Float>(0,0,0,0)]
         clearBuffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
-        let library = compute.createLibraryFromSource(source: code)
+        var library = compute.createLibraryFromSource(source: code)
         clearState = compute.createState(library: library, name: "clearBuilder")
+        
+        code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void clearShadowBuilder(
+        texture2d<half, access::read_write>     outTexture  [[texture(0)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+           half4 data = outTexture.read(gid);
+           data.y = 1.0;
+           outTexture.write(data, gid);
+        }
+         
+        """
+
+        library = compute.createLibraryFromSource(source: code)
+        clearShadowState = compute.createState(library: library, name: "clearShadowBuilder")
     }
     
     /// Build a copy texture shader
@@ -768,6 +789,13 @@ class CodeBuilder
         clearBuffer = compute.device.makeBuffer(bytes: [data], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
         compute.run( clearState!, outTexture: texture, inBuffer: clearBuffer)
+        compute.commandBuffer.waitUntilCompleted()
+    }
+    
+    // Clear the shadow
+    func renderClearShadow(texture: MTLTexture)
+    {
+        compute.run( clearShadowState!, outTexture: texture)
         compute.commandBuffer.waitUntilCompleted()
     }
     

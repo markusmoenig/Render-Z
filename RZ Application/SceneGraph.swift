@@ -162,12 +162,12 @@ class SceneGraph                : MMWidget
                     }
                 } )
             }),
-            MMMenuItem(text: "Add Light", cb: { () in
+            MMMenuItem(text: "Add Point Light", cb: { () in
                 //getStringDialog(view: self.mmView, title: "New Light", message: "Light name", defaultValue: "Light", cb: { (value) -> Void in
                     if let scene = globalApp!.project.selected {
                         
                         let lightStage = scene.getStage(.LightStage)
-                        let lightItem = lightStage.createChild("Light #" + String(lightStage.getChildren().count + 1))
+                        let lightItem = lightStage.createChild("Point Light")
                         
                         lightItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x) / self.graphZoom - self.graphX
                         lightItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y) / self.graphZoom - self.graphY

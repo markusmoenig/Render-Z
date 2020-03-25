@@ -191,12 +191,14 @@ class MMTimeline : MMWidget
                 
                 self.isPlaying = true
                 self.mmView.lockFramerate()
+                globalApp!.currentPipeline?.setMinimalPreview(true)
 
             } else {
 
                 self.isPlaying = false
                 self.mmView.unlockFramerate()
                 self.playButton.removeState(.Checked)
+                globalApp!.currentPipeline?.setMinimalPreview(false)
             }
         }
         

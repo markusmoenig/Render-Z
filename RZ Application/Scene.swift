@@ -424,8 +424,8 @@ class Stage                 : Codable, Equatable
         } else
         if stageItem.stageItemType == .LightStage {
             
-            let transformComponent = CodeComponent( globalApp!.currentSceneMode == .TwoD ? .Transform2D : .Light3D, "Transform")
-            transformComponent.createDefaultFunction(globalApp!.currentSceneMode == .TwoD ? .Transform2D : .Light3D)
+            let transformComponent = CodeComponent( globalApp!.currentSceneMode == .TwoD ? .Transform2D : .PointLight3D, "Light")
+            transformComponent.createDefaultFunction(globalApp!.currentSceneMode == .TwoD ? .Transform2D : .PointLight3D)
             stageItem.components[stageItem.defaultName] = transformComponent
             setDefaultComponentValues(transformComponent)
         }

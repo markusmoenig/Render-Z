@@ -351,6 +351,9 @@ class Pipeline3D            : Pipeline
         {
             // Shadows
             
+            // Reset the shadow data to 1.0 in the meta data while not touching anything else (ambient etc).
+            codeBuilder.renderClearShadow(texture: getTextureOfId("meta"))
+
             objectIndex = 0
             shapeText = "shape_" + String(objectIndex)
             while let inst = instanceMap[shapeText] {
@@ -386,12 +389,15 @@ class Pipeline3D            : Pipeline
             sunColor = SIMD4<Float>(sunStrength,sunStrength,sunStrength,1)
         }
         
+        let stage = globalApp!.project.selected!.getStage(.LightStage)
+        let lights = stage.getChildren()
+
         // X: Key Light
         // Y: Directional, Spherical
-        // Z: Attenuation
-        // W: Light Count
+        // Z: Current Light Index
+        // W: Maximum Light Index
 
-        var lightdata : [SIMD4<Float>] = [sunDirection!, SIMD4<Float>(0,0,0,0), sunColor!]
+        var lightdata : [SIMD4<Float>] = [sunDirection!, SIMD4<Float>(0,0,0,Float(lights.count)), sunColor!]
         var lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         
         // Sample the sun
@@ -399,9 +405,6 @@ class Pipeline3D            : Pipeline
         
         // Sample the light sources
         
-        let stage = globalApp!.project.selected!.getStage(.LightStage)
-        let lights = stage.getChildren()
-
         for (index, lightItem) in lights.enumerated() {
             
             let component = lightItem.components[lightItem.defaultName]!
@@ -413,7 +416,7 @@ class Pipeline3D            : Pipeline
             lightColor.y *= lightStrength.x
             lightColor.z *= lightStrength.x
 
-            lightdata = [SIMD4<Float>(t["_posX"]!, t["_posY"]!, t["_posZ"]!, 0), SIMD4<Float>(1,1,0,Float(index+1)), lightColor]
+            lightdata = [SIMD4<Float>(t["_posX"]!, t["_posY"]!, t["_posZ"]!, 0), SIMD4<Float>(1,1,Float(index+1), Float(lights.count)), lightColor]
             lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
             
             sampleLightAndMaterial(lightBuffer: lightBuffer)

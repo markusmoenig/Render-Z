@@ -792,13 +792,15 @@ class CodeSDFStream
             if (shape.z == \(materialIdCounter) )
             {
                 material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
-                if (lightType.w == 0.0) {
+                if (lightType.z == lightType.w) {
                     rayDirection = __materialOut.reflectionDir;
                     rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
                 }
                 color.xyz = color.xyz + __materialOut.color.xyz * mask;
-                //color = clamp(color, 0.0, 1.0);
-                mask *= __materialOut.mask;
+                color = clamp(color, 0.0, 1.0);
+                if (lightType.z == lightType.w) {
+                    mask *= __materialOut.mask;
+                }
             }
 
             """

@@ -1121,7 +1121,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Domain2D, Domain3D, Modifier2D, Modifier3D, Pattern, Light3D
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Domain2D, Domain3D, Modifier2D, Modifier3D, Pattern, PointLight3D
     }
     
     let functionType        : FunctionType
@@ -1443,7 +1443,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, Light3D
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, PointLight3D
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -2014,9 +2014,9 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
             functions.append(f)
         } else
-        if type == .Light3D {
-            let f = CodeFunction(type, "lightSource")
-            f.comment = "Light source properties"
+        if type == .PointLight3D {
+            let f = CodeFunction(type, "pointLightSource")
+            f.comment = "Point light properties"
             
             let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)
