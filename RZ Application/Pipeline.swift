@@ -13,7 +13,7 @@ class PipelineRenderSettings
     var reflections         : Int = 0
     var samples             : Int = 0
     
-    var cbProgress          : (Int, Int)? = nil
+    var cbProgress          : ((Int, Int)->())? = nil
     var cbFinished          : ((MTLTexture)->())? = nil
 }
 
@@ -151,5 +151,9 @@ class Pipeline
     {
         monitorComponent = nil
         monitorFragment = nil
+    }
+    
+    func cancel()
+    {
     }
 }

@@ -200,7 +200,11 @@ class MMDialog : MMWidget
         
         if cancelButton != nil {
             cancelButton!.clicked = { (event) -> Void in
-                self._cancel()
+                if self.instantClose {
+                    self._cancel()
+                } else {
+                    self.cancel()
+                }
             }
         }
     }
@@ -222,7 +226,9 @@ class MMDialog : MMWidget
                 self.mmView.startAnimate( startValue: self.rect.y, endValue: self.rect.y - self.rect.height, duration: 500, cb: { (value,finished) in
                     self.mmView.dialogYPos = value
                     if finished {
-                        self.cancel()
+                        if self.instantClose == true {
+                            self.cancel()
+                        }
                     }
                 } )
             }

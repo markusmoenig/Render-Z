@@ -59,7 +59,6 @@ class Pipeline3D            : Pipeline
     {
         renderId += 1
         
-        let modeId : String = getCurrentModeId()
         let typeId : CodeComponent.ComponentType = globalApp!.currentSceneMode == .TwoD ? .SDF2D : .SDF3D
 
         instanceMap = [:]
@@ -264,6 +263,15 @@ class Pipeline3D            : Pipeline
                         self.mmView.update()
                         
                         self.samples += 1
+                        
+                        // Progress Callback
+                        if let settings = self.settings {
+                            if let cbProgress = settings.cbProgress {
+                                cbProgress(self.samples, self.maxSamples)
+                            }
+                        }
+                        
+                        // Finished ?
                         if self.samples < self.maxSamples {
                             self.reflections = 0
                             
@@ -444,5 +452,10 @@ class Pipeline3D            : Pipeline
         }
         
         nextStage()
+    }
+    
+    override func cancel()
+    {
+        renderId += 1
     }
 }

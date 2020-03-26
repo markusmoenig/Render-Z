@@ -168,7 +168,6 @@ class MMFile : NSObject
         savePanel.beginSheetModal(for: self.mmView.window!) { (result) in
             if result == .OK {
                 save(url: savePanel.url!)
-                self.mmView.undoManager!.removeAllActions()
             }
         }
         
