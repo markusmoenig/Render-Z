@@ -65,8 +65,11 @@ class DeveloperEditor   : Editor
         if codeEditor.codeChanged == false {
             codeEditor.codeChanged = compile
         }
-        if codeEditor.rect.width > 0 {//&& codeEditor.codeChanged == false {
-            codeEditor.update()
+        
+        DispatchQueue.main.async {
+            if self.codeEditor.rect.width > 0 {//&& codeEditor.codeChanged == false {
+                self.codeEditor.update()
+            }
         }
         
         if !dispatched {

@@ -2568,8 +2568,8 @@ class CodeContext
             }
             
             // Drop on an empty line (.VariableDefinition)
-            if cBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) || (drop.name.starts(with: "for") && drop.typeName == "block" ) || (drop.name == "break" && drop.typeName == "block" ) ) {
-                
+            if fragment.parentBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) || (drop.name.starts(with: "for") && drop.typeName == "block" ) || (drop.name == "break" && drop.typeName == "block" ) ) {
+
                 var valid = true
                 // Do not allow references to global variables to be on the left side (crash)
                 if drop.fragmentType == .VariableReference {

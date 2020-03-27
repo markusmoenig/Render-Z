@@ -39,7 +39,8 @@ class CodeEditor        : MMWidget
         
     var mouseIsDown     : Bool = false
     var mouseDownPos    : SIMD2<Float> = SIMD2<Float>()
-    
+    var mousePos        : SIMD2<Float> = SIMD2<Float>()
+
     var pinchBuffer     : Float = 0
     
     var dndFunction     : CodeFunction? = nil
@@ -149,6 +150,9 @@ class CodeEditor        : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        mousePos.x = event.x
+        mousePos.y = event.y
+        
         if orientationDrag == true {
             var offset : Float = mouseDownPos.y - event.y
             
@@ -248,6 +252,35 @@ class CodeEditor        : MMWidget
                 mmView.update()
             }
         }
+        
+        // During DnD, check if we have to scroll the code
+        if codeContext.dropFragment != nil {
+            let scrollHeight = rect.height / 5
+            
+            func scroll()
+            {
+                if mouseIsDown && codeContext.dropFragment != nil {
+                    if mousePos.y > rect.bottom() - scrollHeight {
+                        // Scroll Down
+                        scrollArea.offsetY -= 2;
+                        scrollArea.checkOffset(widget: textureWidget, area: rect)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            scroll()
+                        }
+                    } else
+                    if mousePos.y < rect.y + scrollHeight {
+                        // Scroll Up
+                        scrollArea.offsetY += 2;
+                        scrollArea.checkOffset(widget: textureWidget, area: rect)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            scroll()
+                        }
+                    }
+                }
+            }
+            
+            scroll()
+        }
                 
         if let comp = codeComponent {
             let oldFunc = codeContext.hoverFunction
@@ -319,11 +352,11 @@ class CodeEditor        : MMWidget
                         
             if oldSelected != comp.selected {
 
-                needsUpdate = true
                 mmView.update()
-                
-                editor.codeProperties.setSelected(comp, codeContext)
-                codeAccess.setSelected(comp, codeContext)
+                DispatchQueue.main.async {
+                    self.editor.codeProperties.setSelected(comp, self.codeContext)
+                    self.codeAccess.setSelected(comp, self.codeContext)
+                }
             }
         }
     }
@@ -474,16 +507,18 @@ class CodeEditor        : MMWidget
         func drawLeftFuncHighlight(_ function: CodeFunction, alpha: Float)
         {
             let fY : Float = function.comment.isEmpty ? 0 : codeContext.lineHeight + codeContext.gapY
-            mmView.drawBox.draw( x: self.rect.x + codeContext.gapX / 2, y: self.rect.y + function.rect.y - codeContext.gapY / 2 + fY, width: codeContext.border - codeContext.gapX / 2, height: codeContext.lineHeight + codeContext.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha) )
+            mmView.drawBox.draw( x: self.rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: self.rect.y + function.rect.y - codeContext.gapY / 2 + fY + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: codeContext.lineHeight + codeContext.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha) )
         }
         func drawLeftBlockHighlight(_ block: CodeBlock, alpha: Float)
         {
-            mmView.drawBox.draw( x: self.rect.x + codeContext.gapX / 2, y: self.rect.y + block.rect.y - codeContext.gapY / 2, width: codeContext.border - codeContext.gapX / 2, height: codeContext.lineHeight + codeContext.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha))
+            mmView.drawBox.draw( x: self.rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: self.rect.y + block.rect.y - codeContext.gapY / 2 + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: codeContext.lineHeight + codeContext.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha))
         }
         
         let hoverAlpha : Float = 0.3
         let selectedAlpha : Float = 0.5
 
+        mmView.renderer.setClipRect(rect)
+        
         // Fragments
         if codeContext.dropFragment == nil {
             // Hover and Selection
@@ -522,7 +557,6 @@ class CodeEditor        : MMWidget
         }
                 
         // Orientation area
-        mmView.renderer.setClipRect(rect)
 
         orientationRatio = 100 / rect.width * 2
         orientationHeight = orientationRatio * codeContext.height
@@ -894,14 +928,22 @@ class CodeEditor        : MMWidget
             if sourceFrag.fragmentType == .VariableReference || sourceFrag.fragmentType == .OutVariable {
                 let sourceComponents = sourceFrag.evaluateComponents()
                 var destComponents = destFrag.evaluateComponents()
-                                
+                             
                 // Check if we can adjust the typeName of the destFrag to that of the source based on the argumentFormat
                 if let pStatement = destFrag.parentStatement, sourceComponents != destComponents {
                     let argumentIndex = pStatement.isArgumentIndexOf
                     if let argumentFormat = destFrag.argumentFormat {
-
                         if argumentIndex < argumentFormat.count {
                             let argument = argumentFormat[argumentIndex]
+                            
+                            // Sanity check, if we drop an atom (components == 1) on an incompatible type, we cannot correct it later
+                            if sourceComponents == 1 && argument.contains("|") == false && argument != sourceFrag.typeName {
+                                #if DEBUG
+                                print("Drop #4 Exclusion")
+                                #endif
+                                return
+                            }
+                            
                             if argument.contains(sourceFrag.typeName) {
                                 
                                 // Replace all arguments of the parent which have the old typeName with a constant of the new type

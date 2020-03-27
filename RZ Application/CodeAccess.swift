@@ -158,7 +158,7 @@ class CodeAccess            : MMWidget
                 accessState = .ArithmeticOperator
                 
                 for a in arithmetics {
-                    addLeftButton(a)
+                    addMiddleButton(a)
                 }
             } else
             if fragment.fragmentType == .Assignment  {
