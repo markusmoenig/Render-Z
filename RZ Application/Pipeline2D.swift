@@ -46,7 +46,6 @@ class Pipeline2D            : Pipeline
     // Build the pipeline elements
     override func build(scene: Scene, monitor: CodeFragment? = nil)
     {
-        let modeId : String = getCurrentModeId()
         let typeId : CodeComponent.ComponentType = globalApp!.currentSceneMode == .TwoD ? .SDF2D : .SDF3D
 
         instanceMap = [:]

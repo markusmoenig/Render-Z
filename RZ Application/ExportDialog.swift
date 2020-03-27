@@ -528,46 +528,7 @@ class ImageAnimator {
             ImageAnimator.saveToLibrary(videoURL: self.settings.outputURL)
             completion?()
         }
-
     }
-
-//    // Replace this logic with your own.
-//    func loadImages() -> [UIImage] {
-//        var images = [UIImage]()
-//        for index in 1...10 {
-//            let filename = "\(index).jpg"
-//            images.append(UIImage(named: filename)!)
-//        }
-//        return images
-//    }
-
-    /*
-    // This is the callback function for VideoWriter.render()
-    func appendPixelBuffers(writer: VideoWriter) -> Bool {
-
-        let frameDuration = CMTimeMake(value: Int64(ImageAnimator.kTimescale / settings.fps), timescale: ImageAnimator.kTimescale)
-
-        while !images.isEmpty {
-
-            if writer.isReadyForData == false {
-                // Inform writer we have more buffers to write.
-                return false
-            }
-
-            let image = images.removeFirst()
-            let presentationTime = CMTimeMultiply(frameDuration, multiplier: Int32(frameNum))
-            let success = videoWriter.addImage(image: image, withPresentationTime: presentationTime)
-            if success == false {
-                fatalError("addImage() failed")
-            }
-
-            frameNum += 1
-        }
-
-        // Inform writer all buffers have been written.
-        return true
-    }*/
-
 }
 
 class VideoWriter {
@@ -700,7 +661,6 @@ class VideoWriter {
             options,
             &pxbuffer
         )
-        print(pxbuffer)
         return pxbuffer!;
     }
     

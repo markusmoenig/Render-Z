@@ -468,7 +468,7 @@ class CodeAccess            : MMWidget
                 
                 if let frag = codeEditor.codeContext.selectedFragment {
                     let pStatement = frag.parentStatement!
-                    if let pIndex = pStatement.fragments.firstIndex(of: frag) {
+                    if let _ = pStatement.fragments.firstIndex(of: frag) {
                     
                         let leftIndex : Int = 0
                         let rightIndex : Int = pStatement.fragments.count - 1

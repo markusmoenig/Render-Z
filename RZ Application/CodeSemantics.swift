@@ -819,7 +819,6 @@ class CodeStatement         : Codable, Equatable
         for f in fragments {
             f.parentStatement = self
             f.draw(mmView, ctx)
-            ctx.drawFragmentState(f)
         }
     }
 }
@@ -923,22 +922,12 @@ class CodeBlock             : Codable, Equatable
             ctx.font.getTextRect(text: "func", scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
                 mmView.drawText.drawText(ctx.font, text: "func", x: ctx.border - ctx.tempRect.width - ctx.gapX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.border, fragment: frag)
-                
-                if ctx.cFunction === ctx.hoverFunction {
-                    let fY : Float = ctx.cFunction!.comment.isEmpty ? 0 : ctx.lineHeight + ctx.gapY
-                    mmView.drawBox.draw( x: ctx.gapX / 2, y: ctx.cFunction!.rect.y - ctx.gapY / 2 + fY, width: ctx.border - ctx.gapX / 2, height: ctx.lineHeight + ctx.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.5), fragment: frag )
-                }
             }
-            
         } else {
             let line : String = String(ctx.blockNumber)
             ctx.font.getTextRect(text: line, scale: ctx.fontScale, rectToUse: ctx.tempRect)
             if let frag = ctx.fragment {
                 mmView.drawText.drawText(ctx.font, text: line, x: ctx.border - ctx.tempRect.width - ctx.gapX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.border, fragment: frag)
-                
-                if ctx.cBlock === ctx.hoverBlock {
-                    mmView.drawBox.draw( x: ctx.gapX / 2, y: ctx.cBlock!.rect.y - ctx.gapY / 2, width: ctx.border - ctx.gapX / 2, height: ctx.lineHeight + ctx.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.5), fragment: frag )
-                }
             }
         }
         
@@ -948,7 +937,6 @@ class CodeBlock             : Codable, Equatable
             ctx.cX += 160//ctx.editorWidth - ctx.cX
             ctx.rectEnd(fragment.rect, rStart)
             ctx.cY += ctx.lineHeight + ctx.gapY
-            ctx.drawFragmentState(fragment)
         } else
         if blockType == .End || blockType == .Break {
             fragment.draw(mmView, ctx)
@@ -1003,7 +991,6 @@ class CodeBlock             : Codable, Equatable
                         ctx.addCode(",")
                     }
                 }
-                ctx.drawFragmentState(arg)
             }
 
             ctx.font.getTextRect(text: ")", scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -1033,15 +1020,12 @@ class CodeBlock             : Codable, Equatable
  
             ctx.cY += ctx.lineHeight + ctx.gapY
             //ctx.rectEnd(fragment.rect, rStart)
-            
-            ctx.drawFragmentState(fragment)
-            
+                        
             ctx.cIndent = ctx.indent
         } else
         if blockType == .IfHeader || blockType == .ElseHeader || blockType == .ForHeader {
 
             fragment.draw(mmView, ctx)
-            ctx.drawFragmentState(fragment)
             ctx.cY += ctx.lineHeight + ctx.gapY
             ctx.blockNumber += 1
             
@@ -1080,11 +1064,9 @@ class CodeBlock             : Codable, Equatable
             
             // left side
             fragment.draw(mmView, ctx)
-            ctx.drawFragmentState(fragment)
 
             // assignment
             assignment.draw(mmView, ctx)
-            ctx.drawFragmentState(assignment)
 
             // statement
             if propIndex != nil {
@@ -1126,7 +1108,6 @@ class CodeBlock             : Codable, Equatable
             rect.width = maxRight - rect.x
         }
         ctx.checkForWidth(maxRight)
-        ctx.drawBlockState(self)
     }
 }
 
@@ -1446,7 +1427,6 @@ class CodeFunction          : Codable, Equatable
         ctx.checkForWidth(maxRight)
 
         //mmView.drawBox.draw( x: ctx.border, y: rect.y, width: 2, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.border, fragment: ctx.fragment )
-        ctx.drawFunctionState(self)
         
         ctx.closeSyntaxBlock(uuid)
     }
@@ -2580,34 +2560,7 @@ class CodeContext
         }
     }
     
-    func drawHighlight(_ rect: MMRect,_ alpha: Float = 0.5)
-    {
-        if let frag = fragment {
-            mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
-        }
-    }
-    
-    func drawFunctionState(_ function: CodeFunction)
-    {
-        if let frag = fragment {
-            if function === hoverFunction || function.uuid == cComponent!.selected {
-                let alpha : Float = function.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
-                mmView.drawBox.draw( x: function.rect.x, y: function.rect.y, width: function.rect.width, height: function.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
-            }
-        }
-    }
-    
-    func drawBlockState(_ block: CodeBlock)
-    {
-        if let frag = fragment {
-            if block === hoverBlock || block.uuid == cComponent!.selected {
-                let alpha : Float = block.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
-                mmView.drawBox.draw( x: block.rect.x, y: block.rect.y, width: block.rect.width, height: block.rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha), borderColor: SIMD4<Float>( 0, 0, 0, 1 ), fragment: frag )
-            }
-        }
-    }
-    
-    func drawFragmentState(_ fragment: CodeFragment)
+    func checkIfDropIsValid(_ fragment: CodeFragment)
     {
         if let drop = dropFragment, fragment == hoverFragment {
                       
@@ -2645,7 +2598,6 @@ class CodeContext
                 }
                 
                 if valid {
-                    drawHighlight(fragment.rect, hoverAlpha)
                     dropIsValid = true
                 }
             } else
@@ -2702,14 +2654,9 @@ class CodeContext
                 } else
                 // Allow drop when not .VariableDefinition (coming straight from the source list)
                 if drop.fragmentType != .VariableDefinition {
-                    drawHighlight(fragment.rect, hoverAlpha)
                     dropIsValid = true
                 }
             }
-        } else
-        if fragment === hoverFragment || fragment.uuid == cComponent!.selected {
-            let alpha : Float = fragment.uuid == cComponent!.selected ? selectionAlpha : hoverAlpha
-            drawHighlight(fragment.rect, alpha)
         }
     }
 }

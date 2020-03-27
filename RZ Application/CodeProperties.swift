@@ -147,14 +147,14 @@ class CodeProperties    : MMWidget
                 }
             }
             
-            var b1 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Private Library", fixedWidth: buttonWidth)
+            let b1 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Private Library", fixedWidth: buttonWidth)
             b1.clicked = { (event) in
                 uploadToLibrary(comp, true, function.functionType == .FreeFlow ? function : nil)
                 b1.removeState(.Checked)
             }
             addButton(b1)
             
-            var b2 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Public", fixedWidth: buttonWidth)
+            let b2 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add to Public", fixedWidth: buttonWidth)
             b2.clicked = { (event) in
                 uploadToLibrary(comp, false, function.functionType == .FreeFlow ? function : nil)
                 b2.removeState(.Checked)
@@ -163,7 +163,7 @@ class CodeProperties    : MMWidget
             //}
         } else
         if let block = ctx.selectedBlock {
-            if let function = ctx.cFunction {
+            if let _ = ctx.cFunction {
                 let b1 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Empty Line", fixedWidth: buttonWidth)
                 b1.clicked = { (event) in
                     let undo = self.editor.codeEditor.undoStart("Add Line")
@@ -563,7 +563,7 @@ class CodeProperties    : MMWidget
                         let fragComponents = fragment.evaluateComponents()
                         maxComponents = max(maxComponents, fragComponents)
                         
-                        var validComponents = fragComponents
+                        let validComponents = fragComponents
                         let qArray = ["x", "y", "z", "w"]
                         
                         var newQualifiersAreValid : Bool = true

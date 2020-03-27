@@ -255,9 +255,13 @@ class CodeEditor        : MMWidget
             let oldFrag = codeContext.hoverFragment
             
             comp.codeAt(event.x - rect.x - scrollArea.offsetX, event.y - rect.y - scrollArea.offsetY, codeContext)
-                        
+            
+            codeContext.dropIsValid = false
+            if codeContext.dropFragment != nil && codeContext.hoverFragment != nil {
+                codeContext.checkIfDropIsValid(codeContext.hoverFragment!)
+            }
+                                    
             if oldFunc !== codeContext.hoverFunction || oldBlock !== codeContext.hoverBlock || oldFrag !== codeContext.hoverFragment {
-                needsUpdate = true
                 mmView.update()
             }
         }
@@ -385,7 +389,7 @@ class CodeEditor        : MMWidget
         let height : Float = codeContext.height == 0 ? 500 : codeContext.height
                 
         if fragment.width != width * zoom || fragment.height != height * zoom {
-            fragment.allocateTexture(width: width * zoom, height: height * zoom, mipMaps: true)
+            fragment.allocateTexture(width: width * zoom, height: height * zoom)
         }
         textureWidget.setTexture(fragment.texture)
                 
@@ -457,9 +461,66 @@ class CodeEditor        : MMWidget
             mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
         }
         
+        // Draw the code
         scrollArea.rect.copy(rect)
         scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset, yOffset: yOffset)
         
+        // Hover and Selection Modes
+        
+        func drawHighlight(_ rect: MMRect, alpha: Float)
+        {
+            mmView.drawBox.draw( x: self.rect.x + rect.x + scrollArea.offsetX, y: self.rect.y + rect.y + scrollArea.offsetY, width: rect.width, height: rect.height, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1, 1, 1, alpha) )
+        }
+        func drawLeftFuncHighlight(_ function: CodeFunction, alpha: Float)
+        {
+            let fY : Float = function.comment.isEmpty ? 0 : codeContext.lineHeight + codeContext.gapY
+            mmView.drawBox.draw( x: self.rect.x + codeContext.gapX / 2, y: self.rect.y + function.rect.y - codeContext.gapY / 2 + fY, width: codeContext.border - codeContext.gapX / 2, height: codeContext.lineHeight + codeContext.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha) )
+        }
+        func drawLeftBlockHighlight(_ block: CodeBlock, alpha: Float)
+        {
+            mmView.drawBox.draw( x: self.rect.x + codeContext.gapX / 2, y: self.rect.y + block.rect.y - codeContext.gapY / 2, width: codeContext.border - codeContext.gapX / 2, height: codeContext.lineHeight + codeContext.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha))
+        }
+        
+        let hoverAlpha : Float = 0.3
+        let selectedAlpha : Float = 0.5
+
+        // Fragments
+        if codeContext.dropFragment == nil {
+            // Hover and Selection
+            if let hoverFrag = codeContext.hoverFragment {
+                drawHighlight(hoverFrag.rect, alpha: hoverAlpha)
+            }
+            if let selectedFrag = codeContext.selectedFragment {
+                drawHighlight(selectedFrag.rect, alpha: selectedAlpha)
+            }
+        } else if codeContext.dropIsValid {
+            // Drop Highlight
+            if let hoverFrag = codeContext.hoverFragment {
+                drawHighlight(hoverFrag.rect, alpha: hoverAlpha)
+            }
+        }
+        
+        // Function: Hover and Selection
+        if let hoverFunc = codeContext.hoverFunction {
+            drawHighlight(hoverFunc.rect, alpha: hoverAlpha)
+            // Left side
+            drawLeftFuncHighlight(hoverFunc, alpha: hoverAlpha)
+        }
+        if let selectedFunc = codeContext.selectedFunction {
+            drawHighlight(selectedFunc.rect, alpha: selectedAlpha)
+            drawLeftFuncHighlight(selectedFunc, alpha: selectedAlpha)
+        }
+        
+        // Block: Hover and Selection
+        if let hoverBlock = codeContext.hoverBlock {
+            drawHighlight(hoverBlock.rect, alpha: hoverAlpha)
+            drawLeftBlockHighlight(hoverBlock, alpha: hoverAlpha)
+        }
+        if let selectedBlock = codeContext.selectedBlock {
+            drawHighlight(selectedBlock.rect, alpha: selectedAlpha)
+            drawLeftBlockHighlight(selectedBlock, alpha: selectedAlpha)
+        }
+                
         // Orientation area
         mmView.renderer.setClipRect(rect)
 

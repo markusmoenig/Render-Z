@@ -645,10 +645,6 @@ class MMTimeline : MMWidget
         
         let right = rect.right() - skin.margin.right - 2
         
-        let item = sequence.items[uuid]
-        //        print( "draw", uuid)
-        //        print( item )
-        
         mmView.renderer.setClipRect( MMRect(tlRect.x, rect.y, tlRect.width, rect.height ) )
         
         while x < right {
