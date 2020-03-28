@@ -641,7 +641,6 @@ class CodeSDFStream
         if type == .SDF3D
         {
             // Modifier 3D
-            
             if let stageItem = hierarchy.last {
                 if let list = stageItem.componentLists["modifier3D"] {
                     if list.count > 0 {
@@ -658,7 +657,10 @@ class CodeSDFStream
                             dryRunComponent(modifier, instance.data.count, monitor)
                             instance.collectProperties(modifier)
 
-                            code += modifier.code!
+                            code += modifier.code!.replacingOccurrences(of: "&__", with: "__")
+                            if let globalCode = modifier.globalCode {
+                                headerCode += globalCode
+                            }
                         }
                         
                         code +=
@@ -723,13 +725,17 @@ class CodeSDFStream
                     dryRunComponent(domain, instance.data.count, monitor)
                     instance.collectProperties(domain)
                     
+                    if let globalCode = domain.globalCode {
+                        headerCode += globalCode
+                    }
+                    
                     mapCode +=
                     """
                     {
                     float3 position = __origin, outPosition = position;
                     
                     """
-                    mapCode += domain.code!
+                    mapCode += domain.code!.replacingOccurrences(of: "&__", with: "__")
                     mapCode +=
                     """
                     

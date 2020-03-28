@@ -52,6 +52,7 @@ class LibraryDialog: MMDialog {
     
     var style           : Style = .Icon
     var itemMap         : [String:[LibraryItem]] = [:]
+    var privateItemMap  : [String:[LibraryItem]] = [:]
 
     var currentItems    : [LibraryItem]? = nil
 
@@ -67,36 +68,56 @@ class LibraryDialog: MMDialog {
     var currentType     : String = ""
     
     var _cb             : ((String)->())? = nil
+    
+    var borderlessSkin  : MMSkinButton
+    var publicPrivateTab: MMTabButtonWidget
+    
+    var currentId       : String = ""
+    var possibleIds     : [String] = []
+    
+    var buttonSkin      : MMSkinButton
+    var buttons         : [MMWidget] = []
 
     init(_ view: MMView) {
+        
+        borderlessSkin = MMSkinButton()
+        borderlessSkin.margin = MMMargin( 4, 4, 4, 4 )
+        borderlessSkin.borderSize = 0
+        borderlessSkin.height = view.skin.Button.height - 5
+        borderlessSkin.fontScale = 0.44
+        borderlessSkin.round = 24
+        
+        buttonSkin = MMSkinButton()
+        buttonSkin.margin = MMMargin( 8, 4, 8, 4 )
+        buttonSkin.borderSize = 0
+        buttonSkin.height = view.skin.Button.height - 5
+        buttonSkin.fontScale = 0.40
+        buttonSkin.round = 20
+        
+        publicPrivateTab = MMTabButtonWidget(view, skinToUse: borderlessSkin)
+        
+        publicPrivateTab.addTab("Public")
+        publicPrivateTab.addTab("Private")
+        
         super.init(view, title: "Choose Library Item", cancelText: "Cancel", okText: "Select")
+        
+        publicPrivateTab.clicked = { (event) in
+            self.setCurrentItems()
+        }
         
         rect.width = 800
         rect.height = 600
-        
-        //items.append( TemplateChooserItem(mmView, "Empty Project" ) )
-        //items.append( TemplateChooserItem(mmView, "Pinball", "Pinball", "Physics" ) )
-        //items.append( TemplateChooserItem(mmView, "Pong", "Pong", "Customized Physics (Collision), AI" ) )
-        //items.append( TemplateChooserItem(mmView, "Marble", "Marble", "iOS Accelerometer, Customized Physics (Gravity)" ) )
 
+        widgets.append(publicPrivateTab)
         widgets.append(self)
-        //selItem = items[0]
         
         blueTexture = view.icons["sz_ui_blue"]
         greyTexture = view.icons["sz_ui_grey"]
         
-        let query = CKQuery(recordType: "components", predicate: NSPredicate(value: true))
-        CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase.perform(query, inZoneWith: nil) { (records, error) in
+        let publicQuery = CKQuery(recordType: "components", predicate: NSPredicate(value: true))
+        CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase.perform(publicQuery, inZoneWith: nil) { (records, error) in
             
             records?.forEach({ (record) in
-                
-                //currentItems.append(item)
-                
-                // System Field from property
-                //let recordName_fromProperty = record.recordID.recordName
-                //print("System Field, recordName: \(recordName_fromProperty)")
-                //let deeplink = record.value(forKey: "deeplink")
-                //print("Custom Field, deeplink: \(deeplink ?? "")")
 
                 if !record.recordID.recordName.contains(" :: ") {
                     return
@@ -124,6 +145,33 @@ class LibraryDialog: MMDialog {
                 self.mmView.update()
             }
         }
+        
+        let privateQuery = CKQuery(recordType: "components", predicate: NSPredicate(value: true))
+        CKContainer.init(identifier: "iCloud.com.moenig.renderz").privateCloudDatabase.perform(privateQuery, inZoneWith: nil) { (records, error) in
+            
+            records?.forEach({ (record) in
+
+                if !record.recordID.recordName.contains(" :: ") {
+                    return
+                }
+                let arr = record.recordID.recordName.components(separatedBy: " :: ")
+                let name = arr[0]
+                let type = arr[1]
+                
+                var description : String = ""
+                if let desc = record.value(forKey: "description") {
+                    description = desc as! String
+                }
+
+                let item = LibraryItem(view, name, description, record.value(forKey: "json") as! String, record.recordID.recordName, type)
+                if self.privateItemMap[type] == nil {
+                    self.privateItemMap[type] = []
+                }
+                var list = self.privateItemMap[type]!
+                list.append(item)
+                self.privateItemMap[type] = list
+            })
+        }
     }
     
     func show(id: String, cb: @escaping (String)->())
@@ -133,11 +181,11 @@ class LibraryDialog: MMDialog {
         if id.starts(with: "SDF") {
             style = .Icon
         }
-        currentItems = itemMap[id]
+        currentId = id
+        setCurrentItems()
         
-        if currentItems != nil && currentItems!.count > 0 {
-            selectedItem = currentItems![0]
-        }
+        createButtons()
+        
         _cb = cb
         mmView.showDialog(self)
     }
@@ -145,12 +193,59 @@ class LibraryDialog: MMDialog {
     func setOverview()
     {
         style = .List
-        currentItems = itemMap["FuncNoise"]! + itemMap["FuncHash"]!
+        
+        currentId = "FuncNoise"
+        setCurrentItems()
+
+        createButtons(["FuncNoise", "FuncHash"])
+        
+        _cb = nil;
+    }
+    
+    func createButtons(_ list: [String] = [])
+    {
+        for b in buttons {
+            if let index = widgets.firstIndex(where: {$0 === b}) {
+                widgets.remove(at: index)
+            }
+        }
+        
+        for id in list {
+            let button = MMButtonWidget(mmView, skinToUse: buttonSkin, text: id.replacingOccurrences(of: "Func", with: ""))
+            button.name = id
+            button.clicked = { (event) in
+                self.currentId = button.name
+                self.setCurrentItems()
+                
+                for b in self.buttons {
+                    if b !== button {
+                        b.removeState(.Checked)
+                    }
+                }
+            }
+            buttons.append(button)
+            widgets.insert(button, at: 0)
+        }
+        
+        if buttons.count > 0 {
+            let b = buttons[0]
+            b.addState(.Checked)
+        }
+    }
+    
+    func setCurrentItems()
+    {
+        if publicPrivateTab.index == 0 {
+            if itemMap[currentId] == nil { itemMap[currentId] = [] }
+            currentItems = itemMap[currentId]!
+        } else {
+            if privateItemMap[currentId] == nil { privateItemMap[currentId] = [] }
+            currentItems = privateItemMap[currentId]!
+        }
         
         if currentItems != nil && currentItems!.count > 0 {
             selectedItem = currentItems![0]
         }
-        _cb = nil;
     }
     
     override func cancel() {
@@ -235,6 +330,20 @@ class LibraryDialog: MMDialog {
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0) {
+        super.draw(xOffset: xOffset, yOffset: yOffset)
+
+        publicPrivateTab.rect.x = rect.right() - 12 - publicPrivateTab.rect.width
+        publicPrivateTab.rect.y = rect.y + 34
+        publicPrivateTab.draw()
+        
+        var left: Float = 12
+        for w in buttons {
+            w.rect.x = rect.x + left
+            w.rect.y = rect.y + 34
+            w.draw()
+            left += w.rect.width + 5
+        }
+
         if style == .Icon {
             drawIconView(xOffset: xOffset, yOffset: yOffset)
         } else {
@@ -243,17 +352,18 @@ class LibraryDialog: MMDialog {
     }
     
     func drawListView(xOffset: Float = 0, yOffset: Float = 0) {
-        super.draw(xOffset: xOffset, yOffset: yOffset)
         if currentItems == nil { return }
         let items = currentItems!
         
+        let headerHeight : Float = 30
+        
         let itemWidth : Float = (rect.width - 4 - 2)
         let itemHeight : Float = 30
-        var y : Float = rect.y + 38
+        var y : Float = rect.y + 38 + headerHeight
 
         if rect.y == 0 {
             
-            let scrollHeight : Float = rect.height - 90 - 46
+            let scrollHeight : Float = rect.height - 90 - 46 - headerHeight
             let scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
             
             mmView.renderer.setClipRect(scrollRect)
@@ -304,7 +414,7 @@ class LibraryDialog: MMDialog {
             mmView.renderer.setClipRect()
         }
         
-        let boxRect : MMRect = MMRect(rect.x, rect.y + 35, rect.width, rect.height - 90 - 40)
+        let boxRect : MMRect = MMRect(rect.x, rect.y + 35 + headerHeight, rect.width, rect.height - 90 - 40 - headerHeight)
         
         let cb : Float = 1
         // Erase Edges
@@ -325,17 +435,18 @@ class LibraryDialog: MMDialog {
     }
     
     func drawIconView(xOffset: Float = 0, yOffset: Float = 0) {
-        super.draw(xOffset: xOffset, yOffset: yOffset)
         if currentItems == nil { return }
         let items = currentItems!
         
+        let headerHeight : Float = 30
+
         let itemSize : Float = (rect.width - 4 - 6) / 5
-        var y : Float = rect.y + 38
+        var y : Float = rect.y + 38 + headerHeight
 
         if rect.y == 0 {
             
             let itemWidth : Float = (rect.width - 4 - 2)
-            let scrollHeight : Float = rect.height - 90 - 46
+            let scrollHeight : Float = rect.height - 90 - 46 - headerHeight
             let scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
             
             mmView.renderer.setClipRect(scrollRect)
@@ -398,7 +509,7 @@ class LibraryDialog: MMDialog {
             mmView.renderer.setClipRect()
         }
         
-        let boxRect : MMRect = MMRect(rect.x, rect.y + 35, rect.width, rect.height - 90 - 40)
+        let boxRect : MMRect = MMRect(rect.x, rect.y + 35 + headerHeight, rect.width, rect.height - 90 - 40 - headerHeight)
         
         let cb : Float = 1
         // Erase Edges
