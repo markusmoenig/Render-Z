@@ -414,11 +414,11 @@ class Stage                 : Codable, Equatable
             stageItem.componentLists["domain2D"] = []
             stageItem.componentLists["domain3D"] = []
             
-            let defComponent3D = CodeComponent(.Modifier3D, "modifier")
-            defComponent3D.createDefaultFunction(.Modifier3D)
+            //let defComponent3D = CodeComponent(.Modifier3D, "modifier")
+            //defComponent3D.createDefaultFunction(.Modifier3D)
             
             stageItem.componentLists["modifier2D"] = []
-            stageItem.componentLists["modifier3D"] = [defComponent3D]
+            stageItem.componentLists["modifier3D"] = []//defComponent3D
             
             stageItem.addMaterial()
         } else
