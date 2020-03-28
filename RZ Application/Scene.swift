@@ -475,6 +475,37 @@ class Stage                 : Codable, Equatable
         }
     }
     
+    /// Finds the parent of a given StageItem
+    func getParentOfStageItem(_ stageItem: StageItem) -> (Stage?, StageItem?)
+    {
+        if children2D.contains(stageItem) || children3D.contains(stageItem) {
+            return (self, nil)
+        }
+        
+        func parseTree(_ tree: [StageItem]) -> StageItem?
+        {
+            for item in tree {
+                if item.children.contains(stageItem) {
+                    return item
+                } else {
+                    if let found = parseTree(item.children) {
+                        return found
+                    }
+                }
+            }
+            return nil
+        }
+        
+        if let item = parseTree(children2D) {
+            return(self,item)
+        }
+        if let item = parseTree(children3D) {
+            return(self,item)
+        }
+        
+        return(nil,nil)
+    }
+    
     // Only for VariablePool, get all Variable Components
     func getGlobalVariable() -> [String:CodeComponent]
     {
@@ -605,6 +636,29 @@ class Scene                 : Codable, Equatable
             return stages[5]
         }
         return stages[0]
+    }
+    
+    /// Update the stage
+    func updateStage(_ stage: Stage)
+    {
+        if stage.stageType == .PreStage {
+            stages[0] = stage
+        } else
+        if stage.stageType == .ShapeStage {
+            stages[1] = stage
+        } else
+        if stage.stageType == .LightStage {
+            stages[2] = stage
+        } else
+        if stage.stageType == .RenderStage {
+            stages[3] = stage
+        } else
+        if stage.stageType == .PostStage {
+            stages[4] = stage
+        } else
+        if stage.stageType == .VariablePool {
+            stages[5] = stage
+        }
     }
     
     /// Returns the selected UUID

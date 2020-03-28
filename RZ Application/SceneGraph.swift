@@ -149,24 +149,29 @@ class SceneGraph                : MMWidget
 
         menuWidget.setItems([
             MMMenuItem(text: "Add Object", cb: { () in
-                getStringDialog(view: self.mmView, title: "New Object", message: "Object name", defaultValue: "New Object", cb: { (value) -> Void in
+                //getStringDialog(view: self.mmView, title: "New Object", message: "Object name", defaultValue: "New Object", cb: { (value) -> Void in
                     if let scene = globalApp!.project.selected {
                         
                         let shapeStage = scene.getStage(.ShapeStage)
-                        let objectItem = shapeStage.createChild(value)
+                        
+                        let undo = globalApp!.currentEditor.undoStageStart(shapeStage, "Add Object")
+                        let objectItem = shapeStage.createChild("New Object")//value)
                         
                         objectItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x) / self.graphZoom - self.graphX
                         objectItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y) / self.graphZoom - self.graphY
 
                         globalApp!.sceneGraph.setCurrent(stage: shapeStage, stageItem: objectItem)
+                        globalApp!.currentEditor.undoStageEnd(shapeStage, undo)
                     }
-                } )
+                //} )
             }),
             MMMenuItem(text: "Add Point Light", cb: { () in
                 //getStringDialog(view: self.mmView, title: "New Light", message: "Light name", defaultValue: "Light", cb: { (value) -> Void in
                     if let scene = globalApp!.project.selected {
                         
                         let lightStage = scene.getStage(.LightStage)
+                        
+                        let undo = globalApp!.currentEditor.undoStageStart(lightStage, "Add Object")
                         let lightItem = lightStage.createChild("Point Light")
                         
                         lightItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x) / self.graphZoom - self.graphX
@@ -174,6 +179,7 @@ class SceneGraph                : MMWidget
 
                         globalApp!.sceneGraph.setCurrent(stage: lightStage, stageItem: lightItem)
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                        globalApp!.currentEditor.undoStageEnd(lightStage, undo)
                     }
                 //} )
             })
@@ -917,7 +923,7 @@ class SceneGraph                : MMWidget
                     }
                     toolBarWidgets.append(button)
                     
-                    let deleteButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Delete")
+                    let deleteButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
                     deleteButton.clicked = { (event) in
                         let id = "shapes" + getCurrentModeId()
                         
@@ -979,28 +985,64 @@ class SceneGraph                : MMWidget
                     toolBarWidgets.append(button)
                 } else
                 if item.itemType == .StageItem && item.stageItem!.stageItemType == .ShapeStage {
-                    var button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Add Child")
+                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Add Child")
                     button.clicked = { (event) in
-                        getStringDialog(view: self.mmView, title: "Child Object", message: "Object name", defaultValue: "Child Object", cb: { (value) -> Void in
+                        //getStringDialog(view: self.mmView, title: "Child Object", message: "Object name", defaultValue: "Child Object", cb: { (value) -> Void in
                             if let scene = globalApp!.project.selected {
                                 
                                 let shapeStage = scene.getStage(.ShapeStage)
-                                let objectItem = shapeStage.createChild(value, parent: item.stageItem!)
+                                let objectItem = shapeStage.createChild(/*value*/"Child Object", parent: item.stageItem!)
                                 
                                 objectItem.values["_graphX"]! = objectItem.values["_graphX"]!
                                 objectItem.values["_graphY"]! = objectItem.values["_graphY"]! + 270
 
                                 globalApp!.sceneGraph.setCurrent(stage: shapeStage, stageItem: objectItem)
                             }
-                        } )
+                        //} )
                     }
                     toolBarWidgets.append(button)
                     
-                    button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Delete")
-                    button.clicked = { (event) in
-
+                    let renameButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename")
+                    renameButton.clicked = { (event) -> Void in
+                        getStringDialog(view: self.mmView, title: "Rename Object", message: "Object name", defaultValue: item.stageItem!.name, cb: { (value) -> Void in
+                            let undo = globalApp!.currentEditor.undoStageItemStart("Rename Object")
+                            item.stageItem!.name = value
+                            item.stageItem!.label = nil
+                            globalApp!.currentEditor.undoStageItemEnd(undo)
+                            self.mmView.update()
+                        } )
+                        renameButton.removeState(.Checked)
                     }
-                    toolBarWidgets.append(button)
+                    toolBarWidgets.append(renameButton)
+                    
+                    let removeButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
+                    removeButton.clicked = { (event) in
+                        
+                        if let scene = globalApp!.project.selected {
+                            let shapeStage = scene.getStage(.ShapeStage)
+                            let parent = shapeStage.getParentOfStageItem(item.stageItem!)
+                            if parent.1 == nil {
+                                let undo = globalApp!.currentEditor.undoStageStart(shapeStage, "Remove Object")
+                                if let index = shapeStage.children2D.firstIndex(of: item.stageItem!) {
+                                    shapeStage.children2D.remove(at: index)
+                                } else
+                                if let index = shapeStage.children3D.firstIndex(of: item.stageItem!) {
+                                    shapeStage.children3D.remove(at: index)
+                                }
+                                globalApp!.currentEditor.undoStageEnd(shapeStage, undo)
+                            } else
+                            if let p = parent.1 {
+                                let undo = globalApp!.currentEditor.undoStageItemStart(p, "Remove Child Object")
+                                if let index = p.children.firstIndex(of: item.stageItem!) {
+                                    p.children.remove(at: index)
+                                }
+                                globalApp!.currentEditor.undoStageItemEnd(p, undo)
+                            }
+                        }
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                        removeButton.removeState(.Checked)
+                    }
+                    toolBarWidgets.append(removeButton)
                 } else
                 if let comp = item.component {
                     if comp.componentType == .RayMarch3D {

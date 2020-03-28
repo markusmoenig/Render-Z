@@ -164,6 +164,31 @@ class App
         }
     }
     
+    func loadStageFrom(_ json: String)
+    {
+        if let jsonData = json.data(using: .utf8)
+        {
+            /*
+            do {
+                if (try JSONDecoder().decode(CodeComponent.self, from: jsonData)) != nil {
+                    print( "yes" )
+                }
+            }
+            catch {
+                print("Error is : \(error)")
+            }*/
+            
+            if let stage =  try? JSONDecoder().decode(Stage.self, from: jsonData) {
+                project.selected!.updateStage(stage)
+                currentEditor.updateOnNextDraw()
+                //if let selected = project.selected!.getSelected() {
+                    //project.selected!.setSelected(selected)
+                    // TODO get stage sceneGraph.setCurrent(stageItem: selected)
+                //}
+            }
+        }
+    }
+    
     func loadStageItemFrom(_ json: String)
     {
         if let jsonData = json.data(using: .utf8)
@@ -251,9 +276,10 @@ class Editor
     {
     }
     
-    func undoStageItemStart(_ name: String) -> StageItemUndo
+    // Undo / Redo for the current StageItem
+    func undoStageItemStart(_ name: String) -> SceneGraphItemUndo
     {
-        let undo = StageItemUndo(name)
+        let undo = SceneGraphItemUndo(name)
         if let current = globalApp!.sceneGraph.currentStageItem {
             let encodedData = try? JSONEncoder().encode(current)
             if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
@@ -266,7 +292,18 @@ class Editor
         return undo
     }
     
-    func undoStageItemEnd(_ undoComponent: StageItemUndo)
+    // Undo / Redo for a StageItem
+    func undoStageItemStart(_ stageItem: StageItem, _ name: String) -> SceneGraphItemUndo
+    {
+        let undo = SceneGraphItemUndo(name)
+        let encodedData = try? JSONEncoder().encode(stageItem)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
+            undo.originalData = encodedObjectJsonString
+        }
+        return undo
+    }
+    
+    func undoStageItemEnd(_ undoComponent: SceneGraphItemUndo)
     {
         if let current = globalApp!.sceneGraph.currentStageItem {
             let encodedData = try? JSONEncoder().encode(current)
@@ -286,9 +323,58 @@ class Editor
         
         stageItemChanged(undoComponent.originalData, undoComponent.processedData)
     }
+    
+    func undoStageItemEnd(_ stageItem: StageItem, _ undoComponent: SceneGraphItemUndo)
+    {
+        let encodedData = try? JSONEncoder().encode(stageItem)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
+            undoComponent.processedData = encodedObjectJsonString
+        }
+
+        func stageItemChanged(_ oldState: String, _ newState: String)
+        {
+            globalApp!.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                globalApp!.loadStageItemFrom(oldState)
+                stageItemChanged(newState, oldState)
+            }
+            globalApp!.mmView.undoManager!.setActionName(undoComponent.name)
+        }
+        
+        stageItemChanged(undoComponent.originalData, undoComponent.processedData)
+    }
+    
+    // Undo / Redo for a Stage
+    func undoStageStart(_ stage: Stage,_ name: String) -> SceneGraphItemUndo
+    {
+        let undo = SceneGraphItemUndo(name)
+        let encodedData = try? JSONEncoder().encode(stage)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
+            undo.originalData = encodedObjectJsonString
+        }
+        return undo
+    }
+    
+    func undoStageEnd(_ stage: Stage,_ undoComponent: SceneGraphItemUndo)
+    {
+        let encodedData = try? JSONEncoder().encode(stage)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
+            undoComponent.processedData = encodedObjectJsonString
+        }
+
+        func stageChanged(_ oldState: String, _ newState: String)
+        {
+            globalApp!.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                globalApp!.loadStageFrom(oldState)
+                stageChanged(newState, oldState)
+            }
+            globalApp!.mmView.undoManager!.setActionName(undoComponent.name)
+        }
+        
+        stageChanged(undoComponent.originalData, undoComponent.processedData)
+    }
 }
 
-class StageItemUndo
+class SceneGraphItemUndo
 {
     var name            : String
     

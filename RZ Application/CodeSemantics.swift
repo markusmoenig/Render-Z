@@ -976,7 +976,12 @@ class CodeBlock             : Codable, Equatable
                     if let frag = ctx.fragment {
                         mmView.drawText.drawText(ctx.font, text: ",", x: ctx.cX, y: ctx.cY, scale: ctx.fontScale, color: mmView.skin.Code.constant, fragment: frag)
                     }
-                    //ctx.cX += ctx.tempRect.width + ctx.gapX
+                    
+                    ctx.cX += ctx.tempRect.width + ctx.gapX
+                    if ctx.cX > maxRight {
+                        maxRight = ctx.cX
+                    }
+                    
                     ctx.cX = firstCX
                     ctx.cY += ctx.lineHeight + ctx.gapY
                     if arg.properties.contains(.NotCodeable) == false {
