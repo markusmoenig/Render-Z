@@ -174,32 +174,17 @@ class LibraryDialog: MMDialog {
         }
     }
     
-    func show(id: String, cb: @escaping (String)->())
+    func show(ids: [String], style: Style = .List, cb: ((String)->())? = nil )
     {
-        style = .List
+        self.style = style
 
-        if id.starts(with: "SDF") {
-            style = .Icon
-        }
-        currentId = id
+        currentId = ids[0]
         setCurrentItems()
         
-        createButtons()
+        createButtons(ids)
         
         _cb = cb
         mmView.showDialog(self)
-    }
-    
-    func setOverview()
-    {
-        style = .List
-        
-        currentId = "FuncNoise"
-        setCurrentItems()
-
-        createButtons(["FuncNoise", "FuncHash"])
-        
-        _cb = nil;
     }
     
     func createButtons(_ list: [String] = [])
@@ -210,21 +195,24 @@ class LibraryDialog: MMDialog {
             }
         }
         
-        for id in list {
-            let button = MMButtonWidget(mmView, skinToUse: buttonSkin, text: id.replacingOccurrences(of: "Func", with: ""))
-            button.name = id
-            button.clicked = { (event) in
-                self.currentId = button.name
-                self.setCurrentItems()
-                
-                for b in self.buttons {
-                    if b !== button {
-                        b.removeState(.Checked)
+        buttons = []
+        if list.count > 1 {
+            for id in list {
+                let button = MMButtonWidget(mmView, skinToUse: buttonSkin, text: id.replacingOccurrences(of: "Func", with: ""))
+                button.name = id
+                button.clicked = { (event) in
+                    self.currentId = button.name
+                    self.setCurrentItems()
+                    
+                    for b in self.buttons {
+                        if b !== button {
+                            b.removeState(.Checked)
+                        }
                     }
                 }
+                buttons.append(button)
+                widgets.insert(button, at: 0)
             }
-            buttons.append(button)
-            widgets.insert(button, at: 0)
         }
         
         if buttons.count > 0 {

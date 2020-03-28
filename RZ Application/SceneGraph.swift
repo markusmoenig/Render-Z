@@ -689,7 +689,7 @@ class SceneGraph                : MMWidget
     func getShape(item: SceneGraphItem, replace: Bool)
     {
         // Empty Shape
-        globalApp!.libraryDialog.show(id: "SDF" + getCurrentModeId(), cb: { (json) in
+        globalApp!.libraryDialog.show(ids: ["SDF" + getCurrentModeId()], style: .Icon, cb: { (json) in
             if let comp = decodeComponentFromJSON(json) {
                 let undo = globalApp!.currentEditor.undoStageItemStart(replace == false ? "Add Shape" : "Replace Shape")
 
@@ -731,7 +731,7 @@ class SceneGraph                : MMWidget
     /// Adds a modifier or domain item to the list
     func addItem(_ item: SceneGraphItem, name: String, listId: String)
     {
-        globalApp!.libraryDialog.show(id: name + getCurrentModeId(), cb: { (json) in
+        globalApp!.libraryDialog.show(ids: [name + getCurrentModeId()], cb: { (json) in
             if let comp = decodeComponentFromJSON(json) {
                 let undo = globalApp!.currentEditor.undoStageItemStart("Add " + name)
                 
@@ -761,7 +761,7 @@ class SceneGraph                : MMWidget
         {
             let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change " + name)
             button.clicked = { (event) in
-                globalApp!.libraryDialog.show(id: id, cb: { (json) in
+                globalApp!.libraryDialog.show(ids: [id], cb: { (json) in
                     if let comp = decodeComponentFromJSON(json) {
                         let undo = globalApp!.currentEditor.undoStageItemStart("Change " + name)
                         
@@ -933,7 +933,7 @@ class SceneGraph                : MMWidget
                 if item.itemType == .BooleanItem {
                     let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change Boolean")
                     button.clicked = { (event) in
-                        globalApp!.libraryDialog.show(id: "Boolean", cb: { (json) in
+                        globalApp!.libraryDialog.show(ids: ["Boolean"], cb: { (json) in
                             if let comp = decodeComponentFromJSON(json) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart("Change Boolean")
                                                                 
@@ -959,7 +959,7 @@ class SceneGraph                : MMWidget
                     
                     let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change Renderer")
                     button.clicked = { (event) in
-                        globalApp!.libraryDialog.show(id: comp.componentType == .Render2D ? "Render2D" : "Render3D", cb: { (json) in
+                        globalApp!.libraryDialog.show(ids: [comp.componentType == .Render2D ? "Render2D" : "Render3D"], cb: { (json) in
                             if let comp = decodeComponentFromJSON(json) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart("Change Renderer")
                                 
