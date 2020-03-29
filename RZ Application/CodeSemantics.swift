@@ -1486,11 +1486,8 @@ class CodeComponent         : Codable, Equatable
     var artistPropertyNames : [UUID:String] = [:]
     var propertyGizmoMap    : [UUID:PropertyGizmoMapping] = [:]
     var sequence            : MMTlSequence = MMTlSequence()
-    
-    // The list of the property terminal locations, does not get stored, just for fast lookup
-    var terminals           : [UUID:(Float, Float)] = [:]
 
-    // The connections of the properties to the UUID and out variable name 
+    // The connections of the properties
     var connections         : [UUID:[CodeConnection]] = [:]
     
     // CloudKit

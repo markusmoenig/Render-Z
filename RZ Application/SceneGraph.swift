@@ -131,6 +131,9 @@ class SceneGraph                : MMWidget
     var selectedVariable        : SceneGraphItem? = nil
     
     var labels                  : [UUID:MMTextLabel] = [:]
+    
+    // The list of the property terminal locations
+    var terminals               : [(CodeComponent, UUID?, String?, Float, Float)] = []
 
     //var map             : [MMRe]
     
@@ -1216,6 +1219,7 @@ class SceneGraph                : MMWidget
         itemMap = [:]
         navItems = []
         buttons = []
+        terminals = []
                 
         // Draw World
         var stage = scene.getStage(.PreStage)
@@ -1427,7 +1431,7 @@ class SceneGraph                : MMWidget
                     
                     mmView.drawLine.draw(sx: rect.x + item.rect.x + 4 * graphZoom, sy: rect.y + item.rect.y + 32 * graphZoom, ex: rect.x + item.rect.x + item.rect.width - 8 * graphZoom, ey: rect.y + item.rect.y + 32 * graphZoom, radius: 0.6, fillColor: skin.normalBorderColor)
                                     
-                    component.terminals = [:]
+                    component.terminals = []
                     for uuid in component.properties {
                         let name = component.artistPropertyNames[uuid]!
                         let label = getLabel(uuid, name, skin: skin)
@@ -1440,7 +1444,7 @@ class SceneGraph                : MMWidget
                         let tX : Float = rect.x + item.rect.right() - 7.5 * graphZoom
                         let tY : Float = rect.y + y + 1.5 * graphZoom
 
-                        component.terminals[uuid] = (tX, tY)
+                        terminals.append((component, uuid, nil, tX, tY))
 
                         if frag.0!.typeName == "float4" {
                             mmView.drawBox.draw(x: tX, y: tY, width: 15 * graphZoom, height: 15 * graphZoom, round: 0, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
