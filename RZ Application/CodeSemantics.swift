@@ -8,6 +8,38 @@
 
 import Foundation
 
+/// The connection of a CodeFragment property to the out variable of another CodeComponent
+class CodeConnection        : Codable
+{
+    var componentUUID       : UUID? = nil
+    var outName             : String? = nil
+    
+    private enum CodingKeys : String, CodingKey {
+        case componentUUID
+        case outName
+    }
+    
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        componentUUID = try container.decode(UUID?.self, forKey: .componentUUID)
+        outName = try container.decode(String?.self, forKey: .outName)
+    }
+    
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(componentUUID, forKey: .componentUUID)
+        try container.encode(outName, forKey: .outName)
+    }
+
+    init(_ uuid: UUID,_ name: String = "")
+    {
+        componentUUID = uuid
+        outName = name
+    }
+}
+    
 /// The smallest possible fragment of code which has a type, name and arguments like step()
 class CodeFragment          : Codable, Equatable
 {
@@ -1455,6 +1487,12 @@ class CodeComponent         : Codable, Equatable
     var propertyGizmoMap    : [UUID:PropertyGizmoMapping] = [:]
     var sequence            : MMTlSequence = MMTlSequence()
     
+    // The list of the property terminal locations, does not get stored, just for fast lookup
+    var terminals           : [UUID:(Float, Float)] = [:]
+
+    // The connections of the properties to the UUID and out variable name 
+    var connections         : [UUID:[CodeConnection]] = [:]
+    
     // CloudKit
     var libraryName         : String = ""
     var libraryCategory     : String = "Noise"
@@ -1490,6 +1528,7 @@ class CodeComponent         : Codable, Equatable
         case libraryComment
         case values
         case subComponent
+        case connections
     }
     
     required init(from decoder: Decoder) throws
@@ -1513,6 +1552,10 @@ class CodeComponent         : Codable, Equatable
         values = try container.decode([String:Float].self, forKey: .values)
         subComponent = try container.decode(CodeComponent?.self, forKey: .subComponent)
         
+        if let conn = try container.decodeIfPresent([UUID:[CodeConnection]].self, forKey: .connections) {
+            connections = conn
+        }
+
         /*
         if componentType == .RayMarch3D {
             let f = functions[1]
@@ -1584,6 +1627,7 @@ class CodeComponent         : Codable, Equatable
         try container.encode(libraryComment, forKey: .libraryComment)
         try container.encode(values, forKey: .values)
         try container.encode(subComponent, forKey: .subComponent)
+        try container.encode(connections, forKey: .connections)
     }
     
     static func ==(lhs:CodeComponent, rhs:CodeComponent) -> Bool { // Implement Equatable
@@ -2262,6 +2306,7 @@ class CodeComponent         : Codable, Equatable
         }
     }
     
+    /// Returns the CodeFragments for a given property UUID
     func getPropertyOfUUID(_ uuid: UUID) -> (CodeFragment?, CodeFragment?)
     {
         for f in functions {
@@ -2273,7 +2318,7 @@ class CodeComponent         : Codable, Equatable
             }
         }
         return (nil,nil)
-     }
+    }
 
     func draw(_ mmView: MMView,_ ctx: CodeContext)
     {

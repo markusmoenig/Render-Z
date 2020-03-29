@@ -1412,8 +1412,10 @@ class SceneGraph                : MMWidget
                     item.rect.width = 140 * graphZoom
                     var y = item.rect.y + item.rect.height + 16 * graphZoom
                     let itemHeight : Float = 28 * graphZoom
+                    
+                    let itemCount : Float = component.componentType == .Pattern ? Float(max(2, component.properties.count)) : Float(component.properties.count)
 
-                    item.rect.height += Float(component.properties.count) * itemHeight + 20 * graphZoom
+                    item.rect.height += itemCount * itemHeight + 20 * graphZoom
                     mmView.drawBox.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: item.rect.width, height: item.rect.height, round: 12 * graphZoom, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                     
                     if component.componentType == .Pattern {
@@ -1425,12 +1427,26 @@ class SceneGraph                : MMWidget
                     
                     mmView.drawLine.draw(sx: rect.x + item.rect.x + 4 * graphZoom, sy: rect.y + item.rect.y + 32 * graphZoom, ex: rect.x + item.rect.x + item.rect.width - 8 * graphZoom, ey: rect.y + item.rect.y + 32 * graphZoom, radius: 0.6, fillColor: skin.normalBorderColor)
                                     
+                    component.terminals = [:]
                     for uuid in component.properties {
                         let name = component.artistPropertyNames[uuid]!
                         let label = getLabel(uuid, name, skin: skin)
+                        
+                        let frag = component.getPropertyOfUUID(uuid)
                         label.rect.x = rect.x + item.rect.right() - label.rect.width - 15 * graphZoom
                         label.rect.y = rect.y + y
                         label.draw()
+                        
+                        let tX : Float = rect.x + item.rect.right() - 7.5 * graphZoom
+                        let tY : Float = rect.y + y + 1.5 * graphZoom
+
+                        component.terminals[uuid] = (tX, tY)
+
+                        if frag.0!.typeName == "float4" {
+                            mmView.drawBox.draw(x: tX, y: tY, width: 15 * graphZoom, height: 15 * graphZoom, round: 0, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                        } else {
+                            mmView.drawSphere.draw(x: tX, y: tY, radius: 7.5 * graphZoom, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                        }
                         
                         y += itemHeight
                     }
