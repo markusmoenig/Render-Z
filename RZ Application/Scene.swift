@@ -142,7 +142,7 @@ class StageItem             : Codable, Equatable
         materialItem.components[materialItem.defaultName] = codeComponent
         children.append(materialItem)
         placeChild(modeId: "3D", parent: self, child: materialItem, stepSize: 60, radius: 110, defaultStart: 10)
-
+        
         let uvItem = StageItem(.RenderStage, "UV Map")
         //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
         codeComponent = CodeComponent(.UVMAP3D, "UV Map")
@@ -420,7 +420,9 @@ class Stage                 : Codable, Equatable
             stageItem.componentLists["modifier2D"] = []
             stageItem.componentLists["modifier3D"] = []//defComponent3D
             
-            stageItem.addMaterial()
+            if parent == nil {
+                stageItem.addMaterial()
+            }
         } else
         if stageItem.stageItemType == .LightStage {
             

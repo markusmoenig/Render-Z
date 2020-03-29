@@ -192,6 +192,12 @@ class CodeProperties    : MMWidget
                 let b2 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Content", fixedWidth: buttonWidth)
                 b2.clicked = { (event) in
                     let undo = self.editor.codeEditor.undoStart("Delete Content")
+                    
+                    if let propIndex = comp.properties.firstIndex(of: block.fragment.uuid) {
+                        comp.properties.remove(at: propIndex)
+                        comp.artistPropertyNames[block.fragment.uuid] = nil
+                    }
+                    
                     block.blockType = .Empty
                     block.uuid = UUID()
                     block.fragment.fragmentType = .Undefined
@@ -219,6 +225,10 @@ class CodeProperties    : MMWidget
                     if let pF = block.parentFunction {
                         if let index = pF.body.firstIndex(of: block) {
                             pF.body.remove(at: index)
+                            if let propIndex = comp.properties.firstIndex(of: block.fragment.uuid) {
+                                comp.properties.remove(at: propIndex)
+                                comp.artistPropertyNames[block.fragment.uuid] = nil
+                            }
                             if index < pF.body.count && pF.body[index].blockType == .ElseHeader {
                                 pF.body.remove(at: index)
                             }
@@ -227,6 +237,10 @@ class CodeProperties    : MMWidget
                     if let pB = block.parentBlock {
                         if let index = pB.children.firstIndex(of: block) {
                             pB.children.remove(at: index)
+                            if let propIndex = comp.properties.firstIndex(of: block.fragment.uuid) {
+                                comp.properties.remove(at: propIndex)
+                                comp.artistPropertyNames[block.fragment.uuid] = nil
+                            }
                             if index < pB.children.count && pB.children[index].blockType == .ElseHeader {
                                 pB.children.remove(at: index)
                             }

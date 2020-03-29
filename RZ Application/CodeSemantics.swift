@@ -1545,6 +1545,12 @@ class CodeComponent         : Codable, Equatable
         
         /*
         if componentType == .Material3D {
+            if libraryName.starts(with: "PBR") {
+                properties.remove(at: 1)
+            }
+        }*/
+        /*
+        if componentType == .Material3D {
             for f in functions {
                 //let arg2 = CodeFragment(.VariableDefinition, "float", "maxDistance", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
                 //f.header.statement.fragments.append(arg2)
@@ -1987,7 +1993,7 @@ class CodeComponent         : Codable, Equatable
         } else
         if type == .Pattern {
             let f = CodeFunction(type, "pattern")
-            f.comment = "Returns a color for the given ray direction"
+            f.comment = "Returns a color and mask for the given input"
             
             let arg1 = CodeFragment(.VariableDefinition, "float3", "rayDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)
@@ -1995,13 +2001,17 @@ class CodeComponent         : Codable, Equatable
             let arg2 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg2)
             
-            let arg3 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            let arg3 = CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg3)
+            
+            let arg4 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg4)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
+            f.body.append(f.createOutVariableBlock("float", "outMask"))
             functions.append(f)
         } else
         if type == .PointLight3D {

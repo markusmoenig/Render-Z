@@ -129,6 +129,8 @@ class SceneGraph                : MMWidget
     var dragVisNav              : Bool = false
 
     var selectedVariable        : SceneGraphItem? = nil
+    
+    var labels                  : [UUID:MMTextLabel] = [:]
 
     //var map             : [MMRe]
     
@@ -343,6 +345,10 @@ class SceneGraph                : MMWidget
                         mouseDownItemPos.x = stageItem.values["_graphModifierX"]!
                         mouseDownItemPos.y = stageItem.values["_graphModifierY"]!
                     } else
+                    if drag.component != nil && drag.component!.componentType == .Pattern {
+                        mouseDownItemPos.x = drag.component!.values["_graphX"]!
+                        mouseDownItemPos.y = drag.component!.values["_graphY"]!
+                    } else
                     if let stageItem = drag.stageItem {
                         mouseDownItemPos.x = stageItem.values["_graphX"]!
                         mouseDownItemPos.y = stageItem.values["_graphY"]!
@@ -443,6 +449,10 @@ class SceneGraph                : MMWidget
             if let stageItem = drag.stageItem, drag.itemType == .ModifierContainer {
                 stageItem.values["_graphModifierX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
                 stageItem.values["_graphModifierY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
+            } else
+            if drag.component != nil && drag.component!.componentType == .Pattern {
+                drag.component!.values["_graphX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
+                drag.component!.values["_graphY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
             } else
             if let stageItem = drag.stageItem {
                 stageItem.values["_graphX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
@@ -757,7 +767,14 @@ class SceneGraph                : MMWidget
         })
     }
     
-    ///Build the menu
+    /// Clear the toolbar
+    func clearToolbar()
+    {
+        deactivate()
+        toolBarWidgets = []
+    }
+    
+    // Build the menu
     func buildToolbar(uuid: UUID?)
     {
         deactivate()
@@ -781,6 +798,13 @@ class SceneGraph                : MMWidget
                         globalApp!.currentEditor.undoStageItemEnd(undo)
                         self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                        
+                        if let stageItem = item.stageItem {
+                            if comp.componentType == .Material3D {
+                                stageItem.name = comp.libraryName
+                                stageItem.label = nil
+                            }
+                        }
                     }
                 })
             }
@@ -1038,6 +1062,7 @@ class SceneGraph                : MMWidget
                                 }
                                 globalApp!.currentEditor.undoStageItemEnd(p, undo)
                             }
+                            self.clearToolbar()
                         }
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
                         removeButton.removeState(.Checked)
@@ -1091,8 +1116,22 @@ class SceneGraph                : MMWidget
                     } else
                     if comp.componentType == .Material3D {
                         buildChangeComponent(item, name: "Material", id: "Material3D")
-                        item.stageItem!.name = item.component!.libraryName
-                        item.stageItem!.label = nil
+                        
+                        let addPatternButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Add Pattern")
+                        addPatternButton.clicked = { (event) in
+                            if let stageItem = item.stageItem {
+                                let comp = CodeComponent(.Pattern, "Pattern")
+                                comp.createDefaultFunction(.Pattern)
+                                comp.values["_graphX"] = 100
+                                comp.values["_graphY"] = 100
+
+                                if stageItem.componentLists["patterns"] == nil { stageItem.componentLists["patterns"] = [] }
+                                
+                                stageItem.componentLists["patterns"]?.append(comp)
+                            }
+                            addPatternButton.removeState(.Checked)
+                        }
+                        toolBarWidgets.append(addPatternButton)
                     } else
                     if comp.componentType == .Variable {
                         
@@ -1319,16 +1358,22 @@ class SceneGraph                : MMWidget
         drawItem(variableItem, selected: stage === currentStage, skin: skin)
     }
     
+    // Returns a label for the given UUID
+    func getLabel(_ uuid: UUID,_ text: String, skin: SceneGraphSkin) -> MMTextLabel
+    {
+        var label = labels[uuid]
+        if label == nil || label!.scale != skin.fontScale {
+            label = MMTextLabel(mmView, font: mmView.openSans, text: text, scale: skin.fontScale, color: skin.normalTextColor)
+        }
+        return label!
+    }
+    
     // drawItem
     func drawItem(_ item: SceneGraphItem, selected: Bool, parent: SceneGraphItem? = nil, skin: SceneGraphSkin)
     {
         if let parent = parent {
             drawLineBetweenCircles(parent, item, skin)
         }
-
-        //mmView.drawSphere.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, radius: item.rect.width / 2, borderSize: 1.5, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
-        
-        mmView.drawBox.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: item.rect.width, height: item.rect.height, round: 12 * graphZoom, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
         
         var label : MMTextLabel
         
@@ -1344,9 +1389,66 @@ class SceneGraph                : MMWidget
             label = item.stage.label!
         }
         
-        label.rect.x = rect.x + item.rect.x + (item.rect.width - label.rect.width) / 2
-        label.rect.y = rect.y + item.rect.y + (item.rect.height - skin.lineHeight) / 2
-        label.draw()
+        var hasProperties = false
+        
+        if let stageItem = item.stageItem {
+            let defaultComponent = stageItem.components[stageItem.defaultName]
+            let potentialComponent = defaultComponent != nil && defaultComponent!.componentType == .Material3D && item.component != nil ? item.component : defaultComponent
+            if let component = potentialComponent, component.componentType == .Material3D || component.componentType == .Pattern {
+                
+                // Material, draw all the patterns
+                if let patterns = stageItem.componentLists["patterns"], item.component!.componentType == .Material3D {
+                    for p in patterns {
+                        let pItem = SceneGraphItem(.StageItem, stage: item.stage, stageItem: stageItem, component: p)
+                        pItem.rect.set(item.rect.x + p.values["_graphX"]! * graphZoom, item.rect.y + p.values["_graphY"]! * graphZoom, item.rect.width, item.rect.height)
+                        itemMap[p.uuid] = pItem
+                        drawItem(pItem, selected: p === currentComponent, skin: skin)
+                    }
+                }
+                
+                if component.properties.count > 0 || component.componentType == .Pattern {
+                    
+                    hasProperties = true
+                    item.rect.width = 140 * graphZoom
+                    var y = item.rect.y + item.rect.height + 16 * graphZoom
+                    let itemHeight : Float = 28 * graphZoom
+
+                    item.rect.height += Float(component.properties.count) * itemHeight + 20 * graphZoom
+                    mmView.drawBox.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: item.rect.width, height: item.rect.height, round: 12 * graphZoom, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                    
+                    if component.componentType == .Pattern {
+                        label = getLabel(component.uuid, component.libraryName, skin: skin)
+                    }
+                    label.rect.x = rect.x + item.rect.x + 10 * graphZoom
+                    label.rect.y = rect.y + item.rect.y + 10 * graphZoom
+                    label.draw()
+                    
+                    mmView.drawLine.draw(sx: rect.x + item.rect.x + 4 * graphZoom, sy: rect.y + item.rect.y + 32 * graphZoom, ex: rect.x + item.rect.x + item.rect.width - 8 * graphZoom, ey: rect.y + item.rect.y + 32 * graphZoom, radius: 0.6, fillColor: skin.normalBorderColor)
+                                    
+                    for uuid in component.properties {
+                        let name = component.artistPropertyNames[uuid]!
+                        let label = getLabel(uuid, name, skin: skin)
+                        label.rect.x = rect.x + item.rect.right() - label.rect.width - 15 * graphZoom
+                        label.rect.y = rect.y + y
+                        label.draw()
+                        
+                        y += itemHeight
+                    }
+                }
+            }
+        }
+        
+        if hasProperties == false {
+            mmView.drawBox.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: item.rect.width, height: item.rect.height, round: 12 * graphZoom, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+        }
+
+        //mmView.drawSphere.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, radius: item.rect.width / 2, borderSize: 1.5, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+        
+        if hasProperties == false {
+            label.rect.x = rect.x + item.rect.x + (item.rect.width - label.rect.width) / 2
+            label.rect.y = rect.y + item.rect.y + (item.rect.height - skin.lineHeight) / 2
+            label.draw()
+        }
     }
     
     /// Draws an object hierarchy
