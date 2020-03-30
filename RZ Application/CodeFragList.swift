@@ -162,7 +162,7 @@ class CodeFragList : MMWidget
         
         item = FragItem("P")
         items.append(item)
-        item.items.append( SourceListItem("PI", CodeFragment(.Primitive, "float", " PI ", [.Selectable, .Dragable, .Targetable], nil, "float" ) ) )
+        item.items.append( SourceListItem("PI", CodeFragment(.Primitive, "float", "PI", [.Selectable, .Dragable, .Targetable], nil, "float" ) ) )
         item.items.append( SourceListItem("pow", CodeFragment(.Primitive, "float", "pow", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4"], "input0" ) ) )
         
         item = FragItem("R")

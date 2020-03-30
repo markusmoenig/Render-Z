@@ -486,6 +486,10 @@ class CodeFragment          : Codable, Equatable
             } else {
                 name += self.name
                 codeName += self.name
+                
+                if self.name == "PI" {
+                    codeName = (isNegated() ? " -" : "") + "3.1415926535897932384626422832795028841971"
+                }
             }
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -2441,11 +2445,6 @@ class CodeComponent         : Codable, Equatable
         
         ctx.rectEnd(rect, rStart)
         ctx.height = ctx.cY
-
-        // Replacements
-        
-        code = code!.replacingOccurrences(of: " PI ", with: "3.1415926535897932384626422832795028841971")
-        globalCode = globalCode!.replacingOccurrences(of: " PI ", with: "3.1415926535897932384626422832795028841971")
     }
 }
 
