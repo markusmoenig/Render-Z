@@ -1265,8 +1265,11 @@ class NodeUIMonitor : NodeUI
     {
         let region = MTLRegionMake2D(min(Int(uv.x * Float(texture.width)), texture.width-1), min(Int(uv.y * Float(texture.height)), texture.height-1), 1, 1)
 
-        let texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(repeating: 0), count: 1)
-        texture.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * texture.width), from: region, mipmapLevel: 0)
+        var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(repeating: 0), count: 1)
+        //texture.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * texture.width), from: region, mipmapLevel: 0)
+        texArray.withUnsafeMutableBytes { texArrayPtr in
+            texture.getBytes(texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * texture.width), from: region, mipmapLevel: 0)
+        }
         value = texArray[0]
     }
     

@@ -47,6 +47,9 @@ class DeveloperEditor   : Editor
         globalApp!.currentPipeline?.clearMonitor()
         codeEditor.codeComponent = component
         updateOnNextDraw(compile: false)
+        codeEditor.codeContext.selectedBlock = nil
+        codeEditor.codeContext.selectedFragment = nil
+        codeEditor.codeContext.selectedFunction = nil
         if let uuid = component.selected {
             component.selectUUID(uuid, codeEditor.codeContext)
             codeProperties.needsUpdate = true

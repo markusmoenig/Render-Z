@@ -496,11 +496,7 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.tempRect.width
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
-            
-            // Replace mod with fmod
-            if self.name == "mod" {
-                codeName = codeName.replacingOccurrences(of: "mod", with: "fmod", options: .literal, range: nil)
-            }
+
             ctx.addCode(codeName)
         } else
         if fragmentType == .If || fragmentType == .Else || fragmentType == .For {
@@ -569,7 +565,15 @@ class CodeFragment          : Codable, Equatable
             // Get the name of the variable
             var name : String = ""
             var codeName : String = ""
+            
             if let ref = referseTo {
+                
+                // First, check for a pattern connection!!
+                if let conn = ctx.cComponent!.propertyConnections[ref] {
+                    name = (isNegated() ? " -" : "") + conn.1
+                    codeName = (isNegated() ? " -" : "") + conn.0 + "." + conn.1
+                    print(name, "is connected to ", conn.0, conn.1, codeName)
+                } else
                 if let v = ctx.cVariables[ref] {
                     name = (isNegated() ? " -" : "") + v.name
                     if let refName = v.codeName {
@@ -1432,6 +1436,36 @@ class CodeFunction          : Codable, Equatable
                 maxRight = header.rect.right()
             }
         }
+
+        // If Material or pattern create the pattern dependencies
+        if (ctx.cComponent!.componentType == .Material3D || ctx.cComponent!.componentType == .Pattern) && ctx.patternList.count > 0 {
+            // First parse the body, collect the connected properties
+            
+            func checkBlock(_ b: CodeBlock) {
+                if b.blockType == .VariableDefinition {
+                    let uuid = b.fragment.uuid
+                    if let conn = ctx.cComponent!.connections[uuid] {
+                        for pattern in ctx.patternList {
+                            if conn.componentUUID == pattern.uuid {
+                                let token = generateToken()
+                                ctx.addCode("struct " + "PatternOut " + token + ";\n")
+                                if ctx.cComponent!.componentType == .Material3D {
+                                    ctx.addCode(pattern.functions.last!.codeName! + "( hitPosition.xz, hitPosition, hitNormal, incomingDirection, &\(token), __funcData );\n")
+                                    ctx.cComponent!.propertyConnections[uuid] = (token, conn.outName!)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            for b in body {
+                checkBlock(b)
+                for cb in b.children {
+                    checkBlock(cb)
+                }
+            }
+        }
         
         for b in body {
             ctx.cBlock = b
@@ -1487,8 +1521,10 @@ class CodeComponent         : Codable, Equatable
     var propertyGizmoMap    : [UUID:PropertyGizmoMapping] = [:]
     var sequence            : MMTlSequence = MMTlSequence()
 
+    var propertyConnections : [UUID:(String, String)] = [:]
+    
     // The connections of the properties
-    var connections         : [UUID:[CodeConnection]] = [:]
+    var connections         : [UUID:CodeConnection] = [:]
     
     // CloudKit
     var libraryName         : String = ""
@@ -1549,7 +1585,7 @@ class CodeComponent         : Codable, Equatable
         values = try container.decode([String:Float].self, forKey: .values)
         subComponent = try container.decode(CodeComponent?.self, forKey: .subComponent)
         
-        if let conn = try container.decodeIfPresent([UUID:[CodeConnection]].self, forKey: .connections) {
+        if let conn = try container.decodeIfPresent([UUID:CodeConnection].self, forKey: .connections) {
             connections = conn
         }
 
@@ -2053,6 +2089,7 @@ class CodeComponent         : Codable, Equatable
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float4", "outColor"))
             f.body.append(f.createOutVariableBlock("float", "outMask"))
+            f.body.append(f.createOutVariableBlock("float", "outId"))
             functions.append(f)
         } else
         if type == .PointLight3D {
@@ -2323,9 +2360,44 @@ class CodeComponent         : Codable, Equatable
         ctx.cComponent = self
         globalVariables = [:]
         inputDataList = []
+        propertyConnections = [:]
         
         code = ""
         globalCode = ""
+        
+        if componentType == .Material3D && ctx.patternList.count > 0 {
+            // Create the global functions for all the patterns of the material
+            for pattern in ctx.patternList {
+                dryRunComponent(pattern, ctx.propertyDataOffset, ctx.monitorFragment, patternList: ctx.patternList)
+                globalCode = pattern.globalCode
+                
+                let f = pattern.functions.last!
+                f.codeName = generateToken()
+                var pCode : String = "void " + f.codeName!
+                pCode +=
+                """
+                (float2 uv, float3 position, float3 normal, float3 rayDirection, thread PatternOut *__patternData, thread FuncData *__funcData) {
+                    float4 outColor = float4(0); float outMask = 0.; float outId = 0.;
+
+                    constant float4 *__data = __funcData->__data;
+                    float4 __monitorOut = *__funcData->__monitorOut;
+                    float GlobalTime = __funcData->GlobalTime;
+                
+                """
+                pCode += pattern.code!
+                pCode +=
+                """
+                
+                    __patternData->color = outColor;
+                    __patternData->mask = outMask;
+                    __patternData->id = outId;
+                    *__funcData->__monitorOut = __monitorOut;
+                }
+                """
+                
+                globalCode! += pCode
+            }
+        }
         
         for f in functions {
             
@@ -2369,9 +2441,11 @@ class CodeComponent         : Codable, Equatable
         
         ctx.rectEnd(rect, rStart)
         ctx.height = ctx.cY
-        //if globalCode!.count > 0 {
-            //print(globalCode!)
-        //}
+
+        // Replacements
+        
+        code = code!.replacingOccurrences(of: " PI ", with: "3.1415926535897932384626422832795028841971")
+        globalCode = globalCode!.replacingOccurrences(of: " PI ", with: "3.1415926535897932384626422832795028841971")
     }
 }
 
@@ -2438,6 +2512,8 @@ class CodeContext
     var functionHasMonitor  : Bool = false
     
     static var fSpace       : Float = 30
+    
+    var patternList         : [CodeComponent] = []
 
     init(_ view: MMView,_ fragment: MMFragment?,_ font: MMFont,_ fontScale: Float)
     {
@@ -2447,8 +2523,10 @@ class CodeContext
         self.fontScale = fontScale
     }
     
-    func reset(_ editorWidth: Float = 10000,_ propertyDataOffset: Int = 0,_ monitorFragment: CodeFragment? = nil)
+    func reset(_ editorWidth: Float = 10000,_ propertyDataOffset: Int = 0,_ monitorFragment: CodeFragment? = nil, patternList: [CodeComponent] = [])
     {
+        self.patternList = patternList
+    
         width = 0
         startX = 10
         

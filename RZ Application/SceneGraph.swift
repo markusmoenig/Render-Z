@@ -221,7 +221,9 @@ class SceneGraph                : MMWidget
     override func mouseScrolled(_ event: MMMouseEvent)
     {
         #if os(iOS)
-        // If there is a selected shape, don't scroll
+        if connectingTerminals {
+            return
+        }
         graphX += event.deltaX! * 2
         graphY += event.deltaY! * 2
         #elseif os(OSX)
@@ -604,10 +606,8 @@ class SceneGraph                : MMWidget
             
             if let propT = propertyTerminal {
                 let comp = propT.0
-                if comp.connections[propT.1!] == nil {
-                    comp.connections[propT.1!] = []
-                }
-                comp.connections[propT.1!]!.append(CodeConnection(outTerminal!.0.uuid, outTerminal!.2!))
+                comp.connections[propT.1!] = CodeConnection(outTerminal!.0.uuid, outTerminal!.2!)
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
             }
         }
         
@@ -1221,22 +1221,6 @@ class SceneGraph                : MMWidget
                     } else
                     if comp.componentType == .Material3D {
                         buildChangeComponent(item, name: "Material", id: "Material3D")
-                        
-                        let addPatternButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Add Pattern")
-                        addPatternButton.clicked = { (event) in
-                            if let stageItem = item.stageItem {
-                                let comp = CodeComponent(.Pattern, "Pattern")
-                                comp.createDefaultFunction(.Pattern)
-                                comp.values["_graphX"] = 100
-                                comp.values["_graphY"] = 100
-
-                                if stageItem.componentLists["patterns"] == nil { stageItem.componentLists["patterns"] = [] }
-                                
-                                stageItem.componentLists["patterns"]?.append(comp)
-                            }
-                            addPatternButton.removeState(.Checked)
-                        }
-                        toolBarWidgets.append(addPatternButton)
                     } else
                     if comp.componentType == .Variable {
                         
@@ -1518,13 +1502,46 @@ class SceneGraph                : MMWidget
                     item.rect.width = 140 * graphZoom
                     var y = item.rect.y + item.rect.height + 16 * graphZoom
                     let yBackup = y
-                    
+                    let tWidth = skin.tSize * graphZoom
+                    let tHalfWidth = skin.tHalfSize * graphZoom
+
                     let itemHeight : Float = 28 * graphZoom
                     
                     let itemCount : Float = component.componentType == .Pattern ? Float(max(2, component.properties.count)) : Float(component.properties.count)
 
                     item.rect.height += itemCount * itemHeight + 20 * graphZoom
                     mmView.drawBox.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: item.rect.width, height: item.rect.height, round: 12 * graphZoom, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                    
+                    if component.componentType == .Material3D {
+                        drawPlusButton(item: item, rect: MMRect(rect.x + item.rect.x + item.rect.width - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + item.rect.y + 4 * graphZoom, itemHeight, itemHeight), cb: { () in
+                            /*
+                            if let stageItem = item.stageItem {
+                                let comp = CodeComponent(.Pattern, "Pattern")
+                                comp.createDefaultFunction(.Pattern)
+                                comp.values["_graphX"] = 100
+                                comp.values["_graphY"] = 100
+
+                                if stageItem.componentLists["patterns"] == nil { stageItem.componentLists["patterns"] = [] }
+                                
+                                stageItem.componentLists["patterns"]?.append(comp)
+                            }*/
+                            globalApp!.libraryDialog.show(ids: ["Pattern"], style: .List, cb: { (json) in
+                                if let comp = decodeComponentFromJSON(json) {
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Add Pattern")
+
+                                    comp.uuid = UUID()
+                                    comp.selected = nil
+                                    
+                                    if stageItem.componentLists["patterns"] == nil { stageItem.componentLists["patterns"] = [] }
+                                    stageItem.componentLists["patterns"]?.append(comp)
+
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                                }
+                            })
+                        }, skin: skin)
+                    }
                     
                     if component.componentType == .Pattern {
                         label = getLabel(component.uuid, component.libraryName, skin: skin)
@@ -1541,11 +1558,11 @@ class SceneGraph                : MMWidget
                         let label = getLabel(uuid, name, skin: skin)
                         
                         let frag = component.getPropertyOfUUID(uuid)
-                        label.rect.x = rect.x + item.rect.right() - label.rect.width - 15 * graphZoom
+                        label.rect.x = rect.x + item.rect.right() - label.rect.width - tWidth
                         label.rect.y = rect.y + y
                         label.draw()
                         
-                        let tX : Float = rect.x + item.rect.right() - 7.5 * graphZoom
+                        let tX : Float = rect.x + item.rect.right() - tHalfWidth
                         let tY : Float = rect.y + y + 1.5 * graphZoom
 
                         terminals.append((component, uuid, nil, tX, tY))
@@ -1561,19 +1578,28 @@ class SceneGraph                : MMWidget
                                 pColor = skin.normalTerminalColor
                             }
                         }
+                        if component.connections[uuid] != nil {
+                            pColor = skin.normalTerminalColor
+                        }
 
+                        var isFloat4 = false
                         if frag.0!.typeName == "float4" {
-                            mmView.drawBox.draw(x: tX, y: tY, width: 15 * graphZoom, height: 15 * graphZoom, round: 0, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                            isFloat4 = true
+                            mmView.drawBox.draw(x: tX, y: tY, width: tWidth, height: tWidth, round: 0, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                         } else {
-                            mmView.drawSphere.draw(x: tX, y: tY, radius: 7.5 * graphZoom, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                            mmView.drawSphere.draw(x: tX, y: tY, radius: tHalfWidth, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                         }
                         
                         // Draw the property terminal connections
-                        if let connections = component.connections[uuid] {
-                            for conn in connections {
-                                for t in terminals {
-                                    if t.0.uuid == conn.componentUUID && t.2 == conn.outName {
-                                        mmView.drawLine.draw(sx: tX + 7.5 * graphZoom, sy: tY + 7.5 * graphZoom, ex: t.3 + 7.5 * graphZoom, ey: t.4 + 7.5 * graphZoom, radius: 1, fillColor: skin.normalTerminalColor)
+                        if let conn = component.connections[uuid] {
+                            for t in terminals {
+                                if t.0.uuid == conn.componentUUID && t.2 == conn.outName {
+                                    mmView.drawLine.draw(sx: tX + tHalfWidth, sy: tY + tHalfWidth, ex: t.3 + tHalfWidth, ey: t.4 + tHalfWidth, radius: 1, fillColor: skin.normalTerminalColor)
+                                    
+                                    if isFloat4 {
+                                        mmView.drawBox.draw(x: t.3, y: t.4, width: tWidth, height: tWidth, round: 0, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                                    } else {
+                                        mmView.drawSphere.draw(x: t.3, y: t.4, radius: tHalfWidth, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                                     }
                                 }
                             }

@@ -274,8 +274,11 @@ class GizmoCombo3D          : GizmoBase
                         
             let region = MTLRegionMake2D(min(Int(event.x - rect.x), compute.texture!.width-1), min(Int(rect.height - (event.y - rect.y)), compute.texture!.height-1), 1, 1)
 
-            let texArray = Array<Float>(repeating: Float(0), count: 1)
-            compute.texture!.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<Float>.size * compute.texture!.width), from: region, mipmapLevel: 0)
+            var texArray = Array<Float>(repeating: Float(0), count: 1)
+            //compute.texture!.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<Float>.size * compute.texture!.width), from: region, mipmapLevel: 0)
+            texArray.withUnsafeMutableBytes { texArrayPtr in
+                compute.texture!.getBytes(texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * compute.texture!.width), from: region, mipmapLevel: 0)
+            }
             let value = texArray[0]
             //print(value)
 

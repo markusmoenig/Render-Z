@@ -236,6 +236,9 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             } else
             if component.componentType == .PointLight3D {
                 libName += " :: Light3D"
+            } else
+            if component.componentType == .Pattern {
+                libName += " :: Pattern"
             }
         }
         
@@ -300,10 +303,10 @@ func encodeComponentToJSON(_ component: CodeComponent) -> String
 }
 
 /// Runs the component to generate code without any drawing
-func dryRunComponent(_ comp: CodeComponent,_ propertyOffset: Int = 0,_ monitor: CodeFragment? = nil)
+func dryRunComponent(_ comp: CodeComponent,_ propertyOffset: Int = 0,_ monitor: CodeFragment? = nil, patternList: [CodeComponent] = [])
 {
     let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
-    ctx.reset(1000, propertyOffset, monitor)
+    ctx.reset(1000, propertyOffset, monitor, patternList: patternList)
     comp.draw(globalApp!.mmView, ctx)
 }
 
@@ -380,6 +383,18 @@ func getFirstComponentOfType(_ list: [StageItem],_ type: CodeComponent.Component
         if let c = item.components[item.defaultName] {
             if c.componentType == type {
                 return c
+            }
+        }
+    }
+    return nil
+}
+
+func getFirstStageItemOfComponentOfType(_ list: [StageItem],_ type: CodeComponent.ComponentType) -> StageItem?
+{
+    for item in list {
+        if let c = item.components[item.defaultName] {
+            if c.componentType == type {
+                return item
             }
         }
     }

@@ -882,6 +882,13 @@ class CodeBuilder
             float               reflectionBlur;
         };
         
+        struct PatternOut
+        {
+            float4              color;
+            float               mask;
+            float               id;
+        };
+        
         #define PI 3.14159265359
 
         float degrees(float radians)

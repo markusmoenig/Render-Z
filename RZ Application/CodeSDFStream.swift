@@ -770,7 +770,15 @@ class CodeSDFStream
             
             """
             
-            dryRunComponent(material, instance.data.count, monitor)
+            // Get the patterns of the material if any
+            var patterns : [CodeComponent] = []
+            if let materialStageItem = getFirstStageItemOfComponentOfType(stageItem.children, .Material3D) {
+                if materialStageItem.componentLists["patterns"] != nil {
+                    patterns = materialStageItem.componentLists["patterns"]!
+                }
+            }
+            
+            dryRunComponent(material, instance.data.count, monitor, patternList: patterns)
             instance.collectProperties(material)
             if let globalCode = material.globalCode {
                 headerCode += globalCode
