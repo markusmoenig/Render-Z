@@ -17,12 +17,18 @@ class SceneGraphSkin {
     
     let selectedBorderColor     = SIMD4<Float>(0.816, 0.396, 0.204, 1.000)
 
+    let normalTerminalColor     = SIMD4<Float>(0.5,0.5,0.5,1)
+    let selectedTerminalColor   = SIMD4<Float>(0.816, 0.396, 0.204, 1.000)
+
     let tempRect                = MMRect()
     let fontScale               : Float
     let font                    : MMFont
     let lineHeight              : Float
     let itemHeight              : Float = 30
     let margin                  : Float = 20
+    
+    let tSize                   : Float = 15
+    let tHalfSize               : Float = 15 / 2
 
     init(_ font: MMFont, fontScale: Float = 0.4) {
         self.font = font
@@ -101,6 +107,7 @@ class SceneGraph                : MMWidget
     var pressedButton           : SceneGraphButton? = nil
 
     var dragItem                : SceneGraphItem? = nil
+    var mousePos                : SIMD2<Float> = SIMD2<Float>(0,0)
     var mouseDownPos            : SIMD2<Float> = SIMD2<Float>(0,0)
     var mouseDownItemPos        : SIMD2<Float> = SIMD2<Float>(0,0)
 
@@ -134,7 +141,11 @@ class SceneGraph                : MMWidget
     
     // The list of the property terminal locations
     var terminals               : [(CodeComponent, UUID?, String?, Float, Float)] = []
-
+    
+    var selectedTerminal        : (CodeComponent, UUID?, String?, Float, Float)? = nil
+    var possibleConnTerminal    : (CodeComponent, UUID?, String?, Float, Float)? = nil
+    var connectingTerminals     : Bool = false
+    
     //var map             : [MMRe]
     
     override init(_ view: MMView)
@@ -328,6 +339,17 @@ class SceneGraph                : MMWidget
                 
         mouseDownItemPos.x = graphX
         mouseDownItemPos.y = graphY
+        
+        selectedTerminal = nil
+        // Terminal click ?
+        for t in terminals {
+            if event.x >= t.3 && event.y >= t.4 && event.x <= t.3 + 15 * graphZoom && event.y <= t.4 + 15 * graphZoom {
+                selectedTerminal = t
+                connectingTerminals = true
+                mmView.update()
+                break
+            }
+        }
 
         if globalApp!.sceneGraph.clickAt(x: event.x, y: event.y) {
             clickWasConsumed = true
@@ -385,10 +407,58 @@ class SceneGraph                : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        mousePos.x = event.x
+        mousePos.y = event.y
+        
         // Dragging the navigator
         if dragVisNav == true {
             graphX = mouseDownItemPos.x + (mouseDownPos.x - event.x) / graphZoom
             graphY = mouseDownItemPos.y + (mouseDownPos.y - event.y) / graphZoom
+            mmView.update()
+            return
+        }
+        
+        // Connecting Terminals ?
+        if connectingTerminals == true && selectedTerminal != nil {
+            possibleConnTerminal = nil
+            for t in terminals {
+                if event.x >= t.3 && event.y >= t.4 && event.x <= t.3 + 15 * graphZoom && event.y <= t.4 + 15 * graphZoom {
+                    if t.0 !== selectedTerminal!.0 {
+                        
+                        var propertyTerminal : (CodeComponent, UUID?, String?, Float, Float)? = nil
+                        var outTerminal : (CodeComponent, UUID?, String?, Float, Float)? = nil
+                        
+                        if (selectedTerminal!.1 != nil && t.1 == nil) {
+                            propertyTerminal = selectedTerminal
+                            outTerminal = t
+                        } else
+                        if (selectedTerminal!.1 == nil && t.1 != nil) {
+                            propertyTerminal = t
+                            outTerminal = selectedTerminal
+                        }
+                        
+                        if propertyTerminal != nil {
+                                                        
+                            let propertyType = propertyTerminal!.0.getPropertyOfUUID(propertyTerminal!.1!).0!.typeName
+                            var canConnect = false
+                                                        
+                            if outTerminal!.2 == "color" && propertyType == "float4" {
+                                canConnect = true
+                            } else
+                            if propertyType == "float" {
+                                canConnect = true
+                            }
+                            
+                            if canConnect {
+                                possibleConnTerminal = t
+                                mousePos.x = t.3 + 7.5 * graphZoom
+                                mousePos.y = t.4 + 7.5 * graphZoom
+                                break
+                            }
+                        }
+                    }
+                }
+            }
             mmView.update()
             return
         }
@@ -517,12 +587,39 @@ class SceneGraph                : MMWidget
         if menuWidget.states.contains(.Opened) == false {
             mmView.mouseTrackWidget = nil
         }
+        
+        // Connect terminals ?
+        if connectingTerminals && selectedTerminal != nil && possibleConnTerminal != nil {
+            var propertyTerminal : (CodeComponent, UUID?, String?, Float, Float)? = nil
+            var outTerminal : (CodeComponent, UUID?, String?, Float, Float)? = nil
+            
+            if (selectedTerminal!.1 != nil && possibleConnTerminal!.1 == nil) {
+                propertyTerminal = selectedTerminal
+                outTerminal = possibleConnTerminal
+            } else
+            if (selectedTerminal!.1 == nil && possibleConnTerminal!.1 != nil) {
+                propertyTerminal = possibleConnTerminal
+                outTerminal = selectedTerminal
+            }
+            
+            if let propT = propertyTerminal {
+                let comp = propT.0
+                if comp.connections[propT.1!] == nil {
+                    comp.connections[propT.1!] = []
+                }
+                comp.connections[propT.1!]!.append(CodeConnection(outTerminal!.0.uuid, outTerminal!.2!))
+            }
+        }
+        
         mouseIsDown = false
         pressedButton = nil
         hoverButton = nil
         //isDraggingKnob = false
         selectedVariable = nil
         dragVisNav = false
+        
+        connectingTerminals = false
+        possibleConnTerminal = nil
     }
     
     /// Click at the given position
@@ -702,6 +799,11 @@ class SceneGraph                : MMWidget
         
         mmView.drawBox.draw( x: visNavRect.x, y: visNavRect.y, width: visNavRect.width, height: visNavRect.height, round: 6, fillColor : SIMD4<Float>(1, 1, 1, 0.1) )
         mmView.renderer.setClipRect()
+        
+        // Connecting Terminals ?
+        if connectingTerminals == true && selectedTerminal != nil {
+            mmView.drawLine.draw(sx: selectedTerminal!.3 + 7.5 * graphZoom, sy: selectedTerminal!.4 + 7.5 * graphZoom, ex: mousePos.x, ey: mousePos.y, radius: 1, fillColor: skin.normalTerminalColor)
+        }
     }
     
     /// Replaces the shape for the given scene graph item
@@ -1220,7 +1322,7 @@ class SceneGraph                : MMWidget
         navItems = []
         buttons = []
         terminals = []
-                
+
         // Draw World
         var stage = scene.getStage(.PreStage)
         
@@ -1415,6 +1517,8 @@ class SceneGraph                : MMWidget
                     hasProperties = true
                     item.rect.width = 140 * graphZoom
                     var y = item.rect.y + item.rect.height + 16 * graphZoom
+                    let yBackup = y
+                    
                     let itemHeight : Float = 28 * graphZoom
                     
                     let itemCount : Float = component.componentType == .Pattern ? Float(max(2, component.properties.count)) : Float(component.properties.count)
@@ -1430,8 +1534,8 @@ class SceneGraph                : MMWidget
                     label.draw()
                     
                     mmView.drawLine.draw(sx: rect.x + item.rect.x + 4 * graphZoom, sy: rect.y + item.rect.y + 32 * graphZoom, ex: rect.x + item.rect.x + item.rect.width - 8 * graphZoom, ey: rect.y + item.rect.y + 32 * graphZoom, radius: 0.6, fillColor: skin.normalBorderColor)
-                                    
-                    component.terminals = []
+                                  
+                    // Draw the right sided property terminals
                     for uuid in component.properties {
                         let name = component.artistPropertyNames[uuid]!
                         let label = getLabel(uuid, name, skin: skin)
@@ -1445,14 +1549,72 @@ class SceneGraph                : MMWidget
                         let tY : Float = rect.y + y + 1.5 * graphZoom
 
                         terminals.append((component, uuid, nil, tX, tY))
+                        
+                        var pColor = skin.normalInteriorColor
+                        if let selectedTerminal = selectedTerminal {
+                            if selectedTerminal.0 === component && selectedTerminal.1 == uuid {
+                                pColor = skin.normalTerminalColor
+                            }
+                        }
+                        if let terminal = possibleConnTerminal {
+                            if terminal.0 === component && terminal.1 == uuid {
+                                pColor = skin.normalTerminalColor
+                            }
+                        }
 
                         if frag.0!.typeName == "float4" {
-                            mmView.drawBox.draw(x: tX, y: tY, width: 15 * graphZoom, height: 15 * graphZoom, round: 0, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                            mmView.drawBox.draw(x: tX, y: tY, width: 15 * graphZoom, height: 15 * graphZoom, round: 0, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                         } else {
-                            mmView.drawSphere.draw(x: tX, y: tY, radius: 7.5 * graphZoom, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                            mmView.drawSphere.draw(x: tX, y: tY, radius: 7.5 * graphZoom, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                        }
+                        
+                        // Draw the property terminal connections
+                        if let connections = component.connections[uuid] {
+                            for conn in connections {
+                                for t in terminals {
+                                    if t.0.uuid == conn.componentUUID && t.2 == conn.outName {
+                                        mmView.drawLine.draw(sx: tX + 7.5 * graphZoom, sy: tY + 7.5 * graphZoom, ex: t.3 + 7.5 * graphZoom, ey: t.4 + 7.5 * graphZoom, radius: 1, fillColor: skin.normalTerminalColor)
+                                    }
+                                }
+                            }
                         }
                         
                         y += itemHeight
+                    }
+                    
+                    // Draw the left sided pattern terminals (color, mask, id)
+                    if component.componentType == .Pattern {
+                        y = yBackup
+                        
+                        func getInteriorColor(_ name: String) -> SIMD4<Float>
+                        {
+                            var pColor = skin.normalInteriorColor
+                            if let selectedTerminal = selectedTerminal {
+                                if selectedTerminal.0 === component && selectedTerminal.2 == name {
+                                    pColor = skin.normalTerminalColor
+                                }
+                            }
+                            if let terminal = possibleConnTerminal {
+                                if terminal.0 === component && terminal.2 == name {
+                                    pColor = skin.normalTerminalColor
+                                }
+                            }
+                            return pColor
+                        }
+                        
+                        let tX : Float = rect.x + item.rect.x - 7.5 * graphZoom
+                        var tY : Float = rect.y + y + 1.5 * graphZoom
+
+                        terminals.append((component, nil, "color", tX, tY))
+                        var pColor = getInteriorColor("color")
+                        
+                        mmView.drawBox.draw(x: tX, y: tY, width: 15 * graphZoom, height: 15 * graphZoom, round: 0, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                        
+                        tY += itemHeight
+                        terminals.append((component, nil, "mask", tX, tY))
+
+                        pColor = getInteriorColor("mask")
+                        mmView.drawSphere.draw(x: tX, y: tY, radius: 7.5 * graphZoom, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                     }
                 }
             }
