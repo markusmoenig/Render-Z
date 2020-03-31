@@ -101,11 +101,13 @@ class CodeSDFStream
                 __origin = __translate(__origin, __center);
 
                 float GlobalTime = __data[0].x;
+                float GlobalSeed = __data[0].z;
                 float outDistance = 10;
                 float4 outShape = float4(100000, 0,0,0);
             
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
+                __funcData.GlobalSeed = GlobalSeed;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
@@ -152,7 +154,7 @@ class CodeSDFStream
                 constant float4 *__data = __funcData->__data;
                 float4 __monitorOut = *__funcData->__monitorOut;
                 float GlobalTime = __funcData->GlobalTime;
-
+                float GlobalSeed = __funcData->GlobalSeed;
             
             """
             
@@ -178,6 +180,7 @@ class CodeSDFStream
                 constant float4 *__data = __funcData->__data;
                 float4 __monitorOut = *__funcData->__monitorOut;
                 float GlobalTime = __funcData->GlobalTime;
+                float GlobalSeed = __funcData->GlobalSeed;
 
             
             """
@@ -200,13 +203,15 @@ class CodeSDFStream
                 float2 __size = float2( __depthTexture.get_width(), __depthTexture.get_height() );
 
                 float GlobalTime = __data[0].x;
-            
+                float GlobalSeed = __data[0].z;
+
                 float2 __uv = float2(__gid.x, __gid.y);
                 float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
+                __funcData.GlobalSeed = GlobalSeed;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
@@ -237,13 +242,15 @@ class CodeSDFStream
                 float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
 
                 float GlobalTime = __data[0].x;
-            
+                float GlobalSeed = __data[0].z;
+
                 float2 __uv = float2(__gid.x, __gid.y);
                 float3 rayOrigin = float4(__rayOriginInTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionInTexture.read(__gid)).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
+                __funcData.GlobalSeed = GlobalSeed;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
@@ -275,13 +282,15 @@ class CodeSDFStream
                 float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
 
                 float GlobalTime = __data[0].x;
-            
+                float GlobalSeed = __data[0].z;
+
                 float2 __uv = float2(__gid.x, __gid.y);
                 float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
+                __funcData.GlobalSeed = GlobalSeed;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
@@ -315,13 +324,15 @@ class CodeSDFStream
                 float2 __size = float2( __colorTexture.get_width(), __colorTexture.get_height() );
 
                 float GlobalTime = __data[0].x;
-            
+                float GlobalSeed = __data[0].z;
+
                 float2 __uv = float2(__gid.x, __gid.y);
                 float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
 
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
+                __funcData.GlobalSeed = GlobalSeed;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
@@ -778,7 +789,8 @@ class CodeSDFStream
                 constant float4 *__data = __funcData->__data;
                 float4 __monitorOut = *__funcData->__monitorOut;
                 float GlobalTime = __funcData->GlobalTime;
-            
+                float GlobalSeed = __funcData->GlobalSeed;
+
                 float4 outColor = __materialOut->color;
                 float3 outMask = __materialOut->mask;
                 float3 outReflectionDir = float3(0);

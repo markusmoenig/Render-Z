@@ -225,9 +225,11 @@ class CodeBuilder
 
             float4 outColor = float4(0,0,0,1);
             float GlobalTime = __data[0].x;
-        
+            float GlobalSeed = __data[0].z;
+
             struct FuncData __funcData;
             __funcData.GlobalTime = GlobalTime;
+            __funcData.GlobalSeed = GlobalSeed;
             __funcData.__monitorOut = &__monitorOut;
             __funcData.__data = __data;
 
@@ -279,9 +281,11 @@ class CodeBuilder
 
             float4 outColor = float4(0,0,0,1);
             float GlobalTime = __data[0].x;
-        
+            float GlobalSeed = __data[0].z;
+
             struct FuncData __funcData;
             __funcData.GlobalTime = GlobalTime;
+            __funcData.GlobalSeed = GlobalSeed;
             __funcData.__monitorOut = &__monitorOut;
             __funcData.__data = __data;
         
@@ -321,13 +325,8 @@ class CodeBuilder
             uv.y = 1.0 - uv.y;
         
             float GlobalTime = __data[0].x;
+            float GlobalSeed = __data[0].z;
 
-            //float2 randv2 = fract(cos((uv.xy+uv.yx*float2(1000.0,1000.0))+float2(GlobalTime)*10.0));
-
-            //randv2 += float2(1.0,1.0);
-            //float2 jitter = float2(fract(sin(dot(randv2.xy ,float2(12.9898,78.233))) * 43758.5453), fract(cos(dot(randv2.xy ,float2(4.898,7.23))) * 23421.631));
-        
-            //float2 jitter = float2(0.5, 0.5);
             float2 jitter = float2(__data[0].z, __data[0].w);
 
             float3 outPosition = float3(0,0,0);
@@ -335,6 +334,7 @@ class CodeBuilder
         
             struct FuncData __funcData;
             __funcData.GlobalTime = GlobalTime;
+            __funcData.GlobalSeed = GlobalSeed;
             __funcData.__monitorOut = &__monitorOut;
             __funcData.__data = __data;
         
@@ -408,9 +408,11 @@ class CodeBuilder
             float4 __depthIn = float4(__depthTexture.sample(__textureSampler, uv / size ));
             float distance = __depthIn.x;
             float GlobalTime = __data[0].x;
+            float GlobalSeed = __data[0].z;
 
             struct FuncData __funcData;
             __funcData.GlobalTime = GlobalTime;
+            __funcData.GlobalSeed = GlobalSeed;
             __funcData.__monitorOut = &__monitorOut;
             __funcData.__data = __data;
 
@@ -464,9 +466,11 @@ class CodeBuilder
             float4 color = float4(__colorTexture.read(__gid));
 
             float GlobalTime = __data[0].x;
+            float GlobalSeed = __data[0].z;
 
             struct FuncData __funcData;
             __funcData.GlobalTime = GlobalTime;
+            __funcData.GlobalSeed = GlobalSeed;
             __funcData.__monitorOut = &__monitorOut;
             __funcData.__data = __data;
 
@@ -870,6 +874,7 @@ class CodeBuilder
         struct FuncData
         {
             float               GlobalTime;
+            float               GlobalSeed;
             thread float4      *__monitorOut;
             constant float4    *__data;
         };

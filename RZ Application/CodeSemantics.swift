@@ -1043,6 +1043,7 @@ class CodeBlock             : Codable, Equatable
                 }
                 ctx.addCode("{\n")
                 ctx.addCode("float GlobalTime = __funcData->GlobalTime;")
+                ctx.addCode("float GlobalSeed = __funcData->GlobalSeed;")
                 if ctx.monitorFragment != nil {
                     ctx.addCode("float4 __monitorOut = *__funcData->__monitorOut;")
                 }
@@ -2415,7 +2416,8 @@ class CodeComponent         : Codable, Equatable
                     constant float4 *__data = __funcData->__data;
                     float4 __monitorOut = *__funcData->__monitorOut;
                     float GlobalTime = __funcData->GlobalTime;
-                
+                    float GlobalSeed = __funcData->GlobalSeed;
+
                 """
                 pCode += pattern.code!.replacingOccurrences(of: "&__", with: "__")
                 pCode +=

@@ -135,6 +135,7 @@ class CodeFragList : MMWidget
         
         item = FragItem("G")
         items.append(item)
+        item.items.append( SourceListItem("GlobalSeed", CodeFragment(.Primitive, "float", "GlobalSeed", [.Selectable, .Dragable, .Targetable], nil, "float" ) ) )
         item.items.append( SourceListItem("GlobalTime", CodeFragment(.Primitive, "float", "GlobalTime", [.Selectable, .Dragable, .Targetable], nil, "float" ) ) )
         
         item = FragItem("I")
