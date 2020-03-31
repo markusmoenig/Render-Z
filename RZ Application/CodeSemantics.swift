@@ -2417,7 +2417,7 @@ class CodeComponent         : Codable, Equatable
                     float GlobalTime = __funcData->GlobalTime;
                 
                 """
-                pCode += pattern.code!
+                pCode += pattern.code!.replacingOccurrences(of: "&__", with: "__")
                 pCode +=
                 """
                 
