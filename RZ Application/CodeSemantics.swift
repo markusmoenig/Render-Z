@@ -2389,6 +2389,7 @@ class CodeComponent         : Codable, Equatable
         ctx.cComponent = self
         globalVariables = [:]
         inputDataList = []
+        inputComponentList = []
         propertyConnections = [:]
         
         code = ""

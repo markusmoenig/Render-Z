@@ -164,10 +164,11 @@ class DesignProperties      : MMWidget
                 let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Color Value Changed") : nil
                 insertValueToFragment3(frag, newValue)
                 self.updatePreview()
-                var props : [String:Float] = [:]
-                props[frag.name + "_x"] = newValue.x
-                props[frag.name + "_y"] = newValue.y
-                props[frag.name + "_z"] = newValue.z
+                var props : [String:Float] = [:]                
+                props[variable + "_x"] = newValue.x
+                props[variable + "_y"] = newValue.y
+                props[variable + "_z"] = newValue.z
+                
                 self.addKey(props)
                 if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
             }
