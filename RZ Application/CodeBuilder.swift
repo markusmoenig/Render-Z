@@ -29,12 +29,13 @@ class CodeBuilderInstance
     func collectProperties(_ component: CodeComponent,_ hierarchy: [StageItem] = [])
     {
         // Collect properties and globalVariables
-        for uuid in component.inputDataList {
-            if component.properties.contains(uuid) {
+        for (index,uuid) in component.inputDataList.enumerated() {
+            let propComponent = component.inputComponentList[index]
+            if propComponent.properties.contains(uuid) {
                 // Property
-                let rc = component.getPropertyOfUUID(uuid)
+                let rc = propComponent.getPropertyOfUUID(uuid)
                 if rc.0 != nil && rc.1 != nil {
-                    properties.append((rc.0, rc.1, nil, data.count, component, hierarchy))
+                    properties.append((rc.0, rc.1, nil, data.count, propComponent, hierarchy))
                     data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
                 }
             } else

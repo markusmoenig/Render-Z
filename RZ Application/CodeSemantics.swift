@@ -571,13 +571,6 @@ class CodeFragment          : Codable, Equatable
             var codeName : String = ""
             
             if let ref = referseTo {
-                
-                // First, check for a pattern connection!!
-                if let conn = ctx.cComponent!.propertyConnections[ref] {
-                    name = (isNegated() ? " -" : "") + conn.1
-                    codeName = (isNegated() ? " -" : "") + conn.0 + "." + conn.1
-                    print(name, "is connected to ", conn.0, conn.1, codeName)
-                } else
                 if let v = ctx.cVariables[ref] {
                     name = (isNegated() ? " -" : "") + v.name
                     if let refName = v.codeName {
@@ -602,6 +595,7 @@ class CodeFragment          : Codable, Equatable
                     
                     let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
                     ctx.cComponent!.inputDataList.append(variableComp.uuid)
+                    ctx.cComponent!.inputComponentList.append(ctx.cComponent!)
 
                     let components = evaluateComponents()
                     
@@ -1107,30 +1101,58 @@ class CodeBlock             : Codable, Equatable
 
             // statement
             if propIndex != nil {
-                // PROPERTY!!!!
-                let code = ctx.cComponent!.code!
-                let globalCode = ctx.cComponent!.globalCode!
-                statement.draw(mmView, ctx)
-                ctx.cComponent!.code = code
-                ctx.cComponent!.globalCode = globalCode
-                let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
-                ctx.cComponent!.inputDataList.append(fragment.uuid)
-                let components = fragment.evaluateComponents()
                 
-                if ctx.cFunction!.functionType == .FreeFlow {
-                    ctx.addCode( "__funcData->__data[\(dataIndex)]" )
-                } else {
-                    ctx.addCode( "__data[\(dataIndex)]" )
-                }
-                
-                if components == 1 {
-                    ctx.addCode( ".x" )
+                // First, check for a pattern connection!!
+                if let conn = ctx.cComponent!.propertyConnections[fragment.uuid] {
+                    // PATTERN INPUT!!!!
+                    let code = ctx.cComponent!.code!
+                    let globalCode = ctx.cComponent!.globalCode!
+                    statement.draw(mmView, ctx)
+                    ctx.cComponent!.code = code
+                    ctx.cComponent!.globalCode = globalCode
+                    //ctx.cComponent!.inputDataList.append(fragment.uuid)
+                    //let components = fragment.evaluateComponents()
+                    
+                    ctx.addCode( conn.0 + "." + conn.1 )
+                    /*
+                    if components == 1 {
+                        ctx.addCode( ".x" )
+                    } else
+                    if components == 2 {
+                        ctx.addCode( ".xy" )
+                    } else
+                    if components == 3 {
+                        ctx.addCode( ".xyz" )
+                    }*/
                 } else
-                if components == 2 {
-                    ctx.addCode( ".xy" )
-                } else
-                if components == 3 {
-                    ctx.addCode( ".xyz" )
+                {
+                    // PROPERTY!!!!
+                    let code = ctx.cComponent!.code!
+                    let globalCode = ctx.cComponent!.globalCode!
+                    statement.draw(mmView, ctx)
+                    ctx.cComponent!.code = code
+                    ctx.cComponent!.globalCode = globalCode
+                    let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
+                    ctx.cComponent!.inputDataList.append(fragment.uuid)
+                    ctx.cComponent!.inputComponentList.append(ctx.cComponent!)
+
+                    let components = fragment.evaluateComponents()
+                    
+                    if ctx.cFunction!.functionType == .FreeFlow {
+                        ctx.addCode( "__funcData->__data[\(dataIndex)]" )
+                    } else {
+                        ctx.addCode( "__data[\(dataIndex)]" )
+                    }
+                    
+                    if components == 1 {
+                        ctx.addCode( ".x" )
+                    } else
+                    if components == 2 {
+                        ctx.addCode( ".xy" )
+                    } else
+                    if components == 3 {
+                        ctx.addCode( ".xyz" )
+                    }
                 }
             } else {
                 statement.draw(mmView, ctx)
@@ -1540,6 +1562,9 @@ class CodeComponent         : Codable, Equatable
     
     // List of CodeFragment UUIDs which access the input data, either properties or globalVariables
     var inputDataList       : [UUID] = []
+    
+    // List of CodeComponents for the inputDataList
+    var inputComponentList  : [CodeComponent] = []
 
     // Values
     var values              : [String:Float] = [:]
@@ -2372,9 +2397,12 @@ class CodeComponent         : Codable, Equatable
         if componentType == .Material3D && ctx.patternList.count > 0 {
             // Create the global functions for all the patterns of the material
             for pattern in ctx.patternList {
-                dryRunComponent(pattern, ctx.propertyDataOffset, ctx.monitorFragment, patternList: ctx.patternList)
-                globalCode = pattern.globalCode
+                dryRunComponent(pattern, ctx.propertyDataOffset + inputDataList.count, ctx.monitorFragment, patternList: ctx.patternList)
+                globalCode! += pattern.globalCode!
                 
+                inputDataList += pattern.inputDataList
+                inputComponentList += pattern.inputComponentList
+
                 let f = pattern.functions.last!
                 f.codeName = generateToken()
                 var pCode : String = "void " + f.codeName!
