@@ -138,7 +138,8 @@ class SceneGraph                : MMWidget
     var selectedVariable        : SceneGraphItem? = nil
     
     var labels                  : [UUID:MMTextLabel] = [:]
-    
+    var textLabels              : [String:MMTextLabel] = [:]
+
     // The list of the property terminal locations
     var terminals               : [(CodeComponent, UUID?, String?, Float, Float)] = []
     
@@ -443,11 +444,11 @@ class SceneGraph                : MMWidget
                                                         
                             let propertyType = propertyTerminal!.0.getPropertyOfUUID(propertyTerminal!.1!).0!.typeName
                             var canConnect = false
-                                                        
+                                                                                    
                             if outTerminal!.2 == "color" && propertyType == "float4" {
                                 canConnect = true
                             } else
-                            if propertyType == "float" {
+                            if outTerminal!.2 != "color" && propertyType == "float" {
                                 canConnect = true
                             }
                             
@@ -1227,9 +1228,9 @@ class SceneGraph                : MMWidget
                     } else
                     if comp.componentType == .Variable {
                         
-                        var button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Variable")
-                        button.isDisabled = item.stageItem!.name == "Sun"
-                        button.clicked = { (event) -> Void in
+                        let renameButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Variable")
+                        renameButton.isDisabled = item.stageItem!.name == "Sun"
+                        renameButton.clicked = { (event) -> Void in
                             if let frag = getVariable(from: comp) {
                                 getStringDialog(view: self.mmView, title: "Rename Variable", message: "Variable name", defaultValue: frag.name, cb: { (value) -> Void in
                                     let undo = globalApp!.currentEditor.undoComponentStart("Rename Variable")
@@ -1242,18 +1243,40 @@ class SceneGraph                : MMWidget
                                 } )
                             }
                         }
-                        toolBarWidgets.append(button)
+                        toolBarWidgets.append(renameButton)
                         
-                        button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                        button.isDisabled = item.stageItem!.name == "Sun"
-                        button.clicked = { (event) in
+                        let removeButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
+                        removeButton.isDisabled = item.stageItem!.name == "Sun"
+                        removeButton.clicked = { (event) in
                             if let index = item.stageItem!.componentLists["variables"]!.firstIndex(of: item.component!) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart("Remove Variable")
                                 item.stageItem!.componentLists["variables"]!.remove(at: index)
                                 globalApp!.currentEditor.undoStageItemEnd(undo)
                             }
                         }
-                        toolBarWidgets.append(button)
+                        toolBarWidgets.append(removeButton)
+                    } else
+                    if comp.componentType == .Pattern {
+                        let disconnectButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Disconnect")
+                        disconnectButton.clicked = { (event) in
+                            let undo = globalApp!.currentEditor.undoStageItemStart(item.stageItem!, "Disconnect Pattern")
+                            self.removeConnectionsFor(item.stageItem!, comp)
+                            globalApp!.currentEditor.undoStageItemEnd(undo)
+                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                        }
+                        toolBarWidgets.append(disconnectButton)
+                        
+                        let removeButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
+                        removeButton.clicked = { (event) in
+                            if let index = item.stageItem!.componentLists["patterns"]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Pattern")
+                                item.stageItem!.componentLists["patterns"]!.remove(at: index)
+                                self.removeConnectionsFor(item.stageItem!, comp)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            }
+                        }
+                        toolBarWidgets.append(removeButton)
                     }
                 }
             }
@@ -1261,6 +1284,27 @@ class SceneGraph                : MMWidget
         
         activate()
         mmView.update()
+    }
+    
+    /// Removes all the connections for the given pattern from the stageItem
+    func removeConnectionsFor(_ stageItem: StageItem,_ pattern: CodeComponent)
+    {
+        if let material = stageItem.components[stageItem.defaultName] {
+            // Check Material
+            for (uuid,connection) in material.connections {
+                if connection.componentUUID == pattern.uuid {
+                    material.connections[uuid] = nil
+                }
+            }
+        }
+        for p in stageItem.componentLists["patterns"]! {
+            // Check Patterns
+            for (uuid,connection) in p.connections {
+                if connection.componentUUID == pattern.uuid {
+                    p.connections[uuid] = nil
+                }
+            }
+        }
     }
     
     /// Draws a line between two circles
@@ -1457,6 +1501,18 @@ class SceneGraph                : MMWidget
         var label = labels[uuid]
         if label == nil || label!.scale != skin.fontScale {
             label = MMTextLabel(mmView, font: mmView.openSans, text: text, scale: skin.fontScale, color: skin.normalTextColor)
+            labels[uuid] = label
+        }
+        return label!
+    }
+    
+    // Returns a label for the given string
+    func getLabel(_ text: String, skin: SceneGraphSkin) -> MMTextLabel
+    {
+        var label = textLabels[text]
+        if label == nil || label!.scale != skin.fontScale {
+            label = MMTextLabel(mmView, font: mmView.openSans, text: text, scale: skin.fontScale, color: skin.normalTextColor)
+            textLabels[text] = label
         }
         return label!
     }
@@ -1502,7 +1558,7 @@ class SceneGraph                : MMWidget
                 if component.properties.count > 0 || component.componentType == .Pattern {
                     
                     hasProperties = true
-                    item.rect.width = 140 * graphZoom
+                    item.rect.width = 150 * graphZoom
                     var y = item.rect.y + item.rect.height + 16 * graphZoom
                     let yBackup = y
                     let tWidth = skin.tSize * graphZoom
@@ -1510,7 +1566,7 @@ class SceneGraph                : MMWidget
 
                     let itemHeight : Float = 28 * graphZoom
                     
-                    let itemCount : Float = component.componentType == .Pattern ? Float(max(2, component.properties.count)) : Float(component.properties.count)
+                    let itemCount : Float = component.componentType == .Pattern ? Float(max(3, component.properties.count)) : Float(component.properties.count)
 
                     item.rect.height += itemCount * itemHeight + 20 * graphZoom
                     mmView.drawBox.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: item.rect.width, height: item.rect.height, round: 12 * graphZoom, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
@@ -1636,13 +1692,30 @@ class SceneGraph                : MMWidget
 
                         terminals.append((component, nil, "color", tX, tY))
                         var pColor = getInteriorColor("color")
-                        
+                        var label = getLabel("Color", skin: skin)
+                        label.rect.x = rect.x + item.rect.x + tWidth
+                        label.rect.y = tY
+                        label.draw()
                         mmView.drawBox.draw(x: tX, y: tY, width: 15 * graphZoom, height: 15 * graphZoom, round: 0, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                         
                         tY += itemHeight
                         terminals.append((component, nil, "mask", tX, tY))
 
                         pColor = getInteriorColor("mask")
+                        label = getLabel("Mask", skin: skin)
+                        label.rect.x = rect.x + item.rect.x + tWidth
+                        label.rect.y = tY
+                        label.draw()
+                        mmView.drawSphere.draw(x: tX, y: tY, radius: 7.5 * graphZoom, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                        
+                        tY += itemHeight
+                        terminals.append((component, nil, "id", tX, tY))
+
+                        pColor = getInteriorColor("id")
+                        label = getLabel("Id", skin: skin)
+                        label.rect.x = rect.x + item.rect.x + tWidth
+                        label.rect.y = tY
+                        label.draw()
                         mmView.drawSphere.draw(x: tX, y: tY, radius: 7.5 * graphZoom, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                     }
                 }

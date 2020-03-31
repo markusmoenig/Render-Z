@@ -118,8 +118,8 @@ class StageItem             : Codable, Equatable
             return
         }
         
-        for item in children {
-            item.updateStageItem(item)
+        for it in children {
+            it.updateStageItem(item)
         }
     }
     
@@ -469,11 +469,11 @@ class Stage                 : Codable, Equatable
             return
         }
         
-        for item in children2D {
-            item.updateStageItem(item)
+        for it in children2D {
+            it.updateStageItem(item)
         }
-        for item in children3D {
-            item.updateStageItem(item)
+        for it in children3D {
+            it.updateStageItem(item)
         }
     }
     
