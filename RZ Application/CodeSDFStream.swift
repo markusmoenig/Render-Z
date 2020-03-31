@@ -351,7 +351,24 @@ class CodeSDFStream
                 struct MaterialOut __materialOut;
                 __materialOut.color = float4(1);
                 __materialOut.mask = float3(0);
+                        
+            """
+                        
+            if let rayMarch = findDefaultComponentForStageChildren(stageType: .ShapeStage, componentType: .UVMAP3D), thumbNail == false {
+                dryRunComponent(rayMarch, instance.data.count, monitor)
+                instance.collectProperties(rayMarch)
+                if let globalCode = rayMarch.globalCode {
+                    headerCode += globalCode
+                }
+                if let code = rayMarch.code {
+                    hitAndNormalsCode += code
+                }
+            }
             
+            materialCode +=
+                
+            """
+
                 if (shape.z == -1 ) {
                     float2 uv = __uv / __size;
                     uv.y = 1.0 - uv.y;
@@ -755,7 +772,7 @@ class CodeSDFStream
             materialFuncCode +=
             """
             
-            void material\(materialIdCounter)( float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+            void material\(materialIdCounter)(float2 uv, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
             float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData )
             {
                 constant float4 *__data = __funcData->__data;
@@ -805,7 +822,30 @@ class CodeSDFStream
             else
             if (shape.z == \(materialIdCounter) )
             {
-                material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
+                float3 position = hitPosition; float3 normal = normal;
+                float2 outUV = float2(0);
+            
+            """
+            
+            // Create the UVMapping for this material
+            
+            if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
+                dryRunComponent(uvMap, instance.data.count, monitor)
+                instance.collectProperties(uvMap)
+                if let globalCode = uvMap.globalCode {
+                    headerCode += globalCode
+                }
+                if var code = uvMap.code {
+                    code = code.replacingOccurrences(of: "&__", with: "__")
+                    materialCode += code
+                }
+            }
+            
+            materialCode +=
+                
+            """
+            
+                material\(materialIdCounter)(outUV, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
                 if (lightType.z == lightType.w) {
                     rayDirection = __materialOut.reflectionDir;
                     rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;

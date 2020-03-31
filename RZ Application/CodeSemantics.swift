@@ -1454,7 +1454,7 @@ class CodeFunction          : Codable, Equatable
                                 let token = generateToken()
                                 ctx.addCode("struct " + "PatternOut " + token + ";\n")
                                 if ctx.cComponent!.componentType == .Material3D {
-                                    ctx.addCode(pattern.functions.last!.codeName! + "( hitPosition.xz, hitPosition, hitNormal, incomingDirection, &\(token), __funcData );\n")
+                                    ctx.addCode(pattern.functions.last!.codeName! + "(uv, hitPosition, hitNormal, incomingDirection, &\(token), __funcData );\n")
                                     ctx.cComponent!.propertyConnections[uuid] = (token, conn.outName!)
                                 }
                             }

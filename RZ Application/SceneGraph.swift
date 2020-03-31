@@ -905,7 +905,7 @@ class SceneGraph                : MMWidget
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
                         
                         if let stageItem = item.stageItem {
-                            if comp.componentType == .Material3D {
+                            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D {
                                 stageItem.name = comp.libraryName
                                 stageItem.label = nil
                             }
@@ -1186,6 +1186,9 @@ class SceneGraph                : MMWidget
                     } else
                     if comp.componentType == .Shadows3D {
                         buildChangeComponent(item, name: "Shadows", id: "Shadows3D")
+                    } else
+                    if comp.componentType == .UVMAP3D {
+                        buildChangeComponent(item, name: "UV Mapping", id: "UVMAP3D")
                     } else
                     if comp.componentType == .Domain3D {
                         buildChangeComponent(item, name: "Domain", id: "Domain3D")
