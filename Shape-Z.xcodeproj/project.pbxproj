@@ -618,6 +618,8 @@
 		2BBF120021F808B1001C94E9 /* Gizmo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF11FE21F808B1001C94E9 /* Gizmo.swift */; };
 		2BBF120221F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
 		2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
+		2BBFA82D24346027008981B7 /* CodeClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBFA82C24346027008981B7 /* CodeClipboard.swift */; };
+		2BBFA82E24346027008981B7 /* CodeClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBFA82C24346027008981B7 /* CodeClipboard.swift */; };
 		2BC5DCE4231794050081A018 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
 		2BC5DCE5231794050081A018 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
 		2BCEC68E22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
@@ -852,6 +854,7 @@
 		2BBF11F821F55D20001C94E9 /* Object.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Object.swift; sourceTree = "<group>"; };
 		2BBF11FE21F808B1001C94E9 /* Gizmo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gizmo.swift; sourceTree = "<group>"; };
 		2BBF120121F80B32001C94E9 /* Gizmo.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Gizmo.metal; sourceTree = "<group>"; };
+		2BBFA82C24346027008981B7 /* CodeClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeClipboard.swift; sourceTree = "<group>"; };
 		2BC5DCE3231794050081A018 /* Dialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dialogs.swift; sourceTree = "<group>"; };
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
@@ -1000,6 +1003,7 @@
 				2B8E2FE723C7FDF9005619E4 /* DesignProperties.swift */,
 				2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */,
 				2B7A3C5623B583ED002EC5FC /* CodeEditor.swift */,
+				2BBFA82C24346027008981B7 /* CodeClipboard.swift */,
 				2B9F42F023B9CB2800885B40 /* CodeProperties.swift */,
 				2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */,
 				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
@@ -1853,6 +1857,7 @@
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
 				2B50635923CEC98600124517 /* LibraryDialog.swift in Sources */,
 				2B7A3C1623B46546002EC5FC /* MMTabButtonWidget.swift in Sources */,
+				2BBFA82D24346027008981B7 /* CodeClipboard.swift in Sources */,
 				2B7A3C1723B46546002EC5FC /* MMCompute.swift in Sources */,
 				2B7A3C1923B46546002EC5FC /* MMScrollArea.swift in Sources */,
 				2B8E2FE823C7FE25005619E4 /* DesignProperties.swift in Sources */,
@@ -2121,6 +2126,7 @@
 				2BAA45C424133B1A00744A0A /* Pipeline3D.swift in Sources */,
 				2B9B29D923BB453400C2F387 /* MMInfoArea.swift in Sources */,
 				2B9B29E223BB45C000C2F387 /* LeftRegion.swift in Sources */,
+				2BBFA82E24346027008981B7 /* CodeClipboard.swift in Sources */,
 				2B9B29BF23BB453400C2F387 /* MMBaseView__ios.swift in Sources */,
 				2B9B29CD23BB453400C2F387 /* MMTabButtonWidget.swift in Sources */,
 				2B9B29D023BB453400C2F387 /* MMScrollArea.swift in Sources */,

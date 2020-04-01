@@ -221,6 +221,7 @@ class CodeProperties    : MMWidget
                     self.editor.updateOnNextDraw()
                     self.needsUpdate = true
                     self.clear()
+                    self.editor.codeEditor.clearSelection()
                     self.editor.codeEditor.undoEnd(undo)
                     b2.removeState(.Checked)
                 }
@@ -260,6 +261,7 @@ class CodeProperties    : MMWidget
                     self.editor.updateOnNextDraw()
                     self.needsUpdate = true
                     self.clear()
+                    self.editor.codeEditor.clearSelection()
                     self.editor.codeEditor.undoEnd(undo)
 
                     b3.removeState(.Checked)

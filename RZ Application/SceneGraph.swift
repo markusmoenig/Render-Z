@@ -535,7 +535,7 @@ class SceneGraph                : MMWidget
                 stageItem.values["_graphY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
             } else {
                 drag.stage.values["_graphX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
-                drag.stage.values["_graphY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom                
+                drag.stage.values["_graphY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
             }
             needsUpdate = true
             mmView.update()
@@ -1188,6 +1188,9 @@ class SceneGraph                : MMWidget
                     } else
                     if comp.componentType == .Shadows3D {
                         buildChangeComponent(item, name: "Shadows", ids: ["Shadows3D"])
+                    } else
+                    if comp.componentType == .AO3D {
+                        buildChangeComponent(item, name: "Ambient Occlusion", ids: ["AO3D"])
                     } else
                     if comp.componentType == .UVMAP3D {
                         buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])

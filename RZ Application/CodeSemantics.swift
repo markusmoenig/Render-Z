@@ -2514,6 +2514,8 @@ class CodeContext
     var startX              : Float = 0
     var border              : Float = 0
     
+    var bracketWidth        : Float = 0
+    
     // Status
     var blockNumber         : Int = 0
     
@@ -2570,7 +2572,9 @@ class CodeContext
         gapY = 1
         indent = 20
         border = font.getTextRect(text: "func", scale: fontScale).width + 2 * gapX
-        
+
+        bracketWidth = font.getTextRect(text: "(", scale: fontScale).width + gapX
+
         lineHeight = font.getLineHeight(fontScale)
 
         self.editorWidth = editorWidth

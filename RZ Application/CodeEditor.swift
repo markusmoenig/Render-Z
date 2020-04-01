@@ -51,6 +51,8 @@ class CodeEditor        : MMWidget
     var orientationRatio: Float = 0
     var orientationRect : MMRect = MMRect()
     
+    var codeClipboard   : CodeClipboard!
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .HorizontalAndVertical)
@@ -62,7 +64,8 @@ class CodeEditor        : MMWidget
         codeContext = CodeContext(view, fragment, view.openSans, 0.5)
 
         super.init(view)
-
+        
+        codeClipboard = CodeClipboard(self)
         codeAccess = CodeAccess(view, self)
 
         zoom = mmView.scaleFactor
@@ -293,7 +296,7 @@ class CodeEditor        : MMWidget
             if codeContext.dropFragment != nil && codeContext.hoverFragment != nil {
                 codeContext.checkIfDropIsValid(codeContext.hoverFragment!)
             }
-                                    
+            
             if oldFunc !== codeContext.hoverFunction || oldBlock !== codeContext.hoverBlock || oldFrag !== codeContext.hoverFragment {
                 mmView.update()
             }
@@ -520,13 +523,59 @@ class CodeEditor        : MMWidget
         mmView.renderer.setClipRect(rect)
         
         // Fragments
+        var workRect: MMRect = MMRect()
         if codeContext.dropFragment == nil {
+            
+            // Highlight drawing which also highlights the opening / closing brackets
+            func drawFragmentHightlight(_ frag: CodeFragment, alpha: Float)
+            {
+                if frag.arguments.count > 0 {
+                    workRect.copy(frag.rect)
+                    workRect.width += codeContext.bracketWidth
+                    drawHighlight(workRect, alpha: alpha)
+                    if let last = frag.arguments.last?.fragments.last {
+                        workRect.width = codeContext.bracketWidth
+                        if last.arguments.count == 0 {
+                            workRect.x = last.rect.right()
+                        } else {
+                            var depth : Int = 0
+                            var l : CodeFragment = last
+                            func getLast(_ frag: CodeFragment)
+                            {
+                                if let last = frag.arguments.last?.fragments.last {
+                                    l = last
+                                    depth += 1
+                                    getLast(last)
+                                }
+                            }
+                            getLast(last)
+                            workRect.x = l.rect.right() + Float(depth) * codeContext.bracketWidth
+                        }
+                        drawHighlight(workRect, alpha: alpha)
+                    }
+                } else
+                if frag.fragmentType == .OpeningRoundBracket || frag.fragmentType == .ClosingRoundBracket
+                {
+                    if let pStatement = frag.parentStatement {
+                        for p in pStatement.fragments {
+                            if p.uuid == frag.uuid {
+                                drawHighlight(p.rect, alpha: alpha)
+                            }
+                        }
+                    }
+                } else {
+                    drawHighlight(frag.rect, alpha: alpha)
+                }
+            }
+            
             // Hover and Selection
             if let hoverFrag = codeContext.hoverFragment {
-                drawHighlight(hoverFrag.rect, alpha: hoverAlpha)
+                //drawHighlight(hoverFrag.rect, alpha: hoverAlpha)
+                drawFragmentHightlight(hoverFrag, alpha: hoverAlpha)
             }
             if let selectedFrag = codeContext.selectedFragment {
-                drawHighlight(selectedFrag.rect, alpha: selectedAlpha)
+                //drawHighlight(selectedFrag.rect, alpha: selectedAlpha)
+                drawFragmentHightlight(selectedFrag, alpha: selectedAlpha)
             }
         } else if codeContext.dropIsValid {
             // Drop Highlight
@@ -588,6 +637,14 @@ class CodeEditor        : MMWidget
         if codeAccess.accessState != .Closed {
             codeAccess.draw()
         }
+    }
+    
+    /// Clears the current selection
+    func clearSelection()
+    {
+        codeContext.selectedBlock = nil
+        codeContext.selectedFragment = nil
+        codeContext.selectedFunction = nil
     }
     
     /// Update the code syntax and redraws
