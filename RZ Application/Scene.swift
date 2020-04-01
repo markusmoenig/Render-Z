@@ -361,13 +361,17 @@ class Stage                 : Codable, Equatable
             
             let sunColorComponent = CodeComponent(.Variable, "Sun Color")
             sunColorComponent.values["locked"] = 1
-            sunColorComponent.createVariableFunction("sunColor", "float4", "Sun Color", defaultValue: SIMD4<Float>(1,1,1,1), gizmo: 2)
+            sunColorComponent.createVariableFunction("sunColor", "float4", "Sun Color", defaultValue: SIMD4<Float>(0.9,0.55,0.35,1), gizmo: 2)
             
             let sunStrengthComponent = CodeComponent(.Variable, "Sun Strength")
             sunStrengthComponent.values["locked"] = 1
-            sunStrengthComponent.createVariableFunction("sunStrength", "float", "Sun Strength")
+            sunStrengthComponent.createVariableFunction("sunStrength", "float", "Sun Strength", defaultValue: Float(5.0), defaultMinMax: SIMD2<Float>(0,20))
+            
+            let sunAmbientComponent = CodeComponent(.Variable, "Ambient")
+            sunAmbientComponent.values["locked"] = 1
+            sunAmbientComponent.createVariableFunction("sunAmbient", "float4", "Ambient", defaultValue: SIMD4<Float>(0.05,0.15,0.25, 1), gizmo: 2)
 
-            sunPool.componentLists["variables"] = [sunDirComponent,sunColorComponent, sunStrengthComponent]
+            sunPool.componentLists["variables"] = [sunAmbientComponent, sunDirComponent,sunColorComponent, sunStrengthComponent]
         }
     }
     

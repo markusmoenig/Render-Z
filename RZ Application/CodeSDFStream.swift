@@ -335,7 +335,7 @@ class CodeSDFStream
                 __funcData.GlobalSeed = GlobalSeed;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
-            
+
                 float4 shape = float4(__depthInTexture.read(__gid));
                 float4 meta = float4(__metaInTexture.read(__gid));
                 float3 mask = float4(__maskTexture.read(__gid)).xyz;
@@ -347,11 +347,11 @@ class CodeSDFStream
                 float3 hitNormal = float4(__normalInTexture.read(__gid)).xyz;
                 float occlusion = meta.x;
                 float shadow = meta.y;
-            
+
                 float4 light = __lightData[0];
                 float4 lightType = __lightData[1];
                 float4 lightColor = __lightData[2];
-            
+
                 float3 directionToLight = float3(0);
                 if (lightType.y == 0.0) {
                     directionToLight = normalize(__lightData[0].xyz);
@@ -360,7 +360,7 @@ class CodeSDFStream
                 }
             
                 struct MaterialOut __materialOut;
-                __materialOut.color = float4(1);
+                __materialOut.color = float4(0,0,0,1);
                 __materialOut.mask = float3(0);
                         
             """

@@ -104,6 +104,10 @@ func insertMinMaxToFragment(_ fragment: CodeFragment,_ minMax: SIMD2<Float>)
                 arg.fragments[0].values["max"]! = minMax.y
             }
         }
+    } else
+    if fragment.fragmentType == .ConstantValue {
+        fragment.values["min"]! = minMax.x
+        fragment.values["max"]! = minMax.y
     }
 }
 

@@ -1185,6 +1185,9 @@ class SceneGraph                : MMWidget
                     if comp.componentType == .SkyDome {
                         buildChangeComponent(item, name: "Sky Dome", id: "SkyDome")
                     } else
+                    if comp.componentType == .Camera3D {
+                        buildChangeComponent(item, name: "Camera", id: "Camera3D")
+                    } else
                     if comp.componentType == .Shadows3D {
                         buildChangeComponent(item, name: "Shadows", id: "Shadows3D")
                     } else

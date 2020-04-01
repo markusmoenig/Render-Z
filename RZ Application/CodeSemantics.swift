@@ -2064,7 +2064,6 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float3", "outMask"))
             f.body.append(f.createOutVariableBlock("float3", "outReflectionDir"))
             f.body.append(f.createOutVariableBlock("float", "outReflectionDist"))
-            f.body.append(f.createOutVariableBlock("float", "outReflectionBlur"))
             functions.append(f)
         } else
         if type == .Domain3D {
@@ -2167,11 +2166,15 @@ class CodeComponent         : Codable, Equatable
         } else
         if let value4 = defaultValue as? SIMD4<Float> {
             insertValueToFragment4(const, value4)
+        } else
+        if let value = defaultValue as? Float {
+            const.values["value"] = value
         }
         
         if let minMax = defaultMinMax {
             insertMinMaxToFragment(const, minMax)
         }
+        
         b.statement.fragments.append(const)
         f.body.append(b)
         f.body.append(CodeBlock(.Empty))
