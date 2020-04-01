@@ -90,7 +90,7 @@ class Pipeline3D            : Pipeline
 
         // SkyDome
         for item in preStage.getChildren() {
-            if let comp = item.components[item.defaultName], comp.componentType == .SkyDome {
+            if let comp = item.components[item.defaultName], comp.componentType == .SkyDome || comp.componentType == .Pattern {
                 backComponent = comp
                 instanceMap["pre"] = codeBuilder.build(comp, camera: cameraComponent, monitor: monitorFragment)
                 break

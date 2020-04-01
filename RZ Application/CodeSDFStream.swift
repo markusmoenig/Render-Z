@@ -155,6 +155,8 @@ class CodeSDFStream
                 float4 __monitorOut = *__funcData->__monitorOut;
                 float GlobalTime = __funcData->GlobalTime;
                 float GlobalSeed = __funcData->GlobalSeed;
+                float outMask = 0;
+                float outId = 0;
             
             """
             

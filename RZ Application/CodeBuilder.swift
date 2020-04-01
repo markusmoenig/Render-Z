@@ -165,8 +165,8 @@ class CodeBuilder
         if component.componentType == .Colorize {
             buildColorize(inst, component, monitor)
         } else
-        if component.componentType == .SkyDome {
-            buildSkyDome(inst, component)
+        if component.componentType == .SkyDome || component.componentType == .Pattern {
+            buildBackground(inst, component)
         } else
         if component.componentType == .Camera3D {
             buildCamera3D(inst, component)
@@ -260,7 +260,7 @@ class CodeBuilder
     }
     
     /// Build the source code for the component
-    func buildSkyDome(_ inst: CodeBuilderInstance, _ component: CodeComponent)
+    func buildBackground(_ inst: CodeBuilderInstance, _ component: CodeComponent)
     {
         inst.code +=
         """
@@ -276,13 +276,18 @@ class CodeBuilder
             float2 uv = float2(__gid.x, __gid.y);
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
             float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
+            float3 position = float3(uv.x, uv.y, 0);
+        
+            float outMask = 0;
+            float outId = 0;
+
             uv /= size;
             uv.y = 1.0 - uv.y;
 
             float4 outColor = float4(0,0,0,1);
             float GlobalTime = __data[0].x;
             float GlobalSeed = __data[0].z;
-
+        
             struct FuncData __funcData;
             __funcData.GlobalTime = GlobalTime;
             __funcData.GlobalSeed = GlobalSeed;

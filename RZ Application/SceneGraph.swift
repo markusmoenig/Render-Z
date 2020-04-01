@@ -373,7 +373,7 @@ class SceneGraph                : MMWidget
                         mouseDownItemPos.x = stageItem.values["_graphModifierX"]!
                         mouseDownItemPos.y = stageItem.values["_graphModifierY"]!
                     } else
-                    if drag.component != nil && drag.component!.componentType == .Pattern {
+                    if drag.component != nil && drag.stage.stageType == .ShapeStage && drag.component!.componentType == .Pattern {
                         mouseDownItemPos.x = drag.component!.values["_graphX"]!
                         mouseDownItemPos.y = drag.component!.values["_graphY"]!
                     } else
@@ -526,7 +526,7 @@ class SceneGraph                : MMWidget
                 stageItem.values["_graphModifierX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
                 stageItem.values["_graphModifierY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
             } else
-            if drag.component != nil && drag.component!.componentType == .Pattern {
+            if drag.component != nil && drag.stage.stageType == .ShapeStage && drag.component!.componentType == .Pattern {
                 drag.component!.values["_graphX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
                 drag.component!.values["_graphY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
             } else
@@ -535,9 +535,7 @@ class SceneGraph                : MMWidget
                 stageItem.values["_graphY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
             } else {
                 drag.stage.values["_graphX"]! = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
-                drag.stage.values["_graphY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
-                
-                //print(drag.stage.values["_graphX"]!, drag.stage.values["_graphY"]! )
+                drag.stage.values["_graphY"]! = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom                
             }
             needsUpdate = true
             mmView.update()
@@ -886,11 +884,11 @@ class SceneGraph                : MMWidget
         deactivate()
         toolBarWidgets = []
         
-        func buildChangeComponent(_ item: SceneGraphItem, name: String, id: String)
+        func buildChangeComponent(_ item: SceneGraphItem, name: String, ids: [String])
         {
             let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change " + name)
             button.clicked = { (event) in
-                globalApp!.libraryDialog.show(ids: [id], cb: { (json) in
+                globalApp!.libraryDialog.show(ids: ids, cb: { (json) in
                     if let comp = decodeComponentFromJSON(json) {
                         let undo = globalApp!.currentEditor.undoStageItemStart("Change " + name)
                         
@@ -1177,25 +1175,25 @@ class SceneGraph                : MMWidget
                 } else
                 if let comp = item.component {
                     if comp.componentType == .RayMarch3D {
-                        buildChangeComponent(item, name: "RayMarcher", id: "RayMarch3D")
+                        buildChangeComponent(item, name: "RayMarcher", ids: ["RayMarch3D"])
                     } else
                     if comp.componentType == .Normal3D {
-                        buildChangeComponent(item, name: "Normal", id: "Normal3D")
+                        buildChangeComponent(item, name: "Normal", ids: ["Normal3D"])
                     } else
                     if comp.componentType == .SkyDome {
-                        buildChangeComponent(item, name: "Sky Dome", id: "SkyDome")
+                        buildChangeComponent(item, name: "Sky Dome", ids: ["SkyDome", "Pattern"])
                     } else
                     if comp.componentType == .Camera3D {
-                        buildChangeComponent(item, name: "Camera", id: "Camera3D")
+                        buildChangeComponent(item, name: "Camera", ids: ["Camera3D"])
                     } else
                     if comp.componentType == .Shadows3D {
-                        buildChangeComponent(item, name: "Shadows", id: "Shadows3D")
+                        buildChangeComponent(item, name: "Shadows", ids: ["Shadows3D"])
                     } else
                     if comp.componentType == .UVMAP3D {
-                        buildChangeComponent(item, name: "UV Mapping", id: "UVMAP3D")
+                        buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])
                     } else
                     if comp.componentType == .Domain3D {
-                        buildChangeComponent(item, name: "Domain", id: "Domain3D")
+                        buildChangeComponent(item, name: "Domain", ids: ["Domain3D"])
                         
                         let deleteButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
                         deleteButton.clicked = { (event) in
@@ -1211,7 +1209,7 @@ class SceneGraph                : MMWidget
                         toolBarWidgets.append(deleteButton)
                     } else
                     if comp.componentType == .Modifier3D {
-                        buildChangeComponent(item, name: "Modifier", id: "Modifier3D")
+                        buildChangeComponent(item, name: "Modifier", ids: ["Modifier3D"])
                         
                         let deleteButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
                         deleteButton.clicked = { (event) in
@@ -1227,7 +1225,7 @@ class SceneGraph                : MMWidget
                         toolBarWidgets.append(deleteButton)
                     } else
                     if comp.componentType == .Material3D {
-                        buildChangeComponent(item, name: "Material", id: "Material3D")
+                        buildChangeComponent(item, name: "Material", ids: ["Material3D"])
                     } else
                     if comp.componentType == .Variable {
                         
@@ -1576,17 +1574,6 @@ class SceneGraph                : MMWidget
                     
                     if component.componentType == .Material3D {
                         drawPlusButton(item: item, rect: MMRect(rect.x + item.rect.x + item.rect.width - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + item.rect.y + 4 * graphZoom, itemHeight, itemHeight), cb: { () in
-                            /*
-                            if let stageItem = item.stageItem {
-                                let comp = CodeComponent(.Pattern, "Pattern")
-                                comp.createDefaultFunction(.Pattern)
-                                comp.values["_graphX"] = 100
-                                comp.values["_graphY"] = 100
-
-                                if stageItem.componentLists["patterns"] == nil { stageItem.componentLists["patterns"] = [] }
-                                
-                                stageItem.componentLists["patterns"]?.append(comp)
-                            }*/
                             globalApp!.libraryDialog.show(ids: ["Pattern"], style: .List, cb: { (json) in
                                 if let comp = decodeComponentFromJSON(json) {
                                     let undo = globalApp!.currentEditor.undoStageItemStart("Add Pattern")

@@ -105,21 +105,31 @@ class CodeProperties    : MMWidget
                     if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                 }
             }
-            
-            //if function.functionType != .FreeFlow {
-            
+                        
             let libraryName = function.functionType == .FreeFlow ? function.libraryName : comp.libraryName
             let libraryComment = function.functionType == .FreeFlow ? function.libraryComment : comp.libraryComment
             let libraryCategory = function.functionType == .FreeFlow ? function.libraryCategory : comp.libraryCategory
-
+            
             c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryName", title: "Library Name", value: libraryName) )
             c2Node?.uiItems.append( NodeUIText(c2Node!, variable: "libraryComment", title: "Comment", value: libraryComment) )
-    
-            let items : [String] = ["Hash", "Noise"]
-            c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "libraryCategory", title: "Category", items: items, index: Float(items.firstIndex(of: libraryCategory)!) ) )
-        
-            c2Node?.uiItems[2].isDisabled = function.functionType != .FreeFlow
-                
+            
+            var categorySelector : NodeUISelector? = nil
+
+            var items : [String] = []
+            var index: Float = -1
+
+            if function.functionType == .FreeFlow {
+                items = ["Hash", "Noise"]
+                if let i = items.firstIndex(of: libraryCategory) {
+                    index = Float(i)
+                }
+                categorySelector = NodeUISelector(c2Node!, variable: "libraryCategory", title: "Category", items: items, index: index )
+            }
+            
+            if let categorySelector = categorySelector {
+                c2Node?.uiItems.append(categorySelector)
+            }
+                        
             c2Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 if variable == "libraryName" {
                     if function.functionType == .FreeFlow {
