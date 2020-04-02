@@ -147,8 +147,10 @@ class SceneGraph                : MMWidget
     var possibleConnTerminal    : (CodeComponent, UUID?, String?, Float, Float)? = nil
     var connectingTerminals     : Bool = false
     
-    //var map             : [MMRe]
-    
+    // The nav ratios
+    var ratioX                  : Float = 0
+    var ratioY                  : Float = 0
+        
     override init(_ view: MMView)
     {
         menuWidget = MMMenuWidget(view, type: .Hidden)
@@ -354,6 +356,15 @@ class SceneGraph                : MMWidget
             }
         }
 
+        // Want to drag the nav ?
+        if navRect.contains(event.x, event.y) && visNavRect.contains(event.x, event.y) {
+            mouseDownPos.x = event.x
+            mouseDownPos.y = event.y
+            mouseDownItemPos.x = graphX
+            mouseDownItemPos.y = graphY
+            dragVisNav = true
+            mmView.mouseTrackWidget = self
+        } else
         if globalApp!.sceneGraph.clickAt(x: event.x, y: event.y) {
             clickWasConsumed = true
             if let uuid = currentUUID {
@@ -387,16 +398,6 @@ class SceneGraph                : MMWidget
                     mmView.mouseTrackWidget = self
                 }
             }
-        } else {
-            // Want to drag the nav ?
-            if navRect.contains(event.x, event.y) && visNavRect.contains(event.x, event.y) {
-                mouseDownPos.x = event.x
-                mouseDownPos.y = event.y
-                mouseDownItemPos.x = graphX
-                mouseDownItemPos.y = graphY
-                dragVisNav = true
-                mmView.mouseTrackWidget = self
-            }
         }
         
         // Prevent dragging for selected variable items
@@ -415,8 +416,8 @@ class SceneGraph                : MMWidget
         
         // Dragging the navigator
         if dragVisNav == true {
-            graphX = mouseDownItemPos.x + (mouseDownPos.x - event.x) / graphZoom
-            graphY = mouseDownItemPos.y + (mouseDownPos.y - event.y) / graphZoom
+            graphX = mouseDownItemPos.x + (mouseDownPos.x - event.x) / ratioX
+            graphY = mouseDownItemPos.y + (mouseDownPos.y - event.y) / ratioY
             mmView.update()
             return
         }
@@ -770,8 +771,8 @@ class SceneGraph                : MMWidget
                 
         let border : Float = 10
         
-        let ratioX : Float =  (navRect.width - border*2) / (maxX - minX)
-        let ratioY : Float =  (navRect.height - border*2) / (maxY - minY)
+        ratioX =  (navRect.width - border*2) / (maxX - minX)
+        ratioY =  (navRect.height - border*2) / (maxY - minY)
                 
         for n in navItems {
         //for (_, n) in itemMap {
