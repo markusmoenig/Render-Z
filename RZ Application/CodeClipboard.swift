@@ -26,7 +26,10 @@ class CodeClipboard
 
     var selectedFragment    : CodeFragment? = nil
     var selectedBlock       : CodeBlock? = nil
+    var selectedCompUUID    : UUID? = nil
+    
     var encodedData         : String = ""
+    var dataCompUUID        : UUID? = nil
     
     var canCopy             : Bool = false
     var canPaste            : Bool = false
@@ -57,6 +60,7 @@ class CodeClipboard
                         self.encodedData = encodedObjectJsonString
                         self.dataMode = .Fragment
                         self.canCopy = false
+                        self.dataCompUUID = globalApp!.developerEditor.codeEditor.codeComponent!.uuid
                     }
                 }
             } else
@@ -66,6 +70,7 @@ class CodeClipboard
                     self.encodedData = encodedObjectJsonString
                     self.dataMode = .Block
                     self.canCopy = false
+                    self.dataCompUUID = globalApp!.developerEditor.codeEditor.codeComponent!.uuid
                 }
             }
                 
@@ -125,6 +130,8 @@ class CodeClipboard
         selectedFragment = fragment
         selectedBlock = block
         
+        selectedCompUUID = globalApp!.developerEditor.codeEditor.codeComponent!.uuid
+        
         deregisterButtons()
         
         canCopy = false
@@ -158,8 +165,11 @@ class CodeClipboard
                     
                     codeEditor.codeContext.checkIfDropIsValid(fragment)
                     if codeEditor.codeContext.dropIsValid {
-                        canPaste = true
-                        mmView.widgets.insert(pasteButton, at: 0)
+                        
+                        if checkFragmentDependencies(dataFragment!) {
+                            canPaste = true
+                            mmView.widgets.insert(pasteButton, at: 0)
+                        }
                     }
                     
                     codeEditor.codeContext.hoverFragment = oldHoverFragment
@@ -169,8 +179,12 @@ class CodeClipboard
                 
                 // Can Paste Block ?
                 if dataMode == .Block && fragment.parentBlock!.blockType == .Empty {
-                    canPaste = true
-                    mmView.widgets.insert(pasteButton, at: 0)
+                    if let dataBlock = getDecodedBlock() {
+                        if checkBlockDependencies(dataBlock) {
+                            canPaste = true
+                            mmView.widgets.insert(pasteButton, at: 0)
+                        }
+                    }
                 }
             }
         } else
@@ -180,13 +194,19 @@ class CodeClipboard
             selectionRect = MMRect(block.rect)
             mmView.widgets.insert(copyButton, at: 0)
 
-            // Can always copy a block
-            canCopy = true
+            // Can always copy a block if it is not empty
+            if block.blockType != .Empty {
+                canCopy = true
+            }
             
             // Can Paste Block ?
             if dataMode == .Block && block.blockType == .Empty {
-                canPaste = true
-                mmView.widgets.insert(pasteButton, at: 0)
+                if let dataBlock = getDecodedBlock() {
+                    if checkBlockDependencies(dataBlock) {
+                        canPaste = true
+                        mmView.widgets.insert(pasteButton, at: 0)
+                    }
+                }
             }
         }
     }
@@ -213,6 +233,69 @@ class CodeClipboard
             }
         }
         return nil
+    }
+    
+    /// Check if there are function dependencies in the clipboard fragment, if yes, dont allow copy (future: try to resolve them, like sceneMap etc)
+    func checkFragmentDependencies(_ dataFragment: CodeFragment) -> Bool
+    {
+        var dependencies : [CodeFragment] = []
+        
+        if dataCompUUID == selectedCompUUID {
+            // Always allow dependencies in the same CodeComponent
+            return true
+        }
+        
+        func checkFragment(_ fragment: CodeFragment)
+        {
+            if fragment.referseTo != nil {
+                if fragment.fragmentType == .Primitive {
+                    dependencies.append(fragment)
+                }
+            }
+            
+            for s in fragment.arguments {
+                for f in s.fragments {
+                    checkFragment(f)
+                }
+            }            
+        }
+        
+        checkFragment(dataFragment)
+        
+        if dependencies.count == 0 {
+            return true
+        } else {
+            return false
+        }
+    }
+    
+    /// Check for dependences of the given block
+    func checkBlockDependencies(_ dataBlock: CodeBlock) -> Bool
+    {
+        if dataCompUUID == selectedCompUUID {
+            // Always allow dependencies in the same CodeComponent
+            return true
+        }
+        
+        func checkBlock(_ block: CodeBlock) -> Bool {
+            for f in dataBlock.statement.fragments {
+                if checkFragmentDependencies(f) == false {
+                    return false
+                }
+            }
+            return true
+        }
+        
+        if checkBlock(dataBlock) == false {
+            return false
+        }
+        
+        for b in dataBlock.children {
+            if checkBlock(b) == false {
+                return false
+            }
+        }
+        return true
     }
     
     func draw()
