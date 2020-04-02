@@ -33,13 +33,13 @@ class DeveloperEditor   : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: codeList, codeEditor, codeProperties)
+        mmView.registerWidgets(widgets: codeList, codeEditor, codeProperties, globalApp!.topRegion!.liveButton)
     }
     
     override func deactivate()
     {
         codeProperties.clear()
-        mmView.deregisterWidgets(widgets: codeList, codeEditor, codeProperties)
+        mmView.deregisterWidgets(widgets: codeList, codeEditor, codeProperties, globalApp!.topRegion!.liveButton)
     }
     
     override func setComponent(_ component: CodeComponent)
@@ -87,6 +87,10 @@ class DeveloperEditor   : Editor
         if region.type == .Top {
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 43, spacing: 10, widgets: globalApp!.topRegion!.graphButton)
             globalApp!.topRegion!.graphButton.draw()
+            let liveButton = globalApp!.topRegion!.liveButton!
+            liveButton.rect.x = (globalApp!.topRegion!.rect.width - liveButton.rect.width) / 2
+            liveButton.rect.y = 4 + 44
+            liveButton.draw()
         } else
         if region.type == .Left {
             region.rect.width = CodeFragList.openWidth

@@ -53,6 +53,8 @@ class CodeEditor        : MMWidget
     
     var codeClipboard   : CodeClipboard!
     
+    var liveEditing     : Bool = true
+    
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .HorizontalAndVertical)
@@ -456,12 +458,12 @@ class CodeEditor        : MMWidget
                     blitEncoder.endEncoding()
                 }
             }*/
-            
-            if codeChanged {
-                globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
-                globalApp!.currentPipeline!.render(rect.width, rect.height)
-                codeChanged = false
-            }
+        }
+        
+        if codeChanged && liveEditing {
+            globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
+            globalApp!.currentPipeline!.render(self.rect.width, self.rect.height)
+            self.codeChanged = false
         }
         needsUpdate = false
     }

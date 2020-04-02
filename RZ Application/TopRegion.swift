@@ -34,6 +34,7 @@ class TopRegion: MMRegion
 
     var libraryButton   : MMButtonWidget!
     var cameraButton    : MMButtonWidget!
+    var liveButton      : MMButtonWidget!
 
     var app             : App
 
@@ -188,6 +189,24 @@ class TopRegion: MMRegion
             }
             self.cameraButton.removeState(.Checked)
         }
+        
+        var liveSkin = MMSkinButton()
+        liveSkin.borderColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+
+        liveButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "LIVE" )
+        liveButton.clicked = { (event) -> Void in
+            let editor = globalApp!.developerEditor.codeEditor
+            if editor.liveEditing == true {
+                self.liveButton.removeState(.Checked)
+                editor.liveEditing = false
+            } else {
+                editor.liveEditing = true
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+            }
+        }
+        liveButton.addState(.Checked)
         
         helpButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Help" )
         helpButton.isDisabled = false
