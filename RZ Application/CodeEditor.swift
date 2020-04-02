@@ -187,31 +187,8 @@ class CodeEditor        : MMWidget
                 drag.pWidgetOffset!.x = event.x - selFragment.rect.x - rect.x
                 drag.pWidgetOffset!.y = event.y - selFragment.rect.y - rect.y - scrollArea.offsetY
                 
-                drag.codeFragment = selFragment.createCopy()
-                codeContext.dropOriginalUUID = selFragment.uuid
-                
-                drag.codeFragment?.parentBlock = selFragment.parentBlock
-                if selFragment.fragmentType == .TypeDefinition {
-                    // --- Dragging the typedef of a function, create a .Primitive out of it
-                    if let frag = drag.codeFragment {
-                    
-                        frag.fragmentType = .Primitive
-                        var argFormat : [String] = []
-                        
-                        let args = selFragment.parentBlock!.statement.fragments
-                        for arg in args {
-                            argFormat.append(arg.typeName)
-                        }
-                        frag.argumentFormat = argFormat
-                        frag.referseTo = selFragment.parentBlock!.parentFunction!.uuid
-                    }
-                }
-
-                if selFragment.fragmentType == .VariableDefinition {
-                    drag.codeFragment?.fragmentType = .VariableReference
-                    drag.codeFragment?.referseTo = selFragment.uuid
-                }
-                
+                drag.codeFragment = processFragmentForCopy(selFragment)
+                 
                 var dragName : String
                 if selFragment.fragmentType == .ConstantValue {
                     dragName = selFragment.getValueString()
@@ -303,6 +280,37 @@ class CodeEditor        : MMWidget
         }
     }
     
+    /// Processes the fragment and returns a copy suitable for copying into the code editor
+    func processFragmentForCopy(_ selFragment: CodeFragment) -> CodeFragment?
+    {
+        let copyFragment : CodeFragment? = selFragment.createCopy()
+        codeContext.dropOriginalUUID = selFragment.uuid
+        
+        copyFragment?.parentBlock = selFragment.parentBlock
+        if selFragment.fragmentType == .TypeDefinition {
+            // --- Dragging the typedef of a function, create a .Primitive out of it
+            if let frag = copyFragment {
+            
+                frag.fragmentType = .Primitive
+                var argFormat : [String] = []
+                
+                let args = selFragment.parentBlock!.statement.fragments
+                for arg in args {
+                    argFormat.append(arg.typeName)
+                }
+                frag.argumentFormat = argFormat
+                frag.referseTo = selFragment.parentBlock!.parentFunction!.uuid
+            }
+        }
+
+        if selFragment.fragmentType == .VariableDefinition {
+            copyFragment?.fragmentType = .VariableReference
+            copyFragment?.referseTo = selFragment.uuid
+        }
+        
+        return copyFragment
+    }
+    
     override func mouseDown(_ event: MMMouseEvent)
     {
         orientationDrag = false
@@ -352,6 +360,8 @@ class CodeEditor        : MMWidget
             if let c = codeContext.selectedFunction {
                 comp.selected = c.uuid
             }
+            
+            codeClipboard.updateSelection(codeContext.selectedFragment, codeContext.selectedBlock)
                         
             if oldSelected != comp.selected {
 
@@ -436,7 +446,8 @@ class CodeEditor        : MMWidget
                 comp.draw(mmView, codeContext)
             }
             fragment.encodeEnd()
-            
+            codeClipboard.updateSelection(codeContext.selectedFragment, codeContext.selectedBlock)
+
             /*
             print(fragment.texture.mipmapLevelCount, fragment.width, fragment.height)
             if fragment.texture.mipmapLevelCount > 0 {
@@ -623,7 +634,6 @@ class CodeEditor        : MMWidget
         orientationRect.width = 100 * rect.width / codeContext.width
         orientationRect.height = height
         mmView.drawBox.draw(x: orientationRect.x, y: orientationRect.y, width: orientationRect.width, height: orientationRect.height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
-        mmView.renderer.setClipRect()
         
         // Function DND
         if let f = dndFunction {
@@ -637,6 +647,10 @@ class CodeEditor        : MMWidget
         if codeAccess.accessState != .Closed {
             codeAccess.draw()
         }
+        mmView.renderer.setClipRect()
+        
+        // Clipboard
+        codeClipboard.draw()
     }
     
     /// Clears the current selection

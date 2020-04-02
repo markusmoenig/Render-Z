@@ -925,6 +925,16 @@ class CodeBlock             : Codable, Equatable
         }
     }
     
+    func copyTo(_ dest: CodeBlock)
+    {
+        dest.blockType = blockType
+        dest.fragment = fragment
+        dest.assignment = assignment
+        dest.statement = statement
+        dest.comment = comment
+        dest.children = children
+    }
+    
     /// Returns the type of the block, i.e. the type of the fragment on the left
     func evaluateType() -> String
     {
@@ -2740,7 +2750,7 @@ class CodeContext
             }
             
             // Drop on an empty line (.VariableDefinition)
-            if fragment.parentBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) || (drop.name.starts(with: "for") && drop.typeName == "block" ) || (drop.name == "break" && drop.typeName == "block" ) ) {
+            if fragment.parentBlock != nil && fragment.parentBlock!.blockType == .Empty && (drop.fragmentType == .VariableDefinition || drop.fragmentType == .VariableReference || drop.fragmentType == .OutVariable || (drop.name.starts(with: "if") && drop.typeName == "block" ) || (drop.name.starts(with: "for") && drop.typeName == "block" ) || (drop.name == "break" && drop.typeName == "block" ) ) {
 
                 var valid = true
                 // Do not allow references to global variables to be on the left side (crash)

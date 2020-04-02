@@ -254,6 +254,11 @@ class CodeFragList : MMWidget
                 
                 listWidget.build(items: selectedItem!.items, fixedWidth: CodeFragList.openWidth)
               //  mmView.update()
+                if let item = listWidget.getCurrentItem() as? SourceListItem {
+                    print(item)
+                    
+                    globalApp!.developerEditor.codeEditor.codeClipboard.updateSelection(item.codeFragment, nil, MMRect(rect.right(), event.y, 30, 30))
+                }
             }
             return
         }
