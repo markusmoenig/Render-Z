@@ -49,16 +49,18 @@ class TopRegion: MMRegion
         
         switchButton.clicked = { (event) in
             self.app.currentEditor.deactivate()
-            let component : CodeComponent
             if self.switchButton.state == .Left {
-                component = self.app.developerEditor.codeEditor.codeComponent!
                 self.app.currentEditor = self.app.artistEditor
+                if let component = globalApp!.artistEditor.designEditor.designComponent {
+                    globalApp!.project.selected!.setSelected(component)
+                }
             } else {
-                component = self.app.artistEditor.designEditor.designComponent!
                 self.app.currentEditor = self.app.developerEditor
+                if let component = globalApp!.developerEditor.codeEditor.codeComponent {
+                    globalApp!.project.selected!.setSelected(component)
+                }
             }
             self.app.currentEditor.activate()
-            self.app.currentEditor.setComponent(component)
         }
         
         logoTexture = view.icons["rz_toolbar"]

@@ -737,6 +737,67 @@ class Scene                 : Codable, Equatable
         if let app = globalApp { app.sceneGraph.needsUpdate = true }
         */
     }
+    
+    /// Set the selection to the given CodeComponent
+    func setSelected(_ component: CodeComponent)
+    {
+        class SearchInfo {
+            var stageItem   : StageItem? = nil
+            var component   : CodeComponent? = nil
+        }
+        
+        var result = SearchInfo()
+        
+        func findInItem(_ stageItem: StageItem)
+        {
+            if result.component == nil {
+                for (_,c) in stageItem.components {
+                    if  c === component {
+                        result.component = c
+                        result.stageItem = stageItem
+                        break
+                    }
+                }
+            }
+            if result.component == nil {
+                for (_,cl) in stageItem.componentLists {
+                    for c in cl {
+                        if  c === component {
+                            result.component = c
+                            result.stageItem = stageItem
+                            break
+                        }
+                    }
+                }
+            }
+            if result.component == nil {
+                findInChildren(stageItem.children)
+            }
+        }
+        
+        func findInChildren(_ children: [StageItem])
+        {
+            for c in children {
+                findInItem(c)
+            }
+        }
+        
+        func findInStage(_ stage: Stage)
+        {
+            findInChildren(stage.children2D)
+            findInChildren(stage.children3D)
+        }
+        
+        for s in stages {
+            if result.component == nil {
+                findInStage(s)
+                if result.component != nil {
+                    globalApp!.sceneGraph.setCurrent(stage: s, stageItem: result.stageItem, component: result.component)
+                    break
+                }
+            }
+        }
+    }
 }
 
 class Project               : Codable, Equatable

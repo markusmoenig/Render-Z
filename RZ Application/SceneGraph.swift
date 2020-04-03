@@ -263,6 +263,17 @@ class SceneGraph                : MMWidget
         mmView.update()
     }
     
+    func clearSelection()
+    {
+        currentStage = nil
+        currentStageItem = nil
+        currentComponent = nil
+        currentUUID = nil
+        
+        globalApp!.artistEditor.setComponent(CodeComponent(.Dummy))
+        globalApp!.developerEditor.setComponent(CodeComponent(.Dummy))
+    }
+    
     func setCurrent(stage: Stage, stageItem: StageItem? = nil, component: CodeComponent? = nil)
     {
         currentStage = stage

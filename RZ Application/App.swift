@@ -127,17 +127,7 @@ class App
                 self.project = project
                 currentPipeline?.clearMonitor()
 
-                // Select camera
-                let preStage = project.selected!.getStage(.PreStage)
-                let preStageChildren = preStage.getChildren()
-                for stageItem in preStageChildren {
-                    if let c = stageItem.components[stageItem.defaultName] {
-                        if c.componentType == .Camera2D || c.componentType == .Camera3D {
-                            globalApp!.sceneGraph.setCurrent(stage: preStage, stageItem: stageItem, component: c)
-                            break
-                        }
-                    }
-                }
+                globalApp!.sceneGraph.clearSelection()
                 
                 currentEditor.updateOnNextDraw(compile: true)
                 mmView.update()

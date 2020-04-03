@@ -1586,6 +1586,9 @@ class CodeComponent         : Codable, Equatable
 
     // Subcomponent, used for boolean operation
     var subComponent        : CodeComponent? = nil
+    
+    // Storing the scroll offset
+    var scrollOffsetY       : Float = 0
 
     private enum CodingKeys: String, CodingKey {
         case componentType
