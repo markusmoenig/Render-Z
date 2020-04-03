@@ -649,10 +649,18 @@ class CodeEditor        : MMWidget
         if codeAccess.accessState != .Closed {
             codeAccess.draw()
         }
+        
+        // Clipboard without a custom rect, needs to get clipped
+        if codeClipboard.customRect == false {
+            codeClipboard.draw()
+        }
+        
         mmView.renderer.setClipRect()
         
-        // Clipboard
-        codeClipboard.draw()
+        // Clipboard for custom area, i.e. code frag list, should not be clipped
+        if codeClipboard.customRect == true {
+            codeClipboard.draw()
+        }
     }
     
     /// Clears the current selection

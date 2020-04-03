@@ -47,6 +47,7 @@ class CodeClipboard
         buttonSkin.height = mmView.skin.Button.height - 5
         buttonSkin.fontScale = 0.40
         buttonSkin.round = 20
+        buttonSkin.color = SIMD4<Float>(1,1,1,0.3)
         
         copyButton = MMButtonWidget(editor.mmView, skinToUse: buttonSkin, text: "Copy")
         pasteButton = MMButtonWidget(editor.mmView, skinToUse: buttonSkin, text: "Paste")
@@ -302,8 +303,8 @@ class CodeClipboard
     {
         if let rect = selectionRect {
             
-            var startX : Float = (customRect == false ? codeEditor.rect.x : 0) + rect.x + codeEditor.scrollArea.offsetX - 20
-            let startY : Float = (customRect == false ? codeEditor.rect.y : 0) + rect.y + codeEditor.scrollArea.offsetY - 30
+            var startX : Float = (customRect == false ? codeEditor.rect.x : 0) + rect.x + (customRect == false ? codeEditor.scrollArea.offsetX : 0) - 20
+            let startY : Float = (customRect == false ? codeEditor.rect.y : 0) + rect.y + (customRect == false ? codeEditor.scrollArea.offsetY : 0) - 30
 
             if canCopy {
                 copyButton.rect.x = startX
