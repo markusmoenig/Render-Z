@@ -620,6 +620,10 @@
 		2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
 		2BBFA82D24346027008981B7 /* CodeClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBFA82C24346027008981B7 /* CodeClipboard.swift */; };
 		2BBFA82E24346027008981B7 /* CodeClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBFA82C24346027008981B7 /* CodeClipboard.swift */; };
+		2BBFA8342436E22C008981B7 /* StoneDetail.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBFA8332436E22C008981B7 /* StoneDetail.tiff */; };
+		2BBFA8352436E22C008981B7 /* StoneDetail.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBFA8332436E22C008981B7 /* StoneDetail.tiff */; };
+		2BBFA8372436E76E008981B7 /* ColoredStones.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBFA8362436E76D008981B7 /* ColoredStones.tiff */; };
+		2BBFA8382436E76E008981B7 /* ColoredStones.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBFA8362436E76D008981B7 /* ColoredStones.tiff */; };
 		2BC5DCE4231794050081A018 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
 		2BC5DCE5231794050081A018 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
 		2BCEC68E22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
@@ -855,6 +859,8 @@
 		2BBF11FE21F808B1001C94E9 /* Gizmo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gizmo.swift; sourceTree = "<group>"; };
 		2BBF120121F80B32001C94E9 /* Gizmo.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Gizmo.metal; sourceTree = "<group>"; };
 		2BBFA82C24346027008981B7 /* CodeClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeClipboard.swift; sourceTree = "<group>"; };
+		2BBFA8332436E22C008981B7 /* StoneDetail.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = StoneDetail.tiff; sourceTree = "<group>"; };
+		2BBFA8362436E76D008981B7 /* ColoredStones.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = ColoredStones.tiff; sourceTree = "<group>"; };
 		2BC5DCE3231794050081A018 /* Dialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dialogs.swift; sourceTree = "<group>"; };
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
@@ -1021,6 +1027,7 @@
 				2BE9488623D0675600DB0BCD /* DefaultItems.swift */,
 				2B59875A23D3E8C0007E335F /* Gizmos */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
+				2BBFA82F2436E1BF008981B7 /* images */,
 			);
 			path = "RZ Application";
 			sourceTree = "<group>";
@@ -1298,6 +1305,15 @@
 				2B5F50692298FC8500D3B6C5 /* GameWidget.swift */,
 			);
 			path = Game;
+			sourceTree = "<group>";
+		};
+		2BBFA82F2436E1BF008981B7 /* images */ = {
+			isa = PBXGroup;
+			children = (
+				2BBFA8362436E76D008981B7 /* ColoredStones.tiff */,
+				2BBFA8332436E22C008981B7 /* StoneDetail.tiff */,
+			);
+			path = images;
 			sourceTree = "<group>";
 		};
 		2BE67100221259A200B95241 /* Nodes */ = {
@@ -1584,6 +1600,7 @@
 			files = (
 				2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B2B600224259D8600B9CCF1 /* scale.tiff in Resources */,
+				2BBFA8372436E76E008981B7 /* ColoredStones.tiff in Resources */,
 				2B7A3C0523B4652E002EC5FC /* GameCuben.tiff in Resources */,
 				2B7A3C0423B4652E002EC5FC /* GameCuben.json in Resources */,
 				2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */,
@@ -1597,6 +1614,7 @@
 				2B7A3C5123B46B53002EC5FC /* sz_ui_blue.tiff in Resources */,
 				2B7A3C4F23B46B53002EC5FC /* sz_toolbar.tiff in Resources */,
 				2B2B5FFC24259D8600B9CCF1 /* rotate.tiff in Resources */,
+				2BBFA8342436E22C008981B7 /* StoneDetail.tiff in Resources */,
 				2B8E2FE523C71F36005619E4 /* SourceCodePro.tiff in Resources */,
 				2B2B5FE0242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
 				2B7A3BF823B4583E002EC5FC /* Assets.xcassets in Resources */,
@@ -1641,8 +1659,10 @@
 				2B9B29BB23BB452B00C2F387 /* sz_ui_grey.tiff in Resources */,
 				2B2B600524259D8600B9CCF1 /* Z.tiff in Resources */,
 				2B2B5FF1242442AD00B9CCF1 /* timeline.tiff in Resources */,
+				2BBFA8382436E76E008981B7 /* ColoredStones.tiff in Resources */,
 				2B2B5FD92422F68A00B9CCF1 /* camera.tiff in Resources */,
 				2B9B29B923BB452B00C2F387 /* rz_toolbar.tiff in Resources */,
+				2BBFA8352436E22C008981B7 /* StoneDetail.tiff in Resources */,
 				2B9B29DD23BB453B00C2F387 /* GameCuben.tiff in Resources */,
 				2B2B5FE1242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
 				2B9B29B323BB44C000C2F387 /* LaunchScreen.storyboard in Resources */,

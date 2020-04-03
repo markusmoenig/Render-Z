@@ -14,7 +14,7 @@ class CodeBuilderInstance
     var code                : String = ""
     
     var computeState        : MTLComputePipelineState? = nil
-    var additionalStates    : [String: MTLComputePipelineState] = [:]
+    var additionalStates    : [String: MTLComputePipelineState?] = [:]
 
     var data                : [SIMD4<Float>] = []
     var buffer              : MTLBuffer!
@@ -22,7 +22,7 @@ class CodeBuilderInstance
     var computeOutBuffer    : MTLBuffer!
     var computeResult       : SIMD4<Float> = SIMD4<Float>(0,0,0,0)
     var monitorComponents   : Int = 1
-        
+            
     var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent, [StageItem])] = []
         
     /// Collect all the properties of the component and create a data entry for it
@@ -841,7 +841,7 @@ class CodeBuilder
         var state : MTLComputePipelineState? = nil
         
         if let oState = optionalState {
-            state = inst.additionalStates[oState]
+            state = inst.additionalStates[oState]!
         } else {
             state = inst.computeState
         }

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import MetalKit
 
 /// The connection of a CodeFragment property to the out variable of another CodeComponent
 class CodeConnection        : Codable
@@ -1536,7 +1537,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, PointLight3D
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, Terrain3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, PointLight3D, Image, Texture
     }
     
     enum PropertyGizmoMapping: Int, Codable {
@@ -1589,6 +1590,9 @@ class CodeComponent         : Codable, Equatable
     
     // Storing the scroll offset
     var scrollOffsetY       : Float = 0
+    
+    // Storing a temporary MTLTexture for Image or Texture components
+    var texture             : MTLTexture? = nil
 
     private enum CodingKeys: String, CodingKey {
         case componentType

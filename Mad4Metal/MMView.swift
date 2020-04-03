@@ -263,12 +263,12 @@ public class MMView : MMBaseView {
     }
     
     /// Creates a MTLTexture from the given resource
-    func loadTexture(_ name: String ) -> MTLTexture?
+    func loadTexture(_ name: String, mipmaps: Bool = false ) -> MTLTexture?
     {
         let path = Bundle.main.path(forResource: name, ofType: "tiff")!
         let data = NSData(contentsOfFile: path)! as Data
         
-        let options: [MTKTextureLoader.Option : Any] = [.generateMipmaps : true, .SRGB : false]
+        let options: [MTKTextureLoader.Option : Any] = [.generateMipmaps : mipmaps, .SRGB : false]
         
         return try? textureLoader.newTexture(data: data, options: options)
     }

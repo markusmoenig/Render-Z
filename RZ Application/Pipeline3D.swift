@@ -37,6 +37,8 @@ class Pipeline3D            : Pipeline
     var startId             : UInt = 0
     
     var settings            : PipelineRenderSettings? = nil
+    
+    var compiledSuccessfully: Bool = true
 
     override init(_ mmView: MMView)
     {
@@ -143,11 +145,34 @@ class Pipeline3D            : Pipeline
             dryRunComponent(renderComp)
             instanceMap["render"] = codeBuilder.build(renderComp)
         }
+        
+        // Check if we succeeded
+        
+        compiledSuccessfully = true
+        for (_, instance) in instanceMap {
+            if instance.computeState == nil {
+                compiledSuccessfully = false
+                break
+            }
+            for (_, instance) in instance.additionalStates {
+                if instance == nil {
+                    compiledSuccessfully = false
+                    break
+                }
+            }
+        }
     }
         
     // Render the pipeline
     override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
+        // Return a red texture if compilation failed
+        if compiledSuccessfully == false {
+            finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
+            codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(1,0,0,1))
+            return
+        }
+        
         self.settings = settings
         
         renderId += 1

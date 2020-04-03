@@ -40,7 +40,7 @@ class SceneGraphSkin {
 class SceneGraphItem {
         
     enum SceneGraphItemType {
-        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem, VariableContainer, VariableItem, DomainContainer, DomainItem, ModifierContainer, ModifierItem
+        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem, VariableContainer, VariableItem, DomainContainer, DomainItem, ModifierContainer, ModifierItem, ImageItem
     }
     
     var itemType                : SceneGraphItemType
@@ -413,7 +413,7 @@ class SceneGraph                : MMWidget
         
         // Prevent dragging for selected variable items
         if let drag = selectedVariable {
-            if drag.itemType == .VariableItem {
+            if drag.itemType == .VariableItem || drag.itemType == .ImageItem {
                 dragItem = nil
                 mmView.mouseTrackWidget = nil
             }
@@ -485,41 +485,58 @@ class SceneGraph                : MMWidget
                 // VARIABLE, START A DRAG OPERATION WITH A CODE FRAGMENT
                 //CodeFragment(.VariableDefinition, "float", "", [.Selectable, .Dragable, .Monitorable], ["float"], "float" )
                 if let comp = varItem.component {
-                    dryRunComponent(comp)
-                    var variable : CodeFragment? = nil
-                    for uuid in comp.properties {
-                        if let p = comp.getPropertyOfUUID(uuid).0 {
-                            if p.values["variable"] == 1 {
-                                variable = p
-                                break
+                    
+                    var frag     : CodeFragment? = nil
+                    var dragName : String = ""
+                    
+                    if comp.componentType == .Variable {
+                        dryRunComponent(comp)
+                        var variable : CodeFragment? = nil
+                                            
+                        for uuid in comp.properties {
+                            if let p = comp.getPropertyOfUUID(uuid).0 {
+                                if p.values["variable"] == 1 {
+                                    variable = p
+                                    break
+                                }
                             }
                         }
+                        if let variable = variable {
+                            frag = CodeFragment(.VariableReference, variable.typeName, variable.name, [.Selectable, .Dragable, .Monitorable], [variable.typeName], variable.typeName )
+                            frag!.referseTo = nil
+                            frag!.name = varItem.stageItem!.name + "." + variable.name
+                            frag!.values["variable"] = 1
+                            dragName = variable.name
+                        }
+                    } else
+                    if comp.componentType == .Image {
+                        frag = CodeFragment(.Primitive, "float4", comp.libraryName, [.Selectable, .Dragable, .Monitorable], ["float2"], "float4" )
+                        frag!.referseTo = nil
+                        frag!.name = varItem.stageItem!.name + "." + comp.libraryName
+                        frag!.values["variable"] = 1
+                        frag!.values["image"] = 1
+                        dragName = comp.libraryName
                     }
-                    if let variable = variable {
-                        let frag = CodeFragment(.VariableReference, variable.typeName, variable.name, [.Selectable, .Dragable, .Monitorable], [variable.typeName], variable.typeName )
-                        frag.referseTo = nil
-                        frag.name = varItem.stageItem!.name + "." + variable.name
-                        frag.values["variable"] = 1
-                        
+                    
+                    if let frag = frag {
                         // Create Drag Item
                         var drag = SourceListDrag()
                         drag.id = "SourceFragmentItem"
-                        drag.name = variable.name
+                        drag.name = dragName
                         
                         drag.pWidgetOffset!.x = (event.x - rect.x) - varItem.rect.x
                         drag.pWidgetOffset!.y = (event.y - rect.y) - varItem.rect.y
                         
                         drag.codeFragment = frag
                                                         
-                        let texture = globalApp!.developerEditor.codeList.listWidget.createGenericThumbnail(variable.name, 140 * graphZoom)
+                        let texture = globalApp!.developerEditor.codeList.listWidget.createGenericThumbnail(dragName, 140 * graphZoom)
                         drag.previewWidget = MMTextureWidget(mmView, texture: texture)
                         drag.previewWidget!.zoom = 2
                         
                         drag.sourceWidget = globalApp!.developerEditor.codeEditor
                         mmView.dragStarted(source: drag)
-                        
-                        selectedVariable = nil
                     }
+                    selectedVariable = nil
                 }
             }
         }
@@ -649,7 +666,7 @@ class SceneGraph                : MMWidget
                     continue
                 }
                 
-                if item.itemType != .VariableItem {
+                if item.itemType != .VariableItem && item.itemType != .ImageItem {
                     setCurrent(stage: item.stage, stageItem: item.stageItem, component: item.component)
                 } else {
                     selectedVariable = item
@@ -1877,8 +1894,6 @@ class SceneGraph                : MMWidget
     
     func drawVariablesPool(parent: SceneGraphItem, skin: SceneGraphSkin)
     {
-        let itemSize    : Float = 35 * graphZoom
-        let totalWidth  : Float = 140 * graphZoom
         let headerHeight: Float = 30 * graphZoom
         var top         : Float = headerHeight + 7.5 * graphZoom
         
@@ -1888,6 +1903,9 @@ class SceneGraph                : MMWidget
         let y           : Float = parent.rect.y
 
         if let list = parent.stageItem!.componentLists["variables"] {
+            
+            let itemSize    : Float = 35 * graphZoom
+            let totalWidth  : Float = 140 * graphZoom
             
             let amount : Float = Float(list.count)
             let height : Float = amount * itemSize + headerHeight + 15 * graphZoom
@@ -1927,7 +1945,7 @@ class SceneGraph                : MMWidget
                 itemMap[comp.uuid] = item
                 
                 if comp === currentComponent {
-                    mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 0, fillColor: skin.selectedBorderColor)
+                    mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 4, fillColor: skin.selectedBorderColor)
                 }
                 
                 if stageItem.componentLabels[comp.libraryName] == nil || stageItem.componentLabels[comp.libraryName]!.scale != skin.fontScale {
@@ -1938,6 +1956,53 @@ class SceneGraph                : MMWidget
                     label.rect.y = rect.y + item.rect.y + (itemSize - skin.lineHeight) / 2
                     label.draw()
                 }
+                top += itemSize
+            }
+        } else
+        if let list = parent.stageItem!.componentLists["images"] {
+            
+            let itemSize    : Float = 80 * graphZoom / 2
+            let totalWidth  : Float = 80 * graphZoom + 2
+            
+            let amount : Float = Float(list.count)
+            let height : Float = amount * itemSize + headerHeight + 15 * graphZoom
+            
+            let variableContainer = SceneGraphItem(.VariableContainer, stage: parent.stage, stageItem: stageItem)
+            variableContainer.rect.set(x, y, totalWidth, height)
+            itemMap[UUID()] = variableContainer
+            
+            mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
+            
+            skin.font.getTextRect(text: parent.stageItem!.name, scale: skin.fontScale, rectToUse: skin.tempRect)
+            
+            mmView.drawText.drawText(skin.font, text: parent.stageItem!.name, x: rect.x + x + 10 * graphZoom, y: rect.y + y + 7 * graphZoom, scale: skin.fontScale, color: skin.normalTextColor)
+            
+            mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight, radius: 0.6, fillColor: skin.normalBorderColor)
+
+            for comp in list {
+                
+                let item = SceneGraphItem(.ImageItem, stage: parent.stage, stageItem: stageItem, component: comp)
+                item.rect.set(x, y + top, totalWidth, itemSize)
+                itemMap[comp.uuid] = item
+                
+                if let texture = comp.texture {
+                    mmView.drawTexture.drawScaled(texture, x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize)
+                }
+                
+                if comp === currentComponent {
+                    mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 4, fillColor: skin.selectedBorderColor)
+                }
+                
+                if stageItem.componentLabels[comp.libraryName] == nil || stageItem.componentLabels[comp.libraryName]!.scale != skin.fontScale {
+                    stageItem.componentLabels[comp.libraryName] = MMTextLabel(mmView, font: mmView.openSans, text: comp.libraryName, scale: skin.fontScale, color: skin.normalTextColor)
+                }
+                
+                /*
+                if let label = stageItem.componentLabels[comp.libraryName] {
+                    label.rect.x = rect.x + item.rect.x + 10// + (totalWidth - label.rect.width) / 2
+                    label.rect.y = rect.y + item.rect.y + (itemSize - skin.lineHeight) / 2
+                    label.draw()
+                }*/
                 top += itemSize
             }
         }

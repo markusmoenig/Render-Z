@@ -52,6 +52,10 @@ class MMCompute {
         
         var computePipelineState : MTLComputePipelineState?
         
+        if function == nil {
+            return nil
+        }
+        
         do {
             computePipelineState = try device.makeComputePipelineState( function: function! )
         } catch {

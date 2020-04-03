@@ -104,6 +104,7 @@ class App
         
         let preStage = project.selected!.getStage(.PreStage)
         let selected = preStage.getChildren()[0]
+        project.selected!.addDefaultImages()
         sceneGraph.setCurrent(stage: preStage, stageItem: selected)
 
         currentEditor.activate()
@@ -128,7 +129,8 @@ class App
                 currentPipeline?.clearMonitor()
 
                 globalApp!.sceneGraph.clearSelection()
-                
+                project.selected!.addDefaultImages()
+
                 currentEditor.updateOnNextDraw(compile: true)
                 mmView.update()
             }

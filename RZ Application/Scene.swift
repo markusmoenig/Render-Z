@@ -798,6 +798,39 @@ class Scene                 : Codable, Equatable
             }
         }
     }
+    
+    // Adds the default images to the variable stage
+    func addDefaultImages()
+    {
+        let stage = getStage(.VariablePool)
+        
+        var imageItem : StageItem? = nil
+        // Find image pool stage
+        for item in stage.children3D {
+            if item.name == "Images" {
+                imageItem = item
+            }
+        }
+        
+        if imageItem == nil {
+            imageItem = StageItem(.VariablePool, "Images")
+            placeChild(modeId: "3D", parent: stage, child: imageItem!, stepSize: 60, radius: 110, defaultStart: 10)
+            stage.children3D.append(imageItem!)
+        }
+        
+        imageItem!.componentLists["images"] = []
+        
+        let images = ["StoneDetail", "ColoredStones"]
+        
+        for i in images {
+            if let texture = globalApp!.mmView.loadTexture(i, mipmaps: false) {
+                let component = CodeComponent(.Image)
+                component.libraryName = i
+                component.texture = texture
+                imageItem!.componentLists["images"]!.append(component)
+            }
+        }
+    }
 }
 
 class Project               : Codable, Equatable

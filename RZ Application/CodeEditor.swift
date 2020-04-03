@@ -723,6 +723,7 @@ class CodeEditor        : MMWidget
             mmView.undoManager!.registerUndo(withTarget: self) { target in
                 globalApp!.loadComponentFrom(oldState)
                 componentChanged(newState, oldState)
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
             }
             self.mmView.undoManager!.setActionName(undoComponent.name)
         }
