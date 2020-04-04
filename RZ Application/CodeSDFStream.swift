@@ -155,9 +155,11 @@ class CodeSDFStream
                 float4 __monitorOut = *__funcData->__monitorOut;
                 float GlobalTime = __funcData->GlobalTime;
                 float GlobalSeed = __funcData->GlobalSeed;
+                __CREATE_TEXTURE_DEFINITIONS__
+
                 float outMask = 0;
                 float outId = 0;
-            
+                        
             """
             
             if let background = backgroundComponent {
@@ -183,7 +185,7 @@ class CodeSDFStream
                 float4 __monitorOut = *__funcData->__monitorOut;
                 float GlobalTime = __funcData->GlobalTime;
                 float GlobalSeed = __funcData->GlobalSeed;
-
+                __CREATE_TEXTURE_DEFINITIONS__
             
             """
             
@@ -198,24 +200,21 @@ class CodeSDFStream
             texture2d<half, access::read>           __rayOriginTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionTexture [[texture(5)]],
             texture2d<half, access::write>          __monitorTexture [[texture(6)]],
+            __HITANDNORMALS_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                float4 __monitorOut = float4(0,0,0,0);
-            
                 float2 __size = float2( __depthTexture.get_width(), __depthTexture.get_height() );
-
-                float GlobalTime = __data[0].x;
-                float GlobalSeed = __data[0].z;
 
                 float2 __uv = float2(__gid.x, __gid.y);
                 float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
 
-                struct FuncData __funcData;
-                __funcData.GlobalTime = GlobalTime;
-                __funcData.GlobalSeed = GlobalSeed;
-                __funcData.__monitorOut = &__monitorOut;
-                __funcData.__data = __data;
+            """
+            
+            hitAndNormalsCode += codeBuilder.getFuncDataCode(instance, "HITANDNORMALS", 7)
+            hitAndNormalsCode +=
+                
+            """
             
                 float4 outShape = float4(__depthTexture.read(__gid));
             
@@ -237,24 +236,14 @@ class CodeSDFStream
             texture2d<half, access::read>           __rayOriginInTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionInTexture [[texture(5)]],
             texture2d<half, access::write>          __monitorTexture [[texture(6)]],
+            __AO_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                float4 __monitorOut = float4(0,0,0,0);
-            
                 float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
-
-                float GlobalTime = __data[0].x;
-                float GlobalSeed = __data[0].z;
 
                 float2 __uv = float2(__gid.x, __gid.y);
                 float3 rayOrigin = float4(__rayOriginInTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionInTexture.read(__gid)).xyz;
-
-                struct FuncData __funcData;
-                __funcData.GlobalTime = GlobalTime;
-                __funcData.GlobalSeed = GlobalSeed;
-                __funcData.__monitorOut = &__monitorOut;
-                __funcData.__data = __data;
             
                 float4 outShape = float4(__depthInTexture.read(__gid));
             
@@ -264,6 +253,7 @@ class CodeSDFStream
                 float4 outMeta = float4(__metaTexture.read(__gid));
             
             """
+            aoCode += codeBuilder.getFuncDataCode(instance, "AO", 7)
             
             shadowCode =
                 
@@ -276,25 +266,15 @@ class CodeSDFStream
             texture2d<half, access::read>           __rayOriginTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionTexture [[texture(5)]],
             texture2d<half, access::write>          __monitorTexture [[texture(6)]],
-            constant float4                        *__lightData   [[ buffer(7) ]],
+            __SHADOW_TEXTURE_HEADER_CODE__
+            constant float4                        *__lightData   [[ buffer(__SHADOW_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                float4 __monitorOut = float4(0,0,0,0);
-            
                 float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
-
-                float GlobalTime = __data[0].x;
-                float GlobalSeed = __data[0].z;
 
                 float2 __uv = float2(__gid.x, __gid.y);
                 float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
-
-                struct FuncData __funcData;
-                __funcData.GlobalTime = GlobalTime;
-                __funcData.GlobalSeed = GlobalSeed;
-                __funcData.__monitorOut = &__monitorOut;
-                __funcData.__data = __data;
             
                 float4 outShape = float4(__depthInTexture.read(__gid));
             
@@ -304,7 +284,8 @@ class CodeSDFStream
                 float4 outMeta = float4(__metaTexture.read(__gid));
             
             """
-            
+            shadowCode += codeBuilder.getFuncDataCode(instance, "SHADOW", 7)
+
             materialCode =
                 
             """
@@ -322,24 +303,11 @@ class CodeSDFStream
             constant float4                        *__lightData   [[ buffer(__MATERIAL_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                float4 __monitorOut = float4(0,0,0,0);
-            
                 float2 __size = float2( __colorTexture.get_width(), __colorTexture.get_height() );
-
-                float GlobalTime = __data[0].x;
-                float GlobalSeed = __data[0].z;
 
                 float2 __uv = float2(__gid.x, __gid.y);
                 float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
-
-                struct FuncData __funcData;
-                __funcData.GlobalTime = GlobalTime;
-                __funcData.GlobalSeed = GlobalSeed;
-                __funcData.__monitorOut = &__monitorOut;
-                __funcData.__data = __data;
-                
-                __MATERIAL_TEXTURE_ASSIGNMENT_CODE__
 
                 float4 shape = float4(__depthInTexture.read(__gid));
                 float4 meta = float4(__metaInTexture.read(__gid));
@@ -369,6 +337,7 @@ class CodeSDFStream
                 __materialOut.mask = float3(0);
                         
             """
+            materialCode += codeBuilder.getFuncDataCode(instance, "MATERIAL", 9)
                         
             if let rayMarch = findDefaultComponentForStageChildren(stageType: .ShapeStage, componentType: .UVMAP3D), thumbNail == false {
                 dryRunComponent(rayMarch, instance.data.count, monitor)
@@ -388,7 +357,7 @@ class CodeSDFStream
                 if (shape.z == -1 ) {
                     float2 uv = __uv / __size;
                     uv.y = 1.0 - uv.y;
-                    color.xyz += background( uv, __size, hitPosition, rayDirection, &__funcData ).xyz * mask;
+                    color.xyz += background( uv, __size, hitPosition, rayDirection, __funcData ).xyz * mask;
                     //color = clamp(color, 0.0, 1.0);
                     mask = float3(0);
                     rayDirection = float3(0);
@@ -530,7 +499,7 @@ class CodeSDFStream
                float RJrRIP=0.001;
                int nRqCSQ=70;
                for( int noGouA=0; noGouA<nRqCSQ&&RJrRIP<maxDistance; noGouA+=1) {
-                   float4 cKFBUP=sceneMap( rayOrigin+rayDirection*RJrRIP, &__funcData) ;
+                   float4 cKFBUP=sceneMap( rayOrigin+rayDirection*RJrRIP, __funcData) ;
                    if( cKFBUP.x<0.001*RJrRIP) {
                        outShape=cKFBUP;
                        outShape.y=RJrRIP;
@@ -543,10 +512,10 @@ class CodeSDFStream
                    float3 position = rayOrigin + outShape.y * rayDirection;
 
                    float2 dXjBFB=float2( 1.000, -1.000) *0.5773*0.0005;
-                   outNormal=dXjBFB.xyy*sceneMap( position+dXjBFB.xyy, &__funcData) .x;
-                   outNormal+=dXjBFB.yyx*sceneMap( position+dXjBFB.yyx, &__funcData) .x;
-                   outNormal+=dXjBFB.yxy*sceneMap( position+dXjBFB.yxy, &__funcData) .x;
-                   outNormal+=dXjBFB.xxx*sceneMap( position+dXjBFB.xxx, &__funcData) .x;
+                   outNormal=dXjBFB.xyy*sceneMap( position+dXjBFB.xyy, __funcData) .x;
+                   outNormal+=dXjBFB.yyx*sceneMap( position+dXjBFB.yyx, __funcData) .x;
+                   outNormal+=dXjBFB.yxy*sceneMap( position+dXjBFB.yxy, __funcData) .x;
+                   outNormal+=dXjBFB.xxx*sceneMap( position+dXjBFB.xxx, __funcData) .x;
                    outNormal=normalize( outNormal) ;
                }
                
@@ -626,7 +595,6 @@ class CodeSDFStream
             """
             
             instance.code = headerCode + backgroundCode + mapCode + shadowCode + hitAndNormalsCode + aoCode + materialFuncCode + materialCode
-            replaceTexturReferences(instance)
         }
         
         codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow", "computeMaterial"] : [])
@@ -790,12 +758,14 @@ class CodeSDFStream
             """
             
             void material\(materialIdCounter)(float2 uv, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
-            float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData )
+            float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
             {
                 constant float4 *__data = __funcData->__data;
                 float4 __monitorOut = *__funcData->__monitorOut;
                 float GlobalTime = __funcData->GlobalTime;
                 float GlobalSeed = __funcData->GlobalSeed;
+                __CREATE_TEXTURE_DEFINITIONS__
+
 
                 float4 outColor = __materialOut->color;
                 float3 outMask = __materialOut->mask;
@@ -863,7 +833,7 @@ class CodeSDFStream
                 
             """
             
-                material\(materialIdCounter)(outUV, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, &__funcData);
+                material\(materialIdCounter)(outUV, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
                 if (lightType.z == lightType.w) {
                     rayDirection = __materialOut.reflectionDir;
                     rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
@@ -918,8 +888,11 @@ class CodeSDFStream
         //print("__AFTER_TEXTURE_OFFSET__", startOffset + instance.textures.count)
 
         code = ""
+        if instance.textures.count > 0 {
+            code = "constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
+        }
         for t in instance.textures{
-            code += "__funcData.\(t.1) = \(t.1);\n"
+            code += "__funcData->\(t.1) = \(t.1);\n"
         }
         
         changed = changed.replacingOccurrences(of: "__\(id)_TEXTURE_ASSIGNMENT_CODE__", with: code)
@@ -928,16 +901,22 @@ class CodeSDFStream
     
     func replaceTexturReferences(_ instance: CodeBuilderInstance)
     {
-        insertTextureCode(instance, startOffset: 9, id: "MATERIAL")
+        for tR in instance.textureRep {
+            insertTextureCode(instance, startOffset: tR.1, id: tR.0)
+        }
         var code = instance.code
         
-        // __FuncData structure
+        // __FuncData structure and texture definitions
         var funcData = ""
+        var textureDefs = "constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
+
         for t in instance.textures {
             funcData += "texture2d<half, access::sample> " + t.1 + ";"
+            textureDefs += "texture2d<half, access::sample> " + t.1 + " = __funcData->\(t.1);\n"
         }
 
         code = code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: funcData)
+        code = code.replacingOccurrences(of: "__CREATE_TEXTURE_DEFINITIONS__", with: textureDefs)
         instance.code = code
     }
 }

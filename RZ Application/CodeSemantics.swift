@@ -746,7 +746,7 @@ class CodeFragment          : Codable, Equatable
                         ctx.addCode( "__funcData" )
                     }
                 } else {
-                    ctx.addCode( ", &__funcData" )
+                    ctx.addCode( ", __funcData" )
                 }
             }
             
@@ -1070,6 +1070,7 @@ class CodeBlock             : Codable, Equatable
                 ctx.addCode("{\n")
                 ctx.addCode("float GlobalTime = __funcData->GlobalTime;")
                 ctx.addCode("float GlobalSeed = __funcData->GlobalSeed;")
+                ctx.addCode("__CREATE_TEXTURE_DEFINITIONS__")
                 if ctx.monitorFragment != nil {
                     ctx.addCode("float4 __monitorOut = *__funcData->__monitorOut;")
                 }
@@ -1519,10 +1520,10 @@ class CodeFunction          : Codable, Equatable
                 }
             }
         }
-        
+    
         // Insert a header to be replaced later with the texture definitions if necessary
-        ctx.addCode("__TEXTURE_FUNC_HEADER__")
-        let textureCount = ctx.cComponent!.textures.count
+        //ctx.addCode("__TEXTURE_FUNC_HEADER__")
+        //let textureCount = ctx.cComponent!.textures.count
         
         for b in body {
             ctx.cBlock = b
@@ -1539,6 +1540,7 @@ class CodeFunction          : Codable, Equatable
             ctx.blockNumber += 1
         }
 
+        /*
         if textureCount != ctx.cComponent!.textures.count {
             // Textures were added, place code into the header
             var code = "constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
@@ -1551,8 +1553,7 @@ class CodeFunction          : Codable, Equatable
         } else {
             // No textures
             ctx.replaceCode(replace: "__TEXTURE_FUNC_HEADER__", with: "")
-        }
-
+        }*/
         
         ctx.rectEnd(rect, rStart)
         if rect.right() < maxRight {
@@ -2476,6 +2477,7 @@ class CodeComponent         : Codable, Equatable
                     float4 __monitorOut = *__funcData->__monitorOut;
                     float GlobalTime = __funcData->GlobalTime;
                     float GlobalSeed = __funcData->GlobalSeed;
+                    __CREATE_TEXTURE_DEFINITIONS__
 
                 """
                 pCode += pattern.code!.replacingOccurrences(of: "&__", with: "__")

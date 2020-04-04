@@ -27,6 +27,8 @@ class CodeBuilderInstance
     
     // Texture path, token, type (0 == Image, 1 == Texture)
     var textures            : [(String, String, Int)] = []
+    
+    var textureRep          : [(String, Int)] = []
         
     /// Collect all the properties of the component and create a data entry for it
     func collectProperties(_ component: CodeComponent,_ hierarchy: [StageItem] = [])
@@ -198,8 +200,8 @@ class CodeBuilder
     
     func buildInstance(_ inst: CodeBuilderInstance, name: String = "componentBuilder", additionalNames: [String] = [])
     {
-        inst.code = inst.code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: "")
-
+        sdfStream.replaceTexturReferences(inst)
+        
         inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
@@ -220,29 +222,17 @@ class CodeBuilder
         kernel void componentBuilder(
         texture2d<half, access::write>          __outTexture  [[texture(0)]],
         constant float4                        *__data   [[ buffer(1) ]],
-        //texture2d<half, access::sample>       __fontTexture [[texture(2)]],
+        __COLORIZE_TEXTURE_HEADER_CODE__
         uint2 __gid                               [[thread_position_in_grid]])
         {
-            float4 __monitorOut = float4(0,0,0,0);
-        
             float2 uv = float2(__gid.x, __gid.y);
             float2 size = float2(__outTexture.get_width(), __outTexture.get_height() );
             uv /= size;
             uv.y = 1.0 - uv.y;
-        
-
-            float4 outColor = float4(0,0,0,1);
-            float GlobalTime = __data[0].x;
-            float GlobalSeed = __data[0].z;
-
-            struct FuncData __funcData;
-            __funcData.GlobalTime = GlobalTime;
-            __funcData.GlobalSeed = GlobalSeed;
-            __funcData.__monitorOut = &__monitorOut;
-            __funcData.__data = __data;
 
         """
         
+        inst.code += getFuncDataCode(inst, "COLORIZE", 2)
         if let code = component.code {
             inst.code += code
         }
@@ -278,9 +268,9 @@ class CodeBuilder
         constant float4                        *__data   [[ buffer(1) ]],
         texture2d<half, access::read>           __rayDirectionTexture [[texture(2)]],
         texture2d<half, access::write>          __monitorTexture [[texture(3)]],
+        __BACKGROUND_TEXTURE_HEADER_CODE__
         uint2 __gid                             [[thread_position_in_grid]])
         {
-            float4 __monitorOut = float4(0,0,0,0);
             float2 uv = float2(__gid.x, __gid.y);
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
             float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
@@ -293,16 +283,9 @@ class CodeBuilder
             uv.y = 1.0 - uv.y;
 
             float4 outColor = float4(0,0,0,1);
-            float GlobalTime = __data[0].x;
-            float GlobalSeed = __data[0].z;
-        
-            struct FuncData __funcData;
-            __funcData.GlobalTime = GlobalTime;
-            __funcData.GlobalSeed = GlobalSeed;
-            __funcData.__monitorOut = &__monitorOut;
-            __funcData.__data = __data;
         
         """
+        inst.code += getFuncDataCode(inst, "BACKGROUND", 4)
         
         if let code = component.code {
             inst.code += code
@@ -329,29 +312,22 @@ class CodeBuilder
         constant float4                        *__data   [[ buffer(1) ]],
         texture2d<half, access::write>          __outDirectionTexture  [[texture(2)]],
         texture2d<half, access::write>          __monitorTexture [[texture(3)]],
+        __CAMERA3D_TEXTURE_HEADER_CODE__
         uint2 __gid                             [[thread_position_in_grid]])
         {
-            float4 __monitorOut = float4(0,0,0,0);
             float2 uv = float2(__gid.x, __gid.y);
             float2 size = float2( __outOriginTexture.get_width(), __outOriginTexture.get_height() );
             uv /= size;
             uv.y = 1.0 - uv.y;
-        
-            float GlobalTime = __data[0].x;
-            float GlobalSeed = __data[0].z;
 
             float2 jitter = float2(__data[0].z, __data[0].w);
 
             float3 outPosition = float3(0,0,0);
             float3 outDirection = float3(0,0,0);
         
-            struct FuncData __funcData;
-            __funcData.GlobalTime = GlobalTime;
-            __funcData.GlobalSeed = GlobalSeed;
-            __funcData.__monitorOut = &__monitorOut;
-            __funcData.__data = __data;
-        
         """
+        inst.code += getFuncDataCode(inst, "CAMERA3D", 4)
+
         
         if let code = component.code {
             inst.code += code
@@ -468,26 +444,17 @@ class CodeBuilder
         texture2d<half, access::write>          __outTexture  [[texture(0)]],
         constant float4                        *__data   [[ buffer(1) ]],
         texture2d<half, access::read>           __colorTexture [[texture(2)]],
+        __RENDER3D_TEXTURE_HEADER_CODE__
         uint2 __gid                             [[thread_position_in_grid]])
         {
-            float4 __monitorOut = float4(0,0,0,0);
-
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
             float2 uv = float2(__gid.x, __gid.y);
 
             float4 outColor = float4(0, 0, 0, 1);
             float4 color = float4(__colorTexture.read(__gid));
 
-            float GlobalTime = __data[0].x;
-            float GlobalSeed = __data[0].z;
-
-            struct FuncData __funcData;
-            __funcData.GlobalTime = GlobalTime;
-            __funcData.GlobalSeed = GlobalSeed;
-            __funcData.__monitorOut = &__monitorOut;
-            __funcData.__data = __data;
-
         """
+        inst.code += getFuncDataCode(inst, "RENDER3D", 3)
      
         if let code = component.code {
             inst.code += code
@@ -854,8 +821,16 @@ class CodeBuilder
             state = inst.computeState
         }
         
+        // Atach the instance textures to the outTextures
+        var myOuTextures = outTextures
+        for t in inst.textures {
+            if let texture = globalApp!.images[t.0] {
+                myOuTextures.append(texture)
+            }
+        }
+        
         if let state = state {
-            compute.run( state, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, outTextures: outTextures, inBuffers: inBuffers, syncronize: syncronize)
+            compute.run( state, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, outTextures: myOuTextures, inBuffers: inBuffers, syncronize: syncronize)
             compute.commandBuffer.waitUntilCompleted()
         }
     }
@@ -930,5 +905,30 @@ class CodeBuilder
         }
         
         """
+    }
+    
+    func getFuncDataCode(_ inst: CodeBuilderInstance,_ id: String, _ textureOffset: Int) -> String
+    {
+        let code =
+        """
+
+        float4 __monitorOut = float4(0,0,0,0);
+        float GlobalTime = __data[0].x;
+        float GlobalSeed = __data[0].z;
+
+        struct FuncData __funcData_;
+        thread struct FuncData *__funcData = &__funcData_;
+        __funcData_.GlobalTime = GlobalTime;
+        __funcData_.GlobalSeed = GlobalSeed;
+        __funcData_.__monitorOut = &__monitorOut;
+        __funcData_.__data = __data;
+
+        __\(id)_TEXTURE_ASSIGNMENT_CODE__
+
+        """
+        
+        inst.textureRep.append((id, textureOffset))
+        
+        return code
     }
 }

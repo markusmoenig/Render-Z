@@ -420,15 +420,8 @@ class Pipeline3D            : Pipeline
             shapeText = "shape_" + String(objectIndex)
             
             while let inst = instanceMap[shapeText] {
-                
-                var outTextures : [MTLTexture] = []
-                for t in inst.textures {
-                    if let texture = globalApp!.images[t.0] {
-                        outTextures.append(texture)
-                    }
-                }
                     
-                codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), monitorTexture!], outTextures: outTextures, inBuffers: [lightBuffer], optionalState: "computeMaterial")
+                codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), monitorTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
 
                 objectIndex += 1
                 shapeText = "shape_" + String(objectIndex)
