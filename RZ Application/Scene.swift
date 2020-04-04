@@ -819,16 +819,12 @@ class Scene                 : Codable, Equatable
         }
         
         imageItem!.componentLists["images"] = []
-        
-        let images = ["StoneDetail", "ColoredStones"]
-        
-        for i in images {
-            if let texture = globalApp!.mmView.loadTexture(i, mipmaps: false) {
-                let component = CodeComponent(.Image)
-                component.libraryName = i
-                component.texture = texture
-                imageItem!.componentLists["images"]!.append(component)
-            }
+                
+        for (name, texture) in globalApp!.images {
+            let component = CodeComponent(.Image)
+            component.libraryName = name
+            component.texture = texture
+            imageItem!.componentLists["images"]!.append(component)
         }
     }
 }

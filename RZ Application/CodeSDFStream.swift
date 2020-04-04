@@ -318,7 +318,8 @@ class CodeSDFStream
             texture2d<half, access::read_write>     __rayDirectionTexture [[texture(6)]],
             texture2d<half, access::read_write>     __maskTexture [[texture(7)]],
             texture2d<half, access::write>          __monitorTexture [[texture(8)]],
-            constant float4                        *__lightData   [[ buffer(9) ]],
+            __MATERIAL_TEXTURE_HEADER_CODE__
+            constant float4                        *__lightData   [[ buffer(__MATERIAL_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
                 float4 __monitorOut = float4(0,0,0,0);
@@ -337,6 +338,8 @@ class CodeSDFStream
                 __funcData.GlobalSeed = GlobalSeed;
                 __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
+                
+                __MATERIAL_TEXTURE_ASSIGNMENT_CODE__
 
                 float4 shape = float4(__depthInTexture.read(__gid));
                 float4 meta = float4(__metaInTexture.read(__gid));
@@ -603,7 +606,7 @@ class CodeSDFStream
             }
             
             """
-                        
+
             mapCode +=
             """
             
@@ -623,6 +626,7 @@ class CodeSDFStream
             """
             
             instance.code = headerCode + backgroundCode + mapCode + shadowCode + hitAndNormalsCode + aoCode + materialFuncCode + materialCode
+            replaceTexturReferences(instance)
         }
         
         codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow", "computeMaterial"] : [])
@@ -896,5 +900,44 @@ class CodeSDFStream
                 currentMaterialId = 0
             }
         }
+    }
+    
+    func insertTextureCode(_ instance: CodeBuilderInstance, startOffset: Int, id: String)
+    {
+        // Replace
+        var code = ""
+        
+        for (index, t) in instance.textures.enumerated() {
+            code += "texture2d<half, access::sample>     \(t.1) [[texture(\(index + startOffset))]], \n"
+            //print(t.0, index + startOffset)
+        }
+
+        var changed = instance.code.replacingOccurrences(of: "__\(id)_TEXTURE_HEADER_CODE__", with: code)
+
+        changed = changed.replacingOccurrences(of: "__\(id)_AFTER_TEXTURE_OFFSET__", with: String(startOffset + instance.textures.count))
+        //print("__AFTER_TEXTURE_OFFSET__", startOffset + instance.textures.count)
+
+        code = ""
+        for t in instance.textures{
+            code += "__funcData.\(t.1) = \(t.1);\n"
+        }
+        
+        changed = changed.replacingOccurrences(of: "__\(id)_TEXTURE_ASSIGNMENT_CODE__", with: code)
+        instance.code = changed
+    }
+    
+    func replaceTexturReferences(_ instance: CodeBuilderInstance)
+    {
+        insertTextureCode(instance, startOffset: 9, id: "MATERIAL")
+        var code = instance.code
+        
+        // __FuncData structure
+        var funcData = ""
+        for t in instance.textures {
+            funcData += "texture2d<half, access::sample> " + t.1 + ";"
+        }
+
+        code = code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: funcData)
+        instance.code = code
     }
 }

@@ -512,7 +512,7 @@ class SceneGraph                : MMWidget
                     if comp.componentType == .Image {
                         frag = CodeFragment(.Primitive, "float4", comp.libraryName, [.Selectable, .Dragable, .Monitorable], ["float2"], "float4" )
                         frag!.referseTo = nil
-                        frag!.name = varItem.stageItem!.name + "." + comp.libraryName
+                        frag!.name = comp.libraryName
                         frag!.values["variable"] = 1
                         frag!.values["image"] = 1
                         dragName = comp.libraryName

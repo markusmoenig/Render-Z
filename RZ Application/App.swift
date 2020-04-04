@@ -46,6 +46,8 @@ class App
 
     var project         : Project
     var currentSceneMode: Scene.SceneMode = .ThreeD
+    
+    var images          : [String:MTLTexture] = [:]
         
     #if os(iOS)
     var viewController  : ViewController?
@@ -71,6 +73,14 @@ class App
         mmView.registerIcon("rotate")
         mmView.registerIcon("scale")
         sceneGraph = SceneGraph(mmView)
+        
+        // Initialize images
+        let imageNames = ["StoneDetail", "ColoredStones"]
+        for name in imageNames {
+            if let texture = mmView.loadTexture(name, mipmaps: false) {
+                images["Images." + name] = texture
+            }
+        }
 
         artistEditor = ArtistEditor(mmView)
         developerEditor = DeveloperEditor(mmView)

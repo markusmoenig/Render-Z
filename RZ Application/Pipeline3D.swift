@@ -166,6 +166,8 @@ class Pipeline3D            : Pipeline
     // Render the pipeline
     override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
+        width = round(widthIn); height = round(heightIn)
+
         // Return a red texture if compilation failed
         if compiledSuccessfully == false {
             finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
@@ -176,7 +178,6 @@ class Pipeline3D            : Pipeline
         self.settings = settings
         
         renderId += 1
-        width = round(widthIn); height = round(heightIn)
             
         reflections = 0
         samples = 0
@@ -417,9 +418,17 @@ class Pipeline3D            : Pipeline
             
             objectIndex = 0
             shapeText = "shape_" + String(objectIndex)
+            
             while let inst = instanceMap[shapeText] {
                 
-                codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), monitorTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+                var outTextures : [MTLTexture] = []
+                for t in inst.textures {
+                    if let texture = globalApp!.images[t.0] {
+                        outTextures.append(texture)
+                    }
+                }
+                    
+                codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), monitorTexture!], outTextures: outTextures, inBuffers: [lightBuffer], optionalState: "computeMaterial")
 
                 objectIndex += 1
                 shapeText = "shape_" + String(objectIndex)

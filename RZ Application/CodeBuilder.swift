@@ -24,6 +24,9 @@ class CodeBuilderInstance
     var monitorComponents   : Int = 1
             
     var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent, [StageItem])] = []
+    
+    // Texture path, token, type (0 == Image, 1 == Texture)
+    var textures            : [(String, String, Int)] = []
         
     /// Collect all the properties of the component and create a data entry for it
     func collectProperties(_ component: CodeComponent,_ hierarchy: [StageItem] = [])
@@ -74,6 +77,9 @@ class CodeBuilderInstance
             properties.append((nil, nil, "_rotateZ", data.count, component, hierarchy))
             data.append(SIMD4<Float>(0,0,0,0))
         }
+        
+        // Add the textures
+        textures += component.textures
     }
     
     ///
@@ -192,6 +198,8 @@ class CodeBuilder
     
     func buildInstance(_ inst: CodeBuilderInstance, name: String = "componentBuilder", additionalNames: [String] = [])
     {
+        inst.code = inst.code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: "")
+
         inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
@@ -878,10 +886,11 @@ class CodeBuilder
                 
         struct FuncData
         {
-            float               GlobalTime;
-            float               GlobalSeed;
-            thread float4      *__monitorOut;
-            constant float4    *__data;
+            float                            GlobalTime;
+            float                            GlobalSeed;
+            thread float4                   *__monitorOut;
+            constant float4                 *__data;
+            __FUNCDATA_TEXTURE_LIST__
         };
         
         struct MaterialOut
@@ -900,7 +909,7 @@ class CodeBuilder
             float               id;
         };
         
-        #define PI 3.14159265359
+        #define PI 3.1415926535897932384626422832795028841971
 
         float degrees(float radians)
         {
