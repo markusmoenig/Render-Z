@@ -426,6 +426,9 @@ class CodeEditor        : MMWidget
         } else {
             scrollArea.mouseScrolled(event)
             scrollArea.checkOffset(widget: textureWidget, area: rect)
+            if let codeComponent = self.codeComponent {
+                codeComponent.scrollOffsetY = scrollArea.offsetY
+            }
         }
         #endif
     }
@@ -523,7 +526,8 @@ class CodeEditor        : MMWidget
                 }
                 
                 self.currentComponent = self.codeComponent
-                
+                self.scrollArea.offsetY = self.codeComponent!.scrollOffsetY
+
                 self.codeHasRendered = true
                 self.codeIsUpdating = false
                 self.mmView.update()
@@ -626,7 +630,7 @@ class CodeEditor        : MMWidget
 
         mmView.renderer.setClipRect(rect)
         
-        if codeIsUpdating == false {
+        if currentComponent === codeComponent {
             // Fragments
             var workRect: MMRect = MMRect()
             if codeContext.dropFragment == nil {

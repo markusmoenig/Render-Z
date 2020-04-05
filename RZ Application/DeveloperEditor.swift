@@ -51,7 +51,6 @@ class DeveloperEditor   : Editor
         }
         codeEditor.codeComponent = component
         //codeEditor.codeHasRendered = false
-        codeEditor.scrollArea.offsetY = component.scrollOffsetY
         updateOnNextDraw(compile: false)
         codeEditor.clearSelection()
         if let uuid = component.selected {
