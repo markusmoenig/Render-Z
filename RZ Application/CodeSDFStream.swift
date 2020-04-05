@@ -659,7 +659,7 @@ class CodeSDFStream
                             dryRunComponent(modifier, instance.data.count, monitor)
                             instance.collectProperties(modifier)
 
-                            code += modifier.code!.replacingOccurrences(of: "&__", with: "__")
+                            code += modifier.code!
                             if let globalCode = modifier.globalCode {
                                 headerCode += globalCode
                             }
@@ -737,7 +737,7 @@ class CodeSDFStream
                     float3 position = __origin, outPosition = position;
                     
                     """
-                    mapCode += domain.code!.replacingOccurrences(of: "&__", with: "__")
+                    mapCode += domain.code!
                     mapCode +=
                     """
                     
@@ -788,8 +788,7 @@ class CodeSDFStream
             if let globalCode = material.globalCode {
                 headerCode += globalCode
             }
-            if var code = material.code {
-                code = code.replacingOccurrences(of: "&__", with: "__")
+            if let code = material.code {
                 materialFuncCode += code
             }
 
@@ -823,8 +822,7 @@ class CodeSDFStream
                 if let globalCode = uvMap.globalCode {
                     headerCode += globalCode
                 }
-                if var code = uvMap.code {
-                    code = code.replacingOccurrences(of: "&__", with: "__")
+                if let code = uvMap.code {
                     materialCode += code
                 }
             }
@@ -908,7 +906,7 @@ class CodeSDFStream
         
         // __FuncData structure and texture definitions
         var funcData = ""
-        var textureDefs = "constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
+        var textureDefs = ""//constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
 
         for t in instance.textures {
             funcData += "texture2d<half, access::sample> " + t.1 + ";"

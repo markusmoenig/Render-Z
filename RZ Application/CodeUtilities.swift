@@ -310,7 +310,7 @@ func encodeComponentToJSON(_ component: CodeComponent) -> String
 func dryRunComponent(_ comp: CodeComponent,_ propertyOffset: Int = 0,_ monitor: CodeFragment? = nil, patternList: [CodeComponent] = [])
 {
     let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
-    ctx.reset(1000, propertyOffset, monitor, patternList: patternList)
+    ctx.reset(globalApp!.developerEditor.codeEditor.rect.width, propertyOffset, monitor, patternList: patternList)
     comp.draw(globalApp!.mmView, ctx)
 }
 

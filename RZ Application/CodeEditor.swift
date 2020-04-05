@@ -30,6 +30,15 @@ class CodeEditor        : MMWidget
     var codeComponent   : CodeComponent? = nil
     var codeContext     : CodeContext
     
+    var codeContext1    : CodeContext
+    var codeContext2    : CodeContext
+    
+    var currentTexture  : MTLTexture? = nil
+    var texture1        : MTLTexture? = nil
+    var texture2        : MTLTexture? = nil
+    
+    var currentComponent: CodeComponent? = nil
+
     var codeAccess      : CodeAccess!
         
     var editor          : DeveloperEditor!
@@ -54,7 +63,9 @@ class CodeEditor        : MMWidget
     var codeClipboard   : CodeClipboard!
     
     var liveEditing     : Bool = true
-    
+    var codeHasRendered : Bool = false
+    var codeIsUpdating  : Bool = false
+
     override init(_ view: MMView)
     {
         scrollArea = MMScrollArea(view, orientation: .HorizontalAndVertical)
@@ -63,8 +74,15 @@ class CodeEditor        : MMWidget
         fragment.allocateTexture(width: 10, height: 10)
         textureWidget = MMTextureWidget( view, texture: fragment.texture )
         
-        codeContext = CodeContext(view, fragment, view.openSans, 0.5)
+        codeContext1 = CodeContext(view, fragment, view.openSans, 0.5)
+        codeContext2 = CodeContext(view, fragment, view.openSans, 0.5)
 
+        codeContext = codeContext1
+        
+        currentTexture = fragment.texture
+        texture1 = fragment.texture
+        texture2 = fragment.allocateTexture(width: 10, height: 10, output: false)
+        
         super.init(view)
         
         codeClipboard = CodeClipboard(self)
@@ -427,56 +445,126 @@ class CodeEditor        : MMWidget
     
     override func update()
     {
-        if codeChanged {
-            if let comp = codeComponent {
-                dryRunComponent(comp)
+        codeIsUpdating = true
+        DispatchQueue.main.async {
+            
+            var workingTexture : MTLTexture? = nil
+            var workingContext : CodeContext
+            
+            func copyContext(dest: CodeContext, source: CodeContext)
+            {
+                dest.hoverFragment = source.hoverFragment
+                dest.hoverBlock = source.hoverBlock
+                dest.hoverFunction = source.hoverFunction
+                dest.selectedFragment = source.selectedFragment
+                dest.selectedBlock = source.selectedBlock
+                dest.selectedFunction = source.selectedFunction
             }
-        }
-        
-        let width : Float = max(codeContext.width, 10)
-        let height : Float = codeContext.height == 0 ? 500 : codeContext.height
-                
-        if fragment.width != width * zoom || fragment.height != height * zoom {
-            fragment.allocateTexture(width: width * zoom, height: height * zoom)
-        }
-        textureWidget.setTexture(fragment.texture)
-                
-        if fragment.encoderStart()
-        {
-            if let comp = codeComponent {
-                codeContext.reset(rect.width)
-                comp.draw(mmView, codeContext)
+            
+            if self.codeContext === self.codeContext1 {
+                workingContext = self.codeContext2
+                workingTexture = self.texture2
+            } else {
+                workingContext = self.codeContext1
+                workingTexture = self.texture1
             }
-            fragment.encodeEnd()
-            codeClipboard.updateSelection(codeContext.selectedFragment, codeContext.selectedBlock)
+            copyContext(dest: workingContext, source: self.codeContext)
 
-            /*
-            print(fragment.texture.mipmapLevelCount, fragment.width, fragment.height)
-            if fragment.texture.mipmapLevelCount > 0 {
-                if let blitEncoder = fragment.commandBuffer!.makeBlitCommandEncoder() {
-                    blitEncoder.generateMipmaps(for: fragment.texture)
-                    blitEncoder.endEncoding()
+            if self.codeChanged {
+                if let comp = self.codeComponent {
+                    self.dryRunComponent(comp, context: workingContext)
                 }
-            }*/
-        }
-        
-        if codeChanged && liveEditing {
-            globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
-            globalApp!.currentPipeline!.render(self.rect.width, self.rect.height)
-            self.codeChanged = false
+            }
+                        
+            let width : Float = max(workingContext.width, 10)
+            let height : Float = workingContext.height == 0 ? 500 : workingContext.height
+                    
+            if workingTexture!.width != Int(width * self.zoom) || workingTexture!.height != Int(height * self.zoom) {
+                workingTexture = self.fragment.allocateTexture(width: Float(Int(width * self.zoom)), height: Float(Int(height * self.zoom)), output: false)
+            }
+            self.fragment.texture = workingTexture
+            
+            if self.fragment.encoderStart()
+            {
+                if let comp = self.codeComponent {
+                    workingContext.reset(self.rect.width)
+                    comp.draw(self.mmView, workingContext)
+                }
+                self.fragment.encodeEnd()
+                self.codeClipboard.updateSelection(workingContext.selectedFragment, workingContext.selectedBlock)
+
+                /*
+                print(fragment.texture.mipmapLevelCount, fragment.width, fragment.height)
+                if fragment.texture.mipmapLevelCount > 0 {
+                    if let blitEncoder = fragment.commandBuffer!.makeBlitCommandEncoder() {
+                        blitEncoder.generateMipmaps(for: fragment.texture)
+                        blitEncoder.endEncoding()
+                    }
+                }*/
+                
+                if self.codeChanged && self.liveEditing {
+                    globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
+                    globalApp!.currentPipeline!.render(self.rect.width, self.rect.height)
+                    self.codeChanged = false
+                }
+                
+                // Set the current working contexts to be the default
+                self.textureWidget.setTexture(self.fragment.texture)
+                self.codeContext = workingContext
+                
+                if self.codeContext === self.codeContext1 {
+                    self.texture1 = workingTexture
+                } else {
+                    self.texture2 = workingTexture
+                }
+                
+                if let comp = self.codeComponent, self.editor.codeProperties.needsUpdate {
+                    self.editor.codeProperties.setSelected(comp, self.codeContext)
+                }
+                
+                self.currentComponent = self.codeComponent
+                
+                self.codeHasRendered = true
+                self.codeIsUpdating = false
+                self.mmView.update()
+            }
         }
         needsUpdate = false
     }
     
+    /// Runs the component to generate code without any drawing
+    func dryRunComponent(_ comp: CodeComponent,_ propertyOffset: Int = 0, context: CodeContext)
+    {
+        context.fragment = nil
+        context.reset(rect.width, propertyOffset)
+        comp.draw(globalApp!.mmView, context)
+        context.fragment = fragment
+    }
+    
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
+        // Texture ?
+        if let component = codeComponent {
+            if component.componentType == .Image {
+                if let texture = component.texture {
+                    let rX : Float = rect.width / Float(texture.width)
+                    let rY : Float = rect.height / Float(texture.height)
+                    let r = min(rX, rY)
+                    let xO = rect.x + (rect.width - (Float(texture.width) * r)) / 2
+                    let yO = rect.y + (rect.height - (Float(texture.height) * r)) / 2
+                    mmView.drawTexture.drawScaled(texture, x: xO, y: yO, width: Float(texture.width) * r, height: Float(texture.height) * r)
+                    return
+                }
+            }
+        }
+        
         // Need to update the code display ?
         if needsUpdate {
             update()
         }
         
         // Need to update the codeProperties ?
-        if let comp = codeComponent, editor.codeProperties.needsUpdate {
+        if let comp = codeComponent, editor.codeProperties.needsUpdate, codeIsUpdating == false {
             editor.codeProperties.setSelected(comp, codeContext)
         }
 
@@ -495,7 +583,8 @@ class CodeEditor        : MMWidget
             globalApp!.currentPipeline!.renderIfResolutionChanged(rect.width, rect.height)
             
             mmView.renderer.setClipRect(rect)
-            if let comp = codeComponent {
+            if let comp = currentComponent {
+                // Draw semi transparent function backgrounds
                 for f in comp.functions {
                     var color = mmView.skin.Code.background
                     color.w = 0.9
@@ -511,8 +600,10 @@ class CodeEditor        : MMWidget
         }
         
         // Draw the code
-        scrollArea.rect.copy(rect)
-        scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset, yOffset: yOffset)
+        if codeHasRendered == true {
+            scrollArea.rect.copy(rect)
+            scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset, yOffset: yOffset)
+        }
         
         // Hover and Selection Modes
         
@@ -535,87 +626,89 @@ class CodeEditor        : MMWidget
 
         mmView.renderer.setClipRect(rect)
         
-        // Fragments
-        var workRect: MMRect = MMRect()
-        if codeContext.dropFragment == nil {
-            
-            // Highlight drawing which also highlights the opening / closing brackets
-            func drawFragmentHightlight(_ frag: CodeFragment, alpha: Float)
-            {
-                if frag.arguments.count > 0 {
-                    workRect.copy(frag.rect)
-                    workRect.width += codeContext.bracketWidth
-                    drawHighlight(workRect, alpha: alpha)
-                    if let last = frag.arguments.last?.fragments.last {
-                        workRect.width = codeContext.bracketWidth
-                        if last.arguments.count == 0 {
-                            workRect.x = last.rect.right()
-                        } else {
-                            var depth : Int = 0
-                            var l : CodeFragment = last
-                            func getLast(_ frag: CodeFragment)
-                            {
-                                if let last = frag.arguments.last?.fragments.last {
-                                    l = last
-                                    depth += 1
-                                    getLast(last)
+        if codeIsUpdating == false {
+            // Fragments
+            var workRect: MMRect = MMRect()
+            if codeContext.dropFragment == nil {
+                
+                // Highlight drawing which also highlights the opening / closing brackets
+                func drawFragmentHightlight(_ frag: CodeFragment, alpha: Float)
+                {
+                    if frag.arguments.count > 0 {
+                        workRect.copy(frag.rect)
+                        workRect.width += codeContext.bracketWidth
+                        drawHighlight(workRect, alpha: alpha)
+                        if let last = frag.arguments.last?.fragments.last {
+                            workRect.width = codeContext.bracketWidth
+                            if last.arguments.count == 0 {
+                                workRect.x = last.rect.right()
+                            } else {
+                                var depth : Int = 0
+                                var l : CodeFragment = last
+                                func getLast(_ frag: CodeFragment)
+                                {
+                                    if let last = frag.arguments.last?.fragments.last {
+                                        l = last
+                                        depth += 1
+                                        getLast(last)
+                                    }
+                                }
+                                getLast(last)
+                                workRect.x = l.rect.right() + Float(depth) * codeContext.bracketWidth
+                            }
+                            drawHighlight(workRect, alpha: alpha)
+                        }
+                    } else
+                    if frag.fragmentType == .OpeningRoundBracket || frag.fragmentType == .ClosingRoundBracket
+                    {
+                        if let pStatement = frag.parentStatement {
+                            for p in pStatement.fragments {
+                                if p.uuid == frag.uuid {
+                                    drawHighlight(p.rect, alpha: alpha)
                                 }
                             }
-                            getLast(last)
-                            workRect.x = l.rect.right() + Float(depth) * codeContext.bracketWidth
                         }
-                        drawHighlight(workRect, alpha: alpha)
+                    } else {
+                        drawHighlight(frag.rect, alpha: alpha)
                     }
-                } else
-                if frag.fragmentType == .OpeningRoundBracket || frag.fragmentType == .ClosingRoundBracket
-                {
-                    if let pStatement = frag.parentStatement {
-                        for p in pStatement.fragments {
-                            if p.uuid == frag.uuid {
-                                drawHighlight(p.rect, alpha: alpha)
-                            }
-                        }
-                    }
-                } else {
-                    drawHighlight(frag.rect, alpha: alpha)
+                }
+                
+                // Hover and Selection
+                if let hoverFrag = codeContext.hoverFragment {
+                    //drawHighlight(hoverFrag.rect, alpha: hoverAlpha)
+                    drawFragmentHightlight(hoverFrag, alpha: hoverAlpha)
+                }
+                if let selectedFrag = codeContext.selectedFragment {
+                    //drawHighlight(selectedFrag.rect, alpha: selectedAlpha)
+                    drawFragmentHightlight(selectedFrag, alpha: selectedAlpha)
+                }
+            } else if codeContext.dropIsValid {
+                // Drop Highlight
+                if let hoverFrag = codeContext.hoverFragment {
+                    drawHighlight(hoverFrag.rect, alpha: hoverAlpha)
                 }
             }
             
-            // Hover and Selection
-            if let hoverFrag = codeContext.hoverFragment {
-                //drawHighlight(hoverFrag.rect, alpha: hoverAlpha)
-                drawFragmentHightlight(hoverFrag, alpha: hoverAlpha)
+            // Function: Hover and Selection
+            if let hoverFunc = codeContext.hoverFunction {
+                drawHighlight(hoverFunc.rect, alpha: hoverAlpha)
+                // Left side
+                drawLeftFuncHighlight(hoverFunc, alpha: hoverAlpha)
             }
-            if let selectedFrag = codeContext.selectedFragment {
-                //drawHighlight(selectedFrag.rect, alpha: selectedAlpha)
-                drawFragmentHightlight(selectedFrag, alpha: selectedAlpha)
+            if let selectedFunc = codeContext.selectedFunction {
+                drawHighlight(selectedFunc.rect, alpha: selectedAlpha)
+                drawLeftFuncHighlight(selectedFunc, alpha: selectedAlpha)
             }
-        } else if codeContext.dropIsValid {
-            // Drop Highlight
-            if let hoverFrag = codeContext.hoverFragment {
-                drawHighlight(hoverFrag.rect, alpha: hoverAlpha)
+            
+            // Block: Hover and Selection
+            if let hoverBlock = codeContext.hoverBlock {
+                drawHighlight(hoverBlock.rect, alpha: hoverAlpha)
+                drawLeftBlockHighlight(hoverBlock, alpha: hoverAlpha)
             }
-        }
-        
-        // Function: Hover and Selection
-        if let hoverFunc = codeContext.hoverFunction {
-            drawHighlight(hoverFunc.rect, alpha: hoverAlpha)
-            // Left side
-            drawLeftFuncHighlight(hoverFunc, alpha: hoverAlpha)
-        }
-        if let selectedFunc = codeContext.selectedFunction {
-            drawHighlight(selectedFunc.rect, alpha: selectedAlpha)
-            drawLeftFuncHighlight(selectedFunc, alpha: selectedAlpha)
-        }
-        
-        // Block: Hover and Selection
-        if let hoverBlock = codeContext.hoverBlock {
-            drawHighlight(hoverBlock.rect, alpha: hoverAlpha)
-            drawLeftBlockHighlight(hoverBlock, alpha: hoverAlpha)
-        }
-        if let selectedBlock = codeContext.selectedBlock {
-            drawHighlight(selectedBlock.rect, alpha: selectedAlpha)
-            drawLeftBlockHighlight(selectedBlock, alpha: selectedAlpha)
+            if let selectedBlock = codeContext.selectedBlock {
+                drawHighlight(selectedBlock.rect, alpha: selectedAlpha)
+                drawLeftBlockHighlight(selectedBlock, alpha: selectedAlpha)
+            }
         }
                 
         // Orientation area
@@ -651,14 +744,14 @@ class CodeEditor        : MMWidget
         }
         
         // Clipboard without a custom rect, needs to get clipped
-        if codeClipboard.customRect == false {
+        if codeClipboard.customRect == false, codeHasRendered {
             codeClipboard.draw()
         }
         
         mmView.renderer.setClipRect()
         
         // Clipboard for custom area, i.e. code frag list, should not be clipped
-        if codeClipboard.customRect == true {
+        if codeClipboard.customRect == true, codeHasRendered {
             codeClipboard.draw()
         }
     }
@@ -682,15 +775,6 @@ class CodeEditor        : MMWidget
             codeAccess.setSelected(comp, codeContext)
             editor.codeProperties.setSelected(comp, codeContext)
         }
-    }
-    
-    /// Runs the component to generate code without any drawing
-    func dryRunComponent(_ comp: CodeComponent,_ propertyOffset: Int = 0)
-    {
-        codeContext.fragment = nil
-        codeContext.reset(rect.width, propertyOffset)
-        comp.draw(globalApp!.mmView, codeContext)
-        codeContext.fragment = fragment
     }
     
     func undoStart(_ name: String) -> CodeUndoComponent

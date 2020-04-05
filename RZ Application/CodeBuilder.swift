@@ -191,9 +191,7 @@ class CodeBuilder
         if component.componentType == .Render3D {
             buildRender3D(inst, component, monitor)
         }
-        
-        //print( inst.code )
-    
+
         buildInstance(inst)
         return inst
     }
@@ -902,6 +900,22 @@ class CodeBuilder
 
         float4 toLinear(float4 gammaColor) {
            return float4(pow(gammaColor.xyz, float3(2.2)), gammaColor.w);
+        }
+        
+        float4 __interpolateTexture(texture2d<half, access::sample> texture, float2 uv)
+        {
+            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+            float2 size = float2(texture.get_width(), texture.get_height());
+            uv = fract(uv);
+            uv = uv*size - 0.5;
+            float2 iuv = floor(uv);
+            float2 f = fract(uv);
+            f = f*f*(3.0-2.0*f);
+            float4 rg1 = float4(texture.sample( __textureSampler, (iuv+ float2(0.5,0.5))/size, 0.0 ));
+            float4 rg2 = float4(texture.sample( __textureSampler, (iuv+ float2(1.5,0.5))/size, 0.0 ));
+            float4 rg3 = float4(texture.sample( __textureSampler, (iuv+ float2(0.5,1.5))/size, 0.0 ));
+            float4 rg4 = float4(texture.sample( __textureSampler, (iuv+ float2(1.5,1.5))/size, 0.0 ));
+            return mix( mix(rg1,rg2,f.x), mix(rg3,rg4,f.x), f.y );
         }
         
         """

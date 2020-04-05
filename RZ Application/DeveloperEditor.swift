@@ -50,6 +50,7 @@ class DeveloperEditor   : Editor
             component.scrollOffsetY = codeEditor.scrollArea.offsetY
         }
         codeEditor.codeComponent = component
+        //codeEditor.codeHasRendered = false
         codeEditor.scrollArea.offsetY = component.scrollOffsetY
         updateOnNextDraw(compile: false)
         codeEditor.clearSelection()
@@ -77,7 +78,7 @@ class DeveloperEditor   : Editor
                 self.codeEditor.update()
             }
         }
-        
+
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                 self.mmView.update()

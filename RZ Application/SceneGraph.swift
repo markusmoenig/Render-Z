@@ -1979,6 +1979,9 @@ class SceneGraph                : MMWidget
             
             mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight, radius: 0.6, fillColor: skin.normalBorderColor)
 
+            var selectedColor = skin.selectedBorderColor
+            selectedColor.w = 0.5
+            
             for comp in list {
                 
                 let item = SceneGraphItem(.ImageItem, stage: parent.stage, stageItem: stageItem, component: comp)
@@ -1990,7 +1993,7 @@ class SceneGraph                : MMWidget
                 }
                 
                 if comp === currentComponent {
-                    mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 4, fillColor: skin.selectedBorderColor)
+                    mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 4, fillColor: selectedColor)
                 }
                 
                 if stageItem.componentLabels[comp.libraryName] == nil || stageItem.componentLabels[comp.libraryName]!.scale != skin.fontScale {

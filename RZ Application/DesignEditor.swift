@@ -292,6 +292,21 @@ class DesignEditor          : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
+        // Texture ?
+        if let component = designComponent {
+            if component.componentType == .Image {
+                if let texture = component.texture {
+                    let rX : Float = rect.width / Float(texture.width)
+                    let rY : Float = rect.height / Float(texture.height)
+                    let r = min(rX, rY)
+                    let xO = rect.x + (rect.width - (Float(texture.width) * r)) / 2
+                    let yO = rect.y + (rect.height - (Float(texture.height) * r)) / 2
+                    mmView.drawTexture.drawScaled(texture, x: xO, y: yO, width: Float(texture.width) * r, height: Float(texture.height) * r)
+                    return
+                }
+            }
+        }
+        
         // Need to update the code display ?
         if /*needsUpdate ||*/ fragment.width != rect.width * zoom {
             update()

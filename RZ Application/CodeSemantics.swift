@@ -489,7 +489,7 @@ class CodeFragment          : Codable, Equatable
                 // This is an image!
                 let token = generateToken()
                 name += self.name
-                codeName += "float4(" + token + ".sample"
+                codeName += "__interpolateTexture(" + token + ", "//codeName += "float4(" + token + ".sample"
                 ctx.cComponent!.textures.append((self.name, token, 0))
             } else {
                 name += self.name
@@ -714,11 +714,13 @@ class CodeFragment          : Codable, Equatable
                 }
                 ctx.cX += ctx.tempRect.width + ctx.gapX
                 
-                ctx.addCode("( ")
-                
-                if values["image"] == 1 {
-                    ctx.addCode("__textureSampler, ")
+                if values["image"] != 1 {
+                    ctx.addCode("( ")
                 }
+                
+                //if values["image"] == 1 {
+                //    ctx.addCode("__textureSampler, ")
+                //}
             }
             
             for (index, arg) in arguments.enumerated() {
@@ -760,9 +762,9 @@ class CodeFragment          : Codable, Equatable
                 ctx.addCode(") ")
             
                 // If this is an image we need an additional ")" to close the "float4("
-                if values["image"] == 1 {
-                    ctx.addCode(") ")
-                }
+                //if values["image"] == 1 {
+                //    ctx.addCode(") ")
+                //}
                 // Expand rect, experimental
                 //rect.width = ctx.cX - rect.x
             }
@@ -1520,10 +1522,6 @@ class CodeFunction          : Codable, Equatable
                 }
             }
         }
-    
-        // Insert a header to be replaced later with the texture definitions if necessary
-        //ctx.addCode("__TEXTURE_FUNC_HEADER__")
-        //let textureCount = ctx.cComponent!.textures.count
         
         for b in body {
             ctx.cBlock = b
@@ -1539,21 +1537,6 @@ class CodeFunction          : Codable, Equatable
             }
             ctx.blockNumber += 1
         }
-
-        /*
-        if textureCount != ctx.cComponent!.textures.count {
-            // Textures were added, place code into the header
-            var code = "constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
-            
-            for t in textureCount..<ctx.cComponent!.textures.count {
-                let texture = ctx.cComponent!.textures[t]
-                code += "texture2d<half, access::sample> " + texture.1 + " = __funcData->\(texture.1);\n"
-            }
-            ctx.replaceCode(replace: "__TEXTURE_FUNC_HEADER__", with: code)
-        } else {
-            // No textures
-            ctx.replaceCode(replace: "__TEXTURE_FUNC_HEADER__", with: "")
-        }*/
         
         ctx.rectEnd(rect, rStart)
         if rect.right() < maxRight {
@@ -2480,7 +2463,7 @@ class CodeComponent         : Codable, Equatable
                     __CREATE_TEXTURE_DEFINITIONS__
 
                 """
-                pCode += pattern.code!.replacingOccurrences(of: "&__", with: "__")
+                pCode += pattern.code!
                 pCode +=
                 """
                 
