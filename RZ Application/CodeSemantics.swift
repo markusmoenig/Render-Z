@@ -2800,7 +2800,7 @@ class CodeContext
                 // Do not allow references to global variables to be on the left side (crash)
                 if drop.fragmentType == .VariableReference {
                     if let ref = drop.referseTo {
-                        if cComponent!.inputDataList.contains(ref) == true {
+                        if cComponent!.inputDataList.contains(ref) == true && cComponent!.properties.contains(ref) == false {
                             valid = false
                         }
                     }
