@@ -126,6 +126,10 @@ class CodeBuilder
     var copyAndSwapState    : MTLComputePipelineState? = nil
     var sampleState         : MTLComputePipelineState? = nil
     var previewState        : MTLComputePipelineState? = nil
+    
+    var depthMapState       : MTLComputePipelineState? = nil
+    var aoState             : MTLComputePipelineState? = nil
+    var shadowState         : MTLComputePipelineState? = nil
 
     var sdfStream           : CodeSDFStream
 
@@ -439,7 +443,7 @@ class CodeBuilder
     
     func buildPreviewState()
     {
-        let code =
+        var code =
         """
         
         #include <metal_stdlib>
@@ -482,9 +486,90 @@ class CodeBuilder
         }
           
         """
-
-        let library = compute.createLibraryFromSource(source: code)
+        
+        var library = compute.createLibraryFromSource(source: code)
         previewState = compute.createState(library: library, name: "preview")
+        
+        code =
+        """
+        
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void depthMap(
+        texture2d<half, access::write>          __outTexture  [[texture(0)]],
+        texture2d<half, access::read>           __depthTexture [[texture(2)]],
+        uint2 __gid                             [[thread_position_in_grid]])
+        {
+            float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
+            float2 uv = float2(__gid.x, __gid.y);
+
+            float4 depthColor = float4(__depthTexture.read(__gid));
+
+            float4 outColor = float4(float3(1.0 - depthColor.y / 20.), 1);
+                       
+            __outTexture.write(half4(outColor), __gid);
+        }
+          
+        """
+
+        library = compute.createLibraryFromSource(source: code)
+        depthMapState = compute.createState(library: library, name: "depthMap")
+        
+        code =
+        """
+        
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void ao(
+        texture2d<half, access::write>          __outTexture  [[texture(0)]],
+        texture2d<half, access::read>           __depthTexture [[texture(2)]],
+        uint2 __gid                             [[thread_position_in_grid]])
+        {
+            float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
+            float2 uv = float2(__gid.x, __gid.y);
+
+            float4 depthColor = float4(__depthTexture.read(__gid));
+
+            float4 outColor = float4(float3(depthColor.x), 1);
+                       
+            __outTexture.write(half4(outColor), __gid);
+        }
+          
+        """
+
+        library = compute.createLibraryFromSource(source: code)
+        aoState = compute.createState(library: library, name: "ao")
+        
+        code =
+        """
+        
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void shadow(
+        texture2d<half, access::write>          __outTexture  [[texture(0)]],
+        texture2d<half, access::read>           __depthTexture [[texture(2)]],
+        uint2 __gid                             [[thread_position_in_grid]])
+        {
+            float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
+            float2 uv = float2(__gid.x, __gid.y);
+
+            float4 depthColor = float4(__depthTexture.read(__gid));
+
+            float4 outColor = float4(float3(depthColor.y), 1);
+                       
+            __outTexture.write(half4(outColor), __gid);
+        }
+          
+        """
+
+        library = compute.createLibraryFromSource(source: code)
+        shadowState = compute.createState(library: library, name: "shadow")
     }
 
     
@@ -748,6 +833,27 @@ class CodeBuilder
         compute.commandBuffer.waitUntilCompleted()
     }
     
+    // Render the Depth Map
+    func renderDepthMap(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
+    {
+        compute.run( depthMapState!, outTexture: to, inTexture: from, syncronize: syncronize)
+        compute.commandBuffer.waitUntilCompleted()
+    }
+    
+    // Render the AO
+    func renderAO(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
+    {
+        compute.run( aoState!, outTexture: to, inTexture: from, syncronize: syncronize)
+        compute.commandBuffer.waitUntilCompleted()
+    }
+    
+    // Render the Shadows
+    func renderShadow(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
+    {
+        compute.run( shadowState!, outTexture: to, inTexture: from, syncronize: syncronize)
+        compute.commandBuffer.waitUntilCompleted()
+    }
+    
     // Copy the texture and swap the rgb values
     func renderCopyAndSwap(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
@@ -763,7 +869,6 @@ class CodeBuilder
         compute.run( sampleState!, outTexture: sampleTexture, inBuffer: sampleBuffer, inTextures: [resultTexture])
         compute.commandBuffer.waitUntilCompleted()
     }
-    
     
     // Render the component into a texture
     func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], inBuffers: [MTLBuffer] = [], syncronize: Bool = false, optionalState: String? = nil)

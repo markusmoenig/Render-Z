@@ -29,6 +29,8 @@ class ArtistEditor          : Editor
     var bottomHeight        : Float = 0
     
     var dispatched          : Bool = false
+    
+    var outputButton        : MMScrollButton
 
     required init(_ view: MMView)
     {
@@ -42,6 +44,12 @@ class ArtistEditor          : Editor
         timelineButton.rect.height -= 11
         timeline = MMTimeline(view)
 
+        outputButton = MMScrollButton(view, items:["Final Image", "Depth Map", "Occlusion", "Shadows"], index: 0)
+        outputButton.changed = { (index)->() in
+            globalApp!.currentPipeline!.outputType = Pipeline.OutputType(rawValue: index)!
+            globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        }
+        
         super.init()
         
         timelineButton.clicked = { (event) -> Void in
@@ -58,7 +66,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton, globalApp!.topRegion!.cameraButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, globalApp!.topRegion!.cameraButton, outputButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -67,7 +75,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, timelineButton, globalApp!.topRegion!.cameraButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton, globalApp!.topRegion!.cameraButton, outputButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -116,6 +124,11 @@ class ArtistEditor          : Editor
             cameraButton.rect.x = (globalApp!.topRegion!.rect.width - cameraButton.rect.width) / 2
             cameraButton.rect.y = 4 + 44
             cameraButton.draw()
+            
+            outputButton.rect.x = cameraButton.rect.x / 2 - outputButton.rect.width / 4
+            outputButton.rect.y = cameraButton.rect.y
+            outputButton.draw()
+
         } else
         if region.type == .Left {
             region.rect.width = 0

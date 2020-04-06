@@ -19,6 +19,12 @@ class PipelineRenderSettings
 
 class Pipeline
 {
+    enum OutputType : Int {
+        case FinalImage, DepthMap, AO, Shadows
+    }
+    
+    var outputType          : OutputType = .FinalImage
+    
     var codeBuilder         : CodeBuilder
     var mmView              : MMView
     

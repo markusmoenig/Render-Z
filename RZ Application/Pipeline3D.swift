@@ -13,7 +13,7 @@ class Pipeline3D            : Pipeline
     enum Stage : Int {
         case None, Compiling, Compiled, HitAndNormals, AO, ShadowsAndMaterials, Reflection
     }
-    
+
     var currentStage        : Stage = .None
     var maxStage            : Stage = .Reflection
 
@@ -290,6 +290,28 @@ class Pipeline3D            : Pipeline
                         self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
                         self.mmView.update()
                     }*/
+                    
+                    if self.outputType == .DepthMap {
+                        self.codeBuilder.renderDepthMap(self.finalTexture!, self.getTextureOfId("id"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        return
+                    } else
+                    if self.outputType == .AO {
+                        self.codeBuilder.renderAO(self.finalTexture!, self.getTextureOfId("meta"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        return
+                    } else
+                    if self.outputType == .Shadows {
+                        self.codeBuilder.renderShadow(self.finalTexture!, self.getTextureOfId("meta"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        return
+                    }
                     
                     self.reflections += 1
                     if self.reflections < self.maxReflections {
