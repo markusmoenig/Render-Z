@@ -25,8 +25,6 @@ class CodeProperties    : MMWidget
     var hoverUIItem         : NodeUI? = nil
     var hoverUITitle        : NodeUI? = nil
     
-    var nodeUIMonitor       : NodeUIMonitor? = nil
-
     var buttons             : [MMButtonWidget] = []
     var smallButtonSkin     : MMSkinButton
     var buttonWidth         : Float = 190
@@ -88,10 +86,6 @@ class CodeProperties    : MMWidget
         c3Node?.rect.x = 400
         c3Node?.rect.y = 10
         
-        nodeUIMonitor = nil
-        globalApp!.currentPipeline!.monitorComponent = nil
-        globalApp!.currentPipeline!.monitorFragment = nil
-
         if let function = ctx.selectedFunction {
             
             c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "comment", title: "Code Comment", value: function.comment) )
@@ -563,10 +557,6 @@ class CodeProperties    : MMWidget
                         comp.propertyGizmoMap[fragment.uuid] = CodeComponent.PropertyGizmoMapping(rawValue: Int(newValue))
                     }
                 }
-                
-                nodeUIMonitor = NodeUIMonitor(c3Node!, variable: "monitor", title: "Variable Monitor")
-                c3Node!.uiItems.append(nodeUIMonitor!)
-                
             } else
             // --- Variable Reference
             if fragment.fragmentType == .VariableReference || fragment.fragmentType == .OutVariable || fragment.fragmentType == .Primitive {
@@ -758,18 +748,6 @@ class CodeProperties    : MMWidget
                 }
                 b.isDisabled = !canDelete
                 addButton(b)
-            }
-
-            // Setup the monitor
-            if fragment.supports(.Monitorable) && fragment.fragmentType != .VariableReference {
-                //setupMonitorData(comp, fragment, ctx)                
-                if nodeUIMonitor == nil {
-                    nodeUIMonitor = NodeUIMonitor(c2Node!, variable: "monitor", title: "Variable Monitor")
-                    c2Node!.uiItems.append(nodeUIMonitor!)
-                }
-                globalApp!.currentPipeline!.monitorComponent = comp
-                globalApp!.currentPipeline!.monitorFragment = fragment
-                globalApp!.currentEditor.updateOnNextDraw(compile: true)
             }
         }
         

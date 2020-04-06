@@ -39,6 +39,8 @@ class Pipeline3D            : Pipeline
     var settings            : PipelineRenderSettings? = nil
     
     var compiledSuccessfully: Bool = true
+    
+    var idCounter           : Int = 0
 
     override init(_ mmView: MMView)
     {
@@ -57,14 +59,13 @@ class Pipeline3D            : Pipeline
     }
     
     // Build the pipeline elements
-    override func build(scene: Scene, monitor: CodeFragment? = nil)
+    override func build(scene: Scene)
     {
         renderId += 1
         
         let typeId : CodeComponent.ComponentType = globalApp!.currentSceneMode == .TwoD ? .SDF2D : .SDF3D
 
         instanceMap = [:]
-        computeMonitorComponents(monitorFragment)
         
         /// Recursively iterate the object hierarchy
         func processChildren(_ stageItem: StageItem)
@@ -81,12 +82,20 @@ class Pipeline3D            : Pipeline
             }
         }
         
-        // Background
+        // Camera
         let preStage = scene.getStage(.PreStage)
-        let cameraComponent : CodeComponent = getFirstComponentOfType(preStage.getChildren(), .Camera3D)!
-        
-        // Build 3D Camera (Initialization of rayOrigin and rayDirection Textures)
-        instanceMap["camera3D"] = codeBuilder.build(cameraComponent, camera: cameraComponent, monitor: monitorFragment)
+        let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
+        let cameraComponent = result.1!
+        if let stageItem = result.0 {
+            if stageItem.builderInstance == nil {
+                stageItem.builderInstance = codeBuilder.build(result.1!, camera: result.1!)
+                instanceMap["camera3D"] = stageItem.builderInstance
+                print("compile camera")
+            } else {
+                instanceMap["camera3D"] = stageItem.builderInstance
+                print("reuse camera")
+            }
+        }
         
         var backComponent : CodeComponent? = nil
 
@@ -94,45 +103,64 @@ class Pipeline3D            : Pipeline
         for item in preStage.getChildren() {
             if let comp = item.components[item.defaultName], comp.componentType == .SkyDome || comp.componentType == .Pattern {
                 backComponent = comp
-                instanceMap["pre"] = codeBuilder.build(comp, camera: cameraComponent, monitor: monitorFragment)
+                if item.builderInstance == nil {
+                    item.builderInstance = codeBuilder.build(comp, camera: cameraComponent)
+                    instanceMap["pre"] = item.builderInstance
+                    print("compile background")
+                } else {
+                    instanceMap["pre"] = item.builderInstance
+                    print("reuse background")
+                }
                 break
             }
         }
-        
-        codeBuilder.sdfStream.monitor = monitorFragment
-        
+                
         // Objects
         let shapeStage = scene.getStage(.ShapeStage)
         codeBuilder.sdfStream.reset()
         for (index, item) in shapeStage.getChildren().enumerated() {
             
-            // Normal Object
-            if let shapes = item.getComponentList("shapes") {
-                let instance = CodeBuilderInstance()
-                instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
-                codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, backgroundComponent: backComponent)
-                codeBuilder.sdfStream.pushStageItem(item)
-                for shape in shapes {
-                    codeBuilder.sdfStream.pushComponent(shape)
+            if item.builderInstance == nil {
+                // Normal Object
+                if let shapes = item.getComponentList("shapes") {
+                    let instance = CodeBuilderInstance()
+                    instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+                    codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, backgroundComponent: backComponent, idStart: idCounter)
+                    codeBuilder.sdfStream.pushStageItem(item)
+                    for shape in shapes {
+                        codeBuilder.sdfStream.pushComponent(shape)
+                    }
+                    processChildren(item)
+                    codeBuilder.sdfStream.pullStageItem()
+                    instanceMap["shape_\(index)"] = instance
+                    codeBuilder.sdfStream.closeStream()
+                    
+                    idCounter += codeBuilder.sdfStream.idCounter - idCounter + 1
+                    item.builderInstance = instance
+                } else
+                if let ground = item.components[item.defaultName]
+                {
+                    // Ground Object
+                    let instance = CodeBuilderInstance()
+                    instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+                    codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, groundComponent: ground, backgroundComponent: backComponent, idStart: 0)
+                    codeBuilder.sdfStream.pushStageItem(item)
+                    //for shape in shapes {
+                    //    codeBuilder.sdfStream.pushComponent(shape)
+                    //}
+                    codeBuilder.sdfStream.pullStageItem()
+                    instanceMap["shape_\(index)"] = instance
+                    codeBuilder.sdfStream.closeStream()
+                    
+                    idCounter += codeBuilder.sdfStream.idCounter - idCounter + 1
+                    item.builderInstance = instance
                 }
-                processChildren(item)
-                codeBuilder.sdfStream.pullStageItem()
-                instanceMap["shape_\(index)"] = instance
-                codeBuilder.sdfStream.closeStream()
-            } else
-            if let ground = item.components[item.defaultName]
-            {
-                // Ground Object
-                let instance = CodeBuilderInstance()
-                instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
-                codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, groundComponent: ground, backgroundComponent: backComponent)
-                codeBuilder.sdfStream.pushStageItem(item)
-                //for shape in shapes {
-                //    codeBuilder.sdfStream.pushComponent(shape)
-                //}
-                codeBuilder.sdfStream.pullStageItem()
-                instanceMap["shape_\(index)"] = instance
-                codeBuilder.sdfStream.closeStream()
+            } else {
+                instanceMap["shape_\(index)"] = item.builderInstance
+                
+                item.builderInstance!.ids.forEach { (key, value) in codeBuilder.sdfStream.ids[key] = value }
+
+                print("reusing", "shape_\(index)")
             }
         }
         
@@ -182,8 +210,6 @@ class Pipeline3D            : Pipeline
         reflections = 0
         samples = 0
 
-        monitorTexture = checkTextureSize(width, height, monitorTexture, .rgba16Float)
-
         allocTextureId("color", width, height, .rgba16Float)
         allocTextureId("mask", width, height, .rgba16Float)
         allocTextureId("id", width, height, .rgba16Float)
@@ -226,7 +252,6 @@ class Pipeline3D            : Pipeline
     {
         codeBuilder.renderClear(texture: getTextureOfId("color"), data: SIMD4<Float>(0, 0, 0, 1))
         codeBuilder.renderClear(texture: getTextureOfId("mask"), data: SIMD4<Float>(1, 1, 1, 1))
-        codeBuilder.renderClear(texture: monitorTexture!, data: SIMD4<Float>(0, 0, 0, 0))
     }
     
     func checkFinalTexture(_ clear: Bool = false)
@@ -257,15 +282,6 @@ class Pipeline3D            : Pipeline
                     self.currentStage = .ShadowsAndMaterials
                 } else
                 if nextStage == .Reflection {
-                    
-                    // Write the monitor data after the first reflection and pass
-                    if self.monitorFragment != nil && self.samples == 0 && self.reflections == 0 {
-                        if let monitorUI = globalApp!.developerEditor.codeProperties.nodeUIMonitor {
-                            self.monitorTextureFinal = self.checkTextureSize(self.width, self.height, self.monitorTextureFinal, .rgba32Float)
-                            self.codeBuilder.renderCopy(self.monitorTextureFinal!, self.monitorTexture!, syncronize: true)
-                            monitorUI.setTexture(self.monitorTextureFinal!)
-                        }
-                    }
                     
                     // Show reflection updates for sample 0
                     /*
@@ -327,14 +343,14 @@ class Pipeline3D            : Pipeline
             allocTextureId("rayOrigin", width, height, .rgba16Float)
             allocTextureId("rayDirection", width, height, .rgba16Float)
             if let inst = instanceMap["camera3D"] {
-                codeBuilder.render(inst, getTextureOfId("rayOrigin"), outTextures: [getTextureOfId("rayDirection"), monitorTexture!])
+                codeBuilder.render(inst, getTextureOfId("rayOrigin"), outTextures: [getTextureOfId("rayDirection")])
             }
         }
         
         // Render the SkyDome into backTexture
         allocTextureId("back", width, height, .rgba16Float)
         if let inst = instanceMap["pre"] {
-            codeBuilder.render(inst, getTextureOfId("back"), inTextures: [getTextureOfId("rayDirection"), monitorTexture!])
+            codeBuilder.render(inst, getTextureOfId("back"), inTextures: [getTextureOfId("rayDirection")])
         }
         
         allocTextureId("depth", width, height, .rgba16Float)
@@ -349,7 +365,7 @@ class Pipeline3D            : Pipeline
         
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), monitorTexture!])
+            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")])
 
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
@@ -382,7 +398,7 @@ class Pipeline3D            : Pipeline
         
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), monitorTexture!], optionalState: "computeAO")
+            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], optionalState: "computeAO")
             
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
@@ -408,7 +424,7 @@ class Pipeline3D            : Pipeline
             shapeText = "shape_" + String(objectIndex)
             while let inst = instanceMap[shapeText] {
                 
-                codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), monitorTexture!], inBuffers: [lightBuffer], optionalState: "computeShadow")
+                codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], inBuffers: [lightBuffer], optionalState: "computeShadow")
                 
                 objectIndex += 1
                 shapeText = "shape_" + String(objectIndex)
@@ -421,7 +437,7 @@ class Pipeline3D            : Pipeline
             
             while let inst = instanceMap[shapeText] {
                     
-                codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), monitorTexture!], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+                codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
 
                 objectIndex += 1
                 shapeText = "shape_" + String(objectIndex)
@@ -484,5 +500,10 @@ class Pipeline3D            : Pipeline
     override func cancel()
     {
         renderId += 1
+    }
+    
+    override func resetIds()
+    {
+        idCounter = 0
     }
 }

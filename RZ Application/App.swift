@@ -136,11 +136,11 @@ class App
             
             if let project =  try? JSONDecoder().decode(Project.self, from: jsonData) {
                 self.project = project
-                currentPipeline?.clearMonitor()
 
                 globalApp!.sceneGraph.clearSelection()
                 project.selected!.addDefaultImages()
 
+                globalApp!.currentPipeline?.resetIds()
                 currentEditor.updateOnNextDraw(compile: true)
                 mmView.update()
             }

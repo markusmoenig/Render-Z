@@ -872,6 +872,7 @@ class SceneGraph                : MMWidget
                 
                 globalApp!.currentEditor.undoStageItemEnd(undo)
                 self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
             }
         })
@@ -930,6 +931,7 @@ class SceneGraph                : MMWidget
 
                         globalApp!.currentEditor.undoStageItemEnd(undo)
                         self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                        globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
                         
                         if let stageItem = item.stageItem {

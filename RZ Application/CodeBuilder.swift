@@ -21,14 +21,23 @@ class CodeBuilderInstance
     
     var computeOutBuffer    : MTLBuffer!
     var computeResult       : SIMD4<Float> = SIMD4<Float>(0,0,0,0)
-    var monitorComponents   : Int = 1
             
     var properties          : [(CodeFragment?, CodeFragment?, String?, Int, CodeComponent, [StageItem])] = []
     
     // Texture path, token, type (0 == Image, 1 == Texture)
     var textures            : [(String, String, Int)] = []
     
+    // Texture replacement info
     var textureRep          : [(String, Int)] = []
+    
+    // Ids for objects inside the instance
+    var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
+    
+    // Ids for materials inside the instance
+    var materialIds         : [Int:StageItem] = [:]
+    var materialIdHierarchy : [Int] = []
+    
+    var idStart             : Int = 0
         
     /// Collect all the properties of the component and create a data entry for it
     func collectProperties(_ component: CodeComponent,_ hierarchy: [StageItem] = [])
@@ -133,9 +142,8 @@ class CodeBuilder
         buildPreviewState()
     }
     
-    func build(_ component: CodeComponent, camera: CodeComponent? = nil, monitor: CodeFragment? = nil) -> CodeBuilderInstance
+    func build(_ component: CodeComponent, camera: CodeComponent? = nil) -> CodeBuilderInstance
     {
-        //print("build", component.componentType, monitor)
         let inst = CodeBuilderInstance()
         inst.component = component
         
@@ -144,34 +152,16 @@ class CodeBuilder
         // Time
         inst.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
         
-        dryRunComponent(component, inst.data.count, monitor)
+        dryRunComponent(component, inst.data.count)
 
         if let globalCode = component.globalCode {
             inst.code += globalCode
         }
         
-        // Compute monitor components
-        if let fragment = monitor {
-            if fragment.name == "out" {
-                // Correct the out fragment return type
-                fragment.typeName = fragment.parentBlock!.parentFunction!.header.fragment.typeName
-            }
-            inst.monitorComponents = 1
-            if fragment.typeName.contains("2") {
-                inst.monitorComponents = 2
-            } else
-            if fragment.typeName.contains("3") {
-                inst.monitorComponents = 3
-            }
-            if fragment.typeName.contains("4") {
-                inst.monitorComponents = 4
-            }
-        }
-        
         inst.collectProperties(component)
         
         if component.componentType == .Colorize {
-            buildColorize(inst, component, monitor)
+            buildColorize(inst, component)
         } else
         if component.componentType == .SkyDome || component.componentType == .Pattern {
             buildBackground(inst, component)
@@ -180,16 +170,16 @@ class CodeBuilder
             buildCamera3D(inst, component)
         } else
         if component.componentType == .SDF2D {
-            buildSDF2D(inst, component, monitor)
+            buildSDF2D(inst, component)
         } else
         if component.componentType == .SDF3D {
-            buildSDF3D(inst, component, monitor)
+            buildSDF3D(inst, component)
         } else
         if component.componentType == .Render2D {
-            buildRender2D(inst, component, monitor)
+            buildRender2D(inst, component)
         } else
         if component.componentType == .Render3D {
-            buildRender3D(inst, component, monitor)
+            buildRender3D(inst, component)
         }
 
         buildInstance(inst)
@@ -212,7 +202,7 @@ class CodeBuilder
     }
     
     /// Build the source code for the component
-    func buildColorize(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    func buildColorize(_ inst: CodeBuilderInstance, _ component: CodeComponent)
     {
         inst.code +=
         """
@@ -233,15 +223,6 @@ class CodeBuilder
         inst.code += getFuncDataCode(inst, "COLORIZE", 2)
         if let code = component.code {
             inst.code += code
-        }
-        
-        if let monitorFragment = monitor, monitorFragment.name != "outColor" {
-            inst.code +=
-            """
-            
-            outColor = __monitorOut;
-            
-            """
         }
         
         //print( inst.code )
@@ -265,7 +246,6 @@ class CodeBuilder
         texture2d<half, access::write>          __outTexture  [[texture(0)]],
         constant float4                        *__data   [[ buffer(1) ]],
         texture2d<half, access::read>           __rayDirectionTexture [[texture(2)]],
-        texture2d<half, access::write>          __monitorTexture [[texture(3)]],
         __BACKGROUND_TEXTURE_HEADER_CODE__
         uint2 __gid                             [[thread_position_in_grid]])
         {
@@ -283,7 +263,7 @@ class CodeBuilder
             float4 outColor = float4(0,0,0,1);
         
         """
-        inst.code += getFuncDataCode(inst, "BACKGROUND", 4)
+        inst.code += getFuncDataCode(inst, "BACKGROUND", 3)
         
         if let code = component.code {
             inst.code += code
@@ -293,7 +273,6 @@ class CodeBuilder
         """
         
             __outTexture.write(half4(outColor), __gid);
-            if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
         }
         
         """
@@ -309,7 +288,6 @@ class CodeBuilder
         texture2d<half, access::write>          __outOriginTexture  [[texture(0)]],
         constant float4                        *__data   [[ buffer(1) ]],
         texture2d<half, access::write>          __outDirectionTexture  [[texture(2)]],
-        texture2d<half, access::write>          __monitorTexture [[texture(3)]],
         __CAMERA3D_TEXTURE_HEADER_CODE__
         uint2 __gid                             [[thread_position_in_grid]])
         {
@@ -324,7 +302,7 @@ class CodeBuilder
             float3 outDirection = float3(0,0,0);
         
         """
-        inst.code += getFuncDataCode(inst, "CAMERA3D", 4)
+        inst.code += getFuncDataCode(inst, "CAMERA3D", 3)
 
         
         if let code = component.code {
@@ -335,7 +313,6 @@ class CodeBuilder
         """
             __outOriginTexture.write(half4(half3(outPosition), 0), __gid);
             __outDirectionTexture.write(half4(half3(outDirection), 0), __gid);
-            if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
         }
         
         """
@@ -343,7 +320,7 @@ class CodeBuilder
     }
     
     /// Build the source code for the component
-    func buildSDF2D(_ inst: CodeBuilderInstance,_ component: CodeComponent,_ monitor: CodeFragment? = nil, camera: CodeComponent? = nil)
+    func buildSDF2D(_ inst: CodeBuilderInstance,_ component: CodeComponent, camera: CodeComponent? = nil)
     {
         sdfStream.openStream(.SDF2D, inst, self, camera: camera)
         sdfStream.pushComponent(component)
@@ -354,7 +331,7 @@ class CodeBuilder
     }
     
     /// Build the source code for the component
-    func buildSDF3D(_ inst: CodeBuilderInstance,_ component: CodeComponent,_ monitor: CodeFragment? = nil, camera: CodeComponent? = nil)
+    func buildSDF3D(_ inst: CodeBuilderInstance,_ component: CodeComponent, camera: CodeComponent? = nil)
     {
         sdfStream.openStream(.SDF3D, inst, self, camera: camera)
         sdfStream.pushComponent(component)
@@ -365,7 +342,7 @@ class CodeBuilder
     }
     
     /// Build the source code for the component
-    func buildRender2D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    func buildRender2D(_ inst: CodeBuilderInstance, _ component: CodeComponent)
     {
         inst.code +=
         """
@@ -383,7 +360,6 @@ class CodeBuilder
         uint2 __gid                             [[thread_position_in_grid]])
         {
             constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
-            float4 __monitorOut = float4(0,0,0,0);
 
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
             float2 uv = float2(__gid.x, __gid.y);
@@ -400,22 +376,12 @@ class CodeBuilder
             struct FuncData __funcData;
             __funcData.GlobalTime = GlobalTime;
             __funcData.GlobalSeed = GlobalSeed;
-            __funcData.__monitorOut = &__monitorOut;
             __funcData.__data = __data;
 
         """
      
         if let code = component.code {
             inst.code += code
-        }
-
-        if let monitorFragment = monitor, monitorFragment.name != "outColor" {
-            inst.code +=
-            """
-            
-            outColor = __monitorOut;
-            
-            """
         }
 
         inst.code +=
@@ -428,7 +394,7 @@ class CodeBuilder
     }
     
     /// Build the source code for the component
-    func buildRender3D(_ inst: CodeBuilderInstance, _ component: CodeComponent,_ monitor: CodeFragment? = nil)
+    func buildRender3D(_ inst: CodeBuilderInstance, _ component: CodeComponent)
     {
         inst.code +=
         """
@@ -458,15 +424,6 @@ class CodeBuilder
             inst.code += code
         }
 
-        if let monitorFragment = monitor, monitorFragment.name != "outColor" {
-            inst.code +=
-            """
-            
-            outColor = __monitorOut;
-            
-            """
-        }
-
         inst.code +=
         """
                        
@@ -493,8 +450,6 @@ class CodeBuilder
         texture2d<half, access::read>           __metaTexture [[texture(5)]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
-            float4 __monitorOut = float4(0,0,0,0);
-
             float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
             float2 uv = float2(__gid.x, __gid.y);
 
@@ -833,21 +788,6 @@ class CodeBuilder
         }
     }
     
-    // Compute the monitor data
-    func computeMonitor(_ inst: CodeBuilderInstance)
-    {
-        updateData(inst)
-        
-        compute.runBuffer( inst.computeState!, outBuffer: inst.computeOutBuffer, inBuffer: inst.buffer, wait: false )
-        
-        compute.commandBuffer.waitUntilCompleted()
-        let result = inst.computeOutBuffer.contents().bindMemory(to: Float.self, capacity: 4)
-        inst.computeResult.x = result[0]
-        inst.computeResult.y = result[1]
-        inst.computeResult.z = result[2]
-        inst.computeResult.w = result[3]
-    }
-    
     /// Returns the header code required by every shader
     func getHeaderCode() -> String
     {
@@ -861,7 +801,6 @@ class CodeBuilder
         {
             float                            GlobalTime;
             float                            GlobalSeed;
-            thread float4                   *__monitorOut;
             constant float4                 *__data;
             __FUNCDATA_TEXTURE_LIST__
         };
@@ -926,7 +865,6 @@ class CodeBuilder
         let code =
         """
 
-        float4 __monitorOut = float4(0,0,0,0);
         float GlobalTime = __data[0].x;
         float GlobalSeed = __data[0].z;
 
@@ -934,7 +872,6 @@ class CodeBuilder
         thread struct FuncData *__funcData = &__funcData_;
         __funcData_.GlobalTime = GlobalTime;
         __funcData_.GlobalSeed = GlobalSeed;
-        __funcData_.__monitorOut = &__monitorOut;
         __funcData_.__data = __data;
 
         __\(id)_TEXTURE_ASSIGNMENT_CODE__

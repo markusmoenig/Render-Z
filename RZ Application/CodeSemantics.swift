@@ -404,18 +404,6 @@ class CodeFragment          : Codable, Equatable
             ctx.cX += ctx.tempRect.width
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
-                        
-            if let monitor = ctx.monitorFragment {
-                if monitor.uuid == uuid  {
-                    // MONITOR FOR AN OUT VARIABLE, PROCESS LATER
-                    if let f = ctx.cFunction, f.functionType == .FreeFlow {
-                        // Write to FuncData, TODO
-                        //ctx.insertMonitorCode(self)
-                    } else {
-                        ctx.monitorOutVariable = self
-                    }
-                }
-            }
             
             ctx.addCode(name)
         } else
@@ -1073,9 +1061,6 @@ class CodeBlock             : Codable, Equatable
                 ctx.addCode("float GlobalTime = __funcData->GlobalTime;")
                 ctx.addCode("float GlobalSeed = __funcData->GlobalSeed;")
                 ctx.addCode("__CREATE_TEXTURE_DEFINITIONS__")
-                if ctx.monitorFragment != nil {
-                    ctx.addCode("float4 __monitorOut = *__funcData->__monitorOut;")
-                }
                 ctx.addCode(fragment.typeName + " out" + " = " + fragment.typeName + "(0);\n")
             }
  
@@ -1459,14 +1444,6 @@ class CodeFunction          : Codable, Equatable
         for v in header.statement.fragments {
             //ctx.cVariables[v.uuid] = v
             ctx.registerVariableForSyntaxBlock(v)
-        }
-        
-        //
-        if functionType == .FreeFlow && ctx.monitorFragment != nil && body.count > 0 {
-            let outFragment = body[body.count-1].fragment
-            // Correct the out fragment return type
-            outFragment.typeName = outFragment.parentBlock!.parentFunction!.header.fragment.typeName
-            ctx.registerVariableForSyntaxBlock(outFragment)
         }
         
         let rStart = ctx.rectStart()
@@ -2441,7 +2418,7 @@ class CodeComponent         : Codable, Equatable
         if componentType == .Material3D && ctx.patternList.count > 0 {
             // Create the global functions for all the patterns of the material
             for pattern in ctx.patternList {
-                dryRunComponent(pattern, ctx.propertyDataOffset + inputDataList.count, ctx.monitorFragment, patternList: ctx.patternList)
+                dryRunComponent(pattern, ctx.propertyDataOffset + inputDataList.count, patternList: ctx.patternList)
                 globalCode! += pattern.globalCode!
                 
                 inputDataList += pattern.inputDataList
@@ -2457,7 +2434,6 @@ class CodeComponent         : Codable, Equatable
                     float4 outColor = float4(0); float outMask = 0.; float outId = 0.;
 
                     constant float4 *__data = __funcData->__data;
-                    float4 __monitorOut = *__funcData->__monitorOut;
                     float GlobalTime = __funcData->GlobalTime;
                     float GlobalSeed = __funcData->GlobalSeed;
                     __CREATE_TEXTURE_DEFINITIONS__
@@ -2470,7 +2446,6 @@ class CodeComponent         : Codable, Equatable
                     __patternData->color = outColor;
                     __patternData->mask = outMask;
                     __patternData->id = outId;
-                    *__funcData->__monitorOut = __monitorOut;
                 }
                 """
                 
@@ -2502,20 +2477,12 @@ class CodeComponent         : Codable, Equatable
             }
             
             if f.functionType == .FreeFlow {
-                if ctx.monitorFragment != nil && ctx.functionHasMonitor == true {
-                    ctx.addCode("*__funcData->__monitorOut = __monitorOut;\n")
-                }
                 ctx.addCode("return out;\n")
                 ctx.addCode("}\n")
             }
             
             ctx.cY += CodeContext.fSpace
             ctx.functionMap[f.uuid] = f
-        }
-        
-        // If an out variable was the monitor, add the code here
-        if let monitorOutVariable = ctx.monitorOutVariable {
-            ctx.insertMonitorCode(monitorOutVariable)
         }
         
         ctx.rectEnd(rect, rStart)
@@ -2578,10 +2545,6 @@ class CodeContext
     
     var propertyDataOffset  : Int = 0
     
-    weak var monitorFragment: CodeFragment? = nil
-    var monitorComponents   : Int = 0
-    var monitorOutVariable  : CodeFragment? = nil
-    
     var insideGlobalCode    : Bool = false
     
     var functionMap         : [UUID:CodeFunction] = [:]
@@ -2599,7 +2562,7 @@ class CodeContext
         self.fontScale = fontScale
     }
     
-    func reset(_ editorWidth: Float = 10000,_ propertyDataOffset: Int = 0,_ monitorFragment: CodeFragment? = nil, patternList: [CodeComponent] = [])
+    func reset(_ editorWidth: Float = 10000,_ propertyDataOffset: Int = 0, patternList: [CodeComponent] = [])
     {
         self.patternList = patternList
     
@@ -2620,59 +2583,9 @@ class CodeContext
 
         self.editorWidth = editorWidth
         self.propertyDataOffset = propertyDataOffset
-        self.monitorFragment = monitorFragment
-        
-        monitorOutVariable = nil
-        
-        // Compute monitor components
-        monitorComponents = 0
-        if let fragment = monitorFragment {
-            monitorComponents = 1
-            if fragment.typeName.contains("2") {
-                monitorComponents = 2
-            } else
-            if fragment.typeName.contains("3") {
-                monitorComponents = 3
-            }
-            if fragment.typeName.contains("4") {
-                monitorComponents = 4
-            }
-        }
         
         insideGlobalCode = false
         dropIsValid = false
-    }
-    
-    // Inserts the monitor code for the given variable
-    func insertMonitorCode(_ fragment: CodeFragment)
-    {
-        let outVariableName = "__monitorOut"
-        
-        functionHasMonitor = true
-        let name : String = fragment.codeName == nil ? fragment.name : fragment.codeName!
-        
-        var code : String = ""
-        if fragment.typeName.contains("2") {
-            code += "\(outVariableName).x = " + name + ".x;\n";
-            code += "\(outVariableName).y = " + name + ".y;\n";
-            code += "\(outVariableName).z = 0;\n";
-            code += "\(outVariableName).w = 1;\n";
-        } else
-        if fragment.typeName.contains("3") {
-            code += "\(outVariableName).x = " + name + ".x;\n";
-            code += "\(outVariableName).y = " + name + ".y;\n";
-            code += "\(outVariableName).z = " + name + ".z;\n";
-            code += "\(outVariableName).w = 1;\n";
-        } else
-        if fragment.typeName.contains("4") {
-            code += "\(outVariableName).x = " + name + ".x;\n";
-            code += "\(outVariableName).y = " + name + ".y;\n";
-            code += "\(outVariableName).z = " + name + ".z;\n";
-            code += "\(outVariableName).w = " + name + ".w;\n";
-        } else {
-            code += "\(outVariableName) = float4(float3(" + name + "),1);\n";
-        }
-        addCode(code)
     }
     
     func rectStart() -> SIMD2<Float>
@@ -2712,15 +2625,6 @@ class CodeContext
         if let variablesForBlock = cSyntaxBlocks[uuid] {
             for frag in variablesForBlock {
                 cVariables[frag.uuid] = nil
-                
-                if let monitor = monitorFragment {
-                    if monitor.uuid == frag.uuid && monitor.codeName == frag.codeName {
-                        // MONITOR !!! ADD MONITOR CODE
-                        if let f = cFunction, f.functionType != .FreeFlow {
-                            insertMonitorCode(monitor)
-                        }
-                    }
-                }
             }
         }
         

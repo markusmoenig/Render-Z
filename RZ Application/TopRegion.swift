@@ -52,12 +52,12 @@ class TopRegion: MMRegion
             if self.switchButton.state == .Left {
                 self.app.currentEditor = self.app.artistEditor
                 if let component = globalApp!.artistEditor.designEditor.designComponent {
-                    globalApp!.project.selected!.setSelected(component)
+                    globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 }
             } else {
                 self.app.currentEditor = self.app.developerEditor
                 if let component = globalApp!.developerEditor.codeEditor.codeComponent {
-                    globalApp!.project.selected!.setSelected(component)
+                    globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 }
             }
             self.app.currentEditor.activate()

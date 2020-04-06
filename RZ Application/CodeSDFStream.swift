@@ -25,15 +25,11 @@ class CodeSDFStream
 
     var materialFuncCode    : String = ""
     var materialCode        : String = ""
-
-    var monitor             : CodeFragment? = nil
-
+    
     var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
     var idCounter           : Int = 0
     
-    var materialIds         : [Int:StageItem] = [:]
     var materialIdCounter   : Int = 0
-    var materialIdHierarchy : [Int] = []
     var currentMaterialId   : Int = 0
 
     var hierarchy           : [StageItem] = []
@@ -48,19 +44,23 @@ class CodeSDFStream
         ids = [:]
         idCounter = 0
         
-        materialIds = [:]
         materialIdCounter = 0
-        materialIdHierarchy = []
         currentMaterialId = 0
         
         hierarchy = []
     }
     
-    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil, groundComponent: CodeComponent? = nil, backgroundComponent: CodeComponent? = nil, thumbNail: Bool = false)
+    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil, groundComponent: CodeComponent? = nil, backgroundComponent: CodeComponent? = nil, thumbNail: Bool = false, idStart: Int = 0)
     {
         self.type = type
         self.instance = instance
         self.codeBuilder = codeBuilder
+        
+        idCounter = idStart
+        materialIdCounter = idStart
+        currentMaterialId = idStart
+        
+        instance.idStart = idStart
         
         componentCounter = 0
         instance.properties = []
@@ -79,7 +79,7 @@ class CodeSDFStream
             
             // Generate the camera code and add the global camera code
             if let camera = camera {
-                dryRunComponent(camera, instance.data.count, monitor)
+                dryRunComponent(camera, instance.data.count)
                 instance.collectProperties(camera)
                 if let globalCode = camera.globalCode {
                     headerCode += globalCode
@@ -94,7 +94,6 @@ class CodeSDFStream
             constant float4                        *__data   [[ buffer(1) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                float4 __monitorOut = float4(0,0,0,0);
                 float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
                 float2 __origin = float2(__gid.x, __gid.y);
                 float2 __center = __size / 2;
@@ -108,7 +107,6 @@ class CodeSDFStream
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
                 __funcData.GlobalSeed = GlobalSeed;
-                __funcData.__monitorOut = &__monitorOut;
                 __funcData.__data = __data;
             
             """
@@ -152,7 +150,6 @@ class CodeSDFStream
                 float4 outColor = float4(0,0,0,1);
             
                 constant float4 *__data = __funcData->__data;
-                float4 __monitorOut = *__funcData->__monitorOut;
                 float GlobalTime = __funcData->GlobalTime;
                 float GlobalSeed = __funcData->GlobalSeed;
                 __CREATE_TEXTURE_DEFINITIONS__
@@ -163,7 +160,7 @@ class CodeSDFStream
             """
             
             if let background = backgroundComponent {
-                dryRunComponent(background, instance.data.count, monitor)
+                dryRunComponent(background, instance.data.count)
                 instance.collectProperties(background)
                 if let globalCode = background.globalCode {
                     headerCode += globalCode
@@ -182,7 +179,6 @@ class CodeSDFStream
                 float outDistance = 10;
             
                 constant float4 *__data = __funcData->__data;
-                float4 __monitorOut = *__funcData->__monitorOut;
                 float GlobalTime = __funcData->GlobalTime;
                 float GlobalSeed = __funcData->GlobalSeed;
                 __CREATE_TEXTURE_DEFINITIONS__
@@ -199,7 +195,6 @@ class CodeSDFStream
             texture2d<half, access::read_write>     __metaTexture [[texture(3)]],
             texture2d<half, access::read>           __rayOriginTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionTexture [[texture(5)]],
-            texture2d<half, access::write>          __monitorTexture [[texture(6)]],
             __HITANDNORMALS_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
@@ -211,7 +206,7 @@ class CodeSDFStream
 
             """
             
-            hitAndNormalsCode += codeBuilder.getFuncDataCode(instance, "HITANDNORMALS", 7)
+            hitAndNormalsCode += codeBuilder.getFuncDataCode(instance, "HITANDNORMALS", 6)
             hitAndNormalsCode +=
                 
             """
@@ -235,7 +230,6 @@ class CodeSDFStream
             texture2d<half, access::read>           __normalInTexture [[texture(3)]],
             texture2d<half, access::read>           __rayOriginInTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionInTexture [[texture(5)]],
-            texture2d<half, access::write>          __monitorTexture [[texture(6)]],
             __AO_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
@@ -253,7 +247,7 @@ class CodeSDFStream
                 float4 outMeta = float4(__metaTexture.read(__gid));
             
             """
-            aoCode += codeBuilder.getFuncDataCode(instance, "AO", 7)
+            aoCode += codeBuilder.getFuncDataCode(instance, "AO", 6)
             
             shadowCode =
                 
@@ -265,7 +259,6 @@ class CodeSDFStream
             texture2d<half, access::read>           __normalInTexture [[texture(3)]],
             texture2d<half, access::read>           __rayOriginTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionTexture [[texture(5)]],
-            texture2d<half, access::write>          __monitorTexture [[texture(6)]],
             __SHADOW_TEXTURE_HEADER_CODE__
             constant float4                        *__lightData   [[ buffer(__SHADOW_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
@@ -284,7 +277,7 @@ class CodeSDFStream
                 float4 outMeta = float4(__metaTexture.read(__gid));
             
             """
-            shadowCode += codeBuilder.getFuncDataCode(instance, "SHADOW", 7)
+            shadowCode += codeBuilder.getFuncDataCode(instance, "SHADOW", 6)
 
             materialCode =
                 
@@ -298,7 +291,6 @@ class CodeSDFStream
             texture2d<half, access::read_write>     __rayOriginTexture [[texture(5)]],
             texture2d<half, access::read_write>     __rayDirectionTexture [[texture(6)]],
             texture2d<half, access::read_write>     __maskTexture [[texture(7)]],
-            texture2d<half, access::write>          __monitorTexture [[texture(8)]],
             __MATERIAL_TEXTURE_HEADER_CODE__
             constant float4                        *__lightData   [[ buffer(__MATERIAL_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
@@ -337,10 +329,10 @@ class CodeSDFStream
                 __materialOut.mask = float3(0);
                         
             """
-            materialCode += codeBuilder.getFuncDataCode(instance, "MATERIAL", 9)
+            materialCode += codeBuilder.getFuncDataCode(instance, "MATERIAL", 8)
                         
             if let rayMarch = findDefaultComponentForStageChildren(stageType: .ShapeStage, componentType: .UVMAP3D), thumbNail == false {
-                dryRunComponent(rayMarch, instance.data.count, monitor)
+                dryRunComponent(rayMarch, instance.data.count)
                 instance.collectProperties(rayMarch)
                 if let globalCode = rayMarch.globalCode {
                     headerCode += globalCode
@@ -370,7 +362,7 @@ class CodeSDFStream
             if let ground = groundComponent {
                 if ground.componentType == .Ground3D {
                     
-                    dryRunComponent(ground, instance.data.count, monitor)
+                    dryRunComponent(ground, instance.data.count)
                     instance.collectProperties(ground)
                     if let globalCode = ground.globalCode {
                         headerCode += globalCode
@@ -380,11 +372,13 @@ class CodeSDFStream
                     }
                     
                     ids[idCounter] = ([globalApp!.project.selected!.getStage(.ShapeStage).getChildren()[0]], ground)
+                    instance.ids[idCounter] = ids[idCounter]
+
                     idCounter += 1
                 }
             } else
             if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false {
-                dryRunComponent(rayMarch, instance.data.count, monitor)
+                dryRunComponent(rayMarch, instance.data.count)
                 instance.collectProperties(rayMarch)
                 if let globalCode = rayMarch.globalCode {
                     headerCode += globalCode
@@ -402,7 +396,7 @@ class CodeSDFStream
                 
                 // For hitAndNormals Stage compute the normals
                 if let normal = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Normal3D) {
-                    dryRunComponent(normal, instance.data.count, monitor)
+                    dryRunComponent(normal, instance.data.count)
                     instance.collectProperties(normal)
                     if let globalCode = normal.globalCode {
                         headerCode += globalCode
@@ -425,7 +419,7 @@ class CodeSDFStream
                 }
                 
                 if let ao = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .AO3D) {
-                    dryRunComponent(ao, instance.data.count, monitor)
+                    dryRunComponent(ao, instance.data.count)
                     instance.collectProperties(ao)
                     if let globalCode = ao.globalCode {
                         headerCode += globalCode
@@ -451,7 +445,7 @@ class CodeSDFStream
                 }
                 
                 if let shadows = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Shadows3D) {
-                    dryRunComponent(shadows, instance.data.count, monitor)
+                    dryRunComponent(shadows, instance.data.count)
                     instance.collectProperties(shadows)
                     if let globalCode = shadows.globalCode {
                         headerCode += globalCode
@@ -542,7 +536,6 @@ class CodeSDFStream
                 __normalTexture.write(half4(float4(outNormal, 0)), __gid);
                 __metaTexture.write(half4(outMeta), __gid);
                 __depthTexture.write(half4(outShape), __gid);
-                if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
             }
             """
             
@@ -550,7 +543,6 @@ class CodeSDFStream
             """
             
                 __metaTexture.write(half4(outMeta), __gid);
-                if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
             }
             
             """
@@ -559,7 +551,6 @@ class CodeSDFStream
             """
             
                 __metaTexture.write(half4(outMeta), __gid);
-                if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
             }
             
             """
@@ -571,7 +562,6 @@ class CodeSDFStream
                 __rayOriginTexture.write(half4(float4(rayOrigin, 0)), __gid);
                 __rayDirectionTexture.write(half4(float4(rayDirection, 0)), __gid);
                 __maskTexture.write(half4(float4(mask, 0)), __gid);
-                if (__monitorOut.w != 0.0) { __monitorTexture.write(half4(__monitorOut), __gid); }
             }
             
             """
@@ -579,7 +569,6 @@ class CodeSDFStream
             mapCode +=
             """
             
-                *__funcData->__monitorOut = __monitorOut;
                 return outShape;
             }
             
@@ -588,7 +577,6 @@ class CodeSDFStream
             backgroundCode +=
             """
             
-                *__funcData->__monitorOut = __monitorOut;
                 return outColor;
             }
             
@@ -602,7 +590,7 @@ class CodeSDFStream
     
     func pushComponent(_ component: CodeComponent)
     {
-        dryRunComponent(component, instance.data.count, monitor)
+        dryRunComponent(component, instance.data.count)
         instance.collectProperties(component, hierarchy)
         
         if let globalCode = component.globalCode {
@@ -656,7 +644,7 @@ class CodeSDFStream
                         """
 
                         for modifier in list {
-                            dryRunComponent(modifier, instance.data.count, monitor)
+                            dryRunComponent(modifier, instance.data.count)
                             instance.collectProperties(modifier)
 
                             code += modifier.code!
@@ -686,7 +674,7 @@ class CodeSDFStream
             """
             
             if let subComponent = component.subComponent {
-                dryRunComponent(subComponent, instance.data.count, monitor)
+                dryRunComponent(subComponent, instance.data.count)
                 instance.collectProperties(subComponent)
                 code += subComponent.code!
             }
@@ -710,6 +698,7 @@ class CodeSDFStream
         // If we have a stageItem, store the id
         if hierarchy.count > 0 {
             ids[idCounter] = (hierarchy, component)
+            instance.ids[idCounter] = ids[idCounter]
         }
         idCounter += 1
         componentCounter += 1
@@ -724,7 +713,7 @@ class CodeSDFStream
         if type == .SDF3D {
             if let list = stageItem.componentLists["domain3D"] {
                 for domain in list {
-                    dryRunComponent(domain, instance.data.count, monitor)
+                    dryRunComponent(domain, instance.data.count)
                     instance.collectProperties(domain)
                     
                     if let globalCode = domain.globalCode {
@@ -761,7 +750,6 @@ class CodeSDFStream
             float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
             {
                 constant float4 *__data = __funcData->__data;
-                float4 __monitorOut = *__funcData->__monitorOut;
                 float GlobalTime = __funcData->GlobalTime;
                 float GlobalSeed = __funcData->GlobalSeed;
                 __CREATE_TEXTURE_DEFINITIONS__
@@ -783,7 +771,7 @@ class CodeSDFStream
                 }
             }
             
-            dryRunComponent(material, instance.data.count, monitor, patternList: patterns)
+            dryRunComponent(material, instance.data.count, patternList: patterns)
             instance.collectProperties(material)
             if let globalCode = material.globalCode {
                 headerCode += globalCode
@@ -799,7 +787,6 @@ class CodeSDFStream
                 __materialOut->mask = outMask;
                 __materialOut->reflectionDir = outReflectionDir;
                 __materialOut->reflectionDist = outReflectionDist;
-                *__funcData->__monitorOut = __monitorOut;
             }
             
             """
@@ -817,7 +804,7 @@ class CodeSDFStream
             // Create the UVMapping for this material
             
             if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
-                dryRunComponent(uvMap, instance.data.count, monitor)
+                dryRunComponent(uvMap, instance.data.count)
                 instance.collectProperties(uvMap)
                 if let globalCode = uvMap.globalCode {
                     headerCode += globalCode
@@ -847,8 +834,8 @@ class CodeSDFStream
             
             // Push it on the stack
             
-            materialIdHierarchy.append(materialIdCounter)
-            materialIds[materialIdCounter] = stageItem
+            instance.materialIdHierarchy.append(materialIdCounter)
+            instance.materialIds[materialIdCounter] = stageItem
             currentMaterialId = materialIdCounter
             //print(stageItem.name, materialIdCounter, currentMaterialId)
             materialIdCounter += 1
@@ -861,11 +848,11 @@ class CodeSDFStream
         
         // If object had a material, pop the materialHierarchy
         if getFirstComponentOfType(stageItem.children, .Material3D) != nil {
-            materialIdHierarchy.removeLast()
-            if materialIdHierarchy.count > 0 {
-                currentMaterialId = materialIdHierarchy.last!
+            instance.materialIdHierarchy.removeLast()
+            if instance.materialIdHierarchy.count > 0 {
+                currentMaterialId = instance.materialIdHierarchy.last!
             } else {
-                currentMaterialId = 0
+                currentMaterialId = instance.idStart
             }
         }
     }

@@ -23,13 +23,6 @@ class Pipeline
     var mmView              : MMView
     
     var finalTexture        : MTLTexture? = nil
-    var monitorTexture      : MTLTexture? = nil
-    var monitorTextureFinal : MTLTexture? = nil
-
-    var monitorComponent    : CodeComponent? = nil
-    var monitorFragment     : CodeFragment? = nil
-    
-    var monitorComponents   : Int = 0
     
     var textureMap          : [String:MTLTexture] = [:]
     
@@ -39,27 +32,8 @@ class Pipeline
         self.codeBuilder = CodeBuilder(mmView)
     }
     
-    func computeMonitorComponents(_ monitor: CodeFragment? = nil) {
-        if let fragment = monitor {
-            if fragment.name == "out" {
-                // Correct the out fragment return type
-                fragment.typeName = fragment.parentBlock!.parentFunction!.header.fragment.typeName
-            }
-            monitorComponents = 1
-            if fragment.typeName.contains("2") {
-                monitorComponents = 2
-            } else
-            if fragment.typeName.contains("3") {
-                monitorComponents = 3
-            }
-            if fragment.typeName.contains("4") {
-                monitorComponents = 4
-            }
-        }
-    }
-    
     // Build the pipeline elements
-    func build(scene: Scene, monitor: CodeFragment? = nil)
+    func build(scene: Scene)
     {
     }
         
@@ -147,13 +121,11 @@ class Pipeline
     {
     }
     
-    func clearMonitor()
+    func cancel()
     {
-        monitorComponent = nil
-        monitorFragment = nil
     }
     
-    func cancel()
+    func resetIds()
     {
     }
 }

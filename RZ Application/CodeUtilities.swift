@@ -307,10 +307,10 @@ func encodeComponentToJSON(_ component: CodeComponent) -> String
 }
 
 /// Runs the component to generate code without any drawing
-func dryRunComponent(_ comp: CodeComponent,_ propertyOffset: Int = 0,_ monitor: CodeFragment? = nil, patternList: [CodeComponent] = [])
+func dryRunComponent(_ comp: CodeComponent,_ propertyOffset: Int = 0, patternList: [CodeComponent] = [])
 {
     let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
-    ctx.reset(globalApp!.developerEditor.codeEditor.rect.width, propertyOffset, monitor, patternList: patternList)
+    ctx.reset(globalApp!.developerEditor.codeEditor.rect.width, propertyOffset, patternList: patternList)
     comp.draw(globalApp!.mmView, ctx)
 }
 
@@ -403,6 +403,18 @@ func getFirstStageItemOfComponentOfType(_ list: [StageItem],_ type: CodeComponen
         }
     }
     return nil
+}
+
+func getFirstItemOfType(_ list: [StageItem],_ type: CodeComponent.ComponentType) -> (StageItem?, CodeComponent?)
+{
+    for item in list {
+        if let c = item.components[item.defaultName] {
+            if c.componentType == type {
+                return (item, c)
+            }
+        }
+    }
+    return (nil,nil)
 }
 
 /// Returns a random token of the given length

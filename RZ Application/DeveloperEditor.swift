@@ -44,7 +44,6 @@ class DeveloperEditor   : Editor
     
     override func setComponent(_ component: CodeComponent)
     {
-        globalApp!.currentPipeline?.clearMonitor()
         // Store scroll offset of the previous component
         if let component = codeEditor.codeComponent {
             component.scrollOffsetY = codeEditor.scrollArea.offsetY

@@ -27,6 +27,8 @@ class StageItem             : Codable, Equatable
     
     var label               : MMTextLabel? = nil
     var componentLabels     : [String:MMTextLabel] = [:]
+    
+    var builderInstance     : CodeBuilderInstance? = nil
 
     private enum CodingKeys: String, CodingKey {
         case stageItemType
@@ -738,8 +740,8 @@ class Scene                 : Codable, Equatable
         */
     }
     
-    /// Set the selection to the given CodeComponent
-    func setSelected(_ component: CodeComponent)
+    /// Get the stage item for the given component and optionally select it
+    @discardableResult func getStageItem(_ component: CodeComponent, selectIt: Bool = false) -> StageItem?
     {
         class SearchInfo {
             var stageItem   : StageItem? = nil
@@ -792,11 +794,44 @@ class Scene                 : Codable, Equatable
             if result.component == nil {
                 findInStage(s)
                 if result.component != nil {
-                    globalApp!.sceneGraph.setCurrent(stage: s, stageItem: result.stageItem, component: result.component)
+                    if selectIt {
+                        globalApp!.sceneGraph.setCurrent(stage: s, stageItem: result.stageItem, component: result.component)
+                    }
                     break
                 }
             }
         }
+        
+        return result.stageItem
+    }
+    
+    /// Invalidate all compiler infos
+    func invalidateCompilerInfos()
+    {
+        func findInItem(_ stageItem: StageItem)
+        {
+            stageItem.builderInstance = nil
+            findInChildren(stageItem.children)
+        }
+        
+        func findInChildren(_ children: [StageItem])
+        {
+            for c in children {
+                findInItem(c)
+            }
+        }
+        
+        func findInStage(_ stage: Stage)
+        {
+            findInChildren(stage.children2D)
+            findInChildren(stage.children3D)
+        }
+        
+        for s in stages {
+            findInStage(s)
+        }
+        
+        globalApp!.currentPipeline?.resetIds()
     }
     
     // Adds the default images to the variable stage

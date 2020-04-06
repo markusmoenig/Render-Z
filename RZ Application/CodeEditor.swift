@@ -506,6 +506,9 @@ class CodeEditor        : MMWidget
                 }*/
                 
                 if self.codeChanged && self.liveEditing {
+                    // Mark the current Component invalid
+                    self.markStageItemOfComponentInvalid(self.codeComponent!)
+                    // Compile
                     globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
                     globalApp!.currentPipeline!.render(self.rect.width, self.rect.height)
                     self.codeChanged = false
@@ -521,8 +524,10 @@ class CodeEditor        : MMWidget
                     self.texture2 = workingTexture
                 }
                 
+                //
                 if let comp = self.codeComponent, self.editor.codeProperties.needsUpdate {
                     self.editor.codeProperties.setSelected(comp, self.codeContext)
+                    self.codeAccess.setSelected(comp, self.codeContext)
                 }
                 
                 self.currentComponent = self.codeComponent
@@ -534,6 +539,29 @@ class CodeEditor        : MMWidget
             }
         }
         needsUpdate = false
+    }
+    
+    /// Invalidate the BuilderInstance of the StageItem of the current component
+    func markStageItemOfComponentInvalid(_ component: CodeComponent)
+    {
+        if let stageItem = globalApp!.project.selected!.getStageItem(component) {
+            stageItem.builderInstance = nil
+            
+            if stageItem.stageItemType == .RenderStage {
+                globalApp!.project.selected!.invalidateCompilerInfos()
+            }
+            
+            if stageItem.stageItemType == .ShapeStage {
+                
+                let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+                
+                var parent : StageItem? = stageItem
+                while parent != nil {
+                    parent?.builderInstance = nil
+                    parent = shapeStage.getParentOfStageItem(parent!).1
+                }
+            }
+        }
     }
     
     /// Runs the component to generate code without any drawing
@@ -775,10 +803,6 @@ class CodeEditor        : MMWidget
         needsUpdate = true
         update()
         mmView.update()
-        if let comp = codeComponent, editor.codeProperties.needsUpdate {
-            codeAccess.setSelected(comp, codeContext)
-            editor.codeProperties.setSelected(comp, codeContext)
-        }
     }
     
     func undoStart(_ name: String) -> CodeUndoComponent
