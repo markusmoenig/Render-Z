@@ -135,7 +135,7 @@ class StageItem             : Codable, Equatable
     /// Adds a material to this item
     func addMaterial()
     {
-        let materialItem = StageItem(.RenderStage, "Material")
+        let materialItem = StageItem(.ShapeStage, "Material")
         //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
         var codeComponent = CodeComponent(.Material3D, "Material")
         codeComponent.createDefaultFunction(.Material3D)
@@ -145,7 +145,7 @@ class StageItem             : Codable, Equatable
         children.append(materialItem)
         placeChild(modeId: "3D", parent: self, child: materialItem, stepSize: 60, radius: 110, defaultStart: 10)
         
-        let uvItem = StageItem(.RenderStage, "UV Map")
+        let uvItem = StageItem(.ShapeStage, "UV Map")
         //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
         codeComponent = CodeComponent(.UVMAP3D, "UV Map")
         codeComponent.createDefaultFunction(.UVMAP3D)

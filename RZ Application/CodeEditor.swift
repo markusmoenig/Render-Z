@@ -145,7 +145,6 @@ class CodeEditor        : MMWidget
             
             dndFunction = nil
 
-            editor.updateOnNextDraw(compile: true)
             mmView.update()
         }
     }
@@ -547,6 +546,7 @@ class CodeEditor        : MMWidget
         if let stageItem = globalApp!.project.selected!.getStageItem(component) {
             stageItem.builderInstance = nil
             
+            //print("markStageItemOfComponentInvalid", stageItem.stageItemType, component.componentType)
             if stageItem.stageItemType == .RenderStage {
                 globalApp!.project.selected!.invalidateCompilerInfos()
             }

@@ -33,6 +33,8 @@ class CodeSDFStream
     var currentMaterialId   : Int = 0
 
     var hierarchy           : [StageItem] = []
+    
+    var globalsAddedFor     : [UUID] = []
 
     init()
     {
@@ -55,6 +57,8 @@ class CodeSDFStream
         self.type = type
         self.instance = instance
         self.codeBuilder = codeBuilder
+        
+        globalsAddedFor = []
         
         idCounter = idStart
         materialIdCounter = idStart
@@ -649,7 +653,10 @@ class CodeSDFStream
 
                             code += modifier.code!
                             if let globalCode = modifier.globalCode {
-                                headerCode += globalCode
+                                if globalsAddedFor.contains(modifier.uuid) == false {
+                                    headerCode += globalCode
+                                    globalsAddedFor.append(modifier.uuid)
+                                }
                             }
                         }
                         

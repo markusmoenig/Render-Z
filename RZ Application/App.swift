@@ -164,17 +164,8 @@ class App
             if let component =  try? JSONDecoder().decode(CodeComponent.self, from: jsonData) {
                 project.selected!.updateComponent(component)
                 
-                var selectedViaSceneGraph : Bool = false
-                if sceneGraph.currentWidth > 0 {
-                    if let item = sceneGraph.itemMap[component.uuid] {
-                        sceneGraph.setCurrent(stage: item.stage, stageItem: item.stageItem, component: component)
-                        selectedViaSceneGraph = true
-                    }
-                }
-
-                if selectedViaSceneGraph == false {
-                    currentEditor.setComponent(component)
-                }
+                project.selected!.getStageItem(component, selectIt: true)
+                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(component)
             }
         }
     }
@@ -195,11 +186,9 @@ class App
             
             if let stage =  try? JSONDecoder().decode(Stage.self, from: jsonData) {
                 project.selected!.updateStage(stage)
+                
+                globalApp!.currentPipeline?.resetIds()
                 currentEditor.updateOnNextDraw()
-                //if let selected = project.selected!.getSelected() {
-                    //project.selected!.setSelected(selected)
-                    // TODO get stage sceneGraph.setCurrent(stageItem: selected)
-                //}
             }
         }
     }
@@ -220,11 +209,9 @@ class App
             
             if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
                 project.selected!.updateStageItem(stageItem)
+                
+                globalApp!.currentPipeline?.resetIds()
                 currentEditor.updateOnNextDraw()
-                //if let selected = project.selected!.getSelected() {
-                    //project.selected!.setSelected(selected)
-                    // TODO get stage sceneGraph.setCurrent(stageItem: selected)
-                //}
             }
         }
     }
