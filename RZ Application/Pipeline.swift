@@ -20,7 +20,7 @@ class PipelineRenderSettings
 class Pipeline
 {
     enum OutputType : Int {
-        case FinalImage, DepthMap, AO, Shadows
+        case FinalImage, DepthMap, AO, Shadows, FogDensity
     }
     
     var outputType          : OutputType = .FinalImage

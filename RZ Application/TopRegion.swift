@@ -33,7 +33,6 @@ class TopRegion: MMRegion
     var switchButton    : MMSwitchIconWidget
 
     var libraryButton   : MMButtonWidget!
-    var cameraButton    : MMButtonWidget!
     var liveButton      : MMButtonWidget!
 
     var app             : App
@@ -43,7 +42,7 @@ class TopRegion: MMRegion
         self.app = app
         
         switchButton =  MMSwitchIconWidget( view, leftIconName: "gizmo", rightIconName: "dev")
-        switchButton.setState(.Right)
+        switchButton.setState(.Left)
         
         super.init( view, type: .Top )
         
@@ -173,24 +172,6 @@ class TopRegion: MMRegion
             self.libraryButton.removeState(.Checked)
         }
         libraryButton.isDisabled = true
-        
-        cameraButton = MMButtonWidget( mmView, iconName: "camera" )
-        cameraButton.iconZoom = 2
-        cameraButton.rect.width += 16
-        cameraButton.rect.height -= 9
-        cameraButton.clicked = { (event) -> Void in
-            let preStage = globalApp!.project.selected!.getStage(.PreStage)
-            let preStageChildren = preStage.getChildren()
-            for stageItem in preStageChildren {
-                if let c = stageItem.components[stageItem.defaultName] {
-                    if c.componentType == .Camera2D || c.componentType == .Camera3D {
-                        globalApp!.sceneGraph.setCurrent(stage: preStage, stageItem: stageItem, component: c)
-                        break
-                    }
-                }
-            }
-            self.cameraButton.removeState(.Checked)
-        }
         
         var liveSkin = MMSkinButton()
         liveSkin.borderColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)

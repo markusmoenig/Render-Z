@@ -72,6 +72,7 @@ class App
         mmView.registerIcon("move")
         mmView.registerIcon("rotate")
         mmView.registerIcon("scale")
+        mmView.registerIcon("render")
         sceneGraph = SceneGraph(mmView)
         
         // Initialize images
@@ -90,7 +91,7 @@ class App
         currentPipeline = pipeline3D
         thumbnail = Thumbnail(mmView)
         
-        currentEditor = developerEditor
+        currentEditor = artistEditor
         project = Project(currentSceneMode)
         
         privateDatabase = CKContainer.init(identifier: "iCloud.com.moenig.renderz").privateCloudDatabase

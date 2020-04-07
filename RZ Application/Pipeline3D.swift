@@ -311,6 +311,13 @@ class Pipeline3D            : Pipeline
                         self.mmView.update()
                         self.samples = self.maxSamples
                         return
+                    } else
+                    if self.outputType == .FogDensity {
+                        self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("density"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        return
                     }
                     
                     self.reflections += 1
@@ -378,7 +385,8 @@ class Pipeline3D            : Pipeline
         allocTextureId("depth", width, height, .rgba16Float)
         allocTextureId("normal", width, height, .rgba16Float)
         allocTextureId("meta", width, height, .rgba16Float)
-        
+        allocTextureId("density", width, height, .rgba16Float)
+
         codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(10000, 1000000, -1, -1))
         codeBuilder.renderClear(texture: getTextureOfId("meta"), data: SIMD4<Float>(1, 1, 0, 0))
 
@@ -441,12 +449,13 @@ class Pipeline3D            : Pipeline
             
             // Reset the shadow data to 1.0 in the meta data while not touching anything else (ambient etc).
             codeBuilder.renderClearShadow(texture: getTextureOfId("meta"))
+            codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(0,0,0,1))
 
-            objectIndex = 0
+            objectIndex = 1
             shapeText = "shape_" + String(objectIndex)
             while let inst = instanceMap[shapeText] {
                 
-                codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], inBuffers: [lightBuffer], optionalState: "computeShadow")
+                codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("density")], inBuffers: [lightBuffer], optionalState: "computeShadow")
                 
                 objectIndex += 1
                 shapeText = "shape_" + String(objectIndex)
@@ -459,13 +468,12 @@ class Pipeline3D            : Pipeline
             
             while let inst = instanceMap[shapeText] {
                     
-                codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+                codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), getTextureOfId("density")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
 
                 objectIndex += 1
                 shapeText = "shape_" + String(objectIndex)
             }
         }
-        
         
         let sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
         let sunStrength : Float = getGlobalVariableValue(withName: "Sun.sunStrength")!.x

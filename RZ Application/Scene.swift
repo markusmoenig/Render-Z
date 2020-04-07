@@ -349,13 +349,26 @@ class Stage                 : Codable, Equatable
         }
         
         if stageType == .VariablePool {
-            values["_graphX"] = 180
-            values["_graphY"] = 170
+            values["_graphX"] = 380
+            values["_graphY"] = 140
             
+            // Create World Pool
+            let worldPool = StageItem(.VariablePool, "World")
+            worldPool.values["locked"] = 1
+            children3D.append(worldPool)
+            placeChild(modeId: "3D", parent: self, child: worldPool, stepSize: 70, radius: 150)
+            
+            let worldAmbientComponent = CodeComponent(.Variable, "Ambient Color")
+            worldAmbientComponent.values["locked"] = 1
+            worldAmbientComponent.createVariableFunction("worldAmbient", "float4", "Ambient Color", defaultValue: SIMD4<Float>(0.05,0.15,0.25, 1), gizmo: 2)
+            
+            worldPool.componentLists["variables"] = [worldAmbientComponent]
+
             // Create Sun Pool
             let sunPool = StageItem(.VariablePool, "Sun")
+            sunPool.values["locked"] = 1
             children3D.append(sunPool)
-            placeChild(modeId: "3D", parent: self, child: sunPool, stepSize: 90, radius: 150)
+            placeChild(modeId: "3D", parent: self, child: sunPool, stepSize: 70, radius: 150)
             
             let sunDirComponent = CodeComponent(.Variable, "Sun Direction")
             sunDirComponent.values["locked"] = 1
@@ -368,12 +381,8 @@ class Stage                 : Codable, Equatable
             let sunStrengthComponent = CodeComponent(.Variable, "Sun Strength")
             sunStrengthComponent.values["locked"] = 1
             sunStrengthComponent.createVariableFunction("sunStrength", "float", "Sun Strength", defaultValue: Float(5.0), defaultMinMax: SIMD2<Float>(0,20))
-            
-            let sunAmbientComponent = CodeComponent(.Variable, "Ambient")
-            sunAmbientComponent.values["locked"] = 1
-            sunAmbientComponent.createVariableFunction("sunAmbient", "float4", "Ambient", defaultValue: SIMD4<Float>(0.05,0.15,0.25, 1), gizmo: 2)
 
-            sunPool.componentLists["variables"] = [sunAmbientComponent, sunDirComponent,sunColorComponent, sunStrengthComponent]
+            sunPool.componentLists["variables"] = [sunDirComponent,sunColorComponent, sunStrengthComponent]
         }
     }
     
@@ -849,7 +858,8 @@ class Scene                 : Codable, Equatable
         
         if imageItem == nil {
             imageItem = StageItem(.VariablePool, "Images")
-            placeChild(modeId: "3D", parent: stage, child: imageItem!, stepSize: 60, radius: 110, defaultStart: 10)
+            imageItem!.values["locked"] = 1
+            placeChild(modeId: "3D", parent: stage, child: imageItem!, stepSize: 60, radius: 90, defaultStart: 10)
             stage.children3D.append(imageItem!)
         }
         

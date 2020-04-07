@@ -31,6 +31,9 @@ class ArtistEditor          : Editor
     var dispatched          : Bool = false
     
     var outputButton        : MMScrollButton
+    
+    var cameraButton        : MMButtonWidget
+    var renderButton        : MMButtonWidget
 
     required init(_ view: MMView)
     {
@@ -44,13 +47,45 @@ class ArtistEditor          : Editor
         timelineButton.rect.height -= 11
         timeline = MMTimeline(view)
 
-        outputButton = MMScrollButton(view, items:["Final Image", "Depth Map", "Occlusion", "Shadows"], index: 0)
+        outputButton = MMScrollButton(view, items:["Final Image", "Depth Map", "Occlusion", "Shadows", "Fog Density"], index: 0)
         outputButton.changed = { (index)->() in
             globalApp!.currentPipeline!.outputType = Pipeline.OutputType(rawValue: index)!
             globalApp!.currentEditor.updateOnNextDraw(compile: false)
         }
         
+        cameraButton = MMButtonWidget( mmView, iconName: "camera" )
+        cameraButton.iconZoom = 2
+        cameraButton.rect.width += 16
+        cameraButton.rect.height -= 9
+        
+        renderButton = MMButtonWidget( mmView, iconName: "render" )
+        renderButton.iconZoom = 2
+        renderButton.rect.width += 16
+        renderButton.rect.height -= 14
+        
         super.init()
+        
+        cameraButton.clicked = { (event) -> Void in
+            let preStage = globalApp!.project.selected!.getStage(.PreStage)
+            let preStageChildren = preStage.getChildren()
+            for stageItem in preStageChildren {
+                if let c = stageItem.components[stageItem.defaultName] {
+                    if c.componentType == .Camera2D || c.componentType == .Camera3D {
+                        globalApp!.sceneGraph.setCurrent(stage: preStage, stageItem: stageItem, component: c)
+                        break
+                    }
+                }
+            }
+            self.cameraButton.removeState(.Checked)
+        }
+        
+        renderButton.clicked = { (event) -> Void in
+
+            if let component = getComponent(name: "Renderer") {
+                globalApp!.project.selected!.getStageItem(component, selectIt: true)
+            }
+            self.renderButton.removeState(.Checked)
+        }
         
         timelineButton.clicked = { (event) -> Void in
             self.switchTimelineMode()
@@ -66,7 +101,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton, globalApp!.topRegion!.cameraButton, outputButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, outputButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -75,7 +110,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, timelineButton, globalApp!.topRegion!.cameraButton, outputButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, outputButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -119,11 +154,14 @@ class ArtistEditor          : Editor
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 43, spacing: 10, widgets: timelineButton, globalApp!.topRegion!.graphButton)
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
-            
-            let cameraButton = globalApp!.topRegion!.cameraButton!
-            cameraButton.rect.x = (globalApp!.topRegion!.rect.width - cameraButton.rect.width) / 2
+
+            cameraButton.rect.x = (globalApp!.topRegion!.rect.width - (cameraButton.rect.width + renderButton.rect.width + 6)) / 2
             cameraButton.rect.y = 4 + 44
             cameraButton.draw()
+            
+            renderButton.rect.x = cameraButton.rect.right() + 6
+            renderButton.rect.y = 4 + 44
+            renderButton.draw()
             
             outputButton.rect.x = cameraButton.rect.x / 2 - outputButton.rect.width / 4
             outputButton.rect.y = cameraButton.rect.y

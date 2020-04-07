@@ -256,6 +256,89 @@ class CodeSDFStream
             shadowCode =
                 
             """
+            
+            float hash(float2 p) {float3 p3 = fract(float3(p.xyx) * 0.13); p3 += dot(p3, p3.yzx + 3.333); return fract((p3.x + p3.y) * p3.z); }
+            
+            float noise(float3 x) {
+                const float3 step = float3(110, 241, 171);
+
+                float3 i = floor(x);
+                float3 f = fract(x);
+             
+                // For performance, compute the base input to a 1D hash from the integer part of the argument and the
+                // incremental change to the 1D based on the 3D -> 1D wrapping
+                float n = dot(i, step);
+
+                float3 u = f * f * (3.0 - 2.0 * f);
+                return mix(mix(mix( hash(n + dot(step, float3(0, 0, 0))), hash(n + dot(step, float3(1, 0, 0))), u.x),
+                               mix( hash(n + dot(step, float3(0, 1, 0))), hash(n + dot(step, float3(1, 1, 0))), u.x), u.y),
+                           mix(mix( hash(n + dot(step, float3(0, 0, 1))), hash(n + dot(step, float3(1, 0, 1))), u.x),
+                               mix( hash(n + dot(step, float3(0, 1, 1))), hash(n + dot(step, float3(1, 1, 1))), u.x), u.y), u.z);
+            }
+            
+            float fbm(float3 x) {
+                float v = 0.0;
+                float a = 0.5;
+                float3 shift = float3(100);
+                for (int i = 0; i < 3; ++i) {
+                    v += a * noise(x);
+                    x = x * 2.0 + shift;
+                    a *= 0.5;
+                }
+                return v;
+            }
+            
+            float2 getParticipatingMedia(float3 pos)
+            {
+                float heightFog = fbm(pos);
+                heightFog = 0.3*clamp((heightFog-pos.y + 0.5)*1.0, 0.0, 1.0);
+            
+                const float constantFog = 0.00001;//0.001;
+
+                float sigmaS = constantFog + heightFog;
+               
+                const float sigmaA = 0.0;
+                const float sigmaE = max(0.000000001, sigmaA + sigmaS); // to avoid division by zero extinction
+            
+                return float2( sigmaS, sigmaE );
+            }
+            
+            float phaseFunction()
+            {
+                return 1.0/(4.0*3.14);
+            }
+            
+            float volumetricShadow(float3 from, float3 dir)
+            {
+                const float numStep = 16.0; // quality control. Bump to avoid shadow alisaing
+                float shadow = 1.0;
+                float sigmaS = 0.0;
+                float sigmaE = 0.0;
+                float dd = length(dir) / numStep;
+                for(float s=0.5; s<(numStep-0.1); s+=1.0)// start at 0.5 to sample at center of integral part
+                {
+                    float3 pos = from + dir * (s/(numStep));
+                    float2 sigma = getParticipatingMedia(pos);
+                    shadow *= exp(-sigma.y * dd);
+                }
+                return shadow;
+            }
+            
+            float calcSoftshadow( float3 ro, float3 rd, float mint, float tmax, thread struct FuncData *__funcData )
+            {
+                float res = 1.0;
+                float t = mint;
+                for( int i=0; i<16; i++ )
+                {
+                    float h = sceneMap( ro + rd*t, __funcData ).x;
+                    float s = clamp(8.0*h/t,0.0,1.0);
+                    res = min( res, s*s*(3.0-2.0*s) );
+                    t += clamp( h, 0.02, 0.10 );
+                    if( res<0.005 || t>tmax ) break;
+                }
+                return clamp( res, 0.0, 1.0 );
+            }
+            
             kernel void computeShadow(
             texture2d<half, access::read_write>     __metaTexture  [[texture(0)]],
             constant float4                        *__data   [[ buffer(1) ]],
@@ -263,6 +346,7 @@ class CodeSDFStream
             texture2d<half, access::read>           __normalInTexture [[texture(3)]],
             texture2d<half, access::read>           __rayOriginTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionTexture [[texture(5)]],
+            texture2d<half, access::read_write>     __densityTexture [[texture(6)]],
             __SHADOW_TEXTURE_HEADER_CODE__
             constant float4                        *__lightData   [[ buffer(__SHADOW_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
@@ -281,7 +365,7 @@ class CodeSDFStream
                 float4 outMeta = float4(__metaTexture.read(__gid));
             
             """
-            shadowCode += codeBuilder.getFuncDataCode(instance, "SHADOW", 6)
+            shadowCode += codeBuilder.getFuncDataCode(instance, "SHADOW", 7)
 
             materialCode =
                 
@@ -295,6 +379,7 @@ class CodeSDFStream
             texture2d<half, access::read_write>     __rayOriginTexture [[texture(5)]],
             texture2d<half, access::read_write>     __rayDirectionTexture [[texture(6)]],
             texture2d<half, access::read_write>     __maskTexture [[texture(7)]],
+            texture2d<half, access::read_write>     __densityTexture [[texture(8)]],
             __MATERIAL_TEXTURE_HEADER_CODE__
             constant float4                        *__lightData   [[ buffer(__MATERIAL_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
@@ -333,7 +418,7 @@ class CodeSDFStream
                 __materialOut.mask = float3(0);
                         
             """
-            materialCode += codeBuilder.getFuncDataCode(instance, "MATERIAL", 8)
+            materialCode += codeBuilder.getFuncDataCode(instance, "MATERIAL", 9)
                         
             if let rayMarch = findDefaultComponentForStageChildren(stageType: .ShapeStage, componentType: .UVMAP3D), thumbNail == false {
                 dryRunComponent(rayMarch, instance.data.count)
@@ -476,6 +561,54 @@ class CodeSDFStream
                         """
                         
                         outMeta.y = min(outMeta.y, outShadow);
+                        
+                        // Density Code
+                        /*
+                        float4 densityIn = float4(__densityTexture.read(__gid));
+                        float transmittance = 1.0;
+                        float3 scatteredLight = float3(0.0, 0.0, 0.0);
+                        
+                        float t = 0.02;
+                        float tt = 0.0;
+                        float3 lightColor = __lightData[2].xyz;
+                        
+                        if (inShape.z == -1) {
+                            maxDistance = 100;
+                        }
+                        
+                        maxDistance = min(maxDistance, 100.0);
+                        
+                        for( int i=0; i < 70 && t < maxDistance; i++ )
+                        {
+                            float3 pos = rayOrigin + rayDirection * t;
+                            float2 sigma = getParticipatingMedia( pos );
+                            
+                            const float sigmaS = sigma.x;
+                            const float sigmaE = sigma.y;
+                        
+                            float3 lightDirection;
+                            if (lightType.y == 0.0) {
+                                lightDirection = normalize(__lightData[0].xyz);
+                            } else {
+                                lightDirection = normalize(__lightData[0].xyz - pos);
+                            }
+                            
+                            float3 S = lightColor * sigmaS * phaseFunction();// * volumetricShadow(pos, lightDirection) * calcSoftshadow(pos, lightDirection, 0.02, maxDistance, __funcData);
+                            float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
+                            scatteredLight += transmittance * Sint;
+
+                            transmittance *= exp(-sigmaE * tt);
+                                                
+                            tt += abs(maxDistance - t) * 0.3;
+                            t += tt;
+                        }
+                        
+                        float4 scatTrans = float4(scatteredLight, transmittance);
+                        scatTrans.xyz = scatTrans.xyz + densityIn.xyz;
+                        scatTrans.w *= densityIn.w;
+                        
+                        __densityTexture.write(half4(scatTrans), __gid);
+                        */
                         }
                         
                         """
@@ -561,6 +694,9 @@ class CodeSDFStream
             
             materialCode +=
             """
+            
+                float4 density = float4(__densityTexture.read(__gid));
+                color.xyz = color.xyz * density.w + density.xyz;
 
                 __colorTexture.write(half4(color), __gid);
                 __rayOriginTexture.write(half4(float4(rayOrigin, 0)), __gid);

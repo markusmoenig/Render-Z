@@ -1015,7 +1015,7 @@ class SceneGraph                : MMWidget
                     // Variable Stage
                     
                     var button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Pool")
-                    button.isDisabled = item.stageItem!.name == "Sun"
+                    button.isDisabled = item.stageItem!.values["locked"] == 1
                     button.clicked = { (event) -> Void in
                         getStringDialog(view: self.mmView, title: "Rename Variable Pool", message: "Pool name", defaultValue: "Variables", cb: { (value) -> Void in
                             let undo = globalApp!.currentEditor.undoStageItemStart("Rename Variable Pool")
@@ -1027,7 +1027,7 @@ class SceneGraph                : MMWidget
                     toolBarWidgets.append(button)
                     
                     button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                    button.isDisabled = item.stageItem!.name == "Sun"
+                    button.isDisabled = item.stageItem!.values["locked"] == 1
                     button.clicked = { (event) -> Void in
                         if globalApp!.currentSceneMode == .ThreeD {
                             let index = item.stage.children3D.firstIndex(of: item.stageItem!)
@@ -1143,7 +1143,7 @@ class SceneGraph                : MMWidget
                     }
                     toolBarWidgets.append(button)
                 } else
-                if item.itemType == .StageItem && item.stageItem!.stageItemType == .ShapeStage {
+                    if item.itemType == .StageItem && item.stageItem!.stageItemType == .ShapeStage && (item.stageItem!.components[item.stageItem!.defaultName] == nil || (item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .UVMAP3D && item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Material3D)) {
                     let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Add Child")
                     button.clicked = { (event) in
                         //getStringDialog(view: self.mmView, title: "Child Object", message: "Object name", defaultValue: "Child Object", cb: { (value) -> Void in
@@ -1264,7 +1264,7 @@ class SceneGraph                : MMWidget
                     if comp.componentType == .Variable {
                         
                         let renameButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Variable")
-                        renameButton.isDisabled = item.stageItem!.name == "Sun"
+                        renameButton.isDisabled = item.stageItem!.values["locked"] == 1
                         renameButton.clicked = { (event) -> Void in
                             if let frag = getVariable(from: comp) {
                                 getStringDialog(view: self.mmView, title: "Rename Variable", message: "Variable name", defaultValue: frag.name, cb: { (value) -> Void in
@@ -1281,7 +1281,7 @@ class SceneGraph                : MMWidget
                         toolBarWidgets.append(renameButton)
                         
                         let removeButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                        removeButton.isDisabled = item.stageItem!.name == "Sun"
+                        removeButton.isDisabled = item.stageItem!.values["locked"] == 1
                         removeButton.clicked = { (event) in
                             if let index = item.stageItem!.componentLists["variables"]!.firstIndex(of: item.component!) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart("Remove Variable")
@@ -1918,7 +1918,7 @@ class SceneGraph                : MMWidget
             
             mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
             
-            if parent.stageItem!.name != "Sun" {
+            if parent.stageItem!.values["locked"] != 1 {
                 drawPlusButton(item: variableContainer, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 4 * graphZoom, headerHeight, headerHeight), cb: { () in
                         getStringDialog(view: self.mmView, title: "New Variable", message: "Variable name", defaultValue: "New Variable", cb: { (variableName) -> Void in
                                 getStringDialog(view: self.mmView, title: "Variable Type", message: "Type", defaultValue: "float4", cb: { (variableType) -> Void in
