@@ -288,14 +288,12 @@ class CodeSDFStream
                 return v;
             }
             
-            float2 __getParticipatingMedia(float3 pos)
+            float2 __getParticipatingMedia(float3 pos, float constFogDensity)
             {
-                float heightFog = fbm(pos);
-                heightFog = 0.3*clamp((heightFog-pos.y + 0.5)*1.0, 0.0, 1.0);
+                //float heightFog = fbm(pos);
+                //heightFog = 0.3*clamp((heightFog-pos.y + 0.5)*1.0, 0.0, 1.0);
             
-                const float constantFog = 0.02;//0.001;
-
-                float sigmaS = constantFog + heightFog;
+                float sigmaS = constFogDensity;// + heightFog;
                
                 const float sigmaA = 0.0;
                 const float sigmaE = max(0.000000001, sigmaA + sigmaS); // to avoid division by zero extinction
@@ -308,7 +306,7 @@ class CodeSDFStream
                 return 1.0/(4.0*3.14);
             }
             
-            float __volumetricShadow(float3 from, float3 dir, float lengthToLight)
+            float __volumetricShadow(float3 from, float3 dir, float lengthToLight, float constFogDensity)
             {
                 const float numStep = 16.0; // quality control. Bump to avoid shadow alisaing
                 float shadow = 1.0;
@@ -318,7 +316,7 @@ class CodeSDFStream
                 for(float s=0.5; s<(numStep-0.1); s+=1.0)// start at 0.5 to sample at center of integral part
                 {
                     float3 pos = from + dir * (s/(numStep));
-                    float2 sigma = __getParticipatingMedia(pos);
+                    float2 sigma = __getParticipatingMedia(pos, constFogDensity);
                     shadow *= exp(-sigma.y * dd);
                 }
                 return shadow;
@@ -575,52 +573,71 @@ class CodeSDFStream
                         // Density Code
                         
                         float4 densityIn = float4(__densityTexture.read(__gid));
-                        float transmittance = 1.0;
-                        float3 scatteredLight = float3(0.0, 0.0, 0.0);
-                        
-                        float t = __random2(float3(__data[0].z, 0, __data[0].w)).y;
-                        float tt = 0.0;
-                        float3 lightColor = __lightData[2].xyz;
-                        
-                        if (inShape.z == -1) {
-                            maxDistance = 50;
-                        }
-                        
-                        maxDistance = min(maxDistance, 50.0);
-                        
-                        for( int i=0; i < 5 && t < maxDistance; i++ )
-                        {
-                            float3 pos = rayOrigin + rayDirection * t;
-                            float2 sigma = __getParticipatingMedia( pos );
+                        float constFogDensity = densityIn.x;
+                        if (constFogDensity > 0.0000 ) {
                             
-                            const float sigmaS = sigma.x;
-                            const float sigmaE = sigma.y;
+                            //constFogDensity += (__data[0].w - 0.5) * 0.001;
                         
-                            float3 lightDirection; float lengthToLight;
-                            if (lightType.y == 0.0) {
-                                lightDirection = normalize(__lightData[0].xyz);
-                                lengthToLight = 10.;
-                            } else {
-                                lightDirection = normalize(__lightData[0].xyz - pos);
-                                lengthToLight = length(lightDirection);
+                            float transmittance = 1.0;
+                            float3 scatteredLight = float3(0.0, 0.0, 0.0);
+                            
+                            float t = __random2(float3(__data[0].z, 0, __data[0].w)).y;
+                            float tt = 0.0;
+                            float3 lightColor = __lightData[2].xyz;
+                                                    
+                            if (inShape.z == -1) {
+                                maxDistance = 50;
                             }
                             
-                            float3 S = lightColor * sigmaS * __phaseFunction() * __volumetricShadow(pos, lightDirection, lengthToLight) * __calcSoftshadow(pos, lightDirection, 0.02, maxDistance, __funcData);
-                            float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
-                            scatteredLight += transmittance * Sint;
+                            maxDistance = min(maxDistance, 50.0);
+                            
+                            for( int i=0; i < 5 && t < maxDistance; i++ )
+                            {
+                                float3 pos = rayOrigin + rayDirection * t;
+                                /*
+                                float2 sigma = __getParticipatingMedia( pos, constFogDensity );
+                                
+                                const float sigmaS = sigma.x;
+                                const float sigmaE = sigma.y;
+                            
+                                float3 lightDirection; float lengthToLight;
+                                if (lightType.y == 0.0) {
+                                    lightDirection = normalize(__lightData[0].xyz);
+                                    lengthToLight = 1.;
+                                } else {
+                                    lightDirection = normalize(__lightData[0].xyz - pos);
+                                    lengthToLight = length(lightDirection);
+                                }
+                                
+                                float3 S = lightColor * sigmaS * __phaseFunction() * __volumetricShadow(pos, lightDirection, lengthToLight, constFogDensity) * __calcSoftshadow(pos, lightDirection, 0.02, maxDistance, __funcData);
+                                float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
+                                scatteredLight += transmittance * Sint;
 
-                            transmittance *= exp(-sigmaE * tt);
-                                                
-                            tt += __random2(pos * __data[0].z).y * 2.;
-                            t += tt;
+                                transmittance *= exp(-sigmaE * tt);
+                                */
+                        
+                                float3 lightDirection; float lengthToLight;
+                                if (lightType.y == 0.0) {
+                                    lightDirection = normalize(__lightData[0].xyz);
+                                    lengthToLight = 1.;
+                                } else {
+                                    lightDirection = normalize(__lightData[0].xyz - pos);
+                                    lengthToLight = length(lightDirection);
+                                }
+                                densityIn.z *= __volumetricShadow(pos, lightDirection, lengthToLight, constFogDensity);
+                                densityIn.w *= __calcSoftshadow(pos, lightDirection, 0.02, maxDistance, __funcData);
+                                                    
+                                tt += __random2(pos * __data[0].z).y * 2.;
+                                t += tt;
+                            }
+                            /*
+                            float4 scatTrans = float4(scatteredLight, transmittance);
+                            scatTrans.xyz += densityIn.xyz;//(scatTrans.xyz + densityIn.xyz) / 2;
+                            scatTrans.w *= densityIn.w;//max(scatTrans.w, densityIn.w);//(scatTrans.w + densityIn.w) / 2;
+                            */
+                            
+                            __densityTexture.write(half4(densityIn), __gid);
                         }
-                        
-                        float4 scatTrans = float4(scatteredLight, transmittance);
-                        scatTrans.xyz = scatTrans.xyz + densityIn.xyz;
-                        scatTrans.w *= densityIn.w;
-                        
-                        __densityTexture.write(half4(scatTrans), __gid);
-                        
                         }
                         
                         """
@@ -709,8 +726,7 @@ class CodeSDFStream
             
                 float4 density = float4(__densityTexture.read(__gid));
                 color.xyz = color.xyz * density.w + density.xyz;
-                mask *= density.w;
-
+                mask.xyz = mask.xyz * density.w;
 
                 __colorTexture.write(half4(color), __gid);
                 __rayOriginTexture.write(half4(float4(rayOrigin, 0)), __gid);

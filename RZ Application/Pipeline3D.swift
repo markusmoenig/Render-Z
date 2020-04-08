@@ -449,9 +449,19 @@ class Pipeline3D            : Pipeline
             
             // Reset the shadow data to 1.0 in the meta data while not touching anything else (ambient etc).
             codeBuilder.renderClearShadow(texture: getTextureOfId("meta"))
-            codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(0,0,0,1))
+            
+            // Reset the fog density data
+            var fogDensity : Float = 0.02
+            if let fogVar = getGlobalVariableValue(withName: "World.worldFogDensity") {
+                fogDensity = fogVar.x
+            }
+            if fogDensity > 0.0 && reflections == 0 {
+                codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(fogDensity,0,1,1))
+            } else {
+                codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(0,0,0,1))
+            }
 
-            objectIndex = 1
+            objectIndex = 0
             shapeText = "shape_" + String(objectIndex)
             while let inst = instanceMap[shapeText] {
                 
@@ -459,6 +469,14 @@ class Pipeline3D            : Pipeline
                 
                 objectIndex += 1
                 shapeText = "shape_" + String(objectIndex)
+            }
+            
+            if fogDensity > 0.0 && reflections == 0 {
+                let data : [SIMD4<Float>] = [SIMD4<Float>(Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0))]
+                let buffer = codeBuilder.compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+                
+                codeBuilder.compute.run( codeBuilder.densityState!, outTexture: getTextureOfId("density"), inBuffer: buffer, inTextures: [getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("depth")])
+                codeBuilder.compute.commandBuffer.waitUntilCompleted()
             }
             
             // Materials
