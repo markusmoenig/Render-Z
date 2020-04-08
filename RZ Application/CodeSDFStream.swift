@@ -288,12 +288,12 @@ class CodeSDFStream
                 return v;
             }
             
-            float2 getParticipatingMedia(float3 pos)
+            float2 __getParticipatingMedia(float3 pos)
             {
                 float heightFog = fbm(pos);
                 heightFog = 0.3*clamp((heightFog-pos.y + 0.5)*1.0, 0.0, 1.0);
             
-                const float constantFog = 0.00001;//0.001;
+                const float constantFog = 0.02;//0.001;
 
                 float sigmaS = constantFog + heightFog;
                
@@ -303,28 +303,28 @@ class CodeSDFStream
                 return float2( sigmaS, sigmaE );
             }
             
-            float phaseFunction()
+            float __phaseFunction()
             {
                 return 1.0/(4.0*3.14);
             }
             
-            float volumetricShadow(float3 from, float3 dir)
+            float __volumetricShadow(float3 from, float3 dir, float lengthToLight)
             {
                 const float numStep = 16.0; // quality control. Bump to avoid shadow alisaing
                 float shadow = 1.0;
                 float sigmaS = 0.0;
                 float sigmaE = 0.0;
-                float dd = length(dir) / numStep;
+                float dd = lengthToLight / numStep;
                 for(float s=0.5; s<(numStep-0.1); s+=1.0)// start at 0.5 to sample at center of integral part
                 {
                     float3 pos = from + dir * (s/(numStep));
-                    float2 sigma = getParticipatingMedia(pos);
+                    float2 sigma = __getParticipatingMedia(pos);
                     shadow *= exp(-sigma.y * dd);
                 }
                 return shadow;
             }
             
-            float calcSoftshadow( float3 ro, float3 rd, float mint, float tmax, thread struct FuncData *__funcData )
+            float __calcSoftshadow( float3 ro, float3 rd, float mint, float tmax, thread struct FuncData *__funcData )
             {
                 float res = 1.0;
                 float t = mint;
@@ -337,6 +337,16 @@ class CodeSDFStream
                     if( res<0.005 || t>tmax ) break;
                 }
                 return clamp( res, 0.0, 1.0 );
+            }
+            
+            float2 __random2(float3 st){
+              float2 S = float2( dot(st,float3(127.1,311.7,783.089)),
+                         dot(st,float3(269.5,183.3,173.542)) );
+              return fract(sin(S)*43758.5453123);
+            }
+            
+            float __rand(float2 co){
+                return fract(sin(dot(co.xy ,float2(12.9898,78.233))) * 43758.5453);
             }
             
             kernel void computeShadow(
@@ -563,43 +573,45 @@ class CodeSDFStream
                         outMeta.y = min(outMeta.y, outShadow);
                         
                         // Density Code
-                        /*
+                        
                         float4 densityIn = float4(__densityTexture.read(__gid));
                         float transmittance = 1.0;
                         float3 scatteredLight = float3(0.0, 0.0, 0.0);
                         
-                        float t = 0.02;
+                        float t = __random2(float3(__data[0].z, 0, __data[0].w)).y;
                         float tt = 0.0;
                         float3 lightColor = __lightData[2].xyz;
                         
                         if (inShape.z == -1) {
-                            maxDistance = 100;
+                            maxDistance = 50;
                         }
                         
-                        maxDistance = min(maxDistance, 100.0);
+                        maxDistance = min(maxDistance, 50.0);
                         
-                        for( int i=0; i < 70 && t < maxDistance; i++ )
+                        for( int i=0; i < 5 && t < maxDistance; i++ )
                         {
                             float3 pos = rayOrigin + rayDirection * t;
-                            float2 sigma = getParticipatingMedia( pos );
+                            float2 sigma = __getParticipatingMedia( pos );
                             
                             const float sigmaS = sigma.x;
                             const float sigmaE = sigma.y;
                         
-                            float3 lightDirection;
+                            float3 lightDirection; float lengthToLight;
                             if (lightType.y == 0.0) {
                                 lightDirection = normalize(__lightData[0].xyz);
+                                lengthToLight = 10.;
                             } else {
                                 lightDirection = normalize(__lightData[0].xyz - pos);
+                                lengthToLight = length(lightDirection);
                             }
                             
-                            float3 S = lightColor * sigmaS * phaseFunction();// * volumetricShadow(pos, lightDirection) * calcSoftshadow(pos, lightDirection, 0.02, maxDistance, __funcData);
+                            float3 S = lightColor * sigmaS * __phaseFunction() * __volumetricShadow(pos, lightDirection, lengthToLight) * __calcSoftshadow(pos, lightDirection, 0.02, maxDistance, __funcData);
                             float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
                             scatteredLight += transmittance * Sint;
 
                             transmittance *= exp(-sigmaE * tt);
                                                 
-                            tt += abs(maxDistance - t) * 0.3;
+                            tt += __random2(pos * __data[0].z).y * 2.;
                             t += tt;
                         }
                         
@@ -608,7 +620,7 @@ class CodeSDFStream
                         scatTrans.w *= densityIn.w;
                         
                         __densityTexture.write(half4(scatTrans), __gid);
-                        */
+                        
                         }
                         
                         """
@@ -697,6 +709,8 @@ class CodeSDFStream
             
                 float4 density = float4(__densityTexture.read(__gid));
                 color.xyz = color.xyz * density.w + density.xyz;
+                mask *= density.w;
+
 
                 __colorTexture.write(half4(color), __gid);
                 __rayOriginTexture.write(half4(float4(rayOrigin, 0)), __gid);

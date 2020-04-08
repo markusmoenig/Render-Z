@@ -506,7 +506,9 @@ class CodeEditor        : MMWidget
                 
                 if self.codeChanged && self.liveEditing {
                     // Mark the current Component invalid
-                    self.markStageItemOfComponentInvalid(self.codeComponent!)
+                    if let comp = self.codeComponent {
+                        self.markStageItemOfComponentInvalid(comp)
+                    }
                     // Compile
                     globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
                     globalApp!.currentPipeline!.render(self.rect.width, self.rect.height)
@@ -530,7 +532,9 @@ class CodeEditor        : MMWidget
                 }
                 
                 self.currentComponent = self.codeComponent
-                self.scrollArea.offsetY = self.codeComponent!.scrollOffsetY
+                if let comp = self.codeComponent {
+                    self.scrollArea.offsetY = comp.scrollOffsetY
+                }
 
                 self.codeHasRendered = true
                 self.codeIsUpdating = false

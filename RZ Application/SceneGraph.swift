@@ -948,6 +948,7 @@ class SceneGraph                : MMWidget
         
         if let uuid = uuid {
             if let item = itemMap[uuid] {
+                
                 if item.itemType == .Stage && item.stage.stageType == .PreStage {
                     // PreStage: 2D / 3D Switch
                     
@@ -1143,7 +1144,8 @@ class SceneGraph                : MMWidget
                     }
                     toolBarWidgets.append(button)
                 } else
-                    if item.itemType == .StageItem && item.stageItem!.stageItemType == .ShapeStage && (item.stageItem!.components[item.stageItem!.defaultName] == nil || (item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .UVMAP3D && item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Material3D)) {
+                    if item.itemType == .StageItem && item.stageItem!.stageItemType == .ShapeStage && (item.stageItem!.components[item.stageItem!.defaultName] == nil || (item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .UVMAP3D &&
+                        item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Ground3D && item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Material3D)) {
                     let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Add Child")
                     button.clicked = { (event) in
                         //getStringDialog(view: self.mmView, title: "Child Object", message: "Object name", defaultValue: "Child Object", cb: { (value) -> Void in
@@ -1222,6 +1224,9 @@ class SceneGraph                : MMWidget
                     } else
                     if comp.componentType == .AO3D {
                         buildChangeComponent(item, name: "Ambient Occlusion", ids: ["AO3D"])
+                    } else
+                    if comp.componentType == .Ground3D {
+                        buildChangeComponent(item, name: "Ground", ids: ["Ground3D"])
                     } else
                     if comp.componentType == .UVMAP3D {
                         buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])
@@ -1789,7 +1794,7 @@ class SceneGraph                : MMWidget
 
         var component : CodeComponent? = nil
         if let comp = o.components[o.defaultName] {
-            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D {
+            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D {
                 component = comp
                 uuid = comp.uuid
             }

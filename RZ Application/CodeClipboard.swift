@@ -127,6 +127,10 @@ class CodeClipboard
     
     func updateSelection(_ fragment: CodeFragment?,_ block: CodeBlock?,_ customRect: MMRect? = nil)
     {
+        if globalApp!.developerEditor.codeEditor.codeComponent == nil {
+            return
+        }
+        
         //print("updateSelection", fragment, block)
         selectedFragment = fragment
         selectedBlock = block

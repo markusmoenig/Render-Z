@@ -261,7 +261,7 @@ class Stage                 : Codable, Equatable
         
         if stageType == .ShapeStage {
             
-            let item = StageItem(.RenderStage, "Ground")
+            let item = StageItem(.ShapeStage, "Ground")
             //let codeComponent = CodeComponent(.Ground3D, "Plane")
             //codeComponent.createDefaultFunction(.Ground3D)
             let codeComponent = decodeComponentFromJSON(defaultGround3D)!
@@ -362,7 +362,11 @@ class Stage                 : Codable, Equatable
             worldAmbientComponent.values["locked"] = 1
             worldAmbientComponent.createVariableFunction("worldAmbient", "float4", "Ambient Color", defaultValue: SIMD4<Float>(0.05,0.15,0.25, 1), gizmo: 2)
             
-            worldPool.componentLists["variables"] = [worldAmbientComponent]
+            let worldFogDensityComponent = CodeComponent(.Variable, "Fog Density")
+            worldFogDensityComponent.values["locked"] = 1
+            worldFogDensityComponent.createVariableFunction("worldFogDensity", "float", "Fog Density", defaultValue: Float(0), gizmo: 2)
+            
+            worldPool.componentLists["variables"] = [worldAmbientComponent, worldFogDensityComponent]
 
             // Create Sun Pool
             let sunPool = StageItem(.VariablePool, "Sun")
