@@ -1607,6 +1607,7 @@ class CodeComponent         : Codable, Equatable
         case values
         case subComponent
         case connections
+        case scrollOffsetY
     }
     
     required init(from decoder: Decoder) throws
@@ -1632,6 +1633,10 @@ class CodeComponent         : Codable, Equatable
         
         if let conn = try container.decodeIfPresent([UUID:CodeConnection].self, forKey: .connections) {
             connections = conn
+        }
+        
+        if let scrollOffsetY = try container.decodeIfPresent(Float.self, forKey: .scrollOffsetY) {
+            self.scrollOffsetY = scrollOffsetY
         }
 
         /*
@@ -1706,6 +1711,7 @@ class CodeComponent         : Codable, Equatable
         try container.encode(values, forKey: .values)
         try container.encode(subComponent, forKey: .subComponent)
         try container.encode(connections, forKey: .connections)
+        try container.encode(scrollOffsetY, forKey: .scrollOffsetY)
     }
     
     static func ==(lhs:CodeComponent, rhs:CodeComponent) -> Bool { // Implement Equatable

@@ -32,6 +32,7 @@ class ArtistEditor          : Editor
     
     var outputButton        : MMScrollButton
     
+    var materialButton      : MMButtonWidget
     var cameraButton        : MMButtonWidget
     var renderButton        : MMButtonWidget
 
@@ -53,6 +54,11 @@ class ArtistEditor          : Editor
             globalApp!.currentEditor.updateOnNextDraw(compile: false)
         }
         
+        materialButton = MMButtonWidget( mmView, iconName: "material" )
+        materialButton.iconZoom = 2
+        materialButton.rect.width += 14
+        materialButton.rect.height -= 17
+        
         cameraButton = MMButtonWidget( mmView, iconName: "camera" )
         cameraButton.iconZoom = 2
         cameraButton.rect.width += 16
@@ -64,6 +70,31 @@ class ArtistEditor          : Editor
         renderButton.rect.height -= 14
         
         super.init()
+        
+        materialButton.clicked = { (event) -> Void in
+            
+            if let component = self.designEditor.designComponent {
+                if component.componentType != .Material3D {
+                    if let stageItem = globalApp!.project.selected!.getStageItem(component) {
+                        for child in stageItem.children {
+                            if child.components[child.defaultName]!.componentType == .Material3D {
+                                globalApp!.project.selected!.getStageItem(child.components[child.defaultName]!, selectIt: true)
+                                return
+                            }
+                        }
+                    }
+                } else
+                if let stageItem = globalApp!.project.selected!.getStageItem(component) {
+                    let scene = globalApp!.project.selected!
+                    let stage = scene.getStage(stageItem.stageItemType)
+                    let parent = stage.getParentOfStageItem(stageItem)
+                    if let p = parent.1 {
+                        globalApp!.sceneGraph.setCurrent(stage: stage, stageItem: p)
+                    }
+                }
+            }
+            self.materialButton.removeState(.Checked)
+        }
         
         cameraButton.clicked = { (event) -> Void in
             let preStage = globalApp!.project.selected!.getStage(.PreStage)
@@ -101,7 +132,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, outputButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, outputButton, materialButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -110,7 +141,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, outputButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, outputButton, materialButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -120,6 +151,17 @@ class ArtistEditor          : Editor
     override func setComponent(_ component: CodeComponent)
     {
         dryRunComponent(component)
+        
+        if component.componentType == .Transform3D || component.componentType == .SDF3D || component.componentType == .Ground3D || component.componentType == .Material3D {
+            materialButton.isDisabled = false
+            if component.componentType == .Material3D {
+                materialButton.addState(.Checked)
+            } else {
+                materialButton.removeState(.Checked)
+            }
+        } else {
+            materialButton.isDisabled = true
+        }
 
         designEditor.designComponent = component
         designProperties.setSelected(component)
@@ -155,7 +197,11 @@ class ArtistEditor          : Editor
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
 
-            cameraButton.rect.x = (globalApp!.topRegion!.rect.width - (cameraButton.rect.width + renderButton.rect.width + 6)) / 2
+            materialButton.rect.x = (globalApp!.topRegion!.rect.width - (cameraButton.rect.width + renderButton.rect.width + 6)) / 2
+            materialButton.rect.y = 4 + 44
+            materialButton.draw()
+            
+            cameraButton.rect.x = materialButton.rect.right() + 6
             cameraButton.rect.y = 4 + 44
             cameraButton.draw()
             

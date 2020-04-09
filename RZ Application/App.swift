@@ -73,6 +73,7 @@ class App
         mmView.registerIcon("rotate")
         mmView.registerIcon("scale")
         mmView.registerIcon("render")
+        mmView.registerIcon("material")
         sceneGraph = SceneGraph(mmView)
         
         // Initialize images
