@@ -137,10 +137,12 @@ class App
             
             if let project =  try? JSONDecoder().decode(Project.self, from: jsonData) {
                 self.project = project
+                
+                //project.selected!.stages[5] = Stage(.VariablePool, "Variables")
 
                 globalApp!.sceneGraph.clearSelection()
                 project.selected!.addDefaultImages()
-
+                
                 globalApp!.currentPipeline?.resetIds()
                 currentEditor.updateOnNextDraw(compile: true)
                 mmView.update()
@@ -188,7 +190,7 @@ class App
             if let stage =  try? JSONDecoder().decode(Stage.self, from: jsonData) {
                 project.selected!.updateStage(stage)
                 
-                globalApp!.currentPipeline?.resetIds()
+                project.selected!.invalidateCompilerInfos()
                 currentEditor.updateOnNextDraw()
             }
         }
@@ -211,7 +213,7 @@ class App
             if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
                 project.selected!.updateStageItem(stageItem)
                 
-                globalApp!.currentPipeline?.resetIds()
+                globalApp!.developerEditor.codeEditor.markStageItemInvalid(stageItem)
                 currentEditor.updateOnNextDraw()
             }
         }

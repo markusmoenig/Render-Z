@@ -118,7 +118,8 @@ class SceneGraph                : MMWidget
     let toolBarHeight           : Float = 30
 
     var menuWidget              : MMMenuWidget
-    
+    var itemMenu                : MMMenuWidget
+
     var plusLabel               : MMTextLabel? = nil
     
     var toolBarButtonSkin       : MMSkinButton
@@ -150,7 +151,7 @@ class SceneGraph                : MMWidget
     // The nav ratios
     var ratioX                  : Float = 0
     var ratioY                  : Float = 0
-        
+            
     override init(_ view: MMView)
     {
         menuWidget = MMMenuWidget(view, type: .Hidden)
@@ -161,11 +162,18 @@ class SceneGraph                : MMWidget
         toolBarButtonSkin.height = view.skin.Button.height - 5
         toolBarButtonSkin.fontScale = 0.40
         toolBarButtonSkin.round = 20
+
+        var itemMenuSkin =  MMSkinMenuWidget()
+        itemMenuSkin.button.color = SIMD4<Float>(1,1,1,0.3)
         
+        itemMenu = MMMenuWidget( view, skinToUse: itemMenuSkin, type: .BoxedMenu )
+        itemMenu.rect.width /= 1.5
+        itemMenu.rect.height /= 1.5
+
         super.init(view)
         
         zoom = view.scaleFactor
-
+        
         menuWidget.setItems([
             MMMenuItem(text: "Add Object", cb: { () in
                 //getStringDialog(view: self.mmView, title: "New Object", message: "Object name", defaultValue: "New Object", cb: { (value) -> Void in
@@ -211,6 +219,7 @@ class SceneGraph                : MMWidget
             mmView.widgets.insert(w, at: 0)
         }
         mmView.widgets.insert(menuWidget, at: 0)
+        mmView.widgets.insert(itemMenu, at: 0)
     }
     
     func deactivate()
@@ -219,6 +228,7 @@ class SceneGraph                : MMWidget
             mmView.deregisterWidget(w)
         }
         mmView.deregisterWidget(menuWidget)
+        mmView.deregisterWidget(itemMenu)
     }
      
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -724,6 +734,7 @@ class SceneGraph                : MMWidget
     override func update()
     {
         buildToolbar(uuid: currentUUID)
+        buildMenu(uuid: currentUUID)
         needsUpdate = false
     }
     
@@ -749,6 +760,23 @@ class SceneGraph                : MMWidget
             parse(scene: scene, skin: skin)
             if menuWidget.states.contains(.Opened) {
                 menuWidget.draw()
+            }
+            
+            // Item Menu
+            if itemMenu.items.count > 0 {
+                if let uuid = currentUUID {
+                    if let currentItem = itemMap[uuid] {
+                        itemMenu.rect.x = rect.x + currentItem.rect.right() + 5
+                        itemMenu.rect.y = rect.y + currentItem.rect.y - 15
+                        itemMenu.draw()
+                    } else {
+                        itemMenu.rect.x = 0
+                        itemMenu.rect.y = 0
+                    }
+                } else {
+                    itemMenu.rect.x = 0
+                    itemMenu.rect.y = 0
+                }
             }
             mmView.renderer.setClipRect()
         }
@@ -909,15 +937,15 @@ class SceneGraph                : MMWidget
     }
     
     // Build the menu
-    func buildToolbar(uuid: UUID?)
+    func buildMenu(uuid: UUID?)
     {
-        deactivate()
-        toolBarWidgets = []
-        
+        itemMenu.setItems([])
+
+        var items : [MMMenuItem] = []
+
         func buildChangeComponent(_ item: SceneGraphItem, name: String, ids: [String])
         {
-            let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change " + name)
-            button.clicked = { (event) in
+            let menuItem = MMMenuItem(text: "Change " + name, cb: { () in
                 globalApp!.libraryDialog.show(ids: ids, cb: { (json) in
                     if let comp = decodeComponentFromJSON(json) {
                         let undo = globalApp!.currentEditor.undoStageItemStart("Change " + name)
@@ -942,9 +970,351 @@ class SceneGraph                : MMWidget
                         }
                     }
                 })
-            }
-            toolBarWidgets.append(button)
+            } )
+            items.append(menuItem)
         }
+        
+        if let uuid = uuid {
+            if let item = itemMap[uuid] {
+                if let comp = item.component {
+                    if comp.componentType == .RayMarch3D {
+                        buildChangeComponent(item, name: "RayMarcher", ids: ["RayMarch3D"])
+                    } else
+                    if comp.componentType == .Normal3D {
+                        buildChangeComponent(item, name: "Normal", ids: ["Normal3D"])
+                    } else
+                    if comp.componentType == .SkyDome {
+                        buildChangeComponent(item, name: "Sky Dome", ids: ["SkyDome", "Pattern"])
+                    } else
+                    if comp.componentType == .Camera3D {
+                        buildChangeComponent(item, name: "Camera", ids: ["Camera3D"])
+                    } else
+                    if comp.componentType == .Shadows3D {
+                        buildChangeComponent(item, name: "Shadows", ids: ["Shadows3D"])
+                    } else
+                    if comp.componentType == .AO3D {
+                        buildChangeComponent(item, name: "Occlusion", ids: ["AO3D"])
+                    } else
+                    if comp.componentType == .Ground3D {
+                        buildChangeComponent(item, name: "Ground", ids: ["Ground3D"])
+                    } else
+                    if comp.componentType == .UVMAP3D {
+                        buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])
+                    } else
+                    if comp.componentType == .Material3D {
+                        buildChangeComponent(item, name: "Material", ids: ["Material3D"])
+                    } else
+                    if comp.componentType == .Render2D || comp.componentType == .Render3D {
+                        let menuItem = MMMenuItem(text: "Change Renderer", cb: { () in
+                            globalApp!.libraryDialog.show(ids: [comp.componentType == .Render2D ? "Render2D" : "Render3D"], cb: { (json) in
+                                if let comp = decodeComponentFromJSON(json) {
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Change Renderer")
+                                    
+                                    comp.uuid = UUID()
+                                    comp.selected = nil
+                                    globalApp!.currentEditor.setComponent(comp)
+                                    
+                                    comp.uuid = item.component!.uuid
+                                    globalApp!.project.selected!.updateComponent(comp)
+                                                                
+                                    globalApp!.project.selected!.invalidateCompilerInfos()
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                }
+                            })
+                        } )
+                        items.append(menuItem)
+                    } else
+                    if comp.componentType == .Modifier3D {
+                        buildChangeComponent(item, name: "Modifier", ids: ["Modifier3D"])
+                        
+                        let menuItem = MMMenuItem(text: "Remove", cb: { () in
+                            let id = "modifier" + getCurrentModeId()
+                            
+                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Modifier")
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                item.stageItem!.componentLists[id]!.remove(at: index)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            }
+                        } )
+                        items.append(menuItem)
+                    } else
+                    if comp.componentType == .Domain3D {
+                        buildChangeComponent(item, name: "Domain", ids: ["Domain3D"])
+                        
+                        let menuItem = MMMenuItem(text: "Remove Modifier", cb: { () in
+                            let id = "domain" + getCurrentModeId()
+                            
+                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Domain")
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                item.stageItem!.componentLists[id]!.remove(at: index)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            }
+                        } )
+                        items.append(menuItem)
+                    } else
+                    if comp.componentType == .Pattern {
+                        let disconnectItem = MMMenuItem(text: "Disconnect", cb: { () in
+                            let undo = globalApp!.currentEditor.undoStageItemStart(item.stageItem!, "Disconnect Pattern")
+                            globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                            self.removeConnectionsFor(item.stageItem!, comp)
+                            globalApp!.currentEditor.undoStageItemEnd(undo)
+                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                        } )
+                        items.append(disconnectItem)
+
+                        let removeItem = MMMenuItem(text: "Remove", cb: { () in
+                            if let index = item.stageItem!.componentLists["patterns"]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Pattern")
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                item.stageItem!.componentLists["patterns"]!.remove(at: index)
+                                self.removeConnectionsFor(item.stageItem!, comp)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            }
+                        } )
+                        items.append(removeItem)
+                    } else
+                    if comp.componentType == .Variable {
+                        
+                        if item.stageItem!.values["locked"] != 1 {
+                            let renameItem = MMMenuItem(text: "Rename Variable", cb: { () in
+                                if let frag = getVariable(from: comp) {
+                                    getStringDialog(view: self.mmView, title: "Rename Variable", message: "Variable name", defaultValue: frag.name, cb: { (value) -> Void in
+                                        let undo = globalApp!.currentEditor.undoComponentStart("Rename Variable")
+                                        frag.name = value
+                                        comp.libraryName = value
+                                        globalApp!.project.selected!.updateComponent(comp)
+                                        globalApp!.currentEditor.setComponent(comp)
+                                        globalApp!.currentEditor.undoComponentEnd(undo)
+                                        self.mmView.update()
+                                    } )
+                                }
+                            } )
+                            items.append(renameItem)
+
+                            let removeItem = MMMenuItem(text: "Remove", cb: { () in
+                                if let index = item.stageItem!.componentLists["variables"]!.firstIndex(of: item.component!) {
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Remove Variable")
+                                    item.stageItem!.componentLists["variables"]!.remove(at: index)
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                }
+                            } )
+                            items.append(removeItem)
+                        }
+                    } else
+                    if item.itemType == .ShapeItem {
+                        
+                        let changeItem = MMMenuItem(text: "Change Shape", cb: { () in
+                            self.getShape(item: item, replace: true)
+                        } )
+                        items.append(changeItem)
+                        
+                        let deleteItem = MMMenuItem(text: "Remove", cb: { () in
+                            let id = "shapes" + getCurrentModeId()
+                            
+                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Shape")
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(item.component!)
+                                item.stageItem!.componentLists[id]!.remove(at: index)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            }
+                        } )
+                        items.append(deleteItem)
+                    } else
+                    if item.itemType == .BooleanItem {
+                        
+                        let changeItem = MMMenuItem(text: "Change Boolean", cb: { () in
+                            globalApp!.libraryDialog.show(ids: ["Boolean"], cb: { (json) in
+                                if let comp = decodeComponentFromJSON(json) {
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Change Boolean")
+                                                                    
+                                    comp.uuid = UUID()
+                                    comp.selected = nil
+                                    globalApp!.currentEditor.setComponent(comp)
+                                    
+                                    if let parent = item.parentComponent {
+                                        parent.subComponent = comp
+                                        globalApp!.project.selected!.updateComponent(parent)
+                                        globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(parent)
+                                    }
+                                                                
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                }
+                            })
+                        } )
+                        items.append(changeItem)
+                    }
+                }
+                if item.itemType == .Stage && item.stage.stageType == .VariablePool {
+                    // Variable Stage
+                    let addItem = MMMenuItem(text: "Add Variable Pool", cb: { () in
+                        getStringDialog(view: self.mmView, title: "Variable Pool", message: "Pool name", defaultValue: "Variables", cb: { (value) -> Void in
+                            
+                            let variablePool = StageItem(.VariablePool, value)
+                            variablePool.componentLists["variables"] = []
+
+                            if globalApp!.currentSceneMode == .ThreeD {
+                                item.stage.children3D.append(variablePool)
+                            } else {
+                                item.stage.children2D.append(variablePool)
+                            }
+                            placeChild(modeId: getCurrentModeId(), parent: item.stage, child: variablePool, stepSize: 90, radius: 150)
+                            self.mmView.update()
+                        } )
+                    } )
+                    items.append(addItem)
+                } else
+                if item.itemType == .StageItem && item.stage.stageType == .VariablePool {
+                    // Variable Stage
+                    if item.stageItem!.values["locked"] != 1 {
+                        let renameItem = MMMenuItem(text: "Rename Pool", cb: { () in
+                            getStringDialog(view: self.mmView, title: "Rename Variable Pool", message: "Pool name", defaultValue: "Variables", cb: { (value) -> Void in
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Rename Variable Pool")
+                                item.stageItem!.name = value
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                self.mmView.update()
+                            } )
+                        } )
+                        items.append(renameItem)
+
+                        let removeItem = MMMenuItem(text: "Remove", cb: { () in
+                            if globalApp!.currentSceneMode == .ThreeD {
+                                let index = item.stage.children3D.firstIndex(of: item.stageItem!)
+                                if let index = index {
+                                    item.stage.children3D.remove(at: index)
+                                }
+                            } else {
+                                let index = item.stage.children2D.firstIndex(of: item.stageItem!)
+                                if let index = index {
+                                    item.stage.children2D.remove(at: index)
+                                }
+                            }
+                        } )
+                        items.append(removeItem)
+                    }
+                } else
+                if item.itemType == .StageItem && item.stageItem!.stageItemType == .ShapeStage && (item.stageItem!.components[item.stageItem!.defaultName] == nil || (item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .UVMAP3D &&
+                        item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Ground3D && item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Material3D)) {
+                    
+                    let addChildItem = MMMenuItem(text: "Add Child", cb: { () in
+
+                        //getStringDialog(view: self.mmView, title: "Child Object", message: "Object name", defaultValue: "Child Object", cb: { (value) -> Void in
+                            if let scene = globalApp!.project.selected {
+                                
+                                let shapeStage = scene.getStage(.ShapeStage)
+                                let undo = globalApp!.currentEditor.undoStageStart(shapeStage, "Add Child Object")
+                                let objectItem = shapeStage.createChild(/*value*/"Child Object", parent: item.stageItem!)
+                                
+                                objectItem.values["_graphX"]! = objectItem.values["_graphX"]!
+                                objectItem.values["_graphY"]! = objectItem.values["_graphY"]! + 270
+
+                                globalApp!.currentEditor.undoStageEnd(shapeStage, undo)
+                                globalApp!.sceneGraph.setCurrent(stage: shapeStage, stageItem: objectItem)
+                            }
+                        //} )
+                    } )
+                    items.append(addChildItem)
+
+                    let renameItem = MMMenuItem(text: "Rename", cb: { () in
+                        getStringDialog(view: self.mmView, title: "Rename Object", message: "Object name", defaultValue: item.stageItem!.name, cb: { (value) -> Void in
+                            let undo = globalApp!.currentEditor.undoStageItemStart("Rename Object")
+                            item.stageItem!.name = value
+                            item.stageItem!.label = nil
+                            globalApp!.currentEditor.undoStageItemEnd(undo)
+                            self.mmView.update()
+                        } )
+                    } )
+                    items.append(renameItem)
+
+                    let removeItem = MMMenuItem(text: "Remove", cb: { () in
+
+                        if let scene = globalApp!.project.selected {
+                            let shapeStage = scene.getStage(.ShapeStage)
+                            let parent = shapeStage.getParentOfStageItem(item.stageItem!)
+                            if parent.1 == nil {
+                                let undo = globalApp!.currentEditor.undoStageStart(shapeStage, "Remove Object")
+                                if let index = shapeStage.children2D.firstIndex(of: item.stageItem!) {
+                                    shapeStage.children2D.remove(at: index)
+                                } else
+                                if let index = shapeStage.children3D.firstIndex(of: item.stageItem!) {
+                                    shapeStage.children3D.remove(at: index)
+                                }
+                                globalApp!.currentEditor.undoStageEnd(shapeStage, undo)
+                            } else
+                            if let p = parent.1 {
+                                let undo = globalApp!.currentEditor.undoStageItemStart(p, "Remove Child Object")
+                                if let index = p.children.firstIndex(of: item.stageItem!) {
+                                    p.children.remove(at: index)
+                                }
+                                globalApp!.currentEditor.undoStageItemEnd(p, undo)
+                            }
+                            self.clearToolbar()
+                        }
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                    } )
+                    items.append(removeItem)
+                } else
+                if item.itemType == .StageItem && item.stage.stageType == .LightStage {
+                    // Light
+                    
+                    let renameItem = MMMenuItem(text: "Rename Light", cb: { () in
+                        getStringDialog(view: self.mmView, title: "Rename Light", message: "Light name", defaultValue: item.stageItem!.name, cb: { (value) -> Void in
+                            let undo = globalApp!.currentEditor.undoStageItemStart("Rename Light")
+                            item.stageItem!.name = value
+                            globalApp!.currentEditor.undoStageItemEnd(undo)
+                            self.mmView.update()
+                        } )
+                    } )
+                    items.append(renameItem)
+
+                    let removeItem = MMMenuItem(text: "Remove", cb: { () in
+                        if let scene = globalApp!.project.selected {
+                            let lightStage = scene.getStage(.LightStage)
+                            let undo = globalApp!.currentEditor.undoStageStart(lightStage, "Remove Light")
+                            
+                            if globalApp!.currentSceneMode == .ThreeD {
+                                let index = item.stage.children3D.firstIndex(of: item.stageItem!)
+                                if let index = index {
+                                    item.stage.children3D.remove(at: index)
+                                }
+                            } else {
+                                let index = item.stage.children2D.firstIndex(of: item.stageItem!)
+                                if let index = index {
+                                    item.stage.children2D.remove(at: index)
+                                }
+                            }
+                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            globalApp!.currentEditor.undoStageEnd(lightStage, undo)
+                        }
+                        
+                    } )
+                    items.append(removeItem)
+                }
+            }
+        }
+        
+        itemMenu.setItems(items)
+        if items.count == 0 {
+            mmView.deregisterWidget(itemMenu)
+        } else {
+            mmView.widgets.insert(itemMenu, at: 0)
+        }
+    }
+    
+    // Build the menu
+    func buildToolbar(uuid: UUID?)
+    {
+        deactivate()
+        toolBarWidgets = []
         
         if let uuid = uuid {
             if let item = itemMap[uuid] {
@@ -988,336 +1358,7 @@ class SceneGraph                : MMWidget
                         globalApp!.project.selected!.sceneMode = globalApp!.currentSceneMode
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     }
-                    
                     toolBarWidgets.append(tabButton)
-                } else
-                if item.itemType == .Stage && item.stage.stageType == .VariablePool {
-                    // Variable Stage
-                    
-                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Add Variable Pool")
-                    button.clicked = { (event) in
-                        getStringDialog(view: self.mmView, title: "Variable Pool", message: "Pool name", defaultValue: "Variables", cb: { (value) -> Void in
-                            
-                            let variablePool = StageItem(.VariablePool, value)
-                            variablePool.componentLists["variables"] = []
-
-                            if globalApp!.currentSceneMode == .ThreeD {
-                                item.stage.children3D.append(variablePool)
-                            } else {
-                                item.stage.children2D.append(variablePool)
-                            }
-                            placeChild(modeId: getCurrentModeId(), parent: item.stage, child: variablePool, stepSize: 90, radius: 150)
-                            self.mmView.update()
-                        } )
-                    }
-                    toolBarWidgets.append(button)
-                } else
-                if item.itemType == .StageItem && item.stage.stageType == .VariablePool {
-                    // Variable Stage
-                    
-                    var button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Pool")
-                    button.isDisabled = item.stageItem!.values["locked"] == 1
-                    button.clicked = { (event) -> Void in
-                        getStringDialog(view: self.mmView, title: "Rename Variable Pool", message: "Pool name", defaultValue: "Variables", cb: { (value) -> Void in
-                            let undo = globalApp!.currentEditor.undoStageItemStart("Rename Variable Pool")
-                            item.stageItem!.name = value
-                            globalApp!.currentEditor.undoStageItemEnd(undo)
-                            self.mmView.update()
-                        } )
-                    }
-                    toolBarWidgets.append(button)
-                    
-                    button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                    button.isDisabled = item.stageItem!.values["locked"] == 1
-                    button.clicked = { (event) -> Void in
-                        if globalApp!.currentSceneMode == .ThreeD {
-                            let index = item.stage.children3D.firstIndex(of: item.stageItem!)
-                            if let index = index {
-                                item.stage.children3D.remove(at: index)
-                            }
-                        } else {
-                            let index = item.stage.children2D.firstIndex(of: item.stageItem!)
-                            if let index = index {
-                                item.stage.children2D.remove(at: index)
-                            }
-                        }
-                    }
-                    toolBarWidgets.append(button)
-                } else
-                if item.itemType == .StageItem && item.stage.stageType == .LightStage {
-                    // Light
-                    
-                    var button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Light")
-                    button.clicked = { (event) -> Void in
-                        getStringDialog(view: self.mmView, title: "Rename Light", message: "Light name", defaultValue: item.stageItem!.name, cb: { (value) -> Void in
-                            let undo = globalApp!.currentEditor.undoStageItemStart("Rename Light")
-                            item.stageItem!.name = value
-                            globalApp!.currentEditor.undoStageItemEnd(undo)
-                            self.mmView.update()
-                        } )
-                    }
-                    toolBarWidgets.append(button)
-                    
-                    button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                    button.clicked = { (event) -> Void in
-                        if globalApp!.currentSceneMode == .ThreeD {
-                            let index = item.stage.children3D.firstIndex(of: item.stageItem!)
-                            if let index = index {
-                                item.stage.children3D.remove(at: index)
-                            }
-                        } else {
-                            let index = item.stage.children2D.firstIndex(of: item.stageItem!)
-                            if let index = index {
-                                item.stage.children2D.remove(at: index)
-                            }
-                        }
-                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                    }
-                    toolBarWidgets.append(button)
-                } else
-                if item.itemType == .ShapeItem {
-                    
-                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change Shape")
-                    button.clicked = { (event) in
-                        self.getShape(item: item, replace: true)
-                    }
-                    toolBarWidgets.append(button)
-                    
-                    let deleteButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                    deleteButton.clicked = { (event) in
-                        let id = "shapes" + getCurrentModeId()
-                        
-                        if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
-                            let undo = globalApp!.currentEditor.undoStageItemStart("Remove Shape")
-                            item.stageItem!.componentLists[id]!.remove(at: index)
-                            globalApp!.currentEditor.undoStageItemEnd(undo)
-                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                        }
-                    }
-                    toolBarWidgets.append(deleteButton)
-                } else
-                if item.itemType == .BooleanItem {
-                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change Boolean")
-                    button.clicked = { (event) in
-                        globalApp!.libraryDialog.show(ids: ["Boolean"], cb: { (json) in
-                            if let comp = decodeComponentFromJSON(json) {
-                                let undo = globalApp!.currentEditor.undoStageItemStart("Change Boolean")
-                                                                
-                                comp.uuid = UUID()
-                                comp.selected = nil
-                                globalApp!.currentEditor.setComponent(comp)
-                                
-                                if let parent = item.parentComponent {
-                                    parent.subComponent = comp
-                                    globalApp!.project.selected!.updateComponent(parent)
-                                }
-                                                            
-                                globalApp!.currentEditor.undoStageItemEnd(undo)
-                                self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                            }
-                        })
-                    }
-                    toolBarWidgets.append(button)
-                } else
-                // Renderer
-                if let comp = item.component, comp.componentType == .Render2D || comp.componentType == .Render3D {
-                    
-                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Change Renderer")
-                    button.clicked = { (event) in
-                        globalApp!.libraryDialog.show(ids: [comp.componentType == .Render2D ? "Render2D" : "Render3D"], cb: { (json) in
-                            if let comp = decodeComponentFromJSON(json) {
-                                let undo = globalApp!.currentEditor.undoStageItemStart("Change Renderer")
-                                
-                                comp.uuid = UUID()
-                                comp.selected = nil
-                                globalApp!.currentEditor.setComponent(comp)
-                                
-                                comp.uuid = item.component!.uuid
-                                globalApp!.project.selected!.updateComponent(comp)
-                                                            
-                                globalApp!.currentEditor.undoStageItemEnd(undo)
-                                self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                            }
-                        })
-                    }
-                    toolBarWidgets.append(button)
-                } else
-                    if item.itemType == .StageItem && item.stageItem!.stageItemType == .ShapeStage && (item.stageItem!.components[item.stageItem!.defaultName] == nil || (item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .UVMAP3D &&
-                        item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Ground3D && item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Material3D)) {
-                    let button = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Add Child")
-                    button.clicked = { (event) in
-                        //getStringDialog(view: self.mmView, title: "Child Object", message: "Object name", defaultValue: "Child Object", cb: { (value) -> Void in
-                            if let scene = globalApp!.project.selected {
-                                
-                                let shapeStage = scene.getStage(.ShapeStage)
-                                let objectItem = shapeStage.createChild(/*value*/"Child Object", parent: item.stageItem!)
-                                
-                                objectItem.values["_graphX"]! = objectItem.values["_graphX"]!
-                                objectItem.values["_graphY"]! = objectItem.values["_graphY"]! + 270
-
-                                globalApp!.sceneGraph.setCurrent(stage: shapeStage, stageItem: objectItem)
-                            }
-                        //} )
-                    }
-                    toolBarWidgets.append(button)
-                    
-                    let renameButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename")
-                    renameButton.clicked = { (event) -> Void in
-                        getStringDialog(view: self.mmView, title: "Rename Object", message: "Object name", defaultValue: item.stageItem!.name, cb: { (value) -> Void in
-                            let undo = globalApp!.currentEditor.undoStageItemStart("Rename Object")
-                            item.stageItem!.name = value
-                            item.stageItem!.label = nil
-                            globalApp!.currentEditor.undoStageItemEnd(undo)
-                            self.mmView.update()
-                        } )
-                        renameButton.removeState(.Checked)
-                    }
-                    toolBarWidgets.append(renameButton)
-                    
-                    let removeButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                    removeButton.clicked = { (event) in
-                        
-                        if let scene = globalApp!.project.selected {
-                            let shapeStage = scene.getStage(.ShapeStage)
-                            let parent = shapeStage.getParentOfStageItem(item.stageItem!)
-                            if parent.1 == nil {
-                                let undo = globalApp!.currentEditor.undoStageStart(shapeStage, "Remove Object")
-                                if let index = shapeStage.children2D.firstIndex(of: item.stageItem!) {
-                                    shapeStage.children2D.remove(at: index)
-                                } else
-                                if let index = shapeStage.children3D.firstIndex(of: item.stageItem!) {
-                                    shapeStage.children3D.remove(at: index)
-                                }
-                                globalApp!.currentEditor.undoStageEnd(shapeStage, undo)
-                            } else
-                            if let p = parent.1 {
-                                let undo = globalApp!.currentEditor.undoStageItemStart(p, "Remove Child Object")
-                                if let index = p.children.firstIndex(of: item.stageItem!) {
-                                    p.children.remove(at: index)
-                                }
-                                globalApp!.currentEditor.undoStageItemEnd(p, undo)
-                            }
-                            self.clearToolbar()
-                        }
-                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                        removeButton.removeState(.Checked)
-                    }
-                    toolBarWidgets.append(removeButton)
-                } else
-                if let comp = item.component {
-                    if comp.componentType == .RayMarch3D {
-                        buildChangeComponent(item, name: "RayMarcher", ids: ["RayMarch3D"])
-                    } else
-                    if comp.componentType == .Normal3D {
-                        buildChangeComponent(item, name: "Normal", ids: ["Normal3D"])
-                    } else
-                    if comp.componentType == .SkyDome {
-                        buildChangeComponent(item, name: "Sky Dome", ids: ["SkyDome", "Pattern"])
-                    } else
-                    if comp.componentType == .Camera3D {
-                        buildChangeComponent(item, name: "Camera", ids: ["Camera3D"])
-                    } else
-                    if comp.componentType == .Shadows3D {
-                        buildChangeComponent(item, name: "Shadows", ids: ["Shadows3D"])
-                    } else
-                    if comp.componentType == .AO3D {
-                        buildChangeComponent(item, name: "Ambient Occlusion", ids: ["AO3D"])
-                    } else
-                    if comp.componentType == .Ground3D {
-                        buildChangeComponent(item, name: "Ground", ids: ["Ground3D"])
-                    } else
-                    if comp.componentType == .UVMAP3D {
-                        buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])
-                    } else
-                    if comp.componentType == .Domain3D {
-                        buildChangeComponent(item, name: "Domain", ids: ["Domain3D"])
-                        
-                        let deleteButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                        deleteButton.clicked = { (event) in
-                            let id = "domain" + getCurrentModeId()
-                            
-                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
-                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Domain")
-                                item.stageItem!.componentLists[id]!.remove(at: index)
-                                globalApp!.currentEditor.undoStageItemEnd(undo)
-                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                            }
-                        }
-                        toolBarWidgets.append(deleteButton)
-                    } else
-                    if comp.componentType == .Modifier3D {
-                        buildChangeComponent(item, name: "Modifier", ids: ["Modifier3D"])
-                        
-                        let deleteButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                        deleteButton.clicked = { (event) in
-                            let id = "modifier" + getCurrentModeId()
-                            
-                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
-                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Modifier")
-                                item.stageItem!.componentLists[id]!.remove(at: index)
-                                globalApp!.currentEditor.undoStageItemEnd(undo)
-                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                            }
-                        }
-                        toolBarWidgets.append(deleteButton)
-                    } else
-                    if comp.componentType == .Material3D {
-                        buildChangeComponent(item, name: "Material", ids: ["Material3D"])
-                    } else
-                    if comp.componentType == .Variable {
-                        
-                        let renameButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Rename Variable")
-                        renameButton.isDisabled = item.stageItem!.values["locked"] == 1
-                        renameButton.clicked = { (event) -> Void in
-                            if let frag = getVariable(from: comp) {
-                                getStringDialog(view: self.mmView, title: "Rename Variable", message: "Variable name", defaultValue: frag.name, cb: { (value) -> Void in
-                                    let undo = globalApp!.currentEditor.undoComponentStart("Rename Variable")
-                                    frag.name = value
-                                    comp.libraryName = value
-                                    globalApp!.project.selected!.updateComponent(comp)
-                                    globalApp!.currentEditor.setComponent(comp)
-                                    globalApp!.currentEditor.undoComponentEnd(undo)
-                                    self.mmView.update()
-                                } )
-                            }
-                        }
-                        toolBarWidgets.append(renameButton)
-                        
-                        let removeButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                        removeButton.isDisabled = item.stageItem!.values["locked"] == 1
-                        removeButton.clicked = { (event) in
-                            if let index = item.stageItem!.componentLists["variables"]!.firstIndex(of: item.component!) {
-                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Variable")
-                                item.stageItem!.componentLists["variables"]!.remove(at: index)
-                                globalApp!.currentEditor.undoStageItemEnd(undo)
-                            }
-                        }
-                        toolBarWidgets.append(removeButton)
-                    } else
-                    if comp.componentType == .Pattern {
-                        let disconnectButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Disconnect")
-                        disconnectButton.clicked = { (event) in
-                            let undo = globalApp!.currentEditor.undoStageItemStart(item.stageItem!, "Disconnect Pattern")
-                            self.removeConnectionsFor(item.stageItem!, comp)
-                            globalApp!.currentEditor.undoStageItemEnd(undo)
-                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                        }
-                        toolBarWidgets.append(disconnectButton)
-                        
-                        let removeButton = MMButtonWidget(mmView, skinToUse: toolBarButtonSkin, text: "Remove")
-                        removeButton.clicked = { (event) in
-                            if let index = item.stageItem!.componentLists["patterns"]!.firstIndex(of: item.component!) {
-                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Pattern")
-                                item.stageItem!.componentLists["patterns"]!.remove(at: index)
-                                self.removeConnectionsFor(item.stageItem!, comp)
-                                globalApp!.currentEditor.undoStageItemEnd(undo)
-                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                            }
-                        }
-                        toolBarWidgets.append(removeButton)
-                    }
                 }
             }
         }

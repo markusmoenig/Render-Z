@@ -52,10 +52,16 @@ class TopRegion: MMRegion
                 self.app.currentEditor = self.app.artistEditor
                 if let component = globalApp!.artistEditor.designEditor.designComponent {
                     globalApp!.project.selected!.getStageItem(component, selectIt: true)
+                } else
+                if let component = globalApp!.developerEditor.codeEditor.codeComponent {
+                    globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 }
             } else {
                 self.app.currentEditor = self.app.developerEditor
                 if let component = globalApp!.developerEditor.codeEditor.codeComponent {
+                    globalApp!.project.selected!.getStageItem(component, selectIt: true)
+                } else
+                if let component = globalApp!.artistEditor.designEditor.designComponent {
                     globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 }
             }

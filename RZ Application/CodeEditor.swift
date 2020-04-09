@@ -548,22 +548,29 @@ class CodeEditor        : MMWidget
     func markStageItemOfComponentInvalid(_ component: CodeComponent)
     {
         if let stageItem = globalApp!.project.selected!.getStageItem(component) {
-            stageItem.builderInstance = nil
-            
             //print("markStageItemOfComponentInvalid", stageItem.stageItemType, component.componentType)
-            if stageItem.stageItemType == .RenderStage {
-                globalApp!.project.selected!.invalidateCompilerInfos()
-            }
+            markStageItemInvalid(stageItem)
+        }
+    }
+    
+    /// Invalidate the BuilderInstance of the StageItem
+    func markStageItemInvalid(_ stageItem: StageItem)
+    {
+        stageItem.builderInstance = nil
+        
+        //print("markStageItemOfComponentInvalid", stageItem.stageItemType, component.componentType)
+        if stageItem.stageItemType == .RenderStage {
+            globalApp!.project.selected!.invalidateCompilerInfos()
+        }
+        
+        if stageItem.stageItemType == .ShapeStage {
             
-            if stageItem.stageItemType == .ShapeStage {
-                
-                let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
-                
-                var parent : StageItem? = stageItem
-                while parent != nil {
-                    parent?.builderInstance = nil
-                    parent = shapeStage.getParentOfStageItem(parent!).1
-                }
+            let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+            
+            var parent : StageItem? = stageItem
+            while parent != nil {
+                parent?.builderInstance = nil
+                parent = shapeStage.getParentOfStageItem(parent!).1
             }
         }
     }
