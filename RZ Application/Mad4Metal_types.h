@@ -98,6 +98,8 @@ typedef struct
     float2 size;
     float  prem;
     float  round;
+    float  globalAlpha;
+    float  dummy1, dummy2, dummy3;
     float4 roundingRect;
 
 } MM_TEXTURE;

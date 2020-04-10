@@ -90,6 +90,12 @@ class DesignProperties      : MMWidget
         hoverUIItem = nil
         hoverUITitle = nil
         hoverMode = .None
+        
+        if comp.componentType == .Render3D {
+            let renderModeVar = NodeUISelector(c1Node!, variable: "renderMode", title: "Output", items: ["Final Image", "Depth Map", "Occlusion", "Shadows", "Fog Density"], index: 0)
+            renderModeVar.titleShadows = true
+            c1Node?.uiItems.append(renderModeVar)
+        }
                 
         for uuid in comp.properties {
             let rc = comp.getPropertyOfUUID(uuid)
@@ -148,6 +154,13 @@ class DesignProperties      : MMWidget
         }
         
         c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+            
+            if variable == "renderMode" {
+                globalApp!.currentPipeline!.outputType = Pipeline.OutputType(rawValue: Int(newValue))!
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                return
+            }
+            
             if let frag = self.propMap[variable] {
                 frag.values["value"] = oldValue
                 let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil

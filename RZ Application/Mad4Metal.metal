@@ -483,7 +483,9 @@ fragment float4 m4mTextureDrawable(RasterizerData in [[stage_in]],
         
         sample.w *= m4mFillMask(dist);
     }
-    
+
+    sample.w *= data->globalAlpha;
+
     if (data->prem == 1) {
         return float4(sample.x / sample.w, sample.y / sample.w, sample.z / sample.w, sample.w);
     } else {

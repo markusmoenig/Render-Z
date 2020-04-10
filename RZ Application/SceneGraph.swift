@@ -114,8 +114,8 @@ class SceneGraph                : MMWidget
     var currentWidth            : Float = 0
     var openWidth               : Float = 300
 
-    var toolBarWidgets          : [MMWidget] = []
-    let toolBarHeight           : Float = 30
+    //var toolBarWidgets          : [MMWidget] = []
+    //let toolBarHeight           : Float = 30
 
     var menuWidget              : MMMenuWidget
     var itemMenu                : MMMenuWidget
@@ -215,18 +215,18 @@ class SceneGraph                : MMWidget
     
     func activate()
     {
-        for w in toolBarWidgets {
-            mmView.widgets.insert(w, at: 0)
-        }
+        //for w in toolBarWidgets {
+        //    mmView.widgets.insert(w, at: 0)
+        //}
         mmView.widgets.insert(menuWidget, at: 0)
         mmView.widgets.insert(itemMenu, at: 0)
     }
     
     func deactivate()
     {
-        for w in toolBarWidgets {
-            mmView.deregisterWidget(w)
-        }
+        //for w in toolBarWidgets {
+        //    mmView.deregisterWidget(w)
+        //}
         mmView.deregisterWidget(menuWidget)
         mmView.deregisterWidget(itemMenu)
     }
@@ -378,13 +378,24 @@ class SceneGraph                : MMWidget
         }
 
         // Want to drag the nav ?
-        if navRect.contains(event.x, event.y) && visNavRect.contains(event.x, event.y) {
+        if navRect.contains(event.x, event.y) {
+            
+            /*
+            //if visNavRect.contains(event.x, event.y) == false {
+                graphX = (event.x - navRect.x) / ratioX
+                graphY = (event.y - navRect.y) / ratioY
+                mmView.update()
+            //}
+            */
+
             mouseDownPos.x = event.x
             mouseDownPos.y = event.y
             mouseDownItemPos.x = graphX
             mouseDownItemPos.y = graphY
             dragVisNav = true
             mmView.mouseTrackWidget = self
+            
+            return
         } else
         if globalApp!.sceneGraph.clickAt(x: event.x, y: event.y) {
             clickWasConsumed = true
@@ -611,15 +622,15 @@ class SceneGraph                : MMWidget
         if let pressedButton = pressedButton {
             pressedButton.cb!()
         } else
-        if clickWasConsumed == false {
+        if clickWasConsumed == false && dragVisNav == false {
             // Check for showing menu
             
-            if menuWidget.states.contains(.Opened) == false && distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) < 5 {                
-                if event.y - rect.y > toolBarHeight {
+            if menuWidget.states.contains(.Opened) == false && distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) < 5 {
+                //if event.y - rect.y > toolBarHeight {
                     menuWidget.rect.x = event.x
                     menuWidget.rect.y = event.y
                     menuWidget.activateHidden()
-                }
+                //}
             }
         }
         
@@ -733,7 +744,7 @@ class SceneGraph                : MMWidget
      
     override func update()
     {
-        buildToolbar(uuid: currentUUID)
+        //buildToolbar(uuid: currentUUID)
         buildMenu(uuid: currentUUID)
         needsUpdate = false
     }
@@ -741,9 +752,10 @@ class SceneGraph                : MMWidget
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1))
-        mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: toolBarHeight, round: 0, fillColor : SIMD4<Float>(0.165, 0.169, 0.173, 1.000) )
-        mmView.drawBox.draw( x: rect.x, y: rect.y + toolBarHeight, width: rect.width, height: 1, round: 0, fillColor : SIMD4<Float>(0, 0, 0, 1) )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: toolBarHeight, round: 0, fillColor : SIMD4<Float>(0.165, 0.169, 0.173, 1.000) )
+        //mmView.drawBox.draw( x: rect.x, y: rect.y + toolBarHeight, width: rect.width, height: 1, round: 0, fillColor : SIMD4<Float>(0, 0, 0, 1) )
         
+        /*
         var left: Float = 5
         for w in toolBarWidgets {
             w.rect.x = rect.x + left
@@ -751,12 +763,12 @@ class SceneGraph                : MMWidget
             w.draw()
             //mmView.drawBox.draw( x: w.rect.x, y: w.rect.y, width: w.rect.width, height: w.rect.height, round: 0, borderSize: 1.5, fillColor: SIMD4<Float>(1,1,1,1), borderColor: SIMD4<Float>(1,1,1,1))//skin.borderColor)
             left += w.rect.width + 5
-        }
+        }*/
         
         let skin : SceneGraphSkin = SceneGraphSkin(mmView.openSans, fontScale: 0.4 * graphZoom)
         
         if let scene = globalApp!.project.selected {
-            mmView.renderer.setClipRect(MMRect(rect.x, rect.y + toolBarHeight + 1, rect.width - 1, rect.height - toolBarHeight - 1))
+            mmView.renderer.setClipRect(MMRect(rect.x, rect.y /* + toolBarHeight + 1*/, rect.width - 1, rect.height /*- toolBarHeight - 1*/))
             parse(scene: scene, skin: skin)
             if menuWidget.states.contains(.Opened) {
                 menuWidget.draw()
@@ -802,7 +814,7 @@ class SceneGraph                : MMWidget
         // Build the navigator
         navRect.width = 200 / 2
         navRect.height = 160 / 2
-        navRect.x = rect.right() - navRect.width
+        navRect.x = rect.x//rect.right() - navRect.width
         navRect.y = rect.bottom() - navRect.height
         
         mmView.renderer.setClipRect(MMRect(navRect.x, navRect.y, navRect.width - 1, navRect.height))
@@ -849,9 +861,9 @@ class SceneGraph                : MMWidget
         }
                         
         visNavRect.x = navRect.x + border - minX * ratioX + openWidth - rect.width
-        visNavRect.y = navRect.y + border - minY * ratioY + toolBarHeight * ratioY
+        visNavRect.y = navRect.y + border - minY * ratioY// + toolBarHeight * ratioY
         visNavRect.width = rect.width * ratioX
-        visNavRect.height = rect.height * ratioY - toolBarHeight * ratioY
+        visNavRect.height = rect.height * ratioY// - toolBarHeight * ratioY
         
         mmView.drawBox.draw( x: visNavRect.x, y: visNavRect.y, width: visNavRect.width, height: visNavRect.height, round: 6, fillColor : SIMD4<Float>(1, 1, 1, 0.1) )
         mmView.renderer.setClipRect()
@@ -930,11 +942,12 @@ class SceneGraph                : MMWidget
     }
     
     /// Clear the toolbar
+    /*
     func clearToolbar()
     {
         deactivate()
         toolBarWidgets = []
-    }
+    }*/
     
     // Build the menu
     func buildMenu(uuid: UUID?)
@@ -1257,7 +1270,7 @@ class SceneGraph                : MMWidget
                                 }
                                 globalApp!.currentEditor.undoStageItemEnd(p, undo)
                             }
-                            self.clearToolbar()
+                            //self.clearToolbar()
                         }
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     } )
@@ -1309,7 +1322,7 @@ class SceneGraph                : MMWidget
             mmView.widgets.insert(itemMenu, at: 0)
         }
     }
-    
+    /*
     // Build the menu
     func buildToolbar(uuid: UUID?)
     {
@@ -1366,6 +1379,7 @@ class SceneGraph                : MMWidget
         activate()
         mmView.update()
     }
+    */
     
     /// Removes all the connections for the given pattern from the stageItem
     func removeConnectionsFor(_ stageItem: StageItem,_ pattern: CodeComponent)

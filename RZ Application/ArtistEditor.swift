@@ -29,9 +29,7 @@ class ArtistEditor          : Editor
     var bottomHeight        : Float = 0
     
     var dispatched          : Bool = false
-    
-    var outputButton        : MMScrollButton
-    
+        
     var materialButton      : MMButtonWidget
     var cameraButton        : MMButtonWidget
     var renderButton        : MMButtonWidget
@@ -50,12 +48,6 @@ class ArtistEditor          : Editor
         timelineButton.iconZoom = 2
         timelineButton.rect.height -= 11
         timeline = MMTimeline(view)
-
-        outputButton = MMScrollButton(view, items:["Final Image", "Depth Map", "Occlusion", "Shadows", "Fog Density"], index: 0)
-        outputButton.changed = { (index)->() in
-            globalApp!.currentPipeline!.outputType = Pipeline.OutputType(rawValue: index)!
-            globalApp!.currentEditor.updateOnNextDraw(compile: false)
-        }
         
         materialButton = MMButtonWidget( mmView, iconName: "material" )
         materialButton.iconZoom = 2
@@ -77,7 +69,6 @@ class ArtistEditor          : Editor
         super.init()
         
         materialButton.clicked = { (event) -> Void in
-            
             if let component = self.designEditor.designComponent {
                 if component.componentType != .Material3D {
                     if let stageItem = globalApp!.project.selected!.getStageItem(component) {
@@ -88,17 +79,8 @@ class ArtistEditor          : Editor
                             }
                         }
                     }
-                } else
-                if let stageItem = globalApp!.project.selected!.getStageItem(component) {
-                    let scene = globalApp!.project.selected!
-                    let stage = scene.getStage(stageItem.stageItemType)
-                    let parent = stage.getParentOfStageItem(stageItem)
-                    if let p = parent.1 {
-                        globalApp!.sceneGraph.setCurrent(stage: stage, stageItem: p)
-                    }
                 }
             }
-            self.materialButton.removeState(.Checked)
         }
         
         cameraButton.clicked = { (event) -> Void in
@@ -112,15 +94,12 @@ class ArtistEditor          : Editor
                     }
                 }
             }
-            self.cameraButton.removeState(.Checked)
         }
         
         renderButton.clicked = { (event) -> Void in
-
             if let component = getComponent(name: "Renderer") {
                 globalApp!.project.selected!.getStageItem(component, selectIt: true)
             }
-            self.renderButton.removeState(.Checked)
         }
         
         timelineButton.clicked = { (event) -> Void in
@@ -137,7 +116,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, outputButton, materialButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, materialButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -146,7 +125,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, outputButton, materialButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, materialButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -159,6 +138,7 @@ class ArtistEditor          : Editor
         
         if component.componentType == .Transform3D || component.componentType == .SDF3D || component.componentType == .Ground3D || component.componentType == .Material3D {
             materialButton.isDisabled = false
+            
             if component.componentType == .Material3D {
                 materialButton.addState(.Checked)
             } else {
@@ -166,6 +146,18 @@ class ArtistEditor          : Editor
             }
         } else {
             materialButton.isDisabled = true
+        }
+        
+        if component.componentType == .Camera3D {
+            cameraButton.addState(.Checked)
+        } else {
+            cameraButton.removeState(.Checked)
+        }
+        
+        if component.componentType == .Render3D {
+            renderButton.addState(.Checked)
+        } else {
+            renderButton.removeState(.Checked)
         }
 
         designEditor.designComponent = component
@@ -213,11 +205,6 @@ class ArtistEditor          : Editor
             renderButton.rect.x = cameraButton.rect.right() + 6
             renderButton.rect.y = 4 + 44
             renderButton.draw()
-            
-            outputButton.rect.x = cameraButton.rect.x / 2 - outputButton.rect.width / 4
-            outputButton.rect.y = cameraButton.rect.y
-            outputButton.draw()
-
         } else
         if region.type == .Left {
             region.rect.width = 0
@@ -240,9 +227,12 @@ class ArtistEditor          : Editor
                 samplesLabel.setText(samplesString)
                 currentSamples = globalApp!.currentPipeline!.samples
             }
-            samplesLabel.rect.x = region.rect.x + 8
-            samplesLabel.rect.y = region.rect.bottom() - 17
-            samplesLabel.draw()
+            
+            if currentSamples > 0 {
+                samplesLabel.rect.x = region.rect.x + 8
+                samplesLabel.rect.y = region.rect.bottom() - 17
+                samplesLabel.draw()
+            }
         } else
         if region.type == .Bottom {
             if bottomHeight > 0 {

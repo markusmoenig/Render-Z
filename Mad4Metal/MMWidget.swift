@@ -382,7 +382,7 @@ class MMButtonWidget : MMWidget
         if texture != nil {
             let x = rect.x + (rect.width - Float(texture!.width) / iconZoom) / 2
             let y = rect.y + textYOffset + (rect.height - Float(texture!.height) / iconZoom) / 2
-            mmView.drawTexture.draw(texture!, x: x, y: y, zoom: iconZoom)
+            mmView.drawTexture.draw(texture!, x: x, y: y, zoom: iconZoom, globalAlpha: isDisabled ? 0.3 : 1)
         }
         
         if customState != nil {

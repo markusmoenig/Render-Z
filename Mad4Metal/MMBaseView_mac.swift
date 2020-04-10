@@ -90,6 +90,7 @@ public class MMBaseView : MTKView
 
         if mouseTrackWidget != nil {
             mouseTrackWidget!.mouseUp(event)
+            return
         }
         
         // --- Drag and Drop
