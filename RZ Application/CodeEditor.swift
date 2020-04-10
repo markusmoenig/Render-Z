@@ -665,7 +665,7 @@ class CodeEditor        : MMWidget
         }
         
         let hoverAlpha : Float = 0.3
-        let selectedAlpha : Float = 0.5
+        let selectedAlpha : Float = 0.4
 
         mmView.renderer.setClipRect(rect)
         

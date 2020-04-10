@@ -508,12 +508,26 @@ class CodeProperties    : MMWidget
                 c2Node?.uiItems.append( NodeUISelector(c2Node!, variable: "expose", title: "Expose to Artist", items: ["No", "Yes"], index: comp.properties.firstIndex(of: fragment.uuid) == nil ? 0 : 1 ) )
                 c1Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
                 
-                var mapIndex : Float = 0
-                if let mapping = comp.propertyGizmoMap[fragment.uuid] {
-                    mapIndex = Float(mapping.rawValue)
+                var gizmoName : String = "No"
+                if let name = comp.propertyGizmoName[fragment.uuid] {
+                    gizmoName = name
                 }
                 
-                let gizmoItems = comp.componentType == .SDF2D ? ["No", "Scale (All)", "Scale X", "Scale Y"] : ["No", "Scale (All)", "Scale X", "Scale Y", "Scale Z"]
+                var gizmoItems : [String] = ["No"]
+                
+                if comp.componentType == .SDF2D {
+                    gizmoItems += ["Scale (All)", "Scale X", "Scale Y"]
+                } else
+                if comp.componentType == .SDF3D {
+                    gizmoItems += ["Scale (All)", "Scale X", "Scale Y", "Scale Z"]
+                }
+                
+                gizmoItems += ["Point", "Direction"]
+                
+                var mapIndex : Float = 0
+                if let index = gizmoItems.firstIndex(of: gizmoName) {
+                    mapIndex = Float(index)
+                }
                 
                 let gizmoMappingUI = NodeUISelector(c2Node!, variable: "gizmoMap", title: "Gizmo", items: gizmoItems, index: mapIndex )
                 gizmoMappingUI.isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
@@ -554,7 +568,7 @@ class CodeProperties    : MMWidget
                         if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                     } else
                     if variable == "gizmoMap" {
-                        comp.propertyGizmoMap[fragment.uuid] = CodeComponent.PropertyGizmoMapping(rawValue: Int(newValue))
+                        comp.propertyGizmoName[fragment.uuid] = gizmoItems[Int(newValue)]
                     }
                 }
             } else

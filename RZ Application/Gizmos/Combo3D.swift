@@ -198,24 +198,24 @@ class GizmoCombo3D          : GizmoBase
 
             // Get the scale gizmo mapping for the properties
             for prop in component.properties {
-                if let gizmoMap = component.propertyGizmoMap[prop] {
-                    if gizmoMap != .None {
+                if let gizmoName = component.propertyGizmoName[prop] {
+                    if gizmoName != "No" {
                         let rc = component.getPropertyOfUUID(prop)
                         if let frag = rc.0, rc.1 != nil {
-                            if gizmoMap == .AllScale {
+                            if gizmoName == "Scale (All)" {
                                 scaleAllAxis = true
                             }
-                            if gizmoMap == .AllScale || gizmoMap == .XScale {
+                            if gizmoName == "Scale (All)" || gizmoName == "Scale X" {
                                 scaleXFragmentName = frag.name
                                 scaleXFragment = rc.1!
                                 initialValues["_scaleX"] = rc.1!.values["value"]!
                             } else
-                            if gizmoMap == .AllScale || gizmoMap == .YScale {
+                            if gizmoName == "Scale (All)" || gizmoName == "Scale Y" {
                                 scaleYFragmentName = frag.name
                                 scaleYFragment = rc.1!
                                 initialValues["_scaleY"] = rc.1!.values["value"]!
                             } else
-                            if gizmoMap == .AllScale || gizmoMap == .ZScale {
+                            if gizmoName == "Scale (All)" || gizmoName == "Scale Z" {
                                 scaleZFragmentName = frag.name
                                 scaleZFragment = rc.1!
                                 initialValues["_scaleZ"] = rc.1!.values["value"]!
