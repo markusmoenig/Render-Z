@@ -178,15 +178,19 @@ class NodeUISeparator : NodeUI
 class NodeUISelectorItem
 {
     var label       : MMTextLabel?
+    var shadowLabel : MMTextLabel?
     
-    init( _ view: MMView, text: String)
+    init( _ view: MMView, text: String, shadow: Bool = false)
     {
         label = MMTextLabel(view, font: view.openSans, text: text, scale: NodeUI.fontScale, color: NodeUI.contentTextColor )
+        if shadow == true {
+            shadowLabel = MMTextLabel(view, font: view.openSans, text: text, scale: NodeUI.fontScale, color: SIMD4<Float>(0,0,0,1))
+        }
     }
 }
 
 /// Drop down NodeUI class
-class NodeUISelector : NodeUI
+class NodeUISelector        : NodeUI
 {
     enum HoverMode {
         case None, LeftArrow, RightArrow
@@ -196,28 +200,28 @@ class NodeUISelector : NodeUI
         case No, Left, Right
     }
     
-    var items       : [String]
-    var scrollItems : [NodeUISelectorItem]
-    var index       : Float
-    var defaultValue: Float
+    var items               : [String]
+    var scrollItems         : [NodeUISelectorItem]
+    var index               : Float
+    var defaultValue        : Float
     
-    let itemHeight  : Float = 26
-    let spacer      : Float = 60
+    let itemHeight          : Float = 26
+    let spacer              : Float = 60
     
-    var contentWidth: Float = 0
-    var maxItemWidth: Float = 0
+    var contentWidth        : Float = 0
+    var maxItemWidth        : Float = 0
     
-    var hoverMode   : HoverMode = .None
-    var animating   : Animating = .No
+    var hoverMode           : HoverMode = .None
+    var animating           : Animating = .No
     
-    var animatingTo : Int = 0
-    var animOffset  : Float = 0
+    var animatingTo         : Int = 0
+    var animOffset          : Float = 0
     
-    var scale       : Float = 0
+    var scale               : Float = 0
 
-    var contentLabel: MMTextLabel!
+    var contentLabel        : MMTextLabel!
     
-    init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0)
+    init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0, shadows: Bool = false)
     {
         self.items = items
         self.scrollItems = []
@@ -231,6 +235,7 @@ class NodeUISelector : NodeUI
         }
         
         super.init(node, brand: .Selector, variable: variable, title: title)
+        titleShadows = shadows
     }
     
     func setItems(_ items: [String], fixedWidth: Float? = nil)
@@ -240,7 +245,7 @@ class NodeUISelector : NodeUI
         
         self.scrollItems = []
         for text in items {
-            let item = NodeUISelectorItem(mmView, text: text)
+            let item = NodeUISelectorItem(mmView, text: text, shadow: titleShadows)
             
             contentWidth += item.label!.rect.width
             maxItemWidth = max(maxItemWidth, item.label!.rect.width)
@@ -423,18 +428,40 @@ class NodeUISelector : NodeUI
         if animating == .Left {
             label.rect.x += animOffset
         }
+        
+        if titleShadows {
+            if let shadowLabel = scrollItems[Int(index)].shadowLabel {
+                shadowLabel.rect.x = label.rect.x + 0.5
+                shadowLabel.rect.y = label.rect.y + 0.5
+                shadowLabel.draw()
+            }
+        }
         label.draw()
         
         if animating == .Right {
             let animTolabel = scrollItems[animatingTo].label!
             animTolabel.rect.x = rect.x + spacer / 2 * scale + maxItemWidth + spacer / 2 * scale - animOffset
             animTolabel.rect.y = label.rect.y
+            if titleShadows {
+                if let shadowLabel = scrollItems[animatingTo].shadowLabel {
+                    shadowLabel.rect.x = animTolabel.rect.x + 0.5
+                    shadowLabel.rect.y = animTolabel.rect.y + 0.5
+                    shadowLabel.draw()
+                }
+            }
             animTolabel.draw()
         } else
         if animating == .Left {
             let animTolabel = scrollItems[animatingTo].label!
             animTolabel.rect.x = rect.x + spacer / 2 * scale - (maxItemWidth + spacer / 2 * scale) + animOffset
             animTolabel.rect.y = label.rect.y
+            if titleShadows {
+                if let shadowLabel = scrollItems[animatingTo].shadowLabel {
+                    shadowLabel.rect.x = animTolabel.rect.x + 0.5
+                    shadowLabel.rect.y = animTolabel.rect.y + 0.5
+                    shadowLabel.draw()
+                }
+            }
             animTolabel.draw()
         }
         mmView.renderer.setClipRect()

@@ -92,8 +92,7 @@ class DesignProperties      : MMWidget
         hoverMode = .None
         
         if comp.componentType == .Render3D {
-            let renderModeVar = NodeUISelector(c1Node!, variable: "renderMode", title: "Output", items: ["Final Image", "Depth Map", "Occlusion", "Shadows", "Fog Density"], index: 0)
-            renderModeVar.titleShadows = true
+            let renderModeVar = NodeUISelector(c1Node!, variable: "renderMode", title: "Output", items: ["Final Image", "Depth Map", "Occlusion", "Shadows", "Fog Density"], index: 0, shadows: true)
             c1Node?.uiItems.append(renderModeVar)
         }
                 
@@ -262,6 +261,10 @@ class DesignProperties      : MMWidget
         
         hoverMode = .None
         mmView.mouseTrackWidget = nil
+        
+        #if os(OSX)
+        mouseMoved(event)
+        #endif
     }
     
     override func mouseMoved(_ event: MMMouseEvent)

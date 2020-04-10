@@ -186,6 +186,9 @@ class CodeEditor        : MMWidget
             mouseDownPos.y = event.y
 
             scrollArea.checkOffset(widget: textureWidget, area: rect)
+            if let comp = codeComponent {
+                comp.scrollOffsetY = scrollArea.offsetY
+            }
             mmView.update()
             return
         }
@@ -351,8 +354,11 @@ class CodeEditor        : MMWidget
                 offset /= orientationRatio
                 scrollArea.offsetY = -offset
                 scrollArea.offsetX = -(event.x - (rect.right() - 100)) / (100 / codeContext.width)
-
                 scrollArea.checkOffset(widget: textureWidget, area: rect)
+                
+                if let comp = codeComponent {
+                    comp.scrollOffsetY = scrollArea.offsetY
+                }
                 mmView.update()
             }
             return

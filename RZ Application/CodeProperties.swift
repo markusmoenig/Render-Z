@@ -805,6 +805,10 @@ class CodeProperties    : MMWidget
         
         hoverMode = .None
         mmView.mouseTrackWidget = nil
+        
+        #if os(OSX)
+        mouseMoved(event)
+        #endif
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
