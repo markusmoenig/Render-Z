@@ -30,6 +30,8 @@ class Pipeline
     
     var finalTexture        : MTLTexture? = nil
     
+    var samples             : Int = 0
+
     var textureMap          : [String:MTLTexture] = [:]
     
     init(_ mmView: MMView)

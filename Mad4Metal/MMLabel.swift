@@ -17,6 +17,40 @@ protocol MMLabel
     func draw()
 }
 
+class MMShadowTextLabel : MMWidget
+{
+    var white       : MMTextLabel
+    var black       : MMTextLabel
+    
+    init( _ view: MMView, font: MMFont, text: String, scale: Float = 0.5, color: SIMD4<Float> = SIMD4<Float>(0.957, 0.957, 0.957, 1) )
+    {
+        white = MMTextLabel(view, font: font, text: text, scale: scale, color: color)
+        black = MMTextLabel(view, font: font, text: text, scale: scale, color: SIMD4<Float>(0, 0, 0, 1))
+        
+        super.init(view)
+        
+        rect.width = white.rect.width
+        rect.height = white.rect.height
+    }
+    
+    func setText(_ text: String, scale: Float? = nil)
+    {
+        white.setText(text, scale: scale)
+        black.setText(text, scale: scale)
+    }
+    
+    func draw()
+    {
+        black.rect.x = rect.x + 0.5
+        black.rect.y = rect.y + 0.5
+        black.draw()
+        
+        white.rect.x = rect.x
+        white.rect.y = rect.y
+        white.draw()
+    }
+}
+
 class MMTextLabel: MMLabel
 {
     var mmView      : MMView

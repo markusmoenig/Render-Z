@@ -36,8 +36,6 @@ class Pipeline2D            : Pipeline
 
     var instanceMap         : [String:CodeBuilderInstance] = [:]
     
-    var sampleCounter       : Int = 0
-
     override init(_ mmView: MMView)
     {
         super.init(mmView)

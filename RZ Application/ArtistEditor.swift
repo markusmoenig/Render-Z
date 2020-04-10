@@ -35,6 +35,9 @@ class ArtistEditor          : Editor
     var materialButton      : MMButtonWidget
     var cameraButton        : MMButtonWidget
     var renderButton        : MMButtonWidget
+    
+    var currentSamples      : Int = 0
+    var samplesLabel        : MMShadowTextLabel
 
     required init(_ view: MMView)
     {
@@ -68,6 +71,8 @@ class ArtistEditor          : Editor
         renderButton.iconZoom = 2
         renderButton.rect.width += 16
         renderButton.rect.height -= 14
+        
+        samplesLabel = MMShadowTextLabel(view, font: view.openSans, text: "0", scale: 0.3)
         
         super.init()
         
@@ -229,6 +234,15 @@ class ArtistEditor          : Editor
             designEditor.draw()
             designProperties.rect.copy(region.rect)
             designProperties.draw()
+            
+            if currentSamples != globalApp!.currentPipeline!.samples {
+                let samplesString = String(globalApp!.currentPipeline!.samples)
+                samplesLabel.setText(samplesString)
+                currentSamples = globalApp!.currentPipeline!.samples
+            }
+            samplesLabel.rect.x = region.rect.x + 8
+            samplesLabel.rect.y = region.rect.bottom() - 17
+            samplesLabel.draw()
         } else
         if region.type == .Bottom {
             if bottomHeight > 0 {

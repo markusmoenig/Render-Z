@@ -18,16 +18,13 @@ class Pipeline3D            : Pipeline
     var maxStage            : Stage = .Reflection
 
     var instanceMap         : [String:CodeBuilderInstance] = [:]
-    
-    var sampleCounter       : Int = 0
-    
+        
     var width               : Float = 0
     var height              : Float = 0
     
     var reflections         : Int = 0
     var maxReflections      : Int = 4
     
-    var samples             : Int = 0
     var maxSamples          : Int = 4
 
     var renderId            : UInt = 0
