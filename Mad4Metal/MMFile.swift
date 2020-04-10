@@ -112,6 +112,7 @@ class MMFile : NSObject
         savePanel.directoryURL =  containerUrl
         savePanel.showsHiddenFiles = false
         savePanel.allowedFileTypes = [appExtension]
+        savePanel.nameFieldStringValue = name
         
         func save(url: URL)
         {
@@ -126,6 +127,11 @@ class MMFile : NSObject
         savePanel.beginSheetModal(for: self.mmView.window!) { (result) in
             if result == .OK {
                 save(url: savePanel.url!)
+                
+                self.name = savePanel.url!.deletingPathExtension().lastPathComponent
+                app.mmView.window!.title = self.name
+                app.mmView.window!.representedURL = self.url()
+                
                 self.mmView.undoManager!.removeAllActions()
             }
         }

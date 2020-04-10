@@ -24,6 +24,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         
         let window = app.mmView.window!
+        window.representedURL = app.mmFile.url()
+        window.title = app.mmFile.name
 
         window.setFrameAutosaveName("MainWindow")
         
