@@ -797,9 +797,9 @@ class CodeSDFStream
                     float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
                     float3 position = __translate(__origin, __originalPosition);
             
-                    position.yz = __rotateCW( position.yz, radians(__data[\(rotateX)].x) );
-                    position.xz = __rotateCW( position.xz, radians(__data[\(rotateY)].x) );
-                    position.xy = __rotateCW( position.xy, radians(__data[\(rotateZ)].x) );
+                    position.yz = rotate( position.yz, radians(__data[\(rotateX)].x) );
+                    position.xz = rotate( position.xz, radians(__data[\(rotateY)].x) );
+                    position.xy = rotate( position.xy, radians(__data[\(rotateZ)].x) );
 
             """
         }
@@ -813,10 +813,17 @@ class CodeSDFStream
                 if let list = stageItem.componentLists["modifier3D"] {
                     if list.count > 0 {
                         
+                        let rotateX = instance.getTransformPropertyIndex(component, "_rotateX")
+                        let rotateY = instance.getTransformPropertyIndex(component, "_rotateY")
+                        let rotateZ = instance.getTransformPropertyIndex(component, "_rotateZ")
+                        
                         code +=
                         """
                         {
                         float3 offsetFromCenter = __origin - __originalPosition;
+                        offsetFromCenter.yz = rotate( offsetFromCenter.yz, radians(__data[\(rotateX)].x) );
+                        offsetFromCenter.xz = rotate( offsetFromCenter.xz, radians(__data[\(rotateY)].x) );
+                        offsetFromCenter.xy = rotate( offsetFromCenter.xy, radians(__data[\(rotateZ)].x) );
                         float distance = outDistance;
                         
                         """

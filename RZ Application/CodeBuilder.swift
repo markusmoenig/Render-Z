@@ -1109,13 +1109,13 @@ class CodeBuilder
            return float4(pow(gammaColor.xyz, float3(2.2)), gammaColor.w);
         }
         
-        float2 __rotateCW(float2 pos, float angle)
+        float2 rotate(float2 pos, float angle)
         {
             float ca = cos(angle), sa = sin(angle);
             return pos * float2x2(ca, -sa, sa, ca);
         }
 
-        float2 __rotateCWWithPivot(float2 pos, float angle, float2 pivot)
+        float2 __rotatePivot(float2 pos, float angle, float2 pivot)
         {
             float ca = cos(angle), sa = sin(angle);
             return pivot + (pos-pivot) * float2x2(ca, -sa, sa, ca);

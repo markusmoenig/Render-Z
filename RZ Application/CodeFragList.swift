@@ -171,6 +171,8 @@ class CodeFragList : MMWidget
         item.items.append( SourceListItem("radians", CodeFragment(.Primitive, "float", "radians", [.Selectable, .Dragable, .Targetable], ["float"], "float" ) ) )
         item.items.append( SourceListItem("reflect", CodeFragment(.Primitive, "float2", "reflect", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "input0"  ) ) )
         item.items.append( SourceListItem("refract", CodeFragment(.Primitive, "float2", "refract", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4", "float"], "input0"  ) ) )
+        item.items.append( SourceListItem("rotate", CodeFragment(.Primitive, "float2", "rotate", [.Selectable, .Dragable, .Targetable], ["float2", "float"], "float2" ) ) )
+        //item.items.append( SourceListItem("rotatePivot", CodeFragment(.Primitive, "float2", "rotatePivot", [.Selectable, .Dragable, .Targetable], ["float2", "float", "float2"], "float2" ) ) )
         item.items.append( SourceListItem("round", CodeFragment(.Primitive, "float", "round", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         
         item = FragItem("S")
@@ -255,7 +257,6 @@ class CodeFragList : MMWidget
                 listWidget.build(items: selectedItem!.items, fixedWidth: CodeFragList.openWidth)
               //  mmView.update()
                 if let item = listWidget.getCurrentItem() as? SourceListItem {
-                    print(item)
                     
                     globalApp!.developerEditor.codeEditor.codeClipboard.updateSelection(item.codeFragment, nil, MMRect(rect.right(), event.y, 30, 30))
                 }
