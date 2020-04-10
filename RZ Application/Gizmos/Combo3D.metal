@@ -15,6 +15,9 @@ using namespace metal;
 #define SCALE_X 6.0
 #define SCALE_Y 7.0
 #define SCALE_Z 8.0
+#define ROTATE_X 14.0
+#define ROTATE_Y 15.0
+#define ROTATE_Z 16.0
 
 typedef struct
 {
@@ -97,6 +100,35 @@ float sdConeSection(float3 p, float h, float r1, float r2)
     return length(max(float2(d1,d2),0.0)) + min(max(d1,d2), 0.);
 }
 
+float sdCappedTorus(float3 p, float2 sc, float ra, float rb)
+{
+    p.x = abs(p.x);
+    float k = (sc.y*p.x>sc.x*p.y) ? dot(p.xy,sc) : length(p.xy);
+    return sqrt( dot(p,p) + ra*ra - 2.0*ra*k ) - rb;
+}
+
+float dot2( float2 v ) { return dot(v,v); }
+
+float sdJoint3DSphere( float3 p, float l, float a, float w)
+{
+    // if perfectly straight
+    if( abs(a)<0.001 ) return length(p-float3(0,clamp(p.y,0.0,l),0))-w;
+    
+    // parameters
+    float2  sc = float2(sin(a),cos(a));
+    float ra = 0.5*l/a;
+    
+    // recenter
+    p.x -= ra;
+    
+    // reflect
+    float2 q = p.xy - 2.0*sc*max(0.0,dot(sc,p.xy));
+
+    float u = abs(ra)-length(q);
+    float d2 = (q.y<0.0) ? dot2( q+float2(ra,0.0) ) : u*u;
+    return sqrt(d2+p.z*p.z)-w;
+}
+
 float sdBox( float3 p, float3 b )
 {
     float3 q = abs(p) - b;
@@ -114,6 +146,31 @@ float3 translateForZAxis(float3 pos, float3 off, float3 move)
 {
     float3 p = gizmo3DTranslate(pos, off + move);
     p.yz = gimzo3DRotateCW( p.yz, radians(90) );
+    return p;
+}
+
+float3 rotationForXAxis(float3 pos, float3 off)
+{
+    float3 p = gizmo3DTranslate(pos, off);
+    p.xy = gimzo3DRotateCW( p.xy, radians(90) );
+    p.yz = gimzo3DRotateCW( p.yz, radians(-90) );
+    return p;
+}
+
+float3 rotationForYAxis(float3 pos, float3 off)
+{
+    float3 p = gizmo3DTranslate(pos, off);
+    p.yz = gimzo3DRotateCW( p.yz, radians(-90) );
+    p.xy = gimzo3DRotateCW( p.xy, radians(90) );
+
+    //p.xz = gimzo3DRotateCW( p.xz, radians(-90) );
+    return p;
+}
+
+float3 rotationForZAxis(float3 pos, float3 off)
+{
+    float3 p = gizmo3DTranslate(pos, off);
+    p.xy = gimzo3DRotateCW( p.xy, radians(90) );
     return p;
 }
 
@@ -136,6 +193,11 @@ float3 map(float3 pos, float3 off)
     res = opU(float3(sdCylinder(translateForZAxis(pos, off, float3(0, 0, 0.45)), float2(0.02, 0.15)), MOVE_Z, MOVE_Z), res);
     res = opU(float3(sdConeSection(translateForZAxis(pos, off, float3(0, 0, 0.65)), 0.05, 0.001, 0.05), MOVE_Z, MOVE_Z), res);
     
+    // Rotate
+    res = opU(float3(sdJoint3DSphere(rotationForXAxis(pos, off + float3(0.0, 0.45, 0)), 0.7, 3.14 / 4, 0.02), ROTATE_X, ROTATE_X), res);
+    res = opU(float3(sdJoint3DSphere(rotationForYAxis(pos, off + float3(0.0, 0, 0.45)), 0.7, 3.14 / 4, 0.02), ROTATE_Y, ROTATE_Y), res);
+    res = opU(float3(sdJoint3DSphere(rotationForZAxis(pos, off + float3(0.0, 0.45, 0)), 0.7, 3.14 / 4, 0.02), ROTATE_Z, ROTATE_Z), res);
+
     return res;
 }
 
@@ -309,7 +371,7 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     dir += vertical * (pixelSize.y * rand.y + uv.y);
     
     const float4 hoverColor = float4(0.263, 0.443, 0.482, 1.000);
-    //const float4 centerColor = float4(0.996, 0.941, 0.208, 1.000);
+    const float4 rotateColor = float4(0.996, 0.941, 0.208, 1.000);
     const float4 xAxisColor = float4(0.153, 0.192, 0.984, 1.000);
     const float4 yAxisColor = float4(0.882, 0.102, 0.153, 1.000);
     const float4 zAxisColor = float4(0.188, 0.933, 0.176, 1.000);
@@ -334,6 +396,15 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     } else
     if (hit.y == SCALE_Z) {
         finalColor =  hoverState == SCALE_Z ? hoverColor : zAxisColor;
+    }
+    if (hit.y == ROTATE_X) {
+        finalColor = hoverState == ROTATE_X ? hoverColor : rotateColor;
+    } else
+    if (hit.y == ROTATE_Y) {
+        finalColor =  hoverState == ROTATE_Y ? hoverColor : rotateColor;
+    } else
+    if (hit.y == ROTATE_Z) {
+        finalColor =  hoverState == ROTATE_Z ? hoverColor : rotateColor;
     }
     
     finalColor.r /= finalColor.a;

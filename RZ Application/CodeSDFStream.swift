@@ -786,12 +786,20 @@ class CodeSDFStream
             let posX = instance.getTransformPropertyIndex(component, "_posX")
             let posY = instance.getTransformPropertyIndex(component, "_posY")
             let posZ = instance.getTransformPropertyIndex(component, "_posZ")
+            
+            let rotateX = instance.getTransformPropertyIndex(component, "_rotateX")
+            let rotateY = instance.getTransformPropertyIndex(component, "_rotateY")
+            let rotateZ = instance.getTransformPropertyIndex(component, "_rotateZ")
 
             code +=
             """
                 {
                     float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
                     float3 position = __translate(__origin, __originalPosition);
+            
+                    position.yz = __rotateCW( position.yz, radians(__data[\(rotateX)].x) );
+                    position.xz = __rotateCW( position.xz, radians(__data[\(rotateY)].x) );
+                    position.xy = __rotateCW( position.xy, radians(__data[\(rotateZ)].x) );
 
             """
         }

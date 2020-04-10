@@ -120,18 +120,29 @@ class GizmoCombo3D          : GizmoBase
 
         if let tNode = designProperties.c2Node, component.componentType != .Dummy {
             
-            let xVar = NodeUINumber(tNode, variable: "_posX", title: "X", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posX"]!, precision: 3)
-            let yVar = NodeUINumber(tNode, variable: "_posY", title: "Y", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posY"]!, precision: 3)
-            let zVar = NodeUINumber(tNode, variable: "_posZ", title: "Z", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posZ"]!, precision: 3)
+            let xVar = NodeUINumber(tNode, variable: "_posX", title: "Position X", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posX"]!, precision: 3)
+            let yVar = NodeUINumber(tNode, variable: "_posY", title: "Position Y", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posY"]!, precision: 3)
+            let zVar = NodeUINumber(tNode, variable: "_posZ", title: "Position Z", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posZ"]!, precision: 3)
+            
+            let xRotate = NodeUINumber(tNode, variable: "_rotateX", title: "Rotate X", range: SIMD2<Float>(0, 360), value: comp.values["_rotateX"]!, precision: 3)
+            let yRotate = NodeUINumber(tNode, variable: "_rotateY", title: "Rotate Y", range: SIMD2<Float>(0, 360), value: comp.values["_rotateY"]!, precision: 3)
+            let zRotate = NodeUINumber(tNode, variable: "_rotateZ", title: "Rotate Z", range: SIMD2<Float>(0, 360), value: comp.values["_rotateZ"]!, precision: 3)
             
             xVar.titleShadows = true
             yVar.titleShadows = true
             zVar.titleShadows = true
             
-            //let rotateVar = NodeUINumber(tNode, variable: "_rotateX", title: "Rotate", range: SIMD2<Float>(0, 360), value: comp.values["_rotateX"]!, precision: 1)
+            xRotate.titleShadows = true
+            yRotate.titleShadows = true
+            zRotate.titleShadows = true
+            
             tNode.uiItems.append(xVar)
             tNode.uiItems.append(yVar)
             tNode.uiItems.append(zVar)
+            
+            tNode.uiItems.append(xRotate)
+            tNode.uiItems.append(yRotate)
+            tNode.uiItems.append(zRotate)
 
             tNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 comp.values[variable] = oldValue
@@ -186,7 +197,7 @@ class GizmoCombo3D          : GizmoBase
             gizmoDragLocked = 0
 
             initialValues = component.values
-            startRotate = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
+            //startRotate = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
             
             scaleXFragmentName = nil
             scaleYFragmentName = nil
@@ -311,9 +322,9 @@ class GizmoCombo3D          : GizmoBase
                 } else
                 if rotateButton.rect.contains(event.x, event.y) {
                     hoverButton = rotateButton
-                    //if activeAxisButton === xAxisButton { hoverState = .Rotate }
-                    //else if activeAxisButton === yAxisButton { hoverState = .yAxisMove }
-                    //else if activeAxisButton === zAxisButton { hoverState = .zAxisMove }
+                    if activeAxisButton === xAxisButton { hoverState = .xAxisRotate }
+                    else if activeAxisButton === yAxisButton { hoverState = .yAxisRotate }
+                    else if activeAxisButton === zAxisButton { hoverState = .zAxisRotate }
                     rotateButton.addState(.Hover)
                 } else
                 if scaleButton.rect.contains(event.x, event.y) {
@@ -402,17 +413,35 @@ class GizmoCombo3D          : GizmoBase
                     "_posZ" : initialValues["_posZ"]! + diff,
                 ]
                 processGizmoProperties(properties)
-            }
-            
-            else
-            if dragState == .Rotate {
-                let angle = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
-                var value = initialValues["_rotateX"]! + ((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+            } else
+            if dragState == .xAxisRotate {
+                var value = initialValues["_rotateX"]! + diff * 50
                 if value < 0 {
                     value = 360 + value
                 }
                 let properties : [String:Float] = [
                     "_rotateX" : value
+                ]
+                processGizmoProperties(properties)
+            } else
+            if dragState == .yAxisRotate {
+                var value = initialValues["_rotateY"]! + diff * 50
+                if value < 0 {
+                    value = 360 + value
+                }
+                let properties : [String:Float] = [
+                    "_rotateY" : value
+                ]
+                processGizmoProperties(properties)
+            } else
+            if dragState == .zAxisRotate {
+                //let angle = getAngle(cx: gizmoCenter.x, cy: gizmoCenter.y, ex: event.x, ey: event.y, degree: true)
+                var value = initialValues["_rotateZ"]! + diff * 50//((angle - startRotate)).truncatingRemainder(dividingBy: 360)
+                if value < 0 {
+                    value = 360 + value
+                }
+                let properties : [String:Float] = [
+                    "_rotateZ" : value
                 ]
                 processGizmoProperties(properties)
             } else
