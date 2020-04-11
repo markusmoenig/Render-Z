@@ -628,6 +628,7 @@ class CodeFragment          : Codable, Equatable
                     // If a missing reference is on the left side, we have to create a dummy variable, can only be deleted
                     // But at least it does not crash
                     let code = typeName + " " + generateToken()
+                    parentBlock!.assignment.name = "="
                     ctx.addCode(code)
                     addCode = false
                     removeState(.Selectable)

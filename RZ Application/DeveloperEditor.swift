@@ -16,8 +16,6 @@ class DeveloperEditor   : Editor
     let codeEditor      : CodeEditor
     var codeProperties  : CodeProperties
     
-    var dispatched      : Bool = false
-
     required init(_ view: MMView)
     {
         mmView = view
@@ -50,7 +48,6 @@ class DeveloperEditor   : Editor
         }
         codeEditor.codeComponent = component
         //codeEditor.codeHasRendered = false
-        updateOnNextDraw(compile: false)
         codeEditor.clearSelection()
         if let uuid = component.selected {
             component.selectUUID(uuid, codeEditor.codeContext)
@@ -71,18 +68,8 @@ class DeveloperEditor   : Editor
             codeEditor.codeChanged = compile
         }
         
-        DispatchQueue.main.async {
-            if self.codeEditor.rect.width > 0 {//&& codeEditor.codeChanged == false {
-                self.codeEditor.update()
-            }
-        }
-
-        if !dispatched {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                self.mmView.update()
-                self.dispatched = false
-            }
-            dispatched = true
+        if self.codeEditor.rect.width > 0 {//&& codeEditor.codeChanged == false {
+            self.codeEditor.update()
         }
     }
 

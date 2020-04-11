@@ -180,7 +180,7 @@ class CodeEditor        : MMWidget
             
             offset /= orientationRatio
             scrollArea.offsetY += offset
-            scrollArea.offsetX += (mouseDownPos.x - event.x) / (100 / codeContext.width)
+            scrollArea.offsetX += max((mouseDownPos.x - event.x), 0) / (100 / codeContext.width)
             
             mouseDownPos.x = event.x
             mouseDownPos.y = event.y
@@ -453,101 +453,101 @@ class CodeEditor        : MMWidget
     
     override func update()
     {
-        codeIsUpdating = true
-        DispatchQueue.main.async {
-            
-            var workingTexture : MTLTexture? = nil
-            var workingContext : CodeContext
-            
-            func copyContext(dest: CodeContext, source: CodeContext)
-            {
-                dest.hoverFragment = source.hoverFragment
-                dest.hoverBlock = source.hoverBlock
-                dest.hoverFunction = source.hoverFunction
-                dest.selectedFragment = source.selectedFragment
-                dest.selectedBlock = source.selectedBlock
-                dest.selectedFunction = source.selectedFunction
-            }
-            
-            if self.codeContext === self.codeContext1 {
-                workingContext = self.codeContext2
-                workingTexture = self.texture2
-            } else {
-                workingContext = self.codeContext1
-                workingTexture = self.texture1
-            }
-            copyContext(dest: workingContext, source: self.codeContext)
+        if codeIsUpdating == false {
+            codeIsUpdating = true
+            DispatchQueue.main.async {
+                
+                var workingTexture : MTLTexture? = nil
+                var workingContext : CodeContext
+                
+                func copyContext(dest: CodeContext, source: CodeContext)
+                {
+                    dest.hoverFragment = source.hoverFragment
+                    dest.hoverBlock = source.hoverBlock
+                    dest.hoverFunction = source.hoverFunction
+                    dest.selectedFragment = source.selectedFragment
+                    dest.selectedBlock = source.selectedBlock
+                    dest.selectedFunction = source.selectedFunction
+                }
+                
+                if self.codeContext === self.codeContext1 {
+                    workingContext = self.codeContext2
+                    workingTexture = self.texture2
+                } else {
+                    workingContext = self.codeContext1
+                    workingTexture = self.texture1
+                }
+                copyContext(dest: workingContext, source: self.codeContext)
 
-            if self.codeChanged {
                 if let comp = self.codeComponent {
                     self.dryRunComponent(comp, context: workingContext)
                 }
-            }
+                            
+                let width : Float = max(workingContext.width, 10)
+                let height : Float = workingContext.height == 0 ? 500 : workingContext.height
                         
-            let width : Float = max(workingContext.width, 10)
-            let height : Float = workingContext.height == 0 ? 500 : workingContext.height
-                    
-            if workingTexture!.width != Int(width * self.zoom) || workingTexture!.height != Int(height * self.zoom) {
-                workingTexture = self.fragment.allocateTexture(width: Float(Int(width * self.zoom)), height: Float(Int(height * self.zoom)), output: false)
-            }
-            self.fragment.texture = workingTexture
-            
-            if self.fragment.encoderStart()
-            {
-                if let comp = self.codeComponent {
-                    workingContext.reset(self.rect.width)
-                    comp.draw(self.mmView, workingContext)
+                if workingTexture!.width != Int(width * self.zoom) || workingTexture!.height != Int(height * self.zoom) {
+                    workingTexture = self.fragment.allocateTexture(width: Float(Int(width * self.zoom)), height: Float(Int(height * self.zoom)), output: false)
                 }
-                self.fragment.encodeEnd()
-                self.codeClipboard.updateSelection(workingContext.selectedFragment, workingContext.selectedBlock)
-
-                /*
-                print(fragment.texture.mipmapLevelCount, fragment.width, fragment.height)
-                if fragment.texture.mipmapLevelCount > 0 {
-                    if let blitEncoder = fragment.commandBuffer!.makeBlitCommandEncoder() {
-                        blitEncoder.generateMipmaps(for: fragment.texture)
-                        blitEncoder.endEncoding()
-                    }
-                }*/
+                self.fragment.texture = workingTexture
                 
-                // Set the current working contexts to be the default
-                self.textureWidget.setTexture(self.fragment.texture)
-                self.scrollArea.checkOffset(widget: self.textureWidget, area: self.rect)
-                self.codeContext = workingContext
-                
-                if self.codeContext === self.codeContext1 {
-                    self.texture2 = workingTexture
-                } else {
-                    self.texture1 = workingTexture
-                }
-                
-                // Set Code Properties / Code Access
-                if let comp = self.codeComponent, self.editor.codeProperties.needsUpdate {
-                    self.editor.codeProperties.setSelected(comp, self.codeContext)
-                    self.codeAccess.setSelected(comp, self.codeContext)
-                }
-                
-                self.currentComponent = self.codeComponent
-                
-                // Set Scroll Area
-                if let comp = self.codeComponent {
-                    self.scrollArea.offsetY = comp.scrollOffsetY
-                }
-
-                self.codeHasRendered = true
-                self.codeIsUpdating = false
-                self.mmView.update()
-                
-                // Compile
-                if self.codeChanged && self.liveEditing {
-                    // Mark the current Component invalid
+                if self.fragment.encoderStart()
+                {
                     if let comp = self.codeComponent {
-                        self.markStageItemOfComponentInvalid(comp)
+                        workingContext.reset(self.rect.width)
+                        comp.draw(self.mmView, workingContext)
                     }
+                    self.fragment.encodeEnd()
+                    self.codeClipboard.updateSelection(workingContext.selectedFragment, workingContext.selectedBlock)
+
+                    /*
+                    print(fragment.texture.mipmapLevelCount, fragment.width, fragment.height)
+                    if fragment.texture.mipmapLevelCount > 0 {
+                        if let blitEncoder = fragment.commandBuffer!.makeBlitCommandEncoder() {
+                            blitEncoder.generateMipmaps(for: fragment.texture)
+                            blitEncoder.endEncoding()
+                        }
+                    }*/
+                    
+                    // Set the current working contexts to be the default
+                    self.textureWidget.setTexture(self.fragment.texture)
+                    self.scrollArea.checkOffset(widget: self.textureWidget, area: self.rect)
+                    self.codeContext = workingContext
+                    
+                    if self.codeContext === self.codeContext1 {
+                        self.texture2 = workingTexture
+                    } else {
+                        self.texture1 = workingTexture
+                    }
+                    
+                    // Set Code Properties / Code Access
+                    if let comp = self.codeComponent, self.editor.codeProperties.needsUpdate {
+                        self.editor.codeProperties.setSelected(comp, self.codeContext)
+                        self.codeAccess.setSelected(comp, self.codeContext)
+                    }
+                    
+                    self.currentComponent = self.codeComponent
+                    
+                    // Set Scroll Area
+                    if let comp = self.codeComponent {
+                        self.scrollArea.offsetY = comp.scrollOffsetY
+                    }
+
+                    self.codeHasRendered = true
+                    self.codeIsUpdating = false
+                    self.mmView.update()
+                    
                     // Compile
-                    globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
-                    globalApp!.currentPipeline!.render(self.rect.width, self.rect.height)
-                    self.codeChanged = false
+                    if self.codeChanged && self.liveEditing {
+                        // Mark the current Component invalid
+                        if let comp = self.codeComponent {
+                            self.markStageItemOfComponentInvalid(comp)
+                        }
+                        // Compile
+                        globalApp!.currentPipeline!.build(scene: globalApp!.project.selected!)
+                        globalApp!.currentPipeline!.render(self.rect.width, self.rect.height)
+                        self.codeChanged = false
+                    }
                 }
             }
         }
@@ -569,7 +569,7 @@ class CodeEditor        : MMWidget
         stageItem.builderInstance = nil
         
         //print("markStageItemOfComponentInvalid", stageItem.stageItemType, component.componentType)
-        if stageItem.stageItemType == .RenderStage {
+        if stageItem.stageItemType == .RenderStage || stageItem.stageItemType == .PreStage {
             globalApp!.project.selected!.invalidateCompilerInfos()
         }
         
