@@ -936,6 +936,7 @@ class SceneGraph                : MMWidget
                 
                 globalApp!.currentEditor.undoStageItemEnd(undo)
                 self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
             }
         })
@@ -1236,6 +1237,66 @@ class SceneGraph                : MMWidget
                         //} )
                     } )
                     items.append(addChildItem)
+                    
+                    let scene = globalApp!.project.selected!
+                    let shapeStage = scene.getStage(.ShapeStage)
+                    let rc = shapeStage.getParentOfStageItem(item.stageItem!)
+                    if rc.1 != nil {
+                        // Has a parent, show "Add Material"
+                        
+                        // Check if child has a material already
+                        var hasMaterial : Bool = false
+                        for child in item.stageItem!.children {
+                            if let c = child.components[child.defaultName] {
+                                if c.componentType == .Material3D {
+                                    hasMaterial = true
+                                    break
+                                }
+                            }
+                        }
+                        
+                        if hasMaterial == false {
+                            // Child has no material, offer to add one
+                            let addMaterialItem = MMMenuItem(text: "Add Material", cb: { () in
+                                        
+                                let undo = globalApp!.currentEditor.undoStageItemStart(item.stageItem!, "Add Material")
+                
+                                item.stageItem!.addMaterial()
+                                
+                                globalApp!.developerEditor.codeEditor.markStageItemInvalid(item.stageItem!)
+                                globalApp!.currentEditor.undoStageItemEnd(item.stageItem!, undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            } )
+                            items.append(addMaterialItem)
+                        } else {
+                            // Child has material, offer to remove it
+                            let addMaterialItem = MMMenuItem(text: "Remove Material", cb: { () in
+                                        
+                                let undo = globalApp!.currentEditor.undoStageItemStart(item.stageItem!, "Remove Material")
+
+                                var itemsToRemove : [StageItem] = []
+                                
+                                for child in item.stageItem!.children {
+                                    if let c = child.components[child.defaultName] {
+                                        if c.componentType == .UVMAP3D || c.componentType == .Material3D {
+                                            itemsToRemove.append(child)
+                                        }
+                                    }
+                                }
+                                
+                                item.stageItem!.componentLists["patterns"] = nil
+                                for child in itemsToRemove {
+                                    if let index = item.stageItem!.children.firstIndex(of: child) {
+                                        item.stageItem!.children.remove(at: index)
+                                    }
+                                }
+                                globalApp!.developerEditor.codeEditor.markStageItemInvalid(item.stageItem!)
+                                globalApp!.currentEditor.undoStageItemEnd(item.stageItem!, undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            } )
+                            items.append(addMaterialItem)
+                        }
+                    }
 
                     let renameItem = MMMenuItem(text: "Rename", cb: { () in
                         getStringDialog(view: self.mmView, title: "Rename Object", message: "Object name", defaultValue: item.stageItem!.name, cb: { (value) -> Void in

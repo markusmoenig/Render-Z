@@ -454,14 +454,14 @@ class LibraryDialog: MMDialog {
         }
         
         var oneThumbnailOnly : Bool = false
+        var x : Float = rect.x + 3
+
         for (index,item) in items.enumerated() {
-            
-            var x : Float = rect.x + 3
-            
+                        
             let borderColor = selectedItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
             let textColor = selectedItem === item ? mmView.skin.Item.selectionColor : SIMD4<Float>(1,1,1,1)
 
-            x += (Float(index).truncatingRemainder(dividingBy: 3)) * (itemSize + 2)
+            //x += (Float(index).truncatingRemainder(dividingBy: 3)) * (itemSize + 2)
 
             mmView.drawBox.draw( x: x, y: y, width: itemSize, height: itemSize, round: 26, borderSize: 2, fillColor: mmView.skin.Item.color, borderColor: borderColor)//, maskRoundingSize: 26, maskRect: SIMD4<Float>(boxRect.x, boxRect.y, boxRect.width, boxRect.height))
             
@@ -484,12 +484,11 @@ class LibraryDialog: MMDialog {
             item.titleLabel.color = textColor
             item.titleLabel.drawCentered(x: x, y: y + itemSize - 40, width: itemSize, height: 35)
             
-            if index > 0 && Float(index).truncatingRemainder(dividingBy: 2) == 0 {
+            if (index+1) % 5 == 0 {
+                x = rect.x + 3
                 y += itemSize + 2
-                
-                if rect.y != 0 {
-                    break
-                }
+            } else {
+                x += itemSize + 2
             }
         }
         

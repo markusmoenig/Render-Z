@@ -771,6 +771,10 @@ class Scene                 : Codable, Equatable
                         result.component = c
                         result.stageItem = stageItem
                         break
+                    } else
+                    if c.subComponent === component {
+                        result.component = c.subComponent
+                        result.stageItem = stageItem
                     }
                 }
             }
@@ -781,6 +785,10 @@ class Scene                 : Codable, Equatable
                             result.component = c
                             result.stageItem = stageItem
                             break
+                        } else
+                        if c.subComponent === component {
+                            result.component = c.subComponent
+                            result.stageItem = stageItem
                         }
                     }
                 }
