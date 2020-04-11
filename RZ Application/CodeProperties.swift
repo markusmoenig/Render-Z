@@ -563,6 +563,7 @@ class CodeProperties    : MMWidget
                             }
                         }
                         self.c1Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
+                        self.c2Node?.uiItems[1].isDisabled = comp.properties.firstIndex(of: fragment.uuid) == nil
 
                         self.editor.updateOnNextDraw()
                         if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }

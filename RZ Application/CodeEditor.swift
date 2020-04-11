@@ -510,6 +510,35 @@ class CodeEditor        : MMWidget
                     }
                 }*/
                 
+                // Set the current working contexts to be the default
+                self.textureWidget.setTexture(self.fragment.texture)
+                self.scrollArea.checkOffset(widget: self.textureWidget, area: self.rect)
+                self.codeContext = workingContext
+                
+                if self.codeContext === self.codeContext1 {
+                    self.texture2 = workingTexture
+                } else {
+                    self.texture1 = workingTexture
+                }
+                
+                // Set Code Properties / Code Access
+                if let comp = self.codeComponent, self.editor.codeProperties.needsUpdate {
+                    self.editor.codeProperties.setSelected(comp, self.codeContext)
+                    self.codeAccess.setSelected(comp, self.codeContext)
+                }
+                
+                self.currentComponent = self.codeComponent
+                
+                // Set Scroll Area
+                if let comp = self.codeComponent {
+                    self.scrollArea.offsetY = comp.scrollOffsetY
+                }
+
+                self.codeHasRendered = true
+                self.codeIsUpdating = false
+                self.mmView.update()
+                
+                // Compile
                 if self.codeChanged && self.liveEditing {
                     // Mark the current Component invalid
                     if let comp = self.codeComponent {
@@ -520,31 +549,6 @@ class CodeEditor        : MMWidget
                     globalApp!.currentPipeline!.render(self.rect.width, self.rect.height)
                     self.codeChanged = false
                 }
-                
-                // Set the current working contexts to be the default
-                self.textureWidget.setTexture(self.fragment.texture)
-                self.codeContext = workingContext
-                
-                if self.codeContext === self.codeContext1 {
-                    self.texture1 = workingTexture
-                } else {
-                    self.texture2 = workingTexture
-                }
-                
-                //
-                if let comp = self.codeComponent, self.editor.codeProperties.needsUpdate {
-                    self.editor.codeProperties.setSelected(comp, self.codeContext)
-                    self.codeAccess.setSelected(comp, self.codeContext)
-                }
-                
-                self.currentComponent = self.codeComponent
-                if let comp = self.codeComponent {
-                    self.scrollArea.offsetY = comp.scrollOffsetY
-                }
-
-                self.codeHasRendered = true
-                self.codeIsUpdating = false
-                self.mmView.update()
             }
         }
         needsUpdate = false

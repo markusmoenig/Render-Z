@@ -156,7 +156,7 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
     
     // For the upload reset the position of the component to 0
     let oldValues = componentToUse.values
-    let oldSelected = componentToUse.selected
+    //let oldSelected = componentToUse.selected
     
     componentToUse.selected = nil
     if componentToUse.values["_posX"] != nil { componentToUse.values["_posX"] = 0.0 }
@@ -166,7 +166,7 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
     let encodedData = try? JSONEncoder().encode(componentToUse)
     
     componentToUse.values = oldValues
-    componentToUse.selected = oldSelected
+    componentToUse.selected = nil//oldSelected
 
     if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
     {
