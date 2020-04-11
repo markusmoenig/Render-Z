@@ -63,7 +63,7 @@ class ExportDialog: MMDialog {
         super.init(view, title: "Export", cancelText: "Cancel", okText: "Export")
         instantClose = false
         
-        rect.width = 600
+        rect.width = 500
         rect.height = 360
         
         tabButton = MMTabButtonWidget(view)
@@ -79,7 +79,7 @@ class ExportDialog: MMDialog {
         c1Node?.rect.y = 120
         
         c2Node = Node()
-        c2Node?.rect.x = 380
+        c2Node?.rect.x = 280
         c2Node?.rect.y = 120
         
         hoverUIItem = nil
