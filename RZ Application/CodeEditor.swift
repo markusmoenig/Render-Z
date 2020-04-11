@@ -180,7 +180,7 @@ class CodeEditor        : MMWidget
             
             offset /= orientationRatio
             scrollArea.offsetY += offset
-            scrollArea.offsetX += max((mouseDownPos.x - event.x), 0) / (100 / codeContext.width)
+            scrollArea.offsetX += (mouseDownPos.x - event.x) / (100 / codeContext.width)
             
             mouseDownPos.x = event.x
             mouseDownPos.y = event.y
