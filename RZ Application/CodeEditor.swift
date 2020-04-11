@@ -206,7 +206,7 @@ class CodeEditor        : MMWidget
                 
                 drag.id = "SourceFragmentItem"
                 drag.name = selFragment.name
-                drag.pWidgetOffset!.x = event.x - selFragment.rect.x - rect.x
+                drag.pWidgetOffset!.x = event.x - selFragment.rect.x - rect.x - scrollArea.offsetX
                 drag.pWidgetOffset!.y = event.y - selFragment.rect.y - rect.y - scrollArea.offsetY
                 
                 drag.codeFragment = processFragmentForCopy(selFragment)
@@ -214,11 +214,15 @@ class CodeEditor        : MMWidget
                 var dragName : String
                 if selFragment.fragmentType == .ConstantValue {
                     dragName = selFragment.getValueString()
+                } else
+                if selFragment.fragmentType == .ConstantDefinition {
+                    dragName = selFragment.typeName
                 } else {
                     dragName = selFragment.typeName + " " + selFragment.name
                 }
             
-                let texture = editor.codeList.listWidget.createGenericThumbnail(dragName, selFragment.rect.width + 2*codeContext.gapX)
+                let width = mmView.openSans.getTextRect(text: dragName, scale: 0.44).width + 20
+                let texture = editor.codeList.listWidget.createGenericThumbnail(dragName, width)
                 drag.previewWidget = MMTextureWidget(mmView, texture: texture)
                 drag.previewWidget!.zoom = mmView.scaleFactor
                             
@@ -258,7 +262,8 @@ class CodeEditor        : MMWidget
         // During DnD, check if we have to scroll the code
         if codeContext.dropFragment != nil {
             let scrollHeight = rect.height / 5
-            
+            let scrollWidth : Float = 50
+
             func scroll()
             {
                 if mouseIsDown && codeContext.dropFragment != nil {
@@ -273,6 +278,23 @@ class CodeEditor        : MMWidget
                     if mousePos.y < rect.y + scrollHeight {
                         // Scroll Up
                         scrollArea.offsetY += 2;
+                        scrollArea.checkOffset(widget: textureWidget, area: rect)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            scroll()
+                        }
+                    }
+                    
+                    if mousePos.x > rect.right() - scrollWidth {
+                        // Scroll Right
+                        scrollArea.offsetX -= 2;
+                        scrollArea.checkOffset(widget: textureWidget, area: rect)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            scroll()
+                        }
+                    } else
+                    if mousePos.x < rect.x + scrollWidth {
+                        // Scroll Left
+                        scrollArea.offsetX += 2;
                         scrollArea.checkOffset(widget: textureWidget, area: rect)
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                             scroll()
@@ -345,28 +367,11 @@ class CodeEditor        : MMWidget
         mouseDownPos.x = event.x
         mouseDownPos.y = event.y
         
-        // Click in Orientation Slider
-        if event.x > rect.right() - 100 && event.y <= (rect.y + orientationHeight) {
-            orientationDrag = true;
-            if orientationRect.contains(event.x, event.y) == false {
-                var offset : Float = event.y - rect.y
-                
-                offset /= orientationRatio
-                scrollArea.offsetY = -offset
-                scrollArea.offsetX = -(event.x - (rect.right() - 100)) / (100 / codeContext.width)
-                scrollArea.checkOffset(widget: textureWidget, area: rect)
-                
-                if let comp = codeComponent {
-                    comp.scrollOffsetY = scrollArea.offsetY
-                }
-                mmView.update()
-            }
-            return
-        }
-        
         #if os(iOS)
         mouseMoved(event)
         #endif
+        
+        var somethingHasBeenSelected = false
         
         if let comp = codeComponent {
             codeContext.selectedFunction = codeContext.hoverFunction
@@ -389,12 +394,34 @@ class CodeEditor        : MMWidget
             codeClipboard.updateSelection(codeContext.selectedFragment, codeContext.selectedBlock)
                         
             if oldSelected != comp.selected {
-
+                
                 mmView.update()
                 DispatchQueue.main.async {
                     self.editor.codeProperties.setSelected(comp, self.codeContext)
                     self.codeAccess.setSelected(comp, self.codeContext)
                 }
+            }
+            
+            if comp.selected != nil {
+                somethingHasBeenSelected = true
+            }
+        }
+        
+        // Click in Orientation Slider
+        if somethingHasBeenSelected == false && event.x > rect.right() - 100 && event.y <= (rect.y + orientationHeight) {
+            orientationDrag = true
+            if orientationRect.contains(event.x, event.y) == false {
+                var offset : Float = event.y - rect.y
+                
+                offset /= orientationRatio
+                scrollArea.offsetY = -offset
+                scrollArea.offsetX = -(event.x - (rect.right() - 100)) / (100 / codeContext.width)
+                scrollArea.checkOffset(widget: textureWidget, area: rect)
+                
+                if let comp = codeComponent {
+                    comp.scrollOffsetY = scrollArea.offsetY
+                }
+                mmView.update()
             }
         }
     }

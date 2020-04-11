@@ -550,7 +550,8 @@ class SceneGraph                : MMWidget
                         
                         drag.codeFragment = frag
                                                         
-                        let texture = globalApp!.developerEditor.codeList.listWidget.createGenericThumbnail(dragName, 140 * graphZoom)
+                        let width = mmView.openSans.getTextRect(text: dragName, scale: 0.44).width + 20
+                        let texture = globalApp!.developerEditor.codeList.listWidget.createGenericThumbnail(dragName, width)
                         drag.previewWidget = MMTextureWidget(mmView, texture: texture)
                         drag.previewWidget!.zoom = 2
                         
