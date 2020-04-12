@@ -22,7 +22,7 @@ class ArtistEditor          : Editor
     
     let designEditor        : DesignEditor
     var designProperties    : DesignProperties
-
+    
     var timelineButton      : MMButtonWidget
     var timeline            : MMTimeline
 
@@ -30,6 +30,8 @@ class ArtistEditor          : Editor
     
     var dispatched          : Bool = false
         
+    var groundButton        : MMButtonWidget
+
     var materialButton      : MMButtonWidget
     var cameraButton        : MMButtonWidget
     var renderButton        : MMButtonWidget
@@ -43,11 +45,16 @@ class ArtistEditor          : Editor
 
         designEditor = DesignEditor(view)
         designProperties = DesignProperties(view)
-
+        
         timelineButton = MMButtonWidget( view, iconName: "timeline" )
         timelineButton.iconZoom = 2
         timelineButton.rect.height -= 11
         timeline = MMTimeline(view)
+        
+        groundButton = MMButtonWidget( mmView, text: "Ground" )
+        //groundButton.iconZoom = 2
+        //groundButton.rect.width += 14
+        //groundButton.rect.height -= 17
         
         materialButton = MMButtonWidget( mmView, iconName: "material" )
         materialButton.iconZoom = 2
@@ -96,6 +103,12 @@ class ArtistEditor          : Editor
             }
         }
         
+        groundButton.clicked = { (event) -> Void in
+            if let component = getComponent(name: "Ground") {
+                globalApp!.project.selected!.getStageItem(component, selectIt: true)
+            }
+        }
+        
         renderButton.clicked = { (event) -> Void in
             if let component = getComponent(name: "Renderer") {
                 globalApp!.project.selected!.getStageItem(component, selectIt: true)
@@ -116,7 +129,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, materialButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, renderButton, materialButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -125,7 +138,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, timelineButton, cameraButton, renderButton, materialButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, renderButton, materialButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -158,6 +171,13 @@ class ArtistEditor          : Editor
             renderButton.addState(.Checked)
         } else {
             renderButton.removeState(.Checked)
+        }
+        
+        if component.componentType == .Ground3D {
+            groundButton.addState(.Checked)
+            designEditor.groundEditor.activate()
+        } else {
+            groundButton.removeState(.Checked)
         }
 
         designEditor.designComponent = component
@@ -193,7 +213,7 @@ class ArtistEditor          : Editor
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 43, spacing: 10, widgets: timelineButton, globalApp!.topRegion!.graphButton)
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
-
+            
             materialButton.rect.x = (globalApp!.topRegion!.rect.width - (materialButton.rect.width + cameraButton.rect.width + renderButton.rect.width + 2 * 6)) / 2
             materialButton.rect.y = 4 + 44
             materialButton.draw()
@@ -205,6 +225,10 @@ class ArtistEditor          : Editor
             renderButton.rect.x = cameraButton.rect.right() + 6
             renderButton.rect.y = 4 + 44
             renderButton.draw()
+            
+            groundButton.rect.x = materialButton.rect.x - groundButton.rect.width - 20
+            groundButton.rect.y = 4 + 44
+            groundButton.draw()
         } else
         if region.type == .Left {
             region.rect.width = 0

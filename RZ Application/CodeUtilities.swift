@@ -529,6 +529,18 @@ func getComponent(name: String) -> CodeComponent?
             let renderComp = render.components[render.defaultName]
             return renderComp
         }
+    } else
+    if name == "Ground"
+    {
+        let scene = globalApp!.project.selected!
+        
+        let shapeStage = scene.getStage(.ShapeStage)
+        let shapeChildren = shapeStage.getChildren()
+        for o in shapeChildren {
+            if o.components[o.defaultName]!.componentType == .Ground3D {
+                return o.components[o.defaultName]!
+            }
+        }
     }
     
     return nil

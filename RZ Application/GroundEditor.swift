@@ -1,0 +1,235 @@
+//
+//  GroundEditor.swift
+//  Render-Z
+//
+//  Created by Markus Moenig on 12/4/20.
+//  Copyright © 2020 Markus Moenig. All rights reserved.
+//
+
+import MetalKit
+
+class GroundItem {
+        
+    enum GroundItemType {
+        case StageItem, CameraOrigin, CameraLookAt
+    }
+
+    var itemType                : GroundItemType
+    let stageItem               : StageItem?
+    let rect                    : MMRect = MMRect()
+    
+    var label                   : MMTextLabel?
+
+    init(_ type: GroundItemType,_ stageItem: StageItem? = nil)
+    {
+        itemType = type
+        self.stageItem = stageItem
+    }
+}
+
+class GroundEditor              : MMWidget
+{
+    enum State {
+        case Idle, DraggingItem, DraggingGrid
+    }
+    
+    var state                   : State = .Idle
+    
+    var offset                  = SIMD2<Float>(0,0)
+    var graphZoom               : Float = 1
+    
+    var mouseDownPos            = SIMD2<Float>(0,0)
+    var mouseDownOffset         = SIMD2<Float>(0,0)
+
+    var drawPatternState        : MTLRenderPipelineState?
+
+    var itemMap                 : [UUID:GroundItem] = [:]
+    var cameraOriginItem        : GroundItem? = nil
+    var cameraLookAtItem        : GroundItem? = nil
+
+    let normalInteriorColor     = SIMD4<Float>(0.231, 0.231, 0.231, 1.000)
+    let normalBorderColor       = SIMD4<Float>(0.5,0.5,0.5,1)
+    let normalTextColor         = SIMD4<Float>(0.8,0.8,0.8,1)
+    let selectedBorderColor     = SIMD4<Float>(0.816, 0.396, 0.204, 1.000)
+    
+    var selectedItem            : GroundItem? = nil
+    
+    let gridSize                : Float = 40
+    
+    override init(_ view : MMView)
+    {
+        let function = view.renderer.defaultLibrary.makeFunction( name: "nodeGridPattern" )
+        drawPatternState = view.renderer.createNewPipelineState( function! )
+        
+        super.init(view)
+    }
+    
+    func translate(_ x: Float, _ z: Float) -> SIMD2<Float>
+    {
+        var res = SIMD2<Float>(0,0)
+        
+        res.x = rect.width / 2
+        res.y = rect.height / 2
+        
+        res.x += x * gridSize * graphZoom
+        res.y += z * gridSize * graphZoom
+        
+        res.x += offset.x * gridSize * graphZoom
+        res.y += offset.y * gridSize * graphZoom
+
+        return res
+    }
+    
+    func activate()
+    {
+        cameraOriginItem = nil
+        cameraLookAtItem = nil
+        itemMap = [:]
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        mouseDownPos.x = event.x
+        mouseDownPos.y = event.y
+        
+        selectedItem = nil
+        for (_,item) in itemMap {
+            if item.rect.contains(event.x - rect.x, event.y - rect.y) {
+                selectedItem = item
+                mmView.update()
+                break
+            }
+        }
+        
+        if selectedItem == nil {
+            state = .DraggingGrid
+            mouseDownOffset.x = offset.x
+            mouseDownOffset.y = offset.y
+        }
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if state == .DraggingGrid {
+            offset.x = mouseDownOffset.x + (mouseDownPos.x - event.x) / gridSize / graphZoom
+            offset.y = mouseDownOffset.y + (mouseDownPos.y - event.y) / gridSize / graphZoom
+            mmView.update()
+            print(offset)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        state = .Idle
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    {
+        let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+        
+        let itemZoom : Float = 0.7
+        let fontScale : Float = 0.4 * itemZoom
+        let itemHeight : Float = 30 * itemZoom
+        
+        func drawItem(_ item: GroundItem,_ name: String,_ pos: SIMD2<Float>)
+        {
+            if item.label == nil || item.label!.scale != fontScale {
+                item.label = MMTextLabel(mmView, font: mmView.openSans, text: name, scale: fontScale, color: normalTextColor)
+            }
+            
+            let width : Float = item.label!.rect.width + 20 * itemZoom
+            item.rect.set(pos.x - width / 2, pos.y - itemHeight / 2, width, itemHeight)
+
+            let selected = selectedItem === item
+            mmView.drawBox.draw(x: rect.x + item.rect.x /*+ item.rect.width / 2*/, y: rect.y + item.rect.y/* + item.rect.height / 2*/, width: item.rect.width, height: item.rect.height, round: 6, borderSize: 1, fillColor: normalInteriorColor, borderColor: selected ? selectedBorderColor : normalBorderColor)
+            
+            item.label!.rect.x = rect.x + pos.x - width / 2 + 10 * itemZoom
+            item.label!.rect.y = rect.y + pos.y - 9 * itemZoom
+            item.label!.draw()
+        }
+        
+        mmView.renderer.setClipRect(rect)
+        
+        // Grid
+        let settings: [Float] = [
+            rect.width, rect.height,
+            gridSize * graphZoom, gridSize * graphZoom,
+            offset.x * graphZoom * gridSize, -offset.y * graphZoom * gridSize,
+            ];
+        
+        let renderEncoder = mmView.renderer.renderEncoder!
+        
+        let vertexBuffer = mmView.renderer.createVertexBuffer( MMRect( rect.x, rect.y, rect.width, rect.height, scale: mmView.scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmView.renderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        renderEncoder.setRenderPipelineState( drawPatternState! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+                
+        // Objects
+        for child in shapeStage.getChildren() {
+            if let component = child.components[child.defaultName] {
+                if component.componentType == .Ground3D {
+                    continue
+                }
+            
+                let transformed  = getTransformedComponentValues(component)
+                let x = transformed["_posX"]!
+                let z = transformed["_posZ"]!
+            
+                let pos = translate(x,z)
+                
+                if itemMap[child.uuid] == nil {
+                    itemMap[child.uuid] = GroundItem(.StageItem, child)
+                }
+                let item = itemMap[child.uuid]!
+                
+                drawItem(item, child.name, pos)
+            }
+        }
+        
+        var cameraComponent : CodeComponent? = nil
+        var cameraStageItem : StageItem? = nil
+
+        let preStage = globalApp!.project.selected!.getStage(.PreStage)
+        let preStageChildren = preStage.getChildren()
+        for stageItem in preStageChildren {
+            if let c = stageItem.components[stageItem.defaultName] {
+                if c.componentType == .Camera2D || c.componentType == .Camera3D {
+                    cameraComponent = c
+                    cameraStageItem = stageItem
+                    break
+                }
+            }
+        }
+        
+        if let camera = cameraComponent {
+            // Origin
+            let origin = getTransformedComponentProperty(camera, "origin")
+            let originPos = translate(origin.x, origin.z)
+            // LookAt
+            let lookAt = getTransformedComponentProperty(camera, "lookAt")
+            let lookAtPos = translate(lookAt.x, lookAt.z)
+            
+            if cameraOriginItem == nil {
+                cameraOriginItem = GroundItem(.CameraOrigin, cameraStageItem!)
+            }
+            if cameraLookAtItem == nil {
+                cameraLookAtItem = GroundItem(.CameraLookAt, cameraStageItem!)
+            }
+            
+            itemMap[UUID()] = cameraOriginItem
+            itemMap[UUID()] = cameraLookAtItem
+
+            mmView.drawLine.draw(sx: rect.x + cameraOriginItem!.rect.x + cameraOriginItem!.rect.width / 2, sy: rect.y + cameraOriginItem!.rect.y +  cameraOriginItem!.rect.height / 2, ex: rect.x + cameraLookAtItem!.rect.x + cameraLookAtItem!.rect.width / 2, ey: rect.y + cameraLookAtItem!.rect.y + cameraLookAtItem!.rect.height / 2, radius: 0.6, fillColor: normalBorderColor)
+
+            drawItem(cameraOriginItem!, "Origin", originPos)
+            drawItem(cameraLookAtItem!, "Look At", lookAtPos)
+        }
+        
+        mmView.renderer.setClipRect()
+    }
+}
