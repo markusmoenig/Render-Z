@@ -111,18 +111,25 @@ class GroundEditor              : PropertiesWidget
         addRegionButton.clicked = { (event) in
             globalApp!.libraryDialog.show(ids: ["SDF2D"], style: .Icon, cb: { (json) in
                 if let comp = decodeComponentFromJSON(json) {
-                    self.groundItem.componentLists["regions"]!.append(comp)
+                    
+                    let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+
+                    let newRegion = shapeStage.createChild(parent: self.groundItem)
+                    newRegion.components[newRegion.defaultName] = nil
+                    
+                    newRegion.componentLists["shapes2D"] = [comp]
                     self.groundShaders.buildRegionPreview()
-                    self.setCurrentComponent(comp)
+                    self.setCurrentRegion(newRegion, comp)
                 }
             } )
         }
         addButton(addRegionButton)
     }
     
-    func setCurrentComponent(_ component: CodeComponent)
+    func setCurrentRegion(_ region: StageItem,_ component: CodeComponent)
     {
-        self.currentComponent = component
+        currentRegion = region
+        currentComponent = component
         gizmo.setComponent(component)
     }
     
@@ -145,10 +152,6 @@ class GroundEditor              : PropertiesWidget
     func setStageItem(stageItem: StageItem)
     {
         groundItem = stageItem
-        
-        if groundItem.componentLists["regions"] == nil {
-            groundItem.componentLists["regions"] = []
-        }
 
         cameraOriginItem = nil
         cameraLookAtItem = nil

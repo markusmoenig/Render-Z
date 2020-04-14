@@ -1893,6 +1893,10 @@ class SceneGraph                : MMWidget
     /// Draws an object hierarchy
     func drawObject(stage: Stage, o: StageItem, parent: SceneGraphItem? = nil, skin: SceneGraphSkin)
     {
+        if o.components[o.defaultName] == nil {
+            return
+        }
+
         if o.label == nil || o.label!.scale != skin.fontScale {
             let name : String = o.name
             /*
@@ -1952,7 +1956,6 @@ class SceneGraph                : MMWidget
         o.label!.draw() */
         
         drawItem(item, selected: o === currentStageItem, parent: nil, skin: skin)
-
     }
     
     func drawShapesBox(parent: SceneGraphItem, skin: SceneGraphSkin)

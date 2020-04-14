@@ -468,10 +468,61 @@ class CodeSDFStream
                         hitAndNormalsCode += code
                     }
                     
-                    ids[idCounter] = ([globalApp!.project.selected!.getStage(.ShapeStage).getChildren()[0]], ground)
+                    let groundItem : StageItem = globalApp!.project.selected!.getStage(.ShapeStage).getChildren()[0]
+                    
+                    ids[idCounter] = ([groundItem], ground)
                     instance.ids[idCounter] = ids[idCounter]
 
                     idCounter += 1
+                    
+                    /*
+                     
+                     dryRunComponent(component, instance.data.count)
+                     instance.collectProperties(component, hierarchy)
+                     
+                     if let globalCode = component.globalCode {
+                         headerCode += globalCode
+                     }
+                     
+                     var code = ""
+                     
+                     if type == .SDF2D
+                     {
+                         let posX = instance.getTransformPropertyIndex(component, "_posX")
+                         let posY = instance.getTransformPropertyIndex(component, "_posY")
+
+                         code +=
+                         """
+                             {
+                                 float2 position = __translate(__origin, float2(__data[\(posX)].x, -__data[\(posY)].x));
+
+                         """
+                     } else
+                     if type == .SDF3D
+                     {
+                         let posX = instance.getTransformPropertyIndex(component, "_posX")
+                         let posY = instance.getTransformPropertyIndex(component, "_posY")
+                         let posZ = instance.getTransformPropertyIndex(component, "_posZ")
+                         
+                         let rotateX = instance.getTransformPropertyIndex(component, "_rotateX")
+                         let rotateY = instance.getTransformPropertyIndex(component, "_rotateY")
+                         let rotateZ = instance.getTransformPropertyIndex(component, "_rotateZ")
+
+                         code +=
+                         """
+                             {
+                                 float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
+                                 float3 position = __translate(__origin, __originalPosition);
+                         
+                                 position.yz = rotate( position.yz, radians(__data[\(rotateX)].x) );
+                                 position.xz = rotate( position.xz, radians(__data[\(rotateY)].x) );
+                                 position.xy = rotate( position.xy, radians(__data[\(rotateZ)].x) );
+
+                         """
+                     }
+                     
+                     code += component.code!
+                     */
                 }
             } else
             if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false {

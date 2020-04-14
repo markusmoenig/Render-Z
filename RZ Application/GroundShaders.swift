@@ -32,10 +32,16 @@ class GroundShaders
         
         let oldMode = globalApp!.currentSceneMode
         globalApp!.currentSceneMode = .TwoD
-        for regionComp in groundEditor.groundItem.componentLists["regions"]! {
-            let stageItem = shapeStage.createChild()
-            stageItem.componentLists["shapes2D"]!.append(regionComp)
-            shapeStage.children2D.append(stageItem)
+        
+        for region in groundEditor.groundItem.children {
+            if region.componentLists["shapes2D"] == nil {
+                continue
+            }
+            for regionComp in region.componentLists["shapes2D"]! {
+                let stageItem = shapeStage.createChild()
+                stageItem.componentLists["shapes2D"]!.append(regionComp)
+                shapeStage.children2D.append(stageItem)
+            }
         }
         globalApp!.currentSceneMode = oldMode
         
