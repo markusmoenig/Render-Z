@@ -19,18 +19,8 @@ class Pipeline2D            : Pipeline
 
     var backTexture         : MTLTexture? = nil
     var depthTexture        : MTLTexture? = nil
-    var depthTexture2       : MTLTexture? = nil
-    
-    var rayOriginTexture    : MTLTexture? = nil
-    var rayDirectionTexture : MTLTexture? = nil
-
-    var normalTexture       : MTLTexture? = nil
-    var normalTexture2      : MTLTexture? = nil
-    var normalTextureResult : MTLTexture? = nil
     
     var metaTexture         : MTLTexture? = nil
-    var metaTexture2        : MTLTexture? = nil
-    var metaTextureResult   : MTLTexture? = nil
 
     var resultTexture       : MTLTexture? = nil
 
@@ -44,8 +34,6 @@ class Pipeline2D            : Pipeline
     // Build the pipeline elements
     override func build(scene: Scene)
     {
-        let typeId : CodeComponent.ComponentType = globalApp!.currentSceneMode == .TwoD ? .SDF2D : .SDF3D
-
         instanceMap = [:]
         
         /// Recursively iterate the object hierarchy
@@ -65,9 +53,9 @@ class Pipeline2D            : Pipeline
         
         // Background
         let preStage = scene.getStage(.PreStage)
-        let camera : CodeComponent = getFirstComponentOfType(preStage.getChildren(), typeId == .SDF2D ? .Camera2D : .Camera3D)!
+        let camera : CodeComponent = getFirstComponentOfType(preStage.children2D, .Camera2D)!
 
-        for item in preStage.getChildren() {
+        for item in preStage.children2D {
             if let comp = item.components[item.defaultName], comp.componentType == .Pattern {
                 dryRunComponent(comp)
                 instanceMap["pre"] = codeBuilder.build(comp, camera: camera)
@@ -78,12 +66,12 @@ class Pipeline2D            : Pipeline
         // Objects
         let shapeStage = scene.getStage(.ShapeStage)
         codeBuilder.sdfStream.reset()
-        for item in shapeStage.getChildren() {
-            if let shapes = item.getComponentList("shapes") {
+        for item in shapeStage.children2D {
+            if let shapes = item.componentLists["shapes2D"] {
                 let instance = CodeBuilderInstance()
                 instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
                 
-                codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: camera)
+                codeBuilder.sdfStream.openStream(.SDF2D, instance, codeBuilder, camera: camera)
                 codeBuilder.sdfStream.pushStageItem(item)
                 for shape in shapes {
                     codeBuilder.sdfStream.pushComponent(shape)
@@ -92,12 +80,13 @@ class Pipeline2D            : Pipeline
                 codeBuilder.sdfStream.pullStageItem()
                 instanceMap["shape"] = instance
                 codeBuilder.sdfStream.closeStream()
+                //print(instance.code)
             }
         }
         
         // Render
         let renderStage = scene.getStage(.RenderStage)
-        let renderChildren = renderStage.getChildren()
+        let renderChildren = renderStage.children2D
         if renderChildren.count > 0 {
             let renderColor = renderChildren[0]
             let renderComp = renderColor.components[renderColor.defaultName]!
@@ -111,8 +100,20 @@ class Pipeline2D            : Pipeline
     {
         // Render the background into backTexture
         backTexture = checkTextureSize(width, height, backTexture)
-        if let inst = instanceMap["pre"] {
-            codeBuilder.render(inst, backTexture)
+
+        var doBackground = true
+        
+        if let settings = settings {
+            if settings.transparent {
+                doBackground = false
+                codeBuilder.renderClear(texture: backTexture!, data: SIMD4<Float>(0,0,0,0))
+            }
+        }
+        
+        if doBackground {
+            if let inst = instanceMap["pre"] {
+                codeBuilder.render(inst, backTexture)
+            }
         }
         
         // Render the shape distance into depthTexture (float)

@@ -44,7 +44,9 @@ class GroundEditor              : PropertiesWidget
     }
     
     var state                   : State = .Idle
+    
     var groundShaders           : GroundShaders
+    var gizmo                   : GizmoCombo2D
     
     var offset                  = SIMD2<Float>(0,0)
     var graphZoom               : Float = 1
@@ -72,7 +74,8 @@ class GroundEditor              : PropertiesWidget
     
     var groundItem              : StageItem!
     
-    var currentRegion           : CodeComponent? = nil
+    var currentRegion           : StageItem? = nil
+    var currentComponent        : CodeComponent? = nil
     
     var undoComponent           : CodeUndoComponent? = nil
     
@@ -81,20 +84,46 @@ class GroundEditor              : PropertiesWidget
         let function = view.renderer.defaultLibrary.makeFunction( name: "nodeGridPattern" )
         drawPatternState = view.renderer.createNewPipelineState( function! )
         
-        groundShaders = GroundShaders()
+        groundShaders = GroundShaders(view)
+        gizmo = GizmoCombo2D(view)
         
         super.init(view)
         
+        // Custom gizmo cb
+        gizmo.customUpdateCB = { () in
+            self.groundShaders.updateRegionPreview()
+            self.mmView.update()
+        }
+        
+        // Custom camera
+        gizmo.customCameraCB = { (name)->(Float) in
+            var rc : Float = 0
+            
+            if name == "scale" {
+                rc = 1/self.graphZoom
+            }
+            
+            return rc
+        }
+        
+        groundShaders.groundEditor = self
         let addRegionButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Region", fixedWidth: buttonWidth)
         addRegionButton.clicked = { (event) in
             globalApp!.libraryDialog.show(ids: ["SDF2D"], style: .Icon, cb: { (json) in
                 if let comp = decodeComponentFromJSON(json) {
-                    self.currentRegion = comp
                     self.groundItem.componentLists["regions"]!.append(comp)
+                    self.groundShaders.buildRegionPreview()
+                    self.setCurrentComponent(comp)
                 }
             } )
         }
         addButton(addRegionButton)
+    }
+    
+    func setCurrentComponent(_ component: CodeComponent)
+    {
+        self.currentComponent = component
+        gizmo.setComponent(component)
     }
     
     func translate(_ x: Float, _ z: Float) -> SIMD2<Float>
@@ -131,6 +160,15 @@ class GroundEditor              : PropertiesWidget
         mouseDownPos.x = event.x
         mouseDownPos.y = event.y
         
+        if currentComponent != nil {
+            gizmo.rect.copy(rect)
+            gizmo.mouseDown(event)
+            
+            if gizmo.hoverState != .Inactive {
+                return
+            }
+        }
+                
         selectedItem = nil
         for (_,item) in itemMap {
             if item.rect.contains(event.x - rect.x, event.y - rect.y) {
@@ -162,9 +200,19 @@ class GroundEditor              : PropertiesWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
+        if currentComponent != nil {
+            gizmo.rect.copy(rect)
+            gizmo.mouseMoved(event)
+            
+            if gizmo.hoverState != .Inactive {
+                return
+            }
+        }
+        
         if state == .DraggingGrid {
             offset.x = mouseDownOffset.x - (mouseDownPos.x - event.x) / gridSize / graphZoom
             offset.y = mouseDownOffset.y - (mouseDownPos.y - event.y) / gridSize / graphZoom
+            groundShaders.updateRegionPreview()
             mmView.update()
         }
         if state == .DraggingItem {
@@ -209,6 +257,11 @@ class GroundEditor              : PropertiesWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if currentComponent != nil {
+            gizmo.rect.copy(rect)
+            gizmo.mouseUp(event)
+        }
+        
         if state != .Idle {
             globalApp!.currentPipeline?.setMinimalPreview(false)
         }
@@ -232,7 +285,7 @@ class GroundEditor              : PropertiesWidget
             prevScale = min(20, prevScale)
             
             graphZoom = prevScale
-            
+            groundShaders.updateRegionPreview()
             mmView.update()
         }
         #endif
@@ -344,10 +397,16 @@ class GroundEditor              : PropertiesWidget
             drawItem(cameraOriginItem!, "Origin", originPos)
             drawItem(cameraLookAtItem!, "Look At", lookAtPos)
         }
+                
+        super.draw(xOffset: xOffset, yOffset: yOffset)
+        groundShaders.drawPreview()
+        
+        if currentComponent != nil {
+            gizmo.rect.copy(rect)
+            gizmo.draw()
+        }
         
         mmView.renderer.setClipRect()
-        
-        super.draw(xOffset: xOffset, yOffset: yOffset)
     }
     
     func getCameraProperty(_ name: String) -> SIMD3<Float>?

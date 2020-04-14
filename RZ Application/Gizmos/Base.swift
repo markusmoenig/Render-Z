@@ -20,6 +20,8 @@ class GizmoBase              : MMWidget
     var clickWasConsumed    : Bool = false
     
     var component           : CodeComponent!
+    
+    var customCameraCB      : ((_ name: String)->(Float))? = nil
 
     func setComponent(_ comp: CodeComponent)
     {
@@ -61,6 +63,11 @@ class GizmoBase              : MMWidget
     /// Returns a property value of the camera
     func getCameraPropertyValue(_ name: String, defaultValue: Float = 0) -> Float
     {
+        // Custom camera for embedded use, i.e. terrain editor
+        if let cameraCB = customCameraCB {
+            return cameraCB(name)
+        }
+        
         let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
 
         for uuid in camera.properties {

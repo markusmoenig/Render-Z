@@ -13,6 +13,8 @@ class PipelineRenderSettings
     var reflections         : Int = 0
     var samples             : Int = 0
     
+    var transparent         : Bool = false
+    
     var cbProgress          : ((Int, Int)->())? = nil
     var cbFinished          : ((MTLTexture)->())? = nil
 }

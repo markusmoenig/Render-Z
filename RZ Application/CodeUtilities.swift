@@ -509,8 +509,19 @@ func getVariable(from: CodeComponent) -> CodeFragment?
 func setPropertyValue3(component: CodeComponent, name: String, value: SIMD3<Float>)
 {
     for uuid in component.properties {
-        if let frag = component.getPropertyOfUUID(uuid).1 {
-            insertValueToFragment3(frag, value)
+        let rc = component.getPropertyOfUUID(uuid)
+        if rc.0!.name == name {
+            insertValueToFragment3(rc.1!, value)
+        }
+    }
+}
+
+func setPropertyValue1(component: CodeComponent, name: String, value: Float)
+{
+    for uuid in component.properties {
+        let rc = component.getPropertyOfUUID(uuid)
+        if rc.0!.name == name {
+            rc.1!.values["value"] = value
         }
     }
 }

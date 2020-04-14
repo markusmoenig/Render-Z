@@ -30,6 +30,8 @@ class GizmoCombo2D          : GizmoBase
     var dispatched          : Bool = false
     var zoomBuffer          : Float = 0
     
+    var customUpdateCB      : (()->())? = nil
+    
     override init(_ view: MMView)
     {
         let function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmoCombo2D" )
@@ -46,7 +48,7 @@ class GizmoCombo2D          : GizmoBase
         let designEditor = globalApp!.artistEditor.designEditor
         let designProperties = globalApp!.artistEditor.designProperties
 
-        if let tNode = designProperties.c2Node {
+        if let tNode = designProperties.c2Node, customUpdateCB == nil {
             
             let xVar = NodeUINumber(tNode, variable: "_posX", title: "X", range: SIMD2<Float>(-10000, 10000), value: comp.values["_posX"]!, precision: 1)
             let yVar = NodeUINumber(tNode, variable: "_posY", title: "Y", range: SIMD2<Float>(-10000, 10000), value: comp.values["_posY"]!, precision: 1)
@@ -228,7 +230,11 @@ class GizmoCombo2D          : GizmoBase
         }
         #endif
         
-        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        if let updateCB = customUpdateCB {
+            updateCB()
+        } else {
+            globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        }
         
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -267,13 +273,21 @@ class GizmoCombo2D          : GizmoBase
             frag.values["value"]! = max(0.001, frag.values["value"]!)
             frag.values["value"]! = min(20, frag.values["value"]!)
             
-            globalApp!.currentEditor.updateOnNextDraw(compile: false)
+            if let updateCB = customUpdateCB {
+                updateCB()
+            } else {
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+            }
         }
     }
     
     /// Updates the UI properties
     func updateUIProperties()
     {
+        if customUpdateCB != nil {
+            return
+        }
+        
         let designProperties = globalApp!.artistEditor.designProperties
         
         if let tNode = designProperties.c2Node {
@@ -299,7 +313,12 @@ class GizmoCombo2D          : GizmoBase
         } else {
             timeline.addKeyProperties(sequence: component.sequence, uuid: component.uuid, properties: properties)
         }
-        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        
+        if let updateCB = customUpdateCB {
+            updateCB()
+        } else {
+            globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        }
     }
     
     ///
@@ -313,7 +332,12 @@ class GizmoCombo2D          : GizmoBase
             let properties : [String:Float] = [name:value]
             timeline.addKeyProperties(sequence: component.sequence, uuid: component.uuid, properties: properties)
         }
-        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        
+        if let updateCB = customUpdateCB {
+            updateCB()
+        } else {
+            globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        }
     }
 
     /// Update the hover state fo
