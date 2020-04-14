@@ -89,9 +89,10 @@ class App
         codeBuilder = CodeBuilder(mmView)
         pipeline2D = Pipeline2D(mmView)
         pipeline3D = Pipeline3D(mmView)
-        currentPipeline = pipeline3D
         thumbnail = Thumbnail(mmView)
-        
+
+        currentPipeline = pipeline3D
+
         currentEditor = artistEditor
         project = Project(currentSceneMode)
         

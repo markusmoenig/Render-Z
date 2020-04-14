@@ -25,15 +25,26 @@ class GroundItem {
         itemType = type
         self.stageItem = stageItem
     }
+    
+    func getComponent() -> CodeComponent?
+    {
+        if let item = stageItem {
+            if let component = item.components[item.defaultName] {
+                return component
+            }
+        }
+        return nil
+    }
 }
 
-class GroundEditor              : MMWidget
+class GroundEditor              : PropertiesWidget
 {
     enum State {
         case Idle, DraggingItem, DraggingGrid
     }
     
     var state                   : State = .Idle
+    var groundShaders           : GroundShaders
     
     var offset                  = SIMD2<Float>(0,0)
     var graphZoom               : Float = 1
@@ -56,12 +67,34 @@ class GroundEditor              : MMWidget
     
     let gridSize                : Float = 40
     
+    var initialValues           : [String:Float] = [:]
+    var initialProperty         = SIMD3<Float>(0,0,0)
+    
+    var groundItem              : StageItem!
+    
+    var currentRegion           : CodeComponent? = nil
+    
+    var undoComponent           : CodeUndoComponent? = nil
+    
     override init(_ view : MMView)
     {
         let function = view.renderer.defaultLibrary.makeFunction( name: "nodeGridPattern" )
         drawPatternState = view.renderer.createNewPipelineState( function! )
         
+        groundShaders = GroundShaders()
+        
         super.init(view)
+        
+        let addRegionButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Region", fixedWidth: buttonWidth)
+        addRegionButton.clicked = { (event) in
+            globalApp!.libraryDialog.show(ids: ["SDF2D"], style: .Icon, cb: { (json) in
+                if let comp = decodeComponentFromJSON(json) {
+                    self.currentRegion = comp
+                    self.groundItem.componentLists["regions"]!.append(comp)
+                }
+            } )
+        }
+        addButton(addRegionButton)
     }
     
     func translate(_ x: Float, _ z: Float) -> SIMD2<Float>
@@ -80,8 +113,14 @@ class GroundEditor              : MMWidget
         return res
     }
     
-    func activate()
+    func setStageItem(stageItem: StageItem)
     {
+        groundItem = stageItem
+        
+        if groundItem.componentLists["regions"] == nil {
+            groundItem.componentLists["regions"] = []
+        }
+
         cameraOriginItem = nil
         cameraLookAtItem = nil
         itemMap = [:]
@@ -97,6 +136,19 @@ class GroundEditor              : MMWidget
             if item.rect.contains(event.x - rect.x, event.y - rect.y) {
                 selectedItem = item
                 mmView.update()
+                state = .DraggingItem
+                if item.itemType == .CameraLookAt {
+                    globalApp!.currentPipeline?.setMinimalPreview(true)
+                    if let property = getCameraProperty("lookAt") {
+                        initialProperty = property
+                    }
+                } else
+                if item.itemType == .CameraOrigin {
+                    globalApp!.currentPipeline?.setMinimalPreview(true)
+                    if let property = getCameraProperty("origin") {
+                        initialProperty = property
+                    }
+                }
                 break
             }
         }
@@ -111,16 +163,79 @@ class GroundEditor              : MMWidget
     override func mouseMoved(_ event: MMMouseEvent)
     {
         if state == .DraggingGrid {
-            offset.x = mouseDownOffset.x + (mouseDownPos.x - event.x) / gridSize / graphZoom
-            offset.y = mouseDownOffset.y + (mouseDownPos.y - event.y) / gridSize / graphZoom
+            offset.x = mouseDownOffset.x - (mouseDownPos.x - event.x) / gridSize / graphZoom
+            offset.y = mouseDownOffset.y - (mouseDownPos.y - event.y) / gridSize / graphZoom
             mmView.update()
-            print(offset)
+        }
+        if state == .DraggingItem {
+            if selectedItem!.itemType == .CameraOrigin {
+                
+                if undoComponent == nil {
+                    undoComponent = globalApp!.currentEditor.undoComponentStart("Camera Change")
+                }
+                
+                let x : Float = initialProperty.x - (mouseDownPos.x - event.x) / gridSize / graphZoom
+                let z : Float = initialProperty.z - (mouseDownPos.y - event.y) / gridSize / graphZoom
+                let properties : [String:Float] = [
+                    "origin_x" : x,
+                    "origin_z" : z,
+                ]
+                if let component = selectedItem?.getComponent() {
+                    if processProperties(component, properties) == false {
+                        insertValueToCameraProperty("origin", SIMD3<Float>(x, initialProperty.y, z))
+                    }
+                }
+            } else
+            if selectedItem!.itemType == .CameraLookAt {
+                
+                if undoComponent == nil {
+                    undoComponent = globalApp!.currentEditor.undoComponentStart("Camera Change")
+                }
+                
+                let x : Float = initialProperty.x - (mouseDownPos.x - event.x) / gridSize / graphZoom
+                let z : Float = initialProperty.z - (mouseDownPos.y - event.y) / gridSize / graphZoom
+                let properties : [String:Float] = [
+                    "lookAt_x" : x,
+                    "lookAt_z" : z,
+                ]
+                if let component = selectedItem?.getComponent() {
+                    if processProperties(component, properties) == false {
+                        insertValueToCameraProperty("lookAt", SIMD3<Float>(x, initialProperty.y, z))
+                    }
+                }
+            }
         }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if state != .Idle {
+            globalApp!.currentPipeline?.setMinimalPreview(false)
+        }
+        
+        if undoComponent != nil {
+            globalApp!.currentEditor.undoComponentEnd(undoComponent!)
+            undoComponent = nil
+        }
+        
         state = .Idle
+    }
+    
+    override func mouseScrolled(_ event: MMMouseEvent)
+    {
+        var prevScale = graphZoom
+        
+        #if os(OSX)
+        if event.deltaY! != 0 {
+            prevScale += event.deltaY! * 0.05
+            prevScale = max(0.1, prevScale)
+            prevScale = min(20, prevScale)
+            
+            graphZoom = prevScale
+            
+            mmView.update()
+        }
+        #endif
     }
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -176,7 +291,7 @@ class GroundEditor              : MMWidget
                     continue
                 }
             
-                let transformed  = getTransformedComponentValues(component)
+                let transformed = getTransformedComponentValues(component)
                 let x = transformed["_posX"]!
                 let z = transformed["_posZ"]!
             
@@ -231,5 +346,59 @@ class GroundEditor              : MMWidget
         }
         
         mmView.renderer.setClipRect()
+        
+        super.draw(xOffset: xOffset, yOffset: yOffset)
+    }
+    
+    func getCameraProperty(_ name: String) -> SIMD3<Float>?
+    {
+        if let camera = cameraOriginItem {
+            if let cameraItem = camera.stageItem {
+                if let component = cameraItem.components[cameraItem.defaultName] {
+                
+                    for uuid in component.properties {
+                        let rc = component.getPropertyOfUUID(uuid)
+                        if let frag = rc.0 {
+                            if frag.name == name {
+                                 return extractValueFromFragment3(rc.1!)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        return nil
+    }
+    
+    func insertValueToCameraProperty(_ name: String,_ value: SIMD3<Float>)
+    {
+        if let camera = cameraOriginItem {
+            if let cameraItem = camera.stageItem {
+                if let component = cameraItem.components[cameraItem.defaultName] {
+                
+                    for uuid in component.properties {
+                        let rc = component.getPropertyOfUUID(uuid)
+                        if let frag = rc.0 {
+                            if frag.name == name {
+                                insertValueToFragment3(rc.1!, value)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    func processProperties(_ component: CodeComponent,_ properties: [String:Float]) -> Bool
+    {
+        let timeline = globalApp!.artistEditor.timeline
+        
+        if timeline.isRecording {
+            timeline.addKeyProperties(sequence: component.sequence, uuid: component.uuid, properties: properties)
+            return true
+        }
+        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        return false
     }
 }

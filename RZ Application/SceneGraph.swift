@@ -1001,6 +1001,15 @@ class SceneGraph                : MMWidget
                     if comp.componentType == .SkyDome {
                         buildChangeComponent(item, name: "Sky Dome", ids: ["SkyDome", "Pattern"])
                     } else
+                    if comp.componentType == .Pattern {
+                        var items : [String] = []
+                        if globalApp!.currentSceneMode == .TwoD {
+                            items = ["Pattern"]
+                        } else {
+                            items = ["SkyDome", "Pattern"]
+                        }
+                        buildChangeComponent(item, name: "Pattern", ids: items)
+                    } else
                     if comp.componentType == .Camera3D {
                         buildChangeComponent(item, name: "Camera", ids: ["Camera3D"])
                     } else

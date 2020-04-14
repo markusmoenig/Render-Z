@@ -253,6 +253,15 @@ class DesignEditor          : MMWidget
         }
     }
     
+    override func mouseScrolled(_ event: MMMouseEvent) {
+        if let component = designComponent {
+            if component.componentType == .Ground3D {
+                groundEditor.mouseScrolled(event)
+                return
+            }
+        }
+    }
+    
     /*
     override func mouseScrolled(_ event: MMMouseEvent)
     {

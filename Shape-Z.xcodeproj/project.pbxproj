@@ -148,6 +148,10 @@
 		2B40D80B23FE0D8300D46B2F /* Combo3D.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B40D80423FCCDAF00D46B2F /* Combo3D.metal */; };
 		2B4600EC2442EAC5004DAF5E /* AppShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600EB2442EAC0004DAF5E /* AppShaders.metal */; };
 		2B4600ED2442EAC6004DAF5E /* AppShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600EB2442EAC0004DAF5E /* AppShaders.metal */; };
+		2B4600EF244530CE004DAF5E /* PropertiesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600EE244530CE004DAF5E /* PropertiesWidget.swift */; };
+		2B4600F0244530CE004DAF5E /* PropertiesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600EE244530CE004DAF5E /* PropertiesWidget.swift */; };
+		2B4600F22445392F004DAF5E /* GroundShaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600F12445392E004DAF5E /* GroundShaders.swift */; };
+		2B4600F32445392F004DAF5E /* GroundShaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600F12445392E004DAF5E /* GroundShaders.swift */; };
 		2B46E95D2243339A0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B46E95E2243339B0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B46E960224367AF0047A94A /* Material.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95F224367AF0047A94A /* Material.swift */; };
@@ -710,6 +714,8 @@
 		2B40D80423FCCDAF00D46B2F /* Combo3D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo3D.metal; sourceTree = "<group>"; };
 		2B40D80523FCCDB300D46B2F /* Combo3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combo3D.swift; sourceTree = "<group>"; };
 		2B4600EB2442EAC0004DAF5E /* AppShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = AppShaders.metal; sourceTree = "<group>"; };
+		2B4600EE244530CE004DAF5E /* PropertiesWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesWidget.swift; sourceTree = "<group>"; };
+		2B4600F12445392E004DAF5E /* GroundShaders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundShaders.swift; sourceTree = "<group>"; };
 		2B46E95C224330050047A94A /* MMTabWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabWidget.swift; sourceTree = "<group>"; };
 		2B46E95F224367AF0047A94A /* Material.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Material.swift; sourceTree = "<group>"; };
 		2B46E962224466CC0047A94A /* MaterialFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialFactory.swift; sourceTree = "<group>"; };
@@ -1030,6 +1036,7 @@
 				2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */,
 				2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */,
 				2B646F9224429E6B00554560 /* GroundEditor.swift */,
+				2B4600F12445392E004DAF5E /* GroundShaders.swift */,
 				2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */,
 				2B8E2FD823C5CF40005619E4 /* Scene.swift */,
 				2B65083B23E50131003DE093 /* SceneGraph.swift */,
@@ -1039,6 +1046,7 @@
 				2B2B6006242601C300B9CCF1 /* ExportDialog.swift */,
 				2BE9488623D0675600DB0BCD /* DefaultItems.swift */,
 				2B4600EB2442EAC0004DAF5E /* AppShaders.metal */,
+				2B4600EE244530CE004DAF5E /* PropertiesWidget.swift */,
 				2B59875A23D3E8C0007E335F /* Gizmos */,
 				2B7A3C4023B46AD8002EC5FC /* Icons */,
 				2BBFA82F2436E1BF008981B7 /* images */,
@@ -1895,6 +1903,7 @@
 				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
+				2B4600F22445392F004DAF5E /* GroundShaders.swift in Sources */,
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
 				2B50635923CEC98600124517 /* LibraryDialog.swift in Sources */,
 				2B7A3C1623B46546002EC5FC /* MMTabButtonWidget.swift in Sources */,
@@ -1925,6 +1934,7 @@
 				2B8E2FEB23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
 				2BE5A4D9240CBB1B00890281 /* Camera3D.swift in Sources */,
 				2B7A3C0D23B46546002EC5FC /* MMDrawable.swift in Sources */,
+				2B4600EF244530CE004DAF5E /* PropertiesWidget.swift in Sources */,
 				2B7A3C1D23B46546002EC5FC /* MMSkin.swift in Sources */,
 				2B2B60072426027F00B9CCF1 /* ExportDialog.swift in Sources */,
 				2B7A3C1023B46546002EC5FC /* MMLabel.swift in Sources */,
@@ -2129,6 +2139,7 @@
 				2B9B29CA23BB453400C2F387 /* MMFloatPopUp.swift in Sources */,
 				2BE9488823D0677700DB0BCD /* DefaultItems.swift in Sources */,
 				2B8E2FEF23C9691A005619E4 /* Pipeline.swift in Sources */,
+				2B4600F0244530CE004DAF5E /* PropertiesWidget.swift in Sources */,
 				2B9B29C123BB453400C2F387 /* MMRenderer.swift in Sources */,
 				2B9B29CC23BB453400C2F387 /* MMTabWidget.swift in Sources */,
 				2B9B29E923BB45CA00C2F387 /* ArtistEditor.swift in Sources */,
@@ -2151,6 +2162,7 @@
 				2B646F9424429E6B00554560 /* GroundEditor.swift in Sources */,
 				2B9B29A923BB44BF00C2F387 /* SceneDelegate.swift in Sources */,
 				2B59875923D15BD0007E335F /* Combo2D.swift in Sources */,
+				2B4600F32445392F004DAF5E /* GroundShaders.swift in Sources */,
 				2B9B29E123BB45B900C2F387 /* App.swift in Sources */,
 				2B9B29C523BB453400C2F387 /* MMUtils.swift in Sources */,
 				2B9B29D323BB453400C2F387 /* MMTreeWidget.swift in Sources */,

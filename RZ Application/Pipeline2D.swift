@@ -68,7 +68,7 @@ class Pipeline2D            : Pipeline
         let camera : CodeComponent = getFirstComponentOfType(preStage.getChildren(), typeId == .SDF2D ? .Camera2D : .Camera3D)!
 
         for item in preStage.getChildren() {
-            if let comp = item.components[item.defaultName], comp.componentType == .Colorize {
+            if let comp = item.components[item.defaultName], comp.componentType == .Pattern {
                 dryRunComponent(comp)
                 instanceMap["pre"] = codeBuilder.build(comp, camera: camera)
                 break

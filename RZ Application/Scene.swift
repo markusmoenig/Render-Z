@@ -225,8 +225,8 @@ class Stage                 : Codable, Equatable
         
         if stageType == .PreStage {
             var item = StageItem(.PreStage, "Background")
-            var codeComponent = CodeComponent(.Colorize)
-            codeComponent.createDefaultFunction(.Colorize)
+            var codeComponent = CodeComponent(.Pattern, "Pattern")
+            codeComponent.createDefaultFunction(.Pattern)
             item.components[item.defaultName] = codeComponent
             children2D.append(item)
             placeChild(modeId: "2D", parent: self, child: item, stepSize: 50, radius: 150)
