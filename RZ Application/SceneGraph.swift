@@ -1894,6 +1894,7 @@ class SceneGraph                : MMWidget
     func drawObject(stage: Stage, o: StageItem, parent: SceneGraphItem? = nil, skin: SceneGraphSkin)
     {
         if o.components[o.defaultName] == nil {
+            // For region children of the ground object
             return
         }
 

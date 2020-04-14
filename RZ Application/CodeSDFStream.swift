@@ -26,6 +26,9 @@ class CodeSDFStream
     var materialFuncCode    : String = ""
     var materialCode        : String = ""
     
+    var regionMapCode       : String = ""
+    var regionCode          : String = ""
+    
     var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
     var idCounter           : Int = 0
     
@@ -60,6 +63,9 @@ class CodeSDFStream
         
         globalsAddedFor = []
         
+        regionCode = ""
+        regionMapCode = ""
+        
         idCounter = idStart
         materialIdCounter = idStart
         currentMaterialId = idStart
@@ -71,15 +77,6 @@ class CodeSDFStream
                 
         if type == .SDF2D {
             headerCode = codeBuilder.getHeaderCode()
-            headerCode +=
-            """
-                        
-            float2 __translate(float2 p, float2 t)
-            {
-                return p - t;
-            }
-            
-            """
             
             // Generate the camera code and add the global camera code
             if let camera = camera {
@@ -472,9 +469,120 @@ class CodeSDFStream
                     
                     ids[idCounter] = ([groundItem], ground)
                     instance.ids[idCounter] = ids[idCounter]
-
                     idCounter += 1
                     
+                    regionMapCode +=
+                    """
+                    #define FAR 80.
+
+                    float regionMapCode(float3 pos, thread struct FuncData *__funcData)
+                    {
+                        constant float4 *__data = __funcData->__data;
+                        float outDistance = 1000000.0;
+
+                    """
+                    
+                    
+                    for (index, region) in groundItem.children.enumerated() {
+                        if region.componentLists["shapes2D"] == nil { continue }
+                        
+                        regionCode +=
+                        """
+                        
+                        float region\(index)(float2 pos, thread struct FuncData *__funcData)
+                        {
+                            float outDistance = 1000000.0;
+                            constant float4 *__data = __funcData->__data;
+
+                        """
+                        
+                        // Add the component to the region
+                        for regionComponent in region.componentLists["shapes2D"]! {
+                            dryRunComponent(regionComponent, instance.data.count)
+                            instance.collectProperties(regionComponent, hierarchy)
+                            
+                            if let globalCode = regionComponent.globalCode {
+                                headerCode += globalCode
+                            }
+                            
+                            let posX = instance.getTransformPropertyIndex(regionComponent, "_posX")
+                            let posY = instance.getTransformPropertyIndex(regionComponent, "_posY")
+
+                            regionCode +=
+                            """
+                                {
+                                    float2 position = __translate(pos, float2(__data[\(posX)].x, -__data[\(posY)].x));
+
+                            """
+                            
+                            regionCode += regionComponent.code!
+                            
+                            regionCode +=
+                            """
+                                }
+                            
+                            """
+                        }
+                        
+                        regionCode +=
+                        """
+                        
+                            return outDistance;
+                        }
+                        
+                        """
+                        
+                        regionMapCode +=
+                        """
+                        
+                            if (region\(index)(pos.xz, __funcData) <= 0.001) {
+                                outDistance = min(outDistance, pos.y - 2.0);
+                            } else {
+                                outDistance = min(outDistance, pos.y);
+                            }
+                        
+                        """
+                    }
+                    
+                    regionMapCode +=
+                    """
+                    
+                        return outDistance;
+                    }
+                    
+                    float3 getRegionNormal(float3 p, thread struct FuncData *__funcData)
+                    {
+                        float2 e = float2(0.002, -0.002);
+                        return normalize(e.xyy*regionMapCode(p + e.xyy, __funcData) + e.yyx*regionMapCode(p + e.yyx, __funcData) + e.yxy*regionMapCode(p + e.yxy, __funcData) + e.xxx*regionMapCode(p + e.xxx, __funcData));
+                    }
+                    
+                    """
+                    
+                    if regionCode.count > 0 {
+                        headerCode += regionCode
+                        headerCode += regionMapCode
+                        print(regionCode)
+                        print(regionMapCode)
+                        
+                        hitAndNormalsCode +=
+                        """
+                        
+                        float t = 0., d;
+                        for (int i=0; i<160; i++){
+                            d = regionMapCode(rayOrigin + rayDirection * t, __funcData);
+                        
+                            if(abs(d)<.001*(t*.125 + 1.) || t>FAR) break;
+                            t += d;
+                        }
+                        
+                        if (t < FAR ) {//&& t < outShape.y) {
+                            outShape = float4(0, t, 0, 0);
+                            outNormal.xyz = getRegionNormal(rayOrigin + rayDirection * t, __funcData);
+                        }
+
+                        """
+                    }
+
                     /*
                      
                      dryRunComponent(component, instance.data.count)

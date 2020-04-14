@@ -120,6 +120,9 @@ class GroundEditor              : PropertiesWidget
                     newRegion.componentLists["shapes2D"] = [comp]
                     self.groundShaders.buildRegionPreview()
                     self.setCurrentRegion(newRegion, comp)
+                    
+                    globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.groundItem)
+                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
                 }
             } )
         }

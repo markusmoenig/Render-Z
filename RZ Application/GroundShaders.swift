@@ -32,7 +32,6 @@ class GroundShaders
         
         let oldMode = globalApp!.currentSceneMode
         globalApp!.currentSceneMode = .TwoD
-        
         for region in groundEditor.groundItem.children {
             if region.componentLists["shapes2D"] == nil {
                 continue
@@ -60,6 +59,7 @@ class GroundShaders
         setPropertyValue1(component: camera, name: "scale", value: 1/groundEditor.graphZoom)
 
         previewPipeline.render(groundEditor.rect.width, groundEditor.rect.height, settings: previewSettings)
+        globalApp!.currentEditor.updateOnNextDraw(compile: false)
     }
     
     func drawPreview()

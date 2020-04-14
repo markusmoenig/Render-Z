@@ -357,11 +357,6 @@ class CodeBuilder
         inst.code +=
         """
         
-        float2 __translate(float2 p, float2 t)
-        {
-            return p - t;
-        }
-        
         kernel void componentBuilder(
         texture2d<half, access::write>          __outTexture  [[texture(0)]],
         constant float4                        *__data   [[ buffer(1) ]],
@@ -408,11 +403,6 @@ class CodeBuilder
     {
         inst.code +=
         """
-        
-        float2 __translate(float2 p, float2 t)
-        {
-            return p - t;
-        }
         
         kernel void componentBuilder(
         texture2d<half, access::write>          __outTexture  [[texture(0)]],
@@ -1135,6 +1125,11 @@ class CodeBuilder
             float4 rg3 = float4(texture.sample( __textureSampler, (iuv+ float2(0.5,1.5))/size, 0.0 ));
             float4 rg4 = float4(texture.sample( __textureSampler, (iuv+ float2(1.5,1.5))/size, 0.0 ));
             return mix( mix(rg1,rg2,f.x), mix(rg3,rg4,f.x), f.y );
+        }
+        
+        float2 __translate(float2 p, float2 t)
+        {
+            return p - t;
         }
         
         """
