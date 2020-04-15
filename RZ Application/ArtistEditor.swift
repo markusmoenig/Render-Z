@@ -143,6 +143,7 @@ class ArtistEditor          : Editor
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
         }
+        designEditor.groundEditor.deactivate()
     }
     
     override func setComponent(_ component: CodeComponent)
@@ -179,6 +180,7 @@ class ArtistEditor          : Editor
             designEditor.groundEditor.setGroundItem(stageItem: globalApp!.project.selected!.getStageItem(component)!)
         } else {
             groundButton.removeState(.Checked)
+            designEditor.groundEditor.deactivate()
         }
 
         designEditor.designComponent = component

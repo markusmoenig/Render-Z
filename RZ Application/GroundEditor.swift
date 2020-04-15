@@ -158,6 +158,16 @@ class GroundEditor              : PropertiesWidget
         return res
     }
     
+    func activate()
+    {
+        
+    }
+    
+    func deactivate()
+    {
+        deregisterButtons()
+    }
+    
     func setGroundItem(stageItem: StageItem)
     {
         groundItem = stageItem

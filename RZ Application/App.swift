@@ -45,7 +45,7 @@ class App
     let libraryDialog   : LibraryDialog
 
     var project         : Project
-    var currentSceneMode: Scene.SceneMode = .ThreeD
+    var currentSceneMode: Scene.SceneMode = .TwoD
     
     var images          : [String:MTLTexture] = [:]
         
@@ -91,7 +91,7 @@ class App
         pipeline3D = Pipeline3D(mmView)
         thumbnail = Thumbnail(mmView)
 
-        currentPipeline = pipeline3D
+        currentPipeline = pipeline2D
 
         currentEditor = artistEditor
         project = Project(currentSceneMode)

@@ -567,7 +567,7 @@ class CodeSDFStream
                         headerCode += regionCode
                         headerCode += regionMapCode
                         //print(regionCode)
-                        print(regionMapCode)
+                        //print(regionMapCode)
                         
                         hitAndNormalsCode +=
                         """

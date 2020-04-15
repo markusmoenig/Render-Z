@@ -1230,7 +1230,9 @@ class SceneGraph                : MMWidget
                     }
                 } else
                 if item.itemType == .StageItem && item.stageItem!.stageItemType == .ShapeStage && (item.stageItem!.components[item.stageItem!.defaultName] == nil || (item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .UVMAP3D &&
-                        item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Ground3D && item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Material3D)) {
+                        item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Ground3D &&
+                        item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Material3D &&
+                        item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .RegionProfile3D)) {
                     
                     let addChildItem = MMMenuItem(text: "Add Child", cb: { () in
 
@@ -1923,7 +1925,7 @@ class SceneGraph                : MMWidget
 
         var component : CodeComponent? = nil
         if let comp = o.components[o.defaultName] {
-            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D {
+            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D || comp.componentType == .RegionProfile3D {
                 component = comp
                 uuid = comp.uuid
             }
@@ -2004,11 +2006,11 @@ class SceneGraph                : MMWidget
                     itemMap[sub.uuid] = subItem
 
                     if sub === currentComponent {
-                        mmView.drawBox.draw( x: rect.x + subItem.rect.x, y: rect.y + subItem.rect.y, width: totalWidth, height: spacing, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: skin.normalBorderColor)
+                        mmView.drawBox.draw( x: rect.x + subItem.rect.x, y: rect.y + subItem.rect.y, width: totalWidth, height: spacing, round: 0, borderSize: 0, fillColor: skin.selectedBorderColor)
                     }
                     
                     skin.font.getTextRect(text: sub.libraryName, scale: skin.fontScale, rectToUse: skin.tempRect)
-                    mmView.drawText.drawText(skin.font, text: sub.libraryName, x: rect.x + x + (totalWidth - skin.tempRect.width) / 2, y: rect.y + y + top + 2, scale: skin.fontScale, color: skin.normalTextColor)
+                    mmView.drawText.drawText(skin.font, text: sub.libraryName, x: rect.x + x + (totalWidth - skin.tempRect.width) / 2, y: rect.y + y + top + 1 * graphZoom, scale: skin.fontScale, color: skin.normalTextColor)
                 }
                 top += spacing
                 
