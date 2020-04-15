@@ -465,6 +465,13 @@ class CodeSDFStream
                         hitAndNormalsCode += code
                     }
                     
+                    hitAndNormalsCode +=
+                    """
+                    inShape = outShape;
+                    maxDistance = outShape.y;
+                    """
+
+                    
                     let groundItem : StageItem = globalApp!.project.selected!.getStage(.ShapeStage).getChildren()[0]
                     
                     ids[idCounter] = ([groundItem], ground)
@@ -474,7 +481,7 @@ class CodeSDFStream
                     regionMapCode +=
                     """
 
-                    float regionMapCode(float3 position, thread struct FuncData *__funcData)
+                    float4 regionMapCode(float3 position, thread struct FuncData *__funcData)
                     {
                         constant float4 *__data = __funcData->__data;
                         float GlobalTime = __funcData->GlobalTime;
@@ -552,13 +559,7 @@ class CodeSDFStream
                     regionMapCode +=
                     """
                     
-                        return outDistance;
-                    }
-                    
-                    float3 getRegionNormal(float3 p, thread struct FuncData *__funcData)
-                    {
-                        float2 e = float2(0.002, -0.002);
-                        return normalize(e.xyy*regionMapCode(p + e.xyy, __funcData) + e.yyx*regionMapCode(p + e.yyx, __funcData) + e.yxy*regionMapCode(p + e.yxy, __funcData) + e.xxx*regionMapCode(p + e.xxx, __funcData));
+                        return float4(outDistance, 0, 0, 0);
                     }
                     
                     """
@@ -569,25 +570,52 @@ class CodeSDFStream
                         //print(regionCode)
                         //print(regionMapCode)
                         
+                        if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false
+                        {
+                            dryRunComponent(rayMarch, instance.data.count)
+                            instance.collectProperties(rayMarch)
+                            if let globalCode = rayMarch.globalCode {
+                                headerCode += globalCode
+                            }
+                            if let code = rayMarch.code {
+                                hitAndNormalsCode += code.replacingOccurrences(of: "sceneMap", with: "regionMapCode")
+                            }
+                        }
                         hitAndNormalsCode +=
                         """
                         
-                        float t = 0., d, inD = outShape.y;
-                        for (int i=0; i<160; i++){
-                            d = regionMapCode(rayOrigin + rayDirection * t, __funcData);
-                        
-                            if (abs(d) < .001 * t) {
-                                outShape.y = t;
-                                break;
-                            }
-                            t += d;
-                        }
-                        
-                        if (inD != outShape.y) {//&& t < outShape.y) {
-                            outShape = float4(0, t, 0, 0);
-                            outNormal.xyz = getRegionNormal(rayOrigin + rayDirection * t, __funcData);
-                        }
+                        if (inShape.y != outShape.y) {
 
+                        """
+                        
+                        if let normal = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Normal3D) {
+                            dryRunComponent(normal, instance.data.count)
+                            instance.collectProperties(normal)
+                            if let globalCode = normal.globalCode {
+                                headerCode += globalCode
+                            }
+                            if let code = normal.code {
+                                hitAndNormalsCode +=
+                                """
+                                
+                                {
+                                float3 position = rayOrigin + outShape.y * rayDirection;
+                                """
+                                hitAndNormalsCode += code.replacingOccurrences(of: "sceneMap", with: "regionMapCode")
+                                hitAndNormalsCode +=
+                                """
+                                
+                                }
+                                
+                                """
+                            }
+                        }
+                        
+                        hitAndNormalsCode +=
+                        """
+                        
+                        }
+                        
                         """
                     }
                 }
