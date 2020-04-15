@@ -45,6 +45,7 @@ class GroundShaders
         globalApp!.currentSceneMode = oldMode
         
         previewPipeline.build(scene: previewScene)
+        globalApp!.currentEditor.updateOnNextDraw(compile: true)
         updateRegionPreview()
     }
     

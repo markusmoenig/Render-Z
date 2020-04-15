@@ -175,7 +175,8 @@ class ArtistEditor          : Editor
         
         if component.componentType == .Ground3D {
             groundButton.addState(.Checked)
-            designEditor.groundEditor.setStageItem(stageItem: globalApp!.project.selected!.getStageItem(component)!)
+            designEditor.groundEditor.rect.copy(designEditor.rect)
+            designEditor.groundEditor.setGroundItem(stageItem: globalApp!.project.selected!.getStageItem(component)!)
         } else {
             groundButton.removeState(.Checked)
         }

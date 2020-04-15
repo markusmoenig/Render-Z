@@ -114,15 +114,21 @@ class GroundEditor              : PropertiesWidget
                     
                     let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
 
-                    let newRegion = shapeStage.createChild(parent: self.groundItem)
-                    newRegion.components[newRegion.defaultName] = nil
+                    let newRegion = shapeStage.createChild("Region", parent: self.groundItem)
+                    
+                    let regionComponent = CodeComponent(.RegionProfile3D, "Region")
+                    regionComponent.createDefaultFunction(.RegionProfile3D)
+                    regionComponent.libraryName = "Profile"
+                    newRegion.components[newRegion.defaultName] = regionComponent
                     
                     newRegion.componentLists["shapes2D"] = [comp]
-                    self.groundShaders.buildRegionPreview()
                     self.setCurrentRegion(newRegion, comp)
                     
+                    placeChild(modeId: "3D", parent: self.groundItem, child: newRegion, stepSize: 50, radius: 120)
+                    
                     globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.groundItem)
-                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                    
+                    self.groundShaders.buildRegionPreview()
                 }
             } )
         }
@@ -152,13 +158,22 @@ class GroundEditor              : PropertiesWidget
         return res
     }
     
-    func setStageItem(stageItem: StageItem)
+    func setGroundItem(stageItem: StageItem)
     {
         groundItem = stageItem
 
         cameraOriginItem = nil
         cameraLookAtItem = nil
         itemMap = [:]
+        
+        self.groundShaders.buildRegionPreview()
+        self.groundShaders.updateRegionPreview()
+        
+        for c in groundItem.children {
+            if c.components[c.defaultName]!.componentType == .RegionProfile3D {
+                self.setCurrentRegion(c, c.componentLists["shapes2D"]!.first!)
+            }
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent)

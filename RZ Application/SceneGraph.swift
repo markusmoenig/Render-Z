@@ -1022,6 +1022,9 @@ class SceneGraph                : MMWidget
                     if comp.componentType == .Ground3D {
                         buildChangeComponent(item, name: "Ground", ids: ["Ground3D"])
                     } else
+                    if comp.componentType == .RegionProfile3D {
+                        buildChangeComponent(item, name: "Region Profile", ids: ["RegionProfile3D"])
+                    } else
                     if comp.componentType == .UVMAP3D {
                         buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])
                     } else
@@ -1893,11 +1896,6 @@ class SceneGraph                : MMWidget
     /// Draws an object hierarchy
     func drawObject(stage: Stage, o: StageItem, parent: SceneGraphItem? = nil, skin: SceneGraphSkin)
     {
-        if o.components[o.defaultName] == nil {
-            // For region children of the ground object
-            return
-        }
-
         if o.label == nil || o.label!.scale != skin.fontScale {
             let name : String = o.name
             /*
@@ -1942,12 +1940,14 @@ class SceneGraph                : MMWidget
             drawLineBetweenCircles(item, p, skin)
         }
         
-        drawShapesBox(parent: item, skin: skin)
-        drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
-        drawItemList(parent: item, listId: "modifier" + getCurrentModeId(), graphId: "_graphModifier", name: "Modifier", containerId: .ModifierContainer, itemId: .ModifierItem, skin: skin)
-        
-        for c in o.children {
-            drawObject(stage: stage, o: c, parent: item, skin: skin)
+        if o.components[o.defaultName]!.componentType != .RegionProfile3D {
+            drawShapesBox(parent: item, skin: skin)
+            drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
+            drawItemList(parent: item, listId: "modifier" + getCurrentModeId(), graphId: "_graphModifier", name: "Modifier", containerId: .ModifierContainer, itemId: .ModifierItem, skin: skin)
+            
+            for c in o.children {
+                drawObject(stage: stage, o: c, parent: item, skin: skin)
+            }
         }
         
         /*
@@ -1975,7 +1975,7 @@ class SceneGraph                : MMWidget
         if let list = parent.stageItem!.getComponentList("shapes") {
             
             let amount : Float = Float(list.count)
-            let height : Float = amount * itemSize + max(amount - 1, 0) * spacing + headerHeight + 15 * graphZoom
+            let height : Float = amount * itemSize + amount * spacing + headerHeight + 15 * graphZoom
             
             let shapesContainer = SceneGraphItem(.ShapesContainer, stage: parent.stage, stageItem: stageItem)
             shapesContainer.rect.set(x, y, totalWidth, height)
@@ -1995,6 +1995,23 @@ class SceneGraph                : MMWidget
             mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight, radius: 0.6, fillColor: skin.normalBorderColor)
     
             for (index, comp) in list.enumerated() {
+        
+                // Take the subComponent of the NEXT item as the boolean
+                let next = list[index]
+                if let sub = next.subComponent {
+                    let subItem = SceneGraphItem(.BooleanItem, stage: parent.stage, stageItem: stageItem, component: sub, parentComponent: next)
+                    subItem.rect.set(x, y + top, totalWidth, spacing)
+                    itemMap[sub.uuid] = subItem
+
+                    if sub === currentComponent {
+                        mmView.drawBox.draw( x: rect.x + subItem.rect.x, y: rect.y + subItem.rect.y, width: totalWidth, height: spacing, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: skin.normalBorderColor)
+                    }
+                    
+                    skin.font.getTextRect(text: sub.libraryName, scale: skin.fontScale, rectToUse: skin.tempRect)
+                    mmView.drawText.drawText(skin.font, text: sub.libraryName, x: rect.x + x + (totalWidth - skin.tempRect.width) / 2, y: rect.y + y + top + 2, scale: skin.fontScale, color: skin.normalTextColor)
+                }
+                top += spacing
+                
                 let item = SceneGraphItem(.ShapeItem, stage: parent.stage, stageItem: stageItem, component: comp)
                 item.rect.set(x, y + top, totalWidth, itemSize)
                 itemMap[comp.uuid] = item
@@ -2008,23 +2025,6 @@ class SceneGraph                : MMWidget
                 }
             
                 top += itemSize
-                // Take the subComponent of the NEXT item as the boolean
-                if index < list.count - 1 {
-                    let next = list[index+1]
-                    if let sub = next.subComponent {
-                        let subItem = SceneGraphItem(.BooleanItem, stage: parent.stage, stageItem: stageItem, component: sub, parentComponent: next)
-                        subItem.rect.set(x, y + top, totalWidth, spacing)
-                        itemMap[sub.uuid] = subItem
-
-                        if sub === currentComponent {
-                            mmView.drawBox.draw( x: rect.x + subItem.rect.x, y: rect.y + subItem.rect.y, width: totalWidth, height: spacing, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.4,0.4,0.4,1), borderColor: skin.normalBorderColor)
-                        }
-                        
-                        skin.font.getTextRect(text: sub.libraryName, scale: skin.fontScale, rectToUse: skin.tempRect)
-                        mmView.drawText.drawText(skin.font, text: sub.libraryName, x: rect.x + x + (totalWidth - skin.tempRect.width) / 2, y: rect.y + y + top + 2, scale: skin.fontScale, color: skin.normalTextColor)
-                    }
-                }
-                top += spacing
             }
         }
     }

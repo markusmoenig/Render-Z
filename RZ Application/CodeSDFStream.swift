@@ -473,11 +473,13 @@ class CodeSDFStream
                     
                     regionMapCode +=
                     """
-                    #define FAR 80.
 
-                    float regionMapCode(float3 pos, thread struct FuncData *__funcData)
+                    float regionMapCode(float3 position, thread struct FuncData *__funcData)
                     {
                         constant float4 *__data = __funcData->__data;
+                        float GlobalTime = __funcData->GlobalTime;
+                        float GlobalSeed = __funcData->GlobalSeed;
+                    
                         float outDistance = 1000000.0;
 
                     """
@@ -496,6 +498,9 @@ class CodeSDFStream
 
                         """
                         
+                        var posX : Int = 0
+                        var posY : Int = 0
+
                         // Add the component to the region
                         for regionComponent in region.componentLists["shapes2D"]! {
                             dryRunComponent(regionComponent, instance.data.count)
@@ -505,8 +510,8 @@ class CodeSDFStream
                                 headerCode += globalCode
                             }
                             
-                            let posX = instance.getTransformPropertyIndex(regionComponent, "_posX")
-                            let posY = instance.getTransformPropertyIndex(regionComponent, "_posY")
+                            posX = instance.getTransformPropertyIndex(regionComponent, "_posX")
+                            posY = instance.getTransformPropertyIndex(regionComponent, "_posY")
 
                             regionCode +=
                             """
@@ -532,16 +537,16 @@ class CodeSDFStream
                         
                         """
                         
-                        regionMapCode +=
-                        """
-                        
-                            if (region\(index)(pos.xz, __funcData) <= 0.001) {
-                                outDistance = min(outDistance, pos.y - 2.0);
-                            } else {
-                                outDistance = min(outDistance, pos.y);
+                        if let regionProfile = region.components[region.defaultName] {
+                            dryRunComponent(regionProfile, instance.data.count)
+                            instance.collectProperties(regionProfile, hierarchy)
+                            
+                            if let globalCode = regionProfile.globalCode {
+                                headerCode += globalCode
                             }
-                        
-                        """
+                            
+                            regionMapCode += regionProfile.code!.replacingOccurrences(of: "regionDistance", with: "region\(index)")
+                        }
                     }
                     
                     regionMapCode +=
@@ -561,76 +566,30 @@ class CodeSDFStream
                     if regionCode.count > 0 {
                         headerCode += regionCode
                         headerCode += regionMapCode
-                        print(regionCode)
+                        //print(regionCode)
                         print(regionMapCode)
                         
                         hitAndNormalsCode +=
                         """
                         
-                        float t = 0., d;
+                        float t = 0., d, inD = outShape.y;
                         for (int i=0; i<160; i++){
                             d = regionMapCode(rayOrigin + rayDirection * t, __funcData);
                         
-                            if(abs(d)<.001*(t*.125 + 1.) || t>FAR) break;
+                            if (abs(d) < .001 * t) {
+                                outShape.y = t;
+                                break;
+                            }
                             t += d;
                         }
                         
-                        if (t < FAR ) {//&& t < outShape.y) {
+                        if (inD != outShape.y) {//&& t < outShape.y) {
                             outShape = float4(0, t, 0, 0);
                             outNormal.xyz = getRegionNormal(rayOrigin + rayDirection * t, __funcData);
                         }
 
                         """
                     }
-
-                    /*
-                     
-                     dryRunComponent(component, instance.data.count)
-                     instance.collectProperties(component, hierarchy)
-                     
-                     if let globalCode = component.globalCode {
-                         headerCode += globalCode
-                     }
-                     
-                     var code = ""
-                     
-                     if type == .SDF2D
-                     {
-                         let posX = instance.getTransformPropertyIndex(component, "_posX")
-                         let posY = instance.getTransformPropertyIndex(component, "_posY")
-
-                         code +=
-                         """
-                             {
-                                 float2 position = __translate(__origin, float2(__data[\(posX)].x, -__data[\(posY)].x));
-
-                         """
-                     } else
-                     if type == .SDF3D
-                     {
-                         let posX = instance.getTransformPropertyIndex(component, "_posX")
-                         let posY = instance.getTransformPropertyIndex(component, "_posY")
-                         let posZ = instance.getTransformPropertyIndex(component, "_posZ")
-                         
-                         let rotateX = instance.getTransformPropertyIndex(component, "_rotateX")
-                         let rotateY = instance.getTransformPropertyIndex(component, "_rotateY")
-                         let rotateZ = instance.getTransformPropertyIndex(component, "_rotateZ")
-
-                         code +=
-                         """
-                             {
-                                 float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
-                                 float3 position = __translate(__origin, __originalPosition);
-                         
-                                 position.yz = rotate( position.yz, radians(__data[\(rotateX)].x) );
-                                 position.xz = rotate( position.xz, radians(__data[\(rotateY)].x) );
-                                 position.xy = rotate( position.xy, radians(__data[\(rotateZ)].x) );
-
-                         """
-                     }
-                     
-                     code += component.code!
-                     */
                 }
             } else
             if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false {
@@ -1011,21 +970,20 @@ class CodeSDFStream
         }
 
 
-        if componentCounter > 0 {
-            code +=
-            """
-            
-                float4 shapeA = outShape;
-                float4 shapeB = float4(outDistance, -1, \(currentMaterialId), \(idCounter));
-            
-            """
-            
-            if let subComponent = component.subComponent {
-                dryRunComponent(subComponent, instance.data.count)
-                instance.collectProperties(subComponent)
-                code += subComponent.code!
-            }
+        code +=
+        """
+        
+            float4 shapeA = outShape;
+            float4 shapeB = float4(outDistance, -1, \(currentMaterialId), \(idCounter));
+        
+        """
+        
+        if let subComponent = component.subComponent {
+            dryRunComponent(subComponent, instance.data.count)
+            instance.collectProperties(subComponent)
+            code += subComponent.code!
         } else {
+            // Thumbnails
             code +=
             """
             
