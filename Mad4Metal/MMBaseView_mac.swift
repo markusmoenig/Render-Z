@@ -251,7 +251,7 @@ func getStringDialog(view: MMView, title: String, message: String, defaultValue:
     })
 }
 
-func getNumberDialog(view: MMView, title: String, message: String, defaultValue: Float, cb: @escaping (Float)->())
+func getNumberDialog(view: MMView, title: String, message: String, defaultValue: Float, int: Bool = false, precision: Int = 2, cb: @escaping (Float)->())
 {
     let msg = NSAlert()
     msg.addButton(withTitle: "OK")      // 1st button
@@ -265,7 +265,11 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
     }
     
     let txt = NSTextField(frame: NSRect(x: 0, y: 0, width: 200, height: 24))
-    txt.doubleValue = roundTo(value: defaultValue, places: 2)
+    if int == false {
+        txt.doubleValue = roundTo(value: defaultValue, places: precision)
+    } else {
+        txt.integerValue = Int(defaultValue)
+    }
     
     msg.window.initialFirstResponder = txt
     msg.accessoryView = txt
@@ -277,7 +281,8 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
     
     msg.beginSheetModal(for: view.window!, completionHandler: { (modalResponse) -> Void in
         if modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn {
-            cb(Float(txt.doubleValue))
+            let value : Float = int == false ? Float(txt.doubleValue) : Float(txt.integerValue)
+            cb(Float(value))
         }
     })
 }

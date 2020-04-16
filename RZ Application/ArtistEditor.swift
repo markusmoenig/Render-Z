@@ -249,16 +249,23 @@ class ArtistEditor          : Editor
             designProperties.rect.copy(region.rect)
             designProperties.draw()
             
-            if currentSamples != globalApp!.currentPipeline!.samples {
-                let samplesString = String(globalApp!.currentPipeline!.samples)
-                samplesLabel.setText(samplesString)
-                currentSamples = globalApp!.currentPipeline!.samples
+            var drawSamples : Bool = true
+            if designEditor.designComponent != nil && designEditor.designComponent!.componentType == .Ground3D {
+                drawSamples = false
             }
             
-            if currentSamples > 0 {
-                samplesLabel.rect.x = region.rect.x + 8
-                samplesLabel.rect.y = region.rect.bottom() - 17
-                samplesLabel.draw()
+            if drawSamples {
+                if currentSamples != globalApp!.currentPipeline!.samples {
+                    let samplesString = String(globalApp!.currentPipeline!.samples)
+                    samplesLabel.setText(samplesString)
+                    currentSamples = globalApp!.currentPipeline!.samples
+                }
+                
+                if currentSamples > 0 {
+                    samplesLabel.rect.x = region.rect.x + 8
+                    samplesLabel.rect.y = region.rect.bottom() - 17
+                    samplesLabel.draw()
+                }
             }
         } else
         if region.type == .Bottom {

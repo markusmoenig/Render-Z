@@ -429,7 +429,7 @@ class NodeUISelector        : NodeUI
             label.rect.x += animOffset
         }
         
-        if titleShadows {
+        if titleShadows && isDisabled == false {
             if let shadowLabel = scrollItems[Int(index)].shadowLabel {
                 shadowLabel.rect.x = label.rect.x + 0.5
                 shadowLabel.rect.y = label.rect.y + 0.5
@@ -442,7 +442,7 @@ class NodeUISelector        : NodeUI
             let animTolabel = scrollItems[animatingTo].label!
             animTolabel.rect.x = rect.x + spacer / 2 * scale + maxItemWidth + spacer / 2 * scale - animOffset
             animTolabel.rect.y = label.rect.y
-            if titleShadows {
+            if titleShadows && isDisabled == false {
                 if let shadowLabel = scrollItems[animatingTo].shadowLabel {
                     shadowLabel.rect.x = animTolabel.rect.x + 0.5
                     shadowLabel.rect.y = animTolabel.rect.y + 0.5
@@ -455,7 +455,7 @@ class NodeUISelector        : NodeUI
             let animTolabel = scrollItems[animatingTo].label!
             animTolabel.rect.x = rect.x + spacer / 2 * scale - (maxItemWidth + spacer / 2 * scale) + animOffset
             animTolabel.rect.y = label.rect.y
-            if titleShadows {
+            if titleShadows && isDisabled == false {
                 if let shadowLabel = scrollItems[animatingTo].shadowLabel {
                     shadowLabel.rect.x = animTolabel.rect.x + 0.5
                     shadowLabel.rect.y = animTolabel.rect.y + 0.5
@@ -679,7 +679,7 @@ class NodeUINumber : NodeUI
         if isDisabled {
             return
         }
-        getNumberDialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, cb: { (value) -> Void in
+        getNumberDialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, int: int, precision: precision, cb: { (value) -> Void in
             if self.range != nil && self.autoAdjustMargin == false {
                 let oldValue = self.value
                 self.value = max( value, self.range!.x)

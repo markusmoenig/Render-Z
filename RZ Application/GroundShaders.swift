@@ -18,6 +18,9 @@ class GroundShaders
     
     let previewScene            = Scene(.TwoD, "Ground Preview")
     
+    var lastPreviewWidth        : Float = 0
+    var lastPreviewHeight       : Float = 0
+
     init(_ view: MMView)
     {
         mmView = view
@@ -60,6 +63,8 @@ class GroundShaders
         setPropertyValue1(component: camera, name: "scale", value: 1/groundEditor.graphZoom)
 
         previewPipeline.render(groundEditor.rect.width, groundEditor.rect.height, settings: previewSettings)
+        lastPreviewWidth = groundEditor.rect.width
+        lastPreviewHeight = groundEditor.rect.height
         //globalApp!.currentEditor.updateOnNextDraw(compile: false)
     }
     

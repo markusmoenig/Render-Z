@@ -317,18 +317,22 @@ func getStringDialog(view: MMView, title: String, message: String, defaultValue:
     }
 }
 
-func getNumberDialog(view: MMView, title: String, message: String, defaultValue: Float, cb: @escaping (Float)->())
+func getNumberDialog(view: MMView, title: String, message: String, defaultValue: Float, int: Bool = false, precision: Int = 2, cb: @escaping (Float)->())
 {
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
     
     alert.addTextField(configurationHandler: { (textField) -> Void in
-        textField.text = String(format: "%.02f", defaultValue)
+        if int == false {
+            textField.text = String(format: "%.0\(precision)f", defaultValue)
+        } else {
+            textField.text = String(Int(defaultValue))
+        }
         textField.keyboardType = UIKeyboardType.numberPad
     })
     
     alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak alert] (action) -> Void in
         let textField = alert!.textFields![0] as UITextField
-        let number : Float? = Float(textField.text!)
+        let number : Float? = int == false ? Float(textField.text!) : Float(Int(textField.text!)!)
         if number != nil {
             cb( number! )
         }

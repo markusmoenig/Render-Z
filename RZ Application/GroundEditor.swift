@@ -499,6 +499,9 @@ class GroundEditor              : PropertiesWidget
             drawItem(cameraLookAtItem!, "Look At", lookAtPos)
         }
                 
+        if groundShaders.lastPreviewWidth != rect.width || groundShaders.lastPreviewHeight != rect.height {
+            groundShaders.updateRegionPreview()
+        }
         groundShaders.drawPreview()
         
         // UI
