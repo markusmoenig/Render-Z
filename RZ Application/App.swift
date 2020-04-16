@@ -74,6 +74,7 @@ class App
         mmView.registerIcon("scale")
         mmView.registerIcon("render")
         mmView.registerIcon("material")
+        mmView.registerIcon("ground")
         sceneGraph = SceneGraph(mmView)
         
         // Initialize images

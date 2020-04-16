@@ -51,10 +51,10 @@ class ArtistEditor          : Editor
         timelineButton.rect.height -= 11
         timeline = MMTimeline(view)
         
-        groundButton = MMButtonWidget( mmView, text: "Ground" )
-        //groundButton.iconZoom = 2
-        //groundButton.rect.width += 14
-        //groundButton.rect.height -= 17
+        groundButton = MMButtonWidget( mmView, iconName: "ground" )
+        groundButton.iconZoom = 2
+        groundButton.rect.width += 2
+        groundButton.rect.height -= 7
         
         materialButton = MMButtonWidget( mmView, iconName: "material" )
         materialButton.iconZoom = 2
