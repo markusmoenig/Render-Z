@@ -266,13 +266,13 @@ class PropertiesWidget      : MMWidget
         
         // --- Draw buttons
         
-        var bY = rect.y + buttonStartY
+        //var bY = buttonStartY
         for b in buttons {
-            b.rect.x = rect.x + buttonStartX
-            b.rect.y = bY
+            //b.rect.x = rect.x + buttonStartX
+            //b.rect.y = bY
             
             b.draw()
-            bY += b.rect.height + 10
+            //bY += b.rect.height + 10
         }
     }
 }

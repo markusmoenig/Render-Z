@@ -48,7 +48,7 @@ class GroundEditor              : PropertiesWidget
     var groundShaders           : GroundShaders
     var gizmo                   : GizmoCombo2D
     
-    var offset                  = SIMD2<Float>(0,0)
+    var offset                  = SIMD2<Float>(-5,0)
     var graphZoom               : Float = 1
     
     var mouseDownPos            = SIMD2<Float>(0,0)
@@ -79,6 +79,11 @@ class GroundEditor              : PropertiesWidget
     
     var undoComponent           : CodeUndoComponent? = nil
     
+    var addRegionButton         : MMButtonWidget!
+    var deleteRegionButton      : MMButtonWidget!
+    
+    var mouseIsDown             : Bool = false
+
     override init(_ view : MMView)
     {
         let function = view.renderer.defaultLibrary.makeFunction( name: "nodeGridPattern" )
@@ -92,6 +97,7 @@ class GroundEditor              : PropertiesWidget
         // Custom gizmo cb
         gizmo.customUpdateCB = { () in
             self.groundShaders.updateRegionPreview()
+            globalApp!.currentEditor.updateOnNextDraw(compile: false)
             self.mmView.update()
         }
         
@@ -101,25 +107,33 @@ class GroundEditor              : PropertiesWidget
             
             if name == "scale" {
                 rc = 1/self.graphZoom
+            } else
+            if name == "cameraX" {
+                rc = -self.offset.x * self.gridSize * self.graphZoom
+            } else
+            if name == "cameraY" {
+                rc = self.offset.y * self.gridSize * self.graphZoom
             }
             
             return rc
         }
         
         groundShaders.groundEditor = self
-        let addRegionButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Region", fixedWidth: buttonWidth)
+        addRegionButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Region", fixedWidth: buttonWidth)
         addRegionButton.clicked = { (event) in
             globalApp!.libraryDialog.show(ids: ["SDF2D"], style: .Icon, cb: { (json) in
                 if let comp = decodeComponentFromJSON(json) {
                     
                     let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+                    
+                    let undo = globalApp!.currentEditor.undoStageItemStart(self.groundItem, "Add Region")
 
                     let newRegion = shapeStage.createChild("Region", parent: self.groundItem)
                     
-                    let regionComponent = CodeComponent(.RegionProfile3D, "Region")
-                    regionComponent.createDefaultFunction(.RegionProfile3D)
-                    regionComponent.libraryName = "Profile"
-                    newRegion.components[newRegion.defaultName] = regionComponent
+                    //let regionComponent = CodeComponent(.RegionProfile3D, "Region")
+                    //regionComponent.createDefaultFunction(.RegionProfile3D)
+                    
+                    newRegion.components[newRegion.defaultName] = globalApp!.libraryDialog.getItem(ofId: "RegionProfile3D", withName: "Default")
                     
                     newRegion.componentLists["shapes2D"] = [comp]
                     self.setCurrentRegion(newRegion, comp)
@@ -129,10 +143,15 @@ class GroundEditor              : PropertiesWidget
                     globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.groundItem)
                     
                     self.groundShaders.buildRegionPreview()
+                    
+                    globalApp!.currentEditor.undoStageItemEnd(self.groundItem, undo)
+                    self.updateUI()
                 }
             } )
         }
-        addButton(addRegionButton)
+        
+        deleteRegionButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete", fixedWidth: buttonWidth)
+        buttonWidth = 160
     }
     
     func setCurrentRegion(_ region: StageItem,_ component: CodeComponent)
@@ -140,6 +159,8 @@ class GroundEditor              : PropertiesWidget
         currentRegion = region
         currentComponent = component
         gizmo.setComponent(component)
+        
+        //globalApp!.artistEditor.designProperties.setSelected(component)
     }
     
     func translate(_ x: Float, _ z: Float) -> SIMD2<Float>
@@ -160,12 +181,53 @@ class GroundEditor              : PropertiesWidget
     
     func activate()
     {
-        
+        clear()
+        updateUI()
     }
     
     func deactivate()
     {
-        deregisterButtons()
+        clear()
+        currentComponent = nil
+        currentRegion = nil
+    }
+    
+    func updateUI()
+    {
+        clear()
+        
+        addButton(addRegionButton)
+        addButton(deleteRegionButton)
+
+        c1Node = Node()
+        c1Node?.rect.x = 10
+        c1Node?.rect.y = 10
+        
+        var regions : [String] = []
+        var regionIndex : Float = 0
+        var cIndex : Float = 0
+        var isDisabled = true
+        
+        for c in groundItem.children {
+            if c.components[c.defaultName]!.componentType == .RegionProfile3D {
+                regions.append(c.name)
+                if c === currentRegion {
+                    regionIndex = cIndex
+                }
+                cIndex += 1
+                isDisabled = false
+            }
+        }
+        
+        if regions.count == 0 {
+            regions.append("None")
+        }
+        
+        let regionSelector = NodeUISelector(c1Node!, variable: "regionSelector", title: "Current Region", items:regions, index: regionIndex, shadows: true)
+        regionSelector.isDisabled = isDisabled
+        c1Node?.uiItems.append(regionSelector)
+        
+        c1Node?.setupUI(mmView: mmView)
     }
     
     func setGroundItem(stageItem: StageItem)
@@ -184,12 +246,16 @@ class GroundEditor              : PropertiesWidget
                 self.setCurrentRegion(c, c.componentLists["shapes2D"]!.first!)
             }
         }
+        
+        activate()
     }
     
     override func mouseDown(_ event: MMMouseEvent)
     {
         mouseDownPos.x = event.x
         mouseDownPos.y = event.y
+        
+        mouseIsDown = true
         
         if currentComponent != nil {
             gizmo.rect.copy(rect)
@@ -221,12 +287,6 @@ class GroundEditor              : PropertiesWidget
                 break
             }
         }
-        
-        if selectedItem == nil {
-            state = .DraggingGrid
-            mouseDownOffset.x = offset.x
-            mouseDownOffset.y = offset.y
-        }
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
@@ -240,12 +300,21 @@ class GroundEditor              : PropertiesWidget
             }
         }
         
+        if mouseIsDown && state == .Idle {
+            if distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) > 2 {
+                state = .DraggingGrid
+                mouseDownOffset.x = offset.x
+                mouseDownOffset.y = offset.y
+            }
+        }
+        
         if state == .DraggingGrid {
             offset.x = mouseDownOffset.x - (mouseDownPos.x - event.x) / gridSize / graphZoom
             offset.y = mouseDownOffset.y - (mouseDownPos.y - event.y) / gridSize / graphZoom
             groundShaders.updateRegionPreview()
             mmView.update()
         }
+
         if state == .DraggingItem {
             if selectedItem!.itemType == .CameraOrigin {
                 
@@ -293,7 +362,7 @@ class GroundEditor              : PropertiesWidget
             gizmo.mouseUp(event)
         }
         
-        if state != .Idle {
+        if state == .DraggingItem {
             globalApp!.currentPipeline?.setMinimalPreview(false)
         }
         
@@ -303,6 +372,7 @@ class GroundEditor              : PropertiesWidget
         }
         
         state = .Idle
+        mouseIsDown = false
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -429,8 +499,34 @@ class GroundEditor              : PropertiesWidget
             drawItem(cameraLookAtItem!, "Look At", lookAtPos)
         }
                 
-        super.draw(xOffset: xOffset, yOffset: yOffset)
         groundShaders.drawPreview()
+        
+        // UI
+        if let texture = globalApp!.currentPipeline!.finalTexture {
+            let width : Float = Float(texture.width) / 3
+            let height : Float = Float(texture.height) / 3
+            
+            let uiStartX = rect.right() - width
+            let uiStartY = rect.y + height
+
+            mmView.drawBox.draw(x: uiStartX, y: uiStartY, width: width, height: rect.height - height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.2))
+            
+            addRegionButton.rect.x = uiStartX + 10
+            addRegionButton.rect.y = uiStartY + 10
+            addRegionButton.rect.width = buttonWidth
+
+            deleteRegionButton.rect.x = uiStartX + 10 + buttonWidth + 10
+            deleteRegionButton.rect.y = uiStartY + 10
+            deleteRegionButton.rect.width = buttonWidth
+            deleteRegionButton.isDisabled = currentRegion == nil
+            
+            if let c1Node = c1Node {
+                c1Node.rect.x = uiStartX + 10
+                c1Node.rect.y = deleteRegionButton.rect.bottom() + 10 - rect.y
+            }
+        }
+        
+        super.draw(xOffset: xOffset, yOffset: yOffset)
         
         if currentComponent != nil {
             gizmo.rect.copy(rect)

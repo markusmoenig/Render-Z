@@ -236,6 +236,32 @@ class LibraryDialog: MMDialog {
         }
     }
     
+    func getItem(ofId: String, withName: String = "") -> CodeComponent?
+    {
+        var json = ""
+        
+        if let typeList = itemMap[ofId] {
+            if withName == "" {
+                if typeList.count > 0 {
+                    json = typeList[0].json
+                }
+            } else {
+                for item in typeList {
+                    if item.titleLabel.text == withName {
+                        json = item.json
+                        break
+                    }
+                }
+            }
+        }
+        
+        if json == "" {
+            return nil
+        } else {
+            return decodeComponentFromJSON(json)
+        }
+    }
+    
     override func cancel() {
         super.cancel()
         cancelButton!.removeState(.Checked)

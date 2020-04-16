@@ -347,8 +347,8 @@ class DesignEditor          : MMWidget
                 groundEditor.draw()
                 
                 if let texture = globalApp!.currentPipeline!.finalTexture {
-                    let width : Float = Float(texture.width) / 4
-                    let height : Float = Float(texture.height) / 4
+                    let width : Float = Float(texture.width) / 3
+                    let height : Float = Float(texture.height) / 3
                     
                     let x : Float = rect.right() - width
                     let y : Float = rect.y

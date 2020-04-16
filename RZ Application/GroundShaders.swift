@@ -60,7 +60,7 @@ class GroundShaders
         setPropertyValue1(component: camera, name: "scale", value: 1/groundEditor.graphZoom)
 
         previewPipeline.render(groundEditor.rect.width, groundEditor.rect.height, settings: previewSettings)
-        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        //globalApp!.currentEditor.updateOnNextDraw(compile: false)
     }
     
     func drawPreview()
