@@ -937,7 +937,12 @@ class SceneGraph                : MMWidget
                 globalApp!.currentEditor.setComponent(comp)
 
                 if let current = item.stageItem {
-                    current.componentLists[listId]?.append(comp)
+                    
+                    if name == "Post FX" && current.componentLists[listId] != nil && current.componentLists[listId]!.count > 0 {
+                        current.componentLists[listId]?.insert(comp, at: 0)
+                    } else {
+                        current.componentLists[listId]?.append(comp)
+                    }
                 }
                 
                 globalApp!.currentEditor.undoStageItemEnd(undo)
