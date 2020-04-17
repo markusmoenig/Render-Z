@@ -584,6 +584,7 @@ class CodeEditor        : MMWidget
     /// Invalidate the BuilderInstance of the StageItem of the current component
     func markStageItemOfComponentInvalid(_ component: CodeComponent)
     {
+        component.builderInstance = nil
         if let stageItem = globalApp!.project.selected!.getStageItem(component) {
             //print("markStageItemOfComponentInvalid", stageItem.stageItemType, component.componentType)
             markStageItemInvalid(stageItem)

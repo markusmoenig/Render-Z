@@ -143,6 +143,10 @@ class App
                 
                 //project.selected!.stages[5] = Stage(.VariablePool, "Variables")
 
+                if project.selected!.stages[4].children2D.count == 0 {
+                    project.selected!.stages[4] = Stage(.PostStage, "Post FX")
+                }
+
                 globalApp!.sceneGraph.clearSelection()
                 project.selected!.addDefaultImages()
                 

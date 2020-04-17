@@ -123,6 +123,7 @@ class CodeBuilder
     var clearState          : MTLComputePipelineState? = nil
     var clearShadowState    : MTLComputePipelineState? = nil
     var copyState           : MTLComputePipelineState? = nil
+    var copyGammaState      : MTLComputePipelineState? = nil
     var copyAndSwapState    : MTLComputePipelineState? = nil
     var sampleState         : MTLComputePipelineState? = nil
     var previewState        : MTLComputePipelineState? = nil
@@ -186,6 +187,9 @@ class CodeBuilder
         } else
         if component.componentType == .Render3D {
             buildRender3D(inst, component)
+        } else
+        if component.componentType == .PostFX {
+            buildPostFX(inst, component)
         }
 
         buildInstance(inst)
@@ -419,6 +423,51 @@ class CodeBuilder
 
         """
         inst.code += getFuncDataCode(inst, "RENDER3D", 3)
+     
+        if let code = component.code {
+            inst.code += code
+        }
+
+        inst.code +=
+        """
+                       
+            __outTexture.write(half4(outColor), __gid);
+        }
+          
+        """
+    }
+    
+    /// Build the source code for the component
+    func buildPostFX(_ inst: CodeBuilderInstance, _ component: CodeComponent)
+    {
+        inst.code +=
+        """
+        
+        kernel void componentBuilder(
+        texture2d<half, access::write>          __outTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
+        texture2d<half, access::read>           __colorTexture [[texture(2)]],
+        texture2d<half, access::sample>         __sampleTexture [[texture(3)]],
+        texture2d<half, access::read>           __depthTexture [[texture(4)]],
+        __POSTFX_TEXTURE_HEADER_CODE__
+        uint2 __gid                             [[thread_position_in_grid]])
+        {
+            float2 size = float2( __outTexture.get_width(), __outTexture.get_height() );
+            float2 uv = float2(__gid.x, __gid.y) / size;
+
+            float4 outColor = float4(0, 0, 0, 1);
+            float4 color = float4(__colorTexture.read(__gid));
+            float4 shape = float4(__depthTexture.read(__gid));
+
+        """
+        inst.code += getFuncDataCode(inst, "POSTFX", 5)
+        
+        inst.code +=
+        """
+        
+            __funcData->texture = &__sampleTexture;
+        
+        """
      
         if let code = component.code {
             inst.code += code
@@ -782,7 +831,6 @@ class CodeBuilder
         texture2d<half, access::read>           inTexture [[texture(2)]],
         uint2 gid                               [[thread_position_in_grid]])
         {
-            float2 size = float2( outTexture.get_width(), outTexture.get_height() );
             outTexture.write(inTexture.read(gid), gid);
         }
          
@@ -790,6 +838,27 @@ class CodeBuilder
 
         var library = compute.createLibraryFromSource(source: code)
         copyState = compute.createState(library: library, name: "copyBuilder")
+        
+        code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void copyGammaBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        texture2d<half, access::read>           inTexture [[texture(2)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+            half4 color = inTexture.read(gid);
+            color.xyz = pow(color.xyz, 1./2.2);
+            outTexture.write(color, gid);
+        }
+         
+        """
+
+        library = compute.createLibraryFromSource(source: code)
+        copyGammaState = compute.createState(library: library, name: "copyGammaBuilder")
         
         code =
         """
@@ -982,6 +1051,13 @@ class CodeBuilder
         compute.commandBuffer.waitUntilCompleted()
     }
     
+    // Copy and gamma correct the texture
+    func renderCopyGamma(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
+    {
+        compute.run( copyGammaState!, outTexture: to, inTexture: from, syncronize: syncronize)
+        compute.commandBuffer.waitUntilCompleted()
+    }
+    
     // Render the Depth Map
     func renderDepthMap(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
@@ -1060,6 +1136,7 @@ class CodeBuilder
             float                            GlobalTime;
             float                            GlobalSeed;
             constant float4                 *__data;
+            thread texture2d<half, access::sample>   *texture;
             __FUNCDATA_TEXTURE_LIST__
         };
         
@@ -1097,6 +1174,12 @@ class CodeBuilder
 
         float4 toLinear(float4 gammaColor) {
            return float4(pow(gammaColor.xyz, float3(2.2)), gammaColor.w);
+        }
+        
+        float4 sample(float2 uv, thread FuncData *__funcData)
+        {
+            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+            return float4(__funcData->texture->sample(__textureSampler, uv));
         }
         
         float2 rotate(float2 pos, float angle)

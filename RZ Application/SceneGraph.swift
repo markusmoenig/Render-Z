@@ -40,7 +40,7 @@ class SceneGraphSkin {
 class SceneGraphItem {
         
     enum SceneGraphItemType {
-        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem, VariableContainer, VariableItem, DomainContainer, DomainItem, ModifierContainer, ModifierItem, ImageItem
+        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem, VariableContainer, VariableItem, DomainContainer, DomainItem, ModifierContainer, ModifierItem, ImageItem, PostFXContainer, PostFXItem
     }
     
     var itemType                : SceneGraphItemType
@@ -683,7 +683,7 @@ class SceneGraph                : MMWidget
         for (uuid,item) in itemMap {
             if item.rect.contains(realX, realY) || (item.navRect != nil && item.navRect!.contains(x, y)) {
                 
-                if item.itemType == .ShapesContainer || item.itemType == .VariableContainer || item.itemType == .DomainContainer || item.itemType == .ModifierContainer {
+                if item.itemType == .ShapesContainer || item.itemType == .VariableContainer || item.itemType == .DomainContainer || item.itemType == .ModifierContainer || item.itemType == .PostFXContainer {
                     contUUID = uuid
                     continue
                 }
@@ -922,7 +922,12 @@ class SceneGraph                : MMWidget
     /// Adds a modifier or domain item to the list
     func addItem(_ item: SceneGraphItem, name: String, listId: String)
     {
-        globalApp!.libraryDialog.show(ids: [name + getCurrentModeId()], cb: { (json) in
+        var id = name + getCurrentModeId()
+        if name == "Post FX" {
+            id = "PostFX"
+        }
+
+        globalApp!.libraryDialog.show(ids: [id], cb: { (json) in
             if let comp = decodeComponentFromJSON(json) {
                 let undo = globalApp!.currentEditor.undoStageItemStart("Add " + name)
                 
@@ -1077,6 +1082,22 @@ class SceneGraph                : MMWidget
                             
                             if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart("Remove Domain")
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                item.stageItem!.componentLists[id]!.remove(at: index)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            }
+                        } )
+                        items.append(menuItem)
+                    } else
+                    if comp.componentType == .PostFX {
+                        buildChangeComponent(item, name: "FX", ids: ["PostFX"])
+                        
+                        let menuItem = MMMenuItem(text: "Remove", cb: { () in
+                            let id = "PostFX"
+                            
+                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove FX")
                                 globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                                 item.stageItem!.componentLists[id]!.remove(at: index)
                                 globalApp!.currentEditor.undoStageItemEnd(undo)
@@ -1664,6 +1685,20 @@ class SceneGraph                : MMWidget
             drawVariablesPool(parent: item, skin: skin)
         }
         drawItem(variableItem, selected: stage === currentStage, skin: skin)
+        
+        // Draw PostFX
+        stage = scene.getStage(.PostStage)
+        
+        if let listItem = stage.children2D.first {
+        
+            x = (graphX + listItem.values["_graphX"]!) * graphZoom - diameter / 2
+            y = (graphY + listItem.values["_graphY"]!) * graphZoom - diameter / 2
+            
+            let postFXItem = SceneGraphItem(.StageItem, stage: stage, stageItem: listItem)
+            postFXItem.rect.set(x, y, diameter, skin.itemHeight * graphZoom)
+            
+            drawItemList(parent: postFXItem, listId: "PostFX", graphId: "_graphPostFX", name: "Post FX", containerId: .PostFXContainer, itemId: .PostFXItem, skin: skin)
+        }
     }
     
     // Returns a label for the given UUID
@@ -2179,9 +2214,13 @@ class SceneGraph                : MMWidget
             container.rect.set(x, y, totalWidth, height)
             itemMap[UUID()] = container
             
+            if containerId == .PostFXContainer {
+                navItems.append(container)
+            }
+            
             mmView.drawLine.draw(sx: rect.x + parent.rect.x + parent.rect.width / 2, sy: rect.y + parent.rect.y + parent.rect.height / 2, ex: rect.x + x + totalWidth / 2, ey: rect.y + y + headerHeight / 2, radius: 1, fillColor: skin.normalBorderColor)
             
-            mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: skin.normalBorderColor)
+            mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: /*parent.stage === currentStage ? skin.selectedBorderColor :*/ skin.normalBorderColor)
             
             drawPlusButton(item: container, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 4 * graphZoom, headerHeight, headerHeight), cb: { () in
                 self.addItem(container, name: name, listId: listId)

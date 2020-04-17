@@ -38,6 +38,8 @@ class Pipeline3D            : Pipeline
     var compiledSuccessfully: Bool = true
     
     var idCounter           : Int = 0
+    
+    var scene               : Scene!
 
     override init(_ mmView: MMView)
     {
@@ -58,6 +60,7 @@ class Pipeline3D            : Pipeline
     // Build the pipeline elements
     override func build(scene: Scene)
     {
+        self.scene = scene
         renderId += 1
         
         let typeId : CodeComponent.ComponentType = globalApp!.currentSceneMode == .TwoD ? .SDF2D : .SDF3D
@@ -171,6 +174,18 @@ class Pipeline3D            : Pipeline
             instanceMap["render"] = codeBuilder.build(renderComp)
         }
         
+        // PostFX
+        let postStage = scene.getStage(.PostStage)
+        if let item = postStage.children2D.first {
+            if let list = item.componentLists["PostFX"] {
+                for c in list {
+                    if c.builderInstance == nil {
+                        c.builderInstance = codeBuilder.build(c)
+                    }
+                }
+            }
+        }
+        
         // Check if we succeeded
         
         compiledSuccessfully = true
@@ -281,7 +296,6 @@ class Pipeline3D            : Pipeline
                 if nextStage == .Reflection {
                     
                     // Show reflection updates for sample 0
-                    
                     if self.samples == 0 {
                         if self.reflections == 0 { self.checkFinalTexture(true) }
                         self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
@@ -327,6 +341,7 @@ class Pipeline3D            : Pipeline
                         
                         // Sampling
                         if self.samples == 0 { self.checkFinalTexture(true) }
+                        self.finish()
                         self.codeBuilder.renderSample(sampleTexture: self.finalTexture!, resultTexture: self.getTextureOfId("result"), frame: self.samples + 1)
                         self.mmView.update()
                         
@@ -384,7 +399,7 @@ class Pipeline3D            : Pipeline
         allocTextureId("meta", width, height, .rgba16Float)
         allocTextureId("density", width, height, .rgba16Float)
 
-        codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(10000, 1000000, -1, -1))
+        codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(1000, 1000, -1, -1))
         codeBuilder.renderClear(texture: getTextureOfId("meta"), data: SIMD4<Float>(1, 1, 0, 0))
 
         var objectIndex : Int = 0
@@ -535,11 +550,39 @@ class Pipeline3D            : Pipeline
         }
         
         // Render it all
-        if let inst = instanceMap["render"] {
-            codeBuilder.render(inst, getTextureOfId("result"), inTextures: [getTextureOfId("color")])
-        }
+        //if let inst = instanceMap["render"] {
+            //codeBuilder.render(inst, getTextureOfId("result"), inTextures: [getTextureOfId("meta"), getTextureOfId("depth")])
+        //}
+        codeBuilder.renderCopyGamma(getTextureOfId("result"), getTextureOfId("color"))
         
         nextStage()
+    }
+    
+    func finish()
+    {
+        // PostFX
+        let postStage = scene.getStage(.PostStage)
+        if let item = postStage.children2D.first {
+            if let list = item.componentLists["PostFX"] {
+                                
+                let dest = getTextureOfId("result")!
+                let source = getTextureOfId("color")!
+
+                for c in list {
+                    if let instance = c.builderInstance {
+                        codeBuilder.render(instance, dest, inTextures: [source, source, getTextureOfId("id")])
+                        
+                        // Copy the result back into color
+                        codeBuilder.renderCopy(source, dest)
+                    }
+                }
+            }
+        }
+                
+        // Render it all
+        if let inst = instanceMap["render"] {
+            codeBuilder.render(inst, getTextureOfId("result"), inTextures: [getTextureOfId("color"), getTextureOfId("depth")])
+        }
     }
     
     override func cancel()

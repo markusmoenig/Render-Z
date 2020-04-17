@@ -276,6 +276,28 @@ class Stage                 : Codable, Equatable
             item.addMaterial()
         }
         
+        if stageType == .PostStage {
+            
+            let item = StageItem(.PostStage, "Post FX")
+            let codeComponent = CodeComponent(.PostFX, "Post FX")
+            codeComponent.createDefaultFunction(.PostFX)
+            
+            item.componentLists["PostFX"] = [codeComponent]
+            
+            //let codeComponent = decodeComponentFromJSON(defaultGround3D)!
+            //codeComponent.uuid = UUID()
+            //codeComponent.selected = nil
+            //item.components[item.defaultName] = codeComponent
+            children2D.append(item)
+            
+            item.values["_graphX"] = 80
+            item.values["_graphY"] = 300
+            
+            item.values["_graphPostFXX"] = 0
+            item.values["_graphPostFXY"] = 0
+            
+            item.addMaterial()
+        }
         
         if stageType == .RenderStage {
             
@@ -829,6 +851,20 @@ class Scene                 : Codable, Equatable
     /// Invalidate all compiler infos
     func invalidateCompilerInfos()
     {
+        func findInComponents(_ stageItem: StageItem)
+        {
+            for (_,c) in stageItem.components {
+                c.builderInstance = nil
+            }
+            for (_,list) in stageItem.componentLists {
+                for c in list {
+                    c.builderInstance = nil
+                }
+            }
+            stageItem.builderInstance = nil
+            findInChildren(stageItem.children)
+        }
+        
         func findInItem(_ stageItem: StageItem)
         {
             stageItem.builderInstance = nil

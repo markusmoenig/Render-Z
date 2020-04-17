@@ -176,6 +176,7 @@ class LibraryDialog: MMDialog {
     
     func show(ids: [String], style: Style = .List, cb: ((String)->())? = nil )
     {
+        print(ids)
         self.style = style
 
         currentId = ids[0]

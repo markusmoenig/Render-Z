@@ -243,6 +243,9 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             } else
             if component.componentType == .Pattern {
                 libName += " :: Pattern"
+            } else
+            if component.componentType == .PostFX {
+                libName += " :: PostFX"
             }
         }
         
