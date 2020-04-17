@@ -449,6 +449,7 @@ class CodeBuilder
         texture2d<half, access::read>           __colorTexture [[texture(2)]],
         texture2d<half, access::sample>         __sampleTexture [[texture(3)]],
         texture2d<half, access::read>           __depthTexture [[texture(4)]],
+        texture2d<half, access::sample>         __sampleDepthTexture [[texture(5)]],
         __POSTFX_TEXTURE_HEADER_CODE__
         uint2 __gid                             [[thread_position_in_grid]])
         {
@@ -460,13 +461,14 @@ class CodeBuilder
             float4 shape = float4(__depthTexture.read(__gid));
 
         """
-        inst.code += getFuncDataCode(inst, "POSTFX", 5)
+        inst.code += getFuncDataCode(inst, "POSTFX", 6)
         
         inst.code +=
         """
         
-            __funcData->texture = &__sampleTexture;
-        
+        __funcData->texture1 = &__sampleTexture;
+        __funcData->texture2 = &__sampleDepthTexture;
+
         """
      
         if let code = component.code {
@@ -1136,7 +1138,8 @@ class CodeBuilder
             float                            GlobalTime;
             float                            GlobalSeed;
             constant float4                 *__data;
-            thread texture2d<half, access::sample>   *texture;
+            thread texture2d<half, access::sample>   *texture1;
+            thread texture2d<half, access::sample>   *texture2;
             __FUNCDATA_TEXTURE_LIST__
         };
         
@@ -1176,10 +1179,16 @@ class CodeBuilder
            return float4(pow(gammaColor.xyz, float3(2.2)), gammaColor.w);
         }
         
-        float4 sample(float2 uv, thread FuncData *__funcData)
+        float4 sampleColor(float2 uv, thread FuncData *__funcData)
         {
             constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
-            return float4(__funcData->texture->sample(__textureSampler, uv));
+            return float4(__funcData->texture1->sample(__textureSampler, uv));
+        }
+        
+        float sampleDistance(float2 uv, thread FuncData *__funcData)
+        {
+            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+            return float4(__funcData->texture2->sample(__textureSampler, uv)).y;
         }
         
         float2 rotate(float2 pos, float angle)

@@ -1641,6 +1641,28 @@ class CodeComponent         : Codable, Equatable
         }
 
         /*
+        if componentType == .PostFX {
+            functions.remove(at: 0)
+            
+            var map = CodeFunction(.Prototype, "sampleDistance")
+            map.comment = "Sample the distance of the rendered image"
+            map.header.fragment.typeName = "float"
+            map.header.fragment.evaluatesTo = "float"
+            map.header.fragment.argumentFormat = ["float"]
+            map.header.fragment.name = "sampleDistance"
+            map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable], ["float2"], "float2"))
+            functions.insert(map, at: 0)
+            
+            map = CodeFunction(.Prototype, "sampleColor")
+            map.comment = "Sample the color of the rendered image"
+            map.header.fragment.typeName = "float4"
+            map.header.fragment.evaluatesTo = "float4"
+            map.header.fragment.argumentFormat = ["float4"]
+            map.header.fragment.name = "sampleColor"
+            map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable], ["float2"], "float2"))
+            functions.insert(map, at: 1)
+        }*/
+        /*
         if componentType == .RayMarch3D {
             let f = functions[1]
             let arg2 = CodeFragment(.VariableDefinition, "float", "maxDistance", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
@@ -2192,12 +2214,21 @@ class CodeComponent         : Codable, Equatable
         } else
         if type == .PostFX {
             
-            let map = CodeFunction(.Prototype, "sample")
-            map.comment = "Sample the rendered image"
+            var map = CodeFunction(.Prototype, "sampleDistance")
+            map.comment = "Sample the distance of the rendered image"
+            map.header.fragment.typeName = "float"
+            map.header.fragment.evaluatesTo = "float"
+            map.header.fragment.argumentFormat = ["float"]
+            map.header.fragment.name = "sampleDistance"
+            map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable], ["float2"], "float2"))
+            functions.append(map)
+            
+            map = CodeFunction(.Prototype, "sampleColor")
+            map.comment = "Sample the color of the rendered image"
             map.header.fragment.typeName = "float4"
             map.header.fragment.evaluatesTo = "float4"
             map.header.fragment.argumentFormat = ["float4"]
-            map.header.fragment.name = "sample"
+            map.header.fragment.name = "sampleColor"
             map.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable], ["float2"], "float2"))
             functions.append(map)
 

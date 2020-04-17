@@ -570,7 +570,7 @@ class Pipeline3D            : Pipeline
 
                 for c in list {
                     if let instance = c.builderInstance {
-                        codeBuilder.render(instance, dest, inTextures: [source, source, getTextureOfId("id")])
+                        codeBuilder.render(instance, dest, inTextures: [source, source, getTextureOfId("id"), getTextureOfId("id")])
                         
                         // Copy the result back into color
                         codeBuilder.renderCopy(source, dest)
