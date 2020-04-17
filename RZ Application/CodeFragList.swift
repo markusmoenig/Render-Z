@@ -169,6 +169,8 @@ class CodeFragList : MMWidget
         item = FragItem("R")
         items.append(item)
         item.items.append( SourceListItem("radians", CodeFragment(.Primitive, "float", "radians", [.Selectable, .Dragable, .Targetable], ["float"], "float" ) ) )
+        item.items.append( SourceListItem("random", CodeFragment(.Primitive, "float", "random", [.Selectable, .Dragable, .Targetable], [], "float", defaultValues: ["needsFuncData": 1] ) ) )
+        item.items.append( SourceListItem("random2", CodeFragment(.Primitive, "float2", "random2", [.Selectable, .Dragable, .Targetable], [], "float2", defaultValues: ["needsFuncData": 1] ) ) )
         item.items.append( SourceListItem("reflect", CodeFragment(.Primitive, "float2", "reflect", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4"], "input0"  ) ) )
         item.items.append( SourceListItem("refract", CodeFragment(.Primitive, "float2", "refract", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4", "float2|float3|float4", "float"], "input0"  ) ) )
         item.items.append( SourceListItem("rotate", CodeFragment(.Primitive, "float2", "rotate", [.Selectable, .Dragable, .Targetable], ["float2", "float"], "float2" ) ) )

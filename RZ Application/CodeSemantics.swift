@@ -91,7 +91,7 @@ class CodeFragment          : Codable, Equatable
     var rect                : MMRect = MMRect()
     var argRect             : MMRect = MMRect()
     
-    var values              : [String:Float] = [:]
+    var values              : [String:Float]
     
     weak var parentBlock    : CodeBlock? = nil
     weak var parentStatement: CodeStatement? = nil
@@ -158,7 +158,7 @@ class CodeFragment          : Codable, Equatable
         return lhs.uuid == rhs.uuid
     }
 
-    init(_ type: FragmentType,_ typeName: String = "",_ name: String = "",_ properties: [FragmentProperties] = [],_ argumentFormat: [String]? = nil,_ evaluatesTo: String? = nil)
+    init(_ type: FragmentType,_ typeName: String = "",_ name: String = "",_ properties: [FragmentProperties] = [],_ argumentFormat: [String]? = nil,_ evaluatesTo: String? = nil, defaultValues: [String:Float] = [:])
     {
         fragmentType = type
         self.typeName = typeName
@@ -167,6 +167,7 @@ class CodeFragment          : Codable, Equatable
         self.argumentFormat = argumentFormat
         self.evaluatesTo = evaluatesTo
         
+        values = defaultValues
         values["value"] = 1
 
         if typeName.contains("int") {
@@ -484,7 +485,7 @@ class CodeFragment          : Codable, Equatable
                 codeName += self.name
                 
                 if self.name == "PI" {
-                    codeName = (isNegated() ? " -" : "") + "3.1415926535897932384626422832795028841971"
+                    codeName = (isNegated() ? " -" : "") + "M_PI_F"
                 }
             }
             
@@ -694,8 +695,10 @@ class CodeFragment          : Codable, Equatable
             processArguments = false
         }
         
+        let needsFuncData : Bool = values["needsFuncData"] == 1
+        
         if processArguments {
-            if !arguments.isEmpty {
+            if !arguments.isEmpty || needsFuncData {
                 let op = "("
                 ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
                 if let frag = ctx.fragment {
@@ -729,8 +732,8 @@ class CodeFragment          : Codable, Equatable
             }
             
             // FuncData as last argument for FreeFlow functions
-            if fragmentType == .Primitive && referseTo != nil {
-                if ctx.cFunction!.functionType == .FreeFlow {
+            if (fragmentType == .Primitive && referseTo != nil) || values["needsFuncData"] == 1 {
+                if ctx.cFunction!.functionType == .FreeFlow || values["needsFuncData"] == 1  {
                     if arguments.count > 0 {
                         ctx.addCode( ", __funcData" )
                     } else {
@@ -741,7 +744,7 @@ class CodeFragment          : Codable, Equatable
                 }
             }
             
-            if !arguments.isEmpty {
+            if !arguments.isEmpty || needsFuncData{
                 let op = ")"
                 ctx.font.getTextRect(text: op, scale: ctx.fontScale, rectToUse: ctx.tempRect)
                 if let frag = ctx.fragment {

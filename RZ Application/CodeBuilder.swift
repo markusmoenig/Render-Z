@@ -1160,7 +1160,36 @@ class CodeBuilder
         };
         
         #define PI 3.1415926535897932384626422832795028841971
+        
+        uint baseHash( uint2 p ) {
+            p = 1103515245U*((p >> 1U)^(p.yx));
+            uint h32 = 1103515245U*((p.x)^(p.y>>3U));
+            return h32^(h32 >> 16);
+        }
+        
+        float random(thread FuncData *__funcData) {
+            uint n = baseHash(as_type<uint2>(float2(__funcData->GlobalSeed+=.1,__funcData->GlobalSeed+=.1)));
+            return float(n)/float(0xffffffffU);
+        }
+        
+        float2 random2(thread FuncData *__funcData) {
+            uint n = baseHash(as_type<uint2>(float2(__funcData->GlobalSeed+=.1,__funcData->GlobalSeed+=.1)));
+            uint2 rz = uint2(n, n*48271U);
+            return float2(rz.xy & uint2(0x7fffffffU))/float(0x7fffffff);
+        }
+        /*
+        float random(thread FuncData *__funcData) {
+            __funcData->seed += float2(1.0,0.0);
+            // return fract(sin(dot(vTexCoord, float2(12.9898, 78.233)) + __funcData->seed++) * 43758.5453);
+            return fract(sin(dot(__funcData->seed.xy ,float2(12.9898,78.233))) * 43758.5453);
+        }
 
+        float2 random2(thread FuncData *__funcData) {// implementation derived from one found at: lumina.sourceforge.net/Tutorials/Noise.html
+            __funcData->seed += float2(1.0,1.0);
+            return float2(fract(sin(dot(__funcData->seed.xy ,float2(12.9898,78.233))) * 43758.5453),
+                fract(cos(dot(__funcData->seed.xy ,float2(4.898,7.23))) * 23421.631));
+        }*/
+        
         float degrees(float radians)
         {
             return radians * 180.0 / PI;
@@ -1234,17 +1263,23 @@ class CodeBuilder
 
         float GlobalTime = __data[0].x;
         float GlobalSeed = __data[0].z;
-
+        
         struct FuncData __funcData_;
         thread struct FuncData *__funcData = &__funcData_;
         __funcData_.GlobalTime = GlobalTime;
         __funcData_.GlobalSeed = GlobalSeed;
+        {
+            float2 uv = float2(__gid.x, __gid.y);
+            //__funcData_.seed = fract(cos((uv.xy+uv.yx * float2(1000.0,1000.0) ) + float2(__data[0].z, __data[0].w)*10.0));
+            __funcData_.GlobalSeed = float(baseHash(as_type<uint2>(uv - (float2(__data[0].z, __data[0].w) * 100.0) )))/float(0xffffffffU);
+        }
         __funcData_.__data = __data;
 
         __\(id)_TEXTURE_ASSIGNMENT_CODE__
 
         """
-        
+        //float seed = float(baseHash(floatBitsToUint(p - iTime)))/float(0xffffffffU);
+
         inst.textureRep.append((id, textureOffset))
         
         return code
