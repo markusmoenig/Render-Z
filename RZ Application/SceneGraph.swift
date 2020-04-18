@@ -1002,6 +1002,7 @@ class SceneGraph                : MMWidget
         if let uuid = uuid {
             if let item = itemMap[uuid] {
                 if let comp = item.component {
+                    
                     if comp.componentType == .RayMarch3D {
                         buildChangeComponent(item, name: "RayMarcher", ids: ["RayMarch3D"])
                     } else
@@ -1011,7 +1012,7 @@ class SceneGraph                : MMWidget
                     if comp.componentType == .SkyDome {
                         buildChangeComponent(item, name: "Sky Dome", ids: ["SkyDome", "Pattern"])
                     } else
-                    if comp.componentType == .Pattern {
+                    if comp.componentType == .Pattern && item.stageItem!.stageItemType == .PreStage {
                         var items : [String] = []
                         if globalApp!.currentSceneMode == .TwoD {
                             items = ["Pattern"]

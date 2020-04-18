@@ -567,8 +567,6 @@ class CodeSDFStream
                     if regionCode.count > 0 {
                         headerCode += regionCode
                         headerCode += regionMapCode
-                        //print(regionCode)
-                        //print(regionMapCode)
                         
                         if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false
                         {
@@ -1079,9 +1077,10 @@ class CodeSDFStream
             materialFuncCode +=
             """
             
-            void material\(materialIdCounter)(float2 uv, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+            void material\(materialIdCounter)(float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
             float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
             {
+                float2 uv = float2(0);
                 constant float4 *__data = __funcData->__data;
                 float GlobalTime = __funcData->GlobalTime;
                 float GlobalSeed = __funcData->GlobalSeed;
@@ -1095,6 +1094,57 @@ class CodeSDFStream
                 float outReflectionDist = 0.;
             
             """
+            
+            if let transform = stageItem.components[stageItem.defaultName] {
+                
+                dryRunComponent(transform, instance.data.count)
+                instance.collectProperties(transform)
+                
+                let posX = instance.getTransformPropertyIndex(transform, "_posX")
+                let posY = instance.getTransformPropertyIndex(transform, "_posY")
+                let posZ = instance.getTransformPropertyIndex(transform, "_posZ")
+                
+                let rotateX = instance.getTransformPropertyIndex(transform, "_rotateX")
+                let rotateY = instance.getTransformPropertyIndex(transform, "_rotateY")
+                let rotateZ = instance.getTransformPropertyIndex(transform, "_rotateZ")
+                
+                materialFuncCode +=
+                """
+                
+                    float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
+                    float3 localPosition = __translate(hitPosition, __originalPosition);
+                
+                    localPosition.yz = rotate( localPosition.yz, radians(__data[\(rotateX)].x) );
+                    localPosition.xz = rotate( localPosition.xz, radians(__data[\(rotateY)].x) );
+                    localPosition.xy = rotate( localPosition.xy, radians(__data[\(rotateZ)].x) );
+                    {
+                    float3 position = localPosition; float3 normal = hitNormal;
+                    float2 outUV = float2(0);
+                
+                """
+                
+                // Create the UVMapping for this material
+                
+                if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
+                    dryRunComponent(uvMap, instance.data.count)
+                    instance.collectProperties(uvMap)
+                    if let globalCode = uvMap.globalCode {
+                        headerCode += globalCode
+                    }
+                    if let code = uvMap.code {
+                        materialFuncCode += code
+                    }
+                }
+                
+                materialFuncCode +=
+                """
+                
+                    uv = outUV;
+                    }
+                
+                """
+            }
+            
             
             // Get the patterns of the material if any
             var patterns : [CodeComponent] = []
@@ -1129,29 +1179,13 @@ class CodeSDFStream
             else
             if (shape.z == \(materialIdCounter) )
             {
-                float3 position = hitPosition; float3 normal = normal;
-                float2 outUV = float2(0);
-            
             """
-            
-            // Create the UVMapping for this material
-            
-            if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
-                dryRunComponent(uvMap, instance.data.count)
-                instance.collectProperties(uvMap)
-                if let globalCode = uvMap.globalCode {
-                    headerCode += globalCode
-                }
-                if let code = uvMap.code {
-                    materialCode += code
-                }
-            }
             
             materialCode +=
                 
             """
             
-                material\(materialIdCounter)(outUV, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+                material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
                 if (lightType.z == lightType.w) {
                     rayDirection = __materialOut.reflectionDir;
                     rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
@@ -1170,7 +1204,6 @@ class CodeSDFStream
             instance.materialIdHierarchy.append(materialIdCounter)
             instance.materialIds[materialIdCounter] = stageItem
             currentMaterialId = materialIdCounter
-            //print(stageItem.name, materialIdCounter, currentMaterialId)
             materialIdCounter += 1
         }
     }

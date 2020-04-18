@@ -1190,6 +1190,11 @@ class CodeBuilder
                 fract(cos(dot(__funcData->seed.xy ,float2(4.898,7.23))) * 23421.631));
         }*/
         
+        float axis(int index, float3 domain)
+        {
+            return domain[index];
+        }
+        
         float degrees(float radians)
         {
             return radians * 180.0 / PI;

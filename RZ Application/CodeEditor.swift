@@ -271,6 +271,7 @@ class CodeEditor        : MMWidget
                         // Scroll Down
                         scrollArea.offsetY -= 2;
                         scrollArea.checkOffset(widget: textureWidget, area: rect)
+                        
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                             scroll()
                         }
@@ -307,6 +308,10 @@ class CodeEditor        : MMWidget
         }
                 
         if let comp = codeComponent {
+            
+            // If the view has scrolled, write it into the component
+            comp.scrollOffsetY = scrollArea.offsetY
+            
             let oldFunc = codeContext.hoverFunction
             let oldBlock = codeContext.hoverBlock
             let oldFrag = codeContext.hoverFragment

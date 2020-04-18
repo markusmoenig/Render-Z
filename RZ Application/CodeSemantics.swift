@@ -1131,18 +1131,17 @@ class CodeBlock             : Codable, Equatable
                     ctx.cComponent!.globalCode = globalCode
                     //ctx.cComponent!.inputDataList.append(fragment.uuid)
                     //let components = fragment.evaluateComponents()
-                    
-                    ctx.addCode( conn.0 + "." + conn.1 )
-                    /*
-                    if components == 1 {
-                        ctx.addCode( ".x" )
-                    } else
-                    if components == 2 {
-                        ctx.addCode( ".xy" )
-                    } else
-                    if components == 3 {
-                        ctx.addCode( ".xyz" )
-                    }*/
+
+                    if conn.1 == "color" {
+                        // Mix in the incoming pattern color with the property color
+                        let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
+                        ctx.cComponent!.inputDataList.append(fragment.uuid)
+                        ctx.cComponent!.inputComponentList.append(ctx.cComponent!)
+                        
+                        ctx.addCode( "mix(__funcData->__data[\(dataIndex)], \(conn.0 + "." + conn.1), \(conn.0 + "." + conn.1).w )" )
+                    } else {
+                        ctx.addCode( conn.0 + "." + conn.1 )
+                    }
                 } else
                 {
                     // PROPERTY!!!!
@@ -1487,7 +1486,7 @@ class CodeFunction          : Codable, Equatable
                                 let token = generateToken()
                                 ctx.addCode("struct " + "PatternOut " + token + ";\n")
                                 if ctx.cComponent!.componentType == .Material3D {
-                                    ctx.addCode(pattern.functions.last!.codeName! + "(uv, hitPosition, hitNormal, incomingDirection, &\(token), __funcData );\n")
+                                    ctx.addCode(pattern.functions.last!.codeName! + "(uv, localPosition, hitNormal, incomingDirection, &\(token), __funcData );\n")
                                     ctx.cComponent!.propertyConnections[uuid] = (token, conn.outName!)
                                 }
                             }

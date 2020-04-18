@@ -100,6 +100,8 @@ class CodeFragList : MMWidget
         item.items.append( SourceListItem("atan", CodeFragment(.Primitive, "float", "atan", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         item.items.append( SourceListItem("atan2", CodeFragment(.Primitive, "float", "atan2", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4", "float|float2|float3|float4"], "input0" ) ) )
         
+        item.items.append( SourceListItem("axis", CodeFragment(.Primitive, "float", "axis", [.Selectable, .Dragable, .Targetable], ["int", "float3"], "float" ) ) )
+        
         item = FragItem("B")
         items.append(item)
         item.items.append( SourceListItem("break", CodeFragment(.Primitive, "block", "break")) )
