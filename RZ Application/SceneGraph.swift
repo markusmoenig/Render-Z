@@ -656,9 +656,15 @@ class SceneGraph                : MMWidget
             
             if let propT = propertyTerminal {
                 let comp = propT.0
+                
+                let stageItem = globalApp!.project.selected!.getStageItem(comp)!
+                let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Undo Connection")
+                
                 comp.connections[propT.1!] = CodeConnection(outTerminal!.0.uuid, outTerminal!.2!)
                 globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                
+                globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
             }
         }
         

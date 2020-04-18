@@ -113,7 +113,7 @@ class CodeProperties    : MMWidget
             var index: Float = -1
 
             if function.functionType == .FreeFlow {
-                items = ["Hash", "Noise"]
+                items = ["Hash", "Noise", "Misc"]
                 if let i = items.firstIndex(of: libraryCategory) {
                     index = Float(i)
                 }
@@ -164,7 +164,21 @@ class CodeProperties    : MMWidget
                 b2.removeState(.Checked)
             }
             addButton(b2)
-            //}
+            
+            if function.functionType == .FreeFlow {
+                let b3 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete", fixedWidth: buttonWidth)
+                b3.clicked = { (event) in
+                    if let index = comp.functions.firstIndex(of: function) {
+                        comp.functions.remove(at: index)
+                        let undo = globalApp!.developerEditor.codeEditor.undoStart("Delete Function")
+                        globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                        globalApp!.developerEditor.codeEditor.undoEnd(undo)
+                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                    }
+                }
+                b3.isDisabled = function.references > 0
+                addButton(b3)
+            }
         } else
         if let block = ctx.selectedBlock {
             if let _ = ctx.cFunction {
