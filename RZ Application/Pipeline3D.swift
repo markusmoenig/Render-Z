@@ -298,8 +298,10 @@ class Pipeline3D            : Pipeline
                     // Show reflection updates for sample 0
                     if self.samples == 0 {
                         if self.reflections == 0 { self.checkFinalTexture(true) }
-                        self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
-                        self.mmView.update()
+                        if self.reflections > 0 {
+                            self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
+                            self.mmView.update()
+                        }
                     }
                     
                     if self.outputType == .DepthMap {
