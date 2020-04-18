@@ -176,7 +176,6 @@ class LibraryDialog: MMDialog {
     
     func show(ids: [String], style: Style = .List, cb: ((String)->())? = nil )
     {
-        print(ids)
         self.style = style
 
         currentId = ids[0]
@@ -275,7 +274,10 @@ class LibraryDialog: MMDialog {
             if _cb != nil {
                 DispatchQueue.main.async {
                     if let cb = self._cb {
-                        cb(selected.json)
+                        if let comp = decodeComponentAndProcess(selected.json) {
+                            let recoded = encodeComponentToJSON(comp)
+                            cb(recoded)
+                        }
                     }
                 }
             } else {

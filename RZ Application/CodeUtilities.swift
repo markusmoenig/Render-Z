@@ -298,6 +298,106 @@ func decodeComponentFromJSON(_ json: String) -> CodeComponent?
     return nil
 }
 
+/// Decode component and adjust uuids
+func decodeComponentAndProcess(_ json: String) -> CodeComponent?
+{
+    var replaced        : [UUID:UUID] = [:]
+    var referseCount    : Int = 0
+    var propertyCount   : Int = 0
+
+    if let component = decodeComponentFromJSON(json) {
+
+        component.connections = [:]
+        
+        func processFragment(_ fragment: CodeFragment) {
+
+            let old = fragment.uuid
+            fragment.uuid = UUID()
+            
+            // Property ?
+            if let index = component.properties.firstIndex(of: old) {
+                component.properties[index] = fragment.uuid
+                propertyCount += 1
+                
+                // Replace artistName
+                if let artistName = component.artistPropertyNames[old] {
+                    component.artistPropertyNames[old] = nil
+                    component.artistPropertyNames[fragment.uuid] = artistName
+                }
+                
+                // Replace gizmo type
+                if let gizmoName = component.propertyGizmoName[old] {
+                    component.propertyGizmoName[old] = nil
+                    component.propertyGizmoName[fragment.uuid] = gizmoName
+                }
+            }
+            
+            // This fragment referse to another one ? If yes replace it
+            if let referse = fragment.referseTo {
+                if let wasReplaced = replaced[referse] {
+                    fragment.referseTo = wasReplaced
+                    referseCount += 1
+                }
+            }
+            
+            replaced[old] = fragment.uuid
+        }
+        
+        for f in component.functions {
+            for b in f .body {
+                parseCodeBlock(b, process: processFragment)
+            }
+        }
+        
+        //print("Properties replaced: ", propertyCount, "Referse replaced: ", referseCount)
+        
+        return component
+    }
+    return nil
+}
+
+func parseCodeBlock(_ b: CodeBlock, process: ((CodeFragment)->())? = nil)
+{
+    func parseFragments(_ fragment: CodeFragment)
+    {
+        process!(fragment)
+        var processArguments = true
+        if fragment.fragmentType == .ConstantDefinition && fragment.isSimplified {
+            // If fragment is simplified, skip arguments
+            processArguments = false
+        }
+        
+        if processArguments {
+            for statement in fragment.arguments {
+                for arg in statement.fragments {
+                    parseFragments(arg)
+                }
+            }
+        }
+    }
+    
+    // Check for the left sided fragment
+    parseFragments(b.fragment)
+    
+    // Parse If, Else
+    if b.fragment.fragmentType == .If || b.fragment.fragmentType == .Else || b.fragment.fragmentType == .For {
+        for statement in b.fragment.arguments {
+            for fragment in statement.fragments {
+                parseFragments(fragment)
+            }
+        }
+        
+        for bchild in b.children {
+            parseCodeBlock(bchild, process: process)
+        }
+    }
+    
+    // recursively parse the right sided fragments
+    for fragment in b.statement.fragments {
+        parseFragments(fragment)
+    }
+}
+
 // Encode Component into JSON
 func encodeComponentToJSON(_ component: CodeComponent) -> String
 {

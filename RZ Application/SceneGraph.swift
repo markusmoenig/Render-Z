@@ -657,6 +657,7 @@ class SceneGraph                : MMWidget
             if let propT = propertyTerminal {
                 let comp = propT.0
                 comp.connections[propT.1!] = CodeConnection(outTerminal!.0.uuid, outTerminal!.2!)
+                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
             }
         }
@@ -1759,7 +1760,7 @@ class SceneGraph                : MMWidget
                 
                 // Material, draw all the patterns
                 if let patterns = stageItem.componentLists["patterns"], item.component!.componentType == .Material3D {
-                    for p in patterns {
+                    for p in patterns.reversed() {
                         let pItem = SceneGraphItem(.StageItem, stage: item.stage, stageItem: stageItem, component: p)
                         pItem.rect.set(item.rect.x + p.values["_graphX"]! * graphZoom, item.rect.y + p.values["_graphY"]! * graphZoom, item.rect.width, item.rect.height)
                         itemMap[p.uuid] = pItem
@@ -1815,8 +1816,9 @@ class SceneGraph                : MMWidget
                     // Draw the right sided property terminals
                     for uuid in component.properties {
                         let name = component.artistPropertyNames[uuid]!
-                        let label = getLabel(uuid, name, skin: skin)
-                        
+                        //let label = getLabel(uuid, name, skin: skin)
+                        let label = getLabel(name, skin: skin)
+
                         let frag = component.getPropertyOfUUID(uuid)
                         label.rect.x = rect.x + item.rect.right() - label.rect.width - tWidth
                         label.rect.y = rect.y + y

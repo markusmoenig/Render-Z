@@ -1483,18 +1483,28 @@ class CodeFunction          : Codable, Equatable
                     if let conn = ctx.cComponent!.connections[uuid] {
                         for pattern in ctx.patternList {
                             if conn.componentUUID == pattern.uuid {
+                                
                                 let token = generateToken()
                                 ctx.addCode("struct " + "PatternOut " + token + ";\n")
-                                if ctx.cComponent!.componentType == .Material3D {
-                                    ctx.addCode(pattern.functions.last!.codeName! + "(uv, localPosition, hitNormal, incomingDirection, &\(token), __funcData );\n")
-                                    ctx.cComponent!.propertyConnections[uuid] = (token, conn.outName!)
+                                
+                                if pattern.functions.last!.codeName == nil {
+                                    pattern.functions.last!.codeName = generateToken()
                                 }
+                                
+                                if ctx.cComponent!.componentType == .Material3D  {
+                                    ctx.addCode(pattern.functions.last!.codeName! + "(uv, localPosition, hitNormal, incomingDirection, &\(token), __funcData );\n")
+                                } else
+                                if ctx.cComponent!.componentType == .Pattern  {
+                                    ctx.addCode(pattern.functions.last!.codeName! + "(uv, position, normal, rayDirection, &\(token), __funcData );\n")
+                                }
+                                
+                                ctx.cComponent!.propertyConnections[uuid] = (token, conn.outName!)
                             }
                         }
                     }
                 }
             }
-            
+
             for b in body {
                 checkBlock(b)
                 for cb in b.children {
@@ -2512,16 +2522,22 @@ class CodeComponent         : Codable, Equatable
         
         if componentType == .Material3D && ctx.patternList.count > 0 {
             // Create the global functions for all the patterns of the material
-            for pattern in ctx.patternList {
+            
+            // TODO sort dependencies of the patterns as they can reference each other
+            for pattern in ctx.patternList.reversed() {
                 dryRunComponent(pattern, ctx.propertyDataOffset + inputDataList.count, patternList: ctx.patternList)
                 globalCode! += pattern.globalCode!
                 
                 inputDataList += pattern.inputDataList
                 inputComponentList += pattern.inputComponentList
                 textures += pattern.textures
+                pattern.propertyConnections.forEach { (key, value) in
+                    propertyConnections[key] = value }
 
                 let f = pattern.functions.last!
-                f.codeName = generateToken()
+                if f.codeName == nil {
+                    f.codeName = generateToken()
+                }
                 var pCode : String = "void " + f.codeName!
                 pCode +=
                 """
