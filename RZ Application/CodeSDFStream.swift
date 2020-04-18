@@ -1093,9 +1093,11 @@ class CodeSDFStream
                 float outReflectionBlur = 0.;
                 float outReflectionDist = 0.;
             
+                float3 localPosition = hitPosition;
+            
             """
             
-            if let transform = stageItem.components[stageItem.defaultName] {
+            if let transform = stageItem.components[stageItem.defaultName], transform.componentType == .Transform3D {
                 
                 dryRunComponent(transform, instance.data.count)
                 instance.collectProperties(transform)
@@ -1112,28 +1114,35 @@ class CodeSDFStream
                 """
                 
                     float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
-                    float3 localPosition = __translate(hitPosition, __originalPosition);
+                    localPosition = __translate(hitPosition, __originalPosition);
                 
                     localPosition.yz = rotate( localPosition.yz, radians(__data[\(rotateX)].x) );
                     localPosition.xz = rotate( localPosition.xz, radians(__data[\(rotateY)].x) );
                     localPosition.xy = rotate( localPosition.xy, radians(__data[\(rotateZ)].x) );
-                    {
-                    float3 position = localPosition; float3 normal = hitNormal;
-                    float2 outUV = float2(0);
                 
                 """
+            }
                 
-                // Create the UVMapping for this material
+            // Create the UVMapping for this material
+            
+            if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
                 
-                if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
-                    dryRunComponent(uvMap, instance.data.count)
-                    instance.collectProperties(uvMap)
-                    if let globalCode = uvMap.globalCode {
-                        headerCode += globalCode
-                    }
-                    if let code = uvMap.code {
-                        materialFuncCode += code
-                    }
+                materialFuncCode +=
+                """
+                
+                {
+                float3 position = localPosition; float3 normal = hitNormal;
+                float2 outUV = float2(0);
+                
+                """
+                    
+                dryRunComponent(uvMap, instance.data.count)
+                instance.collectProperties(uvMap)
+                if let globalCode = uvMap.globalCode {
+                    headerCode += globalCode
+                }
+                if let code = uvMap.code {
+                    materialFuncCode += code
                 }
                 
                 materialFuncCode +=
@@ -1144,7 +1153,6 @@ class CodeSDFStream
                 
                 """
             }
-            
             
             // Get the patterns of the material if any
             var patterns : [CodeComponent] = []
