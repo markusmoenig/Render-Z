@@ -40,7 +40,7 @@ class GroundItem {
 class GroundEditor              : PropertiesWidget
 {
     enum State {
-        case Idle, DraggingItem, DraggingGrid
+        case Idle, DraggingItem, DraggingGrid, Gizmo
     }
     
     var state                   : State = .Idle
@@ -78,9 +78,13 @@ class GroundEditor              : PropertiesWidget
     var currentComponent        : CodeComponent? = nil
     
     var undoComponent           : CodeUndoComponent? = nil
-    
+    var undoStageItem           : SceneGraphItemUndo? = nil
+
     var addRegionButton         : MMButtonWidget!
     var deleteRegionButton      : MMButtonWidget!
+    
+    var addShapeButton          : MMButtonWidget!
+    var deleteShapeButton       : MMButtonWidget!
     
     var mouseIsDown             : Bool = false
 
@@ -128,7 +132,7 @@ class GroundEditor              : PropertiesWidget
                     
                     let undo = globalApp!.currentEditor.undoStageItemStart(self.groundItem, "Add Region")
 
-                    let newRegion = shapeStage.createChild("Region", parent: self.groundItem)
+                    let newRegion = shapeStage.createChild("Region #" + String(self.getRegions().count+1), parent: self.groundItem)
                     
                     //let regionComponent = CodeComponent(.RegionProfile3D, "Region")
                     //regionComponent.createDefaultFunction(.RegionProfile3D)
@@ -146,21 +150,79 @@ class GroundEditor              : PropertiesWidget
                     
                     globalApp!.currentEditor.undoStageItemEnd(self.groundItem, undo)
                     self.updateUI()
+                    
+                    self.addRegionButton.removeState(.Checked)
                 }
             } )
         }
         
         deleteRegionButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete", fixedWidth: buttonWidth)
-        buttonWidth = 160
-    }
-    
-    func setCurrentRegion(_ region: StageItem,_ component: CodeComponent)
-    {
-        currentRegion = region
-        currentComponent = component
-        gizmo.setComponent(component)
+        deleteRegionButton.clicked = { (event) in
+                                        
+            let undo = globalApp!.currentEditor.undoStageItemStart(self.groundItem, "Delete Region")
+            
+            if let index = self.groundItem.children.firstIndex(of: self.currentRegion!) {
+                self.groundItem.children.remove(at: index)
+            }
+            self.currentRegion = nil
+            self.currentComponent = nil
+                                
+            globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.groundItem)
+            
+            globalApp!.currentEditor.undoStageItemEnd(self.groundItem, undo)
+            
+            let regions = self.getRegions()
+            if let region = regions.first {
+                self.setCurrentRegion(region)
+            }
+            
+            self.updateUI()
+            self.groundShaders.buildRegionPreview()
+            self.deleteRegionButton.removeState(.Checked)
+        }
         
-        //globalApp!.artistEditor.designProperties.setSelected(component)
+        addShapeButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add Shape", fixedWidth: buttonWidth)
+        addShapeButton.clicked = { (event) in
+            globalApp!.libraryDialog.show(ids: ["SDF2D"], style: .Icon, cb: { (json) in
+                if let comp = decodeComponentFromJSON(json) {
+                                        
+                    let undo = globalApp!.currentEditor.undoStageItemStart(self.groundItem, "Add Region Shape")
+                    
+                    self.currentRegion!.componentLists["shapes2D"]!.append(comp)
+                    self.setCurrentRegion(self.currentRegion!, comp)
+                                        
+                    globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.groundItem)
+                    
+                    self.groundShaders.buildRegionPreview()
+                    
+                    globalApp!.currentEditor.undoStageItemEnd(self.groundItem, undo)
+                    self.updateUI()
+                    
+                    self.addShapeButton.removeState(.Checked)
+                }
+            } )
+        }
+        
+        deleteShapeButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete", fixedWidth: buttonWidth)
+        deleteShapeButton.clicked = { (event) in
+                                        
+            let undo = globalApp!.currentEditor.undoStageItemStart(self.groundItem, "Delete Region Shape")
+            
+            if let index = self.currentRegion!.componentLists["shapes2D"]!.firstIndex(of: self.currentComponent!) {
+                self.currentRegion!.componentLists["shapes2D"]!.remove(at: index)
+            }
+            self.currentComponent = nil
+                                
+            globalApp!.developerEditor.codeEditor.markStageItemInvalid(self.groundItem)
+            self.groundShaders.buildRegionPreview()
+            
+            globalApp!.currentEditor.undoStageItemEnd(self.groundItem, undo)
+            self.updateUI()
+            
+            self.deleteShapeButton.removeState(.Checked)
+        }
+
+        buttonWidth = 120
     }
     
     func translate(_ x: Float, _ z: Float) -> SIMD2<Float>
@@ -192,12 +254,47 @@ class GroundEditor              : PropertiesWidget
         currentRegion = nil
     }
     
+    func setGroundItem(stageItem: StageItem)
+    {
+        groundItem = stageItem
+
+        cameraOriginItem = nil
+        cameraLookAtItem = nil
+        itemMap = [:]
+        
+        self.currentRegion = nil
+        self.currentComponent = nil
+
+        for c in groundItem.children {
+            if c.components[c.defaultName]!.componentType == .RegionProfile3D {
+                self.setCurrentRegion(c, c.componentLists["shapes2D"]!.first!)
+            }
+        }
+        
+        activate()
+        self.groundShaders.buildRegionPreview()
+    }
+    
+    func setCurrentRegion(_ region: StageItem,_ component: CodeComponent? = nil)
+    {
+        currentRegion = region
+        currentComponent = component
+        if let component = component {
+            gizmo.setComponent(component)
+        }
+        
+        //globalApp!.artistEditor.designProperties.setSelected(component)
+    }
+    
     func updateUI()
     {
         clear()
         
         addButton(addRegionButton)
         addButton(deleteRegionButton)
+
+        addButton(addShapeButton)
+        addButton(deleteShapeButton)
 
         c1Node = Node()
         c1Node?.rect.x = 10
@@ -218,7 +315,7 @@ class GroundEditor              : PropertiesWidget
                 isDisabled = false
             }
         }
-        
+                
         if regions.count == 0 {
             regions.append("None")
         }
@@ -227,27 +324,28 @@ class GroundEditor              : PropertiesWidget
         regionSelector.isDisabled = isDisabled
         c1Node?.uiItems.append(regionSelector)
         
-        c1Node?.setupUI(mmView: mmView)
-    }
-    
-    func setGroundItem(stageItem: StageItem)
-    {
-        groundItem = stageItem
-
-        cameraOriginItem = nil
-        cameraLookAtItem = nil
-        itemMap = [:]
-        
-        self.groundShaders.buildRegionPreview()
-        self.groundShaders.updateRegionPreview()
-        
-        for c in groundItem.children {
-            if c.components[c.defaultName]!.componentType == .RegionProfile3D {
-                self.setCurrentRegion(c, c.componentLists["shapes2D"]!.first!)
+        c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+            if variable == "regionSelector" {
+                let regions = self.getRegions()
+                let region = regions[Int(newValue)]
+                self.setCurrentRegion(region)
+                self.groundShaders.buildRegionPreview()
+                self.mmView.update()
             }
         }
         
-        activate()
+        c1Node?.setupUI(mmView: mmView)
+    }
+    
+    func getRegions() -> [StageItem]
+    {
+        var list : [StageItem] = []
+        for c in groundItem.children {
+            if c.components[c.defaultName]!.componentType == .RegionProfile3D {
+                list.append(c)
+            }
+        }
+        return list
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -257,16 +355,20 @@ class GroundEditor              : PropertiesWidget
         
         mouseIsDown = true
         
+        state = .Idle
+        selectedItem = nil
+
         if currentComponent != nil {
             gizmo.rect.copy(rect)
             gizmo.mouseDown(event)
             
             if gizmo.hoverState != .Inactive {
+                undoStageItem = globalApp!.currentEditor.undoStageItemStart(groundItem, "Region Transform")
+                state = .Gizmo
                 return
             }
         }
-                
-        selectedItem = nil
+
         for (_,item) in itemMap {
             if item.rect.contains(event.x - rect.x, event.y - rect.y) {
                 selectedItem = item
@@ -286,6 +388,14 @@ class GroundEditor              : PropertiesWidget
                 }
                 break
             }
+        }
+        
+        if state == .Idle && currentRegion != nil {
+            groundShaders.selectComponentAt(event: event)
+        }
+        
+        if state == .Idle {
+            super.mouseDown(event)
         }
     }
     
@@ -307,7 +417,7 @@ class GroundEditor              : PropertiesWidget
                 mouseDownOffset.y = offset.y
             }
         }
-        
+                
         if state == .DraggingGrid {
             offset.x = mouseDownOffset.x - (mouseDownPos.x - event.x) / gridSize / graphZoom
             offset.y = mouseDownOffset.y - (mouseDownPos.y - event.y) / gridSize / graphZoom
@@ -353,6 +463,10 @@ class GroundEditor              : PropertiesWidget
                 }
             }
         }
+        
+        if state == .Idle {
+            super.mouseMoved(event)
+        }
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -369,6 +483,15 @@ class GroundEditor              : PropertiesWidget
         if undoComponent != nil {
             globalApp!.currentEditor.undoComponentEnd(undoComponent!)
             undoComponent = nil
+        }
+        
+        if undoStageItem != nil {
+            globalApp!.currentEditor.undoStageItemEnd(groundItem!, undoStageItem!)
+            undoStageItem = nil
+        }
+        
+        if state == .Idle {
+            super.mouseUp(event)
         }
         
         state = .Idle
@@ -502,12 +625,18 @@ class GroundEditor              : PropertiesWidget
         if groundShaders.lastPreviewWidth != rect.width || groundShaders.lastPreviewHeight != rect.height {
             groundShaders.updateRegionPreview()
         }
-        groundShaders.drawPreview()
         
         // UI
         if let texture = globalApp!.currentPipeline!.finalTexture {
             let width : Float = Float(texture.width) / 3
             let height : Float = Float(texture.height) / 3
+            
+            // Preview
+            let previewRect = MMRect(rect)
+            previewRect.width -= width
+            mmView.renderer.setClipRect(previewRect)
+            groundShaders.drawPreview()
+            mmView.renderer.setClipRect()
             
             let uiStartX = rect.right() - width
             let uiStartY = rect.y + height
@@ -527,6 +656,17 @@ class GroundEditor              : PropertiesWidget
                 c1Node.rect.x = uiStartX + 10
                 c1Node.rect.y = deleteRegionButton.rect.bottom() + 10 - rect.y
             }
+            
+            // --- Shape Buttons
+            addShapeButton.rect.x = uiStartX - 20 - buttonWidth * 2
+            addShapeButton.rect.y = rect.bottom() - 40
+            addShapeButton.rect.width = buttonWidth
+            addShapeButton.isDisabled = currentRegion == nil
+
+            deleteShapeButton.rect.x = addShapeButton.rect.right() + 10
+            deleteShapeButton.rect.y = addShapeButton.rect.y
+            deleteShapeButton.rect.width = buttonWidth
+            deleteShapeButton.isDisabled = (currentRegion == nil || currentComponent == nil)
         }
         
         super.draw(xOffset: xOffset, yOffset: yOffset)

@@ -453,6 +453,8 @@ class CodeSDFStream
             
             materialFuncCode = ""
             
+            
+            // Ground
             if let ground = groundComponent {
                 if ground.componentType == .Ground3D {
                     
@@ -486,9 +488,10 @@ class CodeSDFStream
                         constant float4 *__data = __funcData->__data;
                         float GlobalTime = __funcData->GlobalTime;
                         float GlobalSeed = __funcData->GlobalSeed;
-                    
+                        
                         float outDistance = 1000000.0;
-
+                        float4 region = float4(outDistance, 0, 0, 0);
+                    
                     """
                     
                     
@@ -523,6 +526,7 @@ class CodeSDFStream
                             regionCode +=
                             """
                                 {
+                                    float oldDistance = outDistance;
                                     float2 position = __translate(pos, float2(__data[\(posX)].x, -__data[\(posY)].x));
 
                             """
@@ -531,6 +535,8 @@ class CodeSDFStream
                             
                             regionCode +=
                             """
+                            
+                                    outDistance = min(oldDistance, outDistance); // TODO: Future support custom booleans
                                 }
                             
                             """
@@ -553,13 +559,20 @@ class CodeSDFStream
                             }
                             
                             regionMapCode += regionProfile.code!.replacingOccurrences(of: "regionDistance", with: "region\(index)")
+                            regionMapCode +=
+                            """
+                            
+                            if (outDistance < region.x)
+                                region = float4(outDistance, 0, \(index), 0);
+                            
+                            """
                         }
                     }
                     
                     regionMapCode +=
                     """
                     
-                        return float4(outDistance, 0, 0, 0);
+                        return region;
                     }
                     
                     """
