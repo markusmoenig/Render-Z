@@ -240,14 +240,14 @@ class SceneGraph                : MMWidget
         graphX += event.deltaX! * 2
         graphY += event.deltaY! * 2
         #elseif os(OSX)
-        if mmView.commandIsDown && event.deltaY! != 0 {
+        //if mmView.commandIsDown && event.deltaY! != 0 {
             graphZoom += event.deltaY! * 0.003
             graphZoom = max(0.2, graphZoom)
             graphZoom = min(1, graphZoom)
-        } else {
-            graphX -= event.deltaX! * 2
-            graphY -= event.deltaY! * 2
-        }
+        //} else {
+        //    graphX -= event.deltaX! * 2
+        //    graphY -= event.deltaY! * 2
+        //}
         #endif
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {

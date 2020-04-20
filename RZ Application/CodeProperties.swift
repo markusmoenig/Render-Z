@@ -225,7 +225,7 @@ class CodeProperties    : MMWidget
                     block.fragment.properties = [.Selectable]
                     block.statement = CodeStatement(.Arithmetic)
                     block.children = []
-                    block.assignment.name = ""
+                    block.assignment.name = "="
 
                     self.editor.updateOnNextDraw()
                     self.needsUpdate = true

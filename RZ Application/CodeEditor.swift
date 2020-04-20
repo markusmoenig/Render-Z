@@ -502,6 +502,7 @@ class CodeEditor        : MMWidget
                     dest.selectedFragment = source.selectedFragment
                     dest.selectedBlock = source.selectedBlock
                     dest.selectedFunction = source.selectedFunction
+                    dest.fontScale = source.fontScale
                 }
                 
                 if self.codeContext === self.codeContext1 {

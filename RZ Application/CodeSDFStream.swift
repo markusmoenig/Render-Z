@@ -1008,6 +1008,13 @@ class CodeSDFStream
                                     globalsAddedFor.append(modifier.uuid)
                                 }
                             }
+                            
+                            code +=
+                            """
+                            
+                            distance = outDistance;
+
+                            """
                         }
                         
                         code +=
