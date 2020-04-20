@@ -214,6 +214,11 @@ class DesignEditor          : MMWidget
                     if globalApp!.currentSceneMode == .TwoD && value.x > 0 {
                         valid = false
                     }
+                    
+                    if globalApp!.currentSceneMode == .ThreeD && value.w == 0 {
+                        // Prevent the terrain editor to pop up on misclick
+                        valid = false
+                    }
                                
                     if let id = globalApp!.currentPipeline!.codeBuilder.sdfStream.ids[Int(value.w)], valid {
                         blockRendering = true

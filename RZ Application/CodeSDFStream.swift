@@ -971,6 +971,33 @@ class CodeSDFStream
                     position.xy = rotate( position.xy, radians(__data[\(rotateZ)].x) );
 
             """
+            
+            if let stageItem = hierarchy.last {
+                if let list = stageItem.componentLists["domain3D"] {
+                    for domain in list {
+                        dryRunComponent(domain, instance.data.count)
+                        instance.collectProperties(domain)
+                        
+                        if let globalCode = domain.globalCode {
+                            headerCode += globalCode
+                        }
+                        
+                        code +=
+                        """
+                        {
+                        float3 outPosition = position;
+                        
+                        """
+                        code += domain.code!
+                        code +=
+                        """
+                        
+                        position = outPosition;
+                        }
+                        """
+                    }
+                }
+            }
         }
         
         code += component.code!
@@ -1074,6 +1101,7 @@ class CodeSDFStream
         // Handle the domains
         
         if type == .SDF3D {
+            /*
             if let list = stageItem.componentLists["domain3D"] {
                 for domain in list {
                     dryRunComponent(domain, instance.data.count)
@@ -1097,7 +1125,7 @@ class CodeSDFStream
                     }
                     """
                 }
-            }
+            }*/
         }
         
         // Handle the materials
