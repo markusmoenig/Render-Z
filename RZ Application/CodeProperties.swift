@@ -335,6 +335,16 @@ class CodeProperties    : MMWidget
             if fragment.fragmentType == .VariableDefinition && fragment.parentBlock != nil && fragment.parentBlock!.blockType == .ForHeader {
                 let items : [String] = ["int", "uint", "float"]
                 c1Node?.uiItems.append( NodeUISelector(c1Node!, variable: "type", title: "Type", items: items, index: Float(items.firstIndex(of: fragment.typeName)!) ) )
+                
+                c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Name", value: fragment.name) )
+                c1Node?.textChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "name" {
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Name Changed") : nil
+                        fragment.name = newValue
+                        self.editor.updateOnNextDraw()
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    }
+                }
                                 
                 c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "type" {
@@ -369,7 +379,7 @@ class CodeProperties    : MMWidget
             } else
             // --- FreeFlow argument
             if fragment.fragmentType == .VariableDefinition && fragment.parentBlock!.parentFunction != nil && fragment.parentBlock!.parentFunction!.functionType == .FreeFlow && fragment.parentBlock!.parentFunction!.header.statement.fragments.contains(fragment)
-                //|| true // Enable this if you want to emergency edit function arguments
+                //|| true // Enable this if you want to emergency edit function arguments HERE
             {
 
                 c1Node?.uiItems.append( NodeUIText(c1Node!, variable: "name", title: "Argument Name", value: fragment.name) )

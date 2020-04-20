@@ -63,6 +63,8 @@ class CodeEditor        : MMWidget
     var codeClipboard   : CodeClipboard!
     
     var liveEditing     : Bool = true
+    var showCode        : Bool = true
+
     var codeHasRendered : Bool = false
     var codeIsUpdating  : Bool = false
 
@@ -668,25 +670,27 @@ class CodeEditor        : MMWidget
             }
             globalApp!.currentPipeline!.renderIfResolutionChanged(rect.width, rect.height)
             
-            mmView.renderer.setClipRect(rect)
-            if let comp = currentComponent {
-                // Draw semi transparent function backgrounds
-                for f in comp.functions {
-                    var color = mmView.skin.Code.background
-                    color.w = 0.9
-                    
-                    mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: rect.y + codeContext.gapY / 2 + f.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
-                    
-                    mmView.drawBox.draw(x: rect.x + f.rect.x + scrollArea.offsetX, y: rect.y + f.rect.y + scrollArea.offsetY, width: f.rect.width, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+            if showCode {
+                mmView.renderer.setClipRect(rect)
+                if let comp = currentComponent {
+                    // Draw semi transparent function backgrounds
+                    for f in comp.functions {
+                        var color = mmView.skin.Code.background
+                        color.w = 0.9
+                        
+                        mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: rect.y + codeContext.gapY / 2 + f.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+                        
+                        mmView.drawBox.draw(x: rect.x + f.rect.x + scrollArea.offsetX, y: rect.y + f.rect.y + scrollArea.offsetY, width: f.rect.width, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+                    }
                 }
+                mmView.renderer.setClipRect()
             }
-            mmView.renderer.setClipRect()
         } else {
             mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
         }
         
         // Draw the code
-        if codeHasRendered == true {
+        if codeHasRendered == true && showCode {
             scrollArea.rect.copy(rect)
             scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset, yOffset: yOffset)
         }
@@ -710,9 +714,11 @@ class CodeEditor        : MMWidget
         let hoverAlpha : Float = 0.3
         let selectedAlpha : Float = 0.4
 
-        mmView.renderer.setClipRect(rect)
+        if showCode {
+            mmView.renderer.setClipRect(rect)
+        }
         
-        if currentComponent === codeComponent {
+        if currentComponent === codeComponent && showCode {
             // Fragments
             var workRect: MMRect = MMRect()
             if codeContext.dropFragment == nil {
@@ -799,46 +805,48 @@ class CodeEditor        : MMWidget
                 
         // Orientation area
 
-        orientationRatio = 100 / rect.width * 2
-        orientationHeight = orientationRatio * codeContext.height
-        while orientationHeight > rect.height {
-            orientationRatio *= 0.75
+        if showCode {
+            orientationRatio = 100 / rect.width * 2
             orientationHeight = orientationRatio * codeContext.height
-        }
-        mmView.drawBox.draw(x: rect.right() - 100, y: rect.y, width: 100 , height: orientationHeight, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.0,0.0,0.0,0.3))
-        mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100, height: orientationHeight)
-        
-        let y : Float = (-scrollArea.offsetY) * orientationRatio
-        let height : Float = min(rect.height * orientationRatio, orientationHeight)
-        orientationRect.x = rect.right() - 100 + -scrollArea.offsetX * (100 / codeContext.width)
-        orientationRect.y = rect.y + y
-        orientationRect.width = 100 * rect.width / codeContext.width
-        orientationRect.height = height
-        mmView.drawBox.draw(x: orientationRect.x, y: orientationRect.y, width: orientationRect.width, height: orientationRect.height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
-        
-        // Function DND
-        if let f = dndFunction {
-            mmView.drawBox.draw(x: rect.x, y: rect.y + f.rect.y - CodeContext.fSpace + scrollArea.offsetY, width: rect.width, height: CodeContext.fSpace, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.2))
-        }
-        
-        // Access Area
-        codeAccess.rect.x = rect.x
-        codeAccess.rect.y = rect.bottom() - codeAccess.rect.height + 1
-        codeAccess.rect.width = rect.width
-        if codeAccess.accessState != .Closed {
-            codeAccess.draw()
-        }
-        
-        // Clipboard without a custom rect, needs to get clipped
-        if codeClipboard.customRect == false, codeHasRendered {
-            codeClipboard.draw()
-        }
-        
-        mmView.renderer.setClipRect()
-        
-        // Clipboard for custom area, i.e. code frag list, should not be clipped
-        if codeClipboard.customRect == true, codeHasRendered {
-            codeClipboard.draw()
+            while orientationHeight > rect.height {
+                orientationRatio *= 0.75
+                orientationHeight = orientationRatio * codeContext.height
+            }
+            mmView.drawBox.draw(x: rect.right() - 100, y: rect.y, width: 100 , height: orientationHeight, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.0,0.0,0.0,0.3))
+            mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100, height: orientationHeight)
+            
+            let y : Float = (-scrollArea.offsetY) * orientationRatio
+            let height : Float = min(rect.height * orientationRatio, orientationHeight)
+            orientationRect.x = rect.right() - 100 + -scrollArea.offsetX * (100 / codeContext.width)
+            orientationRect.y = rect.y + y
+            orientationRect.width = 100 * rect.width / codeContext.width
+            orientationRect.height = height
+            mmView.drawBox.draw(x: orientationRect.x, y: orientationRect.y, width: orientationRect.width, height: orientationRect.height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
+            
+            // Function DND
+            if let f = dndFunction {
+                mmView.drawBox.draw(x: rect.x, y: rect.y + f.rect.y - CodeContext.fSpace + scrollArea.offsetY, width: rect.width, height: CodeContext.fSpace, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, 0.2))
+            }
+            
+            // Access Area
+            codeAccess.rect.x = rect.x
+            codeAccess.rect.y = rect.bottom() - codeAccess.rect.height + 1
+            codeAccess.rect.width = rect.width
+            if codeAccess.accessState != .Closed {
+                codeAccess.draw()
+            }
+            
+            // Clipboard without a custom rect, needs to get clipped
+            if codeClipboard.customRect == false, codeHasRendered {
+                codeClipboard.draw()
+            }
+            
+            mmView.renderer.setClipRect()
+            
+            // Clipboard for custom area, i.e. code frag list, should not be clipped
+            if codeClipboard.customRect == true, codeHasRendered {
+                codeClipboard.draw()
+            }
         }
     }
     

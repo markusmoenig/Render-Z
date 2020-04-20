@@ -281,9 +281,7 @@ class GroundEditor              : PropertiesWidget
         currentComponent = component
         if let component = component {
             gizmo.setComponent(component)
-        }
-        
-        //globalApp!.artistEditor.designProperties.setSelected(component)
+        }        
     }
     
     func updateUI()
@@ -335,6 +333,20 @@ class GroundEditor              : PropertiesWidget
         }
         
         c1Node?.setupUI(mmView: mmView)
+        
+        // c2Node, Plane Height Editor
+        
+        /*
+        c2Node = Node()
+        
+        let planeHeightVar = NodeUINumber(c2Node!, variable: "planeHeight", title: "Plane Offset", range: SIMD2<Float>(-20, 20), value: 0, precision: 2)
+        planeHeightVar.titleShadows = true
+        c2Node?.uiItems.append(planeHeightVar)
+        c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+        }
+        
+        c2Node?.setupUI(mmView: mmView)
+        */
     }
     
     func getRegions() -> [StageItem]
@@ -638,6 +650,7 @@ class GroundEditor              : PropertiesWidget
             groundShaders.drawPreview()
             mmView.renderer.setClipRect()
             
+            // c1Node
             let uiStartX = rect.right() - width
             let uiStartY = rect.y + height
 
@@ -656,6 +669,16 @@ class GroundEditor              : PropertiesWidget
                 c1Node.rect.x = uiStartX + 10
                 c1Node.rect.y = deleteRegionButton.rect.bottom() + 10 - rect.y
             }
+            
+            /*
+            // c2Node
+            uiStartX = rect.x + 10
+            uiStartY = rect.bottom() - 20
+            
+            if let c2Node = c2Node {
+                c2Node.rect.x = uiStartX
+                c2Node.rect.y = uiStartY
+            }*/
             
             // --- Shape Buttons
             addShapeButton.rect.x = uiStartX - 20 - buttonWidth * 2

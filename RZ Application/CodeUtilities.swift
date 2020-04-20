@@ -302,17 +302,21 @@ func decodeComponentFromJSON(_ json: String) -> CodeComponent?
 func decodeComponentAndProcess(_ json: String) -> CodeComponent?
 {
     var replaced        : [UUID:UUID] = [:]
+
     var referseCount    : Int = 0
     var propertyCount   : Int = 0
 
     if let component = decodeComponentFromJSON(json) {
 
         component.connections = [:]
+        component.uuid = UUID()
         
         func processFragment(_ fragment: CodeFragment) {
 
             let old = fragment.uuid
+            
             fragment.uuid = UUID()
+            replaced[old] = fragment.uuid
             
             // Property ?
             if let index = component.properties.firstIndex(of: old) {
@@ -337,10 +341,10 @@ func decodeComponentAndProcess(_ json: String) -> CodeComponent?
                 if let wasReplaced = replaced[referse] {
                     fragment.referseTo = wasReplaced
                     referseCount += 1
+                } else {
+                    //fragment.referseTo = nil
                 }
             }
-            
-            replaced[old] = fragment.uuid
         }
         
         for f in component.functions {
@@ -348,7 +352,7 @@ func decodeComponentAndProcess(_ json: String) -> CodeComponent?
                 parseCodeBlock(b, process: processFragment)
             }
         }
-        
+
         //print("Properties replaced: ", propertyCount, "Referse replaced: ", referseCount)
         
         return component
@@ -361,17 +365,9 @@ func parseCodeBlock(_ b: CodeBlock, process: ((CodeFragment)->())? = nil)
     func parseFragments(_ fragment: CodeFragment)
     {
         process!(fragment)
-        var processArguments = true
-        if fragment.fragmentType == .ConstantDefinition && fragment.isSimplified {
-            // If fragment is simplified, skip arguments
-            processArguments = false
-        }
-        
-        if processArguments {
-            for statement in fragment.arguments {
-                for arg in statement.fragments {
-                    parseFragments(arg)
-                }
+        for statement in fragment.arguments {
+            for arg in statement.fragments {
+                parseFragments(arg)
             }
         }
     }
@@ -379,17 +375,8 @@ func parseCodeBlock(_ b: CodeBlock, process: ((CodeFragment)->())? = nil)
     // Check for the left sided fragment
     parseFragments(b.fragment)
     
-    // Parse If, Else
-    if b.fragment.fragmentType == .If || b.fragment.fragmentType == .Else || b.fragment.fragmentType == .For {
-        for statement in b.fragment.arguments {
-            for fragment in statement.fragments {
-                parseFragments(fragment)
-            }
-        }
-        
-        for bchild in b.children {
-            parseCodeBlock(bchild, process: process)
-        }
+    for bchild in b.children {
+        parseCodeBlock(bchild, process: process)
     }
     
     // recursively parse the right sided fragments

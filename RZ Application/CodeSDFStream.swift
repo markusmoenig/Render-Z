@@ -469,10 +469,11 @@ class CodeSDFStream
                     
                     hitAndNormalsCode +=
                     """
+                    
                     inShape = outShape;
                     maxDistance = outShape.y;
+                    
                     """
-
                     
                     let groundItem : StageItem = globalApp!.project.selected!.getStage(.ShapeStage).getChildren()[0]
                     
@@ -489,11 +490,14 @@ class CodeSDFStream
                         float GlobalTime = __funcData->GlobalTime;
                         float GlobalSeed = __funcData->GlobalSeed;
                         
+                        __CREATE_TEXTURE_DEFINITIONS__
+
                         float outDistance = 1000000.0;
+                        float height = 0;
+                        float outHeight = height;
                         float4 region = float4(outDistance, 0, 0, 0);
                     
                     """
-                    
                     
                     for (index, region) in groundItem.children.enumerated() {
                         if region.componentLists["shapes2D"] == nil { continue }
@@ -510,6 +514,7 @@ class CodeSDFStream
                         
                         var posX : Int = 0
                         var posY : Int = 0
+                        var rotate : Int = 0
 
                         // Add the component to the region
                         for regionComponent in region.componentLists["shapes2D"]! {
@@ -522,12 +527,14 @@ class CodeSDFStream
                             
                             posX = instance.getTransformPropertyIndex(regionComponent, "_posX")
                             posY = instance.getTransformPropertyIndex(regionComponent, "_posY")
+                            rotate = instance.getTransformPropertyIndex(regionComponent, "_rotate")
 
                             regionCode +=
                             """
                                 {
                                     float oldDistance = outDistance;
                                     float2 position = __translate(pos, float2(__data[\(posX)].x, -__data[\(posY)].x));
+                                    position = rotate( position, radians(360 - __data[\(rotate)].x) );
 
                             """
                             
@@ -562,8 +569,11 @@ class CodeSDFStream
                             regionMapCode +=
                             """
                             
-                            if (outDistance < region.x)
-                                region = float4(outDistance, 0, \(index), 0);
+                            if (outDistance < region.x) {
+                                region = float4(outDistance, 0, 0, 0);
+                            }
+                            height = outHeight;
+
                             
                             """
                         }
@@ -930,11 +940,13 @@ class CodeSDFStream
         {
             let posX = instance.getTransformPropertyIndex(component, "_posX")
             let posY = instance.getTransformPropertyIndex(component, "_posY")
+            let rotate = instance.getTransformPropertyIndex(component, "_rotate")
 
             code +=
             """
                 {
                     float2 position = __translate(__origin, float2(__data[\(posX)].x, -__data[\(posY)].x));
+                    position = rotate( position, radians(360 - __data[\(rotate)].x) );
 
             """
         } else

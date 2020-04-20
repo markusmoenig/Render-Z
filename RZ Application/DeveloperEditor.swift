@@ -16,6 +16,9 @@ class DeveloperEditor   : Editor
     let codeEditor      : CodeEditor
     var codeProperties  : CodeProperties
     
+    var showButton      : MMButtonWidget!
+    var liveButton      : MMButtonWidget!
+
     required init(_ view: MMView)
     {
         mmView = view
@@ -23,7 +26,40 @@ class DeveloperEditor   : Editor
         codeEditor = CodeEditor(view)
         codeProperties = CodeProperties(view)
         
+        var liveSkin = MMSkinButton()
+        liveSkin.borderColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+
+        showButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "SHOW" )
+        liveButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "LIVE" )
+        liveButton.rect.width += 16
+
         super.init()
+        
+        showButton.clicked = { (event) -> Void in
+            let editor = globalApp!.developerEditor.codeEditor
+            if editor.showCode == true {
+                self.showButton.removeState(.Checked)
+                editor.showCode = false
+            } else {
+                editor.showCode = true
+            }
+            self.mmView.update()
+        }
+        showButton.addState(.Checked)
+        
+        liveButton.clicked = { (event) -> Void in
+            let editor = globalApp!.developerEditor.codeEditor
+            if editor.liveEditing == true {
+                self.liveButton.removeState(.Checked)
+                editor.liveEditing = false
+            } else {
+                editor.liveEditing = true
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+            }
+        }
+        liveButton.addState(.Checked)
         
         codeEditor.editor = self
         codeProperties.editor = self
@@ -31,13 +67,13 @@ class DeveloperEditor   : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: codeList, codeEditor, codeProperties, globalApp!.topRegion!.liveButton)
+        mmView.registerWidgets(widgets: codeList, codeEditor, codeProperties, showButton, liveButton)
     }
     
     override func deactivate()
     {
         codeProperties.clear()
-        mmView.deregisterWidgets(widgets: codeList, codeEditor, codeProperties, globalApp!.topRegion!.liveButton)
+        mmView.deregisterWidgets(widgets: codeList, codeEditor, codeProperties, showButton, liveButton)
     }
     
     override func setComponent(_ component: CodeComponent)
@@ -78,8 +114,12 @@ class DeveloperEditor   : Editor
         if region.type == .Top {
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 43, spacing: 10, widgets: globalApp!.topRegion!.graphButton)
             globalApp!.topRegion!.graphButton.draw()
-            let liveButton = globalApp!.topRegion!.liveButton!
-            liveButton.rect.x = (globalApp!.topRegion!.rect.width - liveButton.rect.width) / 2
+            
+            showButton.rect.x = (globalApp!.topRegion!.rect.width - showButton.rect.width - liveButton.rect.width - 12) / 2
+            showButton.rect.y = 4 + 44
+            showButton.draw()
+            
+            liveButton.rect.x = showButton.rect.right() + 12
             liveButton.rect.y = 4 + 44
             liveButton.draw()
         } else

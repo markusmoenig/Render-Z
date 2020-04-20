@@ -1862,10 +1862,14 @@ class CodeComponent         : Codable, Equatable
             let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)
             
+            let arg2 = CodeFragment(.VariableDefinition, "float", "height", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+            f.header.statement.fragments.append(arg2)
+            
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float", "outDistance"))
+            f.body.append(f.createOutVariableBlock("float", "outHeight"))
             functions.append(f)
         } else
         if type == .Boolean {

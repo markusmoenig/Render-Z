@@ -1974,7 +1974,7 @@ class SceneGraph                : MMWidget
 
         var component : CodeComponent? = nil
         if let comp = o.components[o.defaultName] {
-            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D || comp.componentType == .RegionProfile3D {
+            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D {//|| comp.componentType == .RegionProfile3D {
                 component = comp
                 uuid = comp.uuid
             }
