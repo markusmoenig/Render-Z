@@ -1252,6 +1252,13 @@ class CodeBuilder
             return float2( -b-h, -b+h );
         }
         
+        /*
+        float4 __sampleTexture(texture2d<half, access::sample> texture, float2 uv)
+        {
+            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+            return float4(texture.sample( __textureSampler, uv));
+        }*/
+        
         float4 __interpolateTexture(texture2d<half, access::sample> texture, float2 uv)
         {
             constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);

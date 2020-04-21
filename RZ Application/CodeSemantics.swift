@@ -478,7 +478,7 @@ class CodeFragment          : Codable, Equatable
                 // This is an image!
                 let token = generateToken()
                 name += self.name
-                codeName += "__interpolateTexture(" + token + ", "//codeName += "float4(" + token + ".sample"
+                codeName += "__interpolateTexture(" + token + ", "
                 ctx.cComponent!.textures.append((self.name, token, 0))
             } else {
                 name += self.name
@@ -709,10 +709,6 @@ class CodeFragment          : Codable, Equatable
                 if values["image"] != 1 {
                     ctx.addCode("( ")
                 }
-                
-                //if values["image"] == 1 {
-                //    ctx.addCode("__textureSampler, ")
-                //}
             }
             
             for (index, arg) in arguments.enumerated() {
@@ -752,13 +748,6 @@ class CodeFragment          : Codable, Equatable
                 }
                 ctx.cX += ctx.tempRect.width + ctx.gapX
                 ctx.addCode(") ")
-            
-                // If this is an image we need an additional ")" to close the "float4("
-                //if values["image"] == 1 {
-                //    ctx.addCode(") ")
-                //}
-                // Expand rect, experimental
-                //rect.width = ctx.cX - rect.x
             }
             
             if arguments.isEmpty && fragmentType == .Primitive && referseTo != nil {
