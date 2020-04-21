@@ -143,6 +143,7 @@ class LibraryDialog: MMDialog {
             globalApp!.topRegion!.libraryButton.isDisabled = false
             DispatchQueue.main.async {
                 self.mmView.update()
+                globalApp!.sceneGraph.libraryLoaded()
             }
         }
         
@@ -258,8 +259,17 @@ class LibraryDialog: MMDialog {
         if json == "" {
             return nil
         } else {
-            return decodeComponentFromJSON(json)
+            return decodeComponentAndProcess(json)
         }
+    }
+    
+    // Gets a list of library items for the given id
+    func getItems(ofId: String) -> [LibraryItem]
+    {
+        if let list = itemMap[ofId] {
+            return list
+        }
+        return []
     }
     
     override func cancel() {

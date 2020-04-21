@@ -449,7 +449,7 @@ class CodeSDFStream
                     materialCode +=
                     """
                     
-                    int lightIndex = int(lightType.w) - 1;
+                    int lightIndex = int(lightType.z) - 1;
                     
                     """
                 }

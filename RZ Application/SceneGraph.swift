@@ -173,8 +173,11 @@ class SceneGraph                : MMWidget
         super.init(view)
         
         zoom = view.scaleFactor
-        
-        menuWidget.setItems([
+    }
+    
+    func libraryLoaded()
+    {
+        var menuItems = [
             MMMenuItem(text: "Add Object", cb: { () in
                 //getStringDialog(view: self.mmView, title: "New Object", message: "Object name", defaultValue: "New Object", cb: { (value) -> Void in
                     if let scene = globalApp!.project.selected {
@@ -191,15 +194,19 @@ class SceneGraph                : MMWidget
                         globalApp!.currentEditor.undoStageEnd(shapeStage, undo)
                     }
                 //} )
-            }),
-            MMMenuItem(text: "Add Point Light", cb: { () in
+            })
+        ]
+        
+        let list = globalApp!.libraryDialog.getItems(ofId: "Light3D")
+        for l in list {
+            menuItems.append( MMMenuItem(text: "Add \(l.titleLabel.text)", cb: { () in
                 //getStringDialog(view: self.mmView, title: "New Light", message: "Light name", defaultValue: "Light", cb: { (value) -> Void in
                     if let scene = globalApp!.project.selected {
                         
                         let lightStage = scene.getStage(.LightStage)
                         
-                        let undo = globalApp!.currentEditor.undoStageStart(lightStage, "Add Object")
-                        let lightItem = lightStage.createChild("Point Light")
+                        let undo = globalApp!.currentEditor.undoStageStart(lightStage, "Add \(l.titleLabel.text)")
+                        let lightItem = lightStage.createChild("\(l.titleLabel.text)")
                         
                         lightItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x) / self.graphZoom - self.graphX
                         lightItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y) / self.graphZoom - self.graphY
@@ -210,8 +217,10 @@ class SceneGraph                : MMWidget
                         globalApp!.currentEditor.undoStageEnd(lightStage, undo)
                     }
                 //} )
-            })
-        ])
+            }))
+        }
+        
+        menuWidget.setItems(menuItems)
     }
     
     func activate()
@@ -1416,6 +1425,7 @@ class SceneGraph                : MMWidget
                                     item.stage.children2D.remove(at: index)
                                 }
                             }
+                            scene.invalidateCompilerInfos()
                             globalApp!.currentEditor.updateOnNextDraw(compile: true)
                             globalApp!.currentEditor.undoStageEnd(lightStage, undo)
                         }
