@@ -709,6 +709,7 @@ class CodeBuilder
         texture2d<half, access::read>           __rayOriginTexture [[texture(2)]],
         texture2d<half, access::read>           __rayDirectionTexture [[texture(3)]],
         texture2d<half, access::read>           __depthTexture [[texture(4)]],
+        constant float4                        *__lightData   [[ buffer(5) ]],
         uint2 __gid                             [[thread_position_in_grid]])
         {
             float2 size = float2( __densityTexture.get_width(), __densityTexture.get_height() );
@@ -730,8 +731,8 @@ class CodeBuilder
             
             float t = __random2(float3(__data[0].x, __data[0].y, __data[0].z)).y;
             float tt = 0.0;
-            //float3 lightColor = __lightData[2].xyz;
-            float3 lightColor = float3(1);
+            float3 lightColor = __lightData[2].xyz;
+            //float3 lightColor = float3(1);
 
             if (shape.z == -1) {
                 maxDistance = 50;
@@ -763,7 +764,7 @@ class CodeBuilder
 
                 transmittance *= exp(-sigmaE * tt);
                                     
-                tt += __random2(pos * __data[0].w).y * 2.;
+                tt += __random2(pos * __data[0].w).y * 4.;
                 t += tt;
             }
             

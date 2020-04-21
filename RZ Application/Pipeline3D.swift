@@ -497,7 +497,7 @@ class Pipeline3D            : Pipeline
                 let data : [SIMD4<Float>] = [SIMD4<Float>(Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0))]
                 let buffer = codeBuilder.compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
                 
-                codeBuilder.compute.run( codeBuilder.densityState!, outTexture: getTextureOfId("density"), inBuffer: buffer, inTextures: [getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("depth")])
+                codeBuilder.compute.run( codeBuilder.densityState!, outTexture: getTextureOfId("density"), inBuffer: buffer, inTextures: [getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("depth")], inBuffers: [lightBuffer])
                 codeBuilder.compute.commandBuffer.waitUntilCompleted()
             }
             
