@@ -22,6 +22,8 @@ class CodeSDFStream
     var aoCode              : String = ""
     var shadowCode          : String = ""
     var backgroundCode      : String = ""
+    
+    var boundingBoxCode     : String = ""
 
     var materialFuncCode    : String = ""
     var materialCode        : String = ""
@@ -65,6 +67,8 @@ class CodeSDFStream
         
         regionCode = ""
         regionMapCode = ""
+        
+        boundingBoxCode = "if (true) {\n"
         
         idCounter = idStart
         materialIdCounter = idStart
@@ -642,6 +646,14 @@ class CodeSDFStream
                 }
             } else
             if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false {
+                
+                hitAndNormalsCode +=
+                """
+                
+                __BOUNDING_BOX_CODE__
+
+                """
+                
                 dryRunComponent(rayMarch, instance.data.count)
                 instance.collectProperties(rayMarch)
                 if let globalCode = rayMarch.globalCode {
@@ -653,6 +665,8 @@ class CodeSDFStream
                 
                 hitAndNormalsCode +=
                 """
+                
+                }
                 
                 if (outShape.w != inShape.w) {
 
@@ -871,6 +885,8 @@ class CodeSDFStream
                 __depthTexture.write(half4(outShape), __gid);
             }
             """
+            
+            hitAndNormalsCode = hitAndNormalsCode.replacingOccurrences(of: "__BOUNDING_BOX_CODE__", with: boundingBoxCode)
             
             aoCode +=
             """
@@ -1101,6 +1117,7 @@ class CodeSDFStream
         // Handle the domains
         
         if type == .SDF3D {
+            
             /*
             if let list = stageItem.componentLists["domain3D"] {
                 for domain in list {
@@ -1181,6 +1198,24 @@ class CodeSDFStream
                     localPosition.xy = rotate( localPosition.xy, radians(__data[\(rotateZ)].x) );
                 
                 """
+                
+                if hierarchy.count == 1 {
+                    let bBox = instance.getTransformPropertyIndex(transform, "_bbox")
+
+                    // Bounding Box code
+                    boundingBoxCode =
+                    """
+                    
+                        float3 __bbPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
+                    
+                        float2 bDistance = sphereIntersect(rayOrigin, rayDirection, __bbPosition, __data[\(bBox)].x);
+                        if (bDistance.y >= 0.0) {
+                    
+                        if (bDistance.x >= 0.0)
+                            rayOrigin = rayOrigin + bDistance.x * rayDirection;
+                        
+                    """
+                }
             }
                 
             // Create the UVMapping for this material

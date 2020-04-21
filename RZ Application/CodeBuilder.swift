@@ -87,6 +87,10 @@ class CodeBuilderInstance
             data.append(SIMD4<Float>(0,0,0,0))
             properties.append((nil, nil, "_rotateZ", data.count, component, hierarchy))
             data.append(SIMD4<Float>(0,0,0,0))
+            if component.values["_bbox"] != nil {
+                properties.append((nil, nil, "_bbox", data.count, component, hierarchy))
+                data.append(SIMD4<Float>(0,0,0,0))
+            }
         }
         
         // Add the textures
@@ -1235,6 +1239,17 @@ class CodeBuilder
         {
             float ca = cos(angle), sa = sin(angle);
             return pivot + (pos-pivot) * float2x2(ca, -sa, sa, ca);
+        }
+        
+        float2 sphereIntersect( float3 ro, float3 rd, float3 ce, float ra )
+        {
+            float3 oc = ro - ce;
+            float b = dot( oc, rd );
+            float c = dot( oc, oc ) - ra*ra;
+            float h = b*b - c;
+            if( h<0.0 ) return float2(-1); // no intersection
+            h = sqrt( h );
+            return float2( -b-h, -b+h );
         }
         
         float4 __interpolateTexture(texture2d<half, access::sample> texture, float2 uv)

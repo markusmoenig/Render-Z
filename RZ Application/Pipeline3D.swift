@@ -120,6 +120,13 @@ class Pipeline3D            : Pipeline
         codeBuilder.sdfStream.reset()
         for (index, item) in shapeStage.getChildren().enumerated() {
             
+            // Insert default value for bounding box to the transform component if not present
+            if let transform = item.components[item.defaultName] {
+                if transform.values["_bbox"] == nil {
+                    transform.values["_bbox"] = 5
+                }
+            }
+            
             if item.builderInstance == nil {
                 // Normal Object
                 if let shapes = item.getComponentList("shapes") {

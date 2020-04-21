@@ -95,6 +95,12 @@ class DesignProperties      : MMWidget
             let renderModeVar = NodeUISelector(c1Node!, variable: "renderMode", title: "Output", items: ["Final Image", "Depth Map", "Occlusion", "Shadows", "Fog Density"], index: 0, shadows: true)
             c1Node?.uiItems.append(renderModeVar)
         }
+        
+        if comp.componentType == .Transform3D && comp.values["_bbox"] != nil {
+            let bboxVar = NodeUINumber(c1Node!, variable: "bbox", title: "Bounding Sphere Radius", range: SIMD2<Float>(0, 50), value:  comp.values["_bbox"]!, precision: 1)
+            bboxVar.titleShadows = true
+            c1Node?.uiItems.append(bboxVar)
+        }
                 
         for uuid in comp.properties {
             let rc = comp.getPropertyOfUUID(uuid)
@@ -156,6 +162,17 @@ class DesignProperties      : MMWidget
             
             if variable == "renderMode" {
                 globalApp!.currentPipeline!.outputType = Pipeline.OutputType(rawValue: Int(newValue))!
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                return
+            }
+            
+            if variable == "bbox" {
+                comp.values["_bbox"] = oldValue
+                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
+                comp.values["_bbox"] = newValue
+                self.updatePreview()
+                self.addKey([variable:newValue])
+                if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
                 return
             }
