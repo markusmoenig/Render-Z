@@ -132,7 +132,7 @@ class Pipeline3D            : Pipeline
                 if let shapes = item.getComponentList("shapes") {
                     let instance = CodeBuilderInstance()
                     instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
-                    codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, backgroundComponent: backComponent, idStart: idCounter)
+                    codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, backgroundComponent: backComponent, idStart: idCounter, scene: scene)
                     codeBuilder.sdfStream.pushStageItem(item)
                     for shape in shapes {
                         codeBuilder.sdfStream.pushComponent(shape)
@@ -150,7 +150,7 @@ class Pipeline3D            : Pipeline
                     // Ground Object
                     let instance = CodeBuilderInstance()
                     instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
-                    codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, groundComponent: ground, backgroundComponent: backComponent, idStart: 0)
+                    codeBuilder.sdfStream.openStream(typeId, instance, codeBuilder, camera: cameraComponent, groundComponent: ground, backgroundComponent: backComponent, idStart: 0, scene: scene)
                     codeBuilder.sdfStream.pushStageItem(item)
                     //for shape in shapes {
                     //    codeBuilder.sdfStream.pushComponent(shape)

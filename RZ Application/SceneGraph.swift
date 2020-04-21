@@ -204,6 +204,7 @@ class SceneGraph                : MMWidget
                         lightItem.values["_graphX"]! = (self.mouseDownPos.x - self.rect.x) / self.graphZoom - self.graphX
                         lightItem.values["_graphY"]! = (self.mouseDownPos.y - self.rect.y) / self.graphZoom - self.graphY
 
+                        scene.invalidateCompilerInfos()
                         globalApp!.sceneGraph.setCurrent(stage: lightStage, stageItem: lightItem)
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
                         globalApp!.currentEditor.undoStageEnd(lightStage, undo)

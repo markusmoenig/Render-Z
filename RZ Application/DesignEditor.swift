@@ -74,7 +74,7 @@ class DesignEditor          : MMWidget
                 gizmoState = .Combo2D
                 currentGizmo = gizmoCombo2D
             } else
-            if comp.componentType == .SDF3D || comp.componentType == .Transform3D || comp.componentType == .PointLight3D {
+            if comp.componentType == .SDF3D || comp.componentType == .Transform3D || comp.componentType == .Light3D {
                 gizmoState = .Combo3D
                 currentGizmo = gizmoCombo3D
             } else

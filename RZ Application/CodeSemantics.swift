@@ -1181,7 +1181,7 @@ class CodeBlock             : Codable, Equatable
 class CodeFunction          : Codable, Equatable
 {
     enum FunctionType       : Int, Codable {
-        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Domain2D, Domain3D, Modifier2D, Modifier3D, Pattern, PointLight3D, PostFX
+        case FreeFlow, Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, Camera2D, Camera3D, Transform2D, Transform3D, Headerless, RayMarch3D, Prototype, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Domain2D, Domain3D, Modifier2D, Modifier3D, Pattern, Light3D, PostFX
     }
     
     let functionType        : FunctionType
@@ -1534,7 +1534,7 @@ class CodeFunction          : Codable, Equatable
 class CodeComponent         : Codable, Equatable
 {
     enum ComponentType      : Int, Codable {
-        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, PointLight3D, Image, Texture, PostFX
+        case Colorize, SkyDome, SDF2D, SDF3D, Render2D, Render3D, Boolean, FunctionContainer, Camera2D, Camera3D, Domain2D, Domain3D, Transform2D, Transform3D, Dummy, Variable, RayMarch3D, Ground3D, RegionProfile3D, AO3D, Shadows3D, Normal3D, Material3D, UVMAP3D, Modifier2D, Modifier3D, Pattern, Light3D, Image, Texture, PostFX
     }
     
     let componentType       : ComponentType
@@ -2193,28 +2193,20 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float", "outId"))
             functions.append(f)
         } else
-        if type == .PointLight3D {
-            let f = CodeFunction(type, "pointLightSource")
-            f.comment = "Point light properties"
+        if type == .Light3D {
+            let f = CodeFunction(type, "lightSource")
+            f.comment = "Light properties"
             
-            let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg1 = CodeFragment(.VariableDefinition, "float3", "lightPosition", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)
             
-            let color = f.createVariableDefinitionBlock("float4", "lightColor")
-            properties.append(color.fragment.uuid)
-            artistPropertyNames[color.fragment.uuid] = "Light Color"
-            f.body.append(color)
-            
-            let strength = f.createVariableDefinitionBlock("float", "lightStrength")
-            strength.statement.fragments[0].values["max"] = 10
-            properties.append(strength.fragment.uuid)
-            artistPropertyNames[strength.fragment.uuid] = "Light Strength"
-            f.body.append(strength)
+            let arg2 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg2)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
-            f.body.append(f.createOutVariableBlock("float3", "outPosition", refTo: arg1))
+            f.body.append(f.createOutVariableBlock("float4", "outColor"))
             functions.append(f)
         } else
         if type == .PostFX {

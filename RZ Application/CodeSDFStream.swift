@@ -40,6 +40,8 @@ class CodeSDFStream
     var hierarchy           : [StageItem] = []
     
     var globalsAddedFor     : [UUID] = []
+    
+    var scene               : Scene? = nil
 
     init()
     {
@@ -57,11 +59,12 @@ class CodeSDFStream
         hierarchy = []
     }
     
-    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil, groundComponent: CodeComponent? = nil, backgroundComponent: CodeComponent? = nil, thumbNail: Bool = false, idStart: Int = 0)
+    func openStream(_ type: CodeComponent.ComponentType,_ instance : CodeBuilderInstance,_ codeBuilder: CodeBuilder, camera: CodeComponent? = nil, groundComponent: CodeComponent? = nil, backgroundComponent: CodeComponent? = nil, thumbNail: Bool = false, idStart: Int = 0, scene: Scene? = nil)
     {
         self.type = type
         self.instance = instance
         self.codeBuilder = codeBuilder
+        self.scene = scene
         
         globalsAddedFor = []
         
@@ -410,7 +413,24 @@ class CodeSDFStream
                 float3 hitNormal = float4(__normalInTexture.read(__gid)).xyz;
                 float occlusion = meta.x;
                 float shadow = meta.y;
+            
+            """
+            
+            materialCode +=
+            """
+            
+                struct MaterialOut __materialOut;
+                __materialOut.color = float4(0,0,0,1);
+                __materialOut.mask = float3(0);
+                        
+            """
+            materialCode += codeBuilder.getFuncDataCode(instance, "MATERIAL", 9)
+            
+            // Insert code for all lights and their references
 
+            materialCode +=
+            """
+            
                 float4 light = __lightData[0];
                 float4 lightType = __lightData[1];
                 float4 lightColor = __lightData[2];
@@ -420,14 +440,70 @@ class CodeSDFStream
                     directionToLight = normalize(__lightData[0].xyz);
                 } else {
                     directionToLight = normalize(__lightData[0].xyz - hitPosition);
-                }
-            
-                struct MaterialOut __materialOut;
-                __materialOut.color = float4(0,0,0,1);
-                __materialOut.mask = float3(0);
                         
             """
-            materialCode += codeBuilder.getFuncDataCode(instance, "MATERIAL", 9)
+            
+            if let scene = scene {
+                let lightStage = scene.getStage(.LightStage)
+                if lightStage.children3D.count > 0 {
+                    materialCode +=
+                    """
+                    
+                    int lightIndex = int(lightType.w) - 1;
+                    
+                    """
+                }
+                for (index,l) in lightStage.children3D.enumerated() {
+                    if let light = l.components[l.defaultName] {
+                        dryRunComponent(light, instance.data.count)
+                        instance.collectProperties(light)
+                        if let globalCode = light.globalCode {
+                            headerCode += globalCode
+                        }
+
+                        var code =
+                        """
+
+                        float4 light\(index)(float3 lightPosition, float3 position, thread struct FuncData *__funcData )
+                        {
+                            float4 outColor = float4(0);
+
+                            constant float4 *__data = __funcData->__data;
+                            float GlobalTime = __funcData->GlobalTime;
+                            float GlobalSeed = __funcData->GlobalSeed;
+                            __CREATE_TEXTURE_DEFINITIONS__
+
+                        """
+                        
+                        code += light.code!
+                        
+                        code +=
+                        """
+
+                            return outColor;
+                        }
+                        
+                        """
+                        
+                        headerCode += code
+                        
+                        materialCode +=
+                        """
+                        
+                        if (\(index) == lightIndex) {
+                            lightColor = light\(index)(light.xyz, hitPosition, __funcData);
+                        }
+                        """
+                    }
+                }
+            }
+            
+            materialCode +=
+            """
+
+            }
+                        
+            """
                         
             if let rayMarch = findDefaultComponentForStageChildren(stageType: .ShapeStage, componentType: .UVMAP3D), thumbNail == false {
                 dryRunComponent(rayMarch, instance.data.count)

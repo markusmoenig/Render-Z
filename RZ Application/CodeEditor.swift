@@ -605,7 +605,7 @@ class CodeEditor        : MMWidget
         stageItem.builderInstance = nil
         
         //print("markStageItemOfComponentInvalid", stageItem.stageItemType, component.componentType)
-        if stageItem.stageItemType == .RenderStage || stageItem.stageItemType == .PreStage {
+        if stageItem.stageItemType == .RenderStage || stageItem.stageItemType == .PreStage || stageItem.stageItemType == .LightStage {
             globalApp!.project.selected!.invalidateCompilerInfos()
         }
         

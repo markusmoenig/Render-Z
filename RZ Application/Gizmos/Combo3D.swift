@@ -14,6 +14,9 @@ class GizmoCombo3D          : GizmoBase
     var state               : MTLRenderPipelineState!
     var idState             : MTLComputePipelineState!
     var cameraState         : MTLComputePipelineState!
+    
+    var statePoint          : MTLRenderPipelineState!
+    var idStatePoint        : MTLComputePipelineState!
 
     let width               : Float = 260
     let height              : Float = 260
@@ -63,12 +66,19 @@ class GizmoCombo3D          : GizmoBase
     var mouseIsDown         : Bool = false
     var scaleAllAxis        : Bool = false
     
+    var isPoint             : Bool = false
+    
     override init(_ view: MMView)
     {
-        let function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmoCombo3D" )
+        var function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmoCombo3D" )
         state = view.renderer.createNewPipelineState( function! )
-       
+        
+        function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmoCombo3DPoint" )
+        statePoint = view.renderer.createNewPipelineState( function! )
+
         compute = MMCompute()
+        idStatePoint = compute.createState(name: "idsGizmoCombo3DPoint")
+
         idState = compute.createState(name: "idsGizmoCombo3D")
         cameraState = compute.createState(name: "cameraGizmoCombo3D")
 
@@ -113,7 +123,12 @@ class GizmoCombo3D          : GizmoBase
     override func setComponent(_ comp: CodeComponent)
     {
         component = comp
-
+        isPoint = false
+        
+        if comp.componentType == .Light3D {
+            isPoint = true
+        }
+        
         // Show the supported transform values
         let designEditor = globalApp!.artistEditor.designEditor
         let designProperties = globalApp!.artistEditor.designProperties
@@ -124,25 +139,27 @@ class GizmoCombo3D          : GizmoBase
             let yVar = NodeUINumber(tNode, variable: "_posY", title: "Position Y", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posY"]!, precision: 3)
             let zVar = NodeUINumber(tNode, variable: "_posZ", title: "Position Z", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posZ"]!, precision: 3)
             
-            let xRotate = NodeUINumber(tNode, variable: "_rotateX", title: "Rotate X", range: SIMD2<Float>(0, 360), value: comp.values["_rotateX"]!, precision: 3)
-            let yRotate = NodeUINumber(tNode, variable: "_rotateY", title: "Rotate Y", range: SIMD2<Float>(0, 360), value: comp.values["_rotateY"]!, precision: 3)
-            let zRotate = NodeUINumber(tNode, variable: "_rotateZ", title: "Rotate Z", range: SIMD2<Float>(0, 360), value: comp.values["_rotateZ"]!, precision: 3)
-            
             xVar.titleShadows = true
             yVar.titleShadows = true
             zVar.titleShadows = true
-            
-            xRotate.titleShadows = true
-            yRotate.titleShadows = true
-            zRotate.titleShadows = true
             
             tNode.uiItems.append(xVar)
             tNode.uiItems.append(yVar)
             tNode.uiItems.append(zVar)
             
-            tNode.uiItems.append(xRotate)
-            tNode.uiItems.append(yRotate)
-            tNode.uiItems.append(zRotate)
+            if isPoint == false {
+                let xRotate = NodeUINumber(tNode, variable: "_rotateX", title: "Rotate X", range: SIMD2<Float>(0, 360), value: comp.values["_rotateX"]!, precision: 3)
+                let yRotate = NodeUINumber(tNode, variable: "_rotateY", title: "Rotate Y", range: SIMD2<Float>(0, 360), value: comp.values["_rotateY"]!, precision: 3)
+                let zRotate = NodeUINumber(tNode, variable: "_rotateZ", title: "Rotate Z", range: SIMD2<Float>(0, 360), value: comp.values["_rotateZ"]!, precision: 3)
+                
+                xRotate.titleShadows = true
+                yRotate.titleShadows = true
+                zRotate.titleShadows = true
+                
+                tNode.uiItems.append(xRotate)
+                tNode.uiItems.append(yRotate)
+                tNode.uiItems.append(zRotate)
+            }
 
             tNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 comp.values[variable] = oldValue
@@ -281,7 +298,11 @@ class GizmoCombo3D          : GizmoBase
                         
             let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
             
-            compute.run(idState, outTexture: compute.texture, inBuffer: buffer, syncronize: true)
+            if isPoint == false {
+                compute.run(idState, outTexture: compute.texture, inBuffer: buffer, syncronize: true)
+            } else {
+                compute.run(idStatePoint, outTexture: compute.texture, inBuffer: buffer, syncronize: true)
+            }
                         
             let region = MTLRegionMake2D(min(Int(event.x - rect.x), compute.texture!.width-1), min(Int(rect.height - (event.y - rect.y)), compute.texture!.height-1), 1, 1)
 
@@ -681,7 +702,11 @@ class GizmoCombo3D          : GizmoBase
         
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
         
-        renderEncoder.setRenderPipelineState(state!)
+        if isPoint == false {
+            renderEncoder.setRenderPipelineState(state!)
+        } else {
+            renderEncoder.setRenderPipelineState(statePoint!)
+        }
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         mmView.renderer.setClipRect()
         
@@ -699,17 +724,23 @@ class GizmoCombo3D          : GizmoBase
         zAxisButton.rect.y = yAxisButton.rect.y - yAxisButton.rect.height - margin / 2
         zAxisButton.draw()
         
-        scaleButton.rect.x = xAxisButton.rect.x - scaleButton.rect.width - margin
-        scaleButton.rect.y = xAxisButton.rect.y
-        scaleButton.draw()
-        
-        rotateButton.rect.x = scaleButton.rect.x - scaleButton.rect.width - margin
-        rotateButton.rect.y = xAxisButton.rect.y
-        rotateButton.draw()
-        
-        moveButton.rect.x = rotateButton.rect.x - rotateButton.rect.width - margin
-        moveButton.rect.y = xAxisButton.rect.y
-        moveButton.draw()
+        if isPoint == false {
+            scaleButton.rect.x = xAxisButton.rect.x - scaleButton.rect.width - margin
+            scaleButton.rect.y = xAxisButton.rect.y
+            scaleButton.draw()
+            
+            rotateButton.rect.x = scaleButton.rect.x - scaleButton.rect.width - margin
+            rotateButton.rect.y = xAxisButton.rect.y
+            rotateButton.draw()
+            
+            moveButton.rect.x = rotateButton.rect.x - rotateButton.rect.width - margin
+            moveButton.rect.y = xAxisButton.rect.y
+            moveButton.draw()
+        } else {
+            moveButton.rect.x = xAxisButton.rect.x - moveButton.rect.width - margin
+            moveButton.rect.y = xAxisButton.rect.y
+            moveButton.draw()
+        }
     }
     
     /// Returns the angle between the start / end points
