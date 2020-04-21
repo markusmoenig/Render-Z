@@ -326,31 +326,6 @@ class CodeSDFStream
                 return shadow;
             }
             
-            float __calcSoftshadow( float3 ro, float3 rd, float mint, float tmax, thread struct FuncData *__funcData )
-            {
-                float res = 1.0;
-                float t = mint;
-                for( int i=0; i<16; i++ )
-                {
-                    float h = sceneMap( ro + rd*t, __funcData ).x;
-                    float s = clamp(8.0*h/t,0.0,1.0);
-                    res = min( res, s*s*(3.0-2.0*s) );
-                    t += clamp( h, 0.02, 0.10 );
-                    if( res<0.005 || t>tmax ) break;
-                }
-                return clamp( res, 0.0, 1.0 );
-            }
-            
-            float2 __random2(float3 st){
-              float2 S = float2( dot(st,float3(127.1,311.7,783.089)),
-                         dot(st,float3(269.5,183.3,173.542)) );
-              return fract(sin(S)*43758.5453123);
-            }
-            
-            float __rand(float2 co){
-                return fract(sin(dot(co.xy ,float2(12.9898,78.233))) * 43758.5453);
-            }
-            
             kernel void computeShadow(
             texture2d<half, access::read_write>     __metaTexture  [[texture(0)]],
             constant float4                        *__data   [[ buffer(1) ]],
@@ -805,6 +780,28 @@ class CodeSDFStream
                         headerCode += globalCode
                     }
                     if let code = shadows.code {
+                        
+                        var softShadowCode =
+                        """
+                        float __calcSoftshadow( float3 ro, float3 rd, thread struct FuncData *__funcData)
+                        {
+                            float outShadow = 1.;
+                            float3 position = ro;
+                            float3 direction = rd;
+
+                        """
+                        
+                        softShadowCode += code
+                        softShadowCode +=
+                        """
+
+                            return outShadow;
+                        }
+
+                        """
+                        
+                        shadowCode = softShadowCode + shadowCode
+                        
                         shadowCode +=
                         """
                         
@@ -838,7 +835,7 @@ class CodeSDFStream
                             float transmittance = 1.0;
                             float3 scatteredLight = float3(0.0, 0.0, 0.0);
                             
-                            float t = __random2(float3(__data[0].z, 0, __data[0].w)).y;
+                            float t = random(__funcData);
                             float tt = 0.0;
                             float3 lightColor = __lightData[2].xyz;
                                                     
@@ -882,9 +879,9 @@ class CodeSDFStream
                                     lengthToLight = length(lightDirection);
                                 }
                                 densityIn.z *= __volumetricShadow(pos, lightDirection, lengthToLight, constFogDensity);
-                                densityIn.w *= __calcSoftshadow(pos, lightDirection, 0.02, maxDistance, __funcData);
+                                densityIn.w *= __calcSoftshadow(pos, lightDirection, __funcData);
                                                     
-                                tt += __random2(pos * __data[0].z).y * 2.;
+                                tt += random(__funcData) * 4.;
                                 t += tt;
                             }
                             /*
