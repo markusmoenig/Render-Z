@@ -40,7 +40,7 @@ class SceneGraphSkin {
 class SceneGraphItem {
         
     enum SceneGraphItemType {
-        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem, VariableContainer, VariableItem, DomainContainer, DomainItem, ModifierContainer, ModifierItem, ImageItem, PostFXContainer, PostFXItem
+        case Stage, StageItem, ShapesContainer, ShapeItem, BooleanItem, VariableContainer, VariableItem, DomainContainer, DomainItem, ModifierContainer, ModifierItem, ImageItem, PostFXContainer, PostFXItem, FogContainer, FogItem, CloudsContainer, CloudsItem
     }
     
     var itemType                : SceneGraphItemType
@@ -700,7 +700,7 @@ class SceneGraph                : MMWidget
         for (uuid,item) in itemMap {
             if item.rect.contains(realX, realY) || (item.navRect != nil && item.navRect!.contains(x, y)) {
                 
-                if item.itemType == .ShapesContainer || item.itemType == .VariableContainer || item.itemType == .DomainContainer || item.itemType == .ModifierContainer || item.itemType == .PostFXContainer {
+                if item.itemType == .ShapesContainer || item.itemType == .VariableContainer || item.itemType == .DomainContainer || item.itemType == .ModifierContainer || item.itemType == .PostFXContainer || item.itemType == .FogContainer || item.itemType == .CloudsContainer {
                     contUUID = uuid
                     continue
                 }
@@ -1596,12 +1596,29 @@ class SceneGraph                : MMWidget
             let cX = x + childItem.values["_graphX"]! * graphZoom - diameter / 2
             let cY = y + childItem.values["_graphY"]! * graphZoom - diameter / 2
 
-            let comp = childItem.components[childItem.defaultName]!
-            let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem, component: comp)
-            item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
-            itemMap[comp.uuid] = item
+            if let comp = childItem.components[childItem.defaultName] {
+                let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem, component: comp)
+                item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
+                itemMap[comp.uuid] = item
 
-            drawItem(item, selected: childItem === currentStageItem , parent: worldItem, skin: skin)
+                drawItem(item, selected: childItem === currentStageItem , parent: worldItem, skin: skin)
+            } else
+            if childItem.componentLists["fog"] != nil {
+                
+                let fogItem = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
+                fogItem.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
+                
+                drawLineBetweenCircles(fogItem, worldItem, skin)
+                drawItemList(parent: fogItem, listId: "fog", graphId: "_graphFog", name: "Fog", containerId: .FogContainer, itemId: .FogItem, skin: skin)
+            } else
+            if childItem.componentLists["clouds"] != nil {
+                
+                let cloudItem = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
+                cloudItem.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
+                
+                drawLineBetweenCircles(cloudItem, worldItem, skin)
+                drawItemList(parent: cloudItem, listId: "clouds", graphId: "_graphClouds", name: "Clouds", containerId: .CloudsContainer, itemId: .CloudsItem, skin: skin)
+            }
         }
         drawItem(worldItem, selected: stage === currentStage, skin: skin)
 

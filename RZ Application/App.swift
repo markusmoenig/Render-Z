@@ -142,7 +142,33 @@ class App
                 self.project = project
                 
                 //project.selected!.stages[5] = Stage(.VariablePool, "Variables")
-
+                
+                // Insert fog / cloud if they dont exist
+                let preStage = project.selected!.getStage(.PreStage)
+                var hasFog = false
+                for c in preStage.children3D {
+                    if c.componentLists["fog"] != nil {
+                        hasFog = true
+                    }
+                }
+                
+                if hasFog == false {
+                    var item = StageItem(.PreStage, "Fog")
+                    
+                    let codeComponent = CodeComponent(.Fog3D, "Dummy")
+                    codeComponent.createDefaultFunction(.Fog3D)
+                    
+                    item.componentLists["fog"] = [codeComponent]
+                    preStage.children3D.append(item)
+                    placeChild(modeId: "3D", parent: preStage, child: item, stepSize: 80, radius: 130)
+                    
+                    item = StageItem(.PreStage, "Clouds")
+                    item.componentLists["clouds"] = []
+                    preStage.children3D.append(item)
+                    placeChild(modeId: "3D", parent: preStage, child: item, stepSize: 50, radius: 120)
+                }
+                //
+                    
                 if project.selected!.stages[4].children2D.count == 0 {
                     project.selected!.stages[4] = Stage(.PostStage, "Post FX")
                 }

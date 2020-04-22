@@ -254,7 +254,21 @@ class Stage                 : Codable, Equatable
             codeComponent.selected = nil
             item.components[item.defaultName] = codeComponent
             children3D.append(item)
-            placeChild(modeId: "3D", parent: self, child: item, stepSize: 50, radius: 150)
+            placeChild(modeId: "3D", parent: self, child: item, stepSize: 80, radius: 150)
+            
+            item = StageItem(.PreStage, "Fog")
+            
+            codeComponent = CodeComponent(.Fog3D, "Dummy")
+            codeComponent.createDefaultFunction(.Fog3D)
+            
+            item.componentLists["fog"] = [codeComponent]
+            children3D.append(item)
+            placeChild(modeId: "3D", parent: self, child: item, stepSize: 80, radius: 130)
+            
+            item = StageItem(.PreStage, "Clouds")
+            item.componentLists["clouds"] = []
+            children3D.append(item)
+            placeChild(modeId: "3D", parent: self, child: item, stepSize: 50, radius: 120)
             
             folderIsOpen = true
         }
