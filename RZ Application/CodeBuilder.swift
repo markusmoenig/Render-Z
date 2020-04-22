@@ -1006,6 +1006,12 @@ class CodeBuilder
                 if globalApp!.currentEditor === globalApp!.artistEditor {
                     globalApp!.artistEditor.designProperties.updateTransformedProperty(component: property.4, name: name, data: inst.data[dataIndex])
                 }
+                if components == 4 {
+                    // For colors, convert them to sRGB for rendering
+                    inst.data[dataIndex].x = pow(inst.data[dataIndex].x, 2.2)
+                    inst.data[dataIndex].y = pow(inst.data[dataIndex].y, 2.2)
+                    inst.data[dataIndex].z = pow(inst.data[dataIndex].z, 2.2)
+                }
             } else
             if let name = property.2 {
                 // Transform property, stored in the values of the component
