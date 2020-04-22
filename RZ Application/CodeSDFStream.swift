@@ -212,6 +212,9 @@ class CodeSDFStream
                 float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
 
+                if (rayDirection.x == INFINITY)
+                    return;
+            
             """
             
             hitAndNormalsCode += codeBuilder.getFuncDataCode(instance, "HITANDNORMALS", 6)
@@ -246,6 +249,9 @@ class CodeSDFStream
                 float2 __uv = float2(__gid.x, __gid.y);
                 float3 rayOrigin = float4(__rayOriginInTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionInTexture.read(__gid)).xyz;
+            
+                if (rayDirection.x == INFINITY)
+                    return;
             
                 float4 outShape = float4(__depthInTexture.read(__gid));
             
@@ -344,6 +350,9 @@ class CodeSDFStream
                 float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
             
+                if (rayDirection.x == INFINITY)
+                    return;
+            
                 float4 outShape = float4(__depthInTexture.read(__gid));
             
                 float maxDistance = outShape.y;
@@ -377,6 +386,9 @@ class CodeSDFStream
                 float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
 
+                if (rayDirection.x == INFINITY)
+                    return;
+            
                 float4 shape = float4(__depthInTexture.read(__gid));
                 float4 meta = float4(__metaInTexture.read(__gid));
                 float3 mask = float4(__maskTexture.read(__gid)).xyz;
@@ -501,7 +513,7 @@ class CodeSDFStream
                     color.xyz += background( uv, __size, hitPosition, rayDirection, __funcData ).xyz * mask;
                     //color = clamp(color, 0.0, 1.0);
                     mask = float3(0);
-                    rayDirection = float3(0);
+                    rayDirection = float3(INFINITY);
                 }
             
             """
