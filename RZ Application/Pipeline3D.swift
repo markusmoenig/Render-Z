@@ -343,7 +343,6 @@ class Pipeline3D            : Pipeline
                     
                     self.reflections += 1
                     if self.reflections < self.maxReflections {
-                        
                         self.stage_HitAndNormals()
                         self.currentStage = .HitAndNormals
                     } else {
@@ -472,6 +471,7 @@ class Pipeline3D            : Pipeline
             // Reset the shadow data to 1.0 in the meta data while not touching anything else (ambient etc).
             codeBuilder.renderClearShadow(texture: getTextureOfId("meta"))
             
+            /*
             // Reset the fog density data
             var fogDensity : Float = 0.02
             if let fogVar = getGlobalVariableValue(withName: "World.worldFogDensity") {
@@ -482,6 +482,7 @@ class Pipeline3D            : Pipeline
             } else {
                 codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(0,0,0,1))
             }
+            */
 
             objectIndex = 0
             shapeText = "shape_" + String(objectIndex)
@@ -492,14 +493,14 @@ class Pipeline3D            : Pipeline
                 objectIndex += 1
                 shapeText = "shape_" + String(objectIndex)
             }
-            
+            /*
             if fogDensity > 0.0 && reflections == 0 {
                 let data : [SIMD4<Float>] = [SIMD4<Float>(Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0))]
                 let buffer = codeBuilder.compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
                 
                 codeBuilder.compute.run( codeBuilder.densityState!, outTexture: getTextureOfId("density"), inBuffer: buffer, inTextures: [getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("depth")], inBuffers: [lightBuffer])
                 codeBuilder.compute.commandBuffer.waitUntilCompleted()
-            }
+            }*/
             
             // Materials
             
@@ -515,16 +516,32 @@ class Pipeline3D            : Pipeline
             }
         }
         
-        let sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
+        var sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
         let sunStrength : Float = getGlobalVariableValue(withName: "Sun.sunStrength")!.x
         var sunColor : SIMD4<Float>? = getGlobalVariableValue(withName: "Sun.sunColor")
         if sunColor != nil {
-            sunColor!.x *= sunStrength
-            sunColor!.y *= sunStrength
-            sunColor!.z *= sunStrength
+            var norm = SIMD3<Float>(sunColor!.x, sunColor!.y, sunColor!.z)
+            norm = normalize(norm)
+            
+            sunColor!.x = norm.x * sunStrength
+            sunColor!.y = norm.y * sunStrength
+            sunColor!.z = norm.z * sunStrength
         } else {
             sunColor = SIMD4<Float>(sunStrength,sunStrength,sunStrength,1)
         }
+                
+        // Setup the density, is passed as .w in the light position
+        var fogDensity : Float = 0.0
+        //if reflections == 0 {
+            if let fogVar = getGlobalVariableValue(withName: "World.worldFogDensity") {
+                fogDensity = fogVar.x
+            }
+        //}
+        
+        codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(0,0,0,1))
+        
+        sunDirection!.w = fogDensity
+        //
         
         let stage = globalApp!.project.selected!.getStage(.LightStage)
         let lights = stage.getChildren()
@@ -553,7 +570,7 @@ class Pipeline3D            : Pipeline
             lightColor.y *= lightStrength.x
             lightColor.z *= lightStrength.x
 
-            lightdata = [SIMD4<Float>(t["_posX"]!, t["_posY"]!, t["_posZ"]!, 0), SIMD4<Float>(1,1,Float(index+1), Float(lights.count)), lightColor]
+            lightdata = [SIMD4<Float>(t["_posX"]!, t["_posY"]!, t["_posZ"]!, fogDensity), SIMD4<Float>(1,1,Float(index+1), Float(lights.count)), lightColor]
             lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
             
             sampleLightAndMaterial(lightBuffer: lightBuffer)

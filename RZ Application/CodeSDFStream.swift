@@ -294,10 +294,10 @@ class CodeSDFStream
             
             float2 __getParticipatingMedia(float3 pos, float constFogDensity)
             {
-                //float heightFog = fbm(pos);
-                //heightFog = 0.3*clamp((heightFog-pos.y + 0.5)*1.0, 0.0, 1.0);
+                float heightFog = fbm(pos);
+                heightFog = 100. * (heightFog-pos.y + 1.);
             
-                float sigmaS = constFogDensity;// + heightFog;
+                float sigmaS = constFogDensity + max(heightFog, 0.);
                
                 const float sigmaA = 0.0;
                 const float sigmaE = max(0.000000001, sigmaA + sigmaS); // to avoid division by zero extinction
@@ -810,6 +810,8 @@ class CodeSDFStream
                         float3 direction =  float3(0);
                         
                         float4 lightType = __lightData[1];
+                        float3 lightColor = __lightData[2].xyz;
+
                         if (lightType.y == 0.0) {
                             direction = normalize(__lightData[0].xyz);
                         } else {
@@ -827,28 +829,24 @@ class CodeSDFStream
                         // Density Code
                         
                         float4 densityIn = float4(__densityTexture.read(__gid));
-                        float constFogDensity = densityIn.x;
+                        float constFogDensity = __lightData[0].w;
                         if (constFogDensity > 0.0000 ) {
-                            
-                            //constFogDensity += (__data[0].w - 0.5) * 0.001;
-                        
                             float transmittance = 1.0;
                             float3 scatteredLight = float3(0.0, 0.0, 0.0);
-                            
-                            float t = random(__funcData);
-                            float tt = 0.0;
-                            float3 lightColor = __lightData[2].xyz;
-                                                    
+                                                                                
                             if (inShape.z == -1) {
                                 maxDistance = 50;
                             }
                             
                             maxDistance = min(maxDistance, 50.0);
                             
+                            float t = random(__funcData) * maxDistance;
+                            float tt = 0.0;
+
                             for( int i=0; i < 5 && t < maxDistance; i++ )
                             {
                                 float3 pos = rayOrigin + rayDirection * t;
-                                /*
+                                
                                 float2 sigma = __getParticipatingMedia( pos, constFogDensity );
                                 
                                 const float sigmaS = sigma.x;
@@ -857,40 +855,59 @@ class CodeSDFStream
                                 float3 lightDirection; float lengthToLight;
                                 if (lightType.y == 0.0) {
                                     lightDirection = normalize(__lightData[0].xyz);
-                                    lengthToLight = 1.;
+                                    lengthToLight = 0.1;
                                 } else {
                                     lightDirection = normalize(__lightData[0].xyz - pos);
                                     lengthToLight = length(lightDirection);
+                        """
+                        
+                        // Insert Light code for density sampling
+                        if let scene = scene {
+                            let lightStage = scene.getStage(.LightStage)
+                            if lightStage.children3D.count > 0 {
+                                shadowCode +=
+                                """
+                                
+                                int lightIndex = int(lightType.z) - 1;
+                                
+                                """
+                            }
+                            for (index,l) in lightStage.children3D.enumerated() {
+                                if l.components[l.defaultName] != nil {
+                                    shadowCode +=
+                                    """
+                                    
+                                    if (\(index) == lightIndex) {
+                                        lightColor = light\(index)(__lightData[0].xyz, pos, __funcData).xyz;
+                                    }
+                                    
+                                    """
+                                }
+                            }
+                        }
+                        
+                        
+                        shadowCode +=
+                        """
+
                                 }
                                 
-                                float3 S = lightColor * sigmaS * __phaseFunction() * __volumetricShadow(pos, lightDirection, lengthToLight, constFogDensity) * __calcSoftshadow(pos, lightDirection, 0.02, maxDistance, __funcData);
+                                float3 S = lightColor * sigmaS * __phaseFunction() * __volumetricShadow(pos, lightDirection, lengthToLight, constFogDensity) * __calcSoftshadow(pos, lightDirection, __funcData);
                                 float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
                                 scatteredLight += transmittance * Sint;
 
                                 transmittance *= exp(-sigmaE * tt);
-                                */
-                        
-                                float3 lightDirection; float lengthToLight;
-                                if (lightType.y == 0.0) {
-                                    lightDirection = normalize(__lightData[0].xyz);
-                                    lengthToLight = 1.;
-                                } else {
-                                    lightDirection = normalize(__lightData[0].xyz - pos);
-                                    lengthToLight = length(lightDirection);
-                                }
-                                densityIn.z *= __volumetricShadow(pos, lightDirection, lengthToLight, constFogDensity);
-                                densityIn.w *= __calcSoftshadow(pos, lightDirection, __funcData);
                                                     
-                                tt += random(__funcData) * 4.;
+                                tt += random(__funcData);
                                 t += tt;
                             }
-                            /*
+                        
                             float4 scatTrans = float4(scatteredLight, transmittance);
                             scatTrans.xyz += densityIn.xyz;//(scatTrans.xyz + densityIn.xyz) / 2;
                             scatTrans.w *= densityIn.w;//max(scatTrans.w, densityIn.w);//(scatTrans.w + densityIn.w) / 2;
-                            */
                             
-                            __densityTexture.write(half4(densityIn), __gid);
+                            
+                            __densityTexture.write(half4(scatTrans), __gid);
                         }
                         }
                         

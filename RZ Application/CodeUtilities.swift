@@ -578,6 +578,12 @@ func getGlobalVariableValue(withName: String) -> SIMD4<Float>?
             let rc = variableComp.getPropertyOfUUID(uuid)
             if rc.0!.values["variable"] == 1 {
                 result = extractValueFromFragment(rc.1!)
+                let components = rc.1!.evaluateComponents()
+                if components == 4 {
+                    result!.x = pow(result!.x, 2.2)
+                    result!.y = pow(result!.y, 2.2)
+                    result!.z = pow(result!.z, 2.2)
+                }
             }
         }
     }
@@ -716,9 +722,9 @@ func getTransformedComponentProperty(_ component: CodeComponent,_ name: String) 
                 properties[name + "_z"] = data.z
                 properties[name + "_w"] = data.w
                 let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
-                result.x = transformed[name + "_x"]!
-                result.y = transformed[name + "_y"]!
-                result.z = transformed[name + "_z"]!
+                result.x = pow(transformed[name + "_x"]!, 2.2)
+                result.y = pow(transformed[name + "_y"]!, 2.2)
+                result.z = pow(transformed[name + "_z"]!, 2.2)
                 result.w = transformed[name + "_w"]!
             }
         }
