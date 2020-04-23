@@ -34,6 +34,8 @@ class DeveloperEditor   : Editor
         showButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "SHOW" )
         liveButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "LIVE" )
         liveButton.rect.width += 16
+        
+        showButton.rect.width += 4
 
         super.init()
         
