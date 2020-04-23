@@ -468,6 +468,39 @@ class NodeUISelector        : NodeUI
     }
 }
 
+class NodeUINoise3D : NodeUISelector
+{
+    var previewTexture      : MTLTexture? = nil
+    var previewIndex        : Float = -1
+    
+    override init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0, shadows: Bool = false)
+    {
+        super.init(node, variable: variable, title: title, items: items, index: index, shadows: shadows)
+    }
+    
+    override func calcSize(mmView: MMView) {
+        
+        super.calcSize(mmView: mmView)
+        
+        rect.width = 200
+        rect.height = 80
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
+    {
+        super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
+        
+        if previewIndex != index {
+            previewTexture = generateNoisePreview(domain: "noise3D", noiseIndex: index, width: rect.width, height: rect.height)
+            previewIndex = index
+        }
+        
+        if let texture = previewTexture {
+            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y + 50)
+        }
+    }
+}
+
 /// Key down NodeUI class
 class NodeUIKeyDown : NodeUI
 {

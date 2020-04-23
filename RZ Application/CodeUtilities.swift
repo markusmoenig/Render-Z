@@ -246,6 +246,12 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
             } else
             if component.componentType == .PostFX {
                 libName += " :: PostFX"
+            } else
+            if component.componentType == .Fog3D {
+                libName += " :: Fog3D"
+            } else
+            if component.componentType == .Clouds3D {
+                libName += " :: Clouds3D"
             }
         }
         
@@ -730,4 +736,68 @@ func getTransformedComponentProperty(_ component: CodeComponent,_ name: String) 
         }
     }
     return result
+}
+
+func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, height: Float) -> MTLTexture?
+{
+    let pipeline = globalApp!.currentPipeline!
+    let texture = pipeline.checkTextureSize(width, height)
+    
+    var code = pipeline.codeBuilder.getHeaderCode()
+    
+    code +=
+    """
+    
+    kernel void noisePreview(
+    texture2d<half, access::write>          __outTexture  [[texture(0)]],
+    uint2 __gid                               [[thread_position_in_grid]])
+    {
+        float2 uv = float2(__gid.x, __gid.y);
+        float2 size = float2(__outTexture.get_width(), __outTexture.get_height() );
+        uv /= size;
+        uv.y = 1.0 - uv.y;
+        uv *= 3.0;
+    
+        float4 outColor = float4(1);
+
+    """
+        
+    var funcName = ""
+    
+    if domain == "noise3D" {
+        if noiseIndex == 0.0 {
+            funcName = "__valueNoise3D"
+        } else
+        if noiseIndex == 1.0 {
+            funcName = "__perlinNoise3D"
+        }
+    }
+    
+    code +=
+    """
+    
+        float noise = \(funcName)(float3(uv.x, 0.0, uv.y), 4);
+        outColor.w = noise;
+    
+    """
+    
+    code +=
+    """
+    
+        __outTexture.write(half4(outColor), __gid);
+    }
+    
+    """
+    
+    code = code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: "")
+    
+    let library = pipeline.codeBuilder.compute.createLibraryFromSource(source: code)
+    let previewState = pipeline.codeBuilder.compute.createState(library: library, name: "noisePreview")
+    
+    if let state = previewState {
+        pipeline.codeBuilder.compute.run( state, outTexture: texture)
+        pipeline.codeBuilder.compute.commandBuffer.waitUntilCompleted()
+    }
+        
+    return texture
 }

@@ -22,6 +22,7 @@ class CodeSDFStream
     var aoCode              : String = ""
     var shadowCode          : String = ""
     var backgroundCode      : String = ""
+    var fogDensityCode      : String = ""
     
     var boundingBoxCode     : String = ""
 
@@ -70,6 +71,8 @@ class CodeSDFStream
         
         regionCode = ""
         regionMapCode = ""
+        
+        fogDensityCode = ""
         
         boundingBoxCode = "if (true) {\n"
         
@@ -267,47 +270,21 @@ class CodeSDFStream
                 
             """
             
-            float hash(float2 p) {float3 p3 = fract(float3(p.xyx) * 0.13); p3 += dot(p3, p3.yzx + 3.333); return fract((p3.x + p3.y) * p3.z); }
-            
-            float noise(float3 x) {
-                const float3 step = float3(110, 241, 171);
-
-                float3 i = floor(x);
-                float3 f = fract(x);
-             
-                // For performance, compute the base input to a 1D hash from the integer part of the argument and the
-                // incremental change to the 1D based on the 3D -> 1D wrapping
-                float n = dot(i, step);
-
-                float3 u = f * f * (3.0 - 2.0 * f);
-                return mix(mix(mix( hash(n + dot(step, float3(0, 0, 0))), hash(n + dot(step, float3(1, 0, 0))), u.x),
-                               mix( hash(n + dot(step, float3(0, 1, 0))), hash(n + dot(step, float3(1, 1, 0))), u.x), u.y),
-                           mix(mix( hash(n + dot(step, float3(0, 0, 1))), hash(n + dot(step, float3(1, 0, 1))), u.x),
-                               mix( hash(n + dot(step, float3(0, 1, 1))), hash(n + dot(step, float3(1, 1, 1))), u.x), u.y), u.z);
-            }
-            
-            float fbm(float3 x) {
-                float v = 0.0;
-                float a = 0.5;
-                float3 shift = float3(100);
-                for (int i = 0; i < 3; ++i) {
-                    v += a * noise(x);
-                    x = x * 2.0 + shift;
-                    a *= 0.5;
-                }
-                return v;
-            }
-            
-            float2 __getParticipatingMedia(float3 pos, float constFogDensity)
+            float2 __getParticipatingMedia(float3 position, float constFogDensity, thread struct FuncData *__funcData)
             {
-                float heightFog = fbm(pos);
-                heightFog = 100. * (heightFog-pos.y + 1.);
+                constant float4 *__data = __funcData->__data;
+                float GlobalTime = __funcData->GlobalTime;
+                float GlobalSeed = __funcData->GlobalSeed;
+                __CREATE_TEXTURE_DEFINITIONS__
             
-                float sigmaS = constFogDensity + max(heightFog, 0.);
+                float outDensity = 0, density = outDensity;
+                __DENSITY_CODE__
+            
+                float sigmaS = constFogDensity + density;
                
                 const float sigmaA = 0.0;
-                const float sigmaE = max(0.000000001, sigmaA + sigmaS); // to avoid division by zero extinction
-            
+                const float sigmaE = max(0.000000001, sigmaA + sigmaS);
+                
                 return float2( sigmaS, sigmaE );
             }
             
@@ -316,7 +293,7 @@ class CodeSDFStream
                 return 1.0/(4.0*3.14);
             }
             
-            float __volumetricShadow(float3 from, float3 dir, float lengthToLight, float constFogDensity)
+            float __volumetricShadow(float3 from, float3 dir, float lengthToLight, float constFogDensity, thread struct FuncData *__funcData)
             {
                 const float numStep = 16.0; // quality control. Bump to avoid shadow alisaing
                 float shadow = 1.0;
@@ -326,7 +303,7 @@ class CodeSDFStream
                 for(float s=0.5; s<(numStep-0.1); s+=1.0)// start at 0.5 to sample at center of integral part
                 {
                     float3 pos = from + dir * (s/(numStep));
-                    float2 sigma = __getParticipatingMedia(pos, constFogDensity);
+                    float2 sigma = __getParticipatingMedia(pos, constFogDensity, __funcData);
                     shadow *= exp(-sigma.y * dd);
                 }
                 return shadow;
@@ -859,7 +836,7 @@ class CodeSDFStream
                             {
                                 float3 pos = rayOrigin + rayDirection * t;
                                 
-                                float2 sigma = __getParticipatingMedia( pos, constFogDensity );
+                                float2 sigma = __getParticipatingMedia( pos, constFogDensity, __funcData);
                                 
                                 const float sigmaS = sigma.x;
                                 const float sigmaE = sigma.y;
@@ -872,6 +849,34 @@ class CodeSDFStream
                                     lightDirection = normalize(__lightData[0].xyz - pos);
                                     lengthToLight = length(lightDirection);
                         """
+                        
+                        // Insert fog density code
+                        if let scene = scene {
+                            let preStage = scene.getStage(.PreStage)
+                            for c in preStage.children3D {
+                                if let list = c.componentLists["fog"] {
+                                    for fog in list {
+                                        dryRunComponent(fog, instance.data.count)
+                                        instance.collectProperties(fog)
+                                        if let globalCode = fog.globalCode {
+                                            headerCode += globalCode
+                                        }
+                                        if let code = fog.code {
+                                            fogDensityCode += code
+                                            fogDensityCode +=
+                                            """
+                                            
+                                            density += outDensity;
+                                            outDensity = 0;
+                                            
+                                            """
+                                            
+                                            print( fogDensityCode)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         
                         // Insert Light code for density sampling
                         if let scene = scene {
@@ -904,7 +909,7 @@ class CodeSDFStream
 
                                 }
                                 
-                                float3 S = lightColor * sigmaS * __phaseFunction() * __volumetricShadow(pos, lightDirection, lengthToLight, constFogDensity) * __calcSoftshadow(pos, lightDirection, __funcData);
+                                float3 S = lightColor * sigmaS * __phaseFunction() * __volumetricShadow(pos, lightDirection, lengthToLight, constFogDensity, __funcData) * __calcSoftshadow(pos, lightDirection, __funcData);
                                 float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
                                 scatteredLight += transmittance * Sint;
 
@@ -998,6 +1003,7 @@ class CodeSDFStream
             
             """
             
+            shadowCode = shadowCode.replacingOccurrences(of: "__DENSITY_CODE__", with: fogDensityCode)
             shadowCode +=
             """
             

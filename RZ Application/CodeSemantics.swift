@@ -486,6 +486,18 @@ class CodeFragment          : Codable, Equatable
                 
                 if self.name == "PI" {
                     codeName = (isNegated() ? " -" : "") + "M_PI_F"
+                } else
+                if self.name == "noise3D" {
+                    codeName = (isNegated() ? " -" : "")
+                    
+                    let noiseIndex = values["noise3D"] == nil ? 0 : values["noise3D"]!
+
+                    if noiseIndex == 0.0 {
+                        codeName += "__valueNoise3D"
+                    } else
+                    if noiseIndex == 1.0 {
+                        codeName += "__perlinNoise3D"
+                    }
                 }
             }
             

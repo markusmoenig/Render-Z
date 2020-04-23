@@ -1188,18 +1188,6 @@ class CodeBuilder
             uint2 rz = uint2(n, n*48271U);
             return float2(rz.xy & uint2(0x7fffffffU))/float(0x7fffffff);
         }
-        /*
-        float random(thread FuncData *__funcData) {
-            __funcData->seed += float2(1.0,0.0);
-            // return fract(sin(dot(vTexCoord, float2(12.9898, 78.233)) + __funcData->seed++) * 43758.5453);
-            return fract(sin(dot(__funcData->seed.xy ,float2(12.9898,78.233))) * 43758.5453);
-        }
-
-        float2 random2(thread FuncData *__funcData) {// implementation derived from one found at: lumina.sourceforge.net/Tutorials/Noise.html
-            __funcData->seed += float2(1.0,1.0);
-            return float2(fract(sin(dot(__funcData->seed.xy ,float2(12.9898,78.233))) * 43758.5453),
-                fract(cos(dot(__funcData->seed.xy ,float2(4.898,7.23))) * 23421.631));
-        }*/
         
         float axis(int index, float3 domain)
         {
@@ -1285,6 +1273,82 @@ class CodeBuilder
         float2 __translate(float2 p, float2 t)
         {
             return p - t;
+        }
+        
+        // Value Noise
+        
+        float __valueHash1(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
+        
+        float __valueN3D(float3 x) {
+            const float3 step = float3(110, 241, 171);
+            float3 i = floor(x);
+            float3 f = fract(x);
+            float n = dot(i, step);
+
+            float3 u = f * f * (3.0 - 2.0 * f);
+            return mix(mix(mix( __valueHash1(n + dot(step, float3(0, 0, 0))), __valueHash1(n + dot(step, float3(1, 0, 0))), u.x),
+                           mix( __valueHash1(n + dot(step, float3(0, 1, 0))), __valueHash1(n + dot(step, float3(1, 1, 0))), u.x), u.y),
+                       mix(mix( __valueHash1(n + dot(step, float3(0, 0, 1))), __valueHash1(n + dot(step, float3(1, 0, 1))), u.x),
+                           mix( __valueHash1(n + dot(step, float3(0, 1, 1))), __valueHash1(n + dot(step, float3(1, 1, 1))), u.x), u.y), u.z);
+        }
+
+        float __valueNoise3D(float3 x, int smoothing) {
+            float v = 0.0;
+            float a = 0.5;
+            float3 shift = float3(100);
+            for (int i = 0; i < smoothing; ++i) {
+                v += a * __valueN3D(x);
+                x = x * 2.0 + shift;
+                a *= 0.5;
+            }
+            return v;
+        }
+        
+        
+        // Perlin noise
+        
+        float hash(float3 p3)
+        {
+            p3 = fract(p3 * 0.1031);
+            p3 += dot(p3, p3.yzx + 19.19);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+
+        float3 fade(float3 t) { return t*t*t*(t*(6.*t-15.)+10.); }
+
+        float grad(float hash, float3 p)
+        {
+            int h = int(1e4*hash) & 15;
+            float u = h<8 ? p.x : p.y,
+                  v = h<4 ? p.y : h==12||h==14 ? p.x : p.z;
+            return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);
+        }
+
+        float perlinNoise3D(float3 p)
+        {
+            float3 pi = floor(p), pf = p - pi, w = fade(pf);
+            return mix( mix( mix( grad(hash(pi + float3(0, 0, 0)), pf - float3(0, 0, 0)),
+                                   grad(hash(pi + float3(1, 0, 0)), pf - float3(1, 0, 0)), w.x ),
+                              mix( grad(hash(pi + float3(0, 1, 0)), pf - float3(0, 1, 0)),
+                                   grad(hash(pi + float3(1, 1, 0)), pf - float3(1, 1, 0)), w.x ), w.y ),
+                         mix( mix( grad(hash(pi + float3(0, 0, 1)), pf - float3(0, 0, 1)),
+                                   grad(hash(pi + float3(1, 0, 1)), pf - float3(1, 0, 1)), w.x ),
+                              mix( grad(hash(pi + float3(0, 1, 1)), pf - float3(0, 1, 1)),
+                                   grad(hash(pi + float3(1, 1, 1)), pf - float3(1, 1, 1)), w.x ), w.y ), w.z );
+        }
+
+        float __perlinNoise3D(float3 pos, int octaves)
+        {
+            float persistence = 0.5;
+            float total = 0.0, frequency = 1.0, amplitude = 1.0, maxValue = 0.0;
+            for(int i = 0; i < octaves; ++i)
+            {
+                total += perlinNoise3D(pos * frequency) * amplitude;
+                maxValue += amplitude;
+                amplitude *= persistence;
+                frequency *= 2.0;
+            }
+            return total / maxValue;
         }
         
         """

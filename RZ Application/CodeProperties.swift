@@ -689,6 +689,25 @@ class CodeProperties    : MMWidget
                 }
             }
             
+            // --- Noise 3D Widget
+            if fragment.fragmentType == .Primitive && fragment.name == "noise3D" {
+                let items : [String] = ["Value", "Perlin"]
+                let noiseIndex = fragment.values["noise3D"] == nil ? 0 : fragment.values["noise3D"]!
+                c2Node?.uiItems.append( NodeUINoise3D(c2Node!, variable: "noise3D", title: "3D Noise", items: items, index: noiseIndex) )
+                
+                c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable == "noise3D" {
+
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Noise Type Changed") : nil
+                        
+                        fragment.values["noise3D"] = newValue
+                        self.editor.codeEditor.markStageItemOfComponentInvalid(comp)
+                        self.editor.updateOnNextDraw(compile: true)
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    }
+                }
+            }
+            
             // --- Reset to Const button for primitives and variable references
             if fragment.fragmentType == .Primitive || fragment.fragmentType == .VariableReference {
                 let b = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Reset to Const", fixedWidth: buttonWidth)
