@@ -482,8 +482,8 @@ class NodeUINoise3D : NodeUISelector
         
         super.calcSize(mmView: mmView)
         
-        rect.width = 200
-        rect.height = 80
+        rect.width = 170
+        rect.height = 85
     }
     
     override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
@@ -676,6 +676,8 @@ class NodeUINumber : NodeUI
     var precision   : Int = 3
     var autoAdjustMargin : Bool = false
     
+    var stepSize    : Float = 0
+    
     init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = SIMD2<Float>(0,1), int: Bool = false, value: Float = 0, precision: Int = 3)
     {
         self.value = value
@@ -744,16 +746,27 @@ class NodeUINumber : NodeUI
             return
         }
 
+        let oldValue = value
+        
         if mouseIsDown == false {
             undoValue = value
+            
+            if range == nil {
+                stepSize = 1
+            }
+            
+            if int {
+                stepSize = Float(Int(stepSize))
+            }
         }
         mouseIsDown = true
-
+        
         if range != nil {
+                    
             let oldValue = value
             let perPixel = (range!.y - range!.x) / width
 
-            value = range!.x + perPixel * (event.x - x)
+            value = range!.x + perPixel * max((event.x - x), 0)
             value = max( value, range!.x)
             value = min( value, range!.y)
             
@@ -766,6 +779,35 @@ class NodeUINumber : NodeUI
                 updateLinked()
                 mmView.update()
             }
+        } else {
+            func step()
+            {
+                if mouseIsDown {
+                    
+                    if (event.x - x) < width / 2 {
+                        // Left
+                        value -= stepSize
+                    } else {
+                        // Right
+                        value += stepSize
+                    }
+                    
+                    if int {
+                        value = Float(Int(value))
+                    }
+                    
+                    if oldValue != value {
+                        node.variableChanged(variable: variable, oldValue: oldValue, newValue: value, continuous: true)
+                        updateLinked()
+                        mmView.update()
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        step()
+                    }
+                }
+            }
+            step()
         }
     }
     

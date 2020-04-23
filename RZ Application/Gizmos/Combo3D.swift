@@ -135,9 +135,9 @@ class GizmoCombo3D          : GizmoBase
 
         if let tNode = designProperties.c2Node, component.componentType != .Dummy {
             
-            let xVar = NodeUINumber(tNode, variable: "_posX", title: "Position X", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posX"]!, precision: 3)
-            let yVar = NodeUINumber(tNode, variable: "_posY", title: "Position Y", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posY"]!, precision: 3)
-            let zVar = NodeUINumber(tNode, variable: "_posZ", title: "Position Z", range: SIMD2<Float>(-1000, 1000), value: comp.values["_posZ"]!, precision: 3)
+            let xVar = NodeUINumber(tNode, variable: "_posX", title: "Position X", range: nil, value: comp.values["_posX"]!, precision: 3)
+            let yVar = NodeUINumber(tNode, variable: "_posY", title: "Position Y", range: nil, value: comp.values["_posY"]!, precision: 3)
+            let zVar = NodeUINumber(tNode, variable: "_posZ", title: "Position Z", range: nil, value: comp.values["_posZ"]!, precision: 3)
             
             xVar.titleShadows = true
             yVar.titleShadows = true

@@ -1275,7 +1275,7 @@ class CodeBuilder
             return p - t;
         }
         
-        // Value Noise
+        // Value Noise, https://www.shadertoy.com/view/4dS3Wd
         
         float __valueHash1(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
         
@@ -1305,7 +1305,7 @@ class CodeBuilder
         }
         
         
-        // Perlin noise
+        // Perlin noise, https://www.shadertoy.com/view/4tycWy
         
         float hash(float3 p3)
         {
