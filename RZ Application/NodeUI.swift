@@ -830,7 +830,7 @@ class NodeUINumber : NodeUI
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if mouseIsDown {
+        if mouseIsDown && range != nil {
             mouseDown(event)
         }
     }
@@ -1052,7 +1052,9 @@ class NodeUINumber3 : NodeUI
                     }
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        step()
+                        if self.mouseIsDown {
+                            step()
+                        }
                     }
                 }
             }
@@ -1080,7 +1082,7 @@ class NodeUINumber3 : NodeUI
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if mouseIsDown {
+        if mouseIsDown && range != nil {
             mouseDown(event)
         }
     }

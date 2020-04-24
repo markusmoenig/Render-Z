@@ -864,6 +864,7 @@ class CodeEditor        : MMWidget
     {
         codeChanged = compile
         needsUpdate = true
+        editor.codeProperties.needsUpdate = true
         update()
         mmView.update()
     }
@@ -918,6 +919,22 @@ class CodeEditor        : MMWidget
 
         if destBlock.blockType == .Empty {
 
+            func addEmptyBlock() {
+                let newBlock = CodeBlock(.Empty)
+                newBlock.fragment.addProperty(.Selectable)
+
+                if let pF = destBlock.parentFunction {
+                    if let index = pF.body.firstIndex(of: destBlock) {
+                        pF.body.insert(newBlock, at: index + 1)
+                    }
+                } else
+                if let pB = destBlock.parentBlock {
+                    if let index = pB.children.firstIndex(of: destBlock) {
+                        pB.children.insert(newBlock, at: index + 1)
+                    }
+                }
+            }
+            
             // Insert a new Variable into an empty line
             if sourceFrag.fragmentType == .VariableDefinition {
                 
@@ -932,7 +949,10 @@ class CodeEditor        : MMWidget
                     
                     let constant = defaultConstantForType(sourceFrag.evaluateType())
                     destBlock.statement.fragments.append(constant)
+                   
+                    self.codeContext.selectedFragment = destBlock.fragment
                     
+                    addEmptyBlock()
                     self.updateCode(compile: true)
                     self.undoEnd(undo)
                 } )
@@ -952,6 +972,7 @@ class CodeEditor        : MMWidget
                 let constant = defaultConstantForType(sourceFrag.evaluateType())
                 destBlock.statement.fragments.append(constant)
 
+                addEmptyBlock()
                 self.updateCode(compile: true)
                 self.undoEnd(undo)
             } else
@@ -969,11 +990,14 @@ class CodeEditor        : MMWidget
                 let constant = defaultConstantForType(sourceFrag.evaluateType())
                 destBlock.statement.fragments.append(constant)
 
+                addEmptyBlock()
                 self.updateCode(compile: true)
                 self.undoEnd(undo)
             } else
             // Break, only inside loops
             if sourceFrag.typeName == "block" && (sourceFrag.name == "break") {
+                let undo = self.undoStart("Drag and Drop")
+
                 var insideLoop = false
                 
                 func testParent(_ parent: CodeBlock)
@@ -998,9 +1022,15 @@ class CodeEditor        : MMWidget
                     destBlock.fragment.name = "break"
                     destBlock.fragment.properties = []
                 }
+                
+                addEmptyBlock()
+                self.updateCode(compile: true)
+                self.undoEnd(undo)
             } else
             // If switch
             if sourceFrag.typeName == "block" && (sourceFrag.name == "if" || sourceFrag.name == "if else"){
+                let undo = self.undoStart("Drag and Drop")
+
                 destBlock.blockType = .IfHeader
                 destBlock.fragment.fragmentType = .If
                 destBlock.fragment.typeName = "bool"
@@ -1054,9 +1084,15 @@ class CodeEditor        : MMWidget
                         block.children[1].fragment.addProperty(.Selectable)
                     }
                 }
+                
+                addEmptyBlock()
+                self.updateCode(compile: true)
+                self.undoEnd(undo)
             } else
             // For switch
             if sourceFrag.typeName == "block" && sourceFrag.name == "for" {
+                let undo = self.undoStart("Drag and Drop")
+
                 destBlock.blockType = .ForHeader
                 destBlock.fragment.fragmentType = .For
                 destBlock.fragment.typeName = ""
@@ -1118,6 +1154,10 @@ class CodeEditor        : MMWidget
 
                 destBlock.children[0].fragment.addProperty(.Selectable)
                 destBlock.children[1].fragment.addProperty(.Selectable)
+                
+                addEmptyBlock()
+                self.updateCode(compile: true)
+                self.undoEnd(undo)
             }
         } else
         {

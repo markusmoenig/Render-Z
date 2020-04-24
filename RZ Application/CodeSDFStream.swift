@@ -871,7 +871,7 @@ class CodeSDFStream
                                             
                                             """
                                             
-                                            print( fogDensityCode)
+                                            //print( fogDensityCode)
                                         }
                                     }
                                 }
