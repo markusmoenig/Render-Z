@@ -131,22 +131,7 @@ class DesignProperties      : MMWidget
                     c1Node?.uiItems.append(numberVar)
                 } else
                 if components == 3 {
-                    propMap[frag.name + "_x"] = rc.1!.arguments[0].fragments[0]
-                    propMap[frag.name + "_y"] = rc.1!.arguments[1].fragments[0]
-                    propMap[frag.name + "_z"] = rc.1!.arguments[2].fragments[0]
-
-                    var argFrag : CodeFragment = rc.1!.arguments[0].fragments[0]
-                    var numberVar = NodeUINumber(c1Node!, variable: frag.name + "_x", title: comp.artistPropertyNames[uuid]! + " X", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.x, precision: Int(argFrag.values["precision"]!))
-                    numberVar.titleShadows = true
-                    c1Node?.uiItems.append(numberVar)
-                    
-                    argFrag = rc.1!.arguments[1].fragments[0]
-                    numberVar = NodeUINumber(c1Node!, variable: frag.name + "_y", title: comp.artistPropertyNames[uuid]! + " Y", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.y, precision: Int(argFrag.values["precision"]!))
-                    numberVar.titleShadows = true
-                    c1Node?.uiItems.append(numberVar)
-                    
-                    argFrag = rc.1!.arguments[2].fragments[0]
-                    numberVar = NodeUINumber(c1Node!, variable: frag.name + "_z", title: comp.artistPropertyNames[uuid]! + " Z", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.z, precision: Int(argFrag.values["precision"]!))
+                    let numberVar = NodeUINumber3(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z), precision: Int(frag.values["precision"]!))
                     numberVar.titleShadows = true
                     c1Node?.uiItems.append(numberVar)
                 } else
@@ -190,7 +175,7 @@ class DesignProperties      : MMWidget
         c1Node?.float3ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
             if let frag = self.propMap[variable] {
                 insertValueToFragment3(frag, oldValue)
-                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Color Value Changed") : nil
+                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
                 insertValueToFragment3(frag, newValue)
                 self.updatePreview()
                 var props : [String:Float] = [:]                
@@ -221,6 +206,9 @@ class DesignProperties      : MMWidget
                     } else
                     if let color = item as? NodeUIColor {
                         color.setValue(SIMD3<Float>(data.x, data.y, data.z))
+                    } else
+                    if let number3 = item as? NodeUINumber3 {
+                        number3.setValue(SIMD3<Float>(data.x, data.y, data.z))
                     }
                 } else
                 if item.variable.starts(with: name) {

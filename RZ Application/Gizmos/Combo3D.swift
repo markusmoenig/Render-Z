@@ -99,19 +99,19 @@ class GizmoCombo3D          : GizmoBase
         scaleButton.iconZoom = 2
         scaleButton.rect.width = 50
         scaleButton.rect.height = 50
-        xAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "X" )
+        xAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "X_blue" )
         xAxisButton.iconZoom = 2
         xAxisButton.rect.width = 50
         xAxisButton.rect.height = 50
         xAxisButton.textYOffset = 1
         activeAxisButton = xAxisButton
         xAxisButton.addState(.Hover)
-        yAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Y" )
+        yAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Y_red" )
         yAxisButton.iconZoom = 2
         yAxisButton.rect.width = 50
         yAxisButton.rect.height = 50
         yAxisButton.textYOffset = 1
-        zAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Z" )
+        zAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Z_green" )
         zAxisButton.iconZoom = 2
         zAxisButton.rect.width = 50
         zAxisButton.rect.height = 50
@@ -135,38 +135,44 @@ class GizmoCombo3D          : GizmoBase
 
         if let tNode = designProperties.c2Node, component.componentType != .Dummy {
             
-            let xVar = NodeUINumber(tNode, variable: "_posX", title: "Position X", range: nil, value: comp.values["_posX"]!, precision: 3)
-            let yVar = NodeUINumber(tNode, variable: "_posY", title: "Position Y", range: nil, value: comp.values["_posY"]!, precision: 3)
-            let zVar = NodeUINumber(tNode, variable: "_posZ", title: "Position Z", range: nil, value: comp.values["_posZ"]!, precision: 3)
+            let posVar = NodeUINumber3(tNode, variable: "_pos", title: "Position", value: SIMD3<Float>(comp.values["_posX"]!, comp.values["_posY"]!, comp.values["_posZ"]!), precision: 3)
             
-            xVar.titleShadows = true
-            yVar.titleShadows = true
-            zVar.titleShadows = true
-            
-            tNode.uiItems.append(xVar)
-            tNode.uiItems.append(yVar)
-            tNode.uiItems.append(zVar)
+            posVar.titleShadows = true
+            tNode.uiItems.append(posVar)
             
             if isPoint == false {
-                let xRotate = NodeUINumber(tNode, variable: "_rotateX", title: "Rotate X", range: SIMD2<Float>(0, 360), value: comp.values["_rotateX"]!, precision: 3)
-                let yRotate = NodeUINumber(tNode, variable: "_rotateY", title: "Rotate Y", range: SIMD2<Float>(0, 360), value: comp.values["_rotateY"]!, precision: 3)
-                let zRotate = NodeUINumber(tNode, variable: "_rotateZ", title: "Rotate Z", range: SIMD2<Float>(0, 360), value: comp.values["_rotateZ"]!, precision: 3)
                 
-                xRotate.titleShadows = true
-                yRotate.titleShadows = true
-                zRotate.titleShadows = true
+                let rotateVar = NodeUINumber3(tNode, variable: "_rotate", title: "Rotate", value: SIMD3<Float>(comp.values["_rotateX"]!, comp.values["_rotateY"]!, comp.values["_rotateZ"]!), precision: 3)
                 
-                tNode.uiItems.append(xRotate)
-                tNode.uiItems.append(yRotate)
-                tNode.uiItems.append(zRotate)
+                rotateVar.titleShadows = true
+                tNode.uiItems.append(rotateVar)
             }
 
             tNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 comp.values[variable] = oldValue
                 let codeUndo : CodeUndoComponent? = continous == false ? designEditor.undoStart("Value Changed") : nil
                 comp.values[variable] = newValue
+                
                 designProperties.updatePreview()
                 designProperties.addKey([variable:newValue])
+                if let undo = codeUndo { designEditor.undoEnd(undo) }
+            }
+            
+            tNode.float3ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                comp.values[variable + "X"] = oldValue.x
+                comp.values[variable + "Y"] = oldValue.y
+                comp.values[variable + "Z"] = oldValue.z
+                let codeUndo : CodeUndoComponent? = continous == false ? designEditor.undoStart("Value Changed") : nil
+                comp.values[variable + "X"] = newValue.x
+                comp.values[variable + "Y"] = newValue.y
+                comp.values[variable + "Z"] = newValue.z
+                
+                designProperties.updatePreview()
+                var props : [String:Float] = [:]
+                props[variable + "X"] = newValue.x
+                props[variable + "Y"] = newValue.y
+                props[variable + "Z"] = newValue.z
+                designProperties.addKey(props)
                 if let undo = codeUndo { designEditor.undoEnd(undo) }
             }
             tNode.setupUI(mmView: mmView)
@@ -629,6 +635,9 @@ class GizmoCombo3D          : GizmoBase
                 if item.brand == .Number {
                     if let number = item as? NodeUINumber {
                         number.value = component.values[item.variable]!
+                    } else
+                    if let number = item as? NodeUINumber3 {
+                        number.value = SIMD3<Float>(component.values[item.variable + "X"]!, component.values[item.variable + "Y"]!, component.values[item.variable + "Z"]!)
                     }
                 }
             }

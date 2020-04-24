@@ -347,6 +347,43 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
     }
 }
 
+func getNumber3Dialog(view: MMView, title: String, message: String, defaultValue: SIMD3<Float>, precision: Int = 2, cb: @escaping (SIMD3<Float>)->())
+{
+    let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+    
+    alert.addTextField(configurationHandler: { (textField) -> Void in
+        textField.text = String(format: "%.0\(precision)f", defaultValue.x)
+        textField.keyboardType = UIKeyboardType.numberPad
+    })
+    
+    alert.addTextField(configurationHandler: { (textField) -> Void in
+        textField.text = String(format: "%.0\(precision)f", defaultValue.y)
+        textField.keyboardType = UIKeyboardType.numberPad
+    })
+    
+    alert.addTextField(configurationHandler: { (textField) -> Void in
+        textField.text = String(format: "%.0\(precision)f", defaultValue.y)
+        textField.keyboardType = UIKeyboardType.numberPad
+    })
+    
+    alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { [weak alert] (action) -> Void in
+        let textField1 = alert!.textFields![0] as UITextField
+        let textField2 = alert!.textFields![1] as UITextField
+        let textField3 = alert!.textFields![2] as UITextField
+        
+        let result = SIMD3<Float>(Float(textField1.text!)!, Float(textField2.text!)!, Float(textField3.text!)!)
+        cb( result )
+    }))
+    
+    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+        while let presentedViewController = topController.presentedViewController {
+            topController = presentedViewController
+        }
+        
+        topController.present(alert, animated: true, completion: nil)
+    }
+}
+
 func getSampleProject(view: MMView, title: String, message: String, sampleProjects: [String], cb: @escaping (Int)->())
 {
     let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)

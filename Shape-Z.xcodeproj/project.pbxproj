@@ -648,6 +648,12 @@
 		2BD291B823D435B6006F66BC /* Combo2D.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BD291B623D435B6006F66BC /* Combo2D.metal */; };
 		2BD291BA23D43AB0006F66BC /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD291B923D43AB0006F66BC /* Base.swift */; };
 		2BD291BB23D43AB2006F66BC /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD291B923D43AB0006F66BC /* Base.swift */; };
+		2BDBF5A024526A3600B21FD7 /* X_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BDBF59F24526A3500B21FD7 /* X_blue.tiff */; };
+		2BDBF5A124526A3600B21FD7 /* X_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BDBF59F24526A3500B21FD7 /* X_blue.tiff */; };
+		2BDBF5A324526AF500B21FD7 /* Y_red.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BDBF5A224526AF400B21FD7 /* Y_red.tiff */; };
+		2BDBF5A424526AF500B21FD7 /* Y_red.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BDBF5A224526AF400B21FD7 /* Y_red.tiff */; };
+		2BDBF5A624526B0400B21FD7 /* Z_green.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BDBF5A524526B0400B21FD7 /* Z_green.tiff */; };
+		2BDBF5A724526B0400B21FD7 /* Z_green.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BDBF5A524526B0400B21FD7 /* Z_green.tiff */; };
 		2BE5A4D32405EF8000890281 /* CamHelper3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE5A4D22405EF8000890281 /* CamHelper3D.swift */; };
 		2BE5A4D42405EF8000890281 /* CamHelper3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE5A4D22405EF8000890281 /* CamHelper3D.swift */; };
 		2BE5A4D9240CBB1B00890281 /* Camera3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE5A4D8240CBB1B00890281 /* Camera3D.swift */; };
@@ -887,6 +893,9 @@
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
 		2BD291B623D435B6006F66BC /* Combo2D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo2D.metal; sourceTree = "<group>"; };
 		2BD291B923D43AB0006F66BC /* Base.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base.swift; sourceTree = "<group>"; };
+		2BDBF59F24526A3500B21FD7 /* X_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = X_blue.tiff; sourceTree = "<group>"; };
+		2BDBF5A224526AF400B21FD7 /* Y_red.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Y_red.tiff; sourceTree = "<group>"; };
+		2BDBF5A524526B0400B21FD7 /* Z_green.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Z_green.tiff; sourceTree = "<group>"; };
 		2BE5A4D22405EF8000890281 /* CamHelper3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CamHelper3D.swift; sourceTree = "<group>"; };
 		2BE5A4D8240CBB1B00890281 /* Camera3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera3D.swift; sourceTree = "<group>"; };
 		2BE5A4DB240CE5A600890281 /* Camera2D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Camera2D.swift; sourceTree = "<group>"; };
@@ -1064,8 +1073,11 @@
 				2B2B5FF524259D8400B9CCF1 /* rotate.tiff */,
 				2B2B5FF824259D8600B9CCF1 /* scale.tiff */,
 				2B2B5FF624259D8400B9CCF1 /* X.tiff */,
+				2BDBF59F24526A3500B21FD7 /* X_blue.tiff */,
 				2B2B5FF724259D8600B9CCF1 /* Y.tiff */,
+				2BDBF5A224526AF400B21FD7 /* Y_red.tiff */,
 				2B2B5FF924259D8600B9CCF1 /* Z.tiff */,
+				2BDBF5A524526B0400B21FD7 /* Z_green.tiff */,
 				2B2B5FE7242442AC00B9CCF1 /* dev_off.tiff */,
 				2B2B5FE6242442AC00B9CCF1 /* dev_on.tiff */,
 				2B2B5FE8242442AD00B9CCF1 /* scenegraph.tiff */,
@@ -1640,8 +1652,10 @@
 				2B2B5FD82422F68A00B9CCF1 /* camera.tiff in Resources */,
 				2B7A3C0723B4652E002EC5FC /* OpenSans.tiff in Resources */,
 				2B8E2FE323C71F36005619E4 /* SourceCodePro.json in Resources */,
+				2BDBF5A024526A3600B21FD7 /* X_blue.tiff in Resources */,
 				2B7A3C5123B46B53002EC5FC /* sz_ui_blue.tiff in Resources */,
 				2B7A45BA243C9B2F000C91C9 /* render.tiff in Resources */,
+				2BDBF5A624526B0400B21FD7 /* Z_green.tiff in Resources */,
 				2BBFA84924395C7A008981B7 /* GreyStone.tiff in Resources */,
 				2B838DD324492363004BDE56 /* ground.tiff in Resources */,
 				2B7A3C4F23B46B53002EC5FC /* sz_toolbar.tiff in Resources */,
@@ -1657,6 +1671,7 @@
 				2B7A3C0223B4652E002EC5FC /* Square.json in Resources */,
 				2B7A3C5023B46B53002EC5FC /* sz_ui_grey.tiff in Resources */,
 				2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */,
+				2BDBF5A324526AF500B21FD7 /* Y_red.tiff in Resources */,
 				2B2B5FFA24259D8600B9CCF1 /* move.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1686,9 +1701,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				2B7A45BB243C9B2F000C91C9 /* render.tiff in Resources */,
+				2BDBF5A724526B0400B21FD7 /* Z_green.tiff in Resources */,
 				2B2B600124259D8600B9CCF1 /* Y.tiff in Resources */,
 				2B2B600324259D8600B9CCF1 /* scale.tiff in Resources */,
 				2B9B29BB23BB452B00C2F387 /* sz_ui_grey.tiff in Resources */,
+				2BDBF5A424526AF500B21FD7 /* Y_red.tiff in Resources */,
 				2B838DD424492363004BDE56 /* ground.tiff in Resources */,
 				2BBFA84A24395C7A008981B7 /* GreyStone.tiff in Resources */,
 				2B2B600524259D8600B9CCF1 /* Z.tiff in Resources */,
@@ -1700,6 +1717,7 @@
 				2B2B5FE1242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
 				2B9B29B323BB44C000C2F387 /* LaunchScreen.storyboard in Resources */,
 				2B9B29DE23BB453B00C2F387 /* OpenSans.json in Resources */,
+				2BDBF5A124526A3600B21FD7 /* X_blue.tiff in Resources */,
 				2B9B29BC23BB452B00C2F387 /* sz_ui_blue.tiff in Resources */,
 				2B9B29DA23BB453B00C2F387 /* Square.json in Resources */,
 				2B9B29DC23BB453B00C2F387 /* GameCuben.json in Resources */,

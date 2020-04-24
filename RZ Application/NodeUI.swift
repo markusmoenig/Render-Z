@@ -802,7 +802,7 @@ class NodeUINumber : NodeUI
                         mmView.update()
                     }
                     
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         step()
                     }
                 }
@@ -894,6 +894,270 @@ class NodeUINumber : NodeUI
         contentLabel.drawCentered(x: x, y: contentY, width: width, height: itemHeight)
     }
 }
+
+/// Number class
+class NodeUINumber3 : NodeUI
+{
+    var value       = SIMD3<Float>(0,0,0)
+    var range       : SIMD2<Float>?
+    var defaultValue: SIMD3<Float>? = nil
+    var mouseIsDown : Bool = false
+    var x           : Float = 0
+    var width       : Float = 0
+    var undoValue   = SIMD3<Float>(0,0,0)
+
+    var contentLabel: [MMTextLabel?]
+    var contentText : [String]
+    var contentValue = SIMD3<Float>(0,0,0)
+    
+    var subY        : [Float] = [0,0,0]
+    
+    var labelTexture: [MTLTexture?]
+    
+    var precision   : Int = 3
+    var autoAdjustMargin : Bool = false
+    
+    var stepSize    : Float = 0
+    var sub         : Int = 0
+    
+    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = nil, value: SIMD3<Float> = SIMD3<Float>(0,0,0), precision: Int = 3)
+    {
+        self.value = value
+        self.defaultValue = value
+        self.range = range
+        self.precision = precision
+        
+        contentText = ["", "", ""]
+        contentLabel = [nil, nil, nil]
+        labelTexture = [nil, nil, nil]
+
+        /*
+        if node.properties[variable + "_x"] == nil {
+            node.properties[variable + "_x"] = value.x
+            node.properties[variable + "_y"] = value.y
+            node.properties[variable + "_z"] = value.z
+        } else {
+            self.value.x = node.properties[variable + "_x"]!
+            self.value.y = node.properties[variable + "_y"]!
+            self.value.z = node.properties[variable + "_z"]!
+        }*/
+        
+        super.init(node, brand: .Number, variable: variable, title: title)
+        supportsTitleHover = true
+    }
+    
+    override func calcSize(mmView: MMView) {
+        self.mmView = mmView
+                
+        labelTexture[0] = mmView.icons["X_blue"]!
+        labelTexture[1] = mmView.icons["Y_red"]!
+        labelTexture[2] = mmView.icons["Z_green"]!
+        
+        if titleLabel == nil {
+            let scale : Float = 1
+            titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+            
+            contentValue[0] = 0
+            contentValue[1] = 0
+            contentValue[2] = 0
+
+            contentText[0] = String(format: "%.0\(precision)f", 0)
+            contentText[1] = contentText[0]
+            contentText[2] = contentText[0]
+
+            contentLabel[0] = MMTextLabel(mmView, font: mmView.openSans, text: contentText[0], scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
+            contentLabel[1] = MMTextLabel(mmView, font: mmView.openSans, text: contentText[1], scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
+            contentLabel[2] = MMTextLabel(mmView, font: mmView.openSans, text: contentText[2], scale: NodeUI.fontScale * scale, color: NodeUI.contentTextColor)
+        }
+
+        rect.width = 160
+        rect.height = titleLabel!.rect.height + NodeUI.titleSpacing + (14 + NodeUI.contentMargin + NodeUI.itemSpacing) * 3
+    }
+    
+    override func titleClicked()
+    {
+        if isDisabled {
+            return
+        }
+        
+        getNumber3Dialog(view: mmView, title: title, message: "Enter new value", defaultValue: value, precision: precision, cb: { (value) -> Void in
+
+            self.node.variableChanged(variable: self.variable, oldValue: self.value, newValue: value, continuous: false)
+            self.value = value
+        
+            //self.node.properties[self.variable] = self.value
+            self.titleHover = false
+            self.updateLinked()
+            self.mmView.update()
+        } )
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        if isDisabled {
+            return
+        }
+        
+        if mouseIsDown == false {
+            undoValue = value
+            
+            sub = 0
+            if event.y > subY[2] {
+                sub = 2
+            } else
+            if event.y > subY[1] {
+                sub = 1
+            } else
+            if event.y > subY[0] {
+                sub = 0
+            }
+            
+            if range == nil {
+                stepSize = 1
+            }
+        }
+        
+        let oldValue : SIMD3<Float> = value
+        mouseIsDown = true
+        
+        if range != nil {
+            let perPixel = (range!.y - range!.x) / width
+
+            value[sub] = range!.x + perPixel * max((event.x - x), 0)
+            value[sub] = max( value[sub], range!.x)
+            value[sub] = min( value[sub], range!.y)
+            
+            if oldValue != value {
+                node.variableChanged(variable: variable, oldValue: oldValue, newValue: value, continuous: true)
+                updateLinked()
+                mmView.update()
+            }
+        } else {
+            func step()
+            {
+                if mouseIsDown {
+                    
+                    if (event.x - x) < width / 2 {
+                        // Left
+                        value[sub] -= 1
+                    } else {
+                        // Right
+                        value[sub] += 1
+                    }
+                    
+                    if oldValue != value {
+                        node.variableChanged(variable: variable, oldValue: oldValue, newValue: value, continuous: true)
+                        updateLinked()
+                        mmView.update()
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        step()
+                    }
+                }
+            }
+            step()
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        mouseIsDown = false
+
+        if isDisabled {
+            return
+        }
+        //let oldValue = node.properties[variable]!
+        //node.properties[variable] = value
+        
+        // Disabled the check to allow an continuous event to come through for undo / redo
+        //if oldValue != value {
+            node.variableChanged(variable: variable, oldValue: undoValue, newValue: value)
+            updateLinked()
+            mmView.update()
+        //}
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if mouseIsDown {
+            mouseDown(event)
+        }
+    }
+    
+    override func mouseLeave() {
+    }
+    
+    func updateLinked()
+    {
+        //if let linked = linkedTo as? NodeUIAngle {
+        //    linked.setValue(value)
+        //}
+    }
+    
+    override func update() {
+        //value = node.properties[variable]!
+    }
+    
+    func getValue() -> SIMD3<Float>
+    {
+        return SIMD3<Float>(node.properties[variable + "_x"]!, node.properties[variable + "_y"]!, node.properties[variable + "_z"]!)
+    }
+    
+    func setValue(_ value: SIMD3<Float>)
+    {
+        self.value = value
+        node.properties[variable + "_x"] = value.x
+        node.properties[variable + "_y"] = value.y
+        node.properties[variable + "_z"] = value.z
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
+    {
+        super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
+        
+        x = rect.x + 15
+        width = 160 * scale - 15
+        let itemHeight = round((14 + NodeUI.contentMargin) * scale)
+        
+        func drawSub(sub: Int)
+        {
+            let y : Float = contentY + Float(sub) * itemHeight + Float(sub) * NodeUI.itemSpacing
+            subY[sub] = y
+            
+            mmView.drawBox.draw( x: x, y: y, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : adjustColor(NodeUI.contentColor) )
+            
+            if range != nil {
+                let offset = (width / (range!.y - range!.x)) * (value[sub] - range!.x)
+                if offset > 0 {
+                    mmView.renderer.setClipRect(MMRect(x, y, offset, itemHeight))
+                    mmView.drawBox.draw( x: x, y: y, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : adjustColor(NodeUI.contentColor2))
+                    mmView.renderer.setClipRect()
+                }
+            }
+            
+            // --- Draw Text
+            if contentValue[sub] != value[sub] {
+                contentText[sub] = String(format: "%.0\(precision)f", value[sub])
+                contentValue[sub] = value[sub]
+            }
+            if contentLabel[sub]!.text != contentText[sub] || contentLabel[sub]!.scale != NodeUI.fontScale * scale {
+                contentLabel[sub]!.setText(contentText[sub], scale: NodeUI.fontScale * scale)
+            }
+
+            contentLabel[sub]!.isDisabled = isDisabled
+            contentLabel[sub]!.color = NodeUI.contentTextColor
+            contentLabel[sub]!.drawCentered(x: x, y: y, width: width, height: itemHeight)
+            
+            mmView.drawTexture.draw(labelTexture[sub]!, x: rect.x, y: y + 3, zoom: 3)
+        }
+        
+        drawSub(sub: 0)
+        drawSub(sub: 1)
+        drawSub(sub: 2)
+    }
+}
+
 
 /// Angle class
 class NodeUIAngle : NodeUI
