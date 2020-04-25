@@ -49,14 +49,14 @@ class NewDialog: MMDialog {
     var selectedTempItem: TemplateItem? = nil
     var hoverTempItem   : TemplateItem? = nil
 
-    var currentItems    : [LibraryItem]? = nil
-
-    var hoverItem       : LibraryItem? = nil
-    var selectedItem    : LibraryItem? = nil
+    var files           : [MMFileDialogItem] = []
+    var hoverFileItem   : MMFileDialogItem? = nil
+    var selectedFileItem: MMFileDialogItem? = nil
     
     var fileTexture     : MTLTexture? = nil
     
-    var scrollOffset    : Float = 0
+    var fileScrollOffset: Float = 0
+    var tempScrollOffset: Float = 0
     var dispatched      : Bool = false
     
     var currentType     : String = ""
@@ -73,6 +73,7 @@ class NewDialog: MMDialog {
     var buttons         : [MMWidget] = []
     
     var scrollRect      : MMRect? = nil
+    var alpha           : Float = 0
 
     init(_ view: MMView) {
         
@@ -98,11 +99,14 @@ class NewDialog: MMDialog {
         super.init(view, title: "New Project", cancelText: "Artist", okText: "Developer")
         
         publicPrivateTab.clicked = { (event) in
-            //self.setCurrentItems()
+            if self.publicPrivateTab.index == 0 {
+                self.style = .Templates
+            } else {
+                self.style = .Files
+            }
         }
         
         // Template Items
-        
         let templates3D = Template(view, "3D Templates")
         templates3D.items.append(TemplateItem(view, "Minimal", "Minimal"))
         templates3D.items.append(TemplateItem(view, "Test"))
@@ -113,6 +117,17 @@ class NewDialog: MMDialog {
         templates.append(materials3D)
         
         selectedTempItem = templates3D.items[0]
+        
+        // File Items
+        let fc = NSFileCoordinator()
+        for item in globalApp!.mmFile.result
+        {
+            let itemUrl = item.value(forAttribute: NSMetadataItemURLKey) as! URL
+            fc.coordinate(readingItemAt: itemUrl, options: .resolvesSymbolicLink, error: nil, byAccessor: { url in
+                files.append( MMFileDialogItem(mmView, url ) )
+            })
+        }
+        selectedFileItem = files.first
         
         rect.width = 800
         rect.height = 600
@@ -132,7 +147,14 @@ class NewDialog: MMDialog {
                     let dataString = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
 
                     globalApp!.loadFrom(dataString! as String)
+                    globalApp!.mmView.undoManager!.removeAllActions()
                 }
+            }
+        } else {
+            if let selected = selectedFileItem {
+                let string = globalApp!.mmFile.loadJSON(url: selected.url)
+                globalApp!.loadFrom(string)
+                globalApp!.mmView.undoManager!.removeAllActions()
             }
         }
     }
@@ -176,18 +198,15 @@ class NewDialog: MMDialog {
                     }
                 }
             }
-        }
-        
-        /*
-        hoverItem = nil
-        if let items = currentItems {
-            for item in items {
+        } else {
+            hoverFileItem = nil
+            for item in files {
                 if item.rect.contains(event.x, event.y) {
-                    hoverItem = item
+                    hoverFileItem = item
                     break
                 }
             }
-        }*/
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent) {
@@ -198,17 +217,20 @@ class NewDialog: MMDialog {
         
         if style == .Templates {
             selectedTempItem = hoverTempItem
+        } else {
+            if let item = hoverFileItem {
+                selectedFileItem = item
+            }
         }
-        /*
-        if let hover = hoverItem {
-            selectedItem = hover
-            mmView.update()
-        }*/
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
-        scrollOffset += event.deltaY! * 4
+        if style == .Templates {
+            //tempScrollOffset += event.deltaY! * 4
+        } else {
+            fileScrollOffset += event.deltaY! * 4
+        }
         
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -220,6 +242,28 @@ class NewDialog: MMDialog {
         
         if mmView.maxFramerateLocks == 0 {
             mmView.lockFramerate()
+        }
+    }
+    
+    override func scrolledIn() {
+        DispatchQueue.main.async {
+            self.mmView.startAnimate( startValue: 0, endValue: 1, duration: 200, cb: { (value,finished) in
+                self.alpha = value
+                if finished {
+                }
+            } )
+        }
+    }
+    
+    override func cleanup(finished:@escaping ()->())
+    {
+        DispatchQueue.main.async {
+            self.mmView.startAnimate( startValue: 1, endValue: 0, duration: 200, cb: { (value,hasFinished) in
+                self.alpha = value
+                if hasFinished {
+                    finished()
+                }
+            } )
         }
     }
     
@@ -246,69 +290,62 @@ class NewDialog: MMDialog {
     }
     
     func drawFileList(xOffset: Float = 0, yOffset: Float = 0) {
-        if currentItems == nil { return }
-        let items = currentItems!
         
         let headerHeight : Float = 30
         
         let itemWidth : Float = (rect.width - 4 - 2)
         let itemHeight : Float = 30
-        var y : Float = rect.y + 38 + headerHeight
+        var y : Float = rect.y + 41 + headerHeight
 
         if rect.y == 0 {
-            
-            let scrollHeight : Float = rect.height - 90 - 46 - headerHeight
-            let scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
-            
+            let scrollHeight : Float = rect.height - 93 - headerHeight
+            scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
             mmView.renderer.setClipRect(scrollRect)
-            var maxHeight : Float = Float(items.count) * itemHeight
-            if items.count > 0 {
-                maxHeight += 2 * Float(items.count-1)
+            
+            var maxHeight : Float = Float(files.count) * itemHeight
+            if files.count > 0 {
+                maxHeight += 2 * Float(files.count-1)
             }
             
-            if scrollOffset < -(maxHeight - scrollHeight) {
-                scrollOffset = -(maxHeight - scrollHeight)
+            if fileScrollOffset < -(maxHeight - scrollHeight) {
+                fileScrollOffset = -(maxHeight - scrollHeight)
             }
             
-            if scrollOffset > 0 {
-                scrollOffset = 0
+            if fileScrollOffset > 0 {
+                fileScrollOffset = 0
             }
-                        
-            y += scrollOffset
-        }
-        
-        var fillColor = mmView.skin.Item.color
-        let alpha : Float = 1
-        fillColor.w = alpha
-        
-        for item in items {
             
-            let x : Float = rect.x + 3
+            y += fileScrollOffset
+            var fillColor = mmView.skin.Item.color
+            fillColor.w = alpha
             
-            var borderColor = selectedItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
-            var textColor = selectedItem === item ? mmView.skin.Item.selectionColor : SIMD4<Float>(1,1,1,1)
-            borderColor.w = alpha
-            textColor.w = alpha
+            for item in files {
+                let x : Float = rect.x + 3
+                
+                var borderColor = selectedFileItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
+                var textColor = selectedFileItem === item ? mmView.skin.Item.selectionColor : SIMD4<Float>(1,1,1,1)
+                borderColor.w = alpha
+                textColor.w = alpha
 
-            mmView.drawBox.draw( x: x, y: y, width: itemWidth, height: itemHeight, round: 26, borderSize: 2, fillColor: fillColor, borderColor: borderColor)
-            
-            item.rect.set(x, y, itemWidth, itemHeight)
-            item.titleLabel.color = textColor
-            item.titleLabel.drawCenteredY(x: x + 10, y: y, width: itemWidth, height: itemHeight)
-            
-            if item.categoryLabel != nil {
-                item.categoryLabel!.color = textColor
-                item.categoryLabel!.drawCenteredY(x: x + itemWidth - 10 - item.categoryLabel!.rect.width, y: y, width: itemWidth, height: itemHeight)
+                mmView.drawBox.draw( x: x, y: y, width: itemWidth, height: itemHeight, round: 26, borderSize: 2, fillColor: fillColor, borderColor: borderColor)
+                
+                item.rect.set(x, y, itemWidth, itemHeight)
+                item.titleLabel.color = textColor
+                item.titleLabel.drawCenteredY(x: x + 10, y: y, width: itemWidth, height: itemHeight)
+                
+                item.dateLabel.color = textColor
+                item.dateLabel.drawCenteredY(x: x + itemWidth - 10 - item.dateLabel.rect.width, y: y, width: itemWidth, height: itemHeight)
+                
+                y += itemHeight + 2
             }
-            
-            y += itemHeight + 2
+            mmView.renderer.setClipRect()
         }
-        
+            
         if rect.y == 0 {
             mmView.renderer.setClipRect()
         }
         
-        let boxRect : MMRect = MMRect(rect.x, rect.y + 35 + headerHeight, rect.width, rect.height - 90 - 40 - headerHeight)
+        let boxRect : MMRect = MMRect(rect.x, rect.y + 38 + headerHeight, rect.width, rect.height - 90 - headerHeight)
         
         let cb : Float = 1
         // Erase Edges
@@ -316,28 +353,17 @@ class NewDialog: MMDialog {
         
         // Box Border
         mmView.drawBox.draw( x: boxRect.x, y: boxRect.y, width: boxRect.width, height: boxRect.height, round: 30, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
-        
-        y = rect.y + 35 + rect.height - 90 - 30
-        
-        mmView.drawBox.draw( x: rect.x + 10, y: y, width: rect.width - 20, height: 30, round: 26, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
-        if let item = selectedItem {
-            item.descriptionLabel.drawCentered(x: rect.x + 10, y: y, width: rect.width - 20, height: 30)
-        }
-        
+                
         // Renew dialog border
         mmView.drawBox.draw( x: rect.x, y: rect.y - yOffset, width: rect.width, height: rect.height, round: 40, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Dialog.borderColor )
     }
     
     func drawTemplates(xOffset: Float = 0, yOffset: Float = 0) {
-        //let items = currentItems!
-        
         let headerHeight : Float = 30
-
-        //let itemSize : Float = (rect.width - 4 - 6) / 5
         var y : Float = rect.y + 38 + headerHeight
 
         let itemWidth : Float = (rect.width - 4 - 2)
-        let scrollHeight : Float = rect.height - 90 - 46 - headerHeight
+        let scrollHeight : Float = rect.height - 90 - headerHeight
         scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
 
         if rect.y == 0 {
@@ -345,17 +371,17 @@ class NewDialog: MMDialog {
             mmView.renderer.setClipRect(scrollRect)
             
             //let rows : Float = Float(Int(max(Float(items.count)/2, 1)))
-            //let maxHeight : Float = rows * itemSize + (rows - 1) * 2
+            //let maxHeight : Float = 500//rows * itemSize + (rows - 1) * 2
             
-            //if scrollOffset < -(maxHeight - scrollHeight) {
-            //    scrollOffset = -(maxHeight - scrollHeight)
+            //if tempScrollOffset < -(maxHeight - tempScrollOffset) {
+            //    tempScrollOffset = -(maxHeight - tempScrollOffset)
             //}
             
-            if scrollOffset > 0 {
-                scrollOffset = 0
+            if tempScrollOffset > 0 {
+                tempScrollOffset = 0
             }
                         
-            y += scrollOffset
+            y += tempScrollOffset
         }
 
         var x       : Float = 0
@@ -442,7 +468,7 @@ class NewDialog: MMDialog {
             mmView.renderer.setClipRect()
         }
         
-        let boxRect : MMRect = MMRect(rect.x, rect.y + 35 + headerHeight, rect.width, rect.height - 90 - 40 - headerHeight)
+        let boxRect : MMRect = MMRect(rect.x, rect.y + 35 + headerHeight, rect.width, rect.height - 90 - headerHeight)
         
         let cb : Float = 1
         // Erase Edges
@@ -450,13 +476,6 @@ class NewDialog: MMDialog {
         
         // Box Border
         mmView.drawBox.draw( x: boxRect.x, y: boxRect.y, width: boxRect.width, height: boxRect.height, round: 30, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
-        
-        y = rect.y + 35 + rect.height - 90 - 30
-        
-        mmView.drawBox.draw( x: rect.x + 10, y: y, width: rect.width - 20, height: 30, round: 26, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
-        if let item = selectedItem {
-            item.descriptionLabel.drawCentered(x: rect.x + 10, y: y, width: rect.width - 20, height: 30)
-        }
         
         // Renew dialog border
         mmView.drawBox.draw( x: rect.x, y: rect.y - yOffset, width: rect.width, height: rect.height, round: 40, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Dialog.borderColor )
