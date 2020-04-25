@@ -75,6 +75,7 @@ class App
         mmView.registerIcon("render")
         mmView.registerIcon("material")
         mmView.registerIcon("ground")
+        mmView.registerIcon("fileicon")
         sceneGraph = SceneGraph(mmView)
         
         // Initialize images
@@ -116,10 +117,17 @@ class App
                 
         globalApp = self
         
+        /*
         let preStage = project.selected!.getStage(.PreStage)
         let selected = preStage.getChildren()[0]
         project.selected!.addDefaultImages()
         sceneGraph.setCurrent(stage: preStage, stageItem: selected)
+        */
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            let dialog = NewDialog(self.mmView)
+            self.mmView.showDialog(dialog)
+        }
 
         currentEditor.activate()
     }

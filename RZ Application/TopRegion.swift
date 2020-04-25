@@ -99,6 +99,9 @@ class TopRegion: MMRegion
             func new() {
                 self.mmView.undoManager!.removeAllActions()
                 
+                let dialog = NewDialog(app.mmView)
+                app.mmView.showDialog(dialog)
+                
                 /*
                 if self.app.nodeGraph.maximizedNode != nil {
                     self.app.nodeGraph.maximizedNode!.maxDelegate!.deactivate()

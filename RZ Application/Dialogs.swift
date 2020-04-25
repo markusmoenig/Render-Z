@@ -250,6 +250,8 @@ class MMFileDialog : MMDialog {
     var fileNameLabel   : MMTextLabel!
     #endif
     
+    var scrollRect      : MMRect? = nil
+    
     init(_ view: MMView,_ mode: Mode = .Open) {
         self.mode = mode
         super.init(view, title: mode == .Open ? "Open Project from iCloud" : "Save Project to iCloud", cancelText: "Cancel", okText: mode == .Open ? "Open" : "Save")
@@ -329,10 +331,14 @@ class MMFileDialog : MMDialog {
         super.mouseMoved(event)
         
         hoverItem = nil
-        for item in items {
-            if item.rect.contains(event.x, event.y) {
-                hoverItem = item
-                break
+        if let scrollRect = scrollRect {
+            if scrollRect.contains(event.x, event.y) {
+                for item in items {
+                    if item.rect.contains(event.x, event.y) {
+                        hoverItem = item
+                        break
+                    }
+                }
             }
         }
     }
@@ -425,7 +431,7 @@ class MMFileDialog : MMDialog {
         var y : Float = rect.y + 38
         if rect.y == 0 {
             let scrollHeight : Float = rect.height - 90 - 46
-            let scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
+            scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
             mmView.renderer.setClipRect(scrollRect)
             
             var maxHeight : Float = Float(items.count) * itemHeight

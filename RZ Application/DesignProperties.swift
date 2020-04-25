@@ -104,9 +104,7 @@ class DesignProperties      : MMWidget
                 
         for uuid in comp.properties {
             let rc = comp.getPropertyOfUUID(uuid)
-            
             if let frag = rc.0 {
-            
                 propMap[frag.name] = rc.1!
                 let components = frag.evaluateComponents()
                 let data = extractValueFromFragment(rc.1!)
@@ -131,7 +129,18 @@ class DesignProperties      : MMWidget
                     c1Node?.uiItems.append(numberVar)
                 } else
                 if components == 3 {
-                    let numberVar = NodeUINumber3(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z), precision: Int(frag.values["precision"]!))
+                    
+                    var range : SIMD2<Float>? = nil
+                    
+                    if comp.properties.contains(frag.uuid) == true {
+                        if let name = comp.propertyGizmoName[frag.uuid] {
+                            if name == "Direction" {
+                                range = SIMD2<Float>(-1,1)
+                            }
+                        }
+                    }
+                    
+                    let numberVar = NodeUINumber3(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: range, value: SIMD3<Float>(data.x, data.y, data.z), precision: Int(frag.values["precision"]!))
                     numberVar.titleShadows = true
                     c1Node?.uiItems.append(numberVar)
                 } else
