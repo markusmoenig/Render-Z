@@ -270,6 +270,19 @@ class CodeSDFStream
                 
             """
             
+            #define EARTH_RADIUS    (1500000.) // (6371000.)
+            
+            float __HenyeyGreenstein( float sundotrd, float g) {
+                float gg = g * g;
+                return (1. - gg) / pow( 1. + gg - 2. * g * sundotrd, 1.5);
+            }
+
+            float __intersectCloudSphere( float3 rd, float r ) {
+                float b = EARTH_RADIUS * rd.y;
+                float d = b * b + r * r + 2. * EARTH_RADIUS * r;
+                return -b + sqrt( d );
+            }
+            
             float2 __getParticipatingMedia(float3 position, float constFogDensity, thread struct FuncData *__funcData)
             {
                 constant float4 *__data = __funcData->__data;
@@ -832,7 +845,6 @@ class CodeSDFStream
                         var maxDistanceCode = "50.0"
                         if let index = instance.addGlobalVariable(name: "World.worldMaxFogDistance") {
                             maxDistanceCode = "__data[\(index)].x"
-                            print(maxDistanceCode)
                         }
                         
                         shadowCode +=
@@ -840,7 +852,7 @@ class CodeSDFStream
                         
                         outMeta.y = min(outMeta.y, outShadow);
                         
-                        // Density Code
+                        // Fog Density Code
                         
                         float4 densityIn = float4(__densityTexture.read(__gid));
                         float constFogDensity = __lightData[0].w;
@@ -869,7 +881,7 @@ class CodeSDFStream
                                 float3 lightDirection; float lengthToLight;
                                 if (lightType.y == 0.0) {
                                     lightDirection = normalize(__lightData[0].xyz);
-                                    lengthToLight = 0.1;
+                                    lengthToLight = 0.5;
                                 } else {
                                     lightDirection = normalize(__lightData[0].xyz - pos);
                                     lengthToLight = length(lightDirection);
@@ -928,7 +940,6 @@ class CodeSDFStream
                             }
                         }
                         
-                        
                         shadowCode +=
                         """
 
@@ -944,10 +955,128 @@ class CodeSDFStream
                                 t += tt;
                             }
                         
+                            // Cloud Density Code
+                        
+                            if (lightType.y == 0.0) {
+
+                                float3 lightDirection = normalize(__lightData[0].xyz);
+                                float lengthToLight = 0.5;
+                        
+                        """
+                        
+                        // Insert cloud density code
+                        if let scene = scene {
+                            let preStage = scene.getStage(.PreStage)
+                            for c in preStage.children3D {
+                                if let list = c.componentLists["clouds"] {
+                                    for (index,cloud) in list.enumerated() {
+                                        dryRunComponent(cloud, instance.data.count)
+                                        instance.collectProperties(cloud)
+                                        if let globalCode = cloud.globalCode {
+                                            headerCode += globalCode
+                                        }
+                                        if let code = cloud.code {
+                                            
+                                            headerCode +=
+                                            """
+                                            
+                                            float2 __cloudMap\(index)(float3 position, float constFogDensity, thread struct FuncData *__funcData)
+                                            {
+                                                constant float4 *__data = __funcData->__data;
+                                                float GlobalTime = __funcData->GlobalTime;
+                                                float GlobalSeed = __funcData->GlobalSeed;
+                                                __CREATE_TEXTURE_DEFINITIONS__
+                                            
+                                                float outDensity = 0;
+                                            
+                                            """
+                                            
+                                            headerCode += code
+                                            headerCode +=
+                                            """
+                                                                                                                                    
+                                                float sigmaS = constFogDensity + outDensity;
+                                               
+                                                const float sigmaA = 0.0;
+                                                const float sigmaE = max(0.000000001, sigmaA + sigmaS);
+                                                
+                                                return float2( sigmaS, sigmaE );
+                                            }
+                                            
+                                            float __cloudMapShadow\(index)(float3 from, float3 dir, float lengthToLight, float constFogDensity, thread struct FuncData *__funcData)
+                                            {
+                                                const float numStep = 16.0; // quality control. Bump to avoid shadow alisaing
+                                                float shadow = 1.0;
+                                                float sigmaS = 0.0;
+                                                float sigmaE = 0.0;
+                                                float dd = lengthToLight / numStep;
+                                                for(float s=0.5; s<(numStep-0.1); s+=1.0)// start at 0.5 to sample at center of integral part
+                                                {
+                                                    float3 pos = from + dir * (s/(numStep));
+                                                    float2 sigma = __cloudMap\(index)(pos, constFogDensity, __funcData);
+                                                    shadow *= exp(-sigma.y * dd);
+                                                }
+                                                return shadow;
+                                            }
+                                            
+                                            """
+                                            
+                                            //print( fogDensityCode)
+                                            shadowCode +=
+                                            """
+                                            
+                                                    if (inShape.z == -1)
+                                                    {
+                                                    float height = 100.0;
+                                                    float layerSize = 10.0;
+                                                    
+                                                    float3 ro = rayOrigin;
+                                                    ro.y = sqrt(EARTH_RADIUS*EARTH_RADIUS-dot(ro.xz,ro.xz));
+
+                                                    float start = __intersectCloudSphere( rayDirection, height );
+                                                    float end  = __intersectCloudSphere( rayDirection, height + layerSize );
+                                            
+                                                    float t = start;// + random(__funcData) * layerSize;
+                                                    float tt = 0.0;
+                                            
+                                                    for( int i=0; i < 5 /*&& t < (height + layerSize)*/; i++ )
+                                                    {
+                                                        float3 pos = ro + rayDirection * t;
+                                                        
+                                                        float norY = clamp( (length(pos) - (EARTH_RADIUS + height)) * (1./(layerSize)), 0., 1.);
+                                                        float3 ambientLight = mix( float3(0.3), float3(0.8), norY );
+
+                                                        float2 sigma = __cloudMap\(index)( pos, constFogDensity, __funcData);
+                                                        
+                                                        const float sigmaS = sigma.x;
+                                                        const float sigmaE = sigma.y;
+                                                    
+                                                        float3 S = ((ambientLight + lightColor)  * __phaseFunction() * __cloudMapShadow\(index)(pos, lightDirection, lengthToLight, constFogDensity, __funcData)) * sigmaS;
+                                                        float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
+                                                        scatteredLight += transmittance * Sint;
+
+                                                        transmittance *= exp(-sigmaE * tt);
+                                                                            
+                                                        tt += random(__funcData);
+                                                        t += tt;
+                                                    }
+                                                    }
+                                            """
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        shadowCode +=
+                        """
+                            }
+                        
+                            // Finished
+                        
                             float4 scatTrans = float4(scatteredLight, transmittance);
                             scatTrans.xyz += densityIn.xyz;//(scatTrans.xyz + densityIn.xyz) / 2;
                             scatTrans.w *= densityIn.w;//max(scatTrans.w, densityIn.w);//(scatTrans.w + densityIn.w) / 2;
-                            
                             
                             __densityTexture.write(half4(scatTrans), __gid);
                         }

@@ -2274,6 +2274,19 @@ class CodeComponent         : Codable, Equatable
             f.body.append(b)
             f.body.append(f.createOutVariableBlock("float", "outDensity"))
             functions.append(f)
+        } else
+        if type == .Clouds3D {
+            let f = CodeFunction(type, "cloudDensity")
+            f.comment = "cloud density for the given position"
+            
+            let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg1)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float", "outDensity"))
+            functions.append(f)
         }
     }
     

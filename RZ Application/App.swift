@@ -158,6 +158,15 @@ class App
                     if c.componentLists["fog"] != nil {
                         hasFog = true
                     }
+                    
+                    /*
+                    if c.componentLists["clouds"] != nil {
+                        
+                        let codeComponent = CodeComponent(.Clouds3D, "Dummy")
+                        codeComponent.createDefaultFunction(.Clouds3D)
+                        
+                        c.componentLists["clouds"]!.append(codeComponent)
+                    }*/
                 }
                 
                 if hasFog == false {

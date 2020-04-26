@@ -1129,6 +1129,22 @@ class SceneGraph                : MMWidget
                         } )
                         items.append(menuItem)
                     } else
+                    if comp.componentType == .Clouds3D {
+                        buildChangeComponent(item, name: "Clouds", ids: ["Clouds3D"])
+                        
+                        let menuItem = MMMenuItem(text: "Remove", cb: { () in
+                            let id = "clouds"
+                            
+                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Clouds")
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                item.stageItem!.componentLists[id]!.remove(at: index)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            }
+                        } )
+                        items.append(menuItem)
+                    } else
                     if comp.componentType == .PostFX {
                         buildChangeComponent(item, name: "FX", ids: ["PostFX"])
                         

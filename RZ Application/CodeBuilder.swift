@@ -38,12 +38,12 @@ class CodeBuilderInstance
     var materialIdHierarchy : [Int] = []
     
     var idStart             : Int = 0
-    
+
+    /// Adds a global variable manually, used when we need to know the index of a global variable
     func addGlobalVariable(name: String) -> Int?
     {
         let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getGlobalVariable()
         if let variableComp = globalVars[name] {
-            print("got it")
             
             for uuid in variableComp.properties {
                 let rc = variableComp.getPropertyOfUUID(uuid)
