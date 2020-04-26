@@ -810,6 +810,31 @@ class CodeSDFStream
                         float outShadow = 1.;
                         """
                         shadowCode += code
+                        
+                        var hasFogOrClouds = false
+                        
+                        if let scene = scene {
+                            let preStage = scene.getStage(.PreStage)
+                            for c in preStage.children3D {
+                                if let list = c.componentLists["fog"] {
+                                    if list.count > 0 {
+                                        hasFogOrClouds = true
+                                    }
+                                }
+                                if let list = c.componentLists["clouds"] {
+                                    if list.count > 0 {
+                                        hasFogOrClouds = true
+                                    }
+                                }
+                            }
+                        }
+                        
+                        var maxDistanceCode = "50.0"
+                        if let index = instance.addGlobalVariable(name: "World.worldMaxFogDistance") {
+                            maxDistanceCode = "__data[\(index)].x"
+                            print(maxDistanceCode)
+                        }
+                        
                         shadowCode +=
                         """
                         
@@ -819,15 +844,15 @@ class CodeSDFStream
                         
                         float4 densityIn = float4(__densityTexture.read(__gid));
                         float constFogDensity = __lightData[0].w;
-                        if (constFogDensity > 0.0000 ) {
+                        if (constFogDensity > 0.0000 || \(String(hasFogOrClouds))) {
                             float transmittance = 1.0;
                             float3 scatteredLight = float3(0.0, 0.0, 0.0);
                                                                                 
                             if (inShape.z == -1) {
-                                maxDistance = 50;
+                                maxDistance = \(maxDistanceCode);
                             }
                             
-                            maxDistance = min(maxDistance, 50.0);
+                            maxDistance = min(maxDistance, \(maxDistanceCode));
                             
                             float t = random(__funcData) * maxDistance;
                             float tt = 0.0;

@@ -96,7 +96,7 @@ class NewDialog: MMDialog {
         publicPrivateTab.addTab("Templates")
         publicPrivateTab.addTab("iCloud")
         
-        super.init(view, title: "New Project", cancelText: "Artist", okText: "Developer")
+        super.init(view, title: "New Project", cancelText: "Artist View", okText: "Developer")
         
         publicPrivateTab.clicked = { (event) in
             if self.publicPrivateTab.index == 0 {
@@ -400,13 +400,13 @@ class NewDialog: MMDialog {
             }
             
             template.titleLabel.rect.x = x
-            template.titleLabel.rect.y = y + 8
+            template.titleLabel.rect.y = y + 10
             template.titleLabel.draw()
             
-            mmView.drawBox.draw( x: x, y: y + 34, width: scrollRect!.width - 40, height: 1, round: 0, borderSize: 0, fillColor: mmView.skin.Dialog.borderColor)
+            mmView.drawBox.draw( x: x, y: y + 30, width: scrollRect!.width - 40, height: 1, round: 0, borderSize: 0, fillColor: mmView.skin.Dialog.borderColor)
             
-            y += 48
-            x = rect.x + 50
+            y += 48 + 8
+            x = rect.x + 50 + 8
 
             for item in template.items {
                                 
@@ -424,44 +424,10 @@ class NewDialog: MMDialog {
                 item.titleLabel.rect.y = y + textureHeight + 5
                 item.titleLabel.draw()
                 
-                x += textureWidth + 40
+                x += textureWidth + 40 + 16
             }
             
-            y += textureHeight + 28
-            /*
-            let borderColor = selectedItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
-            let textColor = selectedItem === item ? mmView.skin.Item.selectionColor : SIMD4<Float>(1,1,1,1)
-
-            //x += (Float(index).truncatingRemainder(dividingBy: 3)) * (itemSize + 2)
-
-            mmView.drawBox.draw( x: x, y: y, width: itemSize, height: itemSize, round: 26, borderSize: 2, fillColor: mmView.skin.Item.color, borderColor: borderColor)//, maskRoundingSize: 26, maskRect: SIMD4<Float>(boxRect.x, boxRect.y, boxRect.width, boxRect.height))
-            
-            if let thumb = item.thumbnail {
-                mmView.drawTexture.draw(thumb, x: x + (itemSize - Float(100)) / 2, y: y + 15, zoom: 2)
-            } else
-            if oneThumbnailOnly == false {
-                oneThumbnailOnly =  true
-                item.thumbnail = globalApp!.thumbnail.request(item.type)
-                mmView.update()
-            }
-
-            if selectedItem === item {
-                //mmView.drawTexture.draw(blueTexture!, x: x + (itemSize - Float(blueTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
-            } else {
-                //mmView.drawTexture.draw(greyTexture!, x: x + (itemSize - Float(greyTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
-            }
-            
-            item.rect.set(x, y, itemSize, itemSize)
-            item.titleLabel.color = textColor
-            item.titleLabel.drawCentered(x: x, y: y + itemSize - 40, width: itemSize, height: 35)
-            
-            if (index+1) % 5 == 0 {
-                x = rect.x + 3
-                y += itemSize + 2
-            } else {
-                x += itemSize + 2
-            }
-            */
+            y += textureHeight + 28 + 12
         }
         
         if rect.y == 0 {

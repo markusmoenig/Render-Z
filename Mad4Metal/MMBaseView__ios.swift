@@ -440,7 +440,7 @@ func showHelp(_ urlString: String? = nil)
         guard let url = URL(string: urlString!) else { return }
         UIApplication.shared.open(url)
     } else {
-        guard let url = URL(string: "https://www.moenig.io/forum/main-forum/tutorials") else { return }
+        guard let url = URL(string: "https://www.moenig.io/articles") else { return }
         UIApplication.shared.open(url)
     }
 }

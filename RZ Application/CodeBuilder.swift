@@ -38,7 +38,27 @@ class CodeBuilderInstance
     var materialIdHierarchy : [Int] = []
     
     var idStart             : Int = 0
+    
+    func addGlobalVariable(name: String) -> Int?
+    {
+        let globalVars = globalApp!.project.selected!.getStage(.VariablePool).getGlobalVariable()
+        if let variableComp = globalVars[name] {
+            print("got it")
+            
+            for uuid in variableComp.properties {
+                let rc = variableComp.getPropertyOfUUID(uuid)
+                if rc.0!.values["variable"] == 1 {
+                    let index = data.count
+                    properties.append((rc.0, rc.1, nil, data.count, variableComp, []))
+                    data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
+                    return index
+                }
+            }
+        }
         
+        return nil
+    }
+    
     /// Collect all the properties of the component and create a data entry for it
     func collectProperties(_ component: CodeComponent,_ hierarchy: [StageItem] = [])
     {

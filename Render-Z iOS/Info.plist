@@ -7,6 +7,8 @@
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
 			<key>CFBundleTypeIconFiles</key>
 			<array/>
 			<key>CFBundleTypeName</key>
@@ -29,6 +31,12 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Exports rendered images and videos to the Photo Library</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Exports rendered images and videos to the Photo Library</string>
 	<key>NSUbiquitousContainers</key>
 	<dict>
 		<key>iCloud.com.moenig.renderz</key>
@@ -68,10 +76,6 @@
 	<array>
 		<string>armv7</string>
 	</array>
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Exports rendered images and videos to the Photo Library</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Exports rendered images and videos to the Photo Library</string>
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UISupportedInterfaceOrientations</key>
@@ -85,8 +89,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
-	<true/>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

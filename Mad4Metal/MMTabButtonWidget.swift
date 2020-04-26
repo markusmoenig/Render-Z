@@ -131,7 +131,7 @@ class MMTabButtonWidget: MMWidget
                 mmView.renderer.setClipRect()
             }
             
-            item.label!.drawCentered(x: item.rect.x, y: item.rect.y - 1, width: item.rect.width, height: item.rect.height)
+            item.label!.drawCentered(x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height)
             
             xOff += itemWidth
         }

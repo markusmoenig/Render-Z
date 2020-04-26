@@ -1113,6 +1113,22 @@ class SceneGraph                : MMWidget
                         } )
                         items.append(menuItem)
                     } else
+                    if comp.componentType == .Fog3D {
+                        buildChangeComponent(item, name: "Fog", ids: ["Fog3D"])
+                        
+                        let menuItem = MMMenuItem(text: "Remove", cb: { () in
+                            let id = "fog"
+                            
+                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Remove Fog")
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                item.stageItem!.componentLists[id]!.remove(at: index)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            }
+                        } )
+                        items.append(menuItem)
+                    } else
                     if comp.componentType == .PostFX {
                         buildChangeComponent(item, name: "FX", ids: ["PostFX"])
                         

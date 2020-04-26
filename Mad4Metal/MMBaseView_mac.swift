@@ -387,7 +387,7 @@ func showHelp(_ urlString: String? = nil)
     appDelegate.helpWindowController.showWindow(appDelegate)
     appDelegate.helpWindowController.window!.makeKeyAndOrderFront(appDelegate)
     
-    let url = urlString != nil ? URL(string: urlString!) : URL(string: "https://www.moenig.io/forum/main-forum/tutorials")
+    let url = urlString != nil ? URL(string: urlString!) : URL(string: "https://www.moenig.io/articles")
     
     if appDelegate.webView.url != url {
         let request = URLRequest(url:url!)

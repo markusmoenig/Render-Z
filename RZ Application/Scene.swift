@@ -258,10 +258,10 @@ class Stage                 : Codable, Equatable
             
             item = StageItem(.PreStage, "Fog")
             
-            codeComponent = CodeComponent(.Fog3D, "Dummy")
-            codeComponent.createDefaultFunction(.Fog3D)
+            //codeComponent = CodeComponent(.Fog3D, "Dummy")
+            //codeComponent.createDefaultFunction(.Fog3D)
             
-            item.componentLists["fog"] = [codeComponent]
+            item.componentLists["fog"] = []
             children3D.append(item)
             placeChild(modeId: "3D", parent: self, child: item, stepSize: 80, radius: 130)
             
@@ -402,7 +402,11 @@ class Stage                 : Codable, Equatable
             worldFogDensityComponent.values["locked"] = 1
             worldFogDensityComponent.createVariableFunction("worldFogDensity", "float", "Fog Density", defaultValue: Float(0), gizmo: 2)
             
-            worldPool.componentLists["variables"] = [worldAmbientComponent, worldFogDensityComponent]
+            let worldFogMaxDistanceComponent = CodeComponent(.Variable, "Fog Distance")
+            worldFogMaxDistanceComponent.values["locked"] = 1
+            worldFogMaxDistanceComponent.createVariableFunction("worldMaxFogDistance", "float", "Maximum Fog Distance", defaultValue: Float(50), defaultMinMax: SIMD2<Float>(0,1000), gizmo: 2)
+            
+            worldPool.componentLists["variables"] = [worldAmbientComponent, worldFogDensityComponent, worldFogMaxDistanceComponent]
 
             // Create Sun Pool
             let sunPool = StageItem(.VariablePool, "Sun")

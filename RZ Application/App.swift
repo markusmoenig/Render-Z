@@ -175,7 +175,27 @@ class App
                     preStage.children3D.append(item)
                     placeChild(modeId: "3D", parent: preStage, child: item, stepSize: 50, radius: 120)
                 }
-                //
+                
+                // Insert Max Fog Distance Variable if it does not exist
+                let variableStage = project.selected!.getStage(.VariablePool)
+                for c in variableStage.children3D {
+                    if c.name == "World" {
+                        if let list = c.componentLists["variables"] {
+                            var hasMaxDist = false
+                            for v in list {
+                                if v.libraryName == "Fog Distance" {
+                                    hasMaxDist = true
+                                }
+                            }
+                            if hasMaxDist == false {
+                                let worldFogMaxDistanceComponent = CodeComponent(.Variable, "Fog Distance")
+                                worldFogMaxDistanceComponent.values["locked"] = 1
+                                worldFogMaxDistanceComponent.createVariableFunction("worldMaxFogDistance", "float", "Maximum Fog Distance", defaultValue: Float(50), gizmo: 2)
+                                c.componentLists["variables"]!.append(worldFogMaxDistanceComponent)
+                            }
+                        }
+                    }
+                }
                     
                 if project.selected!.stages[4].children2D.count == 0 {
                     project.selected!.stages[4] = Stage(.PostStage, "Post FX")
