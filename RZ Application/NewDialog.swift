@@ -412,7 +412,7 @@ class NewDialog: MMDialog {
                                 
                 let width = max(item.titleLabel.rect.width, textureWidth)
                 
-                item.rect.set( x - 6, y - 6, width + 12, textureHeight + 30)
+                item.rect.set( x - 9, y - 6, width + 18, textureHeight + 35)
                 
                 if item === selectedTempItem {
                     mmView.drawBox.draw( x: item.rect.x, y: item.rect.y, width: item.rect.width, height: item.rect.height, round: 12, borderSize: 0, fillColor: mmView.skin.Dialog.borderColor)
@@ -421,13 +421,13 @@ class NewDialog: MMDialog {
                 mmView.drawTexture.draw(fileTexture!, x: x + (width - textureWidth) / 2, y: y, zoom: zoom)
                 
                 item.titleLabel.rect.x = x + (width - item.titleLabel.rect.width) / 2
-                item.titleLabel.rect.y = y + textureHeight + 5
+                item.titleLabel.rect.y = y + textureHeight + 10
                 item.titleLabel.draw()
                 
                 x += textureWidth + 40 + 16
             }
             
-            y += textureHeight + 28 + 12
+            y += textureHeight + 28 + 20
         }
         
         if rect.y == 0 {

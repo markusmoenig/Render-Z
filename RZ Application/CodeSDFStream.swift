@@ -970,6 +970,9 @@ class CodeSDFStream
                             for c in preStage.children3D {
                                 if let list = c.componentLists["clouds"] {
                                     for (index,cloud) in list.enumerated() {
+                                        
+                                        let pOffset = instance.properties.count - 1
+                                        
                                         dryRunComponent(cloud, instance.data.count)
                                         instance.collectProperties(cloud)
                                         if let globalCode = cloud.globalCode {
@@ -980,7 +983,7 @@ class CodeSDFStream
                                             headerCode +=
                                             """
                                             
-                                            float2 __cloudMap\(index)(float3 position, float constFogDensity, thread struct FuncData *__funcData)
+                                            float2 __cloudMap\(index)(float3 position, thread struct FuncData *__funcData)
                                             {
                                                 constant float4 *__data = __funcData->__data;
                                                 float GlobalTime = __funcData->GlobalTime;
@@ -995,7 +998,7 @@ class CodeSDFStream
                                             headerCode +=
                                             """
                                                                                                                                     
-                                                float sigmaS = constFogDensity + outDensity;
+                                                float sigmaS = outDensity;
                                                
                                                 const float sigmaA = 0.0;
                                                 const float sigmaE = max(0.000000001, sigmaA + sigmaS);
@@ -1003,32 +1006,57 @@ class CodeSDFStream
                                                 return float2( sigmaS, sigmaE );
                                             }
                                             
-                                            float __cloudMapShadow\(index)(float3 from, float3 dir, float lengthToLight, float constFogDensity, thread struct FuncData *__funcData)
+                                            float __cloudMapShadow\(index)(float3 from, float3 dir, thread struct FuncData *__funcData)
                                             {
                                                 const float numStep = 16.0; // quality control. Bump to avoid shadow alisaing
                                                 float shadow = 1.0;
                                                 float sigmaS = 0.0;
                                                 float sigmaE = 0.0;
-                                                float dd = lengthToLight / numStep;
-                                                for(float s=0.5; s<(numStep-0.1); s+=1.0)// start at 0.5 to sample at center of integral part
+                                                float dd = 10.;
+                                                float d = dd * 0.5;
+                                                for(int s=0; s < 6; s += 1)
                                                 {
-                                                    float3 pos = from + dir * (s/(numStep));
-                                                    float2 sigma = __cloudMap\(index)(pos, constFogDensity, __funcData);
+                                                    float3 pos = from + dir * d;
+                                                    float2 sigma = __cloudMap\(index)(pos, __funcData);
                                                     shadow *= exp(-sigma.y * dd);
+                                                    dd *= 1.3;
+                                                    d += dd;
                                                 }
                                                 return shadow;
                                             }
                                             
                                             """
+                                                                                        
+                                            var layerHeight = "100.0"
+                                            var layerDepth = "20.0"
+                                            var bottomColor = "float3(0.7)"
+                                            var topColor = "float3(0.3)"
+
+                                            for i in pOffset..<instance.properties.count {
+                                                let pp = instance.properties[i]
+                                                if let prop = pp.0 {
+                                                    if prop.name == "height" {
+                                                        layerHeight = "__data[\(pp.3)].x"
+                                                    } else
+                                                    if prop.name == "depth" {
+                                                        layerDepth = "__data[\(pp.3)].x"
+                                                    } else
+                                                    if prop.name == "bottomColor" {
+                                                        bottomColor = "__data[\(pp.3)].xyz"
+                                                    } else
+                                                    if prop.name == "topColor" {
+                                                        topColor = "__data[\(pp.3)].xyz"
+                                                    }
+                                                }
+                                            }
                                             
-                                            //print( fogDensityCode)
                                             shadowCode +=
                                             """
                                             
                                                     if (inShape.z == -1)
                                                     {
-                                                    float height = 100.0;
-                                                    float layerSize = 10.0;
+                                                    float height = \(layerHeight);
+                                                    float layerSize = \(layerDepth);
                                                     
                                                     float3 ro = rayOrigin;
                                                     ro.y = sqrt(EARTH_RADIUS*EARTH_RADIUS-dot(ro.xz,ro.xz));
@@ -1044,20 +1072,20 @@ class CodeSDFStream
                                                         float3 pos = ro + rayDirection * t;
                                                         
                                                         float norY = clamp( (length(pos) - (EARTH_RADIUS + height)) * (1./(layerSize)), 0., 1.);
-                                                        float3 ambientLight = mix( float3(0.3), float3(0.8), norY );
+                                                        float3 ambientLight = mix( \(bottomColor), \(topColor), norY );
 
-                                                        float2 sigma = __cloudMap\(index)( pos, constFogDensity, __funcData);
+                                                        float2 sigma = __cloudMap\(index)( pos, __funcData);
                                                         
                                                         const float sigmaS = sigma.x;
                                                         const float sigmaE = sigma.y;
                                                     
-                                                        float3 S = ((ambientLight + lightColor)  * __phaseFunction() * __cloudMapShadow\(index)(pos, lightDirection, lengthToLight, constFogDensity, __funcData)) * sigmaS;
+                                                        float3 S = (ambientLight + lightColor  * __phaseFunction() * __cloudMapShadow\(index)(pos, lightDirection, __funcData)) * sigmaS;
                                                         float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
                                                         scatteredLight += transmittance * Sint;
 
                                                         transmittance *= exp(-sigmaE * tt);
                                                                             
-                                                        tt += random(__funcData);
+                                                        tt += (layerSize / 5.) * random(__funcData);
                                                         t += tt;
                                                     }
                                                     }

@@ -777,7 +777,7 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
     """
     
         float noise = \(funcName)(float3(uv.x, 0.0, uv.y), 4);
-        outColor.w = noise;
+        outColor.w = (noise + 0.5) * 0.5;
     
     """
     
