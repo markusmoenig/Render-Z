@@ -1146,31 +1146,37 @@ class CodeBlock             : Codable, Equatable
                 } else
                 {
                     // PROPERTY!!!!
-                    let code = ctx.cComponent!.code!
-                    let globalCode = ctx.cComponent!.globalCode!
-                    statement.draw(mmView, ctx)
-                    ctx.cComponent!.code = code
-                    ctx.cComponent!.globalCode = globalCode
-                    let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
-                    ctx.cComponent!.inputDataList.append(fragment.uuid)
-                    ctx.cComponent!.inputComponentList.append(ctx.cComponent!)
+                    
+                    if statement.fragments.count > 0 && statement.fragments[0].fragmentType == .Primitive && statement.fragments[0].name == "noise3D" {
+                        statement.draw(mmView, ctx)
+                    } else
+                    {
+                        let code = ctx.cComponent!.code!
+                        let globalCode = ctx.cComponent!.globalCode!
+                        statement.draw(mmView, ctx)
+                        ctx.cComponent!.code = code
+                        ctx.cComponent!.globalCode = globalCode
+                        let dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
+                        ctx.cComponent!.inputDataList.append(fragment.uuid)
+                        ctx.cComponent!.inputComponentList.append(ctx.cComponent!)
 
-                    let components = fragment.evaluateComponents()
-                    
-                    if ctx.cFunction!.functionType == .FreeFlow {
-                        ctx.addCode( "__funcData->__data[\(dataIndex)]" )
-                    } else {
-                        ctx.addCode( "__data[\(dataIndex)]" )
-                    }
-                    
-                    if components == 1 {
-                        ctx.addCode( ".x" )
-                    } else
-                    if components == 2 {
-                        ctx.addCode( ".xy" )
-                    } else
-                    if components == 3 {
-                        ctx.addCode( ".xyz" )
+                        let components = fragment.evaluateComponents()
+                        
+                        if ctx.cFunction!.functionType == .FreeFlow {
+                            ctx.addCode( "__funcData->__data[\(dataIndex)]" )
+                        } else {
+                            ctx.addCode( "__data[\(dataIndex)]" )
+                        }
+                        
+                        if components == 1 {
+                            ctx.addCode( ".x" )
+                        } else
+                        if components == 2 {
+                            ctx.addCode( ".xy" )
+                        } else
+                        if components == 3 {
+                            ctx.addCode( ".xyz" )
+                        }
                     }
                 }
             } else {

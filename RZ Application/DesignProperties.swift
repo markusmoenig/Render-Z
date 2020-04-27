@@ -110,9 +110,16 @@ class DesignProperties      : MMWidget
                 let data = extractValueFromFragment(rc.1!)
                                 
                 if components == 1 {
-                    let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), int: frag.typeName == "int", value: data.x, precision: Int(rc.1!.values["precision"]!))
-                    numberVar.titleShadows = true
-                    c1Node!.uiItems.append(numberVar)
+                    if rc.1!.fragmentType == .Primitive && rc.1!.name == "noise3D" {
+                        propMap["noise3D"] = rc.1!
+                        let noiseUI = setupNoise3DUI(c1Node!, frag)
+                        noiseUI.titleShadows = true
+                        c1Node!.uiItems.append(noiseUI)
+                    } else {
+                        let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), int: frag.typeName == "int", value: data.x, precision: Int(rc.1!.values["precision"]!))
+                        numberVar.titleShadows = true
+                        c1Node!.uiItems.append(numberVar)
+                    }
                 } else
                 if components == 2 {
                     propMap[frag.name + "_x"] = rc.1!.arguments[0].fragments[0]
@@ -157,6 +164,18 @@ class DesignProperties      : MMWidget
             if variable == "renderMode" {
                 globalApp!.currentPipeline!.outputType = Pipeline.OutputType(rawValue: Int(newValue))!
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                return
+            }
+            
+            if variable == "noise3D" {
+                if let fragment = self.propMap["noise3D"] {
+                    fragment.values["noise3D"] = oldValue
+                    let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Noise Type Changed") : nil
+                    fragment.values["noise3D"] = newValue
+                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                    self.editor.updateOnNextDraw(compile: true)
+                    if let undo = codeUndo { globalApp!.currentEditor.undoComponentEnd(undo) }
+                }
                 return
             }
             

@@ -271,6 +271,9 @@ class CodeSDFStream
             """
             
             #define EARTH_RADIUS    (1500000.) // (6371000.)
+            #define CLOUDS_FORWARD_SCATTERING_G (.8)
+            #define CLOUDS_BACKWARD_SCATTERING_G (-.2)
+            #define CLOUDS_SCATTERING_LERP (.5)
             
             float __HenyeyGreenstein( float sundotrd, float g) {
                 float gg = g * g;
@@ -1064,10 +1067,14 @@ class CodeSDFStream
                                                     float start = __intersectCloudSphere( rayDirection, height );
                                                     float end  = __intersectCloudSphere( rayDirection, height + layerSize );
                                             
-                                                    float t = start;// + random(__funcData) * layerSize;
+                                                    float t = start + random(__funcData) * (layerSize / 2.);
                                                     float tt = 0.0;
                                             
-                                                    for( int i=0; i < 5 /*&& t < (height + layerSize)*/; i++ )
+                                                    float sundotrd = dot( rayDirection, -lightDirection);
+                                                    float scattering =  mix( __HenyeyGreenstein(sundotrd, CLOUDS_FORWARD_SCATTERING_G),
+                                                        __HenyeyGreenstein(sundotrd, CLOUDS_BACKWARD_SCATTERING_G), CLOUDS_SCATTERING_LERP );
+                                            
+                                                    for( int i=0; i < 5 && t < end; i++ )
                                                     {
                                                         float3 pos = ro + rayDirection * t;
                                                         
@@ -1079,7 +1086,7 @@ class CodeSDFStream
                                                         const float sigmaS = sigma.x;
                                                         const float sigmaE = sigma.y;
                                                     
-                                                        float3 S = (ambientLight + lightColor  * __phaseFunction() * __cloudMapShadow\(index)(pos, lightDirection, __funcData)) * sigmaS;
+                                                        float3 S = (ambientLight + lightColor  * (__phaseFunction() * scattering * __cloudMapShadow\(index)(pos, lightDirection, __funcData))) * sigmaS;
                                                         float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
                                                         scatteredLight += transmittance * Sint;
 

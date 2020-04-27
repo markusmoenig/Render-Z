@@ -691,9 +691,8 @@ class CodeProperties    : MMWidget
             
             // --- Noise 3D Widget
             if fragment.fragmentType == .Primitive && fragment.name == "noise3D" {
-                let items : [String] = ["Value", "Perlin"]
-                let noiseIndex = fragment.values["noise3D"] == nil ? 0 : fragment.values["noise3D"]!
-                c2Node?.uiItems.append( NodeUINoise3D(c2Node!, variable: "noise3D", title: "3D Noise", items: items, index: noiseIndex) )
+                let noiseUI = setupNoise3DUI(c2Node!, fragment)
+                c2Node?.uiItems.append(noiseUI)
                 
                 c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     if variable == "noise3D" {

@@ -468,39 +468,6 @@ class NodeUISelector        : NodeUI
     }
 }
 
-class NodeUINoise3D : NodeUISelector
-{
-    var previewTexture      : MTLTexture? = nil
-    var previewIndex        : Float = -1
-    
-    override init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0, shadows: Bool = false)
-    {
-        super.init(node, variable: variable, title: title, items: items, index: index, shadows: shadows)
-    }
-    
-    override func calcSize(mmView: MMView) {
-        
-        super.calcSize(mmView: mmView)
-        
-        rect.width = 170
-        rect.height = 85
-    }
-    
-    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
-    {
-        super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
-        
-        if previewIndex != index {
-            previewTexture = generateNoisePreview(domain: "noise3D", noiseIndex: index, width: rect.width, height: rect.height)
-            previewIndex = index
-        }
-        
-        if let texture = previewTexture {
-            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y + 50)
-        }
-    }
-}
-
 /// Key down NodeUI class
 class NodeUIKeyDown : NodeUI
 {
@@ -1518,3 +1485,322 @@ class NodeUIColor : NodeUI
     }
 }
 
+
+class NodeUINoise3D : NodeUISelector
+{
+    var previewTexture      : MTLTexture? = nil
+    var previewIndex        : Float = -1
+    
+    var menuNode            : Node!
+    var menu                : NodeUIMenu!
+    
+    override init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0, shadows: Bool = false)
+    {
+        super.init(node, variable: variable, title: title, items: items, index: index, shadows: shadows)
+    }
+    
+    override func calcSize(mmView: MMView) {
+        
+        super.calcSize(mmView: mmView)
+        
+        rect.width = 170
+        rect.height = 85
+        
+        menuNode = Node()
+        let primOctaves = NodeUINumber(menuNode, variable: "primOctaves", title: "Octaves", range: SIMD2<Float>(1, 10), int: true, value: 4)
+        menuNode.uiItems.append(primOctaves)
+        
+        menu = NodeUIMenu(mmView, node: menuNode)
+        menu.menuType = .BoxedMenu
+        menu.rect.width /= 1.5
+        menu.rect.height /= 1.5
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        if menu.rect.contains(event.x, event.y) {
+            menu.mouseDown(event)
+        } else {
+            super.mouseDown(event)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        if menu.rect.contains(event.x, event.y) {
+            menu.mouseUp(event)
+        } else {
+            super.mouseUp(event)
+        }
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if menu.rect.contains(event.x, event.y) {
+            menu.mouseMoved(event)
+        } else {
+            super.mouseMoved(event)
+        }
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
+    {
+        super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
+        
+        if previewIndex != index {
+            previewTexture = generateNoisePreview(domain: "noise3D", noiseIndex: index, width: rect.width, height: rect.height)
+            previewIndex = index
+        }
+        
+        if let texture = previewTexture {
+            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y + 50)
+        }
+        
+        menu.rect.x = rect.right() - menu.rect.width
+        menu.rect.y = rect.y + 50
+        
+        menu.draw()
+    }
+}
+
+
+/// NodeUI Menu
+class NodeUIMenu : MMWidget
+{
+    enum MenuType {
+        case BoxedMenu, LabelMenu, Hidden
+    }
+    
+    var menuType    : MenuType = .BoxedMenu
+    
+    var skin        : MMSkinMenuWidget
+    var menuRect    : MMRect
+ 
+    var items       : [MMMenuItem] = []
+    
+    var selIndex    : Int = -1
+    var itemHeight  : Int = 0
+    
+    var firstClick  : Bool = false
+    
+    var textLabel   : MMTextLabel? = nil
+    
+    var node        : Node
+    var pWidget     : PropertiesWidget!
+    
+    init( _ view: MMView, skinToUse: MMSkinMenuWidget? = nil, type: MenuType = .BoxedMenu, node: Node)
+    {
+        self.node = node
+        
+        skin = skinToUse != nil ? skinToUse! : view.skin.MenuWidget
+        menuRect = MMRect( 0, 0, 0, 0)
+        
+        self.menuType = type
+        
+        super.init(view)
+        
+        name = "NodeUIMenu"
+        
+        if menuType != .Hidden {
+            rect.width = skin.button.width
+            rect.height = skin.button.height
+        } else {
+            rect.width = 0
+            rect.height = 0
+        }
+        
+        validStates = [.Checked]
+                
+        pWidget = PropertiesWidget(view)
+        
+        node.setupUI(mmView: view)
+        pWidget.c1Node = node
+        
+        menuRect = MMRect()
+        menuRect.width = node.uiArea.width
+        menuRect.height = node.uiArea.height
+        menuRect.width += skin.margin.width()
+        menuRect.height += skin.margin.height()
+    }
+    
+    /// Only for MenuType == LabelMenu
+    func setText(_ text: String,_ scale: Float? = nil)
+    {
+        if textLabel == nil {
+            textLabel = MMTextLabel(mmView, font: mmView.openSans, text: "")
+        }
+        
+        if let label = textLabel {
+            label.setText(text, scale: scale)
+            
+            rect.width = label.rect.width + 10
+            rect.height = label.rect.height + 4
+        }
+    }
+
+    /*
+    /// Set the items for the menu, can be updated dynamically
+    func setItems(_ items: [MMMenuItem])
+    {
+        self.items = items
+        menuRect = MMRect( 0, 0, 0, 0)
+
+        let r = MMRect()
+        var maxHeight : Float = 0
+        for item in self.items {
+            mmView.openSans.getTextRect(text: item.text, scale: skin.fontScale, rectToUse: r)
+            menuRect.width = max(menuRect.width, r.width)
+            maxHeight = max(maxHeight, r.height)
+        }
+        
+        itemHeight = Int(maxHeight) + 6
+        menuRect.height = Float(items.count * itemHeight) + Float(items.count-1) * skin.spacing
+        
+        menuRect.width += skin.margin.width()
+        menuRect.height += skin.margin.height()
+    }*/
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        #if os(iOS)
+        mouseMoved(event)
+        #endif
+        
+        if !states.contains(.Opened) {
+            
+            addState( .Checked )
+            addState( .Opened )
+            firstClick = true
+        
+            mmView.widgets.insert(pWidget, at: 0)
+        } else {
+            #if os(OSX)
+
+            if states.contains(.Opened) && selIndex > -1 {
+                removeState( .Opened )
+            }
+            removeState( .Checked )
+            removeState( .Opened )
+            if !rect.contains(event.x, event.y) {
+                removeState( .Hover )
+            }
+            mmView.deregisterWidget(pWidget)
+            #endif
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        #if os(iOS)
+
+        if states.contains(.Opened) && (firstClick == false || (selIndex > -1 && selIndex < items.count)) {
+
+            if states.contains(.Opened) && selIndex > -1 && selIndex < items.count {
+                removeState( .Opened )
+            }
+            removeState( .Checked )
+            removeState( .Opened )
+            mmView.deregisterWidget(pWidget)
+        }
+        
+        removeState( .Clicked )
+        
+        firstClick = false
+        #endif
+    }
+    
+    /*
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if states.contains(.Opened) {
+            let oldSelIndex = selIndex
+            selIndex = -1
+            
+            var x = event.x - rect.x
+            var y : Int = Int(event.y - rect.y - skin.margin.top)
+            
+            if menuType != .Hidden {
+                x += -rect.width + menuRect.width
+                y += Int(-rect.height)
+            }
+            
+            if  y >= 0 && Float(y) <= menuRect.height - skin.margin.height() && x >= 0 && x <= menuRect.width {
+                 selIndex = y / (Int(itemHeight) + Int(skin.spacing))
+                if oldSelIndex != selIndex {
+                    mmView.update()
+                }
+            }
+        }
+    }*/
+    
+    /// If the menu is of type hidden, activates the menu
+    func activateHidden()
+    {
+        addState( .Checked )
+        addState( .Opened )
+        firstClick = false
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    {
+        let fColor : vector_float4
+        if states.contains(.Hover) {
+            fColor = skin.button.hoverColor
+        } else if states.contains(.Checked) || states.contains(.Clicked) {
+            fColor = skin.button.activeColor
+        } else {
+            fColor = skin.button.color
+        }
+        
+        if menuType == .BoxedMenu {
+            mmView.drawBoxedMenu.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor : fColor, borderColor: skin.button.borderColor )
+        } else
+        if menuType == .LabelMenu {
+            if let label = textLabel {
+                mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 4, borderSize: 0, fillColor : fColor)
+                label.drawCentered(x: rect.x, y: rect.y, width: rect.width, height: rect.height)
+            }
+        }
+        
+        if states.contains(.Opened) {
+            
+            var x = rect.x + menuRect.width
+            var y = rect.y
+            
+            if menuType != .Hidden {
+                x += rect.width - menuRect.width
+                y += rect.height
+            }
+
+            mmView.drawBox.draw( x: x, y: y, width: menuRect.width, height: menuRect.height, round: skin.round, borderSize: skin.borderSize, fillColor : skin.color, borderColor: skin.borderColor )
+
+            pWidget.rect.x = x
+            pWidget.rect.y = y
+            pWidget.rect.width = menuRect.width
+            pWidget.rect.height = menuRect.height
+
+            x += skin.margin.left//rect.width - menuRect.width
+            y += skin.margin.top
+            
+            if states.contains(.Opened) {
+                node.rect.x = x - pWidget.rect.x
+                node.rect.y = y - pWidget.rect.y
+             
+                pWidget.draw(xOffset: xOffset, yOffset: yOffset)
+            }
+            
+            /*
+            for (index,var item) in self.items.enumerated() {
+
+                if index == selIndex {
+                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: SIMD4<Float>(repeating: 1), textBuffer: item.textBuffer)
+                } else {
+                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: skin.textColor, textBuffer: item.textBuffer)
+                }
+                
+                y += Float(itemHeight) + skin.spacing
+            }
+            */
+        }
+    }
+}

@@ -777,7 +777,7 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
     """
     
         float noise = \(funcName)(float3(uv.x, 0.0, uv.y), 4);
-        outColor.w = (noise + 0.5) * 0.5;
+        outColor.w = noise;
     
     """
     
@@ -800,4 +800,13 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
     }
         
     return texture
+}
+
+// Setup a NodeUINoise3D
+
+func setupNoise3DUI(_ node: Node, _ fragment: CodeFragment) -> NodeUINoise3D
+{
+    let items : [String] = ["Value", "Perlin"]
+    let noiseIndex = fragment.values["noise3D"] == nil ? 0 : fragment.values["noise3D"]!
+    return NodeUINoise3D(node, variable: "noise3D", title: "3D Noise", items: items, index: noiseIndex)
 }
