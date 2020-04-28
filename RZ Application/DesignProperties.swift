@@ -112,7 +112,7 @@ class DesignProperties      : MMWidget
                 if components == 1 {
                     if rc.1!.fragmentType == .Primitive && rc.1!.name == "noise3D" {
                         propMap["noise3D"] = rc.1!
-                        let noiseUI = setupNoise3DUI(c1Node!, frag)
+                        let noiseUI = setupNoise3DUI(c1Node!, rc.1!)
                         noiseUI.titleShadows = true
                         c1Node!.uiItems.append(noiseUI)
                     } else {
@@ -167,13 +167,17 @@ class DesignProperties      : MMWidget
                 return
             }
             
-            if variable == "noise3D" {
+            if variable.starts(with: "noise") {
                 if let fragment = self.propMap["noise3D"] {
-                    fragment.values["noise3D"] = oldValue
-                    let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Noise Type Changed") : nil
-                    fragment.values["noise3D"] = newValue
-                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
-                    self.editor.updateOnNextDraw(compile: true)
+                    fragment.values[variable] = oldValue
+                    let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Noise Changed") : nil
+                    fragment.values[variable] = newValue
+                    if variable == "noise3D" {
+                        globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                        self.editor.updateOnNextDraw(compile: true)
+                    } else {
+                        self.editor.updateOnNextDraw(compile: false)
+                    }
                     if let undo = codeUndo { globalApp!.currentEditor.undoComponentEnd(undo) }
                 }
                 return

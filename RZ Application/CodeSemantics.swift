@@ -489,15 +489,7 @@ class CodeFragment          : Codable, Equatable
                 } else
                 if self.name == "noise3D" {
                     codeName = (isNegated() ? " -" : "")
-                    
-                    let noiseIndex = values["noise3D"] == nil ? 0 : values["noise3D"]!
-
-                    if noiseIndex == 0.0 {
-                        codeName += "__valueNoise3D"
-                    } else
-                    if noiseIndex == 1.0 {
-                        codeName += "__perlinNoise3D"
-                    }
+                    codeName += generateNoise3DFunction(ctx, self)
                 }
             }
             
@@ -1148,6 +1140,7 @@ class CodeBlock             : Codable, Equatable
                     // PROPERTY!!!!
                     
                     if statement.fragments.count > 0 && statement.fragments[0].fragmentType == .Primitive && statement.fragments[0].name == "noise3D" {
+                        // Noise tool, we create our own properties                        
                         statement.draw(mmView, ctx)
                     } else
                     {
@@ -1569,6 +1562,9 @@ class CodeComponent         : Codable, Equatable
     var artistPropertyNames : [UUID:String] = [:]
     var propertyGizmoName   : [UUID:String] = [:]
     var sequence            : MMTlSequence = MMTlSequence()
+    
+    // Points an DataIndex to a fragment tool name
+    var toolPropertyIndex   : [UUID:[(String,CodeFragment)]] = [:]
 
     var propertyConnections : [UUID:(String, String)] = [:]
     
@@ -2545,6 +2541,7 @@ class CodeComponent         : Codable, Equatable
         inputComponentList = []
         propertyConnections = [:]
         textures = []
+        toolPropertyIndex = [:]
         
         code = ""
         globalCode = ""
@@ -2557,11 +2554,15 @@ class CodeComponent         : Codable, Equatable
                 dryRunComponent(pattern, ctx.propertyDataOffset + inputDataList.count, patternList: ctx.patternList)
                 globalCode! += pattern.globalCode!
                 
+                // Copy over properties from the pattern
                 inputDataList += pattern.inputDataList
                 inputComponentList += pattern.inputComponentList
                 textures += pattern.textures
                 pattern.propertyConnections.forEach { (key, value) in
                     propertyConnections[key] = value }
+                pattern.toolPropertyIndex.forEach { (key, value) in
+                    toolPropertyIndex[key] = value }
+                // ---
 
                 let f = pattern.functions.last!
                 if f.codeName == nil {

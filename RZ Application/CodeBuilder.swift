@@ -66,11 +66,19 @@ class CodeBuilderInstance
         for (index,uuid) in component.inputDataList.enumerated() {
             let propComponent = component.inputComponentList[index]
             if propComponent.properties.contains(uuid) {
-                // Property
+                // Normal property
                 let rc = propComponent.getPropertyOfUUID(uuid)
                 if rc.0 != nil && rc.1 != nil {
                     properties.append((rc.0, rc.1, nil, data.count, propComponent, hierarchy))
                     data.append(SIMD4<Float>(rc.1!.values["value"]!,0,0,0))
+                }
+            } else
+            if let tool = propComponent.toolPropertyIndex[uuid] {
+                // Tool property, tool.0 is the name of fragment value
+                for t in tool {
+                    properties.append((t.1, t.1, t.0, data.count, propComponent, hierarchy))
+                    data.append(SIMD4<Float>(t.1.values[t.0]!,0,0,0))
+                    print("added tool property", t.0)
                 }
             } else
             if let variableComp = component.globalVariables[uuid] {
@@ -983,14 +991,16 @@ class CodeBuilder
             {
                 // Property, stored in the CodeFragments
                 
-                let data = extractValueFromFragment(property.1!)
-                let components = property.1!.evaluateComponents()
+                let isToolProperty : Bool = property.2 != nil
+                
+                let data = isToolProperty ? SIMD4<Float>(property.1!.values[property.2!]!,0,0,0) : extractValueFromFragment(property.1!)
+                let components = isToolProperty ? 1 : property.1!.evaluateComponents()
                 
                 // Transform the properties inside the artist editor
                 
-                let name = property.0!.name
+                let name = isToolProperty ? property.2! : property.0!.name
                 var properties : [String:Float] = [:]
-                                                
+                
                 if components == 1 {
                     properties[name] = data.x
                     let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
@@ -1312,11 +1322,11 @@ class CodeBuilder
                            mix( __valueHash1(n + dot(step, float3(0, 1, 1))), __valueHash1(n + dot(step, float3(1, 1, 1))), u.x), u.y), u.z);
         }
 
-        float __valueNoise3D(float3 x, int smoothing) {
+        float __valueNoise3D(float3 x, int octaves = 4) {
             float v = 0.0;
             float a = 0.5;
             float3 shift = float3(100);
-            for (int i = 0; i < smoothing; ++i) {
+            for (int i = 0; i < octaves; ++i) {
                 v += a * __valueN3D(x);
                 x = x * 2.0 + shift;
                 a *= 0.5;
@@ -1357,7 +1367,7 @@ class CodeBuilder
                                    grad(hash(pi + float3(1, 1, 1)), pf - float3(1, 1, 1)), w.x ), w.y ), w.z );
         }
 
-        float __perlinNoise3D(float3 pos, int octaves)
+        float __perlinNoise3D(float3 pos, int octaves = 4)
         {
             float persistence = 0.5;
             float total = 0.0, frequency = 1.0, amplitude = 1.0, maxValue = 0.0;

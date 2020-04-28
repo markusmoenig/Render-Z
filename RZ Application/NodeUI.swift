@@ -1485,7 +1485,6 @@ class NodeUIColor : NodeUI
     }
 }
 
-
 class NodeUINoise3D : NodeUISelector
 {
     var previewTexture      : MTLTexture? = nil
@@ -1494,8 +1493,12 @@ class NodeUINoise3D : NodeUISelector
     var menuNode            : Node!
     var menu                : NodeUIMenu!
     
-    override init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0, shadows: Bool = false)
+    var oRect               = MMRect()
+    var fragment            : CodeFragment
+    
+    init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0, shadows: Bool = false, fragment: CodeFragment)
     {
+        self.fragment = fragment
         super.init(node, variable: variable, title: title, items: items, index: index, shadows: shadows)
     }
     
@@ -1503,24 +1506,35 @@ class NodeUINoise3D : NodeUISelector
         
         super.calcSize(mmView: mmView)
         
+        oRect.copy(rect)
+        
         rect.width = 170
         rect.height = 85
         
         menuNode = Node()
-        let primOctaves = NodeUINumber(menuNode, variable: "primOctaves", title: "Octaves", range: SIMD2<Float>(1, 10), int: true, value: 4)
+        let primOctaves = NodeUINumber(menuNode, variable: "noiseBaseOctaves", title: "Octaves", range: SIMD2<Float>(1, 10), int: true, value: fragment.values["noiseBaseOctaves"]!)
         menuNode.uiItems.append(primOctaves)
         
+        menuNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+            if let cb = self.node.floatChangedCB {
+                cb(variable, oldValue, newValue, continous, noUndo)
+            }
+            self.generatePreview()
+        }
+        
         menu = NodeUIMenu(mmView, node: menuNode)
+        menu.shadows = titleShadows
         menu.menuType = .BoxedMenu
-        menu.rect.width /= 1.5
-        menu.rect.height /= 1.5
+        menu.rect.width /= 1.2
+        menu.rect.height /= 1.2
     }
     
     override func mouseDown(_ event: MMMouseEvent)
     {
         if menu.rect.contains(event.x, event.y) {
             menu.mouseDown(event)
-        } else {
+        } else
+        if oRect.contains(event.x - rect.x, event.y - rect.y) {
             super.mouseDown(event)
         }
     }
@@ -1529,7 +1543,8 @@ class NodeUINoise3D : NodeUISelector
     {
         if menu.rect.contains(event.x, event.y) {
             menu.mouseUp(event)
-        } else {
+        } else
+        if oRect.contains(event.x - rect.x, event.y - rect.y) {
             super.mouseUp(event)
         }
     }
@@ -1538,9 +1553,16 @@ class NodeUINoise3D : NodeUISelector
     {
         if menu.rect.contains(event.x, event.y) {
             menu.mouseMoved(event)
-        } else {
+        } else
+        if oRect.contains(event.x - rect.x, event.y - rect.y) {
             super.mouseMoved(event)
         }
+    }
+    
+    func generatePreview()
+    {
+        previewTexture = generateNoisePreview(domain: "noise3D", noiseIndex: index, width: rect.width, height: rect.height, fragment: fragment)
+        previewIndex = index
     }
     
     override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
@@ -1548,8 +1570,7 @@ class NodeUINoise3D : NodeUISelector
         super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
         
         if previewIndex != index {
-            previewTexture = generateNoisePreview(domain: "noise3D", noiseIndex: index, width: rect.width, height: rect.height)
-            previewIndex = index
+            generatePreview()
         }
         
         if let texture = previewTexture {
@@ -1557,9 +1578,13 @@ class NodeUINoise3D : NodeUISelector
         }
         
         menu.rect.x = rect.right() - menu.rect.width
-        menu.rect.y = rect.y + 50
+        menu.rect.y = rect.y + 13
         
-        menu.draw()
+        if menu.states.contains(.Opened) {
+            mmView.delayedDraws.append(menu)
+        } else {
+            menu.draw()
+        }
     }
 }
 
@@ -1587,6 +1612,8 @@ class NodeUIMenu : MMWidget
     
     var node        : Node
     var pWidget     : PropertiesWidget!
+    
+    var shadows     : Bool = false
     
     init( _ view: MMView, skinToUse: MMSkinMenuWidget? = nil, type: MenuType = .BoxedMenu, node: Node)
     {
@@ -1637,28 +1664,6 @@ class NodeUIMenu : MMWidget
             rect.height = label.rect.height + 4
         }
     }
-
-    /*
-    /// Set the items for the menu, can be updated dynamically
-    func setItems(_ items: [MMMenuItem])
-    {
-        self.items = items
-        menuRect = MMRect( 0, 0, 0, 0)
-
-        let r = MMRect()
-        var maxHeight : Float = 0
-        for item in self.items {
-            mmView.openSans.getTextRect(text: item.text, scale: skin.fontScale, rectToUse: r)
-            menuRect.width = max(menuRect.width, r.width)
-            maxHeight = max(maxHeight, r.height)
-        }
-        
-        itemHeight = Int(maxHeight) + 6
-        menuRect.height = Float(items.count * itemHeight) + Float(items.count-1) * skin.spacing
-        
-        menuRect.width += skin.margin.width()
-        menuRect.height += skin.margin.height()
-    }*/
     
     override func mouseDown(_ event: MMMouseEvent)
     {
@@ -1753,7 +1758,12 @@ class NodeUIMenu : MMWidget
         }
         
         if menuType == .BoxedMenu {
-            mmView.drawBoxedMenu.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor : fColor, borderColor: skin.button.borderColor )
+            if shadows {
+                var color = SIMD4<Float>(NodeUI.contentColor2)
+                color.w = 0.4
+                mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 4, borderSize: 0, fillColor : color)
+            }
+            mmView.drawBoxedMenu.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: skin.button.round, borderSize: skin.button.borderSize, fillColor : fColor, borderColor: skin.button.borderColor)
         } else
         if menuType == .LabelMenu {
             if let label = textLabel {
@@ -1765,7 +1775,7 @@ class NodeUIMenu : MMWidget
         if states.contains(.Opened) {
             
             var x = rect.x + menuRect.width
-            var y = rect.y
+            var y = rect.y - menuRect.height
             
             if menuType != .Hidden {
                 x += rect.width - menuRect.width
@@ -1778,6 +1788,10 @@ class NodeUIMenu : MMWidget
             pWidget.rect.y = y
             pWidget.rect.width = menuRect.width
             pWidget.rect.height = menuRect.height
+            
+            if pWidget.rect.bottom() > mmView.renderer.cHeight {
+                pWidget.rect.y -= pWidget.rect.bottom() - mmView.renderer.cHeight
+            }
 
             x += skin.margin.left//rect.width - menuRect.width
             y += skin.margin.top
@@ -1788,19 +1802,6 @@ class NodeUIMenu : MMWidget
              
                 pWidget.draw(xOffset: xOffset, yOffset: yOffset)
             }
-            
-            /*
-            for (index,var item) in self.items.enumerated() {
-
-                if index == selIndex {
-                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: SIMD4<Float>(repeating: 1), textBuffer: item.textBuffer)
-                } else {
-                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: skin.textColor, textBuffer: item.textBuffer)
-                }
-                
-                y += Float(itemHeight) + skin.spacing
-            }
-            */
         }
     }
 }
