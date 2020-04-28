@@ -172,7 +172,7 @@ class DesignProperties      : MMWidget
                     fragment.values[variable] = oldValue
                     let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Noise Changed") : nil
                     fragment.values[variable] = newValue
-                    if variable == "noise3D" {
+                    if variable == "noise3D" || variable == "noiseMix3D" {
                         globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                         self.editor.updateOnNextDraw(compile: true)
                     } else {

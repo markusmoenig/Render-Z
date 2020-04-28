@@ -863,9 +863,9 @@ class CodeSDFStream
                             float transmittance = 1.0;
                             float3 scatteredLight = float3(0.0, 0.0, 0.0);
                                                                                 
-                            if (inShape.z == -1) {
-                                maxDistance = \(maxDistanceCode);
-                            }
+                            //if (inShape.z == -1) {
+                            //    maxDistance = \(maxDistanceCode);
+                            //}
                             
                             maxDistance = min(maxDistance, \(maxDistanceCode));
                             
@@ -1056,7 +1056,7 @@ class CodeSDFStream
                                             shadowCode +=
                                             """
                                             
-                                                    if (inShape.z == -1)
+                                                    //if (inShape.z == -1)
                                                     {
                                                     float height = \(layerHeight);
                                                     float layerSize = \(layerDepth);
@@ -1066,6 +1066,10 @@ class CodeSDFStream
 
                                                     float start = __intersectCloudSphere( rayDirection, height );
                                                     float end  = __intersectCloudSphere( rayDirection, height + layerSize );
+                                            
+                                                    if (inShape.z != -1) {
+                                                        end = min( inShape.y, end );
+                                                    }
                                             
                                                     float t = start + random(__funcData) * (layerSize / 2.);
                                                     float tt = 0.0;
@@ -1086,12 +1090,13 @@ class CodeSDFStream
                                                         const float sigmaS = sigma.x;
                                                         const float sigmaE = sigma.y;
                                                     
+                                                        if (sigmaS > 0.0) {
                                                         float3 S = (ambientLight + lightColor  * (__phaseFunction() * scattering * __cloudMapShadow\(index)(pos, lightDirection, __funcData))) * sigmaS;
                                                         float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
                                                         scatteredLight += transmittance * Sint;
 
                                                         transmittance *= exp(-sigmaE * tt);
-                                                                            
+                                                        }
                                                         tt += (layerSize / 5.) * random(__funcData);
                                                         t += tt;
                                                     }
@@ -1508,8 +1513,8 @@ class CodeSDFStream
                         float2 bDistance = sphereIntersect(rayOrigin, rayDirection, __bbPosition, __data[\(bBox)].x);
                         if (bDistance.y >= 0.0) {
                     
-                        if (bDistance.x >= 0.0)
-                            rayOrigin = rayOrigin + bDistance.x * rayDirection;
+                        //if (bDistance.x >= 0.0)
+                            //rayOrigin = rayOrigin + bDistance.x * rayDirection;
                         
                     """
                 }

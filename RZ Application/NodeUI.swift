@@ -390,7 +390,8 @@ class NodeUISelector        : NodeUI
         super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
         self.scale = scale
         
-        mmView.drawBox.draw( x: rect.x, y: contentY, width: (maxItemWidth + spacer) * scale, height: itemHeight * scale, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : SIMD4<Float>(0,0,0,0), borderColor: adjustColor(NodeUI.contentColor) )
+        let fillColor = titleShadows ? SIMD4<Float>(NodeUI.contentColor2.x, NodeUI.contentColor2.y, NodeUI.contentColor2.z, 0.4) : SIMD4<Float>(0,0,0,0)
+        mmView.drawBox.draw( x: rect.x, y: contentY, width: (maxItemWidth + spacer) * scale, height: itemHeight * scale, round: (NodeUI.contentRound + 4) * scale, borderSize: 1, fillColor : SIMD4<Float>(fillColor), borderColor: adjustColor(NodeUI.contentColor) )
         
         let middleY : Float = contentY + itemHeight / 2 * scale
         let arrowUp : Float = 7 * scale
@@ -1512,10 +1513,21 @@ class NodeUINoise3D : NodeUISelector
         rect.height = 85
         
         menuNode = Node()
-        let primOctaves = NodeUINumber(menuNode, variable: "noiseBaseOctaves", title: "Octaves", range: SIMD2<Float>(1, 10), int: true, value: fragment.values["noiseBaseOctaves"]!)
-        menuNode.uiItems.append(primOctaves)
+        let baseOctaves = NodeUINumber(menuNode, variable: "noiseBaseOctaves", title: "Base Octaves", range: SIMD2<Float>(1, 10), int: true, value: fragment.values["noiseBaseOctaves"]!)
+        menuNode.uiItems.append(baseOctaves)
         
+        let basePersistance = NodeUINumber(menuNode, variable: "noiseBasePersistance", title: "Base Persistance", range: SIMD2<Float>(0, 2), value: fragment.values["noiseBasePersistance"]!)
+        menuNode.uiItems.append(basePersistance)
+        
+        let baseScale = NodeUINumber(menuNode, variable: "noiseBaseScale", title: "Base Scale", range: SIMD2<Float>(0, 10), value: fragment.values["noiseBaseScale"]!)
+        menuNode.uiItems.append(baseScale)
+        
+        let noiseIndex = fragment.values["noiseMix3D"] == nil ? 0 : fragment.values["noiseMix3D"]!
+        let mixNoise = NodeUISelector(menuNode, variable: "noiseMix3D", title: "Mix Noise", items: ["None", "Value", "Perlin", "Worley", "Simplex"], index: noiseIndex)
+        menuNode.uiItems.append(mixNoise)
+
         menuNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+            print(variable, newValue)
             if let cb = self.node.floatChangedCB {
                 cb(variable, oldValue, newValue, continous, noUndo)
             }
@@ -1713,30 +1725,6 @@ class NodeUIMenu : MMWidget
         firstClick = false
         #endif
     }
-    
-    /*
-    override func mouseMoved(_ event: MMMouseEvent)
-    {
-        if states.contains(.Opened) {
-            let oldSelIndex = selIndex
-            selIndex = -1
-            
-            var x = event.x - rect.x
-            var y : Int = Int(event.y - rect.y - skin.margin.top)
-            
-            if menuType != .Hidden {
-                x += -rect.width + menuRect.width
-                y += Int(-rect.height)
-            }
-            
-            if  y >= 0 && Float(y) <= menuRect.height - skin.margin.height() && x >= 0 && x <= menuRect.width {
-                 selIndex = y / (Int(itemHeight) + Int(skin.spacing))
-                if oldSelIndex != selIndex {
-                    mmView.update()
-                }
-            }
-        }
-    }*/
     
     /// If the menu is of type hidden, activates the menu
     func activateHidden()

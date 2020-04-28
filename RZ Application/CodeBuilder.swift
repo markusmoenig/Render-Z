@@ -1322,14 +1322,14 @@ class CodeBuilder
                            mix( __valueHash1(n + dot(step, float3(0, 1, 1))), __valueHash1(n + dot(step, float3(1, 1, 1))), u.x), u.y), u.z);
         }
 
-        float __valueNoise3D(float3 x, int octaves = 4) {
+        float __valueNoise3D(float3 x, int octaves = 4, float persistence = 0.5, float scale = 1) {
             float v = 0.0;
             float a = 0.5;
-            float3 shift = float3(100);
+            //float3 shift = float3(100);
             for (int i = 0; i < octaves; ++i) {
-                v += a * __valueN3D(x);
-                x = x * 2.0 + shift;
-                a *= 0.5;
+                v += a * __valueN3D(x * scale);
+                x = x * 2.0;// + shift;
+                a *= persistence;
             }
             return v;
         }
@@ -1367,18 +1367,113 @@ class CodeBuilder
                                    grad(hash(pi + float3(1, 1, 1)), pf - float3(1, 1, 1)), w.x ), w.y ), w.z );
         }
 
-        float __perlinNoise3D(float3 pos, int octaves = 4)
+        float __perlinNoise3D(float3 pos, int octaves = 4, float persistence = 0.5, float scale = 1)
         {
-            float persistence = 0.5;
             float total = 0.0, frequency = 1.0, amplitude = 1.0, maxValue = 0.0;
             for(int i = 0; i < octaves; ++i)
             {
-                total += perlinNoise3D(pos * frequency) * amplitude;
+                total += perlinNoise3D(pos * frequency * scale) * amplitude;
                 maxValue += amplitude;
                 amplitude *= persistence;
                 frequency *= 2.0;
             }
             return total / maxValue;
+        }
+        
+        float3 hash33w(float3 p3)
+        {
+            p3 = fract(p3 * float3(0.1031f, 0.1030f, 0.0973f));
+            p3 += dot(p3, p3.yxz+19.19f);
+            return fract((p3.xxy + p3.yxx)*p3.zyx);
+
+        }
+
+        float3 hash33s(float3 p3)
+        {
+            p3 = fract(p3 * float3(0.1031f, 0.11369f, 0.13787f));
+            p3 += dot(p3, p3.yxz + 19.19f);
+            return -1.0f + 2.0f * fract(float3((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y, (p3.y + p3.z) * p3.x));
+        }
+
+        float worley(float3 x)
+        {
+            float3 p = floor(x);
+            float3 f = fract(x);
+            
+            float result = 1.0f;
+            
+            for(int k = -1; k <= 1; ++k)
+            {
+                for(int j = -1; j <= 1; ++j)
+                {
+                    for(int i = -1; i <= 1; ++i)
+                    {
+                        float3 b = float3(float(i), float(j), float(k));
+                        float3 r = b - f + hash33w(p + b);
+                        float d = dot(r, r);
+                        
+                        result = min(d, result);
+                    }
+                }
+            }
+            
+            return sqrt(result);
+        }
+
+        float worleyFbm(float3 pos, int octaves, float persistence, float scale)
+        {
+            float final        = 0.0;
+            float amplitude    = 1.0;
+            float maxAmplitude = 0.0;
+            
+            for(float i = 0.0; i < octaves; ++i)
+            {
+                final        += worley(pos * scale) * amplitude;
+                scale        *= 2.0;
+                maxAmplitude += amplitude;
+                amplitude    *= persistence;
+            }
+            
+            return 1.0 - ((min(final, 1.0f) + 1.0f) * 0.5f);
+        }
+
+        float simplex(float3 pos)
+        {
+            const float K1 = 0.333333333;
+            const float K2 = 0.166666667;
+            
+            float3 i = floor(pos + (pos.x + pos.y + pos.z) * K1);
+            float3 d0 = pos - (i - (i.x + i.y + i.z) * K2);
+            
+            float3 e = step(float3(0.0), d0 - d0.yzx);
+            float3 i1 = e * (1.0 - e.zxy);
+            float3 i2 = 1.0 - e.zxy * (1.0 - e);
+            
+            float3 d1 = d0 - (i1 - 1.0 * K2);
+            float3 d2 = d0 - (i2 - 2.0 * K2);
+            float3 d3 = d0 - (1.0 - 3.0 * K2);
+            
+            float4 h = max(0.6 - float4(dot(d0, d0), dot(d1, d1), dot(d2, d2), dot(d3, d3)), 0.0);
+            float4 n = h * h * h * h * float4(dot(d0, hash33s(i)), dot(d1, hash33s(i + i1)), dot(d2, hash33s(i + i2)), dot(d3, hash33s(i + 1.0)));
+            
+            return dot(float4(31.316), n);
+        }
+
+        float simplexFbm(float3 pos, float octaves, float persistence, float scale)
+        {
+            float final        = 0.0;
+            float amplitude    = 1.0;
+            float maxAmplitude = 0.0;
+            
+            for(float i = 0.0; i < octaves; ++i)
+            {
+                final        += simplex(pos * scale) * amplitude;
+                scale        *= 2.0;
+                maxAmplitude += amplitude;
+                amplitude    *= persistence;
+            }
+            
+            return (min(final, 1.0f) + 1.0f) * 0.5f;
         }
         
         """
