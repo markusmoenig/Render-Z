@@ -94,6 +94,49 @@ fragment float4 m4mLineDrawable(RasterizerData in [[stage_in]],
     return col;
 }
 
+#define S(d,r) smoothstep( .7, -.7, (d-r)*data->size.y/2.)  // antialiased draw
+
+fragment float4 m4mDottedLineDrawable(RasterizerData in [[stage_in]],
+                               constant MM_LINE *data [[ buffer(0) ]] )
+{
+    float2 uv = in.textureCoordinate * data->size;
+    uv -= float2( data->size / 2.0 );
+//    uv -= (data->sp + data->ep) / 2;
+
+    //float2 o = uv - data->sp;
+    //float2 l = data->ep - data->sp;
+    
+    /*
+    float h = clamp( dot(o,l)/dot(l,l), 0.0, 1.0 );
+    float dist = -(data->width-distance(o,l*h));
+    
+    float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
+    col = mix( col, data->borderColor, m4mBorderMask( dist, data->borderSize ) );
+    */
+        
+    float scale = 2./ data->size.y;
+    
+    float2 p = scale * uv;
+
+    float w = scale * data->width;
+    float2 a = data->sp;
+    float2 b = data->ep;
+    //float w = data->width;
+    
+       p -= a, b -= a;
+       float h = dot(p, b) / dot(b, b),
+             c = clamp(h, 0., 1.-w/2.),
+            n = length(b)/w / data->borderColor.w,          // number of dots separate by w
+            //n = 10.,                  //  for always 10. dots
+             H = round(c*n)/n;
+    float d = length(p - b * H);
+    // return h==clamp(h, 0., 1.) ? length(p - b * h) : 1e5; // line without round ends
+    
+    float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, S( d, .8 * w / 2.));
+    
+    return col;
+}
+
 float m4mBezier(float2 pos, float2 p0, float2 p1, float2 p2)
 {
     // p(t)    = (1-t)^2*p0 + 2(1-t)t*p1 + t^2*p2

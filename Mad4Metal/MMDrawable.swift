@@ -208,15 +208,19 @@ class MMDrawBoxPattern : MMDrawable
 }
 
 /// Draws a line
-class MMDrawLine : MMDrawable
+class MMDrawLine        : MMDrawable
 {
-    let mmRenderer : MMRenderer
-    var state : MTLRenderPipelineState!
-    
+    let mmRenderer      : MMRenderer
+    var state           : MTLRenderPipelineState!
+    var dottedstate     : MTLRenderPipelineState!
+
     required init( _ renderer : MMRenderer )
     {
-        let function = renderer.defaultLibrary.makeFunction( name: "m4mLineDrawable" )
+        var function = renderer.defaultLibrary.makeFunction( name: "m4mLineDrawable" )
         state = renderer.createNewPipelineState( function! )
+        
+        function = renderer.defaultLibrary.makeFunction( name: "m4mDottedLineDrawable" )
+        dottedstate = renderer.createNewPipelineState( function! )
         mmRenderer = renderer
     }
     
@@ -254,6 +258,43 @@ class MMDrawLine : MMDrawable
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
         
         renderEncoder.setRenderPipelineState( state! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+    
+    func drawDotted( sx: Float, sy: Float, ex: Float, ey: Float, radius: Float = 2, distance: Float = 5, borderSize: Float = 0, fillColor: SIMD4<Float>, borderColor: SIMD4<Float> = SIMD4<Float>(repeating: 0) )
+    {
+        let scaleFactor : Float = mmRenderer.mmView.scaleFactor
+    
+        let minX = min(sx, ex)
+        let maxX = max(sx, ex)
+        let minY = min(sy, ey)
+        let maxY = max(sy, ey)
+        
+        let areaWidth : Float = maxX - minX + borderSize + radius * 2
+        let areaHeight : Float = maxY - minY + borderSize + radius * 2
+        
+        let middleX : Float = (sx + ex) / 2
+        let middleY : Float = (sy + ey) / 2
+        
+        let settings: [Float] = [
+            areaWidth * scaleFactor, areaHeight * scaleFactor,
+            (sx - middleX) * scaleFactor, (middleY - sy) * scaleFactor,
+            (ex - middleX) * scaleFactor, (middleY - ey) * scaleFactor,
+            radius * scaleFactor, borderSize * scaleFactor,
+            fillColor.x, fillColor.y, fillColor.z, fillColor.w,
+            borderColor.x, borderColor.y, borderColor.z, distance
+        ];
+
+        let renderEncoder = mmRenderer.renderEncoder!
+
+        let vertexBuffer = mmRenderer.createVertexBuffer( MMRect( minX - borderSize / 2, minY - borderSize / 2, areaWidth, areaHeight, scale: scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmRenderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        
+        renderEncoder.setRenderPipelineState( dottedstate! )
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
 }

@@ -1041,8 +1041,6 @@
 				2B7A3C3223B46837002EC5FC /* RightRegion.swift */,
 				2B7A3C3323B46838002EC5FC /* BottomRegion.swift */,
 				2B7A3C3623B46838002EC5FC /* EditorRegion.swift */,
-				2B7A3C3D23B469AD002EC5FC /* Mad4Metal.metal */,
-				2B7A3C3E23B469AD002EC5FC /* Mad4Metal_types.h */,
 				2B7A3C5223B4768D002EC5FC /* ArtistEditor.swift */,
 				2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */,
 				2B8E2FE723C7FDF9005619E4 /* DesignProperties.swift */,
@@ -1299,6 +1297,8 @@
 				2B639F19221A32CD00576542 /* MMFile.swift */,
 				2BED879C228B9D9C005CE147 /* MMScreen.swift */,
 				2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */,
+				2B7A3C3D23B469AD002EC5FC /* Mad4Metal.metal */,
+				2B7A3C3E23B469AD002EC5FC /* Mad4Metal_types.h */,
 			);
 			path = Mad4Metal;
 			sourceTree = "<group>";

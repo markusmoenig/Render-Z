@@ -11,7 +11,7 @@ import MetalKit
 class SceneGraphSkin {
     
     //let normalInteriorColor     = SIMD4<Float>(0,0,0,0)
-    let normalInteriorColor     = SIMD4<Float>(0.231, 0.231, 0.231, 1.000)
+    let normalInteriorColor     = SIMD4<Float>(0.227, 0.231, 0.235, 1.000)
     let normalBorderColor       = SIMD4<Float>(0.5,0.5,0.5,1)
     let normalTextColor         = SIMD4<Float>(0.8,0.8,0.8,1)
     
@@ -19,6 +19,8 @@ class SceneGraphSkin {
 
     let normalTerminalColor     = SIMD4<Float>(0.5,0.5,0.5,1)
     let selectedTerminalColor   = SIMD4<Float>(0.816, 0.396, 0.204, 1.000)
+    
+    let worldColor              = SIMD4<Float>(0.325, 0.576, 0.761, 1.000)
 
     let tempRect                = MMRect()
     let fontScale               : Float
@@ -29,11 +31,15 @@ class SceneGraphSkin {
     
     let tSize                   : Float = 15
     let tHalfSize               : Float = 15 / 2
+    
+    let itemListWidth           : Float
 
-    init(_ font: MMFont, fontScale: Float = 0.4) {
+    init(_ font: MMFont, fontScale: Float = 0.4, graphZoom: Float) {
         self.font = font
         self.fontScale = fontScale
         self.lineHeight = font.getLineHeight(fontScale)
+        
+        itemListWidth = 140 * graphZoom
     }
 }
 
@@ -783,7 +789,12 @@ class SceneGraph                : MMWidget
             left += w.rect.width + 5
         }*/
         
-        let skin : SceneGraphSkin = SceneGraphSkin(mmView.openSans, fontScale: 0.4 * graphZoom)
+        let skin : SceneGraphSkin = SceneGraphSkin(mmView.openSans, fontScale: 0.4 * graphZoom, graphZoom: graphZoom)
+        
+        // Build the menu
+        if needsUpdate {
+            update()
+        }
         
         if let scene = globalApp!.project.selected {
             mmView.renderer.setClipRect(MMRect(rect.x, rect.y /* + toolBarHeight + 1*/, rect.width - 1, rect.height /*- toolBarHeight - 1*/))
@@ -797,7 +808,10 @@ class SceneGraph                : MMWidget
                 if let uuid = currentUUID {
                     if let currentItem = itemMap[uuid] {
                         itemMenu.rect.x = rect.x + currentItem.rect.right() + 5
-                        itemMenu.rect.y = rect.y + currentItem.rect.y - 15
+                        if itemMenu.rect.right() > rect.x + rect.width {
+                            itemMenu.rect.x = rect.x + currentItem.rect.x - itemMenu.rect.width - 5
+                        }
+                        itemMenu.rect.y = rect.y + currentItem.rect.y + (currentItem.rect.height - itemMenu.rect.width) / 2
                         itemMenu.draw()
                     } else {
                         itemMenu.rect.x = 0
@@ -823,11 +837,6 @@ class SceneGraph                : MMWidget
         } else {
             mmView.drawBox.draw( x: knobRect.x, y: knobRect.y, width: knobRect.width - halfKnobWidth, height: knobRect.height, round: 6, fillColor : SIMD4<Float>( 0.5, 0.5, 0.5, 1))
         }*/
-        
-        // Build the toolbar
-        if needsUpdate {
-            update()
-        }
         
         // Build the navigator
         navRect.width = 200 / 2
@@ -1556,23 +1565,15 @@ class SceneGraph                : MMWidget
     }
     
     /// Draws a line between two circles
-    func drawLineBetweenCircles(_ b: SceneGraphItem,_ a: SceneGraphItem,_ skin: SceneGraphSkin)
+    func drawLineBetweenItems(_ b: SceneGraphItem,_ a: SceneGraphItem,_ skin: SceneGraphSkin)
     {
-        
         mmView.drawLine.draw(sx: rect.x + b.rect.x + b.rect.width / 2, sy: rect.y + b.rect.y + b.rect.height / 2, ex: rect.x + a.rect.x + a.rect.width / 2, ey: rect.y + a.rect.y + a.rect.height / 2, radius: 1, fillColor: skin.normalBorderColor)
-        /*
-         
-        let aMid = SIMD2<Float>(a.rect.x + a.rect.width / 2, a.rect.y + a.rect.height / 2)
-        let bMid = SIMD2<Float>(b.rect.x + b.rect.width / 2, b.rect.y + b.rect.height / 2)
-         
-        let deltaX : Float = bMid.x - aMid.x
-        let deltaY : Float = bMid.y - aMid.y
-        let L : Float = sqrt(deltaX * deltaX + deltaY * deltaY)
-        
-        let radiusA : Float = a.rect.width / 2 / L
-        let radiusB : Float = b.rect.width / 2 / L
-
-        mmView.drawLine.draw(sx: rect.x + bMid.x - deltaX * radiusB - 1, sy: rect.y + bMid.y - deltaY * radiusB - 1, ex: rect.x + aMid.x + deltaX * radiusA - 1, ey: rect.y + aMid.y + deltaY * radiusA - 1, radius: 1, fillColor: skin.normalBorderColor)*/
+    }
+    
+    /// Draws a dotted line between two circles
+    func drawDottedLineBetweenItems(_ b: SceneGraphItem,_ a: SceneGraphItem,_ skin: SceneGraphSkin)
+    {
+        mmView.drawLine.drawDotted(sx: rect.x + b.rect.x + b.rect.width / 2, sy: rect.y + b.rect.y + b.rect.height / 2, ex: rect.x + a.rect.x + a.rect.width / 2, ey: rect.y + a.rect.y + a.rect.height / 2, radius: 1.5, fillColor: skin.normalBorderColor)
     }
     
     /// Creates a button with a "+" text and draws it
@@ -1633,26 +1634,26 @@ class SceneGraph                : MMWidget
                 item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
                 itemMap[comp.uuid] = item
 
-                drawItem(item, selected: childItem === currentStageItem , parent: worldItem, skin: skin)
+                drawItem(item, selected: childItem === currentStageItem , parent: worldItem, skin: skin, dotted: true)
             } else
             if childItem.componentLists["fog"] != nil {
                 
                 let fogItem = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
-                fogItem.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
+                fogItem.rect.set(cX, cY, skin.itemListWidth, skin.itemHeight * graphZoom)
                 
-                drawLineBetweenCircles(fogItem, worldItem, skin)
+                drawDottedLineBetweenItems(fogItem, worldItem, skin)
                 drawItemList(parent: fogItem, listId: "fog", graphId: "_graphFog", name: "Fog", containerId: .FogContainer, itemId: .FogItem, skin: skin)
             } else
             if childItem.componentLists["clouds"] != nil {
                 
                 let cloudItem = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
-                cloudItem.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
+                cloudItem.rect.set(cX, cY, skin.itemListWidth, skin.itemHeight * graphZoom)
                 
-                drawLineBetweenCircles(cloudItem, worldItem, skin)
+                drawDottedLineBetweenItems(cloudItem, worldItem, skin)
                 drawItemList(parent: cloudItem, listId: "clouds", graphId: "_graphClouds", name: "Clouds", containerId: .CloudsContainer, itemId: .CloudsItem, skin: skin)
             }
         }
-        drawItem(worldItem, selected: stage === currentStage, skin: skin)
+        drawItem(worldItem, selected: stage === currentStage, skin: skin, color: skin.worldColor)
 
         // Draw Objects
         stage = scene.getStage(.ShapeStage)
@@ -1753,7 +1754,7 @@ class SceneGraph                : MMWidget
             item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
             itemMap[childItem.uuid] = item
             
-            drawLineBetweenCircles(variableItem, item, skin)
+            drawLineBetweenItems(variableItem, item, skin)
 
             drawVariablesPool(parent: item, skin: skin)
         }
@@ -1797,10 +1798,14 @@ class SceneGraph                : MMWidget
     }
     
     // drawItem
-    func drawItem(_ item: SceneGraphItem, selected: Bool, parent: SceneGraphItem? = nil, skin: SceneGraphSkin)
+    func drawItem(_ item: SceneGraphItem, selected: Bool, parent: SceneGraphItem? = nil, skin: SceneGraphSkin, color: SIMD4<Float>? = nil, dotted: Bool = false)
     {
         if let parent = parent {
-            drawLineBetweenCircles(parent, item, skin)
+            if dotted {
+                drawDottedLineBetweenItems(parent, item, skin)
+            } else {
+                drawLineBetweenItems(parent, item, skin)
+            }
         }
         
         var label : MMTextLabel
@@ -1992,7 +1997,9 @@ class SceneGraph                : MMWidget
         }
         
         if hasProperties == false {
-            mmView.drawBox.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: item.rect.width, height: item.rect.height, round: 12 * graphZoom, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+            let fillColor : SIMD4<Float> = selected ? (color == nil ? skin.normalInteriorColor : color!) : skin.normalInteriorColor
+            let borderColor : SIMD4<Float> = selected ? (color == nil ?  SIMD4<Float>(1,1,1,1) : color!) : (color == nil ? skin.normalInteriorColor : color!)
+            mmView.drawBox.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, width: item.rect.width, height: item.rect.height, round: 12 * graphZoom, borderSize: 1, fillColor: fillColor, borderColor: borderColor)
         }
 
         //mmView.drawSphere.draw(x: rect.x + item.rect.x, y: rect.y + item.rect.y, radius: item.rect.width / 2, borderSize: 1.5, fillColor: skin.normalInteriorColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
@@ -2048,7 +2055,7 @@ class SceneGraph                : MMWidget
         }
         
         if let p = parent {
-            drawLineBetweenCircles(item, p, skin)
+            drawLineBetweenItems(item, p, skin)
         }
         
         if o.components[o.defaultName]!.componentType != .RegionProfile3D {
@@ -2282,7 +2289,7 @@ class SceneGraph                : MMWidget
         if let list = parent.stageItem!.componentLists[listId] {
             
             let amount : Float = Float(list.count)
-            let height : Float = amount * itemSize + headerHeight + 15 * graphZoom
+            let height : Float = amount * itemSize + headerHeight + (list.count > 0 ? 15 * graphZoom : 3 * graphZoom)
             
             let container = SceneGraphItem(containerId, stage: parent.stage, stageItem: stageItem)
             container.rect.set(x, y, totalWidth, height)
@@ -2292,9 +2299,9 @@ class SceneGraph                : MMWidget
                 navItems.append(container)
             }
             
-            mmView.drawLine.draw(sx: rect.x + parent.rect.x + parent.rect.width / 2, sy: rect.y + parent.rect.y + parent.rect.height / 2, ex: rect.x + x + totalWidth / 2, ey: rect.y + y + headerHeight / 2, radius: 1, fillColor: skin.normalBorderColor)
+            //mmView.drawLine.draw(sx: rect.x + parent.rect.x + parent.rect.width / 2, sy: rect.y + parent.rect.y + parent.rect.height / 2, ex: rect.x + x + totalWidth / 2, ey: rect.y + y + headerHeight / 2, radius: 1, fillColor: skin.normalBorderColor)
             
-            mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: /*parent.stage === currentStage ? skin.selectedBorderColor :*/ skin.normalBorderColor)
+            mmView.drawBox.draw(x: rect.x + x, y: rect.y + y, width: totalWidth, height: height, round: 12, borderSize: 1, fillColor: skin.normalInteriorColor, borderColor: /*parent.stage === currentStage ? skin.selectedBorderColor :*/ skin.normalInteriorColor)
             
             drawPlusButton(item: container, rect: MMRect(rect.x + x + totalWidth - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + y + 4 * graphZoom, headerHeight, headerHeight), cb: { () in
                 self.addItem(container, name: name, listId: listId)
@@ -2303,6 +2310,10 @@ class SceneGraph                : MMWidget
             skin.font.getTextRect(text: name, scale: skin.fontScale, rectToUse: skin.tempRect)
             
             mmView.drawText.drawText(skin.font, text: name, x: rect.x + x + 10 * graphZoom, y: rect.y + y + 7 * graphZoom, scale: skin.fontScale, color: skin.normalTextColor)
+            
+            if list.count == 0 {
+                return
+            }
             
             mmView.drawLine.draw(sx: rect.x + x + 4 * graphZoom, sy: rect.y + y + headerHeight, ex: rect.x + x + totalWidth - 8 * graphZoom, ey: rect.y + y + headerHeight, radius: 0.6, fillColor: skin.normalBorderColor)
 
@@ -2313,7 +2324,7 @@ class SceneGraph                : MMWidget
                 itemMap[comp.uuid] = item
                 
                 if comp === currentComponent {
-                    mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 0, fillColor: skin.selectedBorderColor)
+                    mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 6 * graphZoom, fillColor: skin.selectedBorderColor)
                 }
                 
                 if stageItem.componentLabels[comp.libraryName] == nil || stageItem.componentLabels[comp.libraryName]!.scale != skin.fontScale {
