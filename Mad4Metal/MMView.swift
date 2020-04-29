@@ -52,6 +52,8 @@ public class MMView : MMBaseView {
     
     // --- Widget References
     var widgetIdCounter : Int!
+    
+    var openPopups      : [MMWidget] = []
 
     var maxFramerateLocks: Int = 0
     var maxHardLocks    : Int = 0
@@ -246,6 +248,7 @@ public class MMView : MMBaseView {
     func deregisterWidget(_ widget : MMWidget)
     {
         widgets.removeAll(where: { $0 == widget })
+        openPopups.removeAll(where: { $0 == widget })
     }
     
     func deregisterWidgets( widgets: MMWidget... )
@@ -253,6 +256,14 @@ public class MMView : MMBaseView {
         for widget in widgets {
             deregisterWidget(widget)
         }
+    }
+    
+    func deregisterPopups()
+    {
+        for widget in openPopups {
+            deregisterWidget(widget)
+        }
+        openPopups = []
     }
     
     /// Gets a uniquge id for your widget
@@ -328,13 +339,15 @@ public class MMView : MMBaseView {
     ///
     func showDialog(_ dialog: MMDialog)
     {
+        deregisterPopups()
+
         self.dialog = dialog
         dialogXPos = (renderer.cWidth - dialog.rect.width) / 2
         dialogYPos = -dialog.rect.height
         
         widgetsBackup = widgets
         widgets = dialog.widgets
-        
+                
         startAnimate( startValue: dialogYPos, endValue: 0, duration: 500, cb: { (value,finished) in
             self.dialogYPos = value
             if finished {

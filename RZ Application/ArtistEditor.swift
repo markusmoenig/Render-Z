@@ -188,6 +188,8 @@ class ArtistEditor          : Editor
         designEditor.updateGizmo()
         updateOnNextDraw(compile: false)
         mmView.update()
+        
+        mmView.deregisterPopups()
     }
     
     override func updateOnNextDraw(compile: Bool = true)

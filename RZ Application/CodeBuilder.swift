@@ -78,7 +78,6 @@ class CodeBuilderInstance
                 for t in tool {
                     properties.append((t.1, t.1, t.0, data.count, propComponent, hierarchy))
                     data.append(SIMD4<Float>(t.1.values[t.0]!,0,0,0))
-                    print("added tool property", t.0)
                 }
             } else
             if let variableComp = component.globalVariables[uuid] {
@@ -1234,6 +1233,30 @@ class CodeBuilder
             return degrees * PI / 180.0;
         }
         
+        float linearstep( const float s, const float e, float v ) {
+            return clamp( (v-s)*(1./(e-s)), 0., 1. );
+        }
+        
+        float cloudGradient( float norY ) {
+            return linearstep( 0., .05, norY ) - linearstep( .8, 1.2, norY);
+        }
+        
+        #define EARTH_RADIUS    (1500000.) // (6371000.)
+        #define CLOUDS_FORWARD_SCATTERING_G (.8)
+        #define CLOUDS_BACKWARD_SCATTERING_G (-.2)
+        #define CLOUDS_SCATTERING_LERP (.5)
+        
+        float __HenyeyGreenstein( float sundotrd, float g) {
+            float gg = g * g;
+            return (1. - gg) / pow( 1. + gg - 2. * g * sundotrd, 1.5);
+        }
+
+        float __intersectCloudSphere( float3 rd, float r ) {
+            float b = EARTH_RADIUS * rd.y;
+            float d = b * b + r * r + 2. * EARTH_RADIUS * r;
+            return -b + sqrt( d );
+        }
+        
         float4 toGamma(float4 linearColor) {
            return float4(pow(linearColor.xyz, float3(1.0/2.2)), linearColor.w);
         }
@@ -1325,10 +1348,10 @@ class CodeBuilder
         float __valueNoise3D(float3 x, int octaves = 4, float persistence = 0.5, float scale = 1) {
             float v = 0.0;
             float a = 0.5;
-            //float3 shift = float3(100);
+            float3 shift = float3(100);
             for (int i = 0; i < octaves; ++i) {
                 v += a * __valueN3D(x * scale);
-                x = x * 2.0;// + shift;
+                x = x * 2.0 + shift;
                 a *= persistence;
             }
             return v;
@@ -1434,7 +1457,7 @@ class CodeBuilder
                 amplitude    *= persistence;
             }
             
-            return 1.0 - ((min(final, 1.0f) + 1.0f) * 0.5f);
+            return 1.0 - final;//((min(final, 1.0f) + 1.0f) * 0.5f);
         }
 
         float simplex(float3 pos)
@@ -1473,7 +1496,7 @@ class CodeBuilder
                 amplitude    *= persistence;
             }
             
-            return (min(final, 1.0f) + 1.0f) * 0.5f;
+            return final;//(min(final, 1.0f) + 1.0f) * 0.5f;
         }
         
         """

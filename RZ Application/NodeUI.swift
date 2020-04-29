@@ -1492,6 +1492,7 @@ class NodeUINoise3D : NodeUISelector
     var previewIndex        : Float = -1
     
     var menuNode            : Node!
+    var menuNode2           : Node!
     var menu                : NodeUIMenu!
     
     var oRect               = MMRect()
@@ -1513,6 +1514,8 @@ class NodeUINoise3D : NodeUISelector
         rect.height = 85
         
         menuNode = Node()
+        menuNode2 = Node()
+
         let baseOctaves = NodeUINumber(menuNode, variable: "noiseBaseOctaves", title: "Base Octaves", range: SIMD2<Float>(1, 10), int: true, value: fragment.values["noiseBaseOctaves"]!)
         menuNode.uiItems.append(baseOctaves)
         
@@ -1523,18 +1526,49 @@ class NodeUINoise3D : NodeUISelector
         menuNode.uiItems.append(baseScale)
         
         let noiseIndex = fragment.values["noiseMix3D"] == nil ? 0 : fragment.values["noiseMix3D"]!
-        let mixNoise = NodeUISelector(menuNode, variable: "noiseMix3D", title: "Mix Noise", items: ["None", "Value", "Perlin", "Worley", "Simplex"], index: noiseIndex)
-        menuNode.uiItems.append(mixNoise)
+        let mixNoise = NodeUISelector(menuNode2, variable: "noiseMix3D", title: "Mix Noise", items: ["None", "Value", "Perlin", "Worley", "Simplex"], index: noiseIndex)
+        menuNode2.uiItems.append(mixNoise)
+        
+        let mixOctaves = NodeUINumber(menuNode2, variable: "noiseMixOctaves", title: "Mix Octaves", range: SIMD2<Float>(1, 10), int: true, value: fragment.values["noiseMixOctaves"]!)
+        menuNode2.uiItems.append(mixOctaves)
+        
+        let mixPersistance = NodeUINumber(menuNode2, variable: "noiseMixPersistance", title: "Mix Persistance", range: SIMD2<Float>(0, 2), value: fragment.values["noiseMixPersistance"]!)
+        menuNode2.uiItems.append(mixPersistance)
+        
+        let mixScale = NodeUINumber(menuNode2, variable: "noiseMixScale", title: "Mix Scale", range: SIMD2<Float>(0, 10), value: fragment.values["noiseMixScale"]!)
+        menuNode2.uiItems.append(mixScale)
+        
+        let mixDisturbance = NodeUINumber(menuNode2, variable: "noiseMixDisturbance", title: "Disturbance", range: SIMD2<Float>(0, 2), value: fragment.values["noiseMixDisturbance"]!)
+        menuNode2.uiItems.append(mixDisturbance)
+        
+        let mixValue = NodeUINumber(menuNode, variable: "noiseMixValue", title: "Mix", range: SIMD2<Float>(0, 1), value: fragment.values["noiseMixValue"]!)
+        menuNode.uiItems.append(mixValue)
+        
+        func disableItems() {
+            var disableMix = false
+            if mixNoise.items[Int(mixNoise.index)] == "None" {
+                disableMix = true
+            }
+            mixOctaves.isDisabled = disableMix
+            mixPersistance.isDisabled = disableMix
+            mixScale.isDisabled = disableMix
+            mixDisturbance.isDisabled = disableMix
+            mixValue.isDisabled = disableMix
+        }
+        
+        disableItems()
 
         menuNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
-            print(variable, newValue)
+            disableItems()
             if let cb = self.node.floatChangedCB {
                 cb(variable, oldValue, newValue, continous, noUndo)
             }
             self.generatePreview()
         }
         
-        menu = NodeUIMenu(mmView, node: menuNode)
+        menuNode2.floatChangedCB = menuNode.floatChangedCB
+        
+        menu = NodeUIMenu(mmView, node: menuNode, node2: menuNode2, offset: 49)
         menu.shadows = titleShadows
         menu.menuType = .BoxedMenu
         menu.rect.width /= 1.2
@@ -1623,14 +1657,19 @@ class NodeUIMenu : MMWidget
     var textLabel   : MMTextLabel? = nil
     
     var node        : Node
+    var node2       : Node? = nil
     var pWidget     : PropertiesWidget!
+    
+    var offset      : Float = 0
     
     var shadows     : Bool = false
     
-    init( _ view: MMView, skinToUse: MMSkinMenuWidget? = nil, type: MenuType = .BoxedMenu, node: Node)
+    init( _ view: MMView, skinToUse: MMSkinMenuWidget? = nil, type: MenuType = .BoxedMenu, node: Node, node2: Node? = nil, offset: Float = 0)
     {
         self.node = node
-        
+        self.node2 = node2
+        self.offset = offset
+
         skin = skinToUse != nil ? skinToUse! : view.skin.MenuWidget
         menuRect = MMRect( 0, 0, 0, 0)
         
@@ -1657,9 +1696,18 @@ class NodeUIMenu : MMWidget
         
         menuRect = MMRect()
         menuRect.width = node.uiArea.width
-        menuRect.height = node.uiArea.height
-        menuRect.width += skin.margin.width()
+        menuRect.height = node.uiArea.height + offset
+        //menuRect.width += skin.margin.width()
         menuRect.height += skin.margin.height()
+        
+        if let node2 = node2 {
+            node2.setupUI(mmView: view)
+            pWidget.c2Node = node2
+            
+            menuRect.width += node2.uiArea.width
+            //menuRect.width += skin.margin.width()
+            menuRect.height = max(menuRect.height, node2.uiArea.height + skin.margin.height())
+        }
     }
     
     /// Only for MenuType == LabelMenu
@@ -1690,6 +1738,7 @@ class NodeUIMenu : MMWidget
             firstClick = true
         
             mmView.widgets.insert(pWidget, at: 0)
+            mmView.openPopups.append(pWidget)
         } else {
             #if os(OSX)
 
@@ -1762,6 +1811,14 @@ class NodeUIMenu : MMWidget
         
         if states.contains(.Opened) {
             
+            if mmView.openPopups.contains(pWidget) == false {
+                removeState(.Opened)
+                removeState(.Hover)
+                removeState(.Checked)
+                removeState(.Clicked)
+                return
+            }
+            
             var x = rect.x + menuRect.width
             var y = rect.y - menuRect.height
             
@@ -1786,7 +1843,12 @@ class NodeUIMenu : MMWidget
             
             if states.contains(.Opened) {
                 node.rect.x = x - pWidget.rect.x
-                node.rect.y = y - pWidget.rect.y
+                node.rect.y = y - pWidget.rect.y + offset
+                
+                if let node2 = node2 {
+                    node2.rect.x = node.rect.x + node.uiArea.width// + skin.margin.width()
+                    node2.rect.y = y - pWidget.rect.y
+                }
              
                 pWidget.draw(xOffset: xOffset, yOffset: yOffset)
             }

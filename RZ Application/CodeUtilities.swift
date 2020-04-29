@@ -783,13 +783,42 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
     """
     
     float noise = \(funcName)(float3(uv.x, 0.0, uv.y), \(fragment.values["noiseBaseOctaves"]!), \(fragment.values["noiseBasePersistance"]!), \(fragment.values["noiseBaseScale"]!));
-    outColor = mix(float4(float3(0), 0.8), float4(1,1,1, 0.8), noise);
     
     """
+    
+    let mixNoiseIndex = fragment.values["noiseMix3D"] == nil ? -1 : fragment.values["noiseMix3D"]! - 1
+    
+    funcName = "None"
+    
+    if domain == "noise3D" {
+        if mixNoiseIndex == 0.0 {
+            funcName = "__valueNoise3D"
+        } else
+        if mixNoiseIndex == 1.0 {
+            funcName = "__perlinNoise3D"
+        } else
+        if mixNoiseIndex == 2.0 {
+            funcName = "worleyFbm"
+        } else
+        if mixNoiseIndex == 3.0 {
+            funcName = "simplexFbm"
+        }
+    }
+    
+    if funcName != "None" {
+        
+        code +=
+        """
+        
+        float mixNoise = \(funcName)(float3(uv.x, 0.0, uv.y) + (float3( noise *  \(fragment.values["noiseMixDisturbance"]!) )), \(fragment.values["noiseMixOctaves"]!), \(fragment.values["noiseMixPersistance"]!), \(fragment.values["noiseMixScale"]!));
+        
+        noise = mix(noise, mixNoise, \(fragment.values["noiseMixValue"]!));
+        """
+    }
     
     code +=
     """
-    
+        outColor = mix(float4(float3(0), 0.8), float4(1,1,1, 0.8), noise);
         __outTexture.write(half4(outColor), __gid);
     }
     
@@ -810,11 +839,11 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
 
 // Setup a NodeUINoise3D
 
-func setupNoise3DUI(_ node: Node, _ fragment: CodeFragment) -> NodeUINoise3D
+func setupNoise3DUI(_ node: Node, _ fragment: CodeFragment, title: String = "3D Noise") -> NodeUINoise3D
 {
     let items : [String] = ["Value", "Perlin", "Worley", "Simplex"]
     let noiseIndex = fragment.values["noise3D"] == nil ? 0 : fragment.values["noise3D"]!
-    return NodeUINoise3D(node, variable: "noise3D", title: "3D Noise", items: items, index: noiseIndex, fragment: fragment)
+    return NodeUINoise3D(node, variable: "noise3D", title: title, items: items, index: noiseIndex, fragment: fragment)
 }
 
 func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> String
@@ -843,7 +872,6 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
     func getNoiseName(_ noiseType: String, secondary: Bool = false) -> String
     {
         var noiseIndex = fragment.values[noiseType] == nil ? 0 : fragment.values[noiseType]!
-        print("noiseIndex", noiseIndex, secondary)
         if secondary {
             noiseIndex -= 1
         }
@@ -883,6 +911,13 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
     
     """
     
+    let mixOctavesIndex = addToolProperty("noiseMixOctaves", defaultValue: 4)
+    let mixPersistanceIndex = addToolProperty("noiseMixPersistance", defaultValue: 0.5)
+    let mixScaleIndex = addToolProperty("noiseMixScale", defaultValue: 1)
+    
+    let mixDisturbance = addToolProperty("noiseMixDisturbance", defaultValue: 1.0)
+    let mixValue = addToolProperty("noiseMixValue", defaultValue: 0.5)
+    
     let secondary = getNoiseName("noiseMix3D", secondary: true)
     if secondary != "None" {
         
@@ -890,16 +925,12 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
         """
             float mixNoise = \(secondary)
         """
-        
-        let mixOctavesIndex = addToolProperty("noiseMixOctaves", defaultValue: 4)
-        let mixPersistanceIndex = addToolProperty("noiseMixPersistance", defaultValue: 0.5)
-        let mixScaleIndex = addToolProperty("noiseMixScale", defaultValue: 1)
 
         funcCode +=
         """
-        ( pos + baseNoise, int(__funcData->__data[\(mixOctavesIndex)].x), __funcData->__data[\(mixPersistanceIndex)].x, __funcData->__data[\(mixScaleIndex)].x );
+        ( pos + (float3(baseNoise * __funcData->__data[\(mixDisturbance)].x)), int(__funcData->__data[\(mixOctavesIndex)].x), __funcData->__data[\(mixPersistanceIndex)].x, __funcData->__data[\(mixScaleIndex)].x );
         
-        baseNoise = mixNoise;
+        baseNoise = mix(baseNoise, mixNoise, __funcData->__data[\(mixValue)].x);
         """
     }
     
@@ -912,7 +943,6 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
     
     """
     
-    print(funcCode)
     component.globalCode! += funcCode
     
     return funcName

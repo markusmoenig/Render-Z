@@ -112,7 +112,7 @@ class DesignProperties      : MMWidget
                 if components == 1 {
                     if rc.1!.fragmentType == .Primitive && rc.1!.name == "noise3D" {
                         propMap["noise3D"] = rc.1!
-                        let noiseUI = setupNoise3DUI(c1Node!, rc.1!)
+                        let noiseUI = setupNoise3DUI(c1Node!, rc.1!, title: comp.artistPropertyNames[uuid]!)
                         noiseUI.titleShadows = true
                         c1Node!.uiItems.append(noiseUI)
                     } else {

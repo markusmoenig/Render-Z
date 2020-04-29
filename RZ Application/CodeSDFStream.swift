@@ -270,22 +270,6 @@ class CodeSDFStream
                 
             """
             
-            #define EARTH_RADIUS    (1500000.) // (6371000.)
-            #define CLOUDS_FORWARD_SCATTERING_G (.8)
-            #define CLOUDS_BACKWARD_SCATTERING_G (-.2)
-            #define CLOUDS_SCATTERING_LERP (.5)
-            
-            float __HenyeyGreenstein( float sundotrd, float g) {
-                float gg = g * g;
-                return (1. - gg) / pow( 1. + gg - 2. * g * sundotrd, 1.5);
-            }
-
-            float __intersectCloudSphere( float3 rd, float r ) {
-                float b = EARTH_RADIUS * rd.y;
-                float d = b * b + r * r + 2. * EARTH_RADIUS * r;
-                return -b + sqrt( d );
-            }
-            
             float2 __getParticipatingMedia(float3 position, float constFogDensity, thread struct FuncData *__funcData)
             {
                 constant float4 *__data = __funcData->__data;
@@ -986,7 +970,7 @@ class CodeSDFStream
                                             headerCode +=
                                             """
                                             
-                                            float2 __cloudMap\(index)(float3 position, thread struct FuncData *__funcData)
+                                            float2 __cloudMap\(index)(float3 position, float norY, thread struct FuncData *__funcData)
                                             {
                                                 constant float4 *__data = __funcData->__data;
                                                 float GlobalTime = __funcData->GlobalTime;
@@ -1001,7 +985,7 @@ class CodeSDFStream
                                             headerCode +=
                                             """
                                                                                                                                     
-                                                float sigmaS = outDensity;
+                                                float sigmaS = outDensity * cloudGradient(norY);
                                                
                                                 const float sigmaA = 0.0;
                                                 const float sigmaE = max(0.000000001, sigmaA + sigmaS);
@@ -1009,20 +993,23 @@ class CodeSDFStream
                                                 return float2( sigmaS, sigmaE );
                                             }
                                             
-                                            float __cloudMapShadow\(index)(float3 from, float3 dir, thread struct FuncData *__funcData)
+                                            float __cloudMapShadow\(index)(float3 from, float3 dir, float height, float layerSize, thread struct FuncData *__funcData)
                                             {
-                                                const float numStep = 16.0; // quality control. Bump to avoid shadow alisaing
                                                 float shadow = 1.0;
-                                                float sigmaS = 0.0;
-                                                float sigmaE = 0.0;
-                                                float dd = 10.;
+                                                float dd = (layerSize / 2.) * random(__funcData);
                                                 float d = dd * 0.5;
+                                            
                                                 for(int s=0; s < 6; s += 1)
                                                 {
                                                     float3 pos = from + dir * d;
-                                                    float2 sigma = __cloudMap\(index)(pos, __funcData);
+                                            
+                                                    float norY = (length(pos) - (EARTH_RADIUS + height)) * (1./(layerSize));
+                                                    if(norY > 1.) return shadow;
+
+                                                    float2 sigma = __cloudMap\(index)(pos, norY, __funcData);
                                                     shadow *= exp(-sigma.y * dd);
-                                                    dd *= 1.3;
+                                                    
+                                                    dd *= 0.5 + random(__funcData);
                                                     d += dd;
                                                 }
                                                 return shadow;
@@ -1085,13 +1072,13 @@ class CodeSDFStream
                                                         float norY = clamp( (length(pos) - (EARTH_RADIUS + height)) * (1./(layerSize)), 0., 1.);
                                                         float3 ambientLight = mix( \(bottomColor), \(topColor), norY );
 
-                                                        float2 sigma = __cloudMap\(index)( pos, __funcData);
+                                                        float2 sigma = __cloudMap\(index)( pos, norY, __funcData);
                                                         
                                                         const float sigmaS = sigma.x;
                                                         const float sigmaE = sigma.y;
                                                     
                                                         if (sigmaS > 0.0) {
-                                                        float3 S = (ambientLight + lightColor  * (__phaseFunction() * scattering * __cloudMapShadow\(index)(pos, lightDirection, __funcData))) * sigmaS;
+                                                        float3 S = (ambientLight + lightColor  * (__phaseFunction() * scattering * __cloudMapShadow\(index)(pos, lightDirection, height, layerSize, __funcData))) * sigmaS;
                                                         float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
                                                         scatteredLight += transmittance * Sint;
 

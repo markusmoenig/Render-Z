@@ -45,7 +45,7 @@ class MMKeyEvent
 }
 
 /// Widget Base Class
-class MMWidget
+class MMWidget : Equatable
 {
     enum MMWidgetStates {
         case Hover, Clicked, Focus, Checked, Opened, Closed
