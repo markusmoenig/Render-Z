@@ -763,21 +763,9 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
     """
         
     var funcName = ""
-    
-    if domain == "noise3D" {
-        if noiseIndex == 0.0 {
-            funcName = "__valueNoise3D"
-        } else
-        if noiseIndex == 1.0 {
-            funcName = "__perlinNoise3D"
-        } else
-        if noiseIndex == 2.0 {
-            funcName = "worleyFbm"
-        } else
-        if noiseIndex == 3.0 {
-            funcName = "simplexFbm"
-        }
-    }
+    let noiseList = getAvailableNoises().1
+
+    funcName = noiseList[Int(noiseIndex)]
     
     code +=
     """
@@ -790,19 +778,8 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
     
     funcName = "None"
     
-    if domain == "noise3D" {
-        if mixNoiseIndex == 0.0 {
-            funcName = "__valueNoise3D"
-        } else
-        if mixNoiseIndex == 1.0 {
-            funcName = "__perlinNoise3D"
-        } else
-        if mixNoiseIndex == 2.0 {
-            funcName = "worleyFbm"
-        } else
-        if mixNoiseIndex == 3.0 {
-            funcName = "simplexFbm"
-        }
+    if mixNoiseIndex >= 0 {
+        funcName = noiseList[Int(mixNoiseIndex)]
     }
     
     if funcName != "None" {
@@ -841,7 +818,7 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
 
 func setupNoise3DUI(_ node: Node, _ fragment: CodeFragment, title: String = "3D Noise") -> NodeUINoise3D
 {
-    let items : [String] = ["Value", "Perlin", "Worley", "Simplex"]
+    let items : [String] = getAvailableNoises().0
     let noiseIndex = fragment.values["noise3D"] == nil ? 0 : fragment.values["noise3D"]!
     return NodeUINoise3D(node, variable: "noise3D", title: title, items: items, index: noiseIndex, fragment: fragment)
 }
@@ -869,6 +846,8 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
         return dataIndex
     }
     
+    let noiseList = getAvailableNoises().1
+
     func getNoiseName(_ noiseType: String, secondary: Bool = false) -> String
     {
         var noiseIndex = fragment.values[noiseType] == nil ? 0 : fragment.values[noiseType]!
@@ -876,20 +855,11 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
             noiseIndex -= 1
         }
 
-        if noiseIndex == 0.0 {
-            return "__valueNoise3D"
-        } else
-        if noiseIndex == 1.0 {
-            return "__perlinNoise3D"
-        } else
-        if noiseIndex == 2.0 {
-            return "worleyFbm"
-        } else
-        if noiseIndex == 3.0 {
-            return "simplexFbm"
+        if noiseIndex < 0 {
+            return "None"
+        } else {
+            return noiseList[Int(noiseIndex)]
         }
-        
-        return "None"
     }
     
     var funcCode =
@@ -946,4 +916,9 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
     component.globalCode! += funcCode
     
     return funcName
+}
+
+func getAvailableNoises() -> ([String], [String])
+{
+    return (["Value", "Perlin", "Worley", "Simplex"], ["__valueNoise3D", "__perlinNoise3D", "worleyFbm", "simplexFbm"])
 }

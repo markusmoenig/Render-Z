@@ -1526,7 +1526,7 @@ class NodeUINoise3D : NodeUISelector
         menuNode.uiItems.append(baseScale)
         
         let noiseIndex = fragment.values["noiseMix3D"] == nil ? 0 : fragment.values["noiseMix3D"]!
-        let mixNoise = NodeUISelector(menuNode2, variable: "noiseMix3D", title: "Mix Noise", items: ["None", "Value", "Perlin", "Worley", "Simplex"], index: noiseIndex)
+        let mixNoise = NodeUISelector(menuNode2, variable: "noiseMix3D", title: "Mix Noise", items: ["None"] + getAvailableNoises().0, index: noiseIndex)
         menuNode2.uiItems.append(mixNoise)
         
         let mixOctaves = NodeUINumber(menuNode2, variable: "noiseMixOctaves", title: "Mix Octaves", range: SIMD2<Float>(1, 10), int: true, value: fragment.values["noiseMixOctaves"]!)
