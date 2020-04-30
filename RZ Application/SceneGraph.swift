@@ -25,7 +25,7 @@ class SceneGraphSkin {
     
     let renderColor             = SIMD4<Float>(0.325, 0.576, 0.761, 1.000)
     let worldColor              = SIMD4<Float>(0.396, 0.749, 0.282, 1.000)
-    let groundColor             = SIMD4<Float>(0.631, 0.278, 0.506, 1.000)
+    let variablesColor          = SIMD4<Float>(0.631, 0.278, 0.506, 1.000)
     let objectColor             = SIMD4<Float>(0.765, 0.600, 0.365, 1.000)
 
     let tempRect                = MMRect()
@@ -958,6 +958,9 @@ class SceneGraph                : MMWidget
             } else
             if n.stage.stageType == .RenderStage {
                 color = skin.renderColor
+            } else
+            if n.stage.stageType == .VariablePool {
+                color = skin.variablesColor
             } else {
                 color = skin.renderColor
             }
@@ -1786,7 +1789,7 @@ class SceneGraph                : MMWidget
                 drawVariablesPool(parent: item, skin: skin)
             }
         }
-        drawItem(variableItem, selected: stage === currentStage, skin: skin)
+        drawItem(variableItem, selected: stage === currentStage, skin: skin, color: skin.variablesColor)
         
         // Draw PostFX
         stage = scene.getStage(.PostStage)
