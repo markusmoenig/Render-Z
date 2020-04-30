@@ -206,7 +206,9 @@ class DesignEditor          : MMWidget
                     var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(repeating: 0), count: 1)
                     //convertTo.getBytes(UnsafeMutableRawPointer(mutating: texArray), bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * convertTo.width), from: region, mipmapLevel: 0)
                     texArray.withUnsafeMutableBytes { texArrayPtr in
-                        convertTo.getBytes(texArrayPtr.baseAddress!, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * convertTo.width), from: region, mipmapLevel: 0)
+                        if let ptr = texArrayPtr.baseAddress {
+                            convertTo.getBytes(ptr, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * convertTo.width), from: region, mipmapLevel: 0)
+                        }
                     }
                     let value = texArray[0]
                     

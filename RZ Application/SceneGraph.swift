@@ -160,10 +160,20 @@ class SceneGraph                : MMWidget
     var possibleConnTerminal    : (CodeComponent, UUID?, String?, Float, Float)? = nil
     var connectingTerminals     : Bool = false
     
+    let minimizeIcon            : MTLTexture
+    let maximizeIcon            : MTLTexture
+    
+    let minMaxButtonRect        = MMRect()
+    
+    var itemMenuSkin            : MMSkinMenuWidget
+
     // The nav ratios
     var ratioX                  : Float = 0
     var ratioY                  : Float = 0
-            
+    
+    var hasMinMaxButton         = false
+    var minMaxButtonHoverState  = false
+
     override init(_ view: MMView)
     {
         menuWidget = MMMenuWidget(view, type: .Hidden)
@@ -175,12 +185,20 @@ class SceneGraph                : MMWidget
         toolBarButtonSkin.fontScale = 0.40
         toolBarButtonSkin.round = 20
 
-        var itemMenuSkin =  MMSkinMenuWidget()
-        itemMenuSkin.button.color = SIMD4<Float>(1,1,1,0.3)
+        itemMenuSkin = MMSkinMenuWidget()
+        //itemMenuSkin.button.color = SIMD4<Float>(1,1,1,0.3)
+        itemMenuSkin.button.color = SIMD4<Float>(0.227, 0.231, 0.235, 1.000)
+        itemMenuSkin.button.borderColor = SIMD4<Float>(0.537, 0.533, 0.537, 1.000)
         
         itemMenu = MMMenuWidget( view, skinToUse: itemMenuSkin, type: .BoxedMenu )
         itemMenu.rect.width /= 1.5
         itemMenu.rect.height /= 1.5
+        
+        minMaxButtonRect.width = itemMenu.rect.width
+        minMaxButtonRect.height = itemMenu.rect.height
+
+        minimizeIcon = view.icons["minimize"]!
+        maximizeIcon = view.icons["maximize"]!
 
         super.init(view)
         
@@ -357,16 +375,14 @@ class SceneGraph                : MMWidget
         clickWasConsumed = false
         selectedVariable = nil
         
-        // Clicked on the knob
-        /*
-        if knobRect.contains(event.x, event.y) {
-            isDraggingKnob = true
-            mouseDownPos.x = event.x
-            mouseDownPos.y = event.y
-            mouseDownItemPos.x = currentWidth
-            mmView.mouseTrackWidget = self
-            return
-        }*/
+        if hasMinMaxButton {
+            if minMaxButtonRect.contains(event.x, event.y) {
+                minMaxButtonHoverState = true
+                clickWasConsumed = true
+                mmView.update()
+                return
+            }
+        }
         
         #if os(iOS)
         for b in buttons {
@@ -636,6 +652,28 @@ class SceneGraph                : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
+        if hasMinMaxButton {
+            if minMaxButtonRect.contains(event.x, event.y) {
+                if let comp = currentComponent, comp.componentType == .Transform3D || comp.componentType == .Ground3D {
+                    if comp.values["minimized"] == 1 {
+                        comp.values["minimized"] = 0
+                    } else {
+                        comp.values["minimized"] = 1
+                    }
+                } else
+                if let stage = currentStage
+                {
+                    if stage.values["minimized"] == 1 {
+                        stage.values["minimized"] = 0
+                    } else {
+                        stage.values["minimized"] = 1
+                    }
+                }
+                minMaxButtonHoverState = false
+                mmView.update()
+            }
+        }
+        
         if let varItem = selectedVariable {
             if distance(mouseDownPos, SIMD2<Float>(event.x, event.y)) < 10 {
                 setCurrent(stage: varItem.stage, stageItem: varItem.stageItem, component: varItem.component)
@@ -774,7 +812,6 @@ class SceneGraph                : MMWidget
      
     override func update()
     {
-        //buildToolbar(uuid: currentUUID)
         buildMenu(uuid: currentUUID)
         needsUpdate = false
     }
@@ -790,6 +827,9 @@ class SceneGraph                : MMWidget
             update()
         }
         
+        minMaxButtonRect.x = 0
+        minMaxButtonRect.y = 0
+        
         if let scene = globalApp!.project.selected {
             mmView.renderer.setClipRect(MMRect(rect.x, rect.y /* + toolBarHeight + 1*/, rect.width - 1, rect.height /*- toolBarHeight - 1*/))
             parse(scene: scene, skin: skin)
@@ -798,15 +838,58 @@ class SceneGraph                : MMWidget
             }
             
             // Item Menu
-            if itemMenu.items.count > 0 {
+            if itemMenu.items.count > 0 || hasMinMaxButton {
                 if let uuid = currentUUID {
                     if let currentItem = itemMap[uuid] {
-                        itemMenu.rect.x = rect.x + currentItem.rect.right() + 5
-                        if itemMenu.rect.right() > rect.x + rect.width {
-                            itemMenu.rect.x = rect.x + currentItem.rect.x - itemMenu.rect.width - 5
+                        
+                        var dist : Float = 5
+                        if let comp = currentItem.component {
+                            if comp.componentType == .Pattern || comp.componentType == .Material3D {
+                                dist = 10
+                            }
                         }
-                        itemMenu.rect.y = rect.y + currentItem.rect.y + (currentItem.rect.height - itemMenu.rect.width) / 2
-                        itemMenu.draw()
+                        
+                        func isMinimized() -> Bool {
+                            var minimized : Bool = false
+                            
+                            if let comp = currentComponent, comp.componentType == .Transform3D || comp.componentType == .Ground3D {
+                                minimized = comp.values["minimized"] == 1
+                            } else
+                            if let stage = currentStage
+                            {
+                                minimized = stage.values["minimized"] == 1
+                            }
+                            
+                            return minimized
+                        }
+
+                        var isRight = true
+                        
+                        if hasMinMaxButton {
+                            minMaxButtonRect.x = rect.x + currentItem.rect.right() + dist
+                            if minMaxButtonRect.right() + itemMenu.rect.width + 5 > rect.x + rect.width {
+                                minMaxButtonRect.x = rect.x + currentItem.rect.x - itemMenu.rect.width - dist
+                                isRight = false
+                            }
+                            minMaxButtonRect.y = rect.y + currentItem.rect.y + (currentItem.rect.height - itemMenu.rect.width) / 2
+                            
+                            mmView.drawBox.draw( x: minMaxButtonRect.x, y: minMaxButtonRect.y, width: minMaxButtonRect.width, height: minMaxButtonRect.height, round: itemMenuSkin.button.round, fillColor : minMaxButtonHoverState ? itemMenuSkin.button.activeColor : itemMenuSkin.button.color)
+                            mmView.drawTexture.draw(isMinimized() ? maximizeIcon : minimizeIcon, x: minMaxButtonRect.x + 5, y: minMaxButtonRect.y + 5)
+                            dist += itemMenu.rect.width + 5
+                        }
+                        
+                        if itemMenu.items.count > 0 {
+                            itemMenu.rect.x = rect.x + currentItem.rect.right() + dist
+                            if itemMenu.rect.right() > rect.x + rect.width || isRight == false {
+                                itemMenu.rect.x = rect.x + currentItem.rect.x - itemMenu.rect.width - dist
+                            }
+                            
+                            itemMenu.rect.y = rect.y + currentItem.rect.y + (currentItem.rect.height - itemMenu.rect.width) / 2
+                            itemMenu.draw()
+                        } else {
+                            itemMenu.rect.x = 0
+                            itemMenu.rect.y = 0
+                        }
                     } else {
                         itemMenu.rect.x = 0
                         itemMenu.rect.y = 0
@@ -818,19 +901,6 @@ class SceneGraph                : MMWidget
             }
             mmView.renderer.setClipRect()
         }
-        
-        /*
-        let halfKnobWidth : Float = 6
-        knobRect.x = rect.x - halfKnobWidth
-        knobRect.y = rect.y + rect.height / 2 - halfKnobWidth * 2
-        knobRect.width = halfKnobWidth * 3
-        knobRect.height = halfKnobWidth * 4
-
-        if isDraggingKnob == false {
-            mmView.drawBox.draw( x: knobRect.x, y: knobRect.y, width: knobRect.width - halfKnobWidth, height: knobRect.height, round: 6, fillColor : SIMD4<Float>( 0, 0, 0, 1))
-        } else {
-            mmView.drawBox.draw( x: knobRect.x, y: knobRect.y, width: knobRect.width - halfKnobWidth, height: knobRect.height, round: 6, fillColor : SIMD4<Float>( 0.5, 0.5, 0.5, 1))
-        }*/
         
         // Build the navigator
         navRect.width = 200 / 2
@@ -987,21 +1057,16 @@ class SceneGraph                : MMWidget
         })
     }
     
-    /// Clear the toolbar
-    /*
-    func clearToolbar()
-    {
-        deactivate()
-        toolBarWidgets = []
-    }*/
-    
     // Build the menu
     func buildMenu(uuid: UUID?)
     {
         itemMenu.setItems([])
-
+        
         var items : [MMMenuItem] = []
-
+        
+        hasMinMaxButton = false
+        minMaxButtonHoverState = false
+        
         func buildChangeComponent(_ item: SceneGraphItem, name: String, ids: [String])
         {
             let menuItem = MMMenuItem(text: "Change " + name, cb: { () in
@@ -1035,6 +1100,11 @@ class SceneGraph                : MMWidget
         
         if let uuid = uuid {
             if let item = itemMap[uuid] {
+                
+                if item.itemType == .Stage {
+                    hasMinMaxButton = true
+                }
+                
                 if let comp = item.component {
                     
                     if comp.componentType == .RayMarch3D {
@@ -1065,6 +1135,7 @@ class SceneGraph                : MMWidget
                         buildChangeComponent(item, name: "Occlusion", ids: ["AO3D"])
                     } else
                     if comp.componentType == .Ground3D {
+                        hasMinMaxButton = true
                         buildChangeComponent(item, name: "Ground", ids: ["Ground3D"])
                     } else
                     if comp.componentType == .RegionProfile3D {
@@ -1326,6 +1397,8 @@ class SceneGraph                : MMWidget
                         item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Ground3D &&
                         item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Material3D &&
                         item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .RegionProfile3D)) {
+                                        
+                    hasMinMaxButton = true
                     
                     let addChildItem = MMMenuItem(text: "Add Child", cb: { () in
 
@@ -1492,64 +1565,6 @@ class SceneGraph                : MMWidget
             mmView.widgets.insert(itemMenu, at: 0)
         }
     }
-    /*
-    // Build the menu
-    func buildToolbar(uuid: UUID?)
-    {
-        deactivate()
-        toolBarWidgets = []
-        
-        if let uuid = uuid {
-            if let item = itemMap[uuid] {
-                
-                if item.itemType == .Stage && item.stage.stageType == .PreStage {
-                    // PreStage: 2D / 3D Switch
-                    
-                    var borderlessSkin = MMSkinButton()
-                    borderlessSkin.margin = MMMargin( 4, 4, 4, 4 )
-                    borderlessSkin.borderSize = 0
-                    borderlessSkin.height = mmView.skin.Button.height - 5
-                    borderlessSkin.fontScale = 0.44
-                    borderlessSkin.round = 24
-                    
-                    let tabButton = MMTabButtonWidget(mmView, skinToUse: borderlessSkin)
-
-                    tabButton.addTab("2D")
-                    tabButton.addTab("3D")
-                    
-                    if globalApp!.currentSceneMode == .ThreeD {
-                        tabButton.currentTab = tabButton.items[1]
-                    }
-                    
-                    tabButton.clicked = { (event) -> Void in
-                        if tabButton.index == 0 {
-                            globalApp!.currentSceneMode = .TwoD
-                            globalApp!.currentPipeline = globalApp!.pipeline2D
-                            if let scene = globalApp!.project.selected {
-                                scene.setSelected(item.stage.getChildren()[0])
-                            }
-                            item.stage.label = nil
-                        } else
-                        if tabButton.index == 1 {
-                            globalApp!.currentSceneMode = .ThreeD
-                            globalApp!.currentPipeline = globalApp!.pipeline3D
-                            if let scene = globalApp!.project.selected {
-                                scene.setSelected(item.stage.getChildren()[0])
-                            }
-                            item.stage.label = nil
-                        }
-                        globalApp!.project.selected!.sceneMode = globalApp!.currentSceneMode
-                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                    }
-                    toolBarWidgets.append(tabButton)
-                }
-            }
-        }
-        
-        activate()
-        mmView.update()
-    }
-    */
     
     /// Removes all the connections for the given pattern from the stageItem
     func removeConnectionsFor(_ stageItem: StageItem,_ pattern: CodeComponent)
@@ -1628,37 +1643,39 @@ class SceneGraph                : MMWidget
         navItems.append(worldItem)
         
         var childs = stage.getChildren()
-        for childItem in childs {
-            if childItem.label == nil || childItem.label!.scale != skin.fontScale {
-                childItem.label = MMTextLabel(mmView, font: mmView.openSans, text: childItem.name, scale: skin.fontScale, color: skin.normalTextColor)
-            }
-            let diameter : Float = childItem.label!.rect.width + skin.margin * graphZoom
+        if stage.values["minimized"] != 1 {
+            for childItem in childs {
+                if childItem.label == nil || childItem.label!.scale != skin.fontScale {
+                    childItem.label = MMTextLabel(mmView, font: mmView.openSans, text: childItem.name, scale: skin.fontScale, color: skin.normalTextColor)
+                }
+                let diameter : Float = childItem.label!.rect.width + skin.margin * graphZoom
 
-            let cX = x + childItem.values["_graphX"]! * graphZoom - diameter / 2
-            let cY = y + childItem.values["_graphY"]! * graphZoom - diameter / 2
+                let cX = x + childItem.values["_graphX"]! * graphZoom - diameter / 2
+                let cY = y + childItem.values["_graphY"]! * graphZoom - diameter / 2
 
-            if let comp = childItem.components[childItem.defaultName] {
-                let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem, component: comp)
-                item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
-                itemMap[comp.uuid] = item
+                if let comp = childItem.components[childItem.defaultName] {
+                    let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem, component: comp)
+                    item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
+                    itemMap[comp.uuid] = item
 
-                drawItem(item, selected: childItem === currentStageItem , parent: worldItem, skin: skin, dotted: true)
-            } else
-            if childItem.componentLists["fog"] != nil {
-                
-                let fogItem = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
-                fogItem.rect.set(cX, cY, skin.itemListWidth, skin.itemHeight * graphZoom)
-                
-                drawDottedLineBetweenItems(fogItem, worldItem, skin)
-                drawItemList(parent: fogItem, listId: "fog", graphId: "_graphFog", name: "Fog", containerId: .FogContainer, itemId: .FogItem, skin: skin)
-            } else
-            if childItem.componentLists["clouds"] != nil {
-                
-                let cloudItem = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
-                cloudItem.rect.set(cX, cY, skin.itemListWidth, skin.itemHeight * graphZoom)
-                
-                drawDottedLineBetweenItems(cloudItem, worldItem, skin)
-                drawItemList(parent: cloudItem, listId: "clouds", graphId: "_graphClouds", name: "Clouds", containerId: .CloudsContainer, itemId: .CloudsItem, skin: skin)
+                    drawItem(item, selected: childItem === currentStageItem , parent: worldItem, skin: skin, dotted: true)
+                } else
+                if childItem.componentLists["fog"] != nil {
+                    
+                    let fogItem = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
+                    fogItem.rect.set(cX, cY, skin.itemListWidth, skin.itemHeight * graphZoom)
+                    
+                    drawDottedLineBetweenItems(fogItem, worldItem, skin)
+                    drawItemList(parent: fogItem, listId: "fog", graphId: "_graphFog", name: "Fog", containerId: .FogContainer, itemId: .FogItem, skin: skin)
+                } else
+                if childItem.componentLists["clouds"] != nil {
+                    
+                    let cloudItem = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
+                    cloudItem.rect.set(cX, cY, skin.itemListWidth, skin.itemHeight * graphZoom)
+                    
+                    drawDottedLineBetweenItems(cloudItem, worldItem, skin)
+                    drawItemList(parent: cloudItem, listId: "clouds", graphId: "_graphClouds", name: "Clouds", containerId: .CloudsContainer, itemId: .CloudsItem, skin: skin)
+                }
             }
         }
         drawItem(worldItem, selected: stage === currentStage, skin: skin, color: skin.worldColor)
@@ -1710,24 +1727,26 @@ class SceneGraph                : MMWidget
         navItems.append(renderItem)
 
         childs = stage.getChildren()
-        for childItem in childs {
-            
-            if childItem.name == "Color" { continue }
+        if stage.values["minimized"] != 1 {
+            for childItem in childs {
+                
+                if childItem.name == "Color" { continue }
 
-            if childItem.label == nil || childItem.label!.scale != skin.fontScale {
-                childItem.label = MMTextLabel(mmView, font: mmView.openSans, text: childItem.name, scale: skin.fontScale, color: skin.normalTextColor)
+                if childItem.label == nil || childItem.label!.scale != skin.fontScale {
+                    childItem.label = MMTextLabel(mmView, font: mmView.openSans, text: childItem.name, scale: skin.fontScale, color: skin.normalTextColor)
+                }
+                let diameter : Float = childItem.label!.rect.width + skin.margin * graphZoom
+
+                let cX = x + childItem.values["_graphX"]! * graphZoom - diameter / 2
+                let cY = y + childItem.values["_graphY"]! * graphZoom - diameter / 2
+
+                let comp = childItem.components[childItem.defaultName]!
+                let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem, component: comp)
+                item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
+                itemMap[comp.uuid] = item
+                
+                drawItem(item, selected: childItem === currentStageItem, parent: renderItem, skin: skin, dotted: true)
             }
-            let diameter : Float = childItem.label!.rect.width + skin.margin * graphZoom
-
-            let cX = x + childItem.values["_graphX"]! * graphZoom - diameter / 2
-            let cY = y + childItem.values["_graphY"]! * graphZoom - diameter / 2
-
-            let comp = childItem.components[childItem.defaultName]!
-            let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem, component: comp)
-            item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
-            itemMap[comp.uuid] = item
-            
-            drawItem(item, selected: childItem === currentStageItem, parent: renderItem, skin: skin, dotted: true)
         }
         drawItem(renderItem, selected: stage === currentStage, skin: skin, color: skin.renderColor)
 
@@ -1748,22 +1767,24 @@ class SceneGraph                : MMWidget
         navItems.append(variableItem)
 
         childs = stage.getChildren()
-        for childItem in childs {
+        if stage.values["minimized"] != 1 {
+            for childItem in childs {
 
-            if childItem.label == nil || childItem.label!.scale != skin.fontScale {
-                childItem.label = MMTextLabel(mmView, font: mmView.openSans, text: childItem.name, scale: skin.fontScale, color: skin.normalTextColor)
+                if childItem.label == nil || childItem.label!.scale != skin.fontScale {
+                    childItem.label = MMTextLabel(mmView, font: mmView.openSans, text: childItem.name, scale: skin.fontScale, color: skin.normalTextColor)
+                }
+                let diameter : Float = childItem.label!.rect.width + skin.margin * graphZoom
+
+                let cX = x + childItem.values["_graphX"]! * graphZoom - diameter / 2
+                let cY = y + childItem.values["_graphY"]! * graphZoom - diameter / 2
+
+                let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
+                item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
+                itemMap[childItem.uuid] = item
+                
+                drawDottedLineBetweenItems(variableItem, item, skin)
+                drawVariablesPool(parent: item, skin: skin)
             }
-            let diameter : Float = childItem.label!.rect.width + skin.margin * graphZoom
-
-            let cX = x + childItem.values["_graphX"]! * graphZoom - diameter / 2
-            let cY = y + childItem.values["_graphY"]! * graphZoom - diameter / 2
-
-            let item = SceneGraphItem(.StageItem, stage: stage, stageItem: childItem)
-            item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
-            itemMap[childItem.uuid] = item
-            
-            drawDottedLineBetweenItems(variableItem, item, skin)
-            drawVariablesPool(parent: item, skin: skin)
         }
         drawItem(variableItem, selected: stage === currentStage, skin: skin)
         
@@ -2070,7 +2091,7 @@ class SceneGraph                : MMWidget
             dottedConnection = false
         }
         
-        if o.components[o.defaultName]!.componentType != .RegionProfile3D {
+        if o.components[o.defaultName]!.componentType != .RegionProfile3D && o.components[o.defaultName]!.values["minimized"] != 1 {
             drawShapesBox(parent: item, skin: skin)
             drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
             drawItemList(parent: item, listId: "modifier" + getCurrentModeId(), graphId: "_graphModifier", name: "Modifier", containerId: .ModifierContainer, itemId: .ModifierItem, skin: skin)

@@ -644,6 +644,10 @@
 		2BCEC68F22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCF5FA3227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
 		2BCF5FA4227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
+		2BD0E1D7245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
+		2BD0E1D8245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
+		2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D6245A5F6100A61586 /* minimize.tiff */; };
+		2BD0E1DA245A5F6100A61586 /* minimize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D6245A5F6100A61586 /* minimize.tiff */; };
 		2BD291B723D435B6006F66BC /* Combo2D.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BD291B623D435B6006F66BC /* Combo2D.metal */; };
 		2BD291B823D435B6006F66BC /* Combo2D.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BD291B623D435B6006F66BC /* Combo2D.metal */; };
 		2BD291BA23D43AB0006F66BC /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BD291B923D43AB0006F66BC /* Base.swift */; };
@@ -897,6 +901,8 @@
 		2BC5DCE3231794050081A018 /* Dialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dialogs.swift; sourceTree = "<group>"; };
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
+		2BD0E1D5245A5F6000A61586 /* maximize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = maximize.tiff; sourceTree = "<group>"; };
+		2BD0E1D6245A5F6100A61586 /* minimize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = minimize.tiff; sourceTree = "<group>"; };
 		2BD291B623D435B6006F66BC /* Combo2D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo2D.metal; sourceTree = "<group>"; };
 		2BD291B923D43AB0006F66BC /* Base.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base.swift; sourceTree = "<group>"; };
 		2BDBF59F24526A3500B21FD7 /* X_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = X_blue.tiff; sourceTree = "<group>"; };
@@ -1102,6 +1108,8 @@
 				2B7A45BC243EEAC5000C91C9 /* material.tiff */,
 				2B838DD224492363004BDE56 /* ground.tiff */,
 				2BE847B62453C58200409AAE /* fileicon.tiff */,
+				2BD0E1D5245A5F6000A61586 /* maximize.tiff */,
+				2BD0E1D6245A5F6100A61586 /* minimize.tiff */,
 			);
 			path = Icons;
 			sourceTree = "<group>";
@@ -1682,6 +1690,7 @@
 				2B838DD324492363004BDE56 /* ground.tiff in Resources */,
 				2B7A3C4F23B46B53002EC5FC /* sz_toolbar.tiff in Resources */,
 				2B2B5FFC24259D8600B9CCF1 /* rotate.tiff in Resources */,
+				2BD0E1D7245A5F6100A61586 /* maximize.tiff in Resources */,
 				2B8E2FE523C71F36005619E4 /* SourceCodePro.tiff in Resources */,
 				2B2B5FE0242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
 				2B7A3BF823B4583E002EC5FC /* Assets.xcassets in Resources */,
@@ -1695,6 +1704,7 @@
 				2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */,
 				2BDBF5A324526AF500B21FD7 /* Y_red.tiff in Resources */,
 				2B2B5FFA24259D8600B9CCF1 /* move.tiff in Resources */,
+				2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1736,6 +1746,7 @@
 				2B2B5FD92422F68A00B9CCF1 /* camera.tiff in Resources */,
 				2B9B29B923BB452B00C2F387 /* rz_toolbar.tiff in Resources */,
 				2BBFA84124389CDA008981B7 /* Pebbles.tiff in Resources */,
+				2BD0E1DA245A5F6100A61586 /* minimize.tiff in Resources */,
 				2B9B29DD23BB453B00C2F387 /* GameCuben.tiff in Resources */,
 				2B2B5FE1242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
 				2B9B29B323BB44C000C2F387 /* LaunchScreen.storyboard in Resources */,
@@ -1748,6 +1759,7 @@
 				2B8E2FE623C71F36005619E4 /* SourceCodePro.tiff in Resources */,
 				2B7A45BE243EEAC6000C91C9 /* material.tiff in Resources */,
 				2B9B29DF23BB453B00C2F387 /* OpenSans.tiff in Resources */,
+				2BD0E1D8245A5F6100A61586 /* maximize.tiff in Resources */,
 				2B9B29AE23BB44BF00C2F387 /* Main.storyboard in Resources */,
 				2B2B5FFF24259D8600B9CCF1 /* X.tiff in Resources */,
 				2B8E2FE423C71F36005619E4 /* SourceCodePro.json in Resources */,

@@ -76,6 +76,8 @@ class App
         mmView.registerIcon("material")
         mmView.registerIcon("ground")
         mmView.registerIcon("fileicon")
+        mmView.registerIcon("maximize")
+        mmView.registerIcon("minimize")
         sceneGraph = SceneGraph(mmView)
         
         // Initialize images
