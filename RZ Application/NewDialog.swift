@@ -127,6 +127,8 @@ class NewDialog: MMDialog {
                 files.append( MMFileDialogItem(mmView, url ) )
             })
         }
+        
+        files = files.sorted(by: { $0.titleLabel.text < $1.titleLabel.text })
         selectedFileItem = files.first
         
         rect.width = 800

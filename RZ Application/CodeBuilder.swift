@@ -990,7 +990,7 @@ class CodeBuilder
             {
                 // Property, stored in the CodeFragments
                 
-                let isToolProperty : Bool = property.2 != nil
+                let isToolProperty : Bool = property.2 != nil && property.1 != nil
                 
                 let data = isToolProperty ? SIMD4<Float>(property.1!.values[property.2!]!,0,0,0) : extractValueFromFragment(property.1!)
                 let components = isToolProperty ? 1 : property.1!.evaluateComponents()

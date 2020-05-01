@@ -744,7 +744,9 @@ class SceneGraph                : MMWidget
                 #endif
                 return
             }
+            
             var out : [CodeComponent] = []
+            var validConnections : [UUID:[UUID]] = [:]
 
             if let patterns = materialItem.componentLists["patterns"] {
                 
@@ -761,7 +763,7 @@ class SceneGraph                : MMWidget
                     #endif
                     return nil
                 }
-                
+                                
                 func resolvePatterns(_ component: CodeComponent)
                 {
                     for (propertyUUID, conn) in component.connections {
@@ -770,14 +772,21 @@ class SceneGraph                : MMWidget
                         if let pattern = getPatternOfUUID(uuid) {
                             if out.contains(pattern) == false {
                                 out.append(pattern)
+                                if validConnections[component.uuid] == nil {
+                                    validConnections[component.uuid] = [pattern.uuid]
+                                } else {
+                                    validConnections[component.uuid]!.append(pattern.uuid)
+                                }
                                 resolvePatterns(pattern)
                             } else {
                                 // Pattern already in out, that means recursion!
-                                #if DEBUG
-                                print("recursion")
-                                #endif
-                                component.connections[propertyUUID] = nil
-                                return
+                                let list = validConnections[component.uuid]
+                                if list == nil || list!.contains(pattern.uuid) == false  {
+                                    #if DEBUG
+                                    print("recursion")
+                                    #endif
+                                    component.connections[propertyUUID] = nil
+                                }
                             }
                         } else {
                             // Pattern not found, delete reference
@@ -794,7 +803,6 @@ class SceneGraph                : MMWidget
                     }
                 }
                 materialItem.componentLists["patterns"] = out
-                print("verifyPatterns", out.count)
             }
         }
     }

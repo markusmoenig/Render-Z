@@ -2549,8 +2549,9 @@ class CodeComponent         : Codable, Equatable
         if componentType == .Material3D && ctx.patternList.count > 0 {
             // Create the global functions for all the patterns of the material
             
-            // TODO sort dependencies of the patterns as they can reference each other
-            for pattern in ctx.patternList.reversed() {
+            let patterns = getUsedPatterns(self, patterns: ctx.patternList).reversed()
+            
+            for pattern in patterns {
                 dryRunComponent(pattern, ctx.propertyDataOffset + inputDataList.count, patternList: ctx.patternList)
                 globalCode! += pattern.globalCode!
                 

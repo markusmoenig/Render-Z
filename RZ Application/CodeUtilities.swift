@@ -922,3 +922,37 @@ func getAvailableNoises() -> ([String], [String])
 {
     return (["Value", "Perlin", "Worley", "Simplex"], ["__valueNoise3D", "__perlinNoise3D", "worleyFbm", "simplexFbm"])
 }
+
+/// Returns the used patterns in the pattern list
+func getUsedPatterns(_ materialComponent: CodeComponent, patterns: [CodeComponent]) -> [CodeComponent]
+{
+    func getPatternOfUUID(_ uuid: UUID) -> CodeComponent?
+    {
+        for p in patterns {
+            if p.uuid == uuid {
+                return p
+            }
+        }
+        return nil
+    }
+    
+    var out : [CodeComponent] = []
+    
+    func resolvePatterns(_ component: CodeComponent)
+    {
+        for (_, conn) in component.connections {
+            let uuid = conn.componentUUID!
+            
+            if let pattern = getPatternOfUUID(uuid) {
+                if out.contains(pattern) == false {
+                    out.append(pattern)
+                    resolvePatterns(pattern)
+                }
+            }
+        }
+    }
+    
+    resolvePatterns(materialComponent)
+
+    return out;
+}

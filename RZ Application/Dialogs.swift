@@ -214,7 +214,7 @@ class MMFileDialogItem {
             title = values!.name!.replacingOccurrences(of: "." + globalApp!.mmFile.appExtension, with: "")
             
             let dateFormatter = DateFormatter()
-            let localFormatter = DateFormatter.dateFormat(fromTemplate: "MM/dd HH-mm", options: 0, locale: NSLocale.current)
+            let localFormatter = DateFormatter.dateFormat(fromTemplate: "E, MMM d, yyyy HH:mm"/*"MM/dd HH-mm"*/, options: 0, locale: NSLocale.current)
             dateFormatter.dateFormat = localFormatter
 
             date = dateFormatter.string(from: values!.contentModificationDate!)
