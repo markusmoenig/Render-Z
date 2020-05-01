@@ -40,9 +40,6 @@ class DesignEditor          : MMWidget
     var zoomBuffer          : Float = 0
     
     var blockRendering      : Bool = false
-    
-    var isDraggingKnob      : Bool = false
-    var knobRect            : MMRect = MMRect()
 
     override init(_ view: MMView)
     {
@@ -143,12 +140,6 @@ class DesignEditor          : MMWidget
             gizmo.mouseMoved(event)
         }
         
-        if isDraggingKnob {
-            let sceneGraph = globalApp!.sceneGraph
-            sceneGraph.currentWidth = min(max(mouseDownItemPos.x + (mouseDownPos.x - event.x), 300), 900)
-            sceneGraph.openWidth = sceneGraph.currentWidth
-            mmView.update()
-        } else
         if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
             editor.designProperties.mouseMoved(event)
         }
@@ -175,17 +166,6 @@ class DesignEditor          : MMWidget
         // Handle properties click
         if currentGizmo == nil || (currentGizmo!.hoverState == .Inactive && currentGizmo!.clickWasConsumed == false) {
             editor.designProperties.mouseDown(event)
-        }
-        
-        // Clicked on the knob
-        if globalApp!.sceneGraph.currentWidth > 0 && knobRect.contains(event.x, event.y) {
-            isDraggingKnob = true
-            mouseDownPos.x = event.x
-            mouseDownPos.y = event.y
-            mouseDownItemPos.x = globalApp!.sceneGraph.currentWidth
-            mmView.mouseTrackWidget = self
-            globalApp!.currentPipeline!.setMinimalPreview(true)
-            return
         }
         
         //  Handle selection click
@@ -251,12 +231,6 @@ class DesignEditor          : MMWidget
         }
         if currentGizmo == nil || currentGizmo!.hoverState == .Inactive {
             editor.designProperties.mouseUp(event)
-        }
-        
-        if isDraggingKnob {
-            isDraggingKnob = false
-            mmView.mouseTrackWidget = nil
-            globalApp!.currentPipeline!.setMinimalPreview(false)
         }
     }
     
@@ -389,21 +363,6 @@ class DesignEditor          : MMWidget
         }
         
         mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
-        
-        // Knob
-        if globalApp!.sceneGraph.currentWidth > 0 {
-            let halfKnobWidth : Float = 6
-            knobRect.x = rect.right() - halfKnobWidth - 8
-            knobRect.y = rect.y + rect.height / 2 - halfKnobWidth * 2
-            knobRect.width = halfKnobWidth * 2.2
-            knobRect.height = halfKnobWidth * 9
-
-            if isDraggingKnob == false {
-                mmView.drawBox.draw( x: knobRect.x, y: knobRect.y, width: knobRect.width - halfKnobWidth, height: knobRect.height, round: 6, fillColor : SIMD4<Float>( 0, 0, 0, 1))
-            } else {
-                mmView.drawBox.draw( x: knobRect.x, y: knobRect.y, width: knobRect.width - halfKnobWidth, height: knobRect.height, round: 6, fillColor : SIMD4<Float>( 0.5, 0.5, 0.5, 1))
-            }
-        }
         
         if let gizmo = currentGizmo, designComponent != nil {
             gizmo.rect.copy(rect)

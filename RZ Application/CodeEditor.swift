@@ -14,6 +14,8 @@ class CodeUndoComponent
     
     var originalData    : String = ""
     var processedData   : String = ""
+    
+    var undoComponent   : CodeComponent? = nil
 
     init(_ name: String)
     {

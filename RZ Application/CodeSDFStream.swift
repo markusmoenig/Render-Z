@@ -1330,14 +1330,19 @@ class CodeSDFStream
                         """
 
                         for modifier in list {
-                            dryRunComponent(modifier, instance.data.count)
-                            instance.collectProperties(modifier)
+                            
+                            var firstRun = false
+                            if globalsAddedFor.contains(modifier.uuid) == false {
+                                dryRunComponent(modifier, instance.data.count)
+                                instance.collectProperties(modifier)
+                                globalsAddedFor.append(modifier.uuid)
+                                firstRun = true
+                            }
 
                             code += modifier.code!
                             if let globalCode = modifier.globalCode {
-                                if globalsAddedFor.contains(modifier.uuid) == false {
+                                if firstRun {
                                     headerCode += globalCode
-                                    globalsAddedFor.append(modifier.uuid)
                                 }
                             }
                             

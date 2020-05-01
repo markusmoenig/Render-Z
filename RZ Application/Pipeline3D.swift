@@ -90,10 +90,14 @@ class Pipeline3D            : Pipeline
             if stageItem.builderInstance == nil {
                 stageItem.builderInstance = codeBuilder.build(result.1!, camera: result.1!)
                 instanceMap["camera3D"] = stageItem.builderInstance
+                #if DEBUG
                 print("compile camera")
+                #endif
             } else {
                 instanceMap["camera3D"] = stageItem.builderInstance
+                #if DEBUG
                 print("reuse camera")
+                #endif
             }
         }
         
@@ -106,10 +110,14 @@ class Pipeline3D            : Pipeline
                 if item.builderInstance == nil {
                     item.builderInstance = codeBuilder.build(comp, camera: cameraComponent)
                     instanceMap["pre"] = item.builderInstance
+                    #if DEBUG
                     print("compile background")
+                    #endif
                 } else {
                     instanceMap["pre"] = item.builderInstance
+                    #if DEBUG
                     print("reuse background")
+                    #endif
                 }
                 break
             }
@@ -167,7 +175,9 @@ class Pipeline3D            : Pipeline
                 
                 item.builderInstance!.ids.forEach { (key, value) in codeBuilder.sdfStream.ids[key] = value }
 
+                #if DEBUG
                 print("reusing", "shape_\(index)")
+                #endif
             }
         }
         

@@ -103,7 +103,7 @@ class SceneGraph                : MMWidget
     var buttons                 : [SceneGraphButton] = []
     var navItems                : [SceneGraphItem] = []
 
-    var graphX                  : Float = 70
+    var graphX                  : Float = 250
     var graphY                  : Float = 250
     var graphZoom               : Float = 0.62
 
@@ -140,9 +140,7 @@ class SceneGraph                : MMWidget
     
     var mouseIsDown             : Bool = false
     var clickWasConsumed        : Bool = false
-    //var isDraggingKnob          : Bool = false
     
-    //var knobRect                : MMRect = MMRect()
     var navRect                 : MMRect = MMRect()
     var visNavRect              : MMRect = MMRect()
     
@@ -636,12 +634,7 @@ class SceneGraph                : MMWidget
                     break
                 }
             }
-            /*
-            if isDraggingKnob {
-                currentWidth = min(max(mouseDownItemPos.x + (mouseDownPos.x - event.x), 300), 900)
-                openWidth = currentWidth
-                mmView.update()
-            } else*/
+
             if mouseIsDown && clickWasConsumed == false && pressedButton == nil {
                 graphX = mouseDownItemPos.x + (event.x - mouseDownPos.x) / graphZoom
                 graphY = mouseDownItemPos.y + (event.y - mouseDownPos.y) / graphZoom
@@ -719,11 +712,13 @@ class SceneGraph                : MMWidget
                 
                 let stageItem = globalApp!.project.selected!.getStageItem(comp)!
                 let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Undo Connection")
-                
                 comp.connections[propT.1!] = CodeConnection(outTerminal!.0.uuid, outTerminal!.2!)
+
+                verifyPatterns(stageItem)
+
                 globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                
+                    
                 globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
             }
         }
@@ -731,12 +726,77 @@ class SceneGraph                : MMWidget
         mouseIsDown = false
         pressedButton = nil
         hoverButton = nil
-        //isDraggingKnob = false
         selectedVariable = nil
         dragVisNav = false
         
         connectingTerminals = false
         possibleConnTerminal = nil
+    }
+    
+    /// Sort patterns and resolve recursions
+    func verifyPatterns(_ materialItem: StageItem)
+    {
+        if let material = materialItem.components[materialItem.defaultName] {
+            
+            if material.componentType != .Material3D {
+                #if DEBUG
+                print("verifyPatterns called with wrong type")
+                #endif
+                return
+            }
+            var out : [CodeComponent] = []
+
+            if let patterns = materialItem.componentLists["patterns"] {
+                
+                func getPatternOfUUID(_ uuid: UUID) -> CodeComponent?
+                {
+                    for p in patterns {
+                        if p.uuid == uuid {
+                            return p
+                        }
+                    }
+                    
+                    #if DEBUG
+                    print("pattern not found")
+                    #endif
+                    return nil
+                }
+                
+                func resolvePatterns(_ component: CodeComponent)
+                {
+                    for (propertyUUID, conn) in component.connections {
+                        let uuid = conn.componentUUID!
+                        
+                        if let pattern = getPatternOfUUID(uuid) {
+                            if out.contains(pattern) == false {
+                                out.append(pattern)
+                                resolvePatterns(pattern)
+                            } else {
+                                // Pattern already in out, that means recursion!
+                                #if DEBUG
+                                print("recursion")
+                                #endif
+                                component.connections[propertyUUID] = nil
+                                return
+                            }
+                        } else {
+                            // Pattern not found, delete reference
+                            component.connections[propertyUUID] = nil
+                        }
+                    }
+                }
+                
+                resolvePatterns(material)
+                for p in patterns {
+                    // Add the not connected patterns
+                    if out.contains(p) == false {
+                        out.append(p)
+                    }
+                }
+                materialItem.componentLists["patterns"] = out
+                print("verifyPatterns", out.count)
+            }
+        }
     }
     
     /// Click at the given position
@@ -777,6 +837,7 @@ class SceneGraph                : MMWidget
     func switchState() {
         if animating { return }
         let rightRegion = globalApp!.rightRegion!
+        openWidth = globalApp!.editorRegion!.rect.width / 2
         
         if sceneGraphState == .Open {
             globalApp!.currentPipeline!.setMinimalPreview(true)

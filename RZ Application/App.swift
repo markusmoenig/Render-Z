@@ -364,6 +364,42 @@ class Editor
     {
     }
     
+    func undoComponentStart(_ component: CodeComponent,_ name: String) -> CodeUndoComponent
+    {
+        let codeUndo = CodeUndoComponent(name)
+        codeUndo.undoComponent = component
+
+        let encodedData = try? JSONEncoder().encode(component)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+        {
+            codeUndo.originalData = encodedObjectJsonString
+        }
+        
+        return codeUndo
+    }
+    
+    func undoComponentEnd(_ component: CodeComponent, _ undoComponent: CodeUndoComponent)
+    {
+        let encodedData = try? JSONEncoder().encode(component)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+        {
+            undoComponent.processedData = encodedObjectJsonString
+        }
+
+
+        func componentChanged(_ oldState: String, _ newState: String)
+        {
+            globalApp!.mmView.undoManager!.registerUndo(withTarget: self) { target in
+                globalApp!.loadComponentFrom(oldState)
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                componentChanged(newState, oldState)
+            }
+            globalApp!.mmView.undoManager!.setActionName(undoComponent.name)
+        }
+        
+        componentChanged(undoComponent.originalData, undoComponent.processedData)
+    }
+    
     // Undo / Redo for the current StageItem
     func undoStageItemStart(_ name: String) -> SceneGraphItemUndo
     {

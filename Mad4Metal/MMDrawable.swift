@@ -261,7 +261,7 @@ class MMDrawLine        : MMDrawable
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
     
-    func drawDotted( sx: Float, sy: Float, ex: Float, ey: Float, radius: Float = 2, distance: Float = 5, borderSize: Float = 0, fillColor: SIMD4<Float>, borderColor: SIMD4<Float> = SIMD4<Float>(repeating: 0) )
+    func drawDotted( sx: Float, sy: Float, ex: Float, ey: Float, radius: Float = 2, distance: Float = 3, borderSize: Float = 0, fillColor: SIMD4<Float>, borderColor: SIMD4<Float> = SIMD4<Float>(repeating: 0) )
     {
         let scaleFactor : Float = mmRenderer.mmView.scaleFactor
     

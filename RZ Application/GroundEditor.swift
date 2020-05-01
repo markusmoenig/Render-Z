@@ -440,10 +440,6 @@ class GroundEditor              : PropertiesWidget
         if state == .DraggingItem {
             if selectedItem!.itemType == .CameraOrigin {
                 
-                if undoComponent == nil {
-                    undoComponent = globalApp!.currentEditor.undoComponentStart("Camera Change")
-                }
-                
                 let x : Float = initialProperty.x - (mouseDownPos.x - event.x) / gridSize / graphZoom
                 let z : Float = initialProperty.z - (mouseDownPos.y - event.y) / gridSize / graphZoom
                 let properties : [String:Float] = [
@@ -451,16 +447,15 @@ class GroundEditor              : PropertiesWidget
                     "origin_z" : z,
                 ]
                 if let component = selectedItem?.getComponent() {
+                    if undoComponent == nil {
+                        undoComponent = globalApp!.currentEditor.undoComponentStart(component, "Camera Change")
+                    }
                     if processProperties(component, properties) == false {
                         insertValueToCameraProperty("origin", SIMD3<Float>(x, initialProperty.y, z))
                     }
                 }
             } else
             if selectedItem!.itemType == .CameraLookAt {
-                
-                if undoComponent == nil {
-                    undoComponent = globalApp!.currentEditor.undoComponentStart("Camera Change")
-                }
                 
                 let x : Float = initialProperty.x - (mouseDownPos.x - event.x) / gridSize / graphZoom
                 let z : Float = initialProperty.z - (mouseDownPos.y - event.y) / gridSize / graphZoom
@@ -469,6 +464,9 @@ class GroundEditor              : PropertiesWidget
                     "lookAt_z" : z,
                 ]
                 if let component = selectedItem?.getComponent() {
+                    if undoComponent == nil {
+                        undoComponent = globalApp!.currentEditor.undoComponentStart(component, "Camera Change")
+                    }
                     if processProperties(component, properties) == false {
                         insertValueToCameraProperty("lookAt", SIMD3<Float>(x, initialProperty.y, z))
                     }
@@ -492,8 +490,8 @@ class GroundEditor              : PropertiesWidget
             globalApp!.currentPipeline?.setMinimalPreview(false)
         }
         
-        if undoComponent != nil {
-            globalApp!.currentEditor.undoComponentEnd(undoComponent!)
+        if undoComponent != nil && undoComponent!.undoComponent != nil {
+            globalApp!.currentEditor.undoComponentEnd(undoComponent!.undoComponent!, undoComponent!)
             undoComponent = nil
         }
         
@@ -628,7 +626,7 @@ class GroundEditor              : PropertiesWidget
             itemMap[UUID()] = cameraOriginItem
             itemMap[UUID()] = cameraLookAtItem
 
-            mmView.drawLine.draw(sx: rect.x + cameraOriginItem!.rect.x + cameraOriginItem!.rect.width / 2, sy: rect.y + cameraOriginItem!.rect.y +  cameraOriginItem!.rect.height / 2, ex: rect.x + cameraLookAtItem!.rect.x + cameraLookAtItem!.rect.width / 2, ey: rect.y + cameraLookAtItem!.rect.y + cameraLookAtItem!.rect.height / 2, radius: 0.6, fillColor: normalBorderColor)
+            mmView.drawLine.drawDotted(sx: rect.x + cameraOriginItem!.rect.x + cameraOriginItem!.rect.width / 2, sy: rect.y + cameraOriginItem!.rect.y +  cameraOriginItem!.rect.height / 2, ex: rect.x + cameraLookAtItem!.rect.x + cameraLookAtItem!.rect.width / 2, ey: rect.y + cameraLookAtItem!.rect.y + cameraLookAtItem!.rect.height / 2, radius: 1.5, fillColor: normalBorderColor)
 
             drawItem(cameraOriginItem!, "Origin", originPos)
             drawItem(cameraLookAtItem!, "Look At", lookAtPos)
