@@ -21,6 +21,10 @@ class EditorRegion: MMRegion
     
     override func build()
     {
-        app.currentEditor.drawRegion(self)
+        if globalApp!.viewsAreAnimating == true {
+            drawLogo(rect)
+        } else {
+            app.currentEditor.drawRegion(self)
+        }
     }
 }

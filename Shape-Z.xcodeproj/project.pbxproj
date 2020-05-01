@@ -138,6 +138,8 @@
 		2B2B600524259D8600B9CCF1 /* Z.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2B5FF924259D8600B9CCF1 /* Z.tiff */; };
 		2B2B60072426027F00B9CCF1 /* ExportDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B2B6006242601C300B9CCF1 /* ExportDialog.swift */; };
 		2B2B60082426028000B9CCF1 /* ExportDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B2B6006242601C300B9CCF1 /* ExportDialog.swift */; };
+		2B2DAAFE245C183F00067839 /* render-z.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2DAAFD245C183E00067839 /* render-z.tiff */; };
+		2B2DAAFF245C183F00067839 /* render-z.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B2DAAFD245C183E00067839 /* render-z.tiff */; };
 		2B333D13226043FF0008A8CF /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
 		2B333D14226043FF0008A8CF /* MMScrollButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B333D12226043FF0008A8CF /* MMScrollButton.swift */; };
 		2B3AC54C22EBD67F0013A60E /* MMInfoArea.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */; };
@@ -727,6 +729,7 @@
 		2B2B5FF824259D8600B9CCF1 /* scale.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = scale.tiff; sourceTree = "<group>"; };
 		2B2B5FF924259D8600B9CCF1 /* Z.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Z.tiff; sourceTree = "<group>"; };
 		2B2B6006242601C300B9CCF1 /* ExportDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportDialog.swift; sourceTree = "<group>"; };
+		2B2DAAFD245C183E00067839 /* render-z.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = "render-z.tiff"; sourceTree = "<group>"; };
 		2B333D12226043FF0008A8CF /* MMScrollButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScrollButton.swift; sourceTree = "<group>"; };
 		2B3AC54B22EBD67F0013A60E /* MMInfoArea.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMInfoArea.swift; sourceTree = "<group>"; };
 		2B40D80423FCCDAF00D46B2F /* Combo3D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo3D.metal; sourceTree = "<group>"; };
@@ -1084,6 +1087,7 @@
 		2B7A3C4023B46AD8002EC5FC /* Icons */ = {
 			isa = PBXGroup;
 			children = (
+				2B2DAAFD245C183E00067839 /* render-z.tiff */,
 				2B2B5FF424259D8300B9CCF1 /* move.tiff */,
 				2B2B5FF524259D8400B9CCF1 /* rotate.tiff */,
 				2B2B5FF824259D8600B9CCF1 /* scale.tiff */,
@@ -1669,6 +1673,7 @@
 				2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B2B600224259D8600B9CCF1 /* scale.tiff in Resources */,
 				2BE847BD2453E11700409AAE /* Minimal.render-z in Resources */,
+				2B2DAAFE245C183F00067839 /* render-z.tiff in Resources */,
 				2B7A3C0523B4652E002EC5FC /* GameCuben.tiff in Resources */,
 				2B7A3C0423B4652E002EC5FC /* GameCuben.json in Resources */,
 				2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */,
@@ -1737,6 +1742,7 @@
 				2BDBF5A724526B0400B21FD7 /* Z_green.tiff in Resources */,
 				2B2B600124259D8600B9CCF1 /* Y.tiff in Resources */,
 				2B2B600324259D8600B9CCF1 /* scale.tiff in Resources */,
+				2B2DAAFF245C183F00067839 /* render-z.tiff in Resources */,
 				2B9B29BB23BB452B00C2F387 /* sz_ui_grey.tiff in Resources */,
 				2BDBF5A424526AF500B21FD7 /* Y_red.tiff in Resources */,
 				2B838DD424492363004BDE56 /* ground.tiff in Resources */,

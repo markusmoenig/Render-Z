@@ -956,3 +956,13 @@ func getUsedPatterns(_ materialComponent: CodeComponent, patterns: [CodeComponen
 
     return out;
 }
+
+func drawLogo(_ rect: MMRect, _ alpha: Float = 1)
+{
+    globalApp!.mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.125, 0.129, 0.137, 1))
+    
+    if let icon = globalApp!.mmView.icons["render-z"] {
+        let zoom : Float = 1
+        globalApp!.mmView.drawTexture.draw(icon, x: rect.x + (rect.width - Float(icon.width)/zoom) / 2, y: rect.y + (rect.height - Float(icon.height)/zoom) / 2, zoom: zoom, globalAlpha: alpha)
+    }
+}

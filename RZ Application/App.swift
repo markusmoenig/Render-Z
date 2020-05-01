@@ -48,11 +48,15 @@ class App
     var currentSceneMode: Scene.SceneMode = .ThreeD
     
     var images          : [String:MTLTexture] = [:]
+    
+    var viewsAreAnimating = false
         
     #if os(iOS)
     var viewController  : ViewController?
     #endif
 
+    var hasValidScene   = false
+    
     init(_ view : MMView )
     {
         mmView = view
@@ -78,6 +82,7 @@ class App
         mmView.registerIcon("fileicon")
         mmView.registerIcon("maximize")
         mmView.registerIcon("minimize")
+        mmView.registerIcon("render-z")
         sceneGraph = SceneGraph(mmView)
         
         // Initialize images
@@ -136,88 +141,98 @@ class App
     
     func loadFrom(_ json: String)
     {
-        if let jsonData = json.data(using: .utf8)
-        {
-            /*
-            do {
-                if (try JSONDecoder().decode(Project.self, from: jsonData)) != nil {
-                    print( "yes" )
+        hasValidScene = false
+        mmView.update()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+
+            if let jsonData = json.data(using: .utf8)
+            {
+                /*
+                do {
+                    if (try JSONDecoder().decode(Project.self, from: jsonData)) != nil {
+                        print( "yes" )
+                    }
                 }
-            }
-            catch {
-                print("Error is : \(error)")
-            }*/
-            
-            if let project =  try? JSONDecoder().decode(Project.self, from: jsonData) {
-                self.project = project
+                catch {
+                    print("Error is : \(error)")
+                }*/
                 
-                //project.selected!.stages[5] = Stage(.VariablePool, "Variables")
-                
-                // Insert fog / cloud if they dont exist
-                let preStage = project.selected!.getStage(.PreStage)
-                var hasFog = false
-                for c in preStage.children3D {
-                    if c.componentLists["fog"] != nil {
-                        hasFog = true
+                if let project =  try? JSONDecoder().decode(Project.self, from: jsonData) {
+                    self.project = project
+                    
+                    globalApp!.currentEditor.textureAlpha = 0
+                    globalApp!.currentPipeline?.finalTexture = globalApp!.currentPipeline?.checkTextureSize(10, 10, globalApp!.currentPipeline?.finalTexture)
+                    
+                    //project.selected!.stages[5] = Stage(.VariablePool, "Variables")
+                    
+                    // Insert fog / cloud if they dont exist
+                    let preStage = project.selected!.getStage(.PreStage)
+                    var hasFog = false
+                    for c in preStage.children3D {
+                        if c.componentLists["fog"] != nil {
+                            hasFog = true
+                        }
+                        
+                        /*
+                        if c.componentLists["clouds"] != nil {
+                            
+                            let codeComponent = CodeComponent(.Clouds3D, "Dummy")
+                            codeComponent.createDefaultFunction(.Clouds3D)
+                            
+                            c.componentLists["clouds"]!.append(codeComponent)
+                        }*/
                     }
                     
-                    /*
-                    if c.componentLists["clouds"] != nil {
+                    if hasFog == false {
+                        var item = StageItem(.PreStage, "Fog")
                         
-                        let codeComponent = CodeComponent(.Clouds3D, "Dummy")
-                        codeComponent.createDefaultFunction(.Clouds3D)
+                        let codeComponent = CodeComponent(.Fog3D, "Dummy")
+                        codeComponent.createDefaultFunction(.Fog3D)
                         
-                        c.componentLists["clouds"]!.append(codeComponent)
-                    }*/
-                }
-                
-                if hasFog == false {
-                    var item = StageItem(.PreStage, "Fog")
+                        item.componentLists["fog"] = [codeComponent]
+                        preStage.children3D.append(item)
+                        placeChild(modeId: "3D", parent: preStage, child: item, stepSize: 80, radius: 130)
+                        
+                        item = StageItem(.PreStage, "Clouds")
+                        item.componentLists["clouds"] = []
+                        preStage.children3D.append(item)
+                        placeChild(modeId: "3D", parent: preStage, child: item, stepSize: 50, radius: 120)
+                    }
                     
-                    let codeComponent = CodeComponent(.Fog3D, "Dummy")
-                    codeComponent.createDefaultFunction(.Fog3D)
-                    
-                    item.componentLists["fog"] = [codeComponent]
-                    preStage.children3D.append(item)
-                    placeChild(modeId: "3D", parent: preStage, child: item, stepSize: 80, radius: 130)
-                    
-                    item = StageItem(.PreStage, "Clouds")
-                    item.componentLists["clouds"] = []
-                    preStage.children3D.append(item)
-                    placeChild(modeId: "3D", parent: preStage, child: item, stepSize: 50, radius: 120)
-                }
-                
-                // Insert Max Fog Distance Variable if it does not exist
-                let variableStage = project.selected!.getStage(.VariablePool)
-                for c in variableStage.children3D {
-                    if c.name == "World" {
-                        if let list = c.componentLists["variables"] {
-                            var hasMaxDist = false
-                            for v in list {
-                                if v.libraryName == "Fog Distance" {
-                                    hasMaxDist = true
+                    // Insert Max Fog Distance Variable if it does not exist
+                    let variableStage = project.selected!.getStage(.VariablePool)
+                    for c in variableStage.children3D {
+                        if c.name == "World" {
+                            if let list = c.componentLists["variables"] {
+                                var hasMaxDist = false
+                                for v in list {
+                                    if v.libraryName == "Fog Distance" {
+                                        hasMaxDist = true
+                                    }
                                 }
-                            }
-                            if hasMaxDist == false {
-                                let worldFogMaxDistanceComponent = CodeComponent(.Variable, "Fog Distance")
-                                worldFogMaxDistanceComponent.values["locked"] = 1
-                                worldFogMaxDistanceComponent.createVariableFunction("worldMaxFogDistance", "float", "Maximum Fog Distance", defaultValue: Float(50), gizmo: 2)
-                                c.componentLists["variables"]!.append(worldFogMaxDistanceComponent)
+                                if hasMaxDist == false {
+                                    let worldFogMaxDistanceComponent = CodeComponent(.Variable, "Fog Distance")
+                                    worldFogMaxDistanceComponent.values["locked"] = 1
+                                    worldFogMaxDistanceComponent.createVariableFunction("worldMaxFogDistance", "float", "Maximum Fog Distance", defaultValue: Float(50), gizmo: 2)
+                                    c.componentLists["variables"]!.append(worldFogMaxDistanceComponent)
+                                }
                             }
                         }
                     }
-                }
-                    
-                if project.selected!.stages[4].children2D.count == 0 {
-                    project.selected!.stages[4] = Stage(.PostStage, "Post FX")
-                }
+                        
+                    if project.selected!.stages[4].children2D.count == 0 {
+                        project.selected!.stages[4] = Stage(.PostStage, "Post FX")
+                    }
 
-                globalApp!.sceneGraph.clearSelection()
-                project.selected!.addDefaultImages()
-                
-                globalApp!.currentPipeline?.resetIds()
-                currentEditor.updateOnNextDraw(compile: true)
-                mmView.update()
+                    globalApp!.sceneGraph.clearSelection()
+                    project.selected!.addDefaultImages()
+                    
+                    globalApp!.currentPipeline?.resetIds()
+                    self.hasValidScene = true
+                    self.currentEditor.updateOnNextDraw(compile: true)
+                    self.mmView.update()
+                }
             }
         }
     }
@@ -326,6 +341,8 @@ class App
 
 class Editor
 {
+    var textureAlpha    : Float = 0
+
     func activate()
     {
     }

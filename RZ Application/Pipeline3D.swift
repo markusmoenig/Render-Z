@@ -60,6 +60,10 @@ class Pipeline3D            : Pipeline
     // Build the pipeline elements
     override func build(scene: Scene)
     {
+        if globalApp!.hasValidScene == false || globalApp!.viewsAreAnimating == true {
+            return
+        }
+        
         self.scene = scene
         renderId += 1
         
@@ -223,6 +227,10 @@ class Pipeline3D            : Pipeline
     // Render the pipeline
     override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
+        if globalApp!.hasValidScene == false || globalApp!.viewsAreAnimating == true {
+            return
+        }
+        
         width = round(widthIn); height = round(heightIn)
 
         // Return a red texture if compilation failed

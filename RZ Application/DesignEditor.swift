@@ -40,7 +40,7 @@ class DesignEditor          : MMWidget
     var zoomBuffer          : Float = 0
     
     var blockRendering      : Bool = false
-
+    
     override init(_ view: MMView)
     {
         fragment = MMFragment(view)
@@ -352,14 +352,23 @@ class DesignEditor          : MMWidget
         
         // Do the preview
         if let texture = globalApp!.currentPipeline!.finalTexture {
-            if rect.width == Float(texture.width) && rect.height == Float(texture.height) {
-                mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+            if round(rect.width) == Float(texture.width) && round(rect.height) == Float(texture.height) {
+                if globalApp!.currentEditor.textureAlpha < 1 {
+                    drawLogo(rect, 1.0 - globalApp!.currentEditor.textureAlpha)
+                    mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, globalAlpha: globalApp!.currentEditor.textureAlpha)
+                    globalApp!.currentEditor.textureAlpha += 0.1
+                    mmView.update()
+                } else {
+                    mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
+                }
             } else {
-                mmView.drawTexture.drawScaled(texture, x: rect.x, y: rect.y, width: rect.width, height: rect.height)
+                drawLogo(rect)
+                globalApp!.currentEditor.textureAlpha = 0
             }
             globalApp!.currentPipeline!.renderIfResolutionChanged(rect.width, rect.height)
         } else {
-            mmView.drawBox.draw(x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor: mmView.skin.Code.background)
+            drawLogo(rect)
+            globalApp!.currentEditor.textureAlpha = 0
         }
         
         mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
