@@ -1328,6 +1328,32 @@ class CodeBuilder
             return p - t;
         }
         
+        /*
+        // Triangle Noise
+        float tri(float x){return abs(fract(x)-.5);}
+        float3 tri3(float3 p){return float3( tri(p.z+tri(p.y*1.)), tri(p.z+tri(p.x*1.)), tri(p.y+tri(p.x*1.)));}
+        
+        float triNoise3d(float3 p, int octaves = 4, float persistence = 0.5, float scale = 1)
+        {
+            float z=1.4;
+            float rz = 0.;
+            float3 bp = p;
+            for (float i=0.; i < octaves; i++ )
+            {
+                float3 dg = tri3(bp * scale);
+                //p += (dg+time*spd);
+
+                bp *= 1.8;
+                z *= 1.5;
+                p *= 1.2;
+                //p.xz*= m2;
+                
+                rz+= (tri(p.z+tri(p.x+tri(p.y))))/z;
+                bp += 0.14;
+            }
+            return rz;
+        }*/
+        
         // Value Noise, https://www.shadertoy.com/view/4dS3Wd
         
         float __valueHash1(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }

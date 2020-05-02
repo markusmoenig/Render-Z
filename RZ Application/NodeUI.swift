@@ -646,13 +646,16 @@ class NodeUINumber : NodeUI
     
     var stepSize    : Float = 0
     
-    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = SIMD2<Float>(0,1), int: Bool = false, value: Float = 0, precision: Int = 3)
+    var halfWidth   : Float? = nil
+    
+    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = SIMD2<Float>(0,1), int: Bool = false, value: Float = 0, precision: Int = 3, halfWidthValue : Float? = nil)
     {
         self.value = value
         self.defaultValue = value
         self.range = range
         self.int = int
         self.precision = precision
+        self.halfWidth = halfWidthValue
 
         if node.properties[variable] == nil {
             node.properties[variable] = value
@@ -727,14 +730,31 @@ class NodeUINumber : NodeUI
                 stepSize = Float(Int(stepSize))
             }
         }
+        
         mouseIsDown = true
         
         if range != nil {
-                    
-            let oldValue = value
-            let perPixel = (range!.y - range!.x) / width
+            if let halfWidthValue = halfWidth {
+                var offset : Float = max((event.x - x), 0)
+                
+                if offset <= width / 2 {
+                    let distance = halfWidthValue - range!.x
+                    let perPixel = distance / width * 2
 
-            value = range!.x + perPixel * max((event.x - x), 0)
+                    value = range!.x + perPixel * offset
+                } else {
+                    offset -= width / 2
+                    
+                    let distance = range!.y - halfWidthValue
+                    let perPixel = distance / width * 2
+
+                    value = halfWidthValue + perPixel * offset
+                }
+            } else {
+                let perPixel = (range!.y - range!.x) / width
+                value = range!.x + perPixel * max((event.x - x), 0)
+            }
+            
             value = max( value, range!.x)
             value = min( value, range!.y)
             
@@ -840,7 +860,29 @@ class NodeUINumber : NodeUI
         mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : adjustColor(NodeUI.contentColor) )
         
         if range != nil {
-            let offset = (width / (range!.y - range!.x)) * (value - range!.x)
+            
+            var offset : Float = 0
+            
+            if let halfWidthValue = halfWidth {
+                
+                if value <= halfWidthValue {
+                    let distance : Float = halfWidthValue - range!.x
+                    let perPixel : Float = width / 2.0 / distance
+                    let valueOffset : Float = value - range!.x;
+
+                    offset = valueOffset * perPixel;
+                } else {
+                    let distance : Float = range!.y - halfWidthValue
+                    let perPixel : Float = width / 2.0 / distance;
+                    let valueOffset : Float = value - halfWidthValue;
+
+                    offset = width / 2.0 + valueOffset * perPixel;
+                }
+                
+            } else {
+                offset = (width / (range!.y - range!.x)) * (value - range!.x)
+            }
+            
             if offset > 0 {
                 mmView.renderer.setClipRect(MMRect(x, contentY, offset, itemHeight))
                 mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : adjustColor(NodeUI.contentColor2))
@@ -1522,7 +1564,7 @@ class NodeUINoise3D : NodeUISelector
         let basePersistance = NodeUINumber(menuNode, variable: "noiseBasePersistance", title: "Base Persistance", range: SIMD2<Float>(0, 2), value: fragment.values["noiseBasePersistance"]!)
         menuNode.uiItems.append(basePersistance)
         
-        let baseScale = NodeUINumber(menuNode, variable: "noiseBaseScale", title: "Base Scale", range: SIMD2<Float>(0, 10), value: fragment.values["noiseBaseScale"]!)
+        let baseScale = NodeUINumber(menuNode, variable: "noiseBaseScale", title: "Base Scale", range: SIMD2<Float>(0, 10), value: fragment.values["noiseBaseScale"]!, halfWidthValue: 1)
         menuNode.uiItems.append(baseScale)
         
         let noiseIndex = fragment.values["noiseMix3D"] == nil ? 0 : fragment.values["noiseMix3D"]!
@@ -1535,7 +1577,7 @@ class NodeUINoise3D : NodeUISelector
         let mixPersistance = NodeUINumber(menuNode2, variable: "noiseMixPersistance", title: "Mix Persistance", range: SIMD2<Float>(0, 2), value: fragment.values["noiseMixPersistance"]!)
         menuNode2.uiItems.append(mixPersistance)
         
-        let mixScale = NodeUINumber(menuNode2, variable: "noiseMixScale", title: "Mix Scale", range: SIMD2<Float>(0, 10), value: fragment.values["noiseMixScale"]!)
+        let mixScale = NodeUINumber(menuNode2, variable: "noiseMixScale", title: "Mix Scale", range: SIMD2<Float>(0, 10), value: fragment.values["noiseMixScale"]!, halfWidthValue: 1)
         menuNode2.uiItems.append(mixScale)
         
         let mixDisturbance = NodeUINumber(menuNode2, variable: "noiseMixDisturbance", title: "Disturbance", range: SIMD2<Float>(0, 2), value: fragment.values["noiseMixDisturbance"]!)
