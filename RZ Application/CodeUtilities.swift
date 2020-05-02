@@ -795,7 +795,7 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
     
     code +=
     """
-        outColor = mix(float4(float3(0), 0.8), float4(1,1,1, 0.8), noise);
+        outColor = mix(float4(float3(0), 0.8), float4(1,1,1, 0.8), noise * \(fragment.values["noiseResultScale"]!));
         __outTexture.write(half4(outColor), __gid);
     }
     
@@ -889,7 +889,8 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
     
     let mixDisturbance = addToolProperty("noiseMixDisturbance", defaultValue: 1.0)
     let mixValue = addToolProperty("noiseMixValue", defaultValue: 0.5)
-    
+    let resultScale = addToolProperty("noiseResultScale", defaultValue: 0.5)
+
     let secondary = getNoiseName("noiseMix3D", secondary: true)
     if secondary != "None" {
         
@@ -909,8 +910,7 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
     funcCode +=
     """
     
-        return baseNoise;
-    
+        return baseNoise * __funcData->__data[\(resultScale)].x;
     }
     
     """

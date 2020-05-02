@@ -1586,6 +1586,9 @@ class NodeUINoise3D : NodeUISelector
         let mixValue = NodeUINumber(menuNode, variable: "noiseMixValue", title: "Mix", range: SIMD2<Float>(0, 1), value: fragment.values["noiseMixValue"]!)
         menuNode.uiItems.append(mixValue)
         
+        let noiseResultScale = NodeUINumber(menuNode, variable: "noiseResultScale", title: "Result Scale", range: SIMD2<Float>(0, 2), value: fragment.values["noiseResultScale"]!)
+        menuNode.uiItems.append(noiseResultScale)
+        
         func disableItems() {
             var disableMix = false
             if mixNoise.items[Int(mixNoise.index)] == "None" {

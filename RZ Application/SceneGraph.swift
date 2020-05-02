@@ -847,7 +847,7 @@ class SceneGraph                : MMWidget
     func switchState() {
         if animating { return }
         let rightRegion = globalApp!.rightRegion!
-        openWidth = globalApp!.editorRegion!.rect.width / 2
+        openWidth = globalApp!.editorRegion!.rect.width * 0.4
         
         if sceneGraphState == .Open {
             globalApp!.viewsAreAnimating = true
