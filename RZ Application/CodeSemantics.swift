@@ -1131,6 +1131,7 @@ class CodeBlock             : Codable, Equatable
                         ctx.cComponent!.inputDataList.append(fragment.uuid)
                         ctx.cComponent!.inputComponentList.append(ctx.cComponent!)
                         
+                        //print("pattern color dataIndex", ctx.cComponent!.uuid, dataIndex)
                         ctx.addCode( "mix(__funcData->__data[\(dataIndex)], \(conn.0 + "." + conn.1), \(conn.0 + "." + conn.1).w )" )
                     } else {
                         ctx.addCode( conn.0 + "." + conn.1 )
@@ -1161,6 +1162,7 @@ class CodeBlock             : Codable, Equatable
                             ctx.addCode( "__data[\(dataIndex)]" )
                         }
                         
+                        //print("property dataIndex", ctx.cComponent!.uuid, dataIndex)
                         if components == 1 {
                             ctx.addCode( ".x" )
                         } else
@@ -2552,6 +2554,7 @@ class CodeComponent         : Codable, Equatable
             let patterns = getUsedPatterns(self, patterns: ctx.patternList).reversed()
             
             for pattern in patterns {
+                
                 dryRunComponent(pattern, ctx.propertyDataOffset + inputDataList.count, patternList: ctx.patternList)
                 globalCode! += pattern.globalCode!
                 
@@ -2562,7 +2565,9 @@ class CodeComponent         : Codable, Equatable
                 pattern.propertyConnections.forEach { (key, value) in
                     propertyConnections[key] = value }
                 pattern.toolPropertyIndex.forEach { (key, value) in
-                    toolPropertyIndex[key] = value }
+                    toolPropertyIndex[key] = value
+                    ctx.propertyDataOffset += value.count - 1
+                }
                 // ---
 
                 let f = pattern.functions.last!

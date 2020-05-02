@@ -839,6 +839,8 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
         } else {
             dataIndex += component.toolPropertyIndex[fragment.uuid]!.count - 1
         }
+        
+        //print("tool dataIndex", ctx.cComponent!.uuid, dataIndex, name)
         component.toolPropertyIndex[fragment.uuid]!.append((name, fragment))
         if fragment.values[name] == nil {
             fragment.values[name] = defaultValue
