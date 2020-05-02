@@ -174,6 +174,7 @@ class CodeProperties    : MMWidget
                         globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                         globalApp!.developerEditor.codeEditor.undoEnd(undo)
                         globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                        globalApp!.developerEditor.codeEditor.clearSelection()
                     }
                 }
                 b3.isDisabled = function.references > 0

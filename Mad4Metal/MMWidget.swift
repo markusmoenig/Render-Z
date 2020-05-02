@@ -699,9 +699,10 @@ class MMMenuWidget : MMWidget
 }
 
 /// Texture widget
-class MMTextureWidget : MMWidget
+class MMTextureWidget   : MMWidget
 {
-    var texture : MTLTexture?
+    var texture         : MTLTexture?
+    var globalAlpha     : Float = 1
 
     init( _ view: MMView, name: String )
     {
@@ -728,7 +729,7 @@ class MMTextureWidget : MMWidget
     
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
-        mmView.drawTexture.draw(texture!, x: rect.x, y: rect.y, zoom: zoom)
+        mmView.drawTexture.draw(texture!, x: rect.x, y: rect.y, zoom: zoom, globalAlpha: globalAlpha)
     }
 }
 

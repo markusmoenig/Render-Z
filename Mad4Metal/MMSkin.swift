@@ -102,14 +102,14 @@ struct MMSkinMenuWidget
     
     var margin          : MMMargin = MMMargin( 12, 8, 12, 8 )
 
-    var fontScale       : Float = 0.35
-    var borderSize      : Float = 1
+    var fontScale       : Float = 0.3
+    var borderSize      : Float = 0.5
     var spacing         : Float = 4
     var round           : Float = 12
-    var color           : SIMD4<Float> = SIMD4<Float>(0.533, 0.537, 0.541, 1.000)
+    var color           : SIMD4<Float> = SIMD4<Float>(0.165, 0.169, 0.173, 1.000)
     var hoverColor      : SIMD4<Float> = SIMD4<Float>(0.502, 0.502, 0.502, 1.0 )
-    var borderColor     : SIMD4<Float> = SIMD4<Float>(0.0, 0.0, 0.0, 1.0 )
-    var textColor       : SIMD4<Float> = SIMD4<Float>(0.165, 0.169, 0.173, 1.000)
+    var borderColor     : SIMD4<Float> = SIMD4<Float>(0.533, 0.537, 0.541, 1.0 )
+    var textColor       : SIMD4<Float> = SIMD4<Float>(0.804, 0.804, 0.804, 1.000)
     var selTextColor    : SIMD4<Float> = SIMD4<Float>(0.878, 0.882, 0.886, 1.000)
     var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.224, 0.275, 0.361, 1.000)
 }

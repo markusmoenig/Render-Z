@@ -688,7 +688,7 @@ class CodeEditor        : MMWidget
                     // Draw semi transparent function backgrounds
                     for f in comp.functions {
                         var color = mmView.skin.Code.background
-                        color.w = 0.9
+                        color.w = 0.9 * globalApp!.currentEditor.textureAlpha
                         
                         mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: rect.y + codeContext.gapY / 2 + f.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
                         
@@ -704,8 +704,13 @@ class CodeEditor        : MMWidget
         
         // Draw the code
         if codeHasRendered == true && showCode {
+            textureWidget.globalAlpha = globalApp!.currentEditor.textureAlpha
             scrollArea.rect.copy(rect)
             scrollArea.build(widget: textureWidget, area: rect, xOffset: xOffset, yOffset: yOffset)
+        }
+        
+        if globalApp!.currentEditor.textureAlpha < 1 {
+            return
         }
         
         // Hover and Selection Modes

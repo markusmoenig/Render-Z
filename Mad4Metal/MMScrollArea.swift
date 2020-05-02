@@ -22,7 +22,7 @@ class MMScrollArea : MMWidget
     var orientation : MMScrollAreaOrientation
     
     var widget      : MMWidget?
-
+    
     init(_ view: MMView, orientation: MMScrollAreaOrientation, widget: MMWidget? = nil)
     {
         offsetX = 0

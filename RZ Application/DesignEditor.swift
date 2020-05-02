@@ -371,11 +371,13 @@ class DesignEditor          : MMWidget
             globalApp!.currentEditor.textureAlpha = 0
         }
         
-        mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
-        
-        if let gizmo = currentGizmo, designComponent != nil {
-            gizmo.rect.copy(rect)
-            gizmo.draw()
+        if globalApp!.currentEditor.textureAlpha >= 1 {
+            mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
+            
+            if let gizmo = currentGizmo, designComponent != nil {
+                gizmo.rect.copy(rect)
+                gizmo.draw()
+            }
         }
     }
     
