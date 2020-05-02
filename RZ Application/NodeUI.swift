@@ -1620,7 +1620,7 @@ class NodeUINoise3D : NodeUISelector
         }
         
         if let texture = previewTexture {
-            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y + 50)
+            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y + 50, round: 12, roundingRect: SIMD4<Float>(0, 0, Float(texture.width), Float(texture.height)))
         }
         
         menu.rect.x = rect.right() - menu.rect.width
@@ -1819,15 +1819,13 @@ class NodeUIMenu : MMWidget
                 return
             }
             
-            var x = rect.x + menuRect.width
-            var y = rect.y - menuRect.height
+            var x = rect.x + menuRect.width + 4
+            var y = rect.y - rect.height
             
             if menuType != .Hidden {
                 x += rect.width - menuRect.width
                 y += rect.height
             }
-
-            mmView.drawBox.draw( x: x, y: y, width: menuRect.width, height: menuRect.height, round: skin.round, borderSize: skin.borderSize, fillColor : skin.color, borderColor: skin.borderColor )
 
             pWidget.rect.x = x
             pWidget.rect.y = y
@@ -1835,8 +1833,11 @@ class NodeUIMenu : MMWidget
             pWidget.rect.height = menuRect.height
             
             if pWidget.rect.bottom() > mmView.renderer.cHeight {
-                pWidget.rect.y -= pWidget.rect.bottom() - mmView.renderer.cHeight
+                y -= pWidget.rect.bottom() - mmView.renderer.cHeight! + 5
+                pWidget.rect.y = y
             }
+            
+            mmView.drawBox.draw( x: x, y: y, width: menuRect.width, height: menuRect.height, round: skin.round, borderSize: skin.borderSize, fillColor : skin.color, borderColor: skin.borderColor )
 
             x += skin.margin.left//rect.width - menuRect.width
             y += skin.margin.top
