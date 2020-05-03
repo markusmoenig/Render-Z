@@ -77,6 +77,15 @@ class LibraryDialog: MMDialog {
     
     var buttonSkin      : MMSkinButton
     var buttons         : [MMWidget] = []
+    
+    var textMap         : [String:String] = [
+        "FuncHash"      : "Hash",
+        "FuncNoise"     : "Noise",
+        "FuncMisc"      : "Misc",
+        "Pattern2D"     : "Pattern 2D",
+        "Pattern3D"     : "Pattern 3D",
+        "PatternMixer"  : "Mixer"
+    ]
 
     init(_ view: MMView) {
         
@@ -199,7 +208,13 @@ class LibraryDialog: MMDialog {
         buttons = []
         if list.count > 1 {
             for id in list {
-                let button = MMButtonWidget(mmView, skinToUse: buttonSkin, text: id.replacingOccurrences(of: "Func", with: ""))
+                
+                var text = id
+                if let mapping = textMap[text] {
+                    text = mapping
+                }
+                
+                let button = MMButtonWidget(mmView, skinToUse: buttonSkin, text: text)
                 button.name = id
                 button.clicked = { (event) in
                     self.currentId = button.name

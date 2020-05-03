@@ -487,6 +487,10 @@ class CodeFragment          : Codable, Equatable
                 if self.name == "PI" {
                     codeName = (isNegated() ? " -" : "") + "M_PI_F"
                 } else
+                if self.name == "image" {
+                    codeName = (isNegated() ? " -" : "")
+                    codeName += generateImageFunction(ctx, self)
+                } else
                 if self.name == "noise2D" {
                     codeName = (isNegated() ? " -" : "")
                     codeName += generateNoise2DFunction(ctx, self)

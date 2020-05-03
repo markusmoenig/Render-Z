@@ -144,6 +144,7 @@ class CodeFragList : MMWidget
         items.append(item)
         item.items.append( SourceListItem("if (...)", CodeFragment(.Primitive, "block", "if")))
         item.items.append( SourceListItem("if (...) else ", CodeFragment(.Primitive, "block", "if else")))
+        item.items.append( SourceListItem("image", CodeFragment(.Primitive, "float4", "image", [.Selectable, .Dragable, .Targetable], ["float2"], "float4", defaultValues: ["needsFuncData": 1] ) ) )
         item.items.append( SourceListItem("int", CodeFragment(.VariableDefinition, "int", "", [.Selectable, .Dragable, .Monitorable], ["int"], "int" ) ) )
         //?? item.items.append( SourceListItem("inversesqrt", CodeFragment(.Primitive, "float", "inversesqrt", [.Selectable, .Dragable, .Targetable], ["float|float2|float3|float4"], "input0" ) ) )
         

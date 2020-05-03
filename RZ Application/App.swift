@@ -47,7 +47,7 @@ class App
     var project         : Project
     var currentSceneMode: Scene.SceneMode = .ThreeD
     
-    var images          : [String:MTLTexture] = [:]
+    var images          : [(String,MTLTexture)] = []
     
     var viewsAreAnimating = false
         
@@ -89,7 +89,7 @@ class App
         let imageNames = ["Pebbles", "GreyStone"]
         for name in imageNames {
             if let texture = mmView.loadTexture(name, mipmaps: false, sRGB: true) {
-                images["Images." + name] = texture
+                images.append(("Images." + name, texture))
             }
         }
 

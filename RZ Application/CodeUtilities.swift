@@ -242,7 +242,14 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
                 libName += " :: Light3D"
             } else
             if component.componentType == .Pattern {
-                libName += " :: Pattern"
+                if component.libraryCategory == "Pattern 3D" {
+                    libName += " :: Pattern3D"
+                } else
+                if component.libraryCategory == "Mixer" {
+                    libName += " :: PatternMixer"
+                } else {
+                    libName += " :: Pattern2D"
+                }
             } else
             if component.componentType == .PostFX {
                 libName += " :: PostFX"
@@ -738,7 +745,72 @@ func getTransformedComponentProperty(_ component: CodeComponent,_ name: String) 
     return result
 }
 
-// 2D Nouse Functions
+// Image Functions
+
+// Setup a NodeUINoise2D
+func setupImageUI(_ node: Node, _ fragment: CodeFragment, title: String = "Image") -> NodeUIImage
+{
+    var items : [String] = []
+    for i in globalApp!.images {
+        let components = i.0.components(separatedBy: ".")
+        items.append(components[1])
+    }
+    let imageIndex = fragment.values["imageIndex"] == nil ? 0 : fragment.values["imageIndex"]!
+    return NodeUIImage(node, variable: "imageIndex", title: title, items: items, index: imageIndex, fragment: fragment)
+}
+
+func generateImageFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> String
+{
+    let component = ctx.cComponent!
+    let funcName = generateToken()
+        
+    func addToolProperty(_ name: String, defaultValue: Float) -> Int
+    {
+        var dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
+        if component.toolPropertyIndex[fragment.uuid] == nil {
+            component.toolPropertyIndex[fragment.uuid] = []
+            
+            component.inputDataList.append(fragment.uuid)
+            component.inputComponentList.append(component)
+        } else {
+            dataIndex += component.toolPropertyIndex[fragment.uuid]!.count - 1
+        }
+        
+        //print("tool dataIndex", ctx.cComponent!.uuid, dataIndex, name)
+        component.toolPropertyIndex[fragment.uuid]!.append((name, fragment))
+        if fragment.values[name] == nil {
+            fragment.values[name] = defaultValue
+        }
+        return dataIndex
+    }
+    
+    let imageIndex = fragment.values["imageIndex"] == nil ? 0 : fragment.values["imageIndex"]!
+
+    let token = generateToken()
+    let textureName = globalApp!.images[Int(imageIndex)].0
+    component.textures.append((textureName, token, 0))
+        
+    let imageScale = addToolProperty("imageScale", defaultValue: 1)
+    
+    let funcCode =
+    """
+
+    float4 \(funcName)(float2 uv, thread struct FuncData *__funcData)
+    {
+        __CREATE_TEXTURE_DEFINITIONS__
+
+        return __interpolateTexture(\(token), uv * __funcData->__data[\(imageScale)].x);
+    }
+    
+    """
+    
+    component.globalCode! += funcCode
+    
+    return funcName
+}
+
+
+// 2D Noise Functions
 
 func getAvailable2DNoises() -> ([String], [String])
 {
@@ -849,7 +921,6 @@ func generateNoise2DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
     
     return funcName
 }
-
 
 func generateNoisePreview2D(domain: String, noiseIndex: Float, width: Float, height: Float, fragment: CodeFragment) -> MTLTexture?
 {

@@ -118,6 +118,16 @@ class CodeProperties    : MMWidget
                     index = Float(i)
                 }
                 categorySelector = NodeUISelector(c2Node!, variable: "libraryCategory", title: "Category", items: items, index: index )
+            } else
+            if comp.componentType == .Pattern {
+                items = ["Pattern 2D", "Pattern 3D", "Mixer"]
+                if let i = items.firstIndex(of: libraryCategory) {
+                    index = Float(i)
+                }
+                if index == -1 {
+                    index = 0
+                }
+                categorySelector = NodeUISelector(c2Node!, variable: "libraryCategory", title: "Category", items: items, index: index )
             }
             
             if let categorySelector = categorySelector {
@@ -686,6 +696,27 @@ class CodeProperties    : MMWidget
                         } else {
                             textVar.value = oldValue
                         }
+                    }
+                }
+            }
+            
+            // --- Image Widget
+            if fragment.fragmentType == .Primitive && fragment.name == "image" {
+                let imageUI = setupImageUI(c2Node!, fragment)
+                c2Node?.uiItems.append(imageUI)
+                
+                c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable.starts(with: "image") {
+                        fragment.values[variable] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Image Changed") : nil
+                        fragment.values[variable] = newValue
+                        //if variable == "image" {
+                            self.editor.codeEditor.markStageItemOfComponentInvalid(comp)
+                            self.editor.updateOnNextDraw(compile: true)
+                        //} else {
+                        //    self.editor.updateOnNextDraw(compile: false)
+                        //}
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
                     }
                 }
             }

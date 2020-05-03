@@ -1528,6 +1528,111 @@ class NodeUIColor : NodeUI
     }
 }
 
+class NodeUIImage : NodeUISelector
+{
+    var previewTexture      : MTLTexture? = nil
+    var previewIndex        : Float = -1
+    
+    var menuNode            : Node!
+    var menuNode2           : Node!
+    var menu                : NodeUIMenu!
+    
+    var oRect               = MMRect()
+    var fragment            : CodeFragment
+    
+    init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0, shadows: Bool = false, fragment: CodeFragment)
+    {
+        self.fragment = fragment
+        super.init(node, variable: variable, title: title, items: items, index: index, shadows: shadows)
+    }
+    
+    override func calcSize(mmView: MMView) {
+        
+        super.calcSize(mmView: mmView)
+        
+        oRect.copy(rect)
+        
+        rect.width = 170
+        rect.height = 85
+        
+        menuNode = Node()
+        menuNode2 = Node()
+
+        let imageScale = NodeUINumber(menuNode, variable: "imageScale", title: "Scale", range: SIMD2<Float>(0, 10), value: fragment.values["imageScale"]!, halfWidthValue: 1)
+        menuNode.uiItems.append(imageScale)
+
+        menuNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+            if let cb = self.node.floatChangedCB {
+                cb(variable, oldValue, newValue, continous, noUndo)
+            }
+            self.generatePreview()
+        }
+                
+        menu = NodeUIMenu(mmView, node: menuNode)
+        menu.shadows = titleShadows
+        menu.menuType = .BoxedMenu
+        menu.rect.width /= 1.2
+        menu.rect.height /= 1.2
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        if menu.rect.contains(event.x, event.y) {
+            menu.mouseDown(event)
+        } else
+        if oRect.contains(event.x - rect.x, event.y - rect.y) {
+            super.mouseDown(event)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        if menu.rect.contains(event.x, event.y) {
+            menu.mouseUp(event)
+        } else
+        if oRect.contains(event.x - rect.x, event.y - rect.y) {
+            super.mouseUp(event)
+        }
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if menu.rect.contains(event.x, event.y) {
+            menu.mouseMoved(event)
+        } else
+        if oRect.contains(event.x - rect.x, event.y - rect.y) {
+            super.mouseMoved(event)
+        }
+    }
+    
+    func generatePreview()
+    {
+        //previewTexture = generateNoisePreview2D(domain: "noise2D", noiseIndex: index, width: rect.width, height: rect.height, fragment: fragment)
+        //previewIndex = index
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
+    {
+        super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
+        
+        if previewIndex != index {
+            generatePreview()
+        }
+        
+        if let texture = previewTexture {
+            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y + 50, round: 12, roundingRect: SIMD4<Float>(0, 0, Float(texture.width), Float(texture.height)))
+        }
+        
+        menu.rect.x = rect.right() - menu.rect.width
+        menu.rect.y = rect.y + 13
+        
+        if menu.states.contains(.Opened) {
+            mmView.delayedDraws.append(menu)
+        } else {
+            menu.draw()
+        }
+    }
+}
 
 class NodeUINoise2D : NodeUISelector
 {

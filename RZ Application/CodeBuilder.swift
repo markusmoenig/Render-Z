@@ -1153,8 +1153,11 @@ class CodeBuilder
         // Atach the instance textures to the outTextures
         var myOuTextures = outTextures
         for t in inst.textures {
-            if let texture = globalApp!.images[t.0] {
-                myOuTextures.append(texture)
+            for texture in globalApp!.images {
+                if texture.0 == t.0 {
+                    myOuTextures.append(texture.1)
+                    break
+                }
             }
         }
         
