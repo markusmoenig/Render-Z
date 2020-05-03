@@ -158,9 +158,16 @@ class DesignProperties      : MMWidget
                     c1Node?.uiItems.append(numberVar)
                 } else
                 if components == 4 {
-                    let colorItem = NodeUIColor(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z))
-                    colorItem.titleShadows = true
-                    c1Node?.uiItems.append(colorItem)
+                    if rc.1!.fragmentType == .Primitive && rc.1!.name == "image" {
+                        propMap["image"] = rc.1!
+                        let imageUI = setupImageUI(c1Node!, rc.1!, title: comp.artistPropertyNames[uuid]!)
+                        imageUI.titleShadows = true
+                        c1Node!.uiItems.append(imageUI)
+                    } else {
+                        let colorItem = NodeUIColor(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z))
+                        colorItem.titleShadows = true
+                        c1Node?.uiItems.append(colorItem)
+                    }
                 }
             }
         }
@@ -173,7 +180,19 @@ class DesignProperties      : MMWidget
                 return
             }
             
-            if variable.starts(with: "noise") {
+            if variable.starts(with: "noise") || variable.starts(with: "image") {
+                if let fragment = self.propMap["image"] {
+                    fragment.values[variable] = oldValue
+                    let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Image Changed") : nil
+                    fragment.values[variable] = newValue
+                    if variable == "image" {
+                        globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                        self.editor.updateOnNextDraw(compile: true)
+                    } else {
+                        self.editor.updateOnNextDraw(compile: false)
+                    }
+                    if let undo = codeUndo { globalApp!.currentEditor.undoComponentEnd(undo) }
+                } else
                 if let fragment = self.propMap["noise3D"] {
                     fragment.values[variable] = oldValue
                     let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Noise Changed") : nil

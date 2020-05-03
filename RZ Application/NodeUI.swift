@@ -1552,8 +1552,8 @@ class NodeUIImage : NodeUISelector
         
         oRect.copy(rect)
         
-        rect.width = 170
-        rect.height = 85
+        rect.width = 190
+        rect.height += 85
         
         menuNode = Node()
         menuNode2 = Node()
@@ -2008,6 +2008,8 @@ class NodeUIMenu : MMWidget
             menuRect.width += node2.uiArea.width
             //menuRect.width += skin.margin.width()
             menuRect.height = max(menuRect.height, node2.uiArea.height + skin.margin.height())
+        } else {
+            menuRect.width += skin.margin.width()
         }
     }
     
@@ -2138,7 +2140,11 @@ class NodeUIMenu : MMWidget
                 pWidget.rect.y = y
             }
             
-            mmView.drawBox.draw( x: x, y: y, width: menuRect.width, height: menuRect.height, round: skin.round, borderSize: skin.borderSize, fillColor : skin.color, borderColor: skin.borderColor )
+            if node2 != nil {
+                pWidget.rect.width -= skin.margin.width() * 2
+            }
+            
+            mmView.drawBox.draw( x: x, y: y, width: pWidget.rect.width, height: menuRect.height, round: skin.round, borderSize: skin.borderSize, fillColor : skin.color, borderColor: skin.borderColor )
 
             x += skin.margin.left//rect.width - menuRect.width
             y += skin.margin.top
@@ -2148,7 +2154,8 @@ class NodeUIMenu : MMWidget
                 node.rect.y = y - pWidget.rect.y + offset
                 
                 if let node2 = node2 {
-                    node2.rect.x = node.rect.x + node.uiArea.width// + skin.margin.width()
+                    node.rect.x += skin.margin.left
+                    node2.rect.x = node.rect.x + node.uiArea.width - skin.margin.width() * 2
                     node2.rect.y = y - pWidget.rect.y
                 }
              

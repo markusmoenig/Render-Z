@@ -1148,7 +1148,7 @@ class CodeBlock             : Codable, Equatable
                 {
                     // PROPERTY!!!!
                     
-                    if statement.fragments.count > 0 && statement.fragments[0].fragmentType == .Primitive && (statement.fragments[0].name == "noise3D" || statement.fragments[0].name == "noise2D") {
+                    if statement.fragments.count > 0 && statement.fragments[0].fragmentType == .Primitive && (statement.fragments[0].name == "noise3D" || statement.fragments[0].name == "noise2D" || statement.fragments[0].name == "image") {
                         // Noise tool, we create our own properties                        
                         statement.draw(mmView, ctx)
                     } else
