@@ -1553,7 +1553,7 @@ class NodeUIImage : NodeUISelector
         oRect.copy(rect)
         
         rect.width = 190
-        rect.height += 85
+        rect.height += 90
         
         menuNode = Node()
         menuNode2 = Node()
@@ -1607,8 +1607,8 @@ class NodeUIImage : NodeUISelector
     
     func generatePreview()
     {
-        //previewTexture = generateNoisePreview2D(domain: "noise2D", noiseIndex: index, width: rect.width, height: rect.height, fragment: fragment)
-        //previewIndex = index
+        previewTexture = generateImagePreview(domain: "image", imageIndex: index, width: rect.width, height: 85, fragment: fragment)
+        previewIndex = index
     }
     
     override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
@@ -1659,7 +1659,7 @@ class NodeUINoise2D : NodeUISelector
         oRect.copy(rect)
         
         rect.width = 170
-        rect.height = 85
+        rect.height += 90
         
         menuNode = Node()
         menuNode2 = Node()
@@ -1758,7 +1758,7 @@ class NodeUINoise2D : NodeUISelector
     
     func generatePreview()
     {
-        previewTexture = generateNoisePreview2D(domain: "noise2D", noiseIndex: index, width: rect.width, height: rect.height, fragment: fragment)
+        previewTexture = generateNoisePreview2D(domain: "noise2D", noiseIndex: index, width: rect.width, height: 85, fragment: fragment)
         previewIndex = index
     }
     
@@ -1810,7 +1810,7 @@ class NodeUINoise3D : NodeUISelector
         oRect.copy(rect)
         
         rect.width = 170
-        rect.height = 85
+        rect.height += 85
         
         menuNode = Node()
         menuNode2 = Node()
@@ -1909,7 +1909,7 @@ class NodeUINoise3D : NodeUISelector
     
     func generatePreview()
     {
-        previewTexture = generateNoisePreview3D(domain: "noise3D", noiseIndex: index, width: rect.width, height: rect.height, fragment: fragment)
+        previewTexture = generateNoisePreview3D(domain: "noise3D", noiseIndex: index, width: rect.width, height: 85, fragment: fragment)
         previewIndex = index
     }
     

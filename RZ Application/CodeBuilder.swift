@@ -237,9 +237,9 @@ class CodeBuilder
         let library = compute.createLibraryFromSource(source: inst.code)
         inst.computeState = compute.createState(library: library, name: name)
         
-        //if inst.computeState == nil {
-        //    print(inst.code)
-        //}
+        if inst.computeState == nil {
+            print(inst.code)
+        }
         
         for name in additionalNames {
             inst.additionalStates[name] = compute.createState(library: library, name: name)

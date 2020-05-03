@@ -772,7 +772,7 @@ class SceneGraph                : MMWidget
                         let uuid = conn.componentUUID!
                         
                         if let pattern = getPatternOfUUID(uuid) {
-                            if true {//out.contains(pattern) == false {
+                            if out.contains(pattern) == false {
                                 out.append(pattern)
                                 if validConnections[component.uuid] == nil {
                                     validConnections[component.uuid] = [pattern.uuid]
@@ -781,6 +781,25 @@ class SceneGraph                : MMWidget
                                 }
                                 resolvePatterns(pattern)
                             } else {
+                                let myIndex = out.firstIndex(of: component)
+                                var patternIndex = out.firstIndex(of: pattern)!
+                                
+                                //print("index", myIndex, patternIndex)
+                                
+                                if let index = myIndex {
+
+                                    out.remove(at: index)
+                                    patternIndex = out.firstIndex(of: pattern)!
+                                    out.insert(component, at: patternIndex)
+                                    
+                                    //let myIndex = out.firstIndex(of: component)
+                                    //let patternIndex = out.firstIndex(of: pattern)!
+                                    //print("new index", myIndex, patternIndex)
+                                }
+
+                                //resolvePatterns(pattern)
+
+                                /*
                                 // Pattern already in out, that means recursion!
                                 let list = validConnections[component.uuid]
                                 if list == nil || list!.contains(pattern.uuid) == false  {
@@ -788,7 +807,7 @@ class SceneGraph                : MMWidget
                                     print("recursion")
                                     #endif
                                     component.connections[propertyUUID] = nil
-                                }
+                                }*/
                             }
                         } else {
                             // Pattern not found, delete reference

@@ -809,6 +809,47 @@ func generateImageFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Strin
     return funcName
 }
 
+func generateImagePreview(domain: String, imageIndex: Float, width: Float, height: Float, fragment: CodeFragment) -> MTLTexture?
+{
+    let pipeline = globalApp!.currentPipeline!
+    let texture = pipeline.checkTextureSize(width, height)
+    
+    var code = pipeline.codeBuilder.getHeaderCode()
+    
+    code +=
+    """
+    
+    kernel void imagePreview(
+    texture2d<half, access::write>          __outTexture  [[texture(0)]],
+    texture2d<half, access::sample>          __inTexture  [[texture(2)]],
+    uint2 __gid                               [[thread_position_in_grid]])
+    {
+        constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+
+        float2 uv = float2(__gid.x, __gid.y);
+        float2 size = float2(__outTexture.get_width(), __outTexture.get_height() );
+        uv /= size;
+    
+        float4 outColor = __interpolateTexture(__inTexture, uv * \(fragment.values["imageScale"]!));
+        __outTexture.write(half4(outColor), __gid);
+    }
+
+    """
+    
+    code = code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: "")
+    
+    let library = pipeline.codeBuilder.compute.createLibraryFromSource(source: code)
+    let previewState = pipeline.codeBuilder.compute.createState(library: library, name: "imagePreview")
+    
+    let imageTexture = globalApp!.images[Int(imageIndex)].1
+    
+    if let state = previewState {
+        pipeline.codeBuilder.compute.run( state, outTexture: texture, inTexture: imageTexture)
+        pipeline.codeBuilder.compute.commandBuffer.waitUntilCompleted()
+    }
+        
+    return texture
+}
 
 // 2D Noise Functions
 
@@ -997,7 +1038,6 @@ func generateNoisePreview2D(domain: String, noiseIndex: Float, width: Float, hei
         
     return texture
 }
-
 
 // 3D Noise Functions
 
@@ -1213,6 +1253,22 @@ func getUsedPatterns(_ materialComponent: CodeComponent, patterns: [CodeComponen
                 if out.contains(pattern) == false {
                     out.append(pattern)
                     resolvePatterns(pattern)
+                } else {
+                    let myIndex = out.firstIndex(of: component)
+                    var patternIndex = out.firstIndex(of: pattern)!
+                    
+                    //print("getUsedPatterns index", myIndex, patternIndex)
+                    
+                    if let index = myIndex {
+
+                        out.remove(at: index)
+                        patternIndex = out.firstIndex(of: pattern)!
+                        out.insert(component, at: patternIndex)
+                        
+                        //let myIndex = out.firstIndex(of: component)
+                        //let patternIndex = out.firstIndex(of: pattern)!
+                        //print("getUsedPatterns new index", myIndex, patternIndex)
+                    }
                 }
             }
         }
