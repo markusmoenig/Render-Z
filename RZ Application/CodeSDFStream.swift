@@ -188,6 +188,7 @@ class CodeSDFStream
             {
                 float4 outShape = float4(100000, 100000, -1, -1);
                 float outDistance = 10;
+                float bump = 0;
             
                 constant float4 *__data = __funcData->__data;
                 float GlobalTime = __funcData->GlobalTime;
@@ -1369,7 +1370,7 @@ class CodeSDFStream
         """
         
             float4 shapeA = outShape;
-            float4 shapeB = float4(outDistance, -1, \(currentMaterialId), \(idCounter));
+            float4 shapeB = float4(outDistance - bump, -1, \(currentMaterialId), \(idCounter));
         
         """
         
@@ -1514,6 +1515,9 @@ class CodeSDFStream
                 
             // Create the UVMapping for this material
             
+            // In case we need to reuse it for displacement bumps
+            var uvMappingCode = ""
+            
             if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
                 
                 materialFuncCode +=
@@ -1532,6 +1536,7 @@ class CodeSDFStream
                 }
                 if let code = uvMap.code {
                     materialFuncCode += code
+                    uvMappingCode = code
                 }
                 
                 materialFuncCode +=
@@ -1558,6 +1563,49 @@ class CodeSDFStream
             }
             if let code = material.code {
                 materialFuncCode += code
+            }
+    
+            // Check if material has a bump
+            var hasBump = false
+            for (_, conn) in material.propertyConnections {
+                let fragment = conn.2
+                if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
+                    
+                    // First, insert the uvmapping code
+                    mapCode +=
+                    """
+                    
+                    {
+                    float3 position = __origin; float3 normal = float3(0);
+                    float2 outUV = float2(0);
+                    
+                    """
+                    
+                    mapCode += uvMappingCode
+                    
+                    // Than call the pattern and assign it to the output of the bump terminal
+                    mapCode +=
+                    """
+                    
+                    struct PatternOut data;
+                    \(conn.3)(outUV, position, normal, float3(0), &data, __funcData );
+                    bump = data.\(conn.1) * 0.02;
+                    }
+                    
+                    """
+                    
+                    hasBump = true
+                }
+            }
+            
+            // If material has no bump, reset it
+            if hasBump == false {
+                mapCode +=
+                """
+                
+                bump = 0;
+                
+                """
             }
 
             materialFuncCode +=

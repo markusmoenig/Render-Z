@@ -487,6 +487,10 @@ class CodeFragment          : Codable, Equatable
                 if self.name == "PI" {
                     codeName = (isNegated() ? " -" : "") + "M_PI_F"
                 } else
+                if self.name == "noise2D" {
+                    codeName = (isNegated() ? " -" : "")
+                    codeName += generateNoise2DFunction(ctx, self)
+                } else
                 if self.name == "noise3D" {
                     codeName = (isNegated() ? " -" : "")
                     codeName += generateNoise3DFunction(ctx, self)
@@ -1140,7 +1144,7 @@ class CodeBlock             : Codable, Equatable
                 {
                     // PROPERTY!!!!
                     
-                    if statement.fragments.count > 0 && statement.fragments[0].fragmentType == .Primitive && statement.fragments[0].name == "noise3D" {
+                    if statement.fragments.count > 0 && statement.fragments[0].fragmentType == .Primitive && (statement.fragments[0].name == "noise3D" || statement.fragments[0].name == "noise2D") {
                         // Noise tool, we create our own properties                        
                         statement.draw(mmView, ctx)
                     } else
@@ -1500,7 +1504,7 @@ class CodeFunction          : Codable, Equatable
                                     ctx.addCode(pattern.functions.last!.codeName! + "(uv, position, normal, rayDirection, &\(token), __funcData );\n")
                                 }
                                 
-                                ctx.cComponent!.propertyConnections[uuid] = (token, conn.outName!)
+                                ctx.cComponent!.propertyConnections[uuid] = (token, conn.outName!, b.fragment, pattern.functions.last!.codeName!)
                             }
                         }
                     }
@@ -1568,7 +1572,8 @@ class CodeComponent         : Codable, Equatable
     // Points an DataIndex to a fragment tool name
     var toolPropertyIndex   : [UUID:[(String,CodeFragment)]] = [:]
 
-    var propertyConnections : [UUID:(String, String)] = [:]
+    // Pattern Connection: Name of the data structure token, terminal name, material fragment, pattern function name
+    var propertyConnections : [UUID:(String, String, CodeFragment, String)] = [:]
     
     // The connections of the properties
     var connections         : [UUID:CodeConnection] = [:]

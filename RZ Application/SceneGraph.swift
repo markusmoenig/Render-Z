@@ -772,7 +772,7 @@ class SceneGraph                : MMWidget
                         let uuid = conn.componentUUID!
                         
                         if let pattern = getPatternOfUUID(uuid) {
-                            if out.contains(pattern) == false {
+                            if true {//out.contains(pattern) == false {
                                 out.append(pattern)
                                 if validConnections[component.uuid] == nil {
                                     validConnections[component.uuid] = [pattern.uuid]

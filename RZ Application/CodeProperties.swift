@@ -690,6 +690,27 @@ class CodeProperties    : MMWidget
                 }
             }
             
+            // --- Noise 2D Widget
+            if fragment.fragmentType == .Primitive && fragment.name == "noise2D" {
+                let noiseUI = setupNoise2DUI(c2Node!, fragment)
+                c2Node?.uiItems.append(noiseUI)
+                
+                c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    if variable.starts(with: "noise") {
+                        fragment.values[variable] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? self.editor.codeEditor.undoStart("Noise Changed") : nil
+                        fragment.values[variable] = newValue
+                        //if variable == "noise3D" {
+                            self.editor.codeEditor.markStageItemOfComponentInvalid(comp)
+                            self.editor.updateOnNextDraw(compile: true)
+                        //} else {
+                        //    self.editor.updateOnNextDraw(compile: false)
+                        //}
+                        if let undo = codeUndo { self.editor.codeEditor.undoEnd(undo) }
+                    }
+                }
+            }
+            
             // --- Noise 3D Widget
             if fragment.fragmentType == .Primitive && fragment.name == "noise3D" {
                 let noiseUI = setupNoise3DUI(c2Node!, fragment)

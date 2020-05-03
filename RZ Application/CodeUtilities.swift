@@ -738,7 +738,120 @@ func getTransformedComponentProperty(_ component: CodeComponent,_ name: String) 
     return result
 }
 
-func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, height: Float, fragment: CodeFragment) -> MTLTexture?
+// 2D Nouse Functions
+
+func getAvailable2DNoises() -> ([String], [String])
+{
+    return (["Value"], ["__valueNoise2D"])
+}
+
+// Setup a NodeUINoise2D
+func setupNoise2DUI(_ node: Node, _ fragment: CodeFragment, title: String = "2D Noise") -> NodeUINoise2D
+{
+    let items : [String] = getAvailable2DNoises().0
+    let noiseIndex = fragment.values["noise2D"] == nil ? 0 : fragment.values["noise2D"]!
+    return NodeUINoise2D(node, variable: "noise2D", title: title, items: items, index: noiseIndex, fragment: fragment)
+}
+
+func generateNoise2DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> String
+{
+    let component = ctx.cComponent!
+    let funcName = generateToken()
+        
+    func addToolProperty(_ name: String, defaultValue: Float) -> Int
+    {
+        var dataIndex = ctx.propertyDataOffset + ctx.cComponent!.inputDataList.count
+        if component.toolPropertyIndex[fragment.uuid] == nil {
+            component.toolPropertyIndex[fragment.uuid] = []
+            
+            component.inputDataList.append(fragment.uuid)
+            component.inputComponentList.append(component)
+        } else {
+            dataIndex += component.toolPropertyIndex[fragment.uuid]!.count - 1
+        }
+        
+        //print("tool dataIndex", ctx.cComponent!.uuid, dataIndex, name)
+        component.toolPropertyIndex[fragment.uuid]!.append((name, fragment))
+        if fragment.values[name] == nil {
+            fragment.values[name] = defaultValue
+        }
+        return dataIndex
+    }
+    
+    let noiseList = getAvailable2DNoises().1
+
+    func getNoiseName(_ noiseType: String, secondary: Bool = false) -> String
+    {
+        var noiseIndex = fragment.values[noiseType] == nil ? 0 : fragment.values[noiseType]!
+        if secondary {
+            noiseIndex -= 1
+        }
+
+        if noiseIndex < 0 {
+            return "None"
+        } else {
+            return noiseList[Int(noiseIndex)]
+        }
+    }
+    
+    var funcCode =
+    """
+
+    float \(funcName)(float2 pos, thread struct FuncData *__funcData)
+    {
+        float baseNoise = \(getNoiseName("noise2D"))
+    """
+    
+    let baseOctavesIndex = addToolProperty("noiseBaseOctaves", defaultValue: 4)
+    let basePersistanceIndex = addToolProperty("noiseBasePersistance", defaultValue: 0.5)
+    let baseScaleIndex = addToolProperty("noiseBaseScale", defaultValue: 1)
+
+    funcCode +=
+    """
+    ( pos, int(__funcData->__data[\(baseOctavesIndex)].x), __funcData->__data[\(basePersistanceIndex)].x, __funcData->__data[\(baseScaleIndex)].x );
+    
+    
+    """
+    
+    let mixOctavesIndex = addToolProperty("noiseMixOctaves", defaultValue: 4)
+    let mixPersistanceIndex = addToolProperty("noiseMixPersistance", defaultValue: 0.5)
+    let mixScaleIndex = addToolProperty("noiseMixScale", defaultValue: 1)
+    
+    let mixDisturbance = addToolProperty("noiseMixDisturbance", defaultValue: 1.0)
+    let mixValue = addToolProperty("noiseMixValue", defaultValue: 0.5)
+    let resultScale = addToolProperty("noiseResultScale", defaultValue: 0.5)
+
+    let secondary = getNoiseName("noiseMix2D", secondary: true)
+    if secondary != "None" {
+        
+        funcCode +=
+        """
+            float mixNoise = \(secondary)
+        """
+
+        funcCode +=
+        """
+        ( pos + (float3(baseNoise * __funcData->__data[\(mixDisturbance)].x)), int(__funcData->__data[\(mixOctavesIndex)].x), __funcData->__data[\(mixPersistanceIndex)].x, __funcData->__data[\(mixScaleIndex)].x );
+        
+        baseNoise = mix(baseNoise, mixNoise, __funcData->__data[\(mixValue)].x);
+        """
+    }
+    
+    funcCode +=
+    """
+    
+        return baseNoise * __funcData->__data[\(resultScale)].x;
+    }
+    
+    """
+    
+    component.globalCode! += funcCode
+    
+    return funcName
+}
+
+
+func generateNoisePreview2D(domain: String, noiseIndex: Float, width: Float, height: Float, fragment: CodeFragment) -> MTLTexture?
 {
     let pipeline = globalApp!.currentPipeline!
     let texture = pipeline.checkTextureSize(width, height)
@@ -763,18 +876,18 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
     """
         
     var funcName = ""
-    let noiseList = getAvailableNoises().1
+    let noiseList = getAvailable2DNoises().1
 
     funcName = noiseList[Int(noiseIndex)]
     
     code +=
     """
     
-    float noise = \(funcName)(float3(uv.x, 0.0, uv.y), \(fragment.values["noiseBaseOctaves"]!), \(fragment.values["noiseBasePersistance"]!), \(fragment.values["noiseBaseScale"]!));
+    float noise = \(funcName)(float2(uv.x, uv.y), \(fragment.values["noiseBaseOctaves"]!), \(fragment.values["noiseBasePersistance"]!), \(fragment.values["noiseBaseScale"]!));
     
     """
     
-    let mixNoiseIndex = fragment.values["noiseMix3D"] == nil ? -1 : fragment.values["noiseMix3D"]! - 1
+    let mixNoiseIndex = fragment.values["noiseMix2D"] == nil ? -1 : fragment.values["noiseMix2D"]! - 1
     
     funcName = "None"
     
@@ -787,7 +900,7 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
         code +=
         """
         
-        float mixNoise = \(funcName)(float3(uv.x, 0.0, uv.y) + (float3( noise *  \(fragment.values["noiseMixDisturbance"]!) )), \(fragment.values["noiseMixOctaves"]!), \(fragment.values["noiseMixPersistance"]!), \(fragment.values["noiseMixScale"]!));
+        float mixNoise = \(funcName)(float2(uv.x, uv.y) + (float2( noise *  \(fragment.values["noiseMixDisturbance"]!) )), \(fragment.values["noiseMixOctaves"]!), \(fragment.values["noiseMixPersistance"]!), \(fragment.values["noiseMixScale"]!));
         
         noise = mix(noise, mixNoise, \(fragment.values["noiseMixValue"]!));
         """
@@ -814,11 +927,18 @@ func generateNoisePreview(domain: String, noiseIndex: Float, width: Float, heigh
     return texture
 }
 
-// Setup a NodeUINoise3D
 
+// 3D Noise Functions
+
+func getAvailable3DNoises() -> ([String], [String])
+{
+    return (["Value", "Perlin", "Worley", "Simplex"], ["__valueNoise3D", "__perlinNoise3D", "worleyFbm", "simplexFbm"])
+}
+
+// Setup a NodeUINoise3D
 func setupNoise3DUI(_ node: Node, _ fragment: CodeFragment, title: String = "3D Noise") -> NodeUINoise3D
 {
-    let items : [String] = getAvailableNoises().0
+    let items : [String] = getAvailable3DNoises().0
     let noiseIndex = fragment.values["noise3D"] == nil ? 0 : fragment.values["noise3D"]!
     return NodeUINoise3D(node, variable: "noise3D", title: title, items: items, index: noiseIndex, fragment: fragment)
 }
@@ -848,7 +968,7 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
         return dataIndex
     }
     
-    let noiseList = getAvailableNoises().1
+    let noiseList = getAvailable3DNoises().1
 
     func getNoiseName(_ noiseType: String, secondary: Bool = false) -> String
     {
@@ -920,10 +1040,83 @@ func generateNoise3DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
     return funcName
 }
 
-func getAvailableNoises() -> ([String], [String])
+
+func generateNoisePreview3D(domain: String, noiseIndex: Float, width: Float, height: Float, fragment: CodeFragment) -> MTLTexture?
 {
-    return (["Value", "Perlin", "Worley", "Simplex"], ["__valueNoise3D", "__perlinNoise3D", "worleyFbm", "simplexFbm"])
+    let pipeline = globalApp!.currentPipeline!
+    let texture = pipeline.checkTextureSize(width, height)
+    
+    var code = pipeline.codeBuilder.getHeaderCode()
+    
+    code +=
+    """
+    
+    kernel void noisePreview(
+    texture2d<half, access::write>          __outTexture  [[texture(0)]],
+    uint2 __gid                               [[thread_position_in_grid]])
+    {
+        float2 uv = float2(__gid.x, __gid.y);
+        float2 size = float2(__outTexture.get_width(), __outTexture.get_height() );
+        uv /= size;
+        uv.y = 1.0 - uv.y;
+        uv *= 3.0;
+    
+        float4 outColor = float4(1);
+
+    """
+        
+    var funcName = ""
+    let noiseList = getAvailable3DNoises().1
+
+    funcName = noiseList[Int(noiseIndex)]
+    
+    code +=
+    """
+    
+    float noise = \(funcName)(float3(uv.x, 0.0, uv.y), \(fragment.values["noiseBaseOctaves"]!), \(fragment.values["noiseBasePersistance"]!), \(fragment.values["noiseBaseScale"]!));
+    
+    """
+    
+    let mixNoiseIndex = fragment.values["noiseMix3D"] == nil ? -1 : fragment.values["noiseMix3D"]! - 1
+    
+    funcName = "None"
+    
+    if mixNoiseIndex >= 0 {
+        funcName = noiseList[Int(mixNoiseIndex)]
+    }
+    
+    if funcName != "None" {
+        
+        code +=
+        """
+        
+        float mixNoise = \(funcName)(float3(uv.x, 0.0, uv.y) + (float3( noise *  \(fragment.values["noiseMixDisturbance"]!) )), \(fragment.values["noiseMixOctaves"]!), \(fragment.values["noiseMixPersistance"]!), \(fragment.values["noiseMixScale"]!));
+        
+        noise = mix(noise, mixNoise, \(fragment.values["noiseMixValue"]!));
+        """
+    }
+    
+    code +=
+    """
+        outColor = mix(float4(float3(0), 0.8), float4(1,1,1, 0.8), noise * \(fragment.values["noiseResultScale"]!));
+        __outTexture.write(half4(outColor), __gid);
+    }
+    
+    """
+    
+    code = code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: "")
+    
+    let library = pipeline.codeBuilder.compute.createLibraryFromSource(source: code)
+    let previewState = pipeline.codeBuilder.compute.createState(library: library, name: "noisePreview")
+    
+    if let state = previewState {
+        pipeline.codeBuilder.compute.run( state, outTexture: texture)
+        pipeline.codeBuilder.compute.commandBuffer.waitUntilCompleted()
+    }
+        
+    return texture
 }
+
 
 /// Returns the used patterns in the pattern list
 func getUsedPatterns(_ materialComponent: CodeComponent, patterns: [CodeComponent]) -> [CodeComponent]

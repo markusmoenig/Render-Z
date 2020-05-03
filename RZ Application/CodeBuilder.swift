@@ -1328,34 +1328,38 @@ class CodeBuilder
             return p - t;
         }
         
-        /*
-        // Triangle Noise
-        float tri(float x){return abs(fract(x)-.5);}
-        float3 tri3(float3 p){return float3( tri(p.z+tri(p.y*1.)), tri(p.z+tri(p.x*1.)), tri(p.y+tri(p.x*1.)));}
-        
-        float triNoise3d(float3 p, int octaves = 4, float persistence = 0.5, float scale = 1)
-        {
-            float z=1.4;
-            float rz = 0.;
-            float3 bp = p;
-            for (float i=0.; i < octaves; i++ )
-            {
-                float3 dg = tri3(bp * scale);
-                //p += (dg+time*spd);
+        // 2D Noise -------------
+        float hash(float2 p) {float3 p3 = fract(float3(p.xyx) * 0.13); p3 += dot(p3, p3.yzx + 3.333); return fract((p3.x + p3.y) * p3.z); }
 
-                bp *= 1.8;
-                z *= 1.5;
-                p *= 1.2;
-                //p.xz*= m2;
-                
-                rz+= (tri(p.z+tri(p.x+tri(p.y))))/z;
-                bp += 0.14;
+        float noise(float2 x) {
+            float2 i = floor(x);
+            float2 f = fract(x);
+
+            // Four corners in 2D of a tile
+            float a = hash(i);
+            float b = hash(i + float2(1.0, 0.0));
+            float c = hash(i + float2(0.0, 1.0));
+            float d = hash(i + float2(1.0, 1.0));
+
+            float2 u = f * f * (3.0 - 2.0 * f);
+            return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+        }
+        
+        float __valueNoise2D(float2 x, int octaves = 4, float persistence = 0.5, float scale = 1) {
+            float v = 0.0;
+            float a = 0.5;
+            float2 shift = float2(100);
+            for (int i = 0; i < octaves; ++i) {
+                v += a * noise(x * scale);
+                x = x * 2.0 + shift;
+                a *= persistence;
             }
-            return rz;
-        }*/
+            return v;
+        }
+        
+        // 3D Noise -------------
         
         // Value Noise, https://www.shadertoy.com/view/4dS3Wd
-        
         float __valueHash1(float p) { p = fract(p * 0.011); p *= p + 7.5; p *= p + p; return fract(p); }
         
         float __valueN3D(float3 x) {
@@ -1383,9 +1387,7 @@ class CodeBuilder
             return v;
         }
         
-        
         // Perlin noise, https://www.shadertoy.com/view/4tycWy
-        
         float hash(float3 p3)
         {
             p3 = fract(p3 * 0.1031);

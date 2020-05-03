@@ -1528,7 +1528,8 @@ class NodeUIColor : NodeUI
     }
 }
 
-class NodeUINoise3D : NodeUISelector
+
+class NodeUINoise2D : NodeUISelector
 {
     var previewTexture      : MTLTexture? = nil
     var previewIndex        : Float = -1
@@ -1567,8 +1568,8 @@ class NodeUINoise3D : NodeUISelector
         let baseScale = NodeUINumber(menuNode, variable: "noiseBaseScale", title: "Base Scale", range: SIMD2<Float>(0, 10), value: fragment.values["noiseBaseScale"]!, halfWidthValue: 1)
         menuNode.uiItems.append(baseScale)
         
-        let noiseIndex = fragment.values["noiseMix3D"] == nil ? 0 : fragment.values["noiseMix3D"]!
-        let mixNoise = NodeUISelector(menuNode2, variable: "noiseMix3D", title: "Mix Noise", items: ["None"] + getAvailableNoises().0, index: noiseIndex)
+        let noiseIndex = fragment.values["noiseMix2D"] == nil ? 0 : fragment.values["noiseMix2D"]!
+        let mixNoise = NodeUISelector(menuNode2, variable: "noiseMix2D", title: "Mix Noise", items: ["None"] + getAvailable2DNoises().0, index: noiseIndex)
         menuNode2.uiItems.append(mixNoise)
         
         let mixOctaves = NodeUINumber(menuNode2, variable: "noiseMixOctaves", title: "Mix Octaves", range: SIMD2<Float>(1, 10), int: true, value: fragment.values["noiseMixOctaves"]!)
@@ -1652,7 +1653,7 @@ class NodeUINoise3D : NodeUISelector
     
     func generatePreview()
     {
-        previewTexture = generateNoisePreview(domain: "noise3D", noiseIndex: index, width: rect.width, height: rect.height, fragment: fragment)
+        previewTexture = generateNoisePreview2D(domain: "noise2D", noiseIndex: index, width: rect.width, height: rect.height, fragment: fragment)
         previewIndex = index
     }
     
@@ -1679,6 +1680,156 @@ class NodeUINoise3D : NodeUISelector
     }
 }
 
+class NodeUINoise3D : NodeUISelector
+{
+    var previewTexture      : MTLTexture? = nil
+    var previewIndex        : Float = -1
+    
+    var menuNode            : Node!
+    var menuNode2           : Node!
+    var menu                : NodeUIMenu!
+    
+    var oRect               = MMRect()
+    var fragment            : CodeFragment
+    
+    init(_ node: Node, variable: String, title: String, items: [String], index: Float = 0, shadows: Bool = false, fragment: CodeFragment)
+    {
+        self.fragment = fragment
+        super.init(node, variable: variable, title: title, items: items, index: index, shadows: shadows)
+    }
+    
+    override func calcSize(mmView: MMView) {
+        
+        super.calcSize(mmView: mmView)
+        
+        oRect.copy(rect)
+        
+        rect.width = 170
+        rect.height = 85
+        
+        menuNode = Node()
+        menuNode2 = Node()
+
+        let baseOctaves = NodeUINumber(menuNode, variable: "noiseBaseOctaves", title: "Base Octaves", range: SIMD2<Float>(1, 10), int: true, value: fragment.values["noiseBaseOctaves"]!)
+        menuNode.uiItems.append(baseOctaves)
+        
+        let basePersistance = NodeUINumber(menuNode, variable: "noiseBasePersistance", title: "Base Persistance", range: SIMD2<Float>(0, 2), value: fragment.values["noiseBasePersistance"]!)
+        menuNode.uiItems.append(basePersistance)
+        
+        let baseScale = NodeUINumber(menuNode, variable: "noiseBaseScale", title: "Base Scale", range: SIMD2<Float>(0, 10), value: fragment.values["noiseBaseScale"]!, halfWidthValue: 1)
+        menuNode.uiItems.append(baseScale)
+        
+        let noiseIndex = fragment.values["noiseMix3D"] == nil ? 0 : fragment.values["noiseMix3D"]!
+        let mixNoise = NodeUISelector(menuNode2, variable: "noiseMix3D", title: "Mix Noise", items: ["None"] + getAvailable3DNoises().0, index: noiseIndex)
+        menuNode2.uiItems.append(mixNoise)
+        
+        let mixOctaves = NodeUINumber(menuNode2, variable: "noiseMixOctaves", title: "Mix Octaves", range: SIMD2<Float>(1, 10), int: true, value: fragment.values["noiseMixOctaves"]!)
+        menuNode2.uiItems.append(mixOctaves)
+        
+        let mixPersistance = NodeUINumber(menuNode2, variable: "noiseMixPersistance", title: "Mix Persistance", range: SIMD2<Float>(0, 2), value: fragment.values["noiseMixPersistance"]!)
+        menuNode2.uiItems.append(mixPersistance)
+        
+        let mixScale = NodeUINumber(menuNode2, variable: "noiseMixScale", title: "Mix Scale", range: SIMD2<Float>(0, 10), value: fragment.values["noiseMixScale"]!, halfWidthValue: 1)
+        menuNode2.uiItems.append(mixScale)
+        
+        let mixDisturbance = NodeUINumber(menuNode2, variable: "noiseMixDisturbance", title: "Disturbance", range: SIMD2<Float>(0, 2), value: fragment.values["noiseMixDisturbance"]!)
+        menuNode2.uiItems.append(mixDisturbance)
+        
+        let mixValue = NodeUINumber(menuNode, variable: "noiseMixValue", title: "Mix", range: SIMD2<Float>(0, 1), value: fragment.values["noiseMixValue"]!)
+        menuNode.uiItems.append(mixValue)
+        
+        let noiseResultScale = NodeUINumber(menuNode, variable: "noiseResultScale", title: "Result Scale", range: SIMD2<Float>(0, 2), value: fragment.values["noiseResultScale"]!)
+        menuNode.uiItems.append(noiseResultScale)
+        
+        func disableItems() {
+            var disableMix = false
+            if mixNoise.items[Int(mixNoise.index)] == "None" {
+                disableMix = true
+            }
+            mixOctaves.isDisabled = disableMix
+            mixPersistance.isDisabled = disableMix
+            mixScale.isDisabled = disableMix
+            mixDisturbance.isDisabled = disableMix
+            mixValue.isDisabled = disableMix
+        }
+        
+        disableItems()
+
+        menuNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+            disableItems()
+            if let cb = self.node.floatChangedCB {
+                cb(variable, oldValue, newValue, continous, noUndo)
+            }
+            self.generatePreview()
+        }
+        
+        menuNode2.floatChangedCB = menuNode.floatChangedCB
+        
+        menu = NodeUIMenu(mmView, node: menuNode, node2: menuNode2, offset: 49)
+        menu.shadows = titleShadows
+        menu.menuType = .BoxedMenu
+        menu.rect.width /= 1.2
+        menu.rect.height /= 1.2
+    }
+    
+    override func mouseDown(_ event: MMMouseEvent)
+    {
+        if menu.rect.contains(event.x, event.y) {
+            menu.mouseDown(event)
+        } else
+        if oRect.contains(event.x - rect.x, event.y - rect.y) {
+            super.mouseDown(event)
+        }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent)
+    {
+        if menu.rect.contains(event.x, event.y) {
+            menu.mouseUp(event)
+        } else
+        if oRect.contains(event.x - rect.x, event.y - rect.y) {
+            super.mouseUp(event)
+        }
+    }
+    
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if menu.rect.contains(event.x, event.y) {
+            menu.mouseMoved(event)
+        } else
+        if oRect.contains(event.x - rect.x, event.y - rect.y) {
+            super.mouseMoved(event)
+        }
+    }
+    
+    func generatePreview()
+    {
+        previewTexture = generateNoisePreview3D(domain: "noise3D", noiseIndex: index, width: rect.width, height: rect.height, fragment: fragment)
+        previewIndex = index
+    }
+    
+    override func draw(mmView: MMView, maxTitleSize: SIMD2<Float>, maxWidth: Float, scale: Float)
+    {
+        super.draw(mmView: mmView, maxTitleSize: maxTitleSize, maxWidth: maxWidth, scale: scale)
+        
+        if previewIndex != index {
+            generatePreview()
+        }
+        
+        if let texture = previewTexture {
+            mmView.drawTexture.draw(texture, x: rect.x, y: rect.y + 50, round: 12, roundingRect: SIMD4<Float>(0, 0, Float(texture.width), Float(texture.height)))
+        }
+        
+        menu.rect.x = rect.right() - menu.rect.width
+        menu.rect.y = rect.y + 13
+        
+        if menu.states.contains(.Opened) {
+            mmView.delayedDraws.append(menu)
+        } else {
+            menu.draw()
+        }
+    }
+}
 
 /// NodeUI Menu
 class NodeUIMenu : MMWidget

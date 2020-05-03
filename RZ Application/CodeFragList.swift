@@ -161,6 +161,7 @@ class CodeFragList : MMWidget
         
         item = FragItem("N")
         items.append(item)
+        item.items.append( SourceListItem("noise2D", CodeFragment(.Primitive, "float", "noise2D", [.Selectable, .Dragable, .Targetable], ["float2"], "float", defaultValues: ["needsFuncData": 1] ) ) )
         item.items.append( SourceListItem("noise3D", CodeFragment(.Primitive, "float", "noise3D", [.Selectable, .Dragable, .Targetable], ["float3"], "float", defaultValues: ["needsFuncData": 1] ) ) )
         item.items.append( SourceListItem("normalize", CodeFragment(.Primitive, "float2", "normalize", [.Selectable, .Dragable, .Targetable], ["float2|float3|float4"], "input0" ) ) )
         
