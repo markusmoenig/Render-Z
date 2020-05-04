@@ -287,6 +287,47 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
     })
 }
 
+func getNumber2Dialog(view: MMView, title: String, message: String, defaultValue: SIMD2<Float>, precision: Int = 2, cb: @escaping (SIMD2<Float>)->())
+{
+    let msg = NSAlert()
+    msg.addButton(withTitle: "OK")      // 1st button
+    msg.addButton(withTitle: "Cancel")  // 2nd button
+    msg.messageText = title
+    msg.informativeText = message
+    
+    func roundTo(value: Float, places:Int) -> Double {
+        let divisor = pow(10.0, Double(places))
+        return (Double(value) * divisor).rounded() / divisor
+    }
+    
+    let txt2 = NSTextField(frame: NSRect(x: 0, y: 28, width: 200, height: 24))
+    let txt1 = NSTextField(frame: NSRect(x: 0, y: 28 * 2, width: 200, height: 24))
+    
+    txt1.nextKeyView = txt2
+    txt2.nextKeyView = txt1
+
+    txt1.tag = 1
+    txt2.tag = 2
+    
+    let stackViewer = NSStackView(frame: NSRect(x: 0, y: 0, width: 200, height: 28 * 3))
+
+    stackViewer.addSubview(txt1)
+    stackViewer.addSubview(txt2)
+
+    txt1.doubleValue = roundTo(value: defaultValue.x, places: precision)
+    txt2.doubleValue = roundTo(value: defaultValue.y, places: precision)
+
+    msg.window.initialFirstResponder = txt1
+    msg.accessoryView = stackViewer
+    
+    msg.beginSheetModal(for: view.window!, completionHandler: { (modalResponse) -> Void in
+        if modalResponse == NSApplication.ModalResponse.alertFirstButtonReturn {
+            let result = SIMD2<Float>(Float(txt1.doubleValue), Float(txt2.doubleValue))
+            cb(result)
+        }
+    })
+}
+
 func getNumber3Dialog(view: MMView, title: String, message: String, defaultValue: SIMD3<Float>, precision: Int = 2, cb: @escaping (SIMD3<Float>)->())
 {
     let msg = NSAlert()

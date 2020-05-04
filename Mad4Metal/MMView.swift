@@ -308,9 +308,9 @@ public class MMView : MMBaseView {
         isPaused = false
         if hard {
             maxHardLocks += 1
-            print("hard locked")
+            //rint("hard locked")
         }
-        print( "max framerate" )
+        //print( "max framerate" )
     }
     
     /// Decreases the counter which locks the framerate and sets it back to the default rate when <= 0
@@ -324,7 +324,7 @@ public class MMView : MMBaseView {
             isPaused = true
             maxFramerateLocks = 0
             maxHardLocks = 0
-            print( "framerate back to default" )
+            //print( "framerate back to default" )
         }
     }
 

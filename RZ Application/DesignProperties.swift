@@ -128,23 +128,21 @@ class DesignProperties      : MMWidget
                     }
                 } else
                 if components == 2 {
-                    propMap[frag.name + "_x"] = rc.1!.arguments[0].fragments[0]
-                    propMap[frag.name + "_y"] = rc.1!.arguments[1].fragments[0]
+                    var range : SIMD2<Float>? = nil
 
-                    var argFrag : CodeFragment = rc.1!.arguments[0].fragments[0]
-                    var numberVar = NodeUINumber(c1Node!, variable: frag.name + "_x", title: comp.artistPropertyNames[uuid]! + " X", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.x, precision: Int(argFrag.values["precision"]!))
-                    numberVar.titleShadows = true
-                    c1Node?.uiItems.append(numberVar)
+                    let fragment = rc.1!
+                    print(fragment.arguments.count, fragment.fragmentType)
+                    if fragment.arguments.count == 2 && fragment.fragmentType == .ConstantDefinition {
+                        range = SIMD2<Float>(fragment.arguments[0].fragments[0].values["min"]!, fragment.arguments[0].fragments[0].values["max"]!)
+                    }
                     
-                    argFrag = rc.1!.arguments[1].fragments[0]
-                    numberVar = NodeUINumber(c1Node!, variable: frag.name + "_y", title: "Y", range: SIMD2<Float>(argFrag.values["min"]!, argFrag.values["max"]!), value: data.y, precision: Int(argFrag.values["precision"]!))
+                    let numberVar = NodeUINumber2(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: range, value: SIMD2<Float>(data.x, data.y), precision: Int(frag.values["precision"]!))
                     numberVar.titleShadows = true
                     c1Node?.uiItems.append(numberVar)
                 } else
                 if components == 3 {
-                    
                     var range : SIMD2<Float>? = nil
-                    
+
                     if comp.properties.contains(frag.uuid) == true {
                         if let name = comp.propertyGizmoName[frag.uuid] {
                             if name == "Direction" {
@@ -241,6 +239,21 @@ class DesignProperties      : MMWidget
             }
         }
         
+        c1Node?.float2ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+            if let frag = self.propMap[variable] {
+                insertValueToFragment2(frag, oldValue)
+                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
+                insertValueToFragment2(frag, newValue)
+                self.updatePreview()
+                var props : [String:Float] = [:]
+                props[variable + "_x"] = newValue.x
+                props[variable + "_y"] = newValue.y
+                
+                self.addKey(props)
+                if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
+            }
+        }
+        
         c1Node?.float3ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
             if let frag = self.propMap[variable] {
                 insertValueToFragment3(frag, oldValue)
@@ -278,6 +291,9 @@ class DesignProperties      : MMWidget
                     } else
                     if let number3 = item as? NodeUINumber3 {
                         number3.setValue(SIMD3<Float>(data.x, data.y, data.z))
+                    } else
+                    if let number2 = item as? NodeUINumber2 {
+                        number2.setValue(SIMD2<Float>(data.x, data.y))
                     }
                 } else
                 if item.variable.starts(with: name) {
@@ -368,11 +384,16 @@ class DesignProperties      : MMWidget
         func checkNodeUI(_ node: Node)
         {
             // --- Look for NodeUI item under the mouse, master has no UI
-            let uiItemX = rect.x + node.rect.x
+            var uiItemX = rect.x + node.rect.x
             var uiItemY = rect.y + node.rect.y
             let uiRect = MMRect()
             
             for uiItem in node.uiItems {
+                
+                if uiItemY + uiItem.rect.height > rect.bottom() {
+                    uiItemX += node.uiArea.width
+                    uiItemY = rect.y + node.rect.y
+                }
                 
                 if uiItem.supportsTitleHover {
                     uiRect.x = uiItem.titleLabel!.rect.x - 2
@@ -434,13 +455,18 @@ class DesignProperties      : MMWidget
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         //mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1) )
-        
         if let node = c1Node {
             
-            let uiItemX : Float = rect.x + node.rect.x
+            var uiItemX : Float = rect.x + node.rect.x
             var uiItemY : Float = rect.y + node.rect.y
             
             for uiItem in node.uiItems {
+                
+                if uiItemY + uiItem.rect.height > rect.bottom() {
+                    uiItemX += node.uiArea.width
+                    uiItemY = rect.y + node.rect.y
+                }
+                
                 uiItem.rect.x = uiItemX
                 uiItem.rect.y = uiItemY
                 uiItemY += uiItem.rect.height

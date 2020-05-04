@@ -2560,7 +2560,8 @@ class CodeComponent         : Codable, Equatable
         if componentType == .Material3D && ctx.patternList.count > 0 {
             // Create the global functions for all the patterns of the material
             
-            let patterns = getUsedPatterns(self, patterns: ctx.patternList).reversed()
+            var prototypes = ""
+            let patterns = getUsedPatterns(self, patterns: ctx.patternList)
             
             for pattern in patterns {
                 
@@ -2605,8 +2606,12 @@ class CodeComponent         : Codable, Equatable
                 }
                 """
                 
+                prototypes += "void \(f.codeName!)(float2 uv, float3 position, float3 normal, float3 rayDirection, thread PatternOut *__patternData, thread FuncData *__funcData);\n"
+                
                 globalCode! += pCode
             }
+            
+            globalCode! = prototypes + globalCode!
         }
         
         for f in functions {

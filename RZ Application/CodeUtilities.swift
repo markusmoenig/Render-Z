@@ -57,6 +57,24 @@ func extractValueFromFragment3(_ fragment: CodeFragment) -> SIMD3<Float>
     return value
 }
 
+// Inserts an SIMD2<Float> value to a given fragment
+func insertValueToFragment2(_ fragment: CodeFragment,_ value: SIMD2<Float>)
+{
+    if fragment.fragmentType == .ConstantDefinition {
+        let components = fragment.evaluateComponents()
+        if components == 2  {
+            if fragment.arguments.count == components {
+                for (index,arg) in fragment.arguments.enumerated() {
+                    if index >= 2 {
+                        break
+                    }
+                    arg.fragments[0].values["value"]! = value[index]
+                }
+            }
+        }
+    }
+}
+
 // Inserts an SIMD3<Float> value to a given fragment
 func insertValueToFragment3(_ fragment: CodeFragment,_ value: SIMD3<Float>)
 {
@@ -1253,22 +1271,6 @@ func getUsedPatterns(_ materialComponent: CodeComponent, patterns: [CodeComponen
                 if out.contains(pattern) == false {
                     out.append(pattern)
                     resolvePatterns(pattern)
-                } else {
-                    let myIndex = out.firstIndex(of: component)
-                    var patternIndex = out.firstIndex(of: pattern)!
-                    
-                    //print("getUsedPatterns index", myIndex, patternIndex)
-                    
-                    if let index = myIndex {
-
-                        out.remove(at: index)
-                        patternIndex = out.firstIndex(of: pattern)!
-                        out.insert(component, at: patternIndex)
-                        
-                        //let myIndex = out.firstIndex(of: component)
-                        //let patternIndex = out.firstIndex(of: pattern)!
-                        //print("getUsedPatterns new index", myIndex, patternIndex)
-                    }
                 }
             }
         }
