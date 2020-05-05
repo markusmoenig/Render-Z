@@ -1081,45 +1081,47 @@ class SceneGraph                : MMWidget
     /// Replaces the shape for the given scene graph item
     func getShape(item: SceneGraphItem, replace: Bool)
     {
-        // Empty Shape
-        globalApp!.libraryDialog.show(ids: ["SDF" + getCurrentModeId()], style: .Icon, cb: { (json) in
-            if let comp = decodeComponentFromJSON(json) {
-                let undo = globalApp!.currentEditor.undoStageItemStart(replace == false ? "Add Shape" : "Replace Shape")
+        if let stageItem = item.stageItem {
+            // Empty Shape
+            globalApp!.libraryDialog.show(ids: ["SDF" + getCurrentModeId()], style: .Icon, cb: { (json) in
+                if let comp = decodeComponentFromJSON(json), item.stageItem != nil {
+                    let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, replace == false ? "Add Shape" : "Replace Shape")
 
-                comp.uuid = UUID()
-                comp.selected = nil
+                    comp.uuid = UUID()
+                    comp.selected = nil
 
-                globalApp!.currentEditor.setComponent(comp)
-                setDefaultComponentValues(comp)
-                
-                if replace == false {
-                    // Add it
-                    comp.subComponent = nil
-                    if let current = self.currentStageItem {
-                        current.componentLists["shapes" + getCurrentModeId()]?.append(comp)
+                    globalApp!.currentEditor.setComponent(comp)
+                    setDefaultComponentValues(comp)
+                    
+                    if replace == false {
+                        // Add it
+                        comp.subComponent = nil
+                        if let current = item.stageItem {
+                            current.componentLists["shapes" + getCurrentModeId()]?.append(comp)
+                        }
+                    } else {
+                        // Replace it
+                        comp.uuid = item.component!.uuid
+                        globalApp!.project.selected!.updateComponent(comp)
                     }
-                } else {
-                    // Replace it
-                    comp.uuid = item.component!.uuid
-                    globalApp!.project.selected!.updateComponent(comp)
-                }
-                
-                if comp.subComponent == nil {
-                    if let bComp = decodeComponentFromJSON(defaultBoolean) {
-                        //CodeComponent(.Boolean)
-                        //bComp.createDefaultFunction(.Boolean)
-                        bComp.uuid = UUID()
-                        bComp.selected = nil
-                        comp.subComponent = bComp
+                    
+                    if comp.subComponent == nil {
+                        if let bComp = decodeComponentFromJSON(defaultBoolean) {
+                            //CodeComponent(.Boolean)
+                            //bComp.createDefaultFunction(.Boolean)
+                            bComp.uuid = UUID()
+                            bComp.selected = nil
+                            comp.subComponent = bComp
+                        }
                     }
+                    
+                    globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
+                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
                 }
-                
-                globalApp!.currentEditor.undoStageItemEnd(undo)
-                self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
-                globalApp!.currentEditor.updateOnNextDraw(compile: true)
-            }
-        })
+            })
+        }
     }
     
     /// Adds a modifier or domain item to the list
@@ -1130,30 +1132,29 @@ class SceneGraph                : MMWidget
             id = "PostFX"
         }
 
-        globalApp!.libraryDialog.show(ids: [id], cb: { (json) in
-            if let comp = decodeComponentFromJSON(json) {
-                let undo = globalApp!.currentEditor.undoStageItemStart("Add " + name)
-                
-                comp.uuid = UUID()
-                comp.selected = nil
-                
-                globalApp!.currentEditor.setComponent(comp)
-
-                if let current = item.stageItem {
+        if let stageItem = item.stageItem {
+            globalApp!.libraryDialog.show(ids: [id], cb: { (json) in
+                if let comp = decodeComponentFromJSON(json) {
+                    let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Add " + name)
                     
-                    if name == "Post FX" && current.componentLists[listId] != nil && current.componentLists[listId]!.count > 0 {
-                        current.componentLists[listId]?.insert(comp, at: 0)
+                    comp.uuid = UUID()
+                    comp.selected = nil
+                    
+                    globalApp!.currentEditor.setComponent(comp)
+                        
+                    if name == "Post FX" && stageItem.componentLists[listId] != nil && stageItem.componentLists[listId]!.count > 0 {
+                        stageItem.componentLists[listId]?.insert(comp, at: 0)
                     } else {
-                        current.componentLists[listId]?.append(comp)
+                        stageItem.componentLists[listId]?.append(comp)
                     }
+                    
+                    globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
+                    self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
                 }
-                
-                globalApp!.currentEditor.undoStageItemEnd(undo)
-                self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
-                globalApp!.currentEditor.updateOnNextDraw(compile: true)
-            }
-        })
+            })
+        }
     }
     
     // Build the menu
@@ -1168,33 +1169,33 @@ class SceneGraph                : MMWidget
         
         func buildChangeComponent(_ item: SceneGraphItem, name: String, ids: [String])
         {
-            let menuItem = MMMenuItem(text: "Change " + name, cb: { () in
-                globalApp!.libraryDialog.show(ids: ids, cb: { (json) in
-                    if let comp = decodeComponentFromJSON(json) {
-                        let undo = globalApp!.currentEditor.undoStageItemStart("Change " + name)
-                        
-                        //comp.uuid = UUID()
-                        comp.selected = nil
-                        
-                        comp.uuid = item.component!.uuid
-                        globalApp!.currentEditor.setComponent(comp)
-                        globalApp!.project.selected!.updateComponent(comp)
+            if let stageItem = item.stageItem {
+                let menuItem = MMMenuItem(text: "Change " + name, cb: { () in
+                    globalApp!.libraryDialog.show(ids: ids, cb: { (json) in
+                        if let comp = decodeComponentFromJSON(json) {
+                            let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Change " + name)
+                            
+                            //comp.uuid = UUID()
+                            comp.selected = nil
+                            
+                            comp.uuid = item.component!.uuid
+                            globalApp!.currentEditor.setComponent(comp)
+                            globalApp!.project.selected!.updateComponent(comp)
 
-                        globalApp!.currentEditor.undoStageItemEnd(undo)
-                        self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
-                        globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
-                        globalApp!.currentEditor.updateOnNextDraw(compile: true)
-                        
-                        if let stageItem = item.stageItem {
-                            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D {
+                            globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
+                            self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                            globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                            globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                            
+                            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D {
                                 stageItem.name = comp.libraryName
                                 stageItem.label = nil
                             }
                         }
-                    }
-                })
-            } )
-            items.append(menuItem)
+                    })
+                } )
+                items.append(menuItem)
+            }
         }
         
         if let uuid = uuid {

@@ -381,7 +381,7 @@ class LibraryDialog: MMDialog {
         var left: Float = 12
         for w in buttons {
             w.rect.x = rect.x + left
-            w.rect.y = rect.y + 34
+            w.rect.y = rect.y + 35
             w.draw()
             left += w.rect.width + 5
         }

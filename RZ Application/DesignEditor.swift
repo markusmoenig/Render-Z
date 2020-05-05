@@ -129,7 +129,7 @@ class DesignEditor          : MMWidget
     override func mouseMoved(_ event: MMMouseEvent)
     {
         if let component = designComponent {
-            if component.componentType == .Ground3D {
+            if component.componentType == .Ground3D && component.libraryName == "Plane" {
                 groundEditor.mouseMoved(event)
                 return
             }
@@ -152,7 +152,7 @@ class DesignEditor          : MMWidget
         #endif
         
         if let component = designComponent {
-            if component.componentType == .Ground3D {
+            if component.componentType == .Ground3D && component.libraryName == "Plane" {
                 groundEditor.mouseDown(event)
                 return
             }
@@ -220,7 +220,7 @@ class DesignEditor          : MMWidget
     override func mouseUp(_ event: MMMouseEvent)
     {
         if let component = designComponent {
-            if component.componentType == .Ground3D {
+            if component.componentType == .Ground3D && component.libraryName == "Plane" {
                 groundEditor.mouseUp(event)
                 return
             }
@@ -236,7 +236,7 @@ class DesignEditor          : MMWidget
     
     override func mouseScrolled(_ event: MMMouseEvent) {
         if let component = designComponent {
-            if component.componentType == .Ground3D {
+            if component.componentType == .Ground3D && component.libraryName == "Plane" {
                 groundEditor.mouseScrolled(event)
                 return
             }
@@ -323,7 +323,7 @@ class DesignEditor          : MMWidget
         }
         
         if let component = designComponent {
-            if component.componentType == .Ground3D {
+            if component.componentType == .Ground3D && component.libraryName == "Plane" {
                 groundEditor.rect.copy(rect)
                 groundEditor.draw()
                 

@@ -174,10 +174,12 @@ class ArtistEditor          : Editor
             renderButton.removeState(.Checked)
         }
         
-        if component.componentType == .Ground3D {
+        if component.componentType == .Ground3D && component.libraryName == "Plane" {
             groundButton.addState(.Checked)
             designEditor.groundEditor.rect.copy(designEditor.rect)
-            designEditor.groundEditor.setGroundItem(stageItem: globalApp!.project.selected!.getStageItem(component)!)
+            if let stageItem = globalApp!.project.selected!.getStageItem(component) {
+                designEditor.groundEditor.setGroundItem(stageItem: stageItem)
+            }
         } else {
             groundButton.removeState(.Checked)
             designEditor.groundEditor.deactivate()
@@ -254,7 +256,7 @@ class ArtistEditor          : Editor
                 designProperties.draw()
             
                 var drawSamples : Bool = true
-                if designEditor.designComponent != nil && designEditor.designComponent!.componentType == .Ground3D {
+                if designEditor.designComponent != nil && designEditor.designComponent!.componentType == .Ground3D && designEditor.designComponent!.libraryName == "Plane" {
                     drawSamples = false
                 }
                 

@@ -69,7 +69,6 @@ class NewDialog: MMDialog {
     var currentId       : String = ""
     var possibleIds     : [String] = []
     
-    var buttonSkin      : MMSkinButton
     var buttons         : [MMWidget] = []
     
     var scrollRect      : MMRect? = nil
@@ -83,13 +82,6 @@ class NewDialog: MMDialog {
         borderlessSkin.height = view.skin.Button.height - 1
         borderlessSkin.fontScale = 0.44
         borderlessSkin.round = 28
-        
-        buttonSkin = MMSkinButton()
-        buttonSkin.margin = MMMargin( 8, 4, 8, 4 )
-        buttonSkin.borderSize = 0
-        buttonSkin.height = view.skin.Button.height - 5
-        buttonSkin.fontScale = 0.40
-        buttonSkin.round = 20
         
         publicPrivateTab = MMTabButtonWidget(view, skinToUse: borderlessSkin)
         
