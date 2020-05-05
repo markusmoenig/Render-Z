@@ -883,7 +883,7 @@ class NodeUINumber : NodeUI
                 offset = (width / (range!.y - range!.x)) * (value - range!.x)
             }
             
-            if offset > 0 {
+            if offset > 0 && offset != Float.nan && offset != Float.infinity {
                 mmView.renderer.setClipRect(MMRect(x, contentY, offset, itemHeight))
                 mmView.drawBox.draw( x: x, y: contentY, width: width, height: itemHeight, round: NodeUI.contentRound * scale, borderSize: 0, fillColor : adjustColor(NodeUI.contentColor2))
                 mmView.renderer.setClipRect()

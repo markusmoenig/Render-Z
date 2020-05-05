@@ -16,6 +16,7 @@ class DeveloperEditor   : Editor
     let codeEditor      : CodeEditor
     var codeProperties  : CodeProperties
     
+    var navButton       : MMButtonWidget!
     var showButton      : MMButtonWidget!
     var liveButton      : MMButtonWidget!
 
@@ -31,13 +32,26 @@ class DeveloperEditor   : Editor
         liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
         liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
 
+        navButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "NAV" )
         showButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "SHOW" )
         liveButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "LIVE" )
-        liveButton.rect.width += 16
         
+        liveButton.rect.width += 16
         showButton.rect.width += 4
 
         super.init()
+        
+        navButton.clicked = { (event) -> Void in
+            let editor = globalApp!.developerEditor.codeEditor
+            if editor.hasNav == true {
+                self.navButton.removeState(.Checked)
+                editor.hasNav = false
+            } else {
+                editor.hasNav = true
+            }
+            self.mmView.update()
+        }
+        navButton.addState(.Checked)
         
         showButton.clicked = { (event) -> Void in
             let editor = globalApp!.developerEditor.codeEditor
@@ -69,13 +83,13 @@ class DeveloperEditor   : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: codeList, codeEditor, codeProperties, showButton, liveButton)
+        mmView.registerWidgets(widgets: codeList, codeEditor, codeProperties, showButton, liveButton, navButton)
     }
     
     override func deactivate()
     {
         codeProperties.clear()
-        mmView.deregisterWidgets(widgets: codeList, codeEditor, codeProperties, showButton, liveButton)
+        mmView.deregisterWidgets(widgets: codeList, codeEditor, codeProperties, showButton, liveButton, navButton)
     }
     
     override func setComponent(_ component: CodeComponent)
@@ -119,7 +133,11 @@ class DeveloperEditor   : Editor
             region.layoutHFromRight(startX: region.rect.x + region.rect.width - 10, startY: 4 + 43, spacing: 10, widgets: globalApp!.topRegion!.graphButton)
             globalApp!.topRegion!.graphButton.draw()
             
-            showButton.rect.x = (globalApp!.topRegion!.rect.width - showButton.rect.width - liveButton.rect.width - 12) / 2
+            navButton.rect.x = (globalApp!.topRegion!.rect.width - navButton.rect.width - showButton.rect.width - liveButton.rect.width - 24) / 2
+            navButton.rect.y = 4 + 44
+            navButton.draw()
+            
+            showButton.rect.x = navButton.rect.right() + 12
             showButton.rect.y = 4 + 44
             showButton.draw()
             

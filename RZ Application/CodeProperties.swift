@@ -140,6 +140,13 @@ class CodeProperties    : MMWidget
                         function.libraryName = newValue
                     } else {
                         comp.libraryName = newValue
+                        
+                        if let stageItem = globalApp!.project.selected!.getStageItem(comp) {
+                            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D {
+                                stageItem.name = newValue
+                                stageItem.label = nil
+                            }
+                        }
                     }
                 } else
                 if variable == "libraryComment" {

@@ -64,6 +64,7 @@ class CodeEditor        : MMWidget
     
     var codeClipboard   : CodeClipboard!
     
+    var hasNav          : Bool = true
     var liveEditing     : Bool = true
     var showCode        : Bool = true
 
@@ -380,8 +381,23 @@ class CodeEditor        : MMWidget
         mouseMoved(event)
         #endif
         
-        var somethingHasBeenSelected = false
-        
+        // Click in Orientation Slider
+        if hasNav && event.x > rect.right() - 100 && event.y <= (rect.y + orientationHeight) {
+            orientationDrag = true
+            if orientationRect.contains(event.x, event.y) == false {
+                var offset : Float = event.y - rect.y
+                
+                offset /= orientationRatio
+                scrollArea.offsetY = -offset
+                scrollArea.offsetX = -(event.x - (rect.right() - 100)) / (100 / codeContext.width)
+                scrollArea.checkOffset(widget: textureWidget, area: rect)
+                
+                if let comp = codeComponent {
+                    comp.scrollOffsetY = scrollArea.offsetY
+                }
+                mmView.update()
+            }
+        } else
         if let comp = codeComponent {
             codeContext.selectedFunction = codeContext.hoverFunction
             codeContext.selectedBlock = codeContext.hoverBlock
@@ -409,28 +425,6 @@ class CodeEditor        : MMWidget
                     self.editor.codeProperties.setSelected(comp, self.codeContext)
                     self.codeAccess.setSelected(comp, self.codeContext)
                 }
-            }
-            
-            if comp.selected != nil {
-                somethingHasBeenSelected = true
-            }
-        }
-        
-        // Click in Orientation Slider
-        if somethingHasBeenSelected == false && event.x > rect.right() - 100 && event.y <= (rect.y + orientationHeight) {
-            orientationDrag = true
-            if orientationRect.contains(event.x, event.y) == false {
-                var offset : Float = event.y - rect.y
-                
-                offset /= orientationRatio
-                scrollArea.offsetY = -offset
-                scrollArea.offsetX = -(event.x - (rect.right() - 100)) / (100 / codeContext.width)
-                scrollArea.checkOffset(widget: textureWidget, area: rect)
-                
-                if let comp = codeComponent {
-                    comp.scrollOffsetY = scrollArea.offsetY
-                }
-                mmView.update()
             }
         }
     }
@@ -822,24 +816,25 @@ class CodeEditor        : MMWidget
         }
                 
         // Orientation area
-
         if showCode {
-            orientationRatio = 100 / rect.width * 2
-            orientationHeight = orientationRatio * codeContext.height
-            while orientationHeight > rect.height {
-                orientationRatio *= 0.75
+            if hasNav {
+                orientationRatio = 100 / rect.width * 2
                 orientationHeight = orientationRatio * codeContext.height
+                while orientationHeight > rect.height {
+                    orientationRatio *= 0.75
+                    orientationHeight = orientationRatio * codeContext.height
+                }
+                mmView.drawBox.draw(x: rect.right() - 99.5, y: rect.y - 0.5, width: 100.5, height: orientationHeight, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.125, 0.129, 0.137, 1.000))
+                mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100, height: orientationHeight)
+                
+                let y : Float = (-scrollArea.offsetY) * orientationRatio
+                let height : Float = min(rect.height * orientationRatio, orientationHeight)
+                orientationRect.x = rect.right() - 100 + -scrollArea.offsetX * (100 / codeContext.width)
+                orientationRect.y = rect.y + y
+                orientationRect.width = 100 * rect.width / codeContext.width
+                orientationRect.height = height
+                mmView.drawBox.draw(x: orientationRect.x, y: orientationRect.y, width: orientationRect.width, height: orientationRect.height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
             }
-            mmView.drawBox.draw(x: rect.right() - 100, y: rect.y, width: 100 , height: orientationHeight, round: 0, borderSize: 0, fillColor: SIMD4<Float>(0.0,0.0,0.0,0.3))
-            mmView.drawTexture.drawScaled(textureWidget.texture!, x: rect.right() - 100, y: rect.y, width: 100, height: orientationHeight)
-            
-            let y : Float = (-scrollArea.offsetY) * orientationRatio
-            let height : Float = min(rect.height * orientationRatio, orientationHeight)
-            orientationRect.x = rect.right() - 100 + -scrollArea.offsetX * (100 / codeContext.width)
-            orientationRect.y = rect.y + y
-            orientationRect.width = 100 * rect.width / codeContext.width
-            orientationRect.height = height
-            mmView.drawBox.draw(x: orientationRect.x, y: orientationRect.y, width: orientationRect.width, height: orientationRect.height, round: 0, borderSize: 0, fillColor: SIMD4<Float>(1,1,1,0.1))
             
             // Function DND
             if let f = dndFunction {
