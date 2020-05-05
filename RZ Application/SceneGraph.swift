@@ -1987,7 +1987,7 @@ class SceneGraph                : MMWidget
                     
                     if component.componentType == .Material3D {
                         drawPlusButton(item: item, rect: MMRect(rect.x + item.rect.x + item.rect.width - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + item.rect.y + 4 * graphZoom, itemHeight, itemHeight), cb: { () in
-                            globalApp!.libraryDialog.show(ids: ["Pattern", "Pattern2D", "Pattern3D", "PatternMixer"], style: .List, cb: { (json) in
+                            globalApp!.libraryDialog.show(ids: ["Pattern2D", "Pattern3D", "PatternMixer"], style: .List, cb: { (json) in
                                 if let comp = decodeComponentFromJSON(json) {
                                     let undo = globalApp!.currentEditor.undoStageItemStart("Add Pattern")
 

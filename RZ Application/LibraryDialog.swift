@@ -90,12 +90,12 @@ class LibraryDialog: MMDialog {
     init(_ view: MMView) {
         
         borderlessSkin = MMSkinButton()
-        borderlessSkin.margin = MMMargin( 4, 4, 4, 4 )
+        borderlessSkin.margin = MMMargin( 14, 4, 14, 4 )
         borderlessSkin.borderSize = 0
-        borderlessSkin.height = view.skin.Button.height - 5
+        borderlessSkin.height = view.skin.Button.height - 1
         borderlessSkin.fontScale = 0.44
-        borderlessSkin.round = 24
-        
+        borderlessSkin.round = 28
+                
         buttonSkin = MMSkinButton()
         buttonSkin.margin = MMMargin( 8, 4, 8, 4 )
         buttonSkin.borderSize = 0

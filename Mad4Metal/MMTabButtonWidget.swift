@@ -58,8 +58,8 @@ class MMTabButtonWidget: MMWidget
         rect.width = 0
 
         for item in items {
-            if item.label!.rect.width + 20 > itemWidth {
-                itemWidth = item.label!.rect.width + 20
+            if item.label!.rect.width + skin.margin.width() > itemWidth {
+                itemWidth = item.label!.rect.width + skin.margin.width()
             }
         }
         
