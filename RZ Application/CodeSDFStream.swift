@@ -485,7 +485,7 @@ class CodeSDFStream
                 
             """
 
-                if (shape.z == -1 ) {
+                if (shape.z < 0.0 ) {
                     float2 uv = __uv / __size;
                     uv.y = 1.0 - uv.y;
                     color.xyz += background( uv, __size, hitPosition, rayDirection, __funcData ).xyz * mask;
@@ -1622,7 +1622,7 @@ class CodeSDFStream
             materialCode +=
             """
             else
-            if (shape.z == \(materialIdCounter) )
+            if (shape.z > \(Float(materialIdCounter) - 0.5) && shape.z < \(Float(materialIdCounter) + 0.5))
             {
             """
             

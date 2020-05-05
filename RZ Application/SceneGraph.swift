@@ -154,10 +154,10 @@ class SceneGraph                : MMWidget
     var textLabels              : [String:MMTextLabel] = [:]
 
     // The list of the property terminal locations
-    var terminals               : [(CodeComponent, UUID?, String?, Float, Float)] = []
+    var terminals               : [(CodeComponent, UUID?, String?, Float, Float, Bool)] = []
     
-    var selectedTerminal        : (CodeComponent, UUID?, String?, Float, Float)? = nil
-    var possibleConnTerminal    : (CodeComponent, UUID?, String?, Float, Float)? = nil
+    var selectedTerminal        : (CodeComponent, UUID?, String?, Float, Float, Bool)? = nil
+    var possibleConnTerminal    : (CodeComponent, UUID?, String?, Float, Float, Bool)? = nil
     var connectingTerminals     : Bool = false
     
     let minimizeIcon            : MTLTexture
@@ -499,8 +499,8 @@ class SceneGraph                : MMWidget
                 if event.x >= t.3 && event.y >= t.4 && event.x <= t.3 + 15 * graphZoom && event.y <= t.4 + 15 * graphZoom {
                     if t.0 !== selectedTerminal!.0 {
                         
-                        var propertyTerminal : (CodeComponent, UUID?, String?, Float, Float)? = nil
-                        var outTerminal : (CodeComponent, UUID?, String?, Float, Float)? = nil
+                        var propertyTerminal : (CodeComponent, UUID?, String?, Float, Float, Bool)? = nil
+                        var outTerminal : (CodeComponent, UUID?, String?, Float, Float, Bool)? = nil
                         
                         if (selectedTerminal!.1 != nil && t.1 == nil) {
                             propertyTerminal = selectedTerminal
@@ -697,8 +697,8 @@ class SceneGraph                : MMWidget
         
         // Connect terminals ?
         if connectingTerminals && selectedTerminal != nil && possibleConnTerminal != nil {
-            var propertyTerminal : (CodeComponent, UUID?, String?, Float, Float)? = nil
-            var outTerminal : (CodeComponent, UUID?, String?, Float, Float)? = nil
+            var propertyTerminal : (CodeComponent, UUID?, String?, Float, Float, Bool)? = nil
+            var outTerminal : (CodeComponent, UUID?, String?, Float, Float, Bool)? = nil
             
             if (selectedTerminal!.1 != nil && possibleConnTerminal!.1 == nil) {
                 propertyTerminal = selectedTerminal
@@ -1958,7 +1958,7 @@ class SceneGraph                : MMWidget
                 
                 // Material, draw all the patterns
                 if let patterns = stageItem.componentLists["patterns"], item.component!.componentType == .Material3D {
-                    for p in patterns.reversed() {
+                    for p in patterns {
                         let pItem = SceneGraphItem(.StageItem, stage: item.stage, stageItem: stageItem, component: p)
                         pItem.rect.set(item.rect.x + p.values["_graphX"]! * graphZoom, item.rect.y + p.values["_graphY"]! * graphZoom, item.rect.width, item.rect.height)
                         itemMap[p.uuid] = pItem
@@ -1966,14 +1966,15 @@ class SceneGraph                : MMWidget
                     }
                 }
                 
+                let tWidth = skin.tSize * graphZoom
+                let tHalfWidth = skin.tHalfSize * graphZoom
+                
                 if component.properties.count > 0 || component.componentType == .Pattern {
                     
                     hasProperties = true
                     item.rect.width = 150 * graphZoom
                     var y = item.rect.y + item.rect.height + 16 * graphZoom
                     let yBackup = y
-                    let tWidth = skin.tSize * graphZoom
-                    let tHalfWidth = skin.tHalfSize * graphZoom
 
                     let itemHeight : Float = 28 * graphZoom
                     
@@ -1986,7 +1987,7 @@ class SceneGraph                : MMWidget
                     
                     if component.componentType == .Material3D {
                         drawPlusButton(item: item, rect: MMRect(rect.x + item.rect.x + item.rect.width - (plusLabel != nil ? plusLabel!.rect.width : 0) - 10 * graphZoom, rect.y + item.rect.y + 4 * graphZoom, itemHeight, itemHeight), cb: { () in
-                            globalApp!.libraryDialog.show(ids: ["Pattern", "Pattern2D", "Pattern3D", "Mixer"], style: .List, cb: { (json) in
+                            globalApp!.libraryDialog.show(ids: ["Pattern", "Pattern2D", "Pattern3D", "PatternMixer"], style: .List, cb: { (json) in
                                 if let comp = decodeComponentFromJSON(json) {
                                     let undo = globalApp!.currentEditor.undoStageItemStart("Add Pattern")
 
@@ -2027,7 +2028,6 @@ class SceneGraph                : MMWidget
                         let tX : Float = rect.x + item.rect.right() - tHalfWidth
                         let tY : Float = rect.y + y + 1.5 * graphZoom
 
-                        terminals.append((component, uuid, nil, tX, tY))
                         
                         var pColor = skin.normalInteriorColor
                         if let selectedTerminal = selectedTerminal {
@@ -2052,20 +2052,7 @@ class SceneGraph                : MMWidget
                             mmView.drawSphere.draw(x: tX, y: tY, radius: tHalfWidth, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                         }
                         
-                        // Draw the property terminal connections
-                        if let conn = component.connections[uuid] {
-                            for t in terminals {
-                                if t.0.uuid == conn.componentUUID && t.2 == conn.outName {
-                                    mmView.drawLine.drawDotted(sx: tX + tHalfWidth, sy: tY + tHalfWidth, ex: t.3 + tHalfWidth, ey: t.4 + tHalfWidth, radius: 1.5, fillColor: skin.normalTerminalColor)
-                                    
-                                    if isFloat4 {
-                                        mmView.drawBox.draw(x: t.3, y: t.4, width: tWidth, height: tWidth, round: 0, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
-                                    } else {
-                                        mmView.drawSphere.draw(x: t.3, y: t.4, radius: tHalfWidth, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
-                                    }
-                                }
-                            }
-                        }
+                        terminals.append((component, uuid, nil, tX, tY, isFloat4))
                         
                         y += itemHeight
                     }
@@ -2093,7 +2080,7 @@ class SceneGraph                : MMWidget
                         let tX : Float = rect.x + item.rect.x - 7.5 * graphZoom
                         var tY : Float = rect.y + y + 1.5 * graphZoom
 
-                        terminals.append((component, nil, "color", tX, tY))
+                        terminals.append((component, nil, "color", tX, tY, true))
                         var pColor = getInteriorColor("color")
                         var label = getLabel("Color", skin: skin)
                         label.rect.x = rect.x + item.rect.x + tWidth
@@ -2102,7 +2089,7 @@ class SceneGraph                : MMWidget
                         mmView.drawBox.draw(x: tX, y: tY, width: 15 * graphZoom, height: 15 * graphZoom, round: 0, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                         
                         tY += itemHeight
-                        terminals.append((component, nil, "mask", tX, tY))
+                        terminals.append((component, nil, "mask", tX, tY, false))
 
                         pColor = getInteriorColor("mask")
                         label = getLabel("Mask", skin: skin)
@@ -2112,7 +2099,7 @@ class SceneGraph                : MMWidget
                         mmView.drawSphere.draw(x: tX, y: tY, radius: 7.5 * graphZoom, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
                         
                         tY += itemHeight
-                        terminals.append((component, nil, "id", tX, tY))
+                        terminals.append((component, nil, "id", tX, tY, false))
 
                         pColor = getInteriorColor("id")
                         label = getLabel("Id", skin: skin)
@@ -2120,6 +2107,32 @@ class SceneGraph                : MMWidget
                         label.rect.y = tY
                         label.draw()
                         mmView.drawSphere.draw(x: tX, y: tY, radius: 7.5 * graphZoom, borderSize: 1, fillColor: pColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                    }
+                }
+                
+                if component.componentType == .Material3D {
+                    // Material, at the end draw all the terminals
+                    for tt in terminals {
+                        if tt.1 != nil {
+                            // Right sided property, draw the connections
+                            
+                            let tX = tt.3
+                            let tY = tt.4
+
+                            if let conn = tt.0.connections[tt.1!] {
+                                for t in terminals {
+                                    if t.0.uuid == conn.componentUUID && t.2 == conn.outName {
+                                        mmView.drawLine.drawDotted(sx: tX + tHalfWidth, sy: tY + tHalfWidth, ex: t.3 + tHalfWidth, ey: t.4 + tHalfWidth, radius: 1.5, fillColor: skin.normalTerminalColor)
+                                        
+                                        if tt.5 {
+                                            mmView.drawBox.draw(x: t.3, y: t.4, width: tWidth, height: tWidth, round: 0, borderSize: 1, fillColor: skin.normalTerminalColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                                        } else {
+                                            mmView.drawSphere.draw(x: t.3, y: t.4, radius: tHalfWidth, borderSize: 1, fillColor: skin.normalTerminalColor, borderColor: selected ? skin.selectedBorderColor : skin.normalBorderColor)
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
