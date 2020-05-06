@@ -2066,7 +2066,7 @@ class NodeUINoise3D : NodeUISelector
         oRect.copy(rect)
         
         rect.width = 170
-        rect.height += 85
+        rect.height += 90
         
         menuNode = Node()
         menuNode2 = Node()

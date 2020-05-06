@@ -484,6 +484,11 @@ class CodeFragment          : Codable, Equatable
                 name += self.name
                 codeName += self.name
                 
+                var oldOffset : Int = 0
+                ctx.cComponent!.toolPropertyIndex.forEach { (key, value) in
+                    oldOffset += value.count - 1
+                }
+                
                 if self.name == "PI" {
                     codeName = (isNegated() ? " -" : "") + "M_PI_F"
                 } else
@@ -499,6 +504,13 @@ class CodeFragment          : Codable, Equatable
                     codeName = (isNegated() ? " -" : "")
                     codeName += generateNoise3DFunction(ctx, self)
                 }
+                                
+                var newOffset : Int = 0
+                ctx.cComponent!.toolPropertyIndex.forEach { (key, value) in
+                    newOffset += value.count - 1
+                }
+                
+                ctx.propertyDataOffset += newOffset - oldOffset
             }
             
             ctx.font.getTextRect(text: name, scale: ctx.fontScale, rectToUse: ctx.tempRect)
@@ -1170,7 +1182,7 @@ class CodeBlock             : Codable, Equatable
                             ctx.addCode( "__data[\(dataIndex)]" )
                         }
                         
-                        //print("property dataIndex", ctx.cComponent!.uuid, dataIndex)
+                        //print("property dataIndex", ctx.cComponent!.uuid, ctx.cComponent!.libraryName, dataIndex)
                         if components == 1 {
                             ctx.addCode( ".x" )
                         } else
