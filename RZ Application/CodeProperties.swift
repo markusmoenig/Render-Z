@@ -223,6 +223,7 @@ class CodeProperties    : MMWidget
                 
                     b1.removeState(.Checked)
                 }
+                b1.isDisabled = block.blockType == .ElseHeader
                 addButton(b1)
                 
                 let b2 = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete Content", fixedWidth: buttonWidth)
