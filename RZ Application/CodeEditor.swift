@@ -558,10 +558,11 @@ class CodeEditor        : MMWidget
                     }
                     
                     self.currentComponent = self.codeComponent
-                    
+                                        
                     // Set Scroll Area
                     if let comp = self.codeComponent {
                         self.scrollArea.offsetY = comp.scrollOffsetY
+                        globalApp!.project.selected!.updateComponent(comp)
                     }
 
                     self.codeHasRendered = true

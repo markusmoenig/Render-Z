@@ -84,7 +84,9 @@ class LibraryDialog: MMDialog {
         "FuncMisc"      : "Misc",
         "Pattern2D"     : "Pattern 2D",
         "Pattern3D"     : "Pattern 3D",
-        "PatternMixer"  : "Mixer"
+        "PatternMixer"  : "Mixer",
+        "SDF2D"         : "Shape 2D",
+        "SDF3D"         : "Shape 3D"
     ]
 
     init(_ view: MMView) {

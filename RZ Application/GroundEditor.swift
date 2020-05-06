@@ -67,7 +67,7 @@ class GroundEditor              : PropertiesWidget
     
     var selectedItem            : GroundItem? = nil
     
-    let gridSize                : Float = 40
+    let gridSize                : Float = 80
     
     var initialValues           : [String:Float] = [:]
     var initialProperty         = SIMD3<Float>(0,0,0)

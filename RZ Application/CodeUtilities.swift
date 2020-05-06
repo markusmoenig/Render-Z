@@ -180,7 +180,12 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
     if componentToUse.values["_posX"] != nil { componentToUse.values["_posX"] = 0.0 }
     if componentToUse.values["_posY"] != nil { componentToUse.values["_posY"] = 0.0 }
     if componentToUse.values["_posZ"] != nil { componentToUse.values["_posZ"] = 0.0 }
-
+    if componentToUse.values["_rotate"] != nil { componentToUse.values["_rotate"] = 0.0 }
+    if componentToUse.values["_rotateX"] != nil { componentToUse.values["_rotateX"] = 0.0 }
+    if componentToUse.values["_rotateY"] != nil { componentToUse.values["_rotateY"] = 0.0 }
+    if componentToUse.values["_rotateZ"] != nil { componentToUse.values["_rotateZ"] = 0.0 }
+    componentToUse.values["2DIn3D"] = nil
+    
     let encodedData = try? JSONEncoder().encode(componentToUse)
     
     componentToUse.values = oldValues
@@ -477,9 +482,21 @@ func defaultConstantForType(_ typeName: String) -> CodeFragment
 func setDefaultComponentValues(_ comp: CodeComponent)
 {
     if comp.componentType == .SDF2D || comp.componentType == .Transform2D {
-        comp.values["_posX"] = 0
-        comp.values["_posY"] = 0
-        comp.values["_rotate"] = 0
+        if globalApp!.currentSceneMode == .ThreeD {
+            comp.values["_posX"] = 0
+            comp.values["_posY"] = 0
+            comp.values["_posZ"] = 0
+            comp.values["_rotateX"] = 0
+            comp.values["_rotateY"] = 0
+            comp.values["_rotateZ"] = 0
+            comp.values["2DIn3D"] = 1
+            comp.values["_extrusion"] = 1
+            comp.values["_revolution"] = 0
+        } else {
+            comp.values["_posX"] = 0
+            comp.values["_posY"] = 0
+            comp.values["_rotate"] = 0
+        }
     } else
     if comp.componentType == .SDF3D || comp.componentType == .Transform3D {
         comp.values["_posX"] = 0

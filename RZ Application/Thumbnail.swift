@@ -100,6 +100,8 @@ class Thumbnail
                 for item in list {
                     if item.type == type {
                         if let comp = decodeComponentFromJSON(item.json) {
+                            setDefaultComponentValues(comp)
+
                             thumbs[type] = generate(comp, width, height)
                         }
                     }

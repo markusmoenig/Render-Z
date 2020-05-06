@@ -153,12 +153,12 @@ class GizmoCombo2D          : GizmoBase
             } else
             if dragState == .xAxisScale {
                 if let fragment = scaleXFragment {
-                    processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (pos.x - dragStartOffset!.x) * scale, 0.001))
+                    processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (pos.x - dragStartOffset!.x) * scale / 80, 0.001))
                 }
             } else
             if dragState == .yAxisScale {
                 if let fragment = scaleYFragment {
-                    processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (pos.y - dragStartOffset!.y) * scale, 0.001))
+                    processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (pos.y - dragStartOffset!.y) * scale / 80, 0.001))
                 }
             }
             

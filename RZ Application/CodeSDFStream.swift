@@ -114,6 +114,7 @@ class CodeSDFStream
                 float GlobalSeed = __data[0].z;
                 float outDistance = 10;
                 float4 outShape = float4(100000, 0,0,0);
+                float bump = 0;
             
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
@@ -578,7 +579,7 @@ class CodeSDFStream
                             """
                                 {
                                     float oldDistance = outDistance;
-                                    float2 position = __translate(pos, float2(__data[\(posX)].x, -__data[\(posY)].x));
+                                    float2 position = __translate(pos / 80., float2(__data[\(posX)].x / 80., -__data[\(posY)].x / 80.));
                                     position = rotate( position, radians(360 - __data[\(rotate)].x) );
 
                             """
@@ -588,7 +589,7 @@ class CodeSDFStream
                             regionCode +=
                             """
                             
-                                    outDistance = min(oldDistance, outDistance); // TODO: Future support custom booleans
+                                    outDistance = min(oldDistance, outDistance * 80.); // TODO: Future support custom booleans
                                 }
                             
                             """
@@ -1251,7 +1252,7 @@ class CodeSDFStream
             code +=
             """
                 {
-                    float2 position = __translate(__origin, float2(__data[\(posX)].x, -__data[\(posY)].x));
+                    float2 position = __translate(__origin / 80., float2(__data[\(posX)].x / 80., -__data[\(posY)].x / 80.));
                     position = rotate( position, radians(360 - __data[\(rotate)].x) );
 
             """
@@ -1306,7 +1307,44 @@ class CodeSDFStream
             }
         }
         
-        code += component.code!
+        if type == .SDF2D {
+            code += component.code!
+            code +=
+            """
+            
+            outDistance *= 80;
+            
+            """
+        } else {
+            if component.componentType == .SDF3D {
+                code += component.code!
+            } else
+            if component.componentType == .SDF2D {
+                // 2D Component in a 3D World, needs extrusion code
+             
+                let extrusion = instance.getTransformPropertyIndex(component, "_extrusion")
+                let revolution = instance.getTransformPropertyIndex(component, "_revolution")
+
+                code +=
+                """
+                {
+                    float3 originalPos = position;
+                    float2 position = originalPos.xy;
+                
+                    if (__data[\(revolution)].x > 0.)
+                        position = float2( length(originalPos.xz) - __data[\(revolution)].x, originalPos.y );
+                
+                    \(component.code!)
+                
+                    if (__data[\(revolution)].x == 0.)
+                    {
+                        float2 w = float2( outDistance, abs(originalPos.z) - __data[\(extrusion)].x );
+                        outDistance = min(max(w.x,w.y),0.0) + length(max(w,0.0));
+                    }
+                }
+                """
+            }
+        }
         
         if type == .SDF3D
         {

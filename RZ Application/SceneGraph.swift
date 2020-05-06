@@ -1083,7 +1083,7 @@ class SceneGraph                : MMWidget
     {
         if let stageItem = item.stageItem {
             // Empty Shape
-            globalApp!.libraryDialog.show(ids: ["SDF" + getCurrentModeId()], style: .Icon, cb: { (json) in
+            globalApp!.libraryDialog.show(ids: ["SDF3D", "SDF2D"], style: .Icon, cb: { (json) in
                 if let comp = decodeComponentFromJSON(json), item.stageItem != nil {
                     let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, replace == false ? "Add Shape" : "Replace Shape")
 
@@ -2282,7 +2282,7 @@ class SceneGraph                : MMWidget
                     mmView.drawBox.draw( x: rect.x + item.rect.x + 1, y: rect.y + item.rect.y, width: totalWidth - 2, height: itemSize, round: 0, fillColor: skin.selectedItemColor)
                 }
                 
-                if let thumb = globalApp!.thumbnail.request(comp.libraryName + " :: SDF" + getCurrentModeId()) {
+                if let thumb = globalApp!.thumbnail.request(comp.libraryName + " :: SDF" + (comp.componentType == .SDF3D ? "3D" : "2D")) {
                     mmView.drawTexture.draw(thumb, x: rect.x + item.rect.x + (totalWidth - 200 / 3 * graphZoom) / 2, y: rect.y + item.rect.y, zoom: 3 / graphZoom)
                 }
             

@@ -98,8 +98,24 @@ class CodeBuilderInstance
             data.append(SIMD4<Float>(0,0,0,0))
             properties.append((nil, nil, "_posY", data.count, component, hierarchy))
             data.append(SIMD4<Float>(0,0,0,0))
-            properties.append((nil, nil, "_rotate", data.count, component, hierarchy))
-            data.append(SIMD4<Float>(0,0,0,0))
+            
+            if component.values["2DIn3D"] == 1 {
+                properties.append((nil, nil, "_posZ", data.count, component, hierarchy))
+                data.append(SIMD4<Float>(0,0,0,0))
+                properties.append((nil, nil, "_rotateX", data.count, component, hierarchy))
+                data.append(SIMD4<Float>(0,0,0,0))
+                properties.append((nil, nil, "_rotateY", data.count, component, hierarchy))
+                data.append(SIMD4<Float>(0,0,0,0))
+                properties.append((nil, nil, "_rotateZ", data.count, component, hierarchy))
+                data.append(SIMD4<Float>(0,0,0,0))
+                properties.append((nil, nil, "_extrusion", data.count, component, hierarchy))
+                data.append(SIMD4<Float>(0,0,0,0))
+                properties.append((nil, nil, "_revolution", data.count, component, hierarchy))
+                data.append(SIMD4<Float>(0,0,0,0))
+            } else {
+                properties.append((nil, nil, "_rotate", data.count, component, hierarchy))
+                data.append(SIMD4<Float>(0,0,0,0))
+            }
         } else
         if component.componentType == .SDF3D || component.componentType == .Transform3D {
             properties.append((nil, nil, "_posX", data.count, component, hierarchy))
@@ -1051,20 +1067,25 @@ class CodeBuilder
                     if let transComponent = stageItem.components[stageItem.defaultName] {
                         // Transform
                         var properties : [String:Float] = [:]
-                        properties[name] = transComponent.values[name]!
                         
-                        let transformed = timeline.transformProperties(sequence: transComponent.sequence, uuid: transComponent.uuid, properties: properties, frame: timeline.currentFrame)
-                        
-                        parentValue += transformed[name]!
+                        if let value = transComponent.values[name] {
+                            properties[name] = value
+                            
+                            let transformed = timeline.transformProperties(sequence: transComponent.sequence, uuid: transComponent.uuid, properties: properties, frame: timeline.currentFrame)
+                            
+                            parentValue += transformed[name]!
+                        }
                     }
                 }
                 
                 var properties : [String:Float] = [:]
-                properties[name] = component.values[name]! + parentValue
+                if let value = component.values[name] {
+                    properties[name] = value + parentValue
 
-                let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
-                
-                inst.data[dataIndex].x = transformed[name]!
+                    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                    
+                    inst.data[dataIndex].x = transformed[name]!
+                }
             }
         }
         updateBuffer(inst)

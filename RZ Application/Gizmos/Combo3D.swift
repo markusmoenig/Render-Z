@@ -147,6 +147,16 @@ class GizmoCombo3D          : GizmoBase
                 rotateVar.titleShadows = true
                 tNode.uiItems.append(rotateVar)
             }
+            
+            if comp.values["2DIn3D"] == 1 {
+                let extrusionVar = NodeUINumber(tNode, variable: "_extrusion", title: "Extrusion", range: SIMD2<Float>(0,5), value: comp.values["_extrusion"]!,  precision: 3)
+                extrusionVar.titleShadows = true
+                tNode.uiItems.append(extrusionVar)
+                
+                let revolutionVar = NodeUINumber(tNode, variable: "_revolution", title: "Revolution", range: SIMD2<Float>(0,5), value: comp.values["_revolution"]!,  precision: 3)
+                revolutionVar.titleShadows = true
+                tNode.uiItems.append(revolutionVar)
+            }
 
             tNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 comp.values[variable] = oldValue
