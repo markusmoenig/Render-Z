@@ -1098,7 +1098,6 @@ class CodeEditor        : MMWidget
                     }
                 }
                 
-                addEmptyBlock()
                 self.updateCode(compile: true)
                 self.undoEnd(undo)
             } else
@@ -1168,7 +1167,6 @@ class CodeEditor        : MMWidget
                 destBlock.children[0].fragment.addProperty(.Selectable)
                 destBlock.children[1].fragment.addProperty(.Selectable)
                 
-                addEmptyBlock()
                 self.updateCode(compile: true)
                 self.undoEnd(undo)
             }

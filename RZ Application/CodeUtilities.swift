@@ -449,6 +449,18 @@ func defaultConstantForType(_ typeName: String) -> CodeFragment
     var components  : Int = 0
     var compName    : String = typeName
     
+    if typeName.hasSuffix("2x2") {
+        components = 4
+        compName.remove(at: compName.index(before: compName.endIndex))
+    } else
+    if typeName.hasSuffix("3x3") {
+        components = 9
+        compName.remove(at: compName.index(before: compName.endIndex))
+    } else
+    if typeName.hasSuffix("4x4") {
+        components = 16
+        compName.remove(at: compName.index(before: compName.endIndex))
+    } else
     if typeName.hasSuffix("2") {
         components = 2
         compName.remove(at: compName.index(before: compName.endIndex))
