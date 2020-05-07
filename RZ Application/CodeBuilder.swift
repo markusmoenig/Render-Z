@@ -181,7 +181,6 @@ class CodeBuilder
     var copyAndSwapState    : MTLComputePipelineState? = nil
     var sampleState         : MTLComputePipelineState? = nil
     var previewState        : MTLComputePipelineState? = nil
-    var densityState        : MTLComputePipelineState? = nil
 
     var depthMapState       : MTLComputePipelineState? = nil
     var aoState             : MTLComputePipelineState? = nil
@@ -200,7 +199,6 @@ class CodeBuilder
         buildCopyState()
         buildSampleState()
         buildPreviewState()
-        buildDensityState()
     }
     
     func build(_ component: CodeComponent, camera: CodeComponent? = nil) -> CodeBuilderInstance
@@ -571,6 +569,13 @@ class CodeBuilder
             if (shape.w >= 0.0) {
                 float3 L = float3(-0.5, 0.3, 0.7);
                 result.xyz = dot(L, normal);
+
+                L = float3(0.5, 0.3, 0.7);
+                result.xyz += dot(L, normal);
+
+                L = float3(0.5, -0.3, -0.7);
+                result.xyz += dot(L, normal);
+
                 result.xyz *= meta.x;
                 result.xyz *= meta.y;
                 result.w = 1.0;
@@ -667,165 +672,6 @@ class CodeBuilder
 
         library = compute.createLibraryFromSource(source: code)
         shadowState = compute.createState(library: library, name: "shadow")
-    }
-    
-    func buildDensityState()
-    {
-        let code =
-        """
-        
-        #include <metal_stdlib>
-        #include <simd/simd.h>
-        using namespace metal;
-
-        float hash(float2 p) {float3 p3 = fract(float3(p.xyx) * 0.13); p3 += dot(p3, p3.yzx + 3.333); return fract((p3.x + p3.y) * p3.z); }
-
-        float noise(float3 x) {
-            const float3 step = float3(110, 241, 171);
-
-            float3 i = floor(x);
-            float3 f = fract(x);
-         
-            // For performance, compute the base input to a 1D hash from the integer part of the argument and the
-            // incremental change to the 1D based on the 3D -> 1D wrapping
-            float n = dot(i, step);
-
-            float3 u = f * f * (3.0 - 2.0 * f);
-            return mix(mix(mix( hash(n + dot(step, float3(0, 0, 0))), hash(n + dot(step, float3(1, 0, 0))), u.x),
-                           mix( hash(n + dot(step, float3(0, 1, 0))), hash(n + dot(step, float3(1, 1, 0))), u.x), u.y),
-                       mix(mix( hash(n + dot(step, float3(0, 0, 1))), hash(n + dot(step, float3(1, 0, 1))), u.x),
-                           mix( hash(n + dot(step, float3(0, 1, 1))), hash(n + dot(step, float3(1, 1, 1))), u.x), u.y), u.z);
-        }
-
-        float fbm(float3 x) {
-            float v = 0.0;
-            float a = 0.5;
-            float3 shift = float3(100);
-            for (int i = 0; i < 3; ++i) {
-                v += a * noise(x);
-                x = x * 2.0 + shift;
-                a *= 0.5;
-            }
-            return v;
-        }
-
-        float2 __getParticipatingMedia(float3 pos, float constFogDensity)
-        {
-            //float heightFog = fbm(pos);
-            //heightFog = 0.3*clamp((heightFog-pos.y + 0.5)*1.0, 0.0, 1.0);
-
-            float sigmaS = constFogDensity;// + heightFog;
-           
-            const float sigmaA = 0.0;
-            const float sigmaE = max(0.000000001, sigmaA + sigmaS); // to avoid division by zero extinction
-
-            return float2( sigmaS, sigmaE );
-        }
-
-        float __phaseFunction()
-        {
-            return 1.0/(4.0*3.14);
-        }
-
-        float __volumetricShadow(float3 from, float3 dir, float lengthToLight, float constFogDensity)
-        {
-            const float numStep = 16.0; // quality control. Bump to avoid shadow alisaing
-            float shadow = 1.0;
-            float sigmaS = 0.0;
-            float sigmaE = 0.0;
-            float dd = lengthToLight / numStep;
-            for(float s=0.5; s<(numStep-0.1); s+=1.0)// start at 0.5 to sample at center of integral part
-            {
-                float3 pos = from + dir * (s/(numStep));
-                float2 sigma = __getParticipatingMedia(pos, constFogDensity);
-                shadow *= exp(-sigma.y * dd);
-            }
-            return shadow;
-        }
-
-        float2 __random2(float3 st){
-          float2 S = float2( dot(st,float3(127.1,311.7,783.089)),
-                     dot(st,float3(269.5,183.3,173.542)) );
-          return fract(sin(S)*43758.5453123);
-        }
-
-        float __rand(float2 co){
-            return fract(sin(dot(co.xy ,float2(12.9898,78.233))) * 43758.5453);
-        }
-        
-        kernel void density(
-        texture2d<half, access::read_write>     __densityTexture  [[texture(0)]],
-        constant float4                        *__data   [[ buffer(1) ]],
-        texture2d<half, access::read>           __rayOriginTexture [[texture(2)]],
-        texture2d<half, access::read>           __rayDirectionTexture [[texture(3)]],
-        texture2d<half, access::read>           __depthTexture [[texture(4)]],
-        constant float4                        *__lightData   [[ buffer(5) ]],
-        uint2 __gid                             [[thread_position_in_grid]])
-        {
-            float2 size = float2( __densityTexture.get_width(), __densityTexture.get_height() );
-            float2 uv = float2(__gid.x, __gid.y);
-
-            float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
-            float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
-
-            float4 shape = float4(__depthTexture.read(__gid));
-            float4 density = float4(__densityTexture.read(__gid));
-            float maxDistance = shape.y;
-
-            float constFogDensity = density.x;
-            float volumetricShadow = density.z;
-            float softShadow = density.w;
-
-            float transmittance = 1.0;
-            float3 scatteredLight = float3(0.0, 0.0, 0.0);
-            
-            float t = __random2(float3(__data[0].x, __data[0].y, __data[0].z)).y;
-            float tt = 0.0;
-            float3 lightColor = __lightData[2].xyz;
-            //float3 lightColor = float3(1);
-
-            if (shape.z == -1) {
-                maxDistance = 50;
-            }
-            
-            maxDistance = min(maxDistance, 50.0);
-            
-            for( int i=0; i < 5 && t < maxDistance; i++ )
-            {
-                float3 pos = rayOrigin + rayDirection * t;
-                float2 sigma = __getParticipatingMedia( pos, constFogDensity );
-                
-                const float sigmaS = sigma.x;
-                const float sigmaE = sigma.y;
-            
-                /*
-                float3 lightDirection; float lengthToLight;
-                if (lightType.y == 0.0) {
-                    lightDirection = normalize(__lightData[0].xyz);
-                    lengthToLight = 1.;
-                } else {
-                    lightDirection = normalize(__lightData[0].xyz - pos);
-                    lengthToLight = length(lightDirection);
-                }*/
-                
-                float3 S = lightColor * sigmaS * __phaseFunction() * volumetricShadow * softShadow;
-                float3 Sint = (S - S * exp(-sigmaE * tt)) / sigmaE;
-                scatteredLight += transmittance * Sint;
-
-                transmittance *= exp(-sigmaE * tt);
-                                    
-                tt += __random2(pos * __data[0].w).y * 4.;
-                t += tt;
-            }
-            
-            float4 scatTrans = float4(scatteredLight, transmittance);
-            __densityTexture.write(half4(scatTrans), __gid);
-        }
-          
-        """
-        
-        let library = compute.createLibraryFromSource(source: code)
-        densityState = compute.createState(library: library, name: "density")
     }
     
     /// Build a clear texture shader

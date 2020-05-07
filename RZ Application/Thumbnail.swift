@@ -31,11 +31,17 @@ class Thumbnail
         mmView = view
         codeBuilder = CodeBuilder(view)
         
-        componentMap["camera3D"] = decodeComponentFromJSON(defaultCamera3D)!
         componentMap["render2D"] = decodeComponentFromJSON(defaultRender2D)!
-        
-        //setPropertyValue3(component: componentMap["camera3D"]!, name: "origin", value: SIMD3<Float>(0,0,3))
-        //setPropertyValue3(component: componentMap["camera3D"]!, name: "lookAt", value: SIMD3<Float>(0,0,0))
+    }
+    
+    func libraryLoaded()
+    {
+        if let camera3D = globalApp!.libraryDialog.getItem(ofId: "Camera3D", withName: "Orthographic Camera") {
+            componentMap["camera3D"] = camera3D
+            
+            setPropertyValue1(component: camera3D, name: "fov", value: 16)
+            setPropertyValue3(component: camera3D, name: "origin", value: SIMD3<Float>(8,8,8))
+        }
     }
     
     func generate(_ comp: CodeComponent,_ width: Float = 200,_ height: Float = 200) -> MTLTexture?
@@ -57,6 +63,10 @@ class Thumbnail
             codeBuilder.render(renderInstance, result, inTextures: [depthTexture!, backTexture!])
         } else
         if comp.componentType == .SDF3D {
+            if componentMap["camera3D"] == nil {
+                return result
+            }
+            
             depthTexture = checkTextureSize(width, height, depthTexture)
             backTexture = checkTextureSize(width, height, backTexture)
             

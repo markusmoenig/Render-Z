@@ -155,6 +155,7 @@ class LibraryDialog: MMDialog {
             DispatchQueue.main.async {
                 self.mmView.update()
                 globalApp!.sceneGraph.libraryLoaded()
+                globalApp!.thumbnail.libraryLoaded()
             }
         }
         
