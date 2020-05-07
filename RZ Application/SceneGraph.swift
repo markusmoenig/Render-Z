@@ -29,6 +29,7 @@ class SceneGraphSkin {
     let objectColor             = SIMD4<Float>(0.765, 0.600, 0.365, 1.000)
     let variablesColor          = SIMD4<Float>(0.714, 0.349, 0.271, 1.000)
     let postFXColor             = SIMD4<Float>(0.275, 0.439, 0.353, 1.000)
+    let lightColor              = SIMD4<Float>(0.494, 0.455, 0.188, 1.000)
 
     let tempRect                = MMRect()
     let fontScale               : Float
@@ -1057,6 +1058,9 @@ class SceneGraph                : MMWidget
             } else
             if n.stage.stageType == .VariablePool {
                 color = skin.variablesColor
+            } else
+            if n.stage.stageType == .LightStage {
+                color = skin.lightColor
             } else {
                 color = skin.postFXColor
             }
@@ -1805,7 +1809,8 @@ class SceneGraph                : MMWidget
             item.rect.set(cX, cY, diameter, skin.itemHeight * graphZoom)
             itemMap[comp.uuid] = item
             
-            drawItem(item, selected: childItem === currentStageItem , parent: nil, skin: skin)
+            drawItem(item, selected: childItem === currentStageItem , parent: nil, skin: skin, color: skin.lightColor)
+            navItems.append(item)
         }
         
         // Draw Render Stage

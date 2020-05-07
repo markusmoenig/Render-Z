@@ -68,6 +68,8 @@ class GizmoCombo3D          : GizmoBase
     
     var isPoint             : Bool = false
     
+    var isTransform         : Bool = false
+    
     override init(_ view: MMView)
     {
         var function = view.renderer.defaultLibrary.makeFunction( name: "drawGizmoCombo3D" )
@@ -124,9 +126,13 @@ class GizmoCombo3D          : GizmoBase
     {
         component = comp
         isPoint = false
+        isTransform = false
         
         if comp.componentType == .Light3D {
             isPoint = true
+        }
+        if comp.componentType == .Transform3D {
+            isTransform = true
         }
         
         // Show the supported transform values
@@ -148,13 +154,20 @@ class GizmoCombo3D          : GizmoBase
                 tNode.uiItems.append(rotateVar)
             }
             
+            let scaleVar = NodeUINumber(tNode, variable: "_scale", title: "Scale", range: SIMD2<Float>(0.001,5), value: comp.values["_scale"]!,  precision: 3, halfWidthValue: 1)
+            scaleVar.titleShadows = true
+            scaleVar.autoAdjustMargin = true
+            tNode.uiItems.append(scaleVar)
+            
             if comp.values["2DIn3D"] == 1 {
                 let extrusionVar = NodeUINumber(tNode, variable: "_extrusion", title: "Extrusion", range: SIMD2<Float>(0,5), value: comp.values["_extrusion"]!,  precision: 3)
                 extrusionVar.titleShadows = true
+                extrusionVar.autoAdjustMargin = true
                 tNode.uiItems.append(extrusionVar)
                 
                 let revolutionVar = NodeUINumber(tNode, variable: "_revolution", title: "Revolution", range: SIMD2<Float>(0,5), value: comp.values["_revolution"]!,  precision: 3)
                 revolutionVar.titleShadows = true
+                revolutionVar.autoAdjustMargin = true
                 tNode.uiItems.append(revolutionVar)
             }
 
@@ -483,6 +496,12 @@ class GizmoCombo3D          : GizmoBase
                 processGizmoProperties(properties)
             } else
             if dragState == .xAxisScale || scaleAllAxis {
+                if isTransform {
+                    let properties : [String:Float] = [
+                        "_scale" : initialValues["_scale"]! + diff
+                    ]
+                    processGizmoProperties(properties)
+                } else
                 if let fragment = scaleXFragment {
                     //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoXAxisNormal, planeCenter: planeCenter)
                     //processProperty(fragment, name: scaleXFragmentName!, value: max(initialValues["_scaleX"]! + (hit.x - dragStartOffset!.x), 0.001))
@@ -490,6 +509,12 @@ class GizmoCombo3D          : GizmoBase
                 }
             } else
             if dragState == .yAxisScale || scaleAllAxis {
+                if isTransform {
+                    let properties : [String:Float] = [
+                        "_scale" : initialValues["_scale"]! + diff
+                    ]
+                    processGizmoProperties(properties)
+                } else
                 if let fragment = scaleYFragment {
                     //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoYAxisNormal, planeCenter: planeCenter)
                     //processProperty(fragment, name: scaleYFragmentName!, value: max(initialValues["_scaleY"]! - (hit.y - dragStartOffset!.x), 0.001))
@@ -497,6 +522,12 @@ class GizmoCombo3D          : GizmoBase
                 }
             } else
             if dragState == .zAxisScale || scaleAllAxis {
+                if isTransform {
+                    let properties : [String:Float] = [
+                        "_scale" : initialValues["_scale"]! + diff
+                    ]
+                    processGizmoProperties(properties)
+                } else
                 if let fragment = scaleZFragment {
                     //let hit = getPlaneIntersection(camera: camera, planeNormal: gizmoZAxisNormal, planeCenter: planeCenter)
                     //processProperty(fragment, name: scaleZFragmentName!, value: max(initialValues["_scaleZ"]! + (hit.z - dragStartOffset!.x), 0.001))

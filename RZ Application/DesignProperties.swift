@@ -124,6 +124,7 @@ class DesignProperties      : MMWidget
                     } else {
                         let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), int: frag.typeName == "int", value: data.x, precision: Int(rc.1!.values["precision"]!))
                         numberVar.titleShadows = true
+                        numberVar.autoAdjustMargin = true
                         c1Node!.uiItems.append(numberVar)
                     }
                 } else
@@ -131,7 +132,6 @@ class DesignProperties      : MMWidget
                     var range : SIMD2<Float>? = nil
 
                     let fragment = rc.1!
-                    print(fragment.arguments.count, fragment.fragmentType)
                     if fragment.arguments.count == 2 && fragment.fragmentType == .ConstantDefinition {
                         range = SIMD2<Float>(fragment.arguments[0].fragments[0].values["min"]!, fragment.arguments[0].fragments[0].values["max"]!)
                     }

@@ -250,6 +250,7 @@ class LibraryDialog: MMDialog {
         }
         
         if currentItems != nil && currentItems!.count > 0 {
+            currentItems = currentItems!.sorted(by: { $0.titleLabel.text < $1.titleLabel.text })
             selectedItem = currentItems![0]
         }
     }

@@ -107,6 +107,7 @@ class CodeSDFStream
             {
                 float2 __size = float2( __outTexture.get_width(), __outTexture.get_height() );
                 float2 __origin = float2(__gid.x, __gid.y);
+                float2 __originBackupForScaling = __origin;
                 float2 __center = __size / 2;
                 __origin = __translate(__origin, __center);
 
@@ -115,6 +116,7 @@ class CodeSDFStream
                 float outDistance = 10;
                 float4 outShape = float4(100000, 0,0,0);
                 float bump = 0;
+                float scale = 1;
             
                 struct FuncData __funcData;
                 __funcData.GlobalTime = GlobalTime;
@@ -187,9 +189,11 @@ class CodeSDFStream
             
             float4 sceneMap( float3 __origin, thread struct FuncData *__funcData )
             {
+                float3 __originBackupForScaling = __origin;
                 float4 outShape = float4(100000, 100000, -1, -1);
                 float outDistance = 10;
                 float bump = 0;
+                float scale = 1;
             
                 constant float4 *__data = __funcData->__data;
                 float GlobalTime = __funcData->GlobalTime;
@@ -1408,7 +1412,7 @@ class CodeSDFStream
         """
         
             float4 shapeA = outShape;
-            float4 shapeB = float4(outDistance - bump, -1, \(currentMaterialId), \(idCounter));
+            float4 shapeB = float4(outDistance * scale - bump, -1, \(currentMaterialId), \(idCounter));
         
         """
         
@@ -1446,37 +1450,6 @@ class CodeSDFStream
     func pushStageItem(_ stageItem: StageItem)
     {
         hierarchy.append(stageItem)
-        
-        // Handle the domains
-        
-        if type == .SDF3D {
-            
-            /*
-            if let list = stageItem.componentLists["domain3D"] {
-                for domain in list {
-                    dryRunComponent(domain, instance.data.count)
-                    instance.collectProperties(domain)
-                    
-                    if let globalCode = domain.globalCode {
-                        headerCode += globalCode
-                    }
-                    
-                    mapCode +=
-                    """
-                    {
-                    float3 position = __origin, outPosition = position;
-                    
-                    """
-                    mapCode += domain.code!
-                    mapCode +=
-                    """
-                    
-                    __origin = outPosition;
-                    }
-                    """
-                }
-            }*/
-        }
         
         // Handle the materials
         if let material = getFirstComponentOfType(stageItem.children, .Material3D) {
@@ -1519,6 +1492,27 @@ class CodeSDFStream
                 let rotateX = instance.getTransformPropertyIndex(transform, "_rotateX")
                 let rotateY = instance.getTransformPropertyIndex(transform, "_rotateY")
                 let rotateZ = instance.getTransformPropertyIndex(transform, "_rotateZ")
+                
+                let scale = instance.getTransformPropertyIndex(transform, "_scale")
+
+                // Handle scaling the object
+                if hierarchy.count == 1 {
+                    mapCode +=
+                    """
+                    
+                    scale = __data[\(scale)].x;
+                    __origin = __originBackupForScaling / scale;
+                    
+                    """
+                } else {
+                    mapCode +=
+                    """
+                    
+                    scale *= __data[\(scale)].x;
+                    __origin = __originBackupForScaling / scale;
+
+                    """
+                }
                 
                 materialFuncCode +=
                 """
@@ -1688,6 +1682,32 @@ class CodeSDFStream
             instance.materialIds[materialIdCounter] = stageItem
             currentMaterialId = materialIdCounter
             materialIdCounter += 1
+        } else
+        if let transform = stageItem.components[stageItem.defaultName], transform.componentType == .Transform2D || transform.componentType == .Transform3D {
+            
+            dryRunComponent(transform, instance.data.count)
+            instance.collectProperties(transform)
+            
+            let scale = instance.getTransformPropertyIndex(transform, "_scale")
+
+            // Handle scaling the object here if it has no material
+            if hierarchy.count == 1 {
+                mapCode +=
+                """
+                
+                scale = __data[\(scale)].x;
+                __origin = __originBackupForScaling / scale;
+                
+                """
+            } else {
+                mapCode +=
+                """
+                
+                scale *= __data[\(scale)].x;
+                __origin = __originBackupForScaling / scale;
+
+                """
+            }
         }
     }
     

@@ -509,6 +509,9 @@ func setDefaultComponentValues(_ comp: CodeComponent)
             comp.values["_posY"] = 0
             comp.values["_rotate"] = 0
         }
+        if comp.componentType == .Transform2D {
+            comp.values["_scale"] = 1
+        }
     } else
     if comp.componentType == .SDF3D || comp.componentType == .Transform3D {
         comp.values["_posX"] = 0
@@ -517,6 +520,9 @@ func setDefaultComponentValues(_ comp: CodeComponent)
         comp.values["_rotateX"] = 0
         comp.values["_rotateY"] = 0
         comp.values["_rotateZ"] = 0
+        if comp.componentType == .Transform3D {
+            comp.values["_scale"] = 1
+        }
     } else
     if comp.componentType == .Light3D {
         comp.values["_posX"] = 0

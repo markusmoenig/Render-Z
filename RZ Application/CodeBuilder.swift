@@ -136,6 +136,13 @@ class CodeBuilderInstance
             }
         }
         
+        // Scaling on the transforms
+        if component.componentType == .Transform2D || component.componentType == .Transform3D {
+            if component.values["_scale"] == nil { component.values["_scale"] = 1 }
+            properties.append((nil, nil, "_scale", data.count, component, hierarchy))
+            data.append(SIMD4<Float>(0,0,0,0))
+        }
+        
         // Add the textures
         textures += component.textures
     }
