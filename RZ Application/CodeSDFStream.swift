@@ -1412,7 +1412,7 @@ class CodeSDFStream
         """
         
             float4 shapeA = outShape;
-            float4 shapeB = float4(outDistance * scale - bump, -1, \(currentMaterialId), \(idCounter));
+            float4 shapeB = float4((outDistance - bump) * scale, -1, \(currentMaterialId), \(idCounter));
         
         """
         
