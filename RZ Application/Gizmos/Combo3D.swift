@@ -154,10 +154,12 @@ class GizmoCombo3D          : GizmoBase
                 tNode.uiItems.append(rotateVar)
             }
             
-            let scaleVar = NodeUINumber(tNode, variable: "_scale", title: "Scale", range: SIMD2<Float>(0.001,5), value: comp.values["_scale"]!,  precision: 3, halfWidthValue: 1)
-            scaleVar.titleShadows = true
-            scaleVar.autoAdjustMargin = true
-            tNode.uiItems.append(scaleVar)
+            if isTransform {
+                let scaleVar = NodeUINumber(tNode, variable: "_scale", title: "Scale", range: SIMD2<Float>(0.001,5), value: comp.values["_scale"]!,  precision: 3, halfWidthValue: 1)
+                scaleVar.titleShadows = true
+                scaleVar.autoAdjustMargin = true
+                tNode.uiItems.append(scaleVar)
+            }
             
             if comp.values["2DIn3D"] == 1 {
                 let extrusionVar = NodeUINumber(tNode, variable: "_extrusion", title: "Extrusion", range: SIMD2<Float>(0,5), value: comp.values["_extrusion"]!,  precision: 3)

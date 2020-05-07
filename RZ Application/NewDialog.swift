@@ -73,6 +73,9 @@ class NewDialog: MMDialog {
     
     var scrollRect      : MMRect? = nil
     var alpha           : Float = 0
+    
+    var sceneGraphButton: MMButtonWidget!
+    var sceneGraphState : Bool = true
 
     init(_ view: MMView) {
         
@@ -126,6 +129,33 @@ class NewDialog: MMDialog {
         rect.width = 800
         rect.height = 600
 
+        sceneGraphButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Scene Graph" )
+        sceneGraphButton.clicked = { (event) -> Void in
+            if self.sceneGraphState == true {
+                self.sceneGraphButton.removeState(.Checked)
+                self.sceneGraphState = false
+            } else {
+                self.sceneGraphButton.addState(.Checked)
+                self.sceneGraphState = true
+            }
+        }
+        
+        if globalApp!.firstStart == true {
+            sceneGraphButton.addState(.Checked)
+            sceneGraphState = true
+        } else {
+            
+            if globalApp!.sceneGraph.sceneGraphState == .Open {
+                sceneGraphButton.addState(.Checked)
+                sceneGraphState = true
+            } else {
+                sceneGraphButton.removeState(.Checked)
+                sceneGraphState = false
+            }
+        }
+        globalApp!.firstStart = false
+
+        widgets.append(sceneGraphButton)
         widgets.append(publicPrivateTab)
         widgets.append(self)
         
@@ -153,6 +183,24 @@ class NewDialog: MMDialog {
         }
     }
     
+    func handleSceneGraph()
+    {
+        if sceneGraphButton.states.contains(.Checked) {
+            globalApp!.topRegion!.graphButton.addState(.Checked)
+            globalApp!.sceneGraph.openWidth = globalApp!.editorRegion!.rect.width * 0.4
+            globalApp!.sceneGraph.currentWidth = globalApp!.sceneGraph.openWidth
+            globalApp!.sceneGraph.sceneGraphState = .Open
+            globalApp!.sceneGraph.activate()
+            mmView.registerWidget(globalApp!.sceneGraph)
+        } else {
+            globalApp!.topRegion!.graphButton.removeState(.Checked)
+            globalApp!.sceneGraph.currentWidth = 0
+            globalApp!.sceneGraph.sceneGraphState = .Closed
+            globalApp!.sceneGraph.deactivate()
+            mmView.deregisterWidget(globalApp!.sceneGraph)
+        }
+    }
+    
     override func cancel() {
         super.cancel()
         
@@ -164,6 +212,7 @@ class NewDialog: MMDialog {
         globalApp!.topRegion!.switchButton.state = .Left
         
         cancelButton!.removeState(.Checked)
+        handleSceneGraph()
     }
     
     override func ok() {
@@ -177,6 +226,7 @@ class NewDialog: MMDialog {
         globalApp!.topRegion!.switchButton.state = .Right
         
         okButton.removeState(.Checked)
+        handleSceneGraph()
     }
     
     override func mouseMoved(_ event: MMMouseEvent) {
@@ -281,6 +331,10 @@ class NewDialog: MMDialog {
         } else {
             drawFileList(xOffset: xOffset, yOffset: yOffset)
         }
+        
+        sceneGraphButton.rect.x = rect.x + 20
+        sceneGraphButton.rect.y = rect.y + rect.height - 40 - yOffset
+        sceneGraphButton.draw()
     }
     
     func drawFileList(xOffset: Float = 0, yOffset: Float = 0) {

@@ -168,10 +168,11 @@ class MMDialog : MMWidget
     
     var widgets         : [MMWidget] = []
     var instantClose    : Bool = true
+    
+    var smallButtonSkin = MMSkinButton()
 
     init(_ view: MMView, title: String, cancelText: String, okText: String) {
         
-        var smallButtonSkin = MMSkinButton()
         smallButtonSkin.height = view.skin.Button.height
         smallButtonSkin.round = view.skin.Button.round
         smallButtonSkin.fontScale = view.skin.Button.fontScale

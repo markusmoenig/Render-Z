@@ -57,6 +57,8 @@ class App
 
     var hasValidScene   = false
     
+    var firstStart      = true
+    
     init(_ view : MMView )
     {
         mmView = view

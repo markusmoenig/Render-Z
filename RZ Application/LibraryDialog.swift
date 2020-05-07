@@ -485,7 +485,7 @@ class LibraryDialog: MMDialog {
         
         let headerHeight : Float = 30
 
-        let itemSize : Float = (rect.width - 4 - 6) / 5
+        let itemSize : Float = (rect.width - 14) / 5
         var y : Float = rect.y + 38 + headerHeight
 
         if rect.y == 0 {
