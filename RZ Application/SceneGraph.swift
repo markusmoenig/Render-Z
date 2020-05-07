@@ -415,6 +415,30 @@ class SceneGraph                : MMWidget
                 break
             }
         }
+        
+        
+        if selectedTerminal != nil {
+            if let propT = selectedTerminal {
+                let comp = propT.0
+                
+                if selectedTerminal?.1 != nil && comp.connections[selectedTerminal!.1!] != nil {
+                    // Click on connected terminal property, disconnect
+                    let stageItem = globalApp!.project.selected!.getStageItem(comp)!
+                    let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Disconnect")
+                    
+                    comp.connections[selectedTerminal!.1!] = nil
+
+                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                        
+                    globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
+                    selectedTerminal = nil
+                    clickWasConsumed = true
+                    return
+                }
+            }
+            clickWasConsumed = true
+        }
 
         // Want to drag the nav ?
         if navRect.contains(event.x, event.y) {
