@@ -997,7 +997,7 @@ func generateNoise2DFunction(_ ctx: CodeContext,_ fragment: CodeFragment) -> Str
 
         funcCode +=
         """
-        ( pos + (float3(baseNoise * __funcData->__data[\(mixDisturbance)].x)), int(__funcData->__data[\(mixOctavesIndex)].x), __funcData->__data[\(mixPersistanceIndex)].x, __funcData->__data[\(mixScaleIndex)].x );
+        ( pos + (float2(baseNoise * __funcData->__data[\(mixDisturbance)].x)), int(__funcData->__data[\(mixOctavesIndex)].x), __funcData->__data[\(mixPersistanceIndex)].x, __funcData->__data[\(mixScaleIndex)].x );
         
         baseNoise = mix(baseNoise, mixNoise, __funcData->__data[\(mixValue)].x);
         """

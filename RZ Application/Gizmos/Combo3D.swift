@@ -86,7 +86,7 @@ class GizmoCombo3D          : GizmoBase
 
         var smallButtonSkin = MMSkinButton()
         smallButtonSkin.round = 50
-        smallButtonSkin.borderColor = SIMD4<Float>(1,1,1,1)
+        smallButtonSkin.borderColor = SIMD4<Float>(0,0,0,0)
         smallButtonSkin.hoverColor = SIMD4<Float>(1.0,1.0,1.0,0.3)
 
         moveButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "move" )
@@ -101,19 +101,19 @@ class GizmoCombo3D          : GizmoBase
         scaleButton.iconZoom = 2
         scaleButton.rect.width = 50
         scaleButton.rect.height = 50
-        xAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "X_blue" )
+        xAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "X_blue_ring" )
         xAxisButton.iconZoom = 2
         xAxisButton.rect.width = 50
         xAxisButton.rect.height = 50
         xAxisButton.textYOffset = 1
         activeAxisButton = xAxisButton
         xAxisButton.addState(.Hover)
-        yAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Y_red" )
+        yAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Y_red_ring" )
         yAxisButton.iconZoom = 2
         yAxisButton.rect.width = 50
         yAxisButton.rect.height = 50
         yAxisButton.textYOffset = 1
-        zAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Z_green" )
+        zAxisButton = MMButtonWidget(view, skinToUse: smallButtonSkin, iconName: "Z_green_ring" )
         zAxisButton.iconZoom = 2
         zAxisButton.rect.width = 50
         zAxisButton.rect.height = 50
