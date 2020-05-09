@@ -175,7 +175,7 @@ class TopRegion: MMRegion
         
         libraryButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Library" )
         libraryButton.clicked = { (event) -> Void in
-            globalApp!.libraryDialog.show(ids: ["FuncNoise", "FuncHash"])
+            globalApp!.libraryDialog.show(ids: ["FuncNoise", "FuncHash", "FuncMisc"])
             self.libraryButton.removeState(.Checked)
         }
         libraryButton.isDisabled = true

@@ -685,7 +685,7 @@ class CodeEditor        : MMWidget
                         var color = mmView.skin.Code.background
                         color.w = 0.9 * globalApp!.currentEditor.textureAlpha
                         
-                        mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: rect.y + codeContext.gapY / 2 + f.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
+                        mmView.drawBox.draw(x: rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: rect.y + f.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
                         
                         mmView.drawBox.draw(x: rect.x + f.rect.x + scrollArea.offsetX, y: rect.y + f.rect.y + scrollArea.offsetY, width: f.rect.width, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
                     }
@@ -717,11 +717,11 @@ class CodeEditor        : MMWidget
         func drawLeftFuncHighlight(_ function: CodeFunction, alpha: Float)
         {
             let fY : Float = function.comment.isEmpty ? 0 : codeContext.lineHeight + codeContext.gapY
-            mmView.drawBox.draw( x: self.rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: self.rect.y + function.rect.y - codeContext.gapY / 2 + fY + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: codeContext.lineHeight + codeContext.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha) )
+            mmView.drawBox.draw( x: self.rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: self.rect.y + function.rect.y + fY + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: codeContext.lineHeight + codeContext.gapY * 2, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha) )
         }
         func drawLeftBlockHighlight(_ block: CodeBlock, alpha: Float)
         {
-            mmView.drawBox.draw( x: self.rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: self.rect.y + block.rect.y - codeContext.gapY / 2 + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: codeContext.lineHeight + codeContext.gapY, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha))
+            mmView.drawBox.draw( x: self.rect.x + codeContext.gapX / 2 + scrollArea.offsetX, y: self.rect.y + block.rect.y + scrollArea.offsetY, width: codeContext.border - codeContext.gapX / 2, height: codeContext.lineHeight + codeContext.gapY * 2, round: 6, borderSize: 0, fillColor: SIMD4<Float>(1,1,1, alpha))
         }
         
         let hoverAlpha : Float = 0.3

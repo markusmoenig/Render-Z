@@ -174,6 +174,8 @@ class SceneGraph                : MMWidget
     
     var hasMinMaxButton         = false
     var minMaxButtonHoverState  = false
+    
+    var clipboard               : [String:String] = [:]
 
     override init(_ view: MMView)
     {
@@ -937,6 +939,10 @@ class SceneGraph                : MMWidget
     {
         mmView.drawBox.draw( x: rect.x, y: rect.y, width: rect.width, height: rect.height, round: 0, fillColor : SIMD4<Float>( 0.125, 0.129, 0.137, 1))
         
+        if globalApp!.hasValidScene == false {
+            return
+        }
+        
         let skin : SceneGraphSkin = SceneGraphSkin(mmView.openSans, fontScale: 0.4 * graphZoom, graphZoom: graphZoom)
         
         // Build the menu
@@ -1134,9 +1140,7 @@ class SceneGraph                : MMWidget
                     }
                     
                     if comp.subComponent == nil {
-                        if let bComp = decodeComponentFromJSON(defaultBoolean) {
-                            //CodeComponent(.Boolean)
-                            //bComp.createDefaultFunction(.Boolean)
+                        if let bComp = globalApp!.libraryDialog.getItem(ofId: "Boolean", withName: "Merge") {
                             bComp.uuid = UUID()
                             bComp.selected = nil
                             comp.subComponent = bComp
@@ -1428,19 +1432,70 @@ class SceneGraph                : MMWidget
                         }
                     } else
                     if item.itemType == .ShapeItem {
+                        let shapeId = "shapes" + (comp.componentType == .SDF2D ? "2D" : "3D" )
+                        let index = item.stageItem!.componentLists[shapeId]!.firstIndex(of: comp)!
+
+                        let copyItem = MMMenuItem(text: "Copy", cb: { () in
+                            self.clipboard[shapeId] = encodeComponentToJSON(comp)
+                            
+                            self.buildMenu(uuid: self.currentUUID)
+                        } )
+                        items.append(copyItem)
+                        
+                        if self.clipboard[shapeId] != nil {
+                            let pasteItem = MMMenuItem(text: "Paste", cb: { () in
+                                if let c = decodeComponentAndProcess(self.clipboard[shapeId]!) {
+                                    
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Paste Shape")
+                                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                    item.stageItem!.componentLists[shapeId]!.insert(c, at: index)
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                    
+                                    self.buildMenu(uuid: self.currentUUID)
+                                }
+                            } )
+                            items.append(pasteItem)
+                        }
                         
                         let changeItem = MMMenuItem(text: "Change Shape", cb: { () in
                             self.getShape(item: item, replace: true)
                         } )
                         items.append(changeItem)
                         
+                        if index > 0 {
+                            let moveUpItem = MMMenuItem(text: "Move Up", cb: { () in
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Move Up")
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                item.stageItem!.componentLists[shapeId]!.remove(at: index)
+                                item.stageItem!.componentLists[shapeId]!.insert(comp, at: index - 1)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                
+                                self.buildMenu(uuid: self.currentUUID)
+                            } )
+                            items.append(moveUpItem)
+                        }
+                        
+                        if index < item.stageItem!.componentLists[shapeId]!.count - 1 {
+                            let moveDownItem = MMMenuItem(text: "Move Down", cb: { () in
+                                let undo = globalApp!.currentEditor.undoStageItemStart("Move Down")
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                item.stageItem!.componentLists[shapeId]!.remove(at: index)
+                                item.stageItem!.componentLists[shapeId]!.insert(comp, at: index + 1)
+                                globalApp!.currentEditor.undoStageItemEnd(undo)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                
+                                self.buildMenu(uuid: self.currentUUID)
+                            } )
+                            items.append(moveDownItem)
+                        }
+                        
                         let deleteItem = MMMenuItem(text: "Remove", cb: { () in
-                            let id = "shapes" + getCurrentModeId()
-                            
-                            if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
+                            if let index = item.stageItem!.componentLists[shapeId]!.firstIndex(of: item.component!) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart("Remove Shape")
                                 globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(item.component!)
-                                item.stageItem!.componentLists[id]!.remove(at: index)
+                                item.stageItem!.componentLists[shapeId]!.remove(at: index)
                                 globalApp!.currentEditor.undoStageItemEnd(undo)
                                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
                             }

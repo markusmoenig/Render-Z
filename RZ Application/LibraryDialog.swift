@@ -315,7 +315,19 @@ class LibraryDialog: MMDialog {
                         if let from = decodeComponentFromJSON(selected.json) {
                             var counter : Int = 0
                             var inserted : [UUID] = []
+                            
+                            for f in component.functions {
+                                if f.functionType == .Prototype {
+                                    counter += 1
+                                } else {
+                                    break;
+                                }                                
+                            }
+                            
                             for f in from.functions {
+                                if from.functions.count == 1 {
+                                    f.uuid = UUID()
+                                }
                                 if inserted.contains(f.uuid) == false {
                                     component.functions.insert(f, at: counter)
                                     counter += 1
