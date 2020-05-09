@@ -472,6 +472,14 @@ struct MMMenuItem
     
     var custom      : Any? = nil
     
+    init()
+    {
+        text = ""
+        cb = { () in }
+        textBuffer = nil
+        custom = nil
+    }
+
     init(text: String, cb: @escaping ()->() )
     {
         self.text = text
@@ -549,14 +557,20 @@ class MMMenuWidget : MMWidget
 
         let r = MMRect()
         var maxHeight : Float = 0
+        var separatorCount : Float = 0
+        
         for item in self.items {
-            mmView.openSans.getTextRect(text: item.text, scale: skin.fontScale, rectToUse: r)
+            if item.text == "" {
+                separatorCount += 1
+            } else {
+                mmView.openSans.getTextRect(text: item.text, scale: skin.fontScale, rectToUse: r)
+            }
             menuRect.width = max(menuRect.width, r.width)
             maxHeight = max(maxHeight, r.height)
         }
         
         itemHeight = Int(maxHeight) + 6
-        menuRect.height = Float(items.count * itemHeight) + Float(items.count-1) * skin.spacing
+        menuRect.height = Float(items.count * itemHeight) + Float(items.count-1) * skin.spacing - separatorCount * Float(itemHeight)
         
         menuRect.width += skin.margin.width()
         menuRect.height += skin.margin.height()
@@ -632,7 +646,26 @@ class MMMenuWidget : MMWidget
             }
             
             if  y >= 0 && Float(y) <= menuRect.height - skin.margin.height() && x >= 0 && x <= menuRect.width {
-                 selIndex = y / (Int(itemHeight) + Int(skin.spacing))
+                
+                //selIndex = y / (Int(itemHeight) + Int(skin.spacing))
+                var fY : Float = 0
+                
+                for (index, item) in items.enumerated() {
+                    if item.text == "" {
+                        fY += skin.spacing
+                    } else {
+                        fY += Float(itemHeight) + skin.spacing
+                    }
+                    
+                    if fY >= Float(y) {
+                        selIndex = index
+                        break
+                    }
+                }
+                
+                if items[selIndex].text == "" {
+                    selIndex = -1
+                }
                 if oldSelIndex != selIndex {
                     mmView.update()
                 }
@@ -671,8 +704,8 @@ class MMMenuWidget : MMWidget
             }
         }
         
-        if states.contains(.Opened) && items.count > 0 {
-            
+        if states.contains(.Opened) && items.count > 0
+        {
             var x = rect.x
             var y = rect.y
             
@@ -687,13 +720,18 @@ class MMMenuWidget : MMWidget
             y += skin.margin.top
             for (index,var item) in self.items.enumerated() {
 
-                if index == selIndex {
-                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: SIMD4<Float>(repeating: 1), textBuffer: item.textBuffer)
+                if item.text == "" {
+                    mmView.drawBox.draw( x: x - skin.margin.left, y: y + (skin.spacing) / 2 - 1, width: menuRect.width, height: 1, round: 0, borderSize: 0, fillColor : skin.borderColor, borderColor: skin.borderColor )
+                    y += skin.spacing
                 } else {
-                    item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: skin.textColor, textBuffer: item.textBuffer)
+                    if index == selIndex {
+                        item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: SIMD4<Float>(repeating: 1), textBuffer: item.textBuffer)
+                    } else {
+                        item.textBuffer = mmView.drawText.drawTextCenteredY(mmView.openSans, text: item.text, x: x, y: y, width: menuRect.width, height: Float(itemHeight), scale: skin.fontScale, color: skin.textColor, textBuffer: item.textBuffer)
+                    }
+                    
+                    y += Float(itemHeight) + skin.spacing
                 }
-                
-                y += Float(itemHeight) + skin.spacing
             }
         }
     }

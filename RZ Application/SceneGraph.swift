@@ -1458,6 +1458,8 @@ class SceneGraph                : MMWidget
                             items.append(pasteItem)
                         }
                         
+                        items.append(MMMenuItem())
+
                         let changeItem = MMMenuItem(text: "Change Shape", cb: { () in
                             self.getShape(item: item, replace: true)
                         } )
@@ -1490,6 +1492,8 @@ class SceneGraph                : MMWidget
                             } )
                             items.append(moveDownItem)
                         }
+                        
+                        items.append(MMMenuItem())
                         
                         let deleteItem = MMMenuItem(text: "Remove", cb: { () in
                             if let index = item.stageItem!.componentLists[shapeId]!.firstIndex(of: item.component!) {
