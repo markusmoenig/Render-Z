@@ -34,10 +34,24 @@ typedef struct
     float4  origin;
     float4  lookAt;
     float4  position;
-    
+    float4  rotation;
+    float4  pivot;
+
 } GIZMO3D;
 
 #define PI 3.14159265359
+
+float2 rotate(float2 pos, float angle)
+{
+    float ca = cos(angle), sa = sin(angle);
+    return pos * float2x2(ca, sa, -sa, ca);
+}
+
+float2 rotatePivot(float2 pos, float angle, float2 pivot)
+{
+    float ca = cos(angle), sa = sin(angle);
+    return pivot + (pos-pivot) * float2x2(ca, sa, -sa, ca);
+}
 
 float degrees(float radians)
 {
@@ -160,8 +174,8 @@ float3 rotationForXAxis(float3 pos, float3 off)
 float3 rotationForYAxis(float3 pos, float3 off)
 {
     float3 p = gizmo3DTranslate(pos, off);
-    p.yz = gimzo3DRotateCW( p.yz, radians(-90) );
     p.xy = gimzo3DRotateCW( p.xy, radians(90) );
+    p.yz = gimzo3DRotateCW( p.yz, radians(-90) );
 
     //p.xz = gimzo3DRotateCW( p.xz, radians(-90) );
     return p;
@@ -174,34 +188,83 @@ float3 rotationForZAxis(float3 pos, float3 off)
     return p;
 }
 
-float3 map(float3 pos, float3 off)
+float3 rotateIt(float3 pos, constant GIZMO3D *data)
+{
+    float3 rotation = data->rotation.xyz;
+    float3 pivot = data->pivot.xyz;
+    //float3 pivot = data->position.xyz - data->pivot.xyz;
+
+    pos.yz = rotatePivot( pos.yz, radians(rotation.x), pivot.yz );
+    pos.xz = rotatePivot( pos.xz, radians(rotation.y), pivot.xz );
+    pos.xy = rotatePivot( pos.xy, radians(rotation.z), pivot.xy );
+
+    return pos;
+}
+
+float3 rotateIt_(float3 pos, float3 t, constant GIZMO3D *data)
+{
+    float3 rotation = data->rotation.xyz;
+    float3 pivot = data->pivot.xyz - t;
+    
+    pos.yz = rotatePivot( pos.yz, radians(rotation.x), pivot.yz );
+    pos.xz = rotatePivot( pos.xz, radians(rotation.y), pivot.xz );
+    pos.xy = rotatePivot( pos.xy, radians(rotation.z), pivot.xy );
+    
+    return pos;
+}
+
+float3 gizmo3DTranslate(float3 p, float3 t, constant GIZMO3D *data)
+{
+    return rotateIt_(p - t, t, data);
+}
+
+float3 transformAll(float3 pos, float3 localOffset, float3 localRotation, constant GIZMO3D *data)
+{
+    float3 __originalPosition = float3(data->position.xyz + localOffset);
+    float3 position = pos - __originalPosition;
+    float3 __offsetFromCenter = data->pivot.xyz - __originalPosition;
+
+    float3 rotation = data->rotation.xyz;
+    
+    position.yz = rotatePivot( position.yz, radians(rotation.x), __offsetFromCenter.yz);
+    position.xz = rotatePivot( position.xz, radians(rotation.y), __offsetFromCenter.xz);
+    position.xy = rotatePivot( position.xy, radians(rotation.z), __offsetFromCenter.xy);
+    
+    position.yz = rotate( position.yz, radians(localRotation.x));
+    position.xz = rotate( position.xz, radians(localRotation.y));
+    position.xy = rotate( position.xy, radians(localRotation.z));
+    
+    return position;
+}
+
+float3 map(float3 pos, float3 off, constant GIZMO3D *data)
 {
     float3 res = float3( 100000, 0, 0);
     
-    res = opU(float3(sdCylinder(gizmo3DTranslate(pos, off + float3(0, 0.15, 0)), float2(0.02, 0.15)), SCALE_Y, SCALE_Y), res);
-    res = opU(float3(sdBox(gizmo3DTranslate(pos, off + float3(0, 0.30, 0)), float3(0.04, 0.04, 0.04)), SCALE_Y, SCALE_Y), res);
-    res = opU(float3(sdCylinder(gizmo3DTranslate(pos, off + float3(0, 0.45, 0)), float2(0.02, 0.15)), MOVE_Y, MOVE_Y), res);
-    res = opU(float3(sdConeSection(gizmo3DTranslate(pos, off + float3(0, 0.65, 0)), 0.05, 0.05, 0.001), MOVE_Y, MOVE_Y), res);
+    res = opU(float3(sdCylinder(transformAll(pos, float3(0, 0.15, 0), float3(0), data), float2(0.02, 0.15)), SCALE_Y, SCALE_Y), res);
+    res = opU(float3(sdBox(transformAll(pos, float3(0, 0.30, 0), float3(0),data), float3(0.04, 0.04, 0.04)), SCALE_Y, SCALE_Y), res);
+    res = opU(float3(sdCylinder(transformAll(pos, float3(0, 0.45, 0), float3(0), data), float2(0.02, 0.15)), MOVE_Y, MOVE_Y), res);
+    res = opU(float3(sdConeSection(transformAll(pos, float3(0, 0.65, 0), float3(0), data), 0.05, 0.05, 0.001), MOVE_Y, MOVE_Y), res);
     
-    res = opU(float3(sdCylinder(translateForXAxis(pos, off, float3(0.15, 0, 0)), float2(0.02, 0.15)), SCALE_X, SCALE_X), res);
-    res = opU(float3(sdBox(translateForXAxis(pos, off, float3(0.30, 0, 0)), float3(0.04, 0.04, 0.04)), SCALE_X, SCALE_X), res);
-    res = opU(float3(sdCylinder(translateForXAxis(pos, off, float3(0.45, 0, 0)), float2(0.02, 0.15)), MOVE_X, MOVE_X), res);
-    res = opU(float3(sdConeSection(translateForXAxis(pos, off, float3(0.65, 0, 0)), 0.05, 0.001, 0.05), MOVE_X, MOVE_X), res);
+    res = opU(float3(sdCylinder(transformAll(pos, float3(0.15, 0, 0), float3(0,0,90), data), float2(0.02, 0.15)), SCALE_X, SCALE_X), res);
+    res = opU(float3(sdBox(transformAll(pos, float3(0.30, 0, 0), float3(0,0,90), data), float3(0.04, 0.04, 0.04)), SCALE_X, SCALE_X), res);
+    res = opU(float3(sdCylinder(transformAll(pos, float3(0.45, 0, 0), float3(0,0,90), data), float2(0.02, 0.15)), MOVE_X, MOVE_X), res);
+    res = opU(float3(sdConeSection(transformAll(pos, float3(0.65, 0, 0), float3(0,0,90), data), 0.05, 0.001, 0.05), MOVE_X, MOVE_X), res);
 
-    res = opU(float3(sdCylinder(translateForZAxis(pos, off, float3(0, 0, 0.15)), float2(0.02, 0.15)), SCALE_Z, SCALE_Z), res);
-    res = opU(float3(sdBox(translateForZAxis(pos, off, float3(0, 0, 0.30)), float3(0.04, 0.04, 0.04)), SCALE_Z, SCALE_Z), res);
-    res = opU(float3(sdCylinder(translateForZAxis(pos, off, float3(0, 0, 0.45)), float2(0.02, 0.15)), MOVE_Z, MOVE_Z), res);
-    res = opU(float3(sdConeSection(translateForZAxis(pos, off, float3(0, 0, 0.65)), 0.05, 0.001, 0.05), MOVE_Z, MOVE_Z), res);
+    res = opU(float3(sdCylinder(transformAll(pos, float3(0, 0, 0.15), float3(-90,0,0), data), float2(0.02, 0.15)), SCALE_Z, SCALE_Z), res);
+    res = opU(float3(sdBox(transformAll(pos, float3(0, 0, 0.30), float3(-90,0,0), data), float3(0.04, 0.04, 0.04)), SCALE_Z, SCALE_Z), res);
+    res = opU(float3(sdCylinder(transformAll(pos, float3(0, 0, 0.45), float3(-90,0,0), data), float2(0.02, 0.15)), MOVE_Z, MOVE_Z), res);
+    res = opU(float3(sdConeSection(transformAll(pos, float3(0, 0, 0.65), float3(-90,0,0), data), 0.05, 0.001, 0.05), MOVE_Z, MOVE_Z), res);
     
     // Rotate
-    res = opU(float3(sdJoint3DSphere(rotationForXAxis(pos, off + float3(0.0, 0.45, 0)), 0.7, 3.14 / 4, 0.02), ROTATE_X, ROTATE_X), res);
-    res = opU(float3(sdJoint3DSphere(rotationForYAxis(pos, off + float3(0.0, 0, 0.45)), 0.7, 3.14 / 4, 0.02), ROTATE_Y, ROTATE_Y), res);
-    res = opU(float3(sdJoint3DSphere(rotationForZAxis(pos, off + float3(0.0, 0.45, 0)), 0.7, 3.14 / 4, 0.02), ROTATE_Z, ROTATE_Z), res);
+    res = opU(float3(sdJoint3DSphere(transformAll(pos, float3(0.0, 0.45, 0), float3(0,90,-90), data), 0.7, 3.14 / 4, 0.02), ROTATE_X, ROTATE_X), res);
+    res = opU(float3(sdJoint3DSphere(transformAll(pos, float3(0.0, 0, 0.45), float3(90,0,-90), data), 0.7, 3.14 / 4, 0.02), ROTATE_Y, ROTATE_Y), res);
+    res = opU(float3(sdJoint3DSphere(transformAll(pos, float3(0.0, 0.45, 0), float3(0,0,-90), data), 0.7, 3.14 / 4, 0.02), ROTATE_Z, ROTATE_Z), res);
 
     return res;
 }
 
-float3 mapPoint(float3 pos, float3 off)
+float3 mapPoint(float3 pos, float3 off, constant GIZMO3D *data)
 {
     float3 res = float3( 100000, 0, 0);
     
@@ -217,7 +280,7 @@ float3 mapPoint(float3 pos, float3 off)
     return res;
 }
 
-float3 castRay(float3 ro, float3 rd, float3 off)
+float3 castRay(float3 ro, float3 rd, float3 off, constant GIZMO3D *data)
 {
     float tmin=0.001, tmax=100.0;
 
@@ -232,7 +295,7 @@ float3 castRay(float3 ro, float3 rd, float3 off)
             // float precis = 0.02;
             float precis = 0.0005*t;
 
-            float3 res = map(ro+rd*t, off);
+            float3 res = map(ro+rd*t, off, data);
             if( t < precis || t>tmax ) break;
             t += res.x * 0.7;
             m = res.y;
@@ -244,7 +307,7 @@ float3 castRay(float3 ro, float3 rd, float3 off)
     return float3( t, m, id );
 }
 
-float3 castRayPoint(float3 ro, float3 rd, float3 off)
+float3 castRayPoint(float3 ro, float3 rd, float3 off, constant GIZMO3D *data)
 {
     float tmin=0.001, tmax=100.0;
 
@@ -259,7 +322,7 @@ float3 castRayPoint(float3 ro, float3 rd, float3 off)
             // float precis = 0.02;
             float precis = 0.0005*t;
 
-            float3 res = mapPoint(ro+rd*t, off);
+            float3 res = mapPoint(ro+rd*t, off, data);
             if( t < precis || t>tmax ) break;
             t += res.x * 0.7;
             m = res.y;
@@ -367,7 +430,7 @@ kernel void idsGizmoCombo3D(
     
     dir = normalize(dir);
 
-    float3 hit = castRay(origin, dir, pos);
+    float3 hit = castRay(origin, dir, pos, data);
 
     outTexture.write(half(hit.y), gid);
 }
@@ -413,7 +476,7 @@ kernel void idsGizmoCombo3DPoint(
     
     dir = normalize(dir);
 
-    float3 hit = castRayPoint(origin, dir, pos);
+    float3 hit = castRayPoint(origin, dir, pos, data);
 
     outTexture.write(half(hit.y), gid);
 }
@@ -464,9 +527,9 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     const float4 xAxisColor = float4(0.153, 0.192, 0.984, 1.000);
     const float4 yAxisColor = float4(0.882, 0.102, 0.153, 1.000);
     const float4 zAxisColor = float4(0.188, 0.933, 0.176, 1.000);
-
+    
     dir = normalize(dir);
-    float3 hit = castRay(origin, dir, pos);
+    float3 hit = castRay(origin, dir, pos, data);
     
     if (hit.y == MOVE_X) {
         finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;
@@ -549,7 +612,7 @@ fragment float4 drawGizmoCombo3DPoint(RasterizerData        in [[stage_in]],
     const float4 zAxisColor = float4(0.188, 0.933, 0.176, 1.000);
 
     dir = normalize(dir);
-    float3 hit = castRayPoint(origin, dir, pos);
+    float3 hit = castRayPoint(origin, dir, pos, data);
     
     if (hit.y == MOVE_X) {
         finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;

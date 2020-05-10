@@ -190,6 +190,7 @@ class CodeSDFStream
             float4 sceneMap( float3 __origin, thread struct FuncData *__funcData )
             {
                 float3 __originBackupForScaling = __origin;
+                float3 __objectPosition = float3(0);
                 float4 outShape = float4(100000, 100000, -1, -1);
                 float outDistance = 10;
                 float bump = 0;
@@ -1276,10 +1277,11 @@ class CodeSDFStream
                 {
                     float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
                     float3 position = __translate(__origin, __originalPosition);
-            
-                    position.yz = rotate( position.yz, radians(__data[\(rotateX)].x) );
-                    position.xz = rotate( position.xz, radians(__data[\(rotateY)].x) );
-                    position.xy = rotate( position.xy, radians(__data[\(rotateZ)].x) );
+                    float3 __offsetFromCenter = __objectPosition - __originalPosition;
+
+                    position.yz = rotatePivot( position.yz, radians(__data[\(rotateX)].x), __offsetFromCenter.yz );
+                    position.xz = rotatePivot( position.xz, radians(__data[\(rotateY)].x), __offsetFromCenter.xz );
+                    position.xy = rotatePivot( position.xy, radians(__data[\(rotateZ)].x), __offsetFromCenter.xy );
 
             """
             
@@ -1494,13 +1496,14 @@ class CodeSDFStream
                 let rotateZ = instance.getTransformPropertyIndex(transform, "_rotateZ")
                 
                 let scale = instance.getTransformPropertyIndex(transform, "_scale")
-
+                                
                 // Handle scaling the object
                 if hierarchy.count == 1 {
                     mapCode +=
                     """
                     
                     scale = __data[\(scale)].x;
+                    __objectPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x  );
                     __origin = __originBackupForScaling / scale;
                     
                     """
@@ -1509,6 +1512,7 @@ class CodeSDFStream
                     """
                     
                     scale *= __data[\(scale)].x;
+                    __objectPosition += float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x  );
                     __origin = __originBackupForScaling / scale;
 
                     """

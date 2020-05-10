@@ -40,21 +40,55 @@ class GizmoBase              : MMWidget
     }
     
     /// Returns the stage item for the given component (from the stream ids)
-    func getHierarchyValue(_ comp: CodeComponent,_ name: String) -> Float
+    func getHierarchyValue(_ comp: CodeComponent,_ name: String, includeSelf: Bool = true) -> Float
     {
         let timeline = globalApp!.artistEditor.timeline
         var value : Float = 0
-        
-        for stageItem in getHierarchyOfComponent(comp).reversed() {
-            if let transComponent = stageItem.components[stageItem.defaultName] {
 
-                // Transform
-                var properties : [String:Float] = [:]
-                properties[name] = transComponent.values[name]!
-                
-                let transformed = timeline.transformProperties(sequence: transComponent.sequence, uuid: transComponent.uuid, properties: properties, frame: timeline.currentFrame)
-                
-                value += transformed[name]!
+        if comp.componentType == .SDF2D || comp.componentType == .SDF3D {
+            let hierarchy = getHierarchyOfComponent(comp)
+            
+            for stageItem in hierarchy.reversed() {
+                if let transComponent = stageItem.components[stageItem.defaultName] {
+
+                    // Transform
+                    var properties : [String:Float] = [:]
+                    properties[name] = transComponent.values[name]!
+                    
+                    let transformed = timeline.transformProperties(sequence: transComponent.sequence, uuid: transComponent.uuid, properties: properties, frame: timeline.currentFrame)
+                    
+                    value += transformed[name]!
+                }
+            }
+        } else
+        if comp.componentType == .Transform2D || comp.componentType == .Transform3D {
+            
+            let stage = globalApp!.project.selected!.getStage(.ShapeStage)
+            
+            func transformValue(_ comp: CodeComponent)
+            {
+                if let tValue = component.values[name] {
+                    
+                    // Transform
+                    var properties : [String:Float] = [:]
+                    properties[name] = tValue
+                    
+                    let transformed = timeline.transformProperties(sequence: comp.sequence, uuid: comp.uuid, properties: properties, frame: timeline.currentFrame)
+                    
+                    value += transformed[name]!
+                }
+            }
+            
+            if includeSelf {
+                transformValue(comp)
+            }
+            if let stageItem = globalApp!.project.selected!.getStageItem(comp, selectIt: false) {
+                var p = stage.getParentOfStageItem(stageItem).1
+                while( p != nil )
+                {
+                    transformValue(p!.components[p!.defaultName]!)
+                    p = stage.getParentOfStageItem(p!).1
+                }
             }
         }
         return value

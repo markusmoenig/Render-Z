@@ -299,7 +299,7 @@ class GizmoCombo3D          : GizmoBase
     override func mouseMoved(_ event: MMMouseEvent)
     {
         if component.componentType == .Dummy { return }
-
+        
         if dragState == .Inactive {
             
             if compute.texture == nil || compute.texture.width != Int(rect.width) || compute.texture.height != Int(rect.height) {
@@ -310,10 +310,22 @@ class GizmoCombo3D          : GizmoBase
             let lookAt = getCameraPropertyValue3("lookAt")
             let fov = getCameraPropertyValue("fov")
 
+            let pivotX : Float = getHierarchyValue(component, "_posX")
+            let pivotY : Float = getHierarchyValue(component, "_posY")
+            let pivotZ : Float = getHierarchyValue(component, "_posZ")
+            
+            let rotateX : Float = getHierarchyValue(component, "_rotateX", includeSelf: false)
+            let rotateY : Float = getHierarchyValue(component, "_rotateY", includeSelf: false)
+            let rotateZ : Float = getHierarchyValue(component, "_rotateZ", includeSelf: false)
+
             var properties : [String:Float] = [:]
-            properties["_posX"] = (component.values["_posX"]! + getHierarchyValue(component, "_posX"))
-            properties["_posY"] = (component.values["_posY"]! + getHierarchyValue(component, "_posY"))
-            properties["_posZ"] = (component.values["_posZ"]! + getHierarchyValue(component, "_posZ"))
+            properties["_posX"] = component.values["_posX"]!
+            properties["_posY"] = component.values["_posY"]!
+            properties["_posZ"] = component.values["_posZ"]!
+            
+            //properties["_rotateX"] = getHierarchyValue(component, "_rotateX")
+            //properties["_rotateY"] = getHierarchyValue(component, "_rotateY")
+            //properties["_rotateZ"] = getHierarchyValue(component, "_rotateZ")
 
             let timeline = globalApp!.artistEditor.timeline
             let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
@@ -324,7 +336,9 @@ class GizmoCombo3D          : GizmoBase
                 hoverState.rawValue, 0,
                 origin.x, origin.y, origin.z, fov,
                 lookAt.x, lookAt.y, lookAt.z, 0,
-                transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
+                transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0,
+                rotateX, rotateY, rotateZ, 0,
+                pivotX, pivotY, pivotZ, 0
             ];
                         
             let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
@@ -724,10 +738,22 @@ class GizmoCombo3D          : GizmoBase
         let lookAt = getCameraPropertyValue3("lookAt")
         let fov = getCameraPropertyValue("fov")
 
+        let pivotX : Float = getHierarchyValue(component, "_posX")
+        let pivotY : Float = getHierarchyValue(component, "_posY")
+        let pivotZ : Float = getHierarchyValue(component, "_posZ")
+        
+        let rotateX : Float = getHierarchyValue(component, "_rotateX", includeSelf: false)
+        let rotateY : Float = getHierarchyValue(component, "_rotateY", includeSelf: false)
+        let rotateZ : Float = getHierarchyValue(component, "_rotateZ", includeSelf: false)
+
         var properties : [String:Float] = [:]
-        properties["_posX"] = (component.values["_posX"]! + getHierarchyValue(component, "_posX"))
-        properties["_posY"] = (component.values["_posY"]! + getHierarchyValue(component, "_posY"))
-        properties["_posZ"] = (component.values["_posZ"]! + getHierarchyValue(component, "_posZ"))
+        properties["_posX"] = component.values["_posX"]!
+        properties["_posY"] = component.values["_posY"]!
+        properties["_posZ"] = component.values["_posZ"]!
+        
+        //properties["_rotateX"] = component.values["_rotateX"]!
+        //properties["_rotateY"] = component.values["_rotateY"]!
+        //properties["_rotateZ"] = component.values["_rotateZ"]!
 
         let timeline = globalApp!.artistEditor.timeline
         let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
@@ -738,8 +764,14 @@ class GizmoCombo3D          : GizmoBase
             hoverState.rawValue, 0,
             origin.x, origin.y, origin.z, fov,
             lookAt.x, lookAt.y, lookAt.z, 0,
-            transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0
+            transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0,
+            rotateX, rotateY, rotateZ, 0,
+            pivotX, pivotY, pivotZ, 0
         ];
+        
+        print("pos", transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!)
+        print("rotate", rotateX, rotateY, rotateZ)
+        print("pivot", pivotX, pivotY, pivotZ)
                 
         gizmoDistance = simd_distance(origin, SIMD3<Float>(transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!))
         mmView.renderer.setClipRect(rect)

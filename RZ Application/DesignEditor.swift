@@ -191,7 +191,6 @@ class DesignEditor          : MMWidget
                         }
                     }
                     let value = texArray[0]
-                    print(value)
                     
                     var valid : Bool = true
                     if globalApp!.currentSceneMode == .TwoD && value.x > 0 {
@@ -374,11 +373,6 @@ class DesignEditor          : MMWidget
         
         if globalApp!.currentEditor.textureAlpha >= 1 {
             mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)
-            
-            if let gizmo = currentGizmo, designComponent != nil {
-                gizmo.rect.copy(rect)
-                gizmo.draw()
-            }
         }
     }
     

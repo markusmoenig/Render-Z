@@ -1157,13 +1157,13 @@ class CodeBuilder
         float2 rotate(float2 pos, float angle)
         {
             float ca = cos(angle), sa = sin(angle);
-            return pos * float2x2(ca, -sa, sa, ca);
+            return pos * float2x2(ca, sa, -sa, ca);
         }
 
-        float2 __rotatePivot(float2 pos, float angle, float2 pivot)
+        float2 rotatePivot(float2 pos, float angle, float2 pivot)
         {
             float ca = cos(angle), sa = sin(angle);
-            return pivot + (pos-pivot) * float2x2(ca, -sa, sa, ca);
+            return pivot + (pos-pivot) * float2x2(ca, sa, -sa, ca);
         }
         
         float2 sphereIntersect( float3 ro, float3 rd, float3 ce, float ra )

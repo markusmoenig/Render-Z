@@ -2189,6 +2189,23 @@ class CodeComponent         : Codable, Equatable
             f.body.append(f.createOutVariableBlock("float3", "outPosition", refTo: arg))
             functions.append(f)
         } else
+        if type == .Modifier2D {
+
+            let f = CodeFunction(type, "modifier")
+            f.comment = "Modifies the shape distance"
+            
+            let arg = CodeFragment(.VariableDefinition, "float2", "offsetFromCenter", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg)
+            
+            let arg2 = CodeFragment(.VariableDefinition, "float", "distance", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+            f.header.statement.fragments.append(arg2)
+            
+            let b = CodeBlock(.Empty)
+            b.fragment.addProperty(.Selectable)
+            f.body.append(b)
+            f.body.append(f.createOutVariableBlock("float", "outDistance", refTo: arg2))
+            functions.append(f)
+        } else
         if type == .Modifier3D {
 
             let f = CodeFunction(type, "modifier")
