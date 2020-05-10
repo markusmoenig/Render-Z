@@ -191,6 +191,7 @@ class DesignEditor          : MMWidget
                         }
                     }
                     let value = texArray[0]
+                    print(value)
                     
                     var valid : Bool = true
                     if globalApp!.currentSceneMode == .TwoD && value.x > 0 {

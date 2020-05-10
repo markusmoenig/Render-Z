@@ -1432,8 +1432,14 @@ class SceneGraph                : MMWidget
                         }
                     } else
                     if item.itemType == .ShapeItem {
-                        let shapeId = "shapes" + (comp.componentType == .SDF2D ? "2D" : "3D" )
-                        let index = item.stageItem!.componentLists[shapeId]!.firstIndex(of: comp)!
+                        let shapeId = "shapes3D"// + (comp.componentType == .SDF2D ? "2D" : "3D" )
+                        var index : Int = -1
+                        
+                        if let stageItem = item.stageItem {
+                            if let firstIndex = stageItem.componentLists[shapeId]!.firstIndex(of: comp) {
+                                index = firstIndex
+                            }
+                        }
 
                         let copyItem = MMMenuItem(text: "Copy", cb: { () in
                             self.clipboard[shapeId] = encodeComponentToJSON(comp)

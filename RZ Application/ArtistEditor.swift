@@ -6,7 +6,7 @@
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
-import Foundation
+import MetalKit
 
 class ArtistEditor          : Editor
 {
@@ -15,6 +15,8 @@ class ArtistEditor          : Editor
         case Closed, Open
     }
     
+    var drawComponentId     : MTLRenderPipelineState?
+
     var bottomRegionMode    : BottomRegionMode = .Closed
     var animating           : Bool = false
 
@@ -38,11 +40,16 @@ class ArtistEditor          : Editor
     
     var currentSamples      : Int = 0
     var samplesLabel        : MMShadowTextLabel
+    
+    var componentId         : Int? = nil
 
     required init(_ view: MMView)
     {
         mmView = view
 
+        let function = view.renderer.defaultLibrary.makeFunction( name: "highlightComponent" )
+        drawComponentId = view.renderer.createNewPipelineState( function! )
+        
         designEditor = DesignEditor(view)
         designProperties = DesignProperties(view)
         
@@ -250,6 +257,37 @@ class ArtistEditor          : Editor
         if region.type == .Editor {
             designEditor.rect.copy(region.rect)
             designEditor.draw()
+            
+            // Draw selected component
+            if let component = designEditor.designComponent, component.componentType == .SDF2D || component.componentType == .SDF3D
+            {
+                // Get the component id for highlighting
+                componentId = nil
+                if component.componentType == .SDF3D || component.componentType == .SDF2D {
+                    for (id, value) in globalApp!.currentPipeline!.codeBuilder.sdfStream.ids {
+                        if value.1 === component {
+                            componentId = id
+                        }
+                    }
+                }
+                
+                if let id = componentId {
+                    let settings: [Float] = [Float(id)];
+                    
+                    let renderEncoder = mmView.renderer.renderEncoder!
+                    
+                    let vertexBuffer = mmView.renderer.createVertexBuffer( MMRect( designEditor.rect.x, designEditor.rect.y, designEditor.rect.width, designEditor.rect.height, scale: mmView.scaleFactor ) )
+                    renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+                    
+                    let buffer = mmView.renderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+                    
+                    renderEncoder.setFragmentTexture(globalApp!.currentPipeline?.getTextureOfId("id"), index: 0)
+                    renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 1)
+                    
+                    renderEncoder.setRenderPipelineState( drawComponentId! )
+                    renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+                }
+            }
             
             if globalApp!.currentEditor.textureAlpha >= 1 {
                 designProperties.rect.copy(region.rect)

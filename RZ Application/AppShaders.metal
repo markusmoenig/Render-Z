@@ -16,6 +16,30 @@ typedef struct
     float2 textureCoordinate;
 } RasterizerData;
 
+
+typedef struct
+{
+    float id;
+    
+} HIGHLIGHT_COMPONENT;
+
+// --- highlight component
+fragment float4 highlightComponent(RasterizerData in [[stage_in]],
+                                texture2d<half, access::read>  depthTexture [[texture(0)]],
+                                constant HIGHLIGHT_COMPONENT *data [[ buffer(1) ]])
+{
+    float4 color;
+    float2 gid_ = float2(in.textureCoordinate.x, 1.0 - in.textureCoordinate.y) * float2(depthTexture.get_width(), depthTexture.get_height());
+    uint2 gid = uint2(gid_);
+
+    float id = float4(depthTexture.read(gid)).w;
+
+    if (id == data->id) color = float4(0.816, 0.345, 0.188, 0.8);
+    else color = float4(0);
+    
+    return color;
+}
+
 typedef struct
 {
     float2 size;
