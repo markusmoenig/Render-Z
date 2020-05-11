@@ -916,6 +916,8 @@ class CodeBuilder
                 
                 // Recursively add the parent values for this transform
                 var parentValue : Float = 0
+                
+                
                 for stageItem in property.5.reversed() {
                     if let transComponent = stageItem.components[stageItem.defaultName] {
                         // Transform
@@ -933,11 +935,16 @@ class CodeBuilder
                 
                 var properties : [String:Float] = [:]
                 if let value = component.values[name] {
-                    properties[name] = value + parentValue
+                    properties[name] = value
 
                     let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
                     
-                    inst.data[dataIndex].x = transformed[name]!
+                    if component.componentType != .Transform2D && component.componentType != .Transform3D {
+                        inst.data[dataIndex].x = transformed[name]! + parentValue
+                    } else {
+                        // Transforms do not get their parent values, these are added by hand in the shader for the pivot
+                        inst.data[dataIndex].x = transformed[name]!
+                    }
                 }
             }
         }

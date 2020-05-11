@@ -40,17 +40,15 @@ class GizmoBase              : MMWidget
     }
     
     /// Returns the stage item for the given component (from the stream ids)
-    func getHierarchyValue(_ comp: CodeComponent,_ name: String, includeSelf: Bool = true) -> Float
+    func getHierarchyValue(_ comp: CodeComponent,_ name: String) -> Float
     {
         let timeline = globalApp!.artistEditor.timeline
         var value : Float = 0
 
         if comp.componentType == .SDF2D || comp.componentType == .SDF3D {
-            let hierarchy = getHierarchyOfComponent(comp)
-            
-            for stageItem in hierarchy.reversed() {
+            for stageItem in getHierarchyOfComponent(comp).reversed() {
                 if let transComponent = stageItem.components[stageItem.defaultName] {
-
+                    
                     // Transform
                     var properties : [String:Float] = [:]
                     properties[name] = transComponent.values[name]!
@@ -67,7 +65,7 @@ class GizmoBase              : MMWidget
             
             func transformValue(_ comp: CodeComponent)
             {
-                if let tValue = component.values[name] {
+                if let tValue = comp.values[name] {
                     
                     // Transform
                     var properties : [String:Float] = [:]
@@ -79,13 +77,9 @@ class GizmoBase              : MMWidget
                 }
             }
             
-            if includeSelf {
-                transformValue(comp)
-            }
             if let stageItem = globalApp!.project.selected!.getStageItem(comp, selectIt: false) {
                 var p = stage.getParentOfStageItem(stageItem).1
-                while( p != nil )
-                {
+                while( p != nil ) {
                     transformValue(p!.components[p!.defaultName]!)
                     p = stage.getParentOfStageItem(p!).1
                 }

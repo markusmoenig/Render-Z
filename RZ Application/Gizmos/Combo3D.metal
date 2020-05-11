@@ -531,32 +531,34 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
     dir = normalize(dir);
     float3 hit = castRay(origin, dir, pos, data);
     
-    if (hit.y == MOVE_X) {
-        finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;
-    } else
-    if (hit.y == MOVE_Y) {
-        finalColor =  hoverState == MOVE_Y ? hoverColor : yAxisColor;
-    } else
-    if (hit.y == MOVE_Z) {
-        finalColor =  hoverState == MOVE_Z ? hoverColor : zAxisColor;
-    } else
-    if (hit.y == SCALE_X) {
-        finalColor = hoverState == SCALE_X ? hoverColor : xAxisColor;
-    } else
-    if (hit.y == SCALE_Y) {
-        finalColor =  hoverState == SCALE_Y ? hoverColor : yAxisColor;
-    } else
-    if (hit.y == SCALE_Z) {
-        finalColor =  hoverState == SCALE_Z ? hoverColor : zAxisColor;
-    }
-    if (hit.y == ROTATE_X) {
-        finalColor = hoverState == ROTATE_X ? hoverColor : rotateColor;
-    } else
-    if (hit.y == ROTATE_Y) {
-        finalColor =  hoverState == ROTATE_Y ? hoverColor : rotateColor;
-    } else
-    if (hit.y == ROTATE_Z) {
-        finalColor =  hoverState == ROTATE_Z ? hoverColor : rotateColor;
+    if (hit.y > -0.5) {
+        if (hit.y == MOVE_X) {
+            finalColor = hoverState == MOVE_X ? hoverColor : xAxisColor;
+        } else
+        if (hit.y == MOVE_Y) {
+            finalColor =  hoverState == MOVE_Y ? hoverColor : yAxisColor;
+        } else
+        if (hit.y == MOVE_Z) {
+            finalColor =  hoverState == MOVE_Z ? hoverColor : zAxisColor;
+        } else
+        if (hit.y == SCALE_X) {
+            finalColor = hoverState == SCALE_X ? hoverColor : xAxisColor;
+        } else
+        if (hit.y == SCALE_Y) {
+            finalColor =  hoverState == SCALE_Y ? hoverColor : yAxisColor;
+        } else
+        if (hit.y == SCALE_Z) {
+            finalColor =  hoverState == SCALE_Z ? hoverColor : zAxisColor;
+        }
+        if (hit.y == ROTATE_X) {
+            finalColor = hoverState == ROTATE_X ? hoverColor : rotateColor;
+        } else
+        if (hit.y == ROTATE_Y) {
+            finalColor =  hoverState == ROTATE_Y ? hoverColor : rotateColor;
+        } else
+        if (hit.y == ROTATE_Z) {
+            finalColor =  hoverState == ROTATE_Z ? hoverColor : rotateColor;
+        }
     }
     
     finalColor.r /= finalColor.a;

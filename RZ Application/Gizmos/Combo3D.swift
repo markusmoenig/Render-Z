@@ -310,25 +310,40 @@ class GizmoCombo3D          : GizmoBase
             let lookAt = getCameraPropertyValue3("lookAt")
             let fov = getCameraPropertyValue("fov")
 
-            let pivotX : Float = getHierarchyValue(component, "_posX")
-            let pivotY : Float = getHierarchyValue(component, "_posY")
-            let pivotZ : Float = getHierarchyValue(component, "_posZ")
+            let hierarchyX : Float = getHierarchyValue(component, "_posX")
+            let hierarchyY : Float = getHierarchyValue(component, "_posY")
+            let hierarchyZ : Float = getHierarchyValue(component, "_posZ")
             
-            let rotateX : Float = getHierarchyValue(component, "_rotateX", includeSelf: false)
-            let rotateY : Float = getHierarchyValue(component, "_rotateY", includeSelf: false)
-            let rotateZ : Float = getHierarchyValue(component, "_rotateZ", includeSelf: false)
+            var rotateX : Float = getHierarchyValue(component, "_rotateX")
+            var rotateY : Float = getHierarchyValue(component, "_rotateY")
+            var rotateZ : Float = getHierarchyValue(component, "_rotateZ")
 
             var properties : [String:Float] = [:]
+            
             properties["_posX"] = component.values["_posX"]!
             properties["_posY"] = component.values["_posY"]!
             properties["_posZ"] = component.values["_posZ"]!
             
-            //properties["_rotateX"] = getHierarchyValue(component, "_rotateX")
-            //properties["_rotateY"] = getHierarchyValue(component, "_rotateY")
-            //properties["_rotateZ"] = getHierarchyValue(component, "_rotateZ")
+            properties["_rotateX"] = component.values["_rotateX"]!
+            properties["_rotateY"] = component.values["_rotateY"]!
+            properties["_rotateZ"] = component.values["_rotateZ"]!
 
             let timeline = globalApp!.artistEditor.timeline
-            let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+            var transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+            
+            if component.componentType == .SDF3D {
+                transformed["_posX"]! += hierarchyX
+                transformed["_posY"]! += hierarchyY
+                transformed["_posZ"]! += hierarchyZ
+                
+                rotateX += transformed["_rotateX"]!
+                rotateY += transformed["_rotateY"]!
+                rotateZ += transformed["_rotateZ"]!
+            } else {
+                transformed["_posX"]! += getHierarchyValue(component, "_posX")
+                transformed["_posY"]! += getHierarchyValue(component, "_posY")
+                transformed["_posZ"]! += getHierarchyValue(component, "_posZ")
+            }
             
             // --- Render Gizmo
             let data: [Float] = [
@@ -338,7 +353,7 @@ class GizmoCombo3D          : GizmoBase
                 lookAt.x, lookAt.y, lookAt.z, 0,
                 transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0,
                 rotateX, rotateY, rotateZ, 0,
-                pivotX, pivotY, pivotZ, 0
+                hierarchyX, hierarchyY, hierarchyZ, 0
             ];
                         
             let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
@@ -738,25 +753,40 @@ class GizmoCombo3D          : GizmoBase
         let lookAt = getCameraPropertyValue3("lookAt")
         let fov = getCameraPropertyValue("fov")
 
-        let pivotX : Float = getHierarchyValue(component, "_posX")
-        let pivotY : Float = getHierarchyValue(component, "_posY")
-        let pivotZ : Float = getHierarchyValue(component, "_posZ")
+        let hierarchyX : Float = getHierarchyValue(component, "_posX")
+        let hierarchyY : Float = getHierarchyValue(component, "_posY")
+        let hierarchyZ : Float = getHierarchyValue(component, "_posZ")
         
-        let rotateX : Float = getHierarchyValue(component, "_rotateX", includeSelf: false)
-        let rotateY : Float = getHierarchyValue(component, "_rotateY", includeSelf: false)
-        let rotateZ : Float = getHierarchyValue(component, "_rotateZ", includeSelf: false)
+        var rotateX : Float = getHierarchyValue(component, "_rotateX")
+        var rotateY : Float = getHierarchyValue(component, "_rotateY")
+        var rotateZ : Float = getHierarchyValue(component, "_rotateZ")
 
         var properties : [String:Float] = [:]
+        
         properties["_posX"] = component.values["_posX"]!
         properties["_posY"] = component.values["_posY"]!
         properties["_posZ"] = component.values["_posZ"]!
         
-        //properties["_rotateX"] = component.values["_rotateX"]!
-        //properties["_rotateY"] = component.values["_rotateY"]!
-        //properties["_rotateZ"] = component.values["_rotateZ"]!
+        properties["_rotateX"] = component.values["_rotateX"]!
+        properties["_rotateY"] = component.values["_rotateY"]!
+        properties["_rotateZ"] = component.values["_rotateZ"]!
 
         let timeline = globalApp!.artistEditor.timeline
-        let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+        var transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+        
+        if component.componentType == .SDF3D {
+            transformed["_posX"]! += hierarchyX
+            transformed["_posY"]! += hierarchyY
+            transformed["_posZ"]! += hierarchyZ
+            
+            rotateX += transformed["_rotateX"]!
+            rotateY += transformed["_rotateY"]!
+            rotateZ += transformed["_rotateZ"]!
+        } else {
+            transformed["_posX"]! += getHierarchyValue(component, "_posX")
+            transformed["_posY"]! += getHierarchyValue(component, "_posY")
+            transformed["_posZ"]! += getHierarchyValue(component, "_posZ")
+        }
         
         // --- Render Gizmo
         let data: [Float] = [
@@ -766,12 +796,12 @@ class GizmoCombo3D          : GizmoBase
             lookAt.x, lookAt.y, lookAt.z, 0,
             transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0,
             rotateX, rotateY, rotateZ, 0,
-            pivotX, pivotY, pivotZ, 0
+            hierarchyX, hierarchyY, hierarchyZ, 0
         ];
         
         print("pos", transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!)
         print("rotate", rotateX, rotateY, rotateZ)
-        print("pivot", pivotX, pivotY, pivotZ)
+        print("pivot", hierarchyX, hierarchyY, hierarchyZ)
                 
         gizmoDistance = simd_distance(origin, SIMD3<Float>(transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!))
         mmView.renderer.setClipRect(rect)

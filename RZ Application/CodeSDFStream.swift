@@ -1485,12 +1485,12 @@ class CodeSDFStream
             if let transform = stageItem.components[stageItem.defaultName], transform.componentType == .Transform3D {
                 
                 dryRunComponent(transform, instance.data.count)
-                instance.collectProperties(transform)
+                instance.collectProperties(transform, hierarchy)
                 
                 let posX = instance.getTransformPropertyIndex(transform, "_posX")
                 let posY = instance.getTransformPropertyIndex(transform, "_posY")
                 let posZ = instance.getTransformPropertyIndex(transform, "_posZ")
-                
+                                
                 let rotateX = instance.getTransformPropertyIndex(transform, "_rotateX")
                 let rotateY = instance.getTransformPropertyIndex(transform, "_rotateY")
                 let rotateZ = instance.getTransformPropertyIndex(transform, "_rotateZ")
@@ -1503,7 +1503,7 @@ class CodeSDFStream
                     """
                     
                     scale = __data[\(scale)].x;
-                    __objectPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x  );
+                    __objectPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x );
                     __origin = __originBackupForScaling / scale;
                     
                     """
@@ -1690,7 +1690,11 @@ class CodeSDFStream
         if let transform = stageItem.components[stageItem.defaultName], transform.componentType == .Transform2D || transform.componentType == .Transform3D {
             
             dryRunComponent(transform, instance.data.count)
-            instance.collectProperties(transform)
+            instance.collectProperties(transform, hierarchy)
+            
+            let posX = instance.getTransformPropertyIndex(transform, "_posX")
+            let posY = instance.getTransformPropertyIndex(transform, "_posY")
+            let posZ = instance.getTransformPropertyIndex(transform, "_posZ")
             
             let scale = instance.getTransformPropertyIndex(transform, "_scale")
 
@@ -1700,6 +1704,7 @@ class CodeSDFStream
                 """
                 
                 scale = __data[\(scale)].x;
+                __objectPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x );
                 __origin = __originBackupForScaling / scale;
                 
                 """
@@ -1708,6 +1713,7 @@ class CodeSDFStream
                 """
                 
                 scale *= __data[\(scale)].x;
+                __objectPosition += float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x );
                 __origin = __originBackupForScaling / scale;
 
                 """
