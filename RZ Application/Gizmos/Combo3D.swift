@@ -757,6 +757,8 @@ class GizmoCombo3D          : GizmoBase
             hierarchyX, hierarchyY, hierarchyZ, 0
         ]
         
+        gizmoDistance = simd_distance(origin, SIMD3<Float>(transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!))
+        
         //print("pos", transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!)
         //print("rotate", rotateX, rotateY, rotateZ)
         //print("pivot", hierarchyX, hierarchyY, hierarchyZ)
