@@ -1502,8 +1502,8 @@ class CodeSDFStream
                     mapCode +=
                     """
                     
+                    __objectPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x ) / scale;
                     scale = __data[\(scale)].x;
-                    __objectPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x );
                     __origin = __originBackupForScaling / scale;
                     
                     """
@@ -1511,8 +1511,8 @@ class CodeSDFStream
                     mapCode +=
                     """
                     
+                    __objectPosition += float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x  ) / scale;
                     scale *= __data[\(scale)].x;
-                    __objectPosition += float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x  );
                     __origin = __originBackupForScaling / scale;
 
                     """
@@ -1703,8 +1703,8 @@ class CodeSDFStream
                 mapCode +=
                 """
                 
+                __objectPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x ) / scale;
                 scale = __data[\(scale)].x;
-                __objectPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x );
                 __origin = __originBackupForScaling / scale;
                 
                 """
@@ -1712,8 +1712,8 @@ class CodeSDFStream
                 mapCode +=
                 """
                 
+                __objectPosition += float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x ) / scale;
                 scale *= __data[\(scale)].x;
-                __objectPosition += float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x );
                 __origin = __originBackupForScaling / scale;
 
                 """

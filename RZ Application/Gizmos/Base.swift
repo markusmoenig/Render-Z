@@ -88,6 +88,43 @@ class GizmoBase              : MMWidget
         return value
     }
     
+    /// Returns the stage item for the given component (from the stream ids)
+    func getScaleHierarchyValue(_ comp: CodeComponent, includeSelf: Bool = true) -> Float
+    {
+        let timeline = globalApp!.artistEditor.timeline
+        var value : Float = 1
+        let name = "_scale"
+            
+        let stage = globalApp!.project.selected!.getStage(.ShapeStage)
+        
+        func transformValue(_ comp: CodeComponent)
+        {
+            if let tValue = comp.values[name] {
+                
+                // Transform
+                var properties : [String:Float] = [:]
+                properties[name] = tValue
+                
+                let transformed = timeline.transformProperties(sequence: comp.sequence, uuid: comp.uuid, properties: properties, frame: timeline.currentFrame)
+                
+                value *= transformed[name]!
+            }
+        }
+        
+        if let stageItem = globalApp!.project.selected!.getStageItem(comp, selectIt: false) {
+            if includeSelf {
+                transformValue(stageItem.components[stageItem.defaultName]!)
+            }
+            var p = stage.getParentOfStageItem(stageItem).1
+            while( p != nil ) {
+                transformValue(p!.components[p!.defaultName]!)
+                p = stage.getParentOfStageItem(p!).1
+            }
+        }
+    
+        return value
+    }
+    
     /// Returns a property value of the camera
     func getCameraPropertyValue(_ name: String, defaultValue: Float = 0) -> Float
     {

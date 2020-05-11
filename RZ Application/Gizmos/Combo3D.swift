@@ -306,56 +306,7 @@ class GizmoCombo3D          : GizmoBase
                 compute.texture = compute.allocateTexture(width: rect.width, height: rect.height, pixelFormat: .r32Float)
             }
             
-            let origin = getCameraPropertyValue3("origin")
-            let lookAt = getCameraPropertyValue3("lookAt")
-            let fov = getCameraPropertyValue("fov")
-
-            let hierarchyX : Float = getHierarchyValue(component, "_posX")
-            let hierarchyY : Float = getHierarchyValue(component, "_posY")
-            let hierarchyZ : Float = getHierarchyValue(component, "_posZ")
-            
-            var rotateX : Float = getHierarchyValue(component, "_rotateX")
-            var rotateY : Float = getHierarchyValue(component, "_rotateY")
-            var rotateZ : Float = getHierarchyValue(component, "_rotateZ")
-
-            var properties : [String:Float] = [:]
-            
-            properties["_posX"] = component.values["_posX"]!
-            properties["_posY"] = component.values["_posY"]!
-            properties["_posZ"] = component.values["_posZ"]!
-            
-            properties["_rotateX"] = component.values["_rotateX"]!
-            properties["_rotateY"] = component.values["_rotateY"]!
-            properties["_rotateZ"] = component.values["_rotateZ"]!
-
-            let timeline = globalApp!.artistEditor.timeline
-            var transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
-            
-            if component.componentType == .SDF3D {
-                transformed["_posX"]! += hierarchyX
-                transformed["_posY"]! += hierarchyY
-                transformed["_posZ"]! += hierarchyZ
-                
-                rotateX += transformed["_rotateX"]!
-                rotateY += transformed["_rotateY"]!
-                rotateZ += transformed["_rotateZ"]!
-            } else {
-                transformed["_posX"]! += getHierarchyValue(component, "_posX")
-                transformed["_posY"]! += getHierarchyValue(component, "_posY")
-                transformed["_posZ"]! += getHierarchyValue(component, "_posZ")
-            }
-            
-            // --- Render Gizmo
-            let data: [Float] = [
-                rect.width, rect.height,
-                hoverState.rawValue, 0,
-                origin.x, origin.y, origin.z, fov,
-                lookAt.x, lookAt.y, lookAt.z, 0,
-                transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0,
-                rotateX, rotateY, rotateZ, 0,
-                hierarchyX, hierarchyY, hierarchyZ, 0
-            ];
-                        
+            let data = computeGizmoData()
             let buffer = compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<Float>.stride, options: [])!
             
             if isPoint == false {
@@ -745,17 +696,15 @@ class GizmoCombo3D          : GizmoBase
         globalApp!.currentEditor.updateOnNextDraw(compile: false)
     }
     
-    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    func computeGizmoData() -> [Float]
     {
-        if component.componentType == .Dummy { return }
-
         let origin = getCameraPropertyValue3("origin")
         let lookAt = getCameraPropertyValue3("lookAt")
         let fov = getCameraPropertyValue("fov")
 
-        let hierarchyX : Float = getHierarchyValue(component, "_posX")
-        let hierarchyY : Float = getHierarchyValue(component, "_posY")
-        let hierarchyZ : Float = getHierarchyValue(component, "_posZ")
+        var hierarchyX : Float = getHierarchyValue(component, "_posX")
+        var hierarchyY : Float = getHierarchyValue(component, "_posY")
+        var hierarchyZ : Float = getHierarchyValue(component, "_posZ")
         
         var rotateX : Float = getHierarchyValue(component, "_rotateX")
         var rotateY : Float = getHierarchyValue(component, "_rotateY")
@@ -770,7 +719,7 @@ class GizmoCombo3D          : GizmoBase
         properties["_rotateX"] = component.values["_rotateX"]!
         properties["_rotateY"] = component.values["_rotateY"]!
         properties["_rotateZ"] = component.values["_rotateZ"]!
-
+        
         let timeline = globalApp!.artistEditor.timeline
         var transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
         
@@ -788,6 +737,15 @@ class GizmoCombo3D          : GizmoBase
             transformed["_posZ"]! += getHierarchyValue(component, "_posZ")
         }
         
+        let scale = getScaleHierarchyValue(component)
+        transformed["_posX"]! *= scale
+        transformed["_posY"]! *= scale
+        transformed["_posZ"]! *= scale
+        
+        hierarchyX *= scale
+        hierarchyY *= scale
+        hierarchyZ *= scale
+
         // --- Render Gizmo
         let data: [Float] = [
             rect.width, rect.height,
@@ -797,13 +755,20 @@ class GizmoCombo3D          : GizmoBase
             transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!, 0,
             rotateX, rotateY, rotateZ, 0,
             hierarchyX, hierarchyY, hierarchyZ, 0
-        ];
+        ]
         
-        print("pos", transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!)
-        print("rotate", rotateX, rotateY, rotateZ)
-        print("pivot", hierarchyX, hierarchyY, hierarchyZ)
+        //print("pos", transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!)
+        //print("rotate", rotateX, rotateY, rotateZ)
+        //print("pivot", hierarchyX, hierarchyY, hierarchyZ)
+        
+        return data
+    }
+    
+    override func draw(xOffset: Float = 0, yOffset: Float = 0)
+    {
+        if component.componentType == .Dummy { return }
                 
-        gizmoDistance = simd_distance(origin, SIMD3<Float>(transformed["_posX"]!, transformed["_posY"]!, transformed["_posZ"]!))
+        let data = computeGizmoData()
         mmView.renderer.setClipRect(rect)
 
         let mmRenderer = mmView.renderer!
