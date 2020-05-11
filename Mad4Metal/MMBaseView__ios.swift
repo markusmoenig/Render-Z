@@ -55,6 +55,18 @@ public class MMBaseView : MTKView
         
         let pinchRecognizer = UIPinchGestureRecognizer(target: self, action:(#selector(self.handlePinchGesture(_:))))
         addGestureRecognizer(pinchRecognizer)
+        
+        let tapRecognizer = UITapGestureRecognizer(target: self, action:(#selector(self.handleTapGesture(_:))))
+        tapRecognizer.numberOfTapsRequired = 2
+        addGestureRecognizer(tapRecognizer)
+    }
+    
+    @objc func handleTapGesture(_ recognizer: UITapGestureRecognizer)
+    {
+        if let hover = hoverWidget {
+            let event = MMMouseEvent(mouseDownPos.x, mouseDownPos.y, 2)
+            hover.mouseDown(event)
+        }
     }
     
     @objc func handlePinchGesture(_ recognizer: UIPinchGestureRecognizer)
@@ -308,7 +320,8 @@ func getStringDialog(view: MMView, title: String, message: String, defaultValue:
         cb( textField.text! )
     }))
     
-    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+    let keyWindow = UIApplication.shared.windows.first { $0.isKeyWindow }
+    if var topController = keyWindow?.rootViewController {
         while let presentedViewController = topController.presentedViewController {
             topController = presentedViewController
         }
@@ -338,7 +351,8 @@ func getNumberDialog(view: MMView, title: String, message: String, defaultValue:
         }
     }))
     
-    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+    let keyWindow = UIApplication.shared.windows.first { $0.isKeyWindow }
+    if var topController = keyWindow?.rootViewController {
         while let presentedViewController = topController.presentedViewController {
             topController = presentedViewController
         }
@@ -369,7 +383,8 @@ func getNumber2Dialog(view: MMView, title: String, message: String, defaultValue
         cb( result )
     }))
     
-    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+    let keyWindow = UIApplication.shared.windows.first { $0.isKeyWindow }
+    if var topController = keyWindow?.rootViewController {
         while let presentedViewController = topController.presentedViewController {
             topController = presentedViewController
         }
@@ -406,7 +421,8 @@ func getNumber3Dialog(view: MMView, title: String, message: String, defaultValue
         cb( result )
     }))
     
-    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+    let keyWindow = UIApplication.shared.windows.first { $0.isKeyWindow }
+    if var topController = keyWindow?.rootViewController {
         while let presentedViewController = topController.presentedViewController {
             topController = presentedViewController
         }
@@ -425,7 +441,8 @@ func getSampleProject(view: MMView, title: String, message: String, sampleProjec
         }))
     }
         
-    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+    let keyWindow = UIApplication.shared.windows.first { $0.isKeyWindow }
+    if var topController = keyWindow?.rootViewController {
         while let presentedViewController = topController.presentedViewController {
             topController = presentedViewController
         }
@@ -456,7 +473,8 @@ func askUserToSave(view: MMView, cb: @escaping (Bool)->())
     alertController.addAction(cancelAction)
     alertController.addAction(successAction)
     
-    if var topController = UIApplication.shared.keyWindow?.rootViewController {
+    let keyWindow = UIApplication.shared.windows.first { $0.isKeyWindow }
+    if var topController = keyWindow?.rootViewController {
         while let presentedViewController = topController.presentedViewController {
             topController = presentedViewController
         }

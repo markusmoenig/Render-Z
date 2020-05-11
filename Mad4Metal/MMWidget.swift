@@ -26,10 +26,13 @@ class MMMouseEvent
     var deltaX      : Float?
     var deltaY      : Float?
     var deltaZ      : Float?
+    
+    var clickCount  : Int
 
-    init(_ x: Float,_ y: Float )
+    init(_ x: Float,_ y: Float,_ clickCount: Int = 1)
     {
         self.x = x; self.y = y
+        self.clickCount = clickCount
     }
 }
 

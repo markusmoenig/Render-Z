@@ -264,5 +264,9 @@ class MMRenderer : NSObject, MTKViewDelegate {
         if let region = mmView.editorRegion {
             region.resize(width: width, height: height)
         }
+        
+        #if targetEnvironment(macCatalyst)
+        mmView.update()
+        #endif
     }
 }

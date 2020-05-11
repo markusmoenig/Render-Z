@@ -63,10 +63,10 @@ public class MMBaseView : MTKView
                                       owner: self, userInfo: nil)
         self.addTrackingArea(trackingArea!)
     }
-    
+        
     /// Mouse has been clicked
     override public func mouseDown(with event: NSEvent) {
-        let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ) )
+        let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ), event.clickCount )
         
         if mouseTrackWidget != nil {
             mouseTrackWidget!.mouseDown(event)

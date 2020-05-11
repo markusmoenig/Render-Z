@@ -204,7 +204,7 @@ class DesignEditor          : MMWidget
                                
                     if let id = globalApp!.currentPipeline!.codeBuilder.sdfStream.ids[Int(value.w)], valid {
                         blockRendering = true
-                        globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last/*, component: id.1*/)
+                        globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: event.clickCount == 1 ? nil : id.1)
                         blockRendering = false
                     } else {
                         // Select Base Object
