@@ -509,186 +509,200 @@ class CodeSDFStream
             if let ground = groundComponent {
                 if ground.componentType == .Ground3D {
                     
-                    dryRunComponent(ground, instance.data.count)
-                    instance.collectProperties(ground)
-                    if let globalCode = ground.globalCode {
-                        headerCode += globalCode
-                    }
-                    if let code = ground.code {
-                        hitAndNormalsCode += code
-                    }
+                    let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
                     
-                    hitAndNormalsCode +=
-                    """
-                    
-                    inShape = outShape;
-                    maxDistance = outShape.y;
-                    
-                    """
-                    
-                    let groundItem : StageItem = globalApp!.project.selected!.getStage(.ShapeStage).getChildren()[0]
-                    
-                    ids[idCounter] = ([groundItem], ground)
-                    instance.ids[idCounter] = ids[idCounter]
-                    idCounter += 1
-                    
-                    regionMapCode +=
-                    """
-
-                    float4 regionMapCode(float3 position, thread struct FuncData *__funcData)
-                    {
-                        constant float4 *__data = __funcData->__data;
-                        float GlobalTime = __funcData->GlobalTime;
-                        float GlobalSeed = __funcData->GlobalSeed;
+                    if shapeStage.terrain == nil {
                         
-                        __CREATE_TEXTURE_DEFINITIONS__
-
-                        float outDistance = 1000000.0;
-                        float height = 0;
-                        float outHeight = height;
-                        float4 region = float4(outDistance, 0, 0, 0);
-                    
-                    """
-                    
-                    for (index, region) in groundItem.children.enumerated() {
-                        if region.componentLists["shapes2D"] == nil { continue }
+                        // No terrain, analytical
                         
-                        regionCode +=
+                        dryRunComponent(ground, instance.data.count)
+                        instance.collectProperties(ground)
+                        if let globalCode = ground.globalCode {
+                            headerCode += globalCode
+                        }
+                        if let code = ground.code {
+                            hitAndNormalsCode += code
+                        }
+                        
+                        hitAndNormalsCode +=
                         """
                         
-                        float region\(index)(float2 pos, thread struct FuncData *__funcData)
+                        inShape = outShape;
+                        maxDistance = outShape.y;
+                        
+                        """
+                    } else {
+                        
+                        let terrain = shapeStage.terrain!
+                        
+                        /*
+                        
+                        let groundItem : StageItem = globalApp!.project.selected!.getStage(.ShapeStage).getChildren()[0]
+                        
+                        ids[idCounter] = ([groundItem], ground)
+                        instance.ids[idCounter] = ids[idCounter]
+                        idCounter += 1
+                        
+                        regionMapCode +=
+                        """
+
+                        float4 regionMapCode(float3 position, thread struct FuncData *__funcData)
                         {
-                            float outDistance = 1000000.0;
                             constant float4 *__data = __funcData->__data;
+                            float GlobalTime = __funcData->GlobalTime;
+                            float GlobalSeed = __funcData->GlobalSeed;
+                            
+                            __CREATE_TEXTURE_DEFINITIONS__
 
+                            float outDistance = 1000000.0;
+                            float height = 0;
+                            float outHeight = height;
+                            float4 region = float4(outDistance, 0, 0, 0);
+                        
                         """
                         
-                        var posX : Int = 0
-                        var posY : Int = 0
-                        var rotate : Int = 0
-
-                        // Add the component to the region
-                        for regionComponent in region.componentLists["shapes2D"]! {
-                            dryRunComponent(regionComponent, instance.data.count)
-                            instance.collectProperties(regionComponent, hierarchy)
-                            
-                            if let globalCode = regionComponent.globalCode {
-                                headerCode += globalCode
-                            }
-                            
-                            posX = instance.getTransformPropertyIndex(regionComponent, "_posX")
-                            posY = instance.getTransformPropertyIndex(regionComponent, "_posY")
-                            rotate = instance.getTransformPropertyIndex(regionComponent, "_rotate")
-
-                            regionCode +=
-                            """
-                                {
-                                    float oldDistance = outDistance;
-                                    float2 position = __translate(pos / 80., float2(__data[\(posX)].x / 80., -__data[\(posY)].x / 80.));
-                                    position = rotate( position, radians(360 - __data[\(rotate)].x) );
-
-                            """
-                            
-                            regionCode += regionComponent.code!
+                        for (index, region) in groundItem.children.enumerated() {
+                            if region.componentLists["shapes2D"] == nil { continue }
                             
                             regionCode +=
                             """
                             
-                                    outDistance = min(oldDistance, outDistance * 80.); // TODO: Future support custom booleans
-                                }
-                            
-                            """
-                        }
-                        
-                        regionCode +=
-                        """
-                        
-                            return outDistance;
-                        }
-                        
-                        """
-                        
-                        if let regionProfile = region.components[region.defaultName] {
-                            dryRunComponent(regionProfile, instance.data.count)
-                            instance.collectProperties(regionProfile, hierarchy)
-                            
-                            if let globalCode = regionProfile.globalCode {
-                                headerCode += globalCode
-                            }
-                            
-                            regionMapCode += regionProfile.code!.replacingOccurrences(of: "regionDistance", with: "region\(index)")
-                            regionMapCode +=
-                            """
-                            
-                            if (outDistance < region.x) {
-                                region = float4(outDistance, 0, 0, 0);
-                            }
-                            height = outHeight;
+                            float region\(index)(float2 pos, thread struct FuncData *__funcData)
+                            {
+                                float outDistance = 1000000.0;
+                                constant float4 *__data = __funcData->__data;
 
-                            
                             """
-                        }
-                    }
-                    
-                    regionMapCode +=
-                    """
-                    
-                        return region;
-                    }
-                    
-                    """
-                    
-                    if regionCode.count > 0 {
-                        headerCode += regionCode
-                        headerCode += regionMapCode
-                        
-                        if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false
-                        {
-                            dryRunComponent(rayMarch, instance.data.count)
-                            instance.collectProperties(rayMarch)
-                            if let globalCode = rayMarch.globalCode {
-                                headerCode += globalCode
-                            }
-                            if let code = rayMarch.code {
-                                hitAndNormalsCode += code.replacingOccurrences(of: "sceneMap", with: "regionMapCode")
-                            }
-                        }
-                        hitAndNormalsCode +=
-                        """
-                        
-                        if (inShape.y != outShape.y) {
+                            
+                            var posX : Int = 0
+                            var posY : Int = 0
+                            var rotate : Int = 0
 
-                        """
-                        
-                        if let normal = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Normal3D) {
-                            dryRunComponent(normal, instance.data.count)
-                            instance.collectProperties(normal)
-                            if let globalCode = normal.globalCode {
-                                headerCode += globalCode
-                            }
-                            if let code = normal.code {
-                                hitAndNormalsCode +=
-                                """
+                            // Add the component to the region
+                            for regionComponent in region.componentLists["shapes2D"]! {
+                                dryRunComponent(regionComponent, instance.data.count)
+                                instance.collectProperties(regionComponent, hierarchy)
                                 
-                                {
-                                float3 position = rayOrigin + outShape.y * rayDirection;
-                                """
-                                hitAndNormalsCode += code.replacingOccurrences(of: "sceneMap", with: "regionMapCode")
-                                hitAndNormalsCode +=
-                                """
-                                
+                                if let globalCode = regionComponent.globalCode {
+                                    headerCode += globalCode
                                 }
                                 
+                                posX = instance.getTransformPropertyIndex(regionComponent, "_posX")
+                                posY = instance.getTransformPropertyIndex(regionComponent, "_posY")
+                                rotate = instance.getTransformPropertyIndex(regionComponent, "_rotate")
+
+                                regionCode +=
+                                """
+                                    {
+                                        float oldDistance = outDistance;
+                                        float2 position = __translate(pos / 80., float2(__data[\(posX)].x / 80., -__data[\(posY)].x / 80.));
+                                        position = rotate( position, radians(360 - __data[\(rotate)].x) );
+
+                                """
+                                
+                                regionCode += regionComponent.code!
+                                
+                                regionCode +=
+                                """
+                                
+                                        outDistance = min(oldDistance, outDistance * 80.); // TODO: Future support custom booleans
+                                    }
+                                
+                                """
+                            }
+                            
+                            regionCode +=
+                            """
+                            
+                                return outDistance;
+                            }
+                            
+                            """
+                            
+                            if let regionProfile = region.components[region.defaultName] {
+                                dryRunComponent(regionProfile, instance.data.count)
+                                instance.collectProperties(regionProfile, hierarchy)
+                                
+                                if let globalCode = regionProfile.globalCode {
+                                    headerCode += globalCode
+                                }
+                                
+                                regionMapCode += regionProfile.code!.replacingOccurrences(of: "regionDistance", with: "region\(index)")
+                                regionMapCode +=
+                                """
+                                
+                                if (outDistance < region.x) {
+                                    region = float4(outDistance, 0, 0, 0);
+                                }
+                                height = outHeight;
+
+                                
                                 """
                             }
                         }
                         
-                        hitAndNormalsCode +=
+                        regionMapCode +=
                         """
                         
+                            return region;
                         }
                         
                         """
+                        
+                        if regionCode.count > 0 {
+                            headerCode += regionCode
+                            headerCode += regionMapCode
+                            
+                            if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false
+                            {
+                                dryRunComponent(rayMarch, instance.data.count)
+                                instance.collectProperties(rayMarch)
+                                if let globalCode = rayMarch.globalCode {
+                                    headerCode += globalCode
+                                }
+                                if let code = rayMarch.code {
+                                    hitAndNormalsCode += code.replacingOccurrences(of: "sceneMap", with: "regionMapCode")
+                                }
+                            }
+                            hitAndNormalsCode +=
+                            """
+                            
+                            if (inShape.y != outShape.y) {
+
+                            """
+                            
+                            if let normal = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Normal3D) {
+                                dryRunComponent(normal, instance.data.count)
+                                instance.collectProperties(normal)
+                                if let globalCode = normal.globalCode {
+                                    headerCode += globalCode
+                                }
+                                if let code = normal.code {
+                                    hitAndNormalsCode +=
+                                    """
+                                    
+                                    {
+                                    float3 position = rayOrigin + outShape.y * rayDirection;
+                                    """
+                                    hitAndNormalsCode += code.replacingOccurrences(of: "sceneMap", with: "regionMapCode")
+                                    hitAndNormalsCode +=
+                                    """
+                                    
+                                    }
+                                    
+                                    """
+                                }
+                            }
+                            
+                            hitAndNormalsCode +=
+                            """
+                            
+                            }
+                            
+                            """
+ 
+                        }
+                        */
                     }
                 }
             } else

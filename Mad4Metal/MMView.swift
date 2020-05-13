@@ -244,6 +244,13 @@ public class MMView : MMBaseView {
         }
     }
     
+    func registerPriorityWidgets( widgets: MMWidget... )
+    {
+        for widget in widgets {
+            registerWidgetAt(widget)
+        }
+    }
+    
     /// Deregister the widget from the view
     func deregisterWidget(_ widget : MMWidget)
     {

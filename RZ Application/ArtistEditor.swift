@@ -130,12 +130,18 @@ class ArtistEditor          : Editor
                                 shapeStage.terrain = Terrain()
                                 stageItem.name = "Terrain"
                                 stageItem.label = nil
+                                
+                                globalApp!.developerEditor.codeEditor.markStageItemInvalid(stageItem)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
                         
-                                self.activateTerrain()
+                                if let component = getComponent(name: "Ground") {
+                                    globalApp!.project.selected!.getStageItem(component, selectIt: true)
+                                }
                             }
                         }
                     } else {
                         self.groundButton.removeState(.Checked)
+                        
                     }
                 })
             }
@@ -235,6 +241,7 @@ class ArtistEditor          : Editor
         } else {
             terrainIsActive = false
             groundButton.removeState(.Checked)
+            terrainEditor.deactivate()
         }
 
         designEditor.designComponent = component

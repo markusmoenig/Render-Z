@@ -302,25 +302,7 @@ class DesignEditor          : MMWidget
         }
         
         // Do the preview
-        if let texture = globalApp!.currentPipeline!.finalTexture {
-            if round(rect.width) == Float(texture.width) && round(rect.height) == Float(texture.height) {
-                if globalApp!.currentEditor.textureAlpha < 1 {
-                    drawLogo(rect, 1.0 - globalApp!.currentEditor.textureAlpha)
-                    mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, globalAlpha: globalApp!.currentEditor.textureAlpha)
-                    globalApp!.currentEditor.textureAlpha += 0.1
-                    mmView.update()
-                } else {
-                    mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
-                }
-            } else {
-                drawLogo(rect)
-                globalApp!.currentEditor.textureAlpha = 0
-            }
-            globalApp!.currentPipeline!.renderIfResolutionChanged(rect.width, rect.height)
-        } else {
-            drawLogo(rect)
-            globalApp!.currentEditor.textureAlpha = 0
-        }
+        drawPreview(mmView: mmView, rect)
         
         if globalApp!.currentEditor.textureAlpha >= 1 {
             mmView.drawTexture.draw(fragment.texture, x: rect.x, y: rect.y, zoom: zoom)

@@ -1286,7 +1286,10 @@ class SceneGraph                : MMWidget
                                     if let stageItem = self.currentStageItem {
                                         stageItem.name = "Ground"
                                         stageItem.label = nil
+                                        
+                                        globalApp!.developerEditor.codeEditor.markStageItemInvalid(stageItem)
                                     }
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
                                     
                                     globalApp!.currentEditor.setComponent(comp)
                                     self.buildMenu(uuid: self.currentUUID)
@@ -1299,9 +1302,6 @@ class SceneGraph                : MMWidget
                             hasMinMaxButton = true
                             buildChangeComponent(item, name: "Ground", ids: ["Ground3D"])
                         }
-                    } else
-                    if comp.componentType == .RegionProfile3D {
-                        buildChangeComponent(item, name: "Region Profile", ids: ["RegionProfile3D"])
                     } else
                     if comp.componentType == .UVMAP3D {
                         buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])
@@ -1620,8 +1620,7 @@ class SceneGraph                : MMWidget
                 } else
                 if item.itemType == .StageItem && item.stageItem!.stageItemType == .ShapeStage && (item.stageItem!.components[item.stageItem!.defaultName] == nil || (item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .UVMAP3D &&
                         item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Ground3D &&
-                        item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Material3D &&
-                        item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .RegionProfile3D)) {
+                        item.stageItem!.components[item.stageItem!.defaultName]!.componentType != .Material3D)) {
                                         
                     hasMinMaxButton = true
                     
@@ -2304,7 +2303,7 @@ class SceneGraph                : MMWidget
 
         var component : CodeComponent? = nil
         if let comp = o.components[o.defaultName] {
-            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D {//|| comp.componentType == .RegionProfile3D {
+            if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D {
                 component = comp
                 uuid = comp.uuid
             }
