@@ -29,8 +29,8 @@ class CodeSDFStream
     var materialFuncCode    : String = ""
     var materialCode        : String = ""
     
-    var regionMapCode       : String = ""
-    var regionCode          : String = ""
+    var terrainMapCode      : String = ""
+    var terrainCode         : String = ""
     
     var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
     var idCounter           : Int = 0
@@ -69,8 +69,8 @@ class CodeSDFStream
         
         globalsAddedFor = []
         
-        regionCode = ""
-        regionMapCode = ""
+        terrainCode = ""
+        terrainMapCode = ""
         
         fogDensityCode = ""
         
@@ -213,6 +213,7 @@ class CodeSDFStream
             texture2d<half, access::read_write>     __metaTexture [[texture(3)]],
             texture2d<half, access::read>           __rayOriginTexture [[texture(4)]],
             texture2d<half, access::read>           __rayDirectionTexture [[texture(5)]],
+            texture2d<int, access::sample>          __terrainTexture [[texture(6)]],
             __HITANDNORMALS_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
@@ -227,10 +228,12 @@ class CodeSDFStream
             
             """
             
-            hitAndNormalsCode += codeBuilder.getFuncDataCode(instance, "HITANDNORMALS", 6)
+            hitAndNormalsCode += codeBuilder.getFuncDataCode(instance, "HITANDNORMALS", 7)
             hitAndNormalsCode +=
                 
             """
+            
+                __funcData->terrainTexture = &__terrainTexture;
             
                 float4 outShape = float4(__depthTexture.read(__gid));
             
@@ -534,6 +537,78 @@ class CodeSDFStream
                     } else {
                         
                         let terrain = shapeStage.terrain!
+                        
+                        terrainMapCode +=
+                        """
+
+                        float4 terrainMapCode(float3 position, thread struct FuncData *__funcData)
+                        {
+                            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+
+                            constant float4 *__data = __funcData->__data;
+                            float GlobalTime = __funcData->GlobalTime;
+                            float GlobalSeed = __funcData->GlobalSeed;
+                             
+                            float outDistance = 1000000.0;
+                        
+                            float2 tMap = float2(__funcData->terrainTexture->sample(__textureSampler, (position.xz - 4096. / 2.) / 4096.).xy);
+                            float height = tMap.x;
+                        
+                            return position.y - height;
+                        }
+                         
+                        """
+
+                        //headerCode += regionCode
+                        headerCode += terrainMapCode
+                        
+                        if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false
+                        {
+                            dryRunComponent(rayMarch, instance.data.count)
+                            instance.collectProperties(rayMarch)
+                            if let globalCode = rayMarch.globalCode {
+                                headerCode += globalCode
+                            }
+                            if let code = rayMarch.code {
+                                hitAndNormalsCode += code.replacingOccurrences(of: "sceneMap", with: "terrainMapCode")
+                            }
+                        }
+                        hitAndNormalsCode +=
+                        """
+                        
+                        if (inShape.y != outShape.y) {
+
+                        """
+                        
+                        if let normal = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Normal3D) {
+                            dryRunComponent(normal, instance.data.count)
+                            instance.collectProperties(normal)
+                            if let globalCode = normal.globalCode {
+                                headerCode += globalCode
+                            }
+                            if let code = normal.code {
+                                hitAndNormalsCode +=
+                                """
+                                
+                                {
+                                float3 position = rayOrigin + outShape.y * rayDirection;
+                                """
+                                hitAndNormalsCode += code.replacingOccurrences(of: "sceneMap", with: "terrainMapCode")
+                                hitAndNormalsCode +=
+                                """
+                                
+                                }
+                                
+                                """
+                            }
+                        }
+                        
+                        hitAndNormalsCode +=
+                        """
+                        
+                        }
+                        
+                        """
                         
                         /*
                         

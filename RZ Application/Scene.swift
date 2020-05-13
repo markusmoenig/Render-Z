@@ -6,7 +6,7 @@
 //  Copyright © 2020 Markus Moenig. All rights reserved.
 //
 
-import Foundation
+import MetalKit
 
 class TerrainLayer            : Codable, Equatable
 {
@@ -41,6 +41,8 @@ class Terrain               : Codable
 {
     var layers              : [TerrainLayer] = []
     
+    var texture             : MTLTexture? = nil
+    
     private enum CodingKeys: String, CodingKey {
         case layers
     }
@@ -59,6 +61,12 @@ class Terrain               : Codable
      
     init()
     {
+    }
+    
+    func getTexture() -> MTLTexture?
+    {
+        texture = globalApp!.currentPipeline?.checkTextureSize(4096, 4096, texture, .rg8Sint)
+        return texture
     }
 }
 

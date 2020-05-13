@@ -40,11 +40,14 @@ class Pipeline3D            : Pipeline
     var idCounter           : Int = 0
     
     var scene               : Scene!
+    
+    var dummyTerrainTexture : MTLTexture? = nil
 
     override init(_ mmView: MMView)
     {
         super.init(mmView)
         finalTexture = checkTextureSize(10, 10, nil, .rgba16Float)
+        dummyTerrainTexture = checkTextureSize(10, 10, nil, .rg8Sint)
     }
     
     override func setMinimalPreview(_ mode: Bool = false)
@@ -434,7 +437,11 @@ class Pipeline3D            : Pipeline
         
         while let inst = instanceMap[shapeText] {
             
-            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")])
+            var terrainTexture : MTLTexture? = dummyTerrainTexture
+            if let terrain = globalApp!.artistEditor.getTerrain(), objectIndex == 0 {
+                terrainTexture = terrain.getTexture()
+            }
+            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), terrainTexture!])
 
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)

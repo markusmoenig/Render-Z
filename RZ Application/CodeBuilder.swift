@@ -1064,6 +1064,7 @@ class CodeBuilder
             constant float4                 *__data;
             thread texture2d<half, access::sample>   *texture1;
             thread texture2d<half, access::sample>   *texture2;
+            thread texture2d<int, access::sample>    *terrainTexture;
             __FUNCDATA_TEXTURE_LIST__
         };
         
