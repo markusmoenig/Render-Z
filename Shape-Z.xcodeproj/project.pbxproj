@@ -33,6 +33,8 @@
 		2B169BDC2464D80800366E19 /* X_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B169BD72464D80700366E19 /* X_blue.tiff */; };
 		2B169BDD2464D80800366E19 /* Z_green.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B169BD82464D80700366E19 /* Z_green.tiff */; };
 		2B169BDE2464D80800366E19 /* Z_green.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B169BD82464D80700366E19 /* Z_green.tiff */; };
+		2B169BE0246B67D000366E19 /* TerrainEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BDF246B67D000366E19 /* TerrainEditor.swift */; };
+		2B169BE1246B67D000366E19 /* TerrainEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BDF246B67D000366E19 /* TerrainEditor.swift */; };
 		2B1ACBE023597D2600ED19AD /* TVOS_Framework.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B1ACBDE23597D2600ED19AD /* TVOS_Framework.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		2B1ACBE423597D5900ED19AD /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119F21EAD46B001C94E9 /* App.swift */; };
 		2B1ACBE523597D5900ED19AD /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
@@ -146,8 +148,6 @@
 		2B4600ED2442EAC6004DAF5E /* AppShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600EB2442EAC0004DAF5E /* AppShaders.metal */; };
 		2B4600EF244530CE004DAF5E /* PropertiesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600EE244530CE004DAF5E /* PropertiesWidget.swift */; };
 		2B4600F0244530CE004DAF5E /* PropertiesWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600EE244530CE004DAF5E /* PropertiesWidget.swift */; };
-		2B4600F22445392F004DAF5E /* GroundShaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600F12445392E004DAF5E /* GroundShaders.swift */; };
-		2B4600F32445392F004DAF5E /* GroundShaders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600F12445392E004DAF5E /* GroundShaders.swift */; };
 		2B46E95D2243339A0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B46E95E2243339B0047A94A /* MMTabWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95C224330050047A94A /* MMTabWidget.swift */; };
 		2B46E960224367AF0047A94A /* Material.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B46E95F224367AF0047A94A /* Material.swift */; };
@@ -195,8 +195,6 @@
 		2B639F18221791F500576542 /* NodeList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F16221791F500576542 /* NodeList.swift */; };
 		2B639F1A221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
 		2B639F1B221A32CD00576542 /* MMFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B639F19221A32CD00576542 /* MMFile.swift */; };
-		2B646F9324429E6B00554560 /* GroundEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B646F9224429E6B00554560 /* GroundEditor.swift */; };
-		2B646F9424429E6B00554560 /* GroundEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B646F9224429E6B00554560 /* GroundEditor.swift */; };
 		2B65083323D69922003DE093 /* CodeSDFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B65083223D69922003DE093 /* CodeSDFStream.swift */; };
 		2B65083423D69922003DE093 /* CodeSDFStream.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B65083223D69922003DE093 /* CodeSDFStream.swift */; };
 		2B65083623D6F182003DE093 /* Thumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B65083523D6F182003DE093 /* Thumbnail.swift */; };
@@ -713,6 +711,7 @@
 		2B169BD62464D80700366E19 /* Y_red.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Y_red.tiff; path = "../../../Downloads/untitled folder/Y_red.tiff"; sourceTree = "<group>"; };
 		2B169BD72464D80700366E19 /* X_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = X_blue.tiff; path = "../../../Downloads/untitled folder/X_blue.tiff"; sourceTree = "<group>"; };
 		2B169BD82464D80700366E19 /* Z_green.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Z_green.tiff; path = "../../../Downloads/untitled folder/Z_green.tiff"; sourceTree = "<group>"; };
+		2B169BDF246B67D000366E19 /* TerrainEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainEditor.swift; sourceTree = "<group>"; };
 		2B1ACBDC23597D2600ED19AD /* TVOS_Framework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TVOS_Framework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B1ACBDE23597D2600ED19AD /* TVOS_Framework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TVOS_Framework.h; sourceTree = "<group>"; };
 		2B1ACBDF23597D2600ED19AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1066,6 +1065,7 @@
 				2B8E2FEA23C81CD9005619E4 /* CodeUtilities.swift */,
 				2B7A3C5823B59818002EC5FC /* CodeSemantics.swift */,
 				2B7A3C5423B479F4002EC5FC /* CodeFragList.swift */,
+				2B169BDF246B67D000366E19 /* TerrainEditor.swift */,
 				2B646F9224429E6B00554560 /* GroundEditor.swift */,
 				2B4600F12445392E004DAF5E /* GroundShaders.swift */,
 				2B9B29EF23BC2E2D00C2F387 /* SceneList.swift */,
@@ -1946,7 +1946,6 @@
 				2BE9488723D0675600DB0BCD /* DefaultItems.swift in Sources */,
 				2B7A3C3B23B46838002EC5FC /* RightRegion.swift in Sources */,
 				2B8E2FD923C5CF40005619E4 /* Scene.swift in Sources */,
-				2B646F9324429E6B00554560 /* GroundEditor.swift in Sources */,
 				2B7A3C0F23B46546002EC5FC /* MMFont.swift in Sources */,
 				2B7A3C3C23B46838002EC5FC /* BottomRegion.swift in Sources */,
 				2B7A3C1523B46546002EC5FC /* MMTabWidget.swift in Sources */,
@@ -1976,7 +1975,6 @@
 				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
-				2B4600F22445392F004DAF5E /* GroundShaders.swift in Sources */,
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
 				2B50635923CEC98600124517 /* LibraryDialog.swift in Sources */,
 				2B7A3C1623B46546002EC5FC /* MMTabButtonWidget.swift in Sources */,
@@ -2010,6 +2008,7 @@
 				2B4600EF244530CE004DAF5E /* PropertiesWidget.swift in Sources */,
 				2B7A3C1D23B46546002EC5FC /* MMSkin.swift in Sources */,
 				2B2B60072426027F00B9CCF1 /* ExportDialog.swift in Sources */,
+				2B169BE0246B67D000366E19 /* TerrainEditor.swift in Sources */,
 				2B7A3C1023B46546002EC5FC /* MMLabel.swift in Sources */,
 				2B9B299F23BAD2DC00C2F387 /* NodeUI.swift in Sources */,
 				2BAA45C324133B1A00744A0A /* Pipeline3D.swift in Sources */,
@@ -2201,6 +2200,7 @@
 				2B8E2FE923C7FE25005619E4 /* DesignProperties.swift in Sources */,
 				2B9B29E823BB45C000C2F387 /* Mad4Metal.metal in Sources */,
 				2B9B29F723BF1DDC00C2F387 /* Dialogs.swift in Sources */,
+				2B169BE1246B67D000366E19 /* TerrainEditor.swift in Sources */,
 				2B9B29EE23BB45CA00C2F387 /* CodeFragList.swift in Sources */,
 				2B9B29CE23BB453400C2F387 /* MMCompute.swift in Sources */,
 				2B40D80B23FE0D8300D46B2F /* Combo3D.metal in Sources */,
@@ -2232,10 +2232,8 @@
 				2B40D80623FCCED500D46B2F /* Combo3D.swift in Sources */,
 				2B8CC6CF23C55DAD00CFCB93 /* CodeAccess.swift in Sources */,
 				2B9B29CB23BB453400C2F387 /* MMColorWidget.swift in Sources */,
-				2B646F9424429E6B00554560 /* GroundEditor.swift in Sources */,
 				2B9B29A923BB44BF00C2F387 /* SceneDelegate.swift in Sources */,
 				2B59875923D15BD0007E335F /* Combo2D.swift in Sources */,
-				2B4600F32445392F004DAF5E /* GroundShaders.swift in Sources */,
 				2B9B29E123BB45B900C2F387 /* App.swift in Sources */,
 				2B9B29C523BB453400C2F387 /* MMUtils.swift in Sources */,
 				2B9B29D323BB453400C2F387 /* MMTreeWidget.swift in Sources */,

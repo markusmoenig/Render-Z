@@ -8,6 +8,60 @@
 
 import Foundation
 
+class TerrainLayer            : Codable, Equatable
+{
+    var uuid                : UUID = UUID()
+
+    private enum CodingKeys: String, CodingKey {
+        case uuid
+    }
+     
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        uuid = try container.decode(UUID.self, forKey: .uuid)
+    }
+     
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(uuid, forKey: .uuid)
+    }
+     
+    static func ==(lhs:TerrainLayer, rhs:TerrainLayer) -> Bool {
+        return lhs.uuid == rhs.uuid
+    }
+     
+    init()
+    {
+    }
+}
+
+class Terrain               : Codable
+{
+    var layers              : [TerrainLayer] = []
+    
+    private enum CodingKeys: String, CodingKey {
+        case layers
+    }
+     
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        layers = try container.decode([TerrainLayer].self, forKey: .layers)
+    }
+     
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(layers, forKey: .layers)
+    }
+     
+    init()
+    {
+    }
+}
+
 class StageItem             : Codable, Equatable
 {
     var stageItemType       : Stage.StageType = .PreStage
@@ -165,6 +219,9 @@ class Stage                 : Codable, Equatable
     
     var stageType           : StageType = .PreStage
 
+    // Terrain Editor only for ShapeStage
+    var terrain             : Terrain? = nil
+    
     var name                : String = ""
     var uuid                : UUID = UUID()
  
@@ -185,6 +242,7 @@ class Stage                 : Codable, Equatable
         case children2D
         case children3D
         case values
+        case terrain
     }
     
     required init(from decoder: Decoder) throws
@@ -197,6 +255,9 @@ class Stage                 : Codable, Equatable
         children2D = try container.decode([StageItem].self, forKey: .children2D)
         children3D = try container.decode([StageItem].self, forKey: .children3D)
         values = try container.decode([String:Float].self, forKey: .values)
+        if let t = try container.decodeIfPresent(Terrain.self, forKey: .terrain) {
+            terrain = t
+        }
     }
     
     func encode(to encoder: Encoder) throws
@@ -209,6 +270,7 @@ class Stage                 : Codable, Equatable
         try container.encode(children2D, forKey: .children2D)
         try container.encode(children3D, forKey: .children3D)
         try container.encode(values, forKey: .values)
+        try container.encode(terrain, forKey: .terrain)
     }
     
     static func ==(lhs:Stage, rhs:Stage) -> Bool {

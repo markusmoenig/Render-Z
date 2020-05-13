@@ -305,17 +305,6 @@ class App
             if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
                 project.selected!.updateStageItem(stageItem)
                 
-                // Update the ground if necessary
-                if let comp = stageItem.components[stageItem.defaultName] {
-                    if comp.componentType == .Ground3D {
-                        if let sceneComp = globalApp!.sceneGraph.currentComponent {
-                            if sceneComp.componentType == .Ground3D {
-                                globalApp!.artistEditor.designEditor.groundEditor.setGroundItem(stageItem: stageItem)
-                            }
-                        }
-                    }
-                }
-                
                 globalApp!.developerEditor.codeEditor.markStageItemInvalid(stageItem)
                 currentEditor.updateOnNextDraw()
             }

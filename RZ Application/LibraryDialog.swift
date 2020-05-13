@@ -86,7 +86,9 @@ class LibraryDialog: MMDialog {
         "Pattern3D"     : "Pattern 3D",
         "PatternMixer"  : "Mixer",
         "SDF2D"         : "Shape 2D",
-        "SDF3D"         : "Shape 3D"
+        "SDF3D"         : "Shape 3D",
+        "Modifier3D"    : "Modifier 3D",
+        "Modifier2D"    : "Modifier 2D"
     ]
 
     init(_ view: MMView) {
@@ -321,7 +323,7 @@ class LibraryDialog: MMDialog {
                                     counter += 1
                                 } else {
                                     break;
-                                }                                
+                                }
                             }
                             
                             for f in from.functions {
@@ -538,16 +540,10 @@ class LibraryDialog: MMDialog {
             if let thumb = item.thumbnail {
                 mmView.drawTexture.draw(thumb, x: x + (itemSize - Float(100)) / 2, y: y + 15, zoom: 2)
             } else
-            if oneThumbnailOnly == false {
+            if oneThumbnailOnly == false && rect.y == 0 {
                 oneThumbnailOnly =  true
                 item.thumbnail = globalApp!.thumbnail.request(item.type)
                 mmView.update()
-            }
-
-            if selectedItem === item {
-                //mmView.drawTexture.draw(blueTexture!, x: x + (itemSize - Float(blueTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
-            } else {
-                //mmView.drawTexture.draw(greyTexture!, x: x + (itemSize - Float(greyTexture!.width)*0.8) / 2, y: y + 45, zoom: 1.2)
             }
             
             item.rect.set(x, y, itemSize, itemSize)

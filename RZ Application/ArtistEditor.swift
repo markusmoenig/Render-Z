@@ -42,7 +42,10 @@ class ArtistEditor          : Editor
     var samplesLabel        : MMShadowTextLabel
     
     var componentId         : Int? = nil
-
+    
+    var terrainEditor       : TerrainEditor
+    var terrainIsActive     : Bool = false
+    
     required init(_ view: MMView)
     {
         mmView = view
@@ -80,6 +83,8 @@ class ArtistEditor          : Editor
         
         samplesLabel = MMShadowTextLabel(view, font: view.openSans, text: "0", scale: 0.3)
         
+        terrainEditor = TerrainEditor(view)
+        
         super.init()
         
         materialButton.clicked = { (event) -> Void in
@@ -111,8 +116,28 @@ class ArtistEditor          : Editor
         }
         
         groundButton.clicked = { (event) -> Void in
-            if let component = getComponent(name: "Ground") {
-                globalApp!.project.selected!.getStageItem(component, selectIt: true)
+            if self.getTerrain() != nil {
+                if let component = getComponent(name: "Ground") {
+                    globalApp!.project.selected!.getStageItem(component, selectIt: true)
+                }
+            } else {
+                askUserDialog(view: view, title: "Create Terrain ?", info: "Creating a terrain will replace your analytical ground object. You can remove the terrain again in the context menu of the terrain object in the scene graph.", cancelText: "Cancel", continueText: "Create Terrain", cb: { (result) in
+                    
+                    if result == true {
+                        if let component = getComponent(name: "Ground") {
+                            if let stageItem = globalApp!.project.selected!.getStageItem(component, selectIt: true) {
+                                let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+                                shapeStage.terrain = Terrain()
+                                stageItem.name = "Terrain"
+                                stageItem.label = nil
+                        
+                                self.activateTerrain()
+                            }
+                        }
+                    } else {
+                        self.groundButton.removeState(.Checked)
+                    }
+                })
             }
         }
         
@@ -141,6 +166,8 @@ class ArtistEditor          : Editor
             timeline.activate()
             mmView.registerWidget(timeline)
         }
+        terrainIsActive = false
+        terrainEditor.deactivate()
     }
     
     override func deactivate()
@@ -150,7 +177,28 @@ class ArtistEditor          : Editor
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
         }
-        designEditor.groundEditor.deactivate()
+        terrainIsActive = false
+        terrainEditor.deactivate()
+    }
+    
+    func getTerrain() -> Terrain?
+    {
+        let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+        return shapeStage.terrain
+    }
+    
+    func activateTerrain()
+    {
+        if let terrain = self.getTerrain() {
+            self.terrainEditor.activate()
+            self.terrainEditor.setTerrain(terrain)
+            self.terrainIsActive = true
+            self.groundButton.addState(.Checked)
+        } else {
+            self.terrainIsActive = false
+            self.terrainEditor.deactivate()
+            self.groundButton.removeState(.Checked)
+        }
     }
     
     override func setComponent(_ component: CodeComponent)
@@ -181,15 +229,12 @@ class ArtistEditor          : Editor
             renderButton.removeState(.Checked)
         }
         
-        if component.componentType == .Ground3D && component.libraryName == "Plane" {
+        if component.componentType == .Ground3D && getTerrain() != nil {
             groundButton.addState(.Checked)
-            designEditor.groundEditor.rect.copy(designEditor.rect)
-            if let stageItem = globalApp!.project.selected!.getStageItem(component) {
-                designEditor.groundEditor.setGroundItem(stageItem: stageItem)
-            }
+            activateTerrain()
         } else {
+            terrainIsActive = false
             groundButton.removeState(.Checked)
-            designEditor.groundEditor.deactivate()
         }
 
         designEditor.designComponent = component
@@ -255,6 +300,13 @@ class ArtistEditor          : Editor
             }
         } else
         if region.type == .Editor {
+            
+            if terrainIsActive {
+                terrainEditor.rect.copy(region.rect)
+                terrainEditor.draw()
+                return
+            }
+            
             designEditor.rect.copy(region.rect)
             designEditor.draw()
             

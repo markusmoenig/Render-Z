@@ -1116,8 +1116,10 @@ class SceneGraph                : MMWidget
     func getShape(item: SceneGraphItem, replace: Bool)
     {
         if let stageItem = item.stageItem {
-            // Empty Shape
-            globalApp!.libraryDialog.show(ids: ["SDF3D", "SDF2D"], style: .Icon, cb: { (json) in
+            var ids : [String] = []
+            if globalApp!.currentSceneMode == .ThreeD { ids = ["SDF3D", "SDF2D"] }
+            else { ids = ["SDF2D"] }
+            globalApp!.libraryDialog.show(ids: ids, style: .Icon, cb: { (json) in
                 if let comp = decodeComponentFromJSON(json), item.stageItem != nil {
                     let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, replace == false ? "Add Shape" : "Replace Shape")
 
@@ -1163,9 +1165,14 @@ class SceneGraph                : MMWidget
         if name == "Post FX" {
             id = "PostFX"
         }
+        
+        var ids : [String] = [id]        
+        if id == "Modifier3D" {
+            ids = ["Modifier3D", "Modifier2D"]
+        }
 
         if let stageItem = item.stageItem {
-            globalApp!.libraryDialog.show(ids: [id], cb: { (json) in
+            globalApp!.libraryDialog.show(ids: ids, cb: { (json) in
                 if let comp = decodeComponentFromJSON(json) {
                     let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Add " + name)
                     
@@ -1267,8 +1274,31 @@ class SceneGraph                : MMWidget
                         buildChangeComponent(item, name: "Occlusion", ids: ["AO3D"])
                     } else
                     if comp.componentType == .Ground3D {
-                        hasMinMaxButton = true
-                        buildChangeComponent(item, name: "Ground", ids: ["Ground3D"])
+                        if globalApp!.artistEditor.getTerrain() != nil {
+                        hasMinMaxButton = false
+                            
+                        let switchToGround = MMMenuItem(text: "Delete Terrain", cb: { () in
+                            askUserDialog(view: self.mmView, title: "Delete Terrain ?", info: "Deleting the terrain will delete all terrain data and activate the analytical ground object agan. This cannot be undone!", cancelText: "Cancel", continueText: "Delete Terrain", cb: { (result) in
+                                
+                                if result == true {
+                                    let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+                                    shapeStage.terrain = nil
+                                    if let stageItem = self.currentStageItem {
+                                        stageItem.name = "Ground"
+                                        stageItem.label = nil
+                                    }
+                                    
+                                    globalApp!.currentEditor.setComponent(comp)
+                                    self.buildMenu(uuid: self.currentUUID)
+                                }
+                            })
+                        } )
+                        items.append(switchToGround)
+
+                        } else {
+                            hasMinMaxButton = true
+                            buildChangeComponent(item, name: "Ground", ids: ["Ground3D"])
+                        }
                     } else
                     if comp.componentType == .RegionProfile3D {
                         buildChangeComponent(item, name: "Region Profile", ids: ["RegionProfile3D"])
@@ -1302,8 +1332,10 @@ class SceneGraph                : MMWidget
                         items.append(menuItem)
                     } else
                     if comp.componentType == .Modifier3D {
-                        buildChangeComponent(item, name: "Modifier", ids: ["Modifier3D"])
-                        
+                        var ids : [String] = []
+                        if globalApp!.currentSceneMode == .ThreeD { ids = ["Modifier3D", "Modifier2D"] }
+                        else { ids = ["Modifier2D"] }
+                        buildChangeComponent(item, name: "Modifier", ids: ids)
                         let menuItem = MMMenuItem(text: "Remove", cb: { () in
                             let id = "modifier" + getCurrentModeId()
                             
@@ -2298,13 +2330,15 @@ class SceneGraph                : MMWidget
             dottedConnection = false
         }
         
-        if o.components[o.defaultName]!.componentType != .RegionProfile3D && o.components[o.defaultName]!.values["minimized"] != 1 {
-            drawShapesBox(parent: item, skin: skin)
-            drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
-            drawItemList(parent: item, listId: "modifier" + getCurrentModeId(), graphId: "_graphModifier", name: "Modifier", containerId: .ModifierContainer, itemId: .ModifierItem, skin: skin)
-            
-            for c in o.children {
-                drawObject(stage: stage, o: c, parent: item, skin: skin)
+        if let component = o.components[o.defaultName] {
+            if component.values["minimized"] != 1 && !(component.componentType == .Ground3D && o.name == "Terrain") {
+                drawShapesBox(parent: item, skin: skin)
+                drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
+                drawItemList(parent: item, listId: "modifier" + getCurrentModeId(), graphId: "_graphModifier", name: "Modifier", containerId: .ModifierContainer, itemId: .ModifierItem, skin: skin)
+                
+                for c in o.children {
+                    drawObject(stage: stage, o: c, parent: item, skin: skin)
+                }
             }
         }
         

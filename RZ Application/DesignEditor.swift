@@ -21,8 +21,6 @@ class DesignEditor          : MMWidget
     
     var editor              : ArtistEditor!
     
-    var groundEditor        : GroundEditor
-
     var needsUpdate         : Bool = false
     var designChanged       : Bool = false
         
@@ -50,8 +48,6 @@ class DesignEditor          : MMWidget
         gizmoCamera2D = GizmoCamera2D(view)
         gizmoCamera3D = GizmoCamera3D(view)
         
-        groundEditor = GroundEditor(view)
-
         super.init(view)
 
         zoom = mmView.scaleFactor
@@ -128,13 +124,6 @@ class DesignEditor          : MMWidget
     
     override func mouseMoved(_ event: MMMouseEvent)
     {
-        if let component = designComponent {
-            if component.componentType == .Ground3D && component.libraryName == "Plane" {
-                groundEditor.mouseMoved(event)
-                return
-            }
-        }
-        
         if let gizmo = currentGizmo, editor.designProperties.hoverMode != .NodeUIMouseLocked, editor.designProperties.hoverUITitle == nil {
             gizmo.rect.copy(rect)
             gizmo.mouseMoved(event)
@@ -150,13 +139,6 @@ class DesignEditor          : MMWidget
         #if os(iOS)
         mouseMoved(event)
         #endif
-        
-        if let component = designComponent {
-            if component.componentType == .Ground3D && component.libraryName == "Plane" {
-                groundEditor.mouseDown(event)
-                return
-            }
-        }
         
         if let gizmo = currentGizmo {
             gizmo.rect.copy(rect)
@@ -219,13 +201,6 @@ class DesignEditor          : MMWidget
     
     override func mouseUp(_ event: MMMouseEvent)
     {
-        if let component = designComponent {
-            if component.componentType == .Ground3D && component.libraryName == "Plane" {
-                groundEditor.mouseUp(event)
-                return
-            }
-        }
-
         if let gizmo = currentGizmo {
             gizmo.mouseUp(event)
         }
@@ -235,12 +210,6 @@ class DesignEditor          : MMWidget
     }
     
     override func mouseScrolled(_ event: MMMouseEvent) {
-        if let component = designComponent {
-            if component.componentType == .Ground3D && component.libraryName == "Plane" {
-                groundEditor.mouseScrolled(event)
-                return
-            }
-        }
     }
     
     /*
@@ -319,24 +288,6 @@ class DesignEditor          : MMWidget
                     mmView.drawTexture.drawScaled(texture, x: xO, y: yO, width: Float(texture.width) * r, height: Float(texture.height) * r)
                     return
                 }
-            }
-        }
-        
-        if let component = designComponent {
-            if component.componentType == .Ground3D && component.libraryName == "Plane" {
-                groundEditor.rect.copy(rect)
-                groundEditor.draw()
-                
-                if let texture = globalApp!.currentPipeline!.finalTexture {
-                    let width : Float = Float(texture.width) / 3
-                    let height : Float = Float(texture.height) / 3
-                    
-                    let x : Float = rect.right() - width
-                    let y : Float = rect.y
-
-                    mmView.drawTexture.drawScaled(texture, x: x, y: y, width: width, height: height)
-                }
-                return
             }
         }
         

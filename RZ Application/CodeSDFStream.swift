@@ -1348,7 +1348,7 @@ class CodeSDFStream
                         float extr = __data[\(extrusion)].x;
                         float tt = extr - 0.5;
                         //float slope = mix( extr, tt, 1.0 - smoothstep(0, -0.8, outDistance));
-                        float slope = mix(extr, tt, max(outDistance, -0.8)); // Linear*/
+                        //float slope = mix(extr, tt, max(outDistance, -0.8)); // Linear*/
                         float slope = __data[\(extrusion)].x;
 
                         float2 w = float2( outDistance, abs(originalPos.z) - slope );

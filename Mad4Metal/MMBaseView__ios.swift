@@ -451,6 +451,34 @@ func getSampleProject(view: MMView, title: String, message: String, sampleProjec
     }
 }
 
+func askUserDialog(view: MMView, title: String, info: String, cancelText: String, continueText: String, cb: @escaping (Bool)->())
+{
+    let alertController = UIAlertController(title: title, message: info, preferredStyle: UIAlertController.Style.alert)
+    
+    let cancelAction: UIAlertAction = UIAlertAction(title: cancelText,
+                                                    style: .cancel,
+                                                    handler: { (_) in
+                                                        cb(false)
+    } )
+    
+    let successAction: UIAlertAction = UIAlertAction(title: continueText,
+                                                     style: .default,
+                                                     handler: { (_) in
+                                                        cb(true)
+    } )
+    
+    alertController.addAction(cancelAction)
+    alertController.addAction(successAction)
+    
+    let keyWindow = UIApplication.shared.windows.first { $0.isKeyWindow }
+    if var topController = keyWindow?.rootViewController {
+        while let presentedViewController = topController.presentedViewController {
+            topController = presentedViewController
+        }
+        topController.present(alertController, animated: true, completion: nil)
+    }
+}
+
 func askUserToSave(view: MMView, cb: @escaping (Bool)->())
 {
     let alertController = UIAlertController(title: NSLocalizedString("You have unsaved changes. Continue anyway?", comment: "Continue without saves error question message"), message: NSLocalizedString("Continuing now will lose any changes you have made since the last successful save", comment: "Continue without saves error question info"), preferredStyle: UIAlertController.Style.alert)

@@ -400,6 +400,22 @@ func getSampleProject(view: MMView, title: String, message: String, sampleProjec
     })
 }
 
+func askUserDialog(view: MMView, title: String, info: String, cancelText: String, continueText: String, cb: @escaping (Bool)->())
+{
+    let alert = NSAlert()
+    alert.messageText = title
+    alert.informativeText = info
+    alert.addButton(withTitle: continueText)
+    alert.addButton(withTitle: cancelText)
+    
+    let answer = alert.runModal()
+    if answer == .alertSecondButtonReturn {
+        cb(false)
+        return
+    }
+    cb(true)
+}
+
 func askUserToSave(view: MMView, cb: @escaping (Bool)->())
 {
     let question = NSLocalizedString("You have unsaved changes. Continue anyway?", comment: "Quit without saves error question message")
