@@ -504,6 +504,7 @@ func setDefaultComponentValues(_ comp: CodeComponent)
             comp.values["2DIn3D"] = 1
             comp.values["_extrusion"] = 1
             comp.values["_revolution"] = 0
+            comp.values["_rounding"] = 0
         } else {
             comp.values["_posX"] = 0
             comp.values["_posY"] = 0

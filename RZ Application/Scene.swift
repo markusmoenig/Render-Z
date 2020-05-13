@@ -65,7 +65,11 @@ class Terrain               : Codable
     
     func getTexture() -> MTLTexture?
     {
+        let oldState = texture
         texture = globalApp!.currentPipeline?.checkTextureSize(4096, 4096, texture, .rg8Sint)
+        if oldState !== texture {
+            globalApp!.currentPipeline?.codeBuilder.renderClearTerrain(texture: texture!)
+        }
         return texture
     }
 }

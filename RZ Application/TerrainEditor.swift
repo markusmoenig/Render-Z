@@ -32,6 +32,12 @@ class LayerListItem : MMTreeWidgetItem
 
 class TerrainEditor         : MMWidget
 {
+    enum ActionState : Int {
+        case None, PaintHeight
+    }
+    
+    var actionState         : ActionState = .None
+
     var terrain             : Terrain!
     
     var mouseIsDown         : Bool = false
@@ -41,6 +47,9 @@ class TerrainEditor         : MMWidget
     var layerItems          : [LayerListItem] = []
     var currentLayerItem    : LayerListItem!
     
+    var originTexture       : MTLTexture? = nil
+    var directionTexture    : MTLTexture? = nil
+
     override required init(_ view: MMView)
     {
         layerListWidget = MMTreeWidget(view)
@@ -72,11 +81,22 @@ class TerrainEditor         : MMWidget
         mouseDownPos.x = event.x
         mouseDownPos.y = event.y
         
+        actionState = .None
+        
         if event.y < rect.bottom() - 160 {
             // inside the upper area
             
+            computeCameraTextures()
+            globalApp!.currentPipeline?.setMinimalPreview(true)
+            
             if let loc = getHitLocationAt(event) {
-                print(loc.x, loc.y)
+                                
+                let val = getValue(loc)
+                setValue(loc, value: Int8(val + 1))
+
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                
+                actionState = .PaintHeight
             }
             return
         }
@@ -95,6 +115,20 @@ class TerrainEditor         : MMWidget
         mouseMoved(event)
     }
     
+    override func mouseMoved(_ event: MMMouseEvent)
+    {
+        if actionState == .PaintHeight {
+            if let loc = getHitLocationAt(event) {
+                let val = getValue(loc)
+                setValue(loc, value: Int8(val + 1))
+
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                
+                actionState = .PaintHeight
+            }
+        }
+    }
+    
     override func mouseUp(_ event: MMMouseEvent)
     {
         mouseIsDown = false
@@ -102,15 +136,16 @@ class TerrainEditor         : MMWidget
             layerListWidget.mouseUp(event)
             return
         }
+        
+        if actionState == .PaintHeight {
+            globalApp!.currentPipeline?.setMinimalPreview()
+            originTexture = nil
+            directionTexture = nil
+        }
+        
+        actionState = .None
     }
     
-    //override func mouseLeave(_ event: MMMouseEvent) {
-    //    hoverItem = nil
-    //}
-    
-    override func mouseMoved(_ event: MMMouseEvent)
-    {
-    }
     
     func setLayerItem(_ item: LayerListItem)
     {
@@ -150,6 +185,56 @@ class TerrainEditor         : MMWidget
 
     }
     
+    func getValue(_ location: SIMD2<Float>) -> Int8
+    {
+        var loc = location
+        var value : Int8 = 0;
+        
+        loc.x += 4096.0 / 2.0
+        loc.y += 4096.0 / 2.0
+        
+        let x : Int = Int(loc.x)
+        let y : Int = Int(loc.y)
+
+        let region = MTLRegionMake2D(min(Int(x), 4095), min(Int(y), 4095), 1, 1)
+
+        var texArray = Array<Int8>(repeating: Int8(0), count: 2)
+        texArray.withUnsafeMutableBytes { texArrayPtr in
+            if let ptr = texArrayPtr.baseAddress {
+                if let texture = terrain.getTexture() {
+                    texture.getBytes(ptr, bytesPerRow: (MemoryLayout<Int8>.size * 2 * texture.width), from: region, mipmapLevel: 0)
+                }
+            }
+        }
+            
+        value = texArray[0]
+        return value
+    }
+    
+    func setValue(_ location: SIMD2<Float>, value: Int8 = 1)
+    {
+        var loc = location
+        
+        loc.x += 4096.0 / 2.0
+        loc.y += 4096.0 / 2.0
+        
+        let x : Int = Int(loc.x)
+        let y : Int = Int(loc.y)
+
+        print("setValue", x, y)
+
+        let region = MTLRegionMake2D(min(Int(x), 4095), min(Int(y), 4095), 1, 1)
+
+        var texArray = Array<Int8>(repeating: value, count: 2)
+        texArray.withUnsafeMutableBytes { texArrayPtr in
+            if let ptr = texArrayPtr.baseAddress {
+                if let texture = terrain.getTexture() {
+                    texture.replace(region: region, mipmapLevel: 0, withBytes: ptr, bytesPerRow: (MemoryLayout<Int8>.size * 2 * texture.width))
+                }
+            }
+        }
+    }
+    
     /// Returns the XZ location of the mouse location
     func getHitLocationAt(_ event: MMMouseEvent) -> SIMD2<Float>?
     {
@@ -186,56 +271,58 @@ class TerrainEditor         : MMWidget
         return nil
     }
     
+    func convertTexture(_ texture: MTLTexture) -> MTLTexture?
+    {
+        if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
+         
+            globalApp!.currentPipeline!.codeBuilder.renderCopy(convertTo, texture, syncronize: true)
+            return convertTo
+        }
+        return nil
+    }
+    
     /// Returns the XZ location of the mouse location
     func getTextureValueAt(_ event: MMMouseEvent, texture: MTLTexture) -> SIMD4<Float>
     {
         let x : Float = event.x - rect.x
         let y : Float = event.y - rect.y
 
-        if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
-         
-            globalApp!.currentPipeline!.codeBuilder.renderCopy(convertTo, texture, syncronize: true)
-            let region = MTLRegionMake2D(min(Int(x), convertTo.width-1), min(Int(y), convertTo.height-1), 1, 1)
+        let region = MTLRegionMake2D(min(Int(x), texture.width-1), min(Int(y), texture.height-1), 1, 1)
 
-            var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(repeating: 0), count: 1)
-            texArray.withUnsafeMutableBytes { texArrayPtr in
-                if let ptr = texArrayPtr.baseAddress {
-                    convertTo.getBytes(ptr, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * convertTo.width), from: region, mipmapLevel: 0)
-                }
+        var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(repeating: 0), count: 1)
+        texArray.withUnsafeMutableBytes { texArrayPtr in
+            if let ptr = texArrayPtr.baseAddress {
+                texture.getBytes(ptr, bytesPerRow: (MemoryLayout<SIMD4<Float>>.size * texture.width), from: region, mipmapLevel: 0)
             }
-            
-            return texArray[0]
         }
-        
-        return SIMD4<Float>(0,0,0,0)
+            
+        return texArray[0]
+    }
+    
+    /// Returns the origin and lookAt values of the camera
+    func computeCameraTextures()
+    {
+        if let pipeline = globalApp!.currentPipeline as? Pipeline3D {
+    
+            originTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
+            directionTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
+            
+            if let inst = pipeline.instanceMap["camera3D"] {
+                
+                pipeline.codeBuilder.render(inst, originTexture!, outTextures: [directionTexture!])
+                
+                originTexture = convertTexture(originTexture!)
+                directionTexture = convertTexture(directionTexture!)
+            }
+        }
     }
     
     /// Returns the origin and lookAt values of the camera
     func getCameraValues(_ event: MMMouseEvent) -> (SIMD3<Float>, SIMD3<Float>)
     {
-        if let pipeline = globalApp!.currentPipeline as? Pipeline3D {
-    
-            let originTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
-            let directionTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
+        let origin = getTextureValueAt(event, texture: originTexture!)
+        let lookAt = getTextureValueAt(event, texture: directionTexture!)
             
-            if let inst = pipeline.instanceMap["camera3D"] {
-                pipeline.codeBuilder.render(inst, originTexture!, outTextures: [directionTexture!])
-                
-                let origin = getTextureValueAt(event, texture: originTexture!)
-                let lookAt = getTextureValueAt(event, texture: directionTexture!)
-                
-                return (SIMD3<Float>(origin.x, origin.y, origin.z), SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z))
-            }
-        }
-    
-        
-        /*
-        if let camera = cameraComponent {
-            let origin = getTransformedComponentProperty(camera, "origin")
-            let lookAt = getTransformedComponentProperty(camera, "lookAt")
-            
-            return (SIMD3<Float>(origin.x, origin.y, origin.z), SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z))
-        }*/
-        return (SIMD3<Float>(0, 0, 0), SIMD3<Float>(0, 0, 0))
+        return (SIMD3<Float>(origin.x, origin.y, origin.z), SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z))
     }
 }

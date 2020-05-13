@@ -112,6 +112,8 @@ class CodeBuilderInstance
                 data.append(SIMD4<Float>(0,0,0,0))
                 properties.append((nil, nil, "_revolution", data.count, component, hierarchy))
                 data.append(SIMD4<Float>(0,0,0,0))
+                properties.append((nil, nil, "_rounding", data.count, component, hierarchy))
+                data.append(SIMD4<Float>(0,0,0,0))
             } else {
                 properties.append((nil, nil, "_rotate", data.count, component, hierarchy))
                 data.append(SIMD4<Float>(0,0,0,0))
@@ -176,6 +178,8 @@ class CodeBuilder
 
     var clearState          : MTLComputePipelineState? = nil
     var clearShadowState    : MTLComputePipelineState? = nil
+    var clearTerrainState   : MTLComputePipelineState? = nil
+
     var copyState           : MTLComputePipelineState? = nil
     var copyGammaState      : MTLComputePipelineState? = nil
     var copyAndSwapState    : MTLComputePipelineState? = nil
@@ -718,6 +722,24 @@ class CodeBuilder
 
         library = compute.createLibraryFromSource(source: code)
         clearShadowState = compute.createState(library: library, name: "clearShadowBuilder")
+        
+        code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void clearTerrainBuilder(
+        texture2d<int, access::write>           outTexture  [[texture(0)]],
+        uint2 gid                               [[thread_position_in_grid]])
+        {
+           outTexture.write(int4(0), gid);
+        }
+         
+        """
+
+        library = compute.createLibraryFromSource(source: code)
+        clearTerrainState = compute.createState(library: library, name: "clearTerrainBuilder")
     }
     
     /// Build a copy texture shader
@@ -967,6 +989,13 @@ class CodeBuilder
         compute.commandBuffer.waitUntilCompleted()
     }
     
+    // Clear terrain
+    func renderClearTerrain(texture: MTLTexture)
+    {
+        compute.run( clearTerrainState!, outTexture: texture)
+        compute.commandBuffer.waitUntilCompleted()
+    }
+    
     // Copy the texture
     func renderCopy(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
@@ -1205,6 +1234,22 @@ class CodeBuilder
             float4 rg2 = float4(texture.sample( __textureSampler, (iuv+ float2(1.5,0.5))/size, 0.0 ));
             float4 rg3 = float4(texture.sample( __textureSampler, (iuv+ float2(0.5,1.5))/size, 0.0 ));
             float4 rg4 = float4(texture.sample( __textureSampler, (iuv+ float2(1.5,1.5))/size, 0.0 ));
+            return mix( mix(rg1,rg2,f.x), mix(rg3,rg4,f.x), f.y );
+        }
+        
+        float __interpolateHeightTexture(texture2d<int, access::sample> texture, float2 uv)
+        {
+            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+            float2 size = float2(texture.get_width(), texture.get_height());
+            uv = fract(uv);
+            uv = uv*size - 0.5;
+            float2 iuv = floor(uv);
+            float2 f = fract(uv);
+            f = f*f*(3.0-2.0*f);
+            float rg1 = float4(texture.sample( __textureSampler, (iuv+ float2(0.5,0.5))/size, 0.0 )).x;
+            float rg2 = float4(texture.sample( __textureSampler, (iuv+ float2(1.5,0.5))/size, 0.0 )).x;
+            float rg3 = float4(texture.sample( __textureSampler, (iuv+ float2(0.5,1.5))/size, 0.0 )).x;
+            float rg4 = float4(texture.sample( __textureSampler, (iuv+ float2(1.5,1.5))/size, 0.0 )).x;
             return mix( mix(rg1,rg2,f.x), mix(rg3,rg4,f.x), f.y );
         }
         

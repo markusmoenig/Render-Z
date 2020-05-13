@@ -536,7 +536,7 @@ class CodeSDFStream
                         """
                     } else {
                         
-                        let terrain = shapeStage.terrain!
+                        //let terrain = shapeStage.terrain!
                         
                         terrainMapCode +=
                         """
@@ -551,8 +551,8 @@ class CodeSDFStream
                              
                             float outDistance = 1000000.0;
                         
-                            float2 tMap = float2(__funcData->terrainTexture->sample(__textureSampler, (position.xz - 4096. / 2.) / 4096.).xy);
-                            float height = tMap.x;
+                            //float2 tMap = float2(__funcData->terrainTexture->sample(__textureSampler, (position.xz + 4096. / 2.) / 4096.).xy);
+                            float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + 4096. / 2.) / 4096.);
                         
                             return position.y - height;
                         }
@@ -1419,6 +1419,7 @@ class CodeSDFStream
              
                 let extrusion = instance.getTransformPropertyIndex(component, "_extrusion")
                 let revolution = instance.getTransformPropertyIndex(component, "_revolution")
+                let rounding = instance.getTransformPropertyIndex(component, "_rounding")
 
                 code +=
                 """
@@ -1433,15 +1434,8 @@ class CodeSDFStream
                 
                     if (__data[\(revolution)].x == 0.)
                     {
-                        /*
-                        float extr = __data[\(extrusion)].x;
-                        float tt = extr - 0.5;
-                        //float slope = mix( extr, tt, 1.0 - smoothstep(0, -0.8, outDistance));
-                        //float slope = mix(extr, tt, max(outDistance, -0.8)); // Linear*/
-                        float slope = __data[\(extrusion)].x;
-
-                        float2 w = float2( outDistance, abs(originalPos.z) - slope );
-                        outDistance = min(max(w.x,w.y),0.0) + length(max(w,0.0));
+                        float2 w = float2( outDistance, abs(originalPos.z) - __data[\(extrusion)].x );
+                        outDistance = min(max(w.x,w.y),0.0) + length(max(w,0.0)) - __data[\(rounding)].x;
                     }
                 }
                 """

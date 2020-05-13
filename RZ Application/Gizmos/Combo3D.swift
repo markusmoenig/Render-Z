@@ -167,6 +167,11 @@ class GizmoCombo3D          : GizmoBase
                 extrusionVar.autoAdjustMargin = true
                 tNode.uiItems.append(extrusionVar)
                 
+                let roundingVar = NodeUINumber(tNode, variable: "_rounding", title: "Rounding", range: SIMD2<Float>(0,1), value: comp.values["_rounding"]!,  precision: 3)
+                roundingVar.titleShadows = true
+                roundingVar.autoAdjustMargin = true
+                tNode.uiItems.append(roundingVar)
+                
                 let revolutionVar = NodeUINumber(tNode, variable: "_revolution", title: "Revolution", range: SIMD2<Float>(0,5), value: comp.values["_revolution"]!,  precision: 3)
                 revolutionVar.titleShadows = true
                 revolutionVar.autoAdjustMargin = true
