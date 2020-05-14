@@ -172,16 +172,18 @@ class MMListWidget : MMWidget
             source += "d = abs( uv ) - float2( \((width)/2) - borderSize - 2, \(unitSize/2) - borderSize ) + float2( round );\n"
             source += "dist = length(max(d,float2(0))) + min(max(d.x,d.y),0.0) - round;\n"
             
+            /*
             if selectedItems.contains( item.uuid ) {
                 let selectionColor = item.color != nil ? shadeColor(item.color!, selectionShade) : skin.selectionColor
                 source += "col = float4( \(selectionColor.x), \(selectionColor.y), \(selectionColor.z), fillMask( dist ) * \(selectionColor.w) );\n"
-            } else {
+            } else
+            {*/
                 if item.color != nil {
                 source += "col = float4( \(item.color!.x), \(item.color!.y), \(item.color!.z), fillMask( dist ) * \(item.color!.w) );\n"
                 } else {
                     source += "col = float4( fillColor.x, fillColor.y, fillColor.z, fillMask( dist ) * fillColor.w );\n"
                 }
-            }
+            //}
             source += "col = mix( col, borderColor, borderMask( dist, borderSize) );\n"
             source += "finalCol = mix( finalCol, col, col.a );\n"
             
@@ -265,7 +267,11 @@ class MMListWidget : MMWidget
             for item in items {
                 
                 fontRect = mmView.openSans.getTextRect(text: item.name, scale: fontScale, rectToUse: fontRect)
-                mmView.drawText.drawText(mmView.openSans, text: item.name, x: left, y: top, scale: fontScale * zoom, fragment: fragment)
+                if selectedItems.contains(item.uuid) {
+                    mmView.drawText.drawText(mmView.openSans, text: item.name, x: left, y: top, scale: fontScale * zoom, color: SIMD4<Float>(0.808, 0.416, 0.239, 1.000), fragment: fragment)
+                } else {
+                    mmView.drawText.drawText(mmView.openSans, text: item.name, x: left, y: top, scale: fontScale * zoom, fragment: fragment)
+                }
                 
                 top += (unitSize / 2) * zoom
             }

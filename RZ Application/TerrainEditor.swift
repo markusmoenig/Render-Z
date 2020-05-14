@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class LayerListItem : MMTreeWidgetItem
+class LayerListItem : MMListWidgetItem
 {
     enum LayerType : Int {
         case PaintLayer, NoiseLayer
@@ -16,7 +16,7 @@ class LayerListItem : MMTreeWidgetItem
     
     var name         : String
     var uuid         : UUID
-    var color        : SIMD4<Float>? = SIMD4<Float>(0.5, 0.5, 0.5, 1)
+    var color        : SIMD4<Float>? = SIMD4<Float>(0.282, 0.282, 0.282, 1)
     var children     : [MMTreeWidgetItem]? = nil
     var folderOpen   : Bool = false
     
@@ -46,7 +46,7 @@ class TerrainEditor         : PropertiesWidget
     var mouseIsDown         : Bool = false
     var mouseDownPos        : SIMD2<Float> = SIMD2<Float>()
     
-    var layerListWidget     : MMTreeWidget
+    var layerListWidget     : MMListWidget
     var layerItems          : [LayerListItem] = []
 
     var currentLayerItem    : LayerListItem!
@@ -54,36 +54,65 @@ class TerrainEditor         : PropertiesWidget
     var originTexture       : MTLTexture? = nil
     var directionTexture    : MTLTexture? = nil
     
+    var cameraButton        : MMButtonWidget!
+    var topDownButton       : MMButtonWidget!
+    
     var addLayerButton      : MMButtonWidget!
     var deleteLayerButton   : MMButtonWidget!
     
-    let height               : Float = 200
+    var topDownIsActive     : Bool = false
+    
+    let height              : Float = 200
+    
+    var orthoCamera         : CodeComponent? = nil
+    var orthoStageItem      : StageItem? = nil
+    
+    var layerListNeedsUpdate: Bool = false
 
     override required init(_ view: MMView)
     {
-        layerListWidget = MMTreeWidget(view)
-        
-        layerListWidget.skin.selectionColor = SIMD4<Float>(0.5,0.5,0.5,1)
-        
-        //layerListWidget.itemRound = 0
-        //layerListWidget.textOnly = true
-        //layerListWidget.unitSize -= 5
-        //layerListWidget.itemSize -= 5*/
-        
-        layerListWidget.selectionColor = SIMD4<Float>(0.2, 0.2, 0.2, 1)
+        layerListWidget = MMListWidget(view)
         
         super.init(view)
         
-        addLayerButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add", fixedWidth: buttonWidth)
+        cameraButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Camera", fixedWidth: buttonWidth)
+        cameraButton.clicked = { (event) in
+            self.topDownButton.removeState(.Checked)
+            self.deinstallTopDownView()
+        }
+        
+        topDownButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Top Down", fixedWidth: buttonWidth)
+        topDownButton.clicked = { (event) in
+            self.cameraButton.removeState(.Checked)
+            self.installTopDownView()
+        }
+        
+        var borderlessSkin = MMSkinButton()
+        borderlessSkin.margin = MMMargin( 14, 4, 14, 4 )
+        borderlessSkin.borderSize = 0
+        borderlessSkin.height = view.skin.Button.height - 1
+        borderlessSkin.fontScale = 0.4
+        borderlessSkin.round = 28
+        
+        addLayerButton = MMButtonWidget(mmView, skinToUse: borderlessSkin, text: "Add", fixedWidth: buttonWidth)
         addLayerButton.clicked = { (event) in
             let layer = TerrainLayer()
             let item = LayerListItem("Noise Layer #" + String(self.layerItems.count), UUID(), .NoiseLayer, layer: layer)
             self.layerItems.insert(item, at: 0)
             self.terrain.layers.insert(layer, at: 0)
+            self.addLayerButton.removeState(.Checked)
+            self.setLayerItem(item)
         }
         
-        deleteLayerButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete", fixedWidth: buttonWidth)
+        deleteLayerButton = MMButtonWidget(mmView, skinToUse: borderlessSkin, text: "Delete", fixedWidth: buttonWidth)
         deleteLayerButton.clicked = { (event) in
+            if let index = self.terrain.layers.firstIndex(of: self.currentLayerItem.layer!) {
+                self.layerItems.remove(at: index)
+                self.terrain.layers.remove(at: index)
+                self.setLayerItem(self.layerItems.last!)
+                self.terrainNeedsUpdate()
+            }
+            self.deleteLayerButton.removeState(.Checked)
         }
     }
     
@@ -91,13 +120,27 @@ class TerrainEditor         : PropertiesWidget
     {
         mmView.registerPriorityWidgets(widgets: self)
         computeCameraTextures()
+        
+        if topDownIsActive {
+            cameraButton.removeState(.Checked)
+            topDownButton.addState(.Checked)
+        } else {
+            topDownButton.removeState(.Checked)
+            cameraButton.addState(.Checked)
+        }
     }
     
     func deactivate()
     {
+        clear()
         mmView.deregisterWidgets(widgets: self)
         originTexture = nil
         directionTexture = nil
+        
+        if topDownIsActive {
+            self.deinstallTopDownView()
+            terrainNeedsUpdate()
+        }
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -129,7 +172,7 @@ class TerrainEditor         : PropertiesWidget
             let changed = layerListWidget.selectAt(event.x - layerListWidget.rect.x, (event.y - layerListWidget.rect.y), items: layerItems)
             if changed {
                 
-                layerListWidget.build(items: layerItems, fixedWidth: 150)
+                //layerListWidget.build(items: layerItems, fixedWidth: layerListWidget.rect.width)
                 if let item = layerListWidget.getCurrentItem() as? LayerListItem {
                     setLayerItem(item)
                 }
@@ -192,7 +235,9 @@ class TerrainEditor         : PropertiesWidget
         layerListWidget.selectedItems = [item.uuid]
         currentLayerItem = item
         updateUI()
-        layerListWidget.build(items: layerItems, fixedWidth: 150)
+
+        deleteLayerButton.isDisabled = currentLayerItem.layerType == .PaintLayer
+        mmView.update()
     }
     
     func setTerrain(_ terrain: Terrain)
@@ -217,6 +262,9 @@ class TerrainEditor         : PropertiesWidget
     func updateUI()
     {
         clear()
+        
+        addButton(cameraButton)
+        addButton(topDownButton)
         
         addButton(addLayerButton)
         addButton(deleteLayerButton)
@@ -323,7 +371,7 @@ class TerrainEditor         : PropertiesWidget
                 c2Node!.uiItems.append(setupImageUI(c2Node!, currentLayerItem.layer!.imageFragment))
             }
         }
-        
+                
         c1Node?.setupUI(mmView: mmView)
         c2Node?.setupUI(mmView: mmView)
     }
@@ -332,31 +380,44 @@ class TerrainEditor         : PropertiesWidget
     {
         drawPreview(mmView: mmView, rect)
         
+        //if layerListNeedsUpdate {
+            layerListWidget.build(items: layerItems, fixedWidth: layerListWidget.rect.width)
+//            layerListNeedsUpdate = false
+        //}
+        
         let startY : Float = rect.bottom() - height
 
         mmView.drawBox.draw( x: rect.x, y: rect.bottom() - height + 0.5, width: rect.width + 0.5, height: height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1.0 ))
                 
-        layerListWidget.rect.x = rect.x + 5
-        layerListWidget.rect.y = startY + 50
+        layerListWidget.rect.x = rect.x + 8
+        layerListWidget.rect.y = startY + 45
         layerListWidget.rect.width = 180
-        layerListWidget.rect.height = height - 50
+        layerListWidget.rect.height = height - 53
         layerListWidget.draw()
         
-        //layerListWidget.drawRoundedBorder(backColor: SIMD4<Float>(0.145, 0.145, 0.145, 1.0), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000))
+        layerListWidget.drawRoundedBorder(backColor: SIMD4<Float>(0.145, 0.145, 0.145, 1.0), borderColor:  SIMD4<Float>(0.286, 0.286, 0.286, 1.000))
         
-        addLayerButton.rect.x = rect.x + 5
-        addLayerButton.rect.y = startY + 5
+        cameraButton.rect.x = rect.x + 5
+        cameraButton.rect.y = rect.y + 5
+        cameraButton.rect.width = buttonWidth
+        
+        topDownButton.rect.x = cameraButton.rect.right() + 5
+        topDownButton.rect.y = rect.y + 5
+        topDownButton.rect.width = buttonWidth
+        
+        addLayerButton.rect.x = rect.x + 10
+        addLayerButton.rect.y = startY + 10
         addLayerButton.rect.width = 80
         
         deleteLayerButton.rect.x = addLayerButton.rect.right() + 5
-        deleteLayerButton.rect.y = startY + 5
+        deleteLayerButton.rect.y = startY + 10
         deleteLayerButton.rect.width = 80
         
-        c1Node?.rect.x = layerListWidget.rect.right() + 20
-        c1Node?.rect.y = startY + 5 - rect.y
+        c1Node?.rect.x = layerListWidget.rect.right() + 30
+        c1Node?.rect.y = startY + 20 - rect.y
         
         c2Node?.rect.x = layerListWidget.rect.right() + 220
-        c2Node?.rect.y = startY + 5 - rect.y
+        c2Node?.rect.y = startY + 20 - rect.y
         
         super.draw(xOffset: xOffset, yOffset: yOffset)
     }
@@ -496,5 +557,46 @@ class TerrainEditor         : PropertiesWidget
         let lookAt = getTextureValueAt(event, texture: directionTexture!)
             
         return (SIMD3<Float>(origin.x, origin.y, origin.z), SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z))
+    }
+    
+    /// Installs a StageItem with an orthographic camera for the top down view
+    func installTopDownView()
+    {
+        if orthoStageItem == nil {
+            if let ortho = globalApp!.libraryDialog.getItem(ofId: "Camera3D", withName: "Orthographic Camera") {
+                setPropertyValue3(component: ortho, name: "origin", value: SIMD3<Float>(0,2,0))
+                setPropertyValue3(component: ortho, name: "lookAt", value: SIMD3<Float>(-0.05,0,0))
+                setPropertyValue1(component: ortho, name: "fov", value: 160)
+
+                orthoStageItem = StageItem(.PreStage, "Camera")
+                orthoStageItem?.components[orthoStageItem!.defaultName] = ortho
+            }
+        }
+        
+        if orthoStageItem != nil {
+            let preStage = globalApp!.project.selected!.getStage(.PreStage)
+            let index = preStage.children3D.firstIndex(of: orthoStageItem!)
+            
+            if index == nil {
+                preStage.children3D.insert(orthoStageItem!, at: 0)
+                topDownIsActive = true
+                
+                globalApp!.developerEditor.codeEditor.markStageItemInvalid(orthoStageItem!)
+                terrainNeedsUpdate()
+            }
+        }
+    }
+    
+    func deinstallTopDownView()
+    {
+        let preStage = globalApp!.project.selected!.getStage(.PreStage)
+        
+        if let index = preStage.children3D.firstIndex(of: orthoStageItem!) {
+            preStage.children3D.remove(at: index)
+            topDownIsActive = false
+            
+            globalApp!.developerEditor.codeEditor.markStageItemInvalid(orthoStageItem!)
+            terrainNeedsUpdate()
+        }
     }
 }
