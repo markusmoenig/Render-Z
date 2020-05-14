@@ -8,24 +8,63 @@
 
 import MetalKit
 
-class TerrainLayer            : Codable, Equatable
+class TerrainLayer          : Codable, Equatable
 {
+    enum LayerNoiseType     : Int, Codable {
+        case None, TwoD, ThreeD, Image
+    }
+    
+    enum LayerBlendType     : Int, Codable {
+        case Add, Subtract
+    }
+    
     var uuid                : UUID = UUID()
+    
+    var noiseType           : LayerNoiseType = .None
+    var blendType           : LayerBlendType = .Add
 
-    private enum CodingKeys: String, CodingKey {
+    var noise2DFragment     : CodeFragment
+    var noise3DFragment     : CodeFragment
+    var imageFragment       : CodeFragment
+
+    enum LayerRegionType    : Int, Codable {
+        case Global, Regional
+    }
+    
+    var regionType          : LayerRegionType = .Global
+    
+    private enum CodingKeys : String, CodingKey {
         case uuid
+        case noiseType
+        case blendType
+        case noise2DFragment
+        case noise3DFragment
+        case imageFragment
+        case regionType
     }
      
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         uuid = try container.decode(UUID.self, forKey: .uuid)
+        noiseType = try container.decode(LayerNoiseType.self, forKey: .noiseType)
+        blendType = try container.decode(LayerBlendType.self, forKey: .blendType)
+        noise2DFragment = try container.decode(CodeFragment.self, forKey: .noise2DFragment)
+        noise3DFragment = try container.decode(CodeFragment.self, forKey: .noise3DFragment)
+        imageFragment = try container.decode(CodeFragment.self, forKey: .imageFragment)
+        regionType = try container.decode(LayerRegionType.self, forKey: .regionType)
     }
      
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(uuid, forKey: .uuid)
+        try container.encode(noiseType, forKey: .noiseType)
+        try container.encode(blendType, forKey: .blendType)
+        try container.encode(noise2DFragment, forKey: .noise2DFragment)
+        try container.encode(noise3DFragment, forKey: .noise3DFragment)
+        try container.encode(imageFragment, forKey: .imageFragment)
+        try container.encode(regionType, forKey: .regionType)
     }
      
     static func ==(lhs:TerrainLayer, rhs:TerrainLayer) -> Bool {
@@ -34,6 +73,9 @@ class TerrainLayer            : Codable, Equatable
      
     init()
     {
+        noise2DFragment = CodeFragment(.Primitive)
+        noise3DFragment = CodeFragment(.Primitive)
+        imageFragment = CodeFragment(.Primitive)
     }
 }
 
@@ -42,35 +84,47 @@ class Terrain               : Codable
     var layers              : [TerrainLayer] = []
     
     var texture             : MTLTexture? = nil
+    var terrainData         : Data!
+    var terrainSize         : Float = 1024
     
     private enum CodingKeys: String, CodingKey {
         case layers
+        case terrainData
     }
      
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         layers = try container.decode([TerrainLayer].self, forKey: .layers)
+        terrainData = try container.decode(Data.self, forKey: .terrainData)
     }
      
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(layers, forKey: .layers)
+        
+        let texArray = Array<Int8>(repeating: Int8(0), count: Int(terrainSize*terrainSize))
+        //let texArray = Array<Int8>(repeating: Int8(0), count: 4096*4096*2)
+        let data = Data(bytes: texArray, count:  Int(terrainSize*terrainSize))
+        try container.encode(data, forKey: .terrainData)
     }
      
     init()
     {
+        texture = globalApp!.currentPipeline?.checkTextureSize(terrainSize, terrainSize, texture, .rg8Sint)
+        globalApp!.currentPipeline?.codeBuilder.renderClearTerrain(texture: texture!)
     }
     
     func getTexture() -> MTLTexture?
     {
-        let oldState = texture
-        texture = globalApp!.currentPipeline?.checkTextureSize(4096, 4096, texture, .rg8Sint)
-        if oldState !== texture {
-            globalApp!.currentPipeline?.codeBuilder.renderClearTerrain(texture: texture!)
-        }
         return texture
+    }
+    
+    func textureToData()
+    {
+
+        
     }
 }
 

@@ -76,6 +76,7 @@ class CodeBuilderInstance
             if let tool = propComponent.toolPropertyIndex[uuid] {
                 // Tool property, tool.0 is the name of fragment value
                 for t in tool {
+                    print("adding tool", t.1, t.0, t.1.values[t.0]!)
                     properties.append((t.1, t.1, t.0, data.count, propComponent, hierarchy))
                     data.append(SIMD4<Float>(t.1.values[t.0]!,0,0,0))
                 }

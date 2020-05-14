@@ -11,7 +11,7 @@ import MetalKit
 class LayerListItem : MMTreeWidgetItem
 {
     enum LayerType : Int {
-        case PaintLayer, GlobalNoiseLayer, RegionLayer
+        case PaintLayer, NoiseLayer
     }
     
     var name         : String
@@ -21,16 +21,19 @@ class LayerListItem : MMTreeWidgetItem
     var folderOpen   : Bool = false
     
     var layerType    : LayerType
+    
+    var layer        : TerrainLayer?
             
-    init(_ name: String, _ uuid: UUID,_ type: LayerType)
+    init(_ name: String, _ uuid: UUID,_ type: LayerType, layer: TerrainLayer?)
     {
         self.name = name
         self.uuid = uuid
         layerType = type
+        self.layer = layer
     }
 }
 
-class TerrainEditor         : MMWidget
+class TerrainEditor         : PropertiesWidget
 {
     enum ActionState : Int {
         case None, PaintHeight
@@ -45,34 +48,56 @@ class TerrainEditor         : MMWidget
     
     var layerListWidget     : MMTreeWidget
     var layerItems          : [LayerListItem] = []
+
     var currentLayerItem    : LayerListItem!
-    
+
     var originTexture       : MTLTexture? = nil
     var directionTexture    : MTLTexture? = nil
+    
+    var addLayerButton      : MMButtonWidget!
+    var deleteLayerButton   : MMButtonWidget!
+    
+    let height               : Float = 200
 
     override required init(_ view: MMView)
     {
         layerListWidget = MMTreeWidget(view)
         
         layerListWidget.skin.selectionColor = SIMD4<Float>(0.5,0.5,0.5,1)
-        layerListWidget.itemRound = 0
-        layerListWidget.textOnly = true
-        layerListWidget.unitSize -= 5
-        layerListWidget.itemSize -= 5
+        
+        //layerListWidget.itemRound = 0
+        //layerListWidget.textOnly = true
+        //layerListWidget.unitSize -= 5
+        //layerListWidget.itemSize -= 5*/
         
         layerListWidget.selectionColor = SIMD4<Float>(0.2, 0.2, 0.2, 1)
         
         super.init(view)
+        
+        addLayerButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Add", fixedWidth: buttonWidth)
+        addLayerButton.clicked = { (event) in
+            let layer = TerrainLayer()
+            let item = LayerListItem("Noise Layer #" + String(self.layerItems.count), UUID(), .NoiseLayer, layer: layer)
+            self.layerItems.insert(item, at: 0)
+            self.terrain.layers.insert(layer, at: 0)
+        }
+        
+        deleteLayerButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Delete", fixedWidth: buttonWidth)
+        deleteLayerButton.clicked = { (event) in
+        }
     }
     
     func activate()
     {
         mmView.registerPriorityWidgets(widgets: self)
+        computeCameraTextures()
     }
     
     func deactivate()
     {
         mmView.deregisterWidgets(widgets: self)
+        originTexture = nil
+        directionTexture = nil
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -83,10 +108,9 @@ class TerrainEditor         : MMWidget
         
         actionState = .None
         
-        if event.y < rect.bottom() - 160 {
+        if event.y < rect.bottom() - height {
             // inside the upper area
             
-            computeCameraTextures()
             globalApp!.currentPipeline?.setMinimalPreview(true)
             
             if let loc = getHitLocationAt(event) {
@@ -112,7 +136,8 @@ class TerrainEditor         : MMWidget
             }
             return
         }
-        mouseMoved(event)
+        
+        super.mouseDown(event)
     }
     
     override func mouseMoved(_ event: MMMouseEvent)
@@ -126,7 +151,11 @@ class TerrainEditor         : MMWidget
                 
                 actionState = .PaintHeight
             }
+            
+            return
         }
+        
+        super.mouseMoved(event)
     }
     
     override func mouseUp(_ event: MMMouseEvent)
@@ -139,17 +168,31 @@ class TerrainEditor         : MMWidget
         
         if actionState == .PaintHeight {
             globalApp!.currentPipeline?.setMinimalPreview()
-            originTexture = nil
-            directionTexture = nil
         }
         
+        super.mouseUp(event)
+
         actionState = .None
     }
     
+    func terrainNeedsUpdate(_ compile: Bool = true)
+    {
+        if compile == true {
+            if let component = getComponent(name: "Ground") {
+                if let stageItem = globalApp!.project.selected!.getStageItem(component, selectIt: false) {
+                    globalApp!.developerEditor.codeEditor.markStageItemInvalid(stageItem)
+                }
+            }
+        }
+        globalApp!.currentEditor.updateOnNextDraw(compile: compile)
+    }
     
     func setLayerItem(_ item: LayerListItem)
     {
+        layerListWidget.selectedItems = [item.uuid]
         currentLayerItem = item
+        updateUI()
+        layerListWidget.build(items: layerItems, fixedWidth: 150)
     }
     
     func setTerrain(_ terrain: Terrain)
@@ -159,30 +202,163 @@ class TerrainEditor         : MMWidget
         // Build Layer List
         
         layerItems = []
-        
-        var item = LayerListItem("Test", UUID(), .GlobalNoiseLayer)
-        layerItems.append(item)
 
-        item = LayerListItem("Paint Layer", UUID(), .PaintLayer)
+        let item = LayerListItem("Paint Layer", UUID(), .PaintLayer, layer: nil)
         layerItems.append(item)
         
-        layerListWidget.selectedItems = [item.uuid]
-        layerListWidget.build(items: layerItems, fixedWidth: 150)
-        setLayerItem(item)
+        for (index, l) in terrain.layers.enumerated() {
+            let item = LayerListItem("Noise Layer #" + String(index+1), UUID(), .NoiseLayer, layer: l)
+            layerItems.insert(item, at: index)
+        }
+        
+        setLayerItem(layerItems.last!)
+    }
+    
+    func updateUI()
+    {
+        clear()
+        
+        addButton(addLayerButton)
+        addButton(deleteLayerButton)
+        
+        c1Node = Node()
+        c1Node?.rect.x = 10
+        c1Node?.rect.y = 10
+        
+        c2Node = Node()
+        c2Node?.rect.x = 10
+        c2Node?.rect.y = 10
+        
+        if currentLayerItem.layerType == .NoiseLayer {
+            
+            let noiseModeVar = NodeUISelector(c1Node!, variable: "noiseMode", title: "Noise Mode", items: ["None", "Noise 2D", "Noise 3D", "Image"], index: Float(currentLayerItem.layer!.noiseType.rawValue), shadows: false)
+            c1Node!.uiItems.append(noiseModeVar)
+            
+            let blendModeVar = NodeUISelector(c1Node!, variable: "blendMode", title: "Blend Mode", items: ["Add", "Subtract"], index: Float(currentLayerItem.layer!.blendType.rawValue), shadows: false)
+            c1Node!.uiItems.append(blendModeVar)
+            
+            c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                if variable == "noiseMode" {
+                    self.currentLayerItem.layer!.noiseType = TerrainLayer.LayerNoiseType(rawValue: Int(newValue))!
+                    self.terrainNeedsUpdate()
+                    self.updateUI()
+                } else
+                if variable == "blendMode" {
+                    self.currentLayerItem.layer!.blendType = TerrainLayer.LayerBlendType(rawValue: Int(newValue))!
+                    self.terrainNeedsUpdate()
+                    self.updateUI()
+                }
+                self.terrainNeedsUpdate(false)
+            }
+            
+            c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                if variable == "noiseMode" {
+                    self.currentLayerItem.layer!.noiseType = TerrainLayer.LayerNoiseType(rawValue: Int(newValue))!
+                    self.terrainNeedsUpdate()
+                    self.updateUI()
+                }
+                self.terrainNeedsUpdate(false)
+                
+                if variable.starts(with: "noise") || variable.starts(with: "image") {
+                    if self.currentLayerItem.layer!.noiseType == .Image {
+                        let fragment = self.currentLayerItem.layer!.imageFragment
+                        fragment.values[variable] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Image Changed") : nil
+                        fragment.values[variable] = newValue
+                        if variable == "image" {
+                            self.terrainNeedsUpdate()
+                        }
+                        if let undo = codeUndo { globalApp!.currentEditor.undoComponentEnd(undo) }
+                    } else
+                    if self.currentLayerItem.layer!.noiseType == .TwoD {
+                        let fragment = self.currentLayerItem.layer!.noise2DFragment
+                        fragment.values[variable] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Noise Changed") : nil
+                        fragment.values[variable] = newValue
+                        if variable == "noise2D" || variable == "noiseMix2D" {
+                            self.terrainNeedsUpdate()
+                        }
+                        if let undo = codeUndo { globalApp!.currentEditor.undoComponentEnd(undo) }
+                    } else
+                    if self.currentLayerItem.layer!.noiseType == .ThreeD {
+                        let fragment = self.currentLayerItem.layer!.noise3DFragment
+
+                        fragment.values[variable] = oldValue
+                        let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Noise Changed") : nil
+                        fragment.values[variable] = newValue
+                        if variable == "noise3D" || variable == "noiseMix3D" {
+                            self.terrainNeedsUpdate()
+                        }
+                        if let undo = codeUndo { globalApp!.currentEditor.undoComponentEnd(undo) }
+                    }
+                    return
+                }
+            }
+            
+            if currentLayerItem.layer!.noiseType == .TwoD {
+                // To initiate the fragment in case its a virgin
+                let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
+                let component = CodeComponent(.Dummy)
+                ctx.cComponent = component
+                component.globalCode = ""
+                let _ = generateNoise2DFunction(ctx, currentLayerItem.layer!.noise2DFragment)
+                c2Node!.uiItems.append(setupNoise2DUI(c2Node!, currentLayerItem.layer!.noise2DFragment))
+            } else
+            if currentLayerItem.layer!.noiseType == .ThreeD {
+                // To initiate the fragment in case its a virgin
+                let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
+                let component = CodeComponent(.Dummy)
+                ctx.cComponent = component
+                component.globalCode = ""
+                let _ = generateNoise3DFunction(ctx, currentLayerItem.layer!.noise3DFragment)
+                c2Node!.uiItems.append(setupNoise3DUI(c2Node!, currentLayerItem.layer!.noise3DFragment))
+            } else
+            if currentLayerItem.layer!.noiseType == .Image {
+                // To initiate the fragment in case its a virgin
+                let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
+                let component = CodeComponent(.Dummy)
+                ctx.cComponent = component
+                component.globalCode = ""
+                let _ = generateImageFunction(ctx, currentLayerItem.layer!.imageFragment)
+                c2Node!.uiItems.append(setupImageUI(c2Node!, currentLayerItem.layer!.imageFragment))
+            }
+        }
+        
+        c1Node?.setupUI(mmView: mmView)
+        c2Node?.setupUI(mmView: mmView)
     }
 
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         drawPreview(mmView: mmView, rect)
         
-        mmView.drawBox.draw( x: rect.x, y: rect.bottom() - 160 + 0.5, width: rect.width + 0.5, height: 160, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 0.8) )
-        
-        layerListWidget.rect.x = rect.x + 5
-        layerListWidget.rect.y = rect.bottom() - 160 + 5
-        layerListWidget.rect.width = 160
-        layerListWidget.rect.height = 150
-        layerListWidget.draw()
+        let startY : Float = rect.bottom() - height
 
+        mmView.drawBox.draw( x: rect.x, y: rect.bottom() - height + 0.5, width: rect.width + 0.5, height: height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1.0 ))
+                
+        layerListWidget.rect.x = rect.x + 5
+        layerListWidget.rect.y = startY + 50
+        layerListWidget.rect.width = 180
+        layerListWidget.rect.height = height - 50
+        layerListWidget.draw()
+        
+        //layerListWidget.drawRoundedBorder(backColor: SIMD4<Float>(0.145, 0.145, 0.145, 1.0), borderColor: SIMD4<Float>(0.286, 0.286, 0.286, 1.000))
+        
+        addLayerButton.rect.x = rect.x + 5
+        addLayerButton.rect.y = startY + 5
+        addLayerButton.rect.width = 80
+        
+        deleteLayerButton.rect.x = addLayerButton.rect.right() + 5
+        deleteLayerButton.rect.y = startY + 5
+        deleteLayerButton.rect.width = 80
+        
+        c1Node?.rect.x = layerListWidget.rect.right() + 20
+        c1Node?.rect.y = startY + 5 - rect.y
+        
+        c2Node?.rect.x = layerListWidget.rect.right() + 220
+        c2Node?.rect.y = startY + 5 - rect.y
+        
+        super.draw(xOffset: xOffset, yOffset: yOffset)
     }
     
     func getValue(_ location: SIMD2<Float>) -> Int8
@@ -190,13 +366,13 @@ class TerrainEditor         : MMWidget
         var loc = location
         var value : Int8 = 0;
         
-        loc.x += 4096.0 / 2.0
-        loc.y += 4096.0 / 2.0
+        loc.x += terrain.terrainSize / 2.0
+        loc.y += terrain.terrainSize / 2.0
         
         let x : Int = Int(loc.x)
         let y : Int = Int(loc.y)
 
-        let region = MTLRegionMake2D(min(Int(x), 4095), min(Int(y), 4095), 1, 1)
+        let region = MTLRegionMake2D(min(Int(x), Int(terrain.terrainSize)-1), min(Int(y), Int(terrain.terrainSize)-1), 1, 1)
 
         var texArray = Array<Int8>(repeating: Int8(0), count: 2)
         texArray.withUnsafeMutableBytes { texArrayPtr in
@@ -215,15 +391,13 @@ class TerrainEditor         : MMWidget
     {
         var loc = location
         
-        loc.x += 4096.0 / 2.0
-        loc.y += 4096.0 / 2.0
+        loc.x += terrain.terrainSize / 2.0
+        loc.y += terrain.terrainSize / 2.0
         
         let x : Int = Int(loc.x)
         let y : Int = Int(loc.y)
 
-        print("setValue", x, y)
-
-        let region = MTLRegionMake2D(min(Int(x), 4095), min(Int(y), 4095), 1, 1)
+        let region = MTLRegionMake2D(min(Int(x), Int(terrain.terrainSize)-1), min(Int(y), Int(terrain.terrainSize)-1), 1, 1)
 
         var texArray = Array<Int8>(repeating: value, count: 2)
         texArray.withUnsafeMutableBytes { texArrayPtr in
@@ -261,9 +435,7 @@ class TerrainEditor         : MMWidget
                 if value.w >= 0 {
                     let camera = getCameraValues(event)
                     let hit = camera.0 + normalize(camera.1) * value.y
-                    
-                    print(camera.0, camera.1, value.y, value.w)
-                    
+
                     return SIMD2<Float>(hit.x, hit.z)
                 }
             }

@@ -196,6 +196,7 @@ class ArtistEditor          : Editor
     func activateTerrain()
     {
         if let terrain = self.getTerrain() {
+            self.terrainEditor.rect.copy(designEditor.rect)
             self.terrainEditor.activate()
             self.terrainEditor.setTerrain(terrain)
             self.terrainIsActive = true

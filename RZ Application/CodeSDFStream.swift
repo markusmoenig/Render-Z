@@ -536,7 +536,7 @@ class CodeSDFStream
                         """
                     } else {
                         
-                        //let terrain = shapeStage.terrain!
+                        let terrain = shapeStage.terrain!
                         
                         terrainMapCode +=
                         """
@@ -551,8 +551,72 @@ class CodeSDFStream
                              
                             float outDistance = 1000000.0;
                         
-                            //float2 tMap = float2(__funcData->terrainTexture->sample(__textureSampler, (position.xz + 4096. / 2.) / 4096.).xy);
-                            float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + 4096. / 2.) / 4096.);
+                        //float2 tMap = float2(__funcData->terrainTexture->sample(__textureSampler, (position.xz + \(terrain.terrainSize) / 2.) / \(terrain.terrainSize)).xy);
+                            float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + \(terrain.terrainSize) / 2.) / \(terrain.terrainSize));
+                        
+                        """
+                        
+                        // Insert the noise layers
+                        
+                        let component = CodeComponent(.Dummy)
+                        let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
+                        ctx.reset(globalApp!.developerEditor.codeEditor.rect.width, instance.data.count, patternList: [])
+                        ctx.cComponent = component
+                        component.globalCode = ""
+                        
+                        for layer in terrain.layers {
+                            
+                            if layer.noiseType != .None {
+                                if layer.blendType == .Add {
+                                    terrainMapCode +=
+                                    """
+                                    
+                                    height +=
+                                    """
+                                } else {
+                                    terrainMapCode +=
+                                    """
+                                    
+                                    height -=
+                                    """
+                                }
+                            }
+                            
+                            if layer.noiseType == .TwoD {
+
+                                let layerName = generateNoise2DFunction(ctx, layer.noise2DFragment)
+                                headerCode += component.globalCode!
+                                terrainMapCode +=
+                                """
+                                \(layerName)(position.xz, __funcData);
+                                
+                                """
+                            } else
+                            if layer.noiseType == .ThreeD {
+
+                                let layerName = generateNoise3DFunction(ctx, layer.noise3DFragment)
+                                headerCode += component.globalCode!
+                                terrainMapCode +=
+                                """
+                                \(layerName)(position, __funcData);
+                                
+                                """
+                            } else
+                            if layer.noiseType == .Image {
+
+                                let layerName = generateImageFunction(ctx, layer.imageFragment)
+                                headerCode += component.globalCode!
+                                terrainMapCode +=
+                                """
+                                \(layerName)(position.xz, __funcData).x;
+                                
+                                """
+                            }
+                        }
+                        instance.collectProperties(component)
+                        
+                        terrainMapCode +=
+                        """
                         
                             return position.y - height;
                         }

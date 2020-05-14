@@ -801,7 +801,7 @@ func getTransformedComponentProperty(_ component: CodeComponent,_ name: String) 
 
 // Image Functions
 
-// Setup a NodeUINoise2D
+// Setup an ImageUI
 func setupImageUI(_ node: Node, _ fragment: CodeFragment, title: String = "Image") -> NodeUIImage
 {
     var items : [String] = []
