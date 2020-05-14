@@ -562,10 +562,10 @@ class CodeSDFStream
                         let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
                         ctx.reset(globalApp!.developerEditor.codeEditor.rect.width, instance.data.count, patternList: [])
                         ctx.cComponent = component
-                        component.globalCode = ""
                         
                         for layer in terrain.layers {
                             
+                            component.globalCode = ""
                             if layer.noiseType != .None {
                                 if layer.blendType == .Add {
                                     terrainMapCode +=
@@ -573,11 +573,19 @@ class CodeSDFStream
                                     
                                     height +=
                                     """
-                                } else {
+                                } else
+                                if layer.blendType == .Subtract {
                                     terrainMapCode +=
                                     """
                                     
                                     height -=
+                                    """
+                                }
+                                if layer.blendType == .Max {
+                                    terrainMapCode +=
+                                    """
+                                    
+                                    height = max(height,
                                     """
                                 }
                             }
@@ -588,8 +596,7 @@ class CodeSDFStream
                                 headerCode += component.globalCode!
                                 terrainMapCode +=
                                 """
-                                \(layerName)(position.xz, __funcData);
-                                
+                                \(layerName)(position.xz, __funcData)
                                 """
                             } else
                             if layer.noiseType == .ThreeD {
@@ -598,8 +605,7 @@ class CodeSDFStream
                                 headerCode += component.globalCode!
                                 terrainMapCode +=
                                 """
-                                \(layerName)(position, __funcData);
-                                
+                                \(layerName)(position, __funcData)
                                 """
                             } else
                             if layer.noiseType == .Image {
@@ -608,7 +614,21 @@ class CodeSDFStream
                                 headerCode += component.globalCode!
                                 terrainMapCode +=
                                 """
-                                \(layerName)(position.xz, __funcData).x;
+                                \(layerName)(position.xz, __funcData).x
+                                """
+                            }
+                            
+                            if layer.blendType == .Max {
+                                terrainMapCode +=
+                                """
+                                - 0.5);
+                                
+                                """
+                            } else
+                            if layer.noiseType != .None {
+                                terrainMapCode +=
+                                """
+                                ;
                                 
                                 """
                             }

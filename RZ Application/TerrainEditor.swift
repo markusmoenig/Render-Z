@@ -234,7 +234,7 @@ class TerrainEditor         : PropertiesWidget
             let noiseModeVar = NodeUISelector(c1Node!, variable: "noiseMode", title: "Noise Mode", items: ["None", "Noise 2D", "Noise 3D", "Image"], index: Float(currentLayerItem.layer!.noiseType.rawValue), shadows: false)
             c1Node!.uiItems.append(noiseModeVar)
             
-            let blendModeVar = NodeUISelector(c1Node!, variable: "blendMode", title: "Blend Mode", items: ["Add", "Subtract"], index: Float(currentLayerItem.layer!.blendType.rawValue), shadows: false)
+            let blendModeVar = NodeUISelector(c1Node!, variable: "blendMode", title: "Blend Mode", items: ["Add", "Subtract", "Max"], index: Float(currentLayerItem.layer!.blendType.rawValue), shadows: false)
             c1Node!.uiItems.append(blendModeVar)
             
             c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in

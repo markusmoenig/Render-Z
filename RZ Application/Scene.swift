@@ -15,7 +15,7 @@ class TerrainLayer          : Codable, Equatable
     }
     
     enum LayerBlendType     : Int, Codable {
-        case Add, Subtract
+        case Add, Subtract, Max
     }
     
     var uuid                : UUID = UUID()
@@ -106,7 +106,7 @@ class Terrain               : Codable
         
         let texArray = Array<Int8>(repeating: Int8(0), count: Int(terrainSize*terrainSize))
         //let texArray = Array<Int8>(repeating: Int8(0), count: 4096*4096*2)
-        let data = Data(bytes: texArray, count:  Int(terrainSize*terrainSize))
+        let data = Data(bytes: texArray, count: Int(terrainSize*terrainSize))
         try container.encode(data, forKey: .terrainData)
     }
      
