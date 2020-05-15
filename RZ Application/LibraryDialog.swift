@@ -420,10 +420,6 @@ class LibraryDialog: MMDialog {
                 DispatchQueue.main.async {
                     if let cb = self._cbMaterials {
                         if self.currentId == "Basic" {
-                            //if let comp = decodeComponentFromJSON(selected.json) {
-                            //    let recoded = encodeComponentToJSON(comp)
-                            //    cb(recoded, "")
-                            //}
                             cb(selected.json, "")
                         } else {
                             cb("", selected.json)

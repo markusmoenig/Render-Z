@@ -307,6 +307,8 @@ class SceneGraph                : MMWidget
     
     override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
     {
+        clickWasConsumed = true
+
         if firstTouch == true {
             zoomBuffer = graphZoom
         }
@@ -701,7 +703,7 @@ class SceneGraph                : MMWidget
                 setCurrent(stage: varItem.stage, stageItem: varItem.stageItem, component: varItem.component)
             }
         }
-        
+                
         if let pressedButton = pressedButton {
             pressedButton.cb!()
         } else

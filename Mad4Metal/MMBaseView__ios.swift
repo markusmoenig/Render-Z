@@ -48,10 +48,15 @@ public class MMBaseView : MTKView
     func platformInit()
     {
         scaleFactor = Float(UIScreen.main.scale)
+        
+        #if targetEnvironment(macCatalyst)
+        scaleFactor += 0.23
+        #endif
+        
         mouseDownPos = SIMD2<Float>()
         
-        let panRecognizer = UIPanGestureRecognizer(target: self, action:(#selector(self.handlePanGesture(_:))))
-        addGestureRecognizer(panRecognizer)
+        //let panRecognizer = UIPanGestureRecognizer(target: self, action:(#selector(self.handlePanGesture(_:))))
+        //addGestureRecognizer(panRecognizer)
         
         let pinchRecognizer = UIPinchGestureRecognizer(target: self, action:(#selector(self.handlePinchGesture(_:))))
         addGestureRecognizer(pinchRecognizer)
@@ -59,7 +64,27 @@ public class MMBaseView : MTKView
         let tapRecognizer = UITapGestureRecognizer(target: self, action:(#selector(self.handleTapGesture(_:))))
         tapRecognizer.numberOfTapsRequired = 2
         addGestureRecognizer(tapRecognizer)
+        
+        #if targetEnvironment(macCatalyst)
+        let macHoverRecognizer = UIHoverGestureRecognizer(target: self, action:(#selector(self.handleMacHoverGesture(_:))))
+        addGestureRecognizer(macHoverRecognizer)
+        #endif
+        
+        if #available(iOS 13.4, *) {
+            enablePointerInteraction()
+        }
     }
+    
+    #if targetEnvironment(macCatalyst)
+    @objc func handleMacHoverGesture(_ recognizer: UIHoverGestureRecognizer)
+    {
+        if let view = recognizer.view {
+            if recognizer.state == .changed {
+                mouseMoved(x: Float(recognizer.location(in: view).x), y: Float(recognizer.location(in: view).y))
+            }
+        }
+    }
+    #endif
     
     @objc func handleTapGesture(_ recognizer: UITapGestureRecognizer)
     {
@@ -81,6 +106,13 @@ public class MMBaseView : MTKView
             }
             
             firstTouch = false
+            
+            if recognizer.state == .ended {
+                if let hover = hoverWidget {
+                    let event = MMMouseEvent(mouseDownPos.x, mouseDownPos.y, 2)
+                    hover.mouseUp(event)
+                }
+            }
         }
     }
     
@@ -88,7 +120,7 @@ public class MMBaseView : MTKView
     {
         let translation = recognizer.translation(in: self)
 //        print( translation )
-        
+                
         if ( recognizer.state == .began ) {
             lastX = 0
             lastY = 0
@@ -262,9 +294,10 @@ public class MMBaseView : MTKView
     
     override public func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         
-//        if let touch = touches.first {
-//            let currentPoint = touch.location(in: self)
-//        }
+        if let touch = touches.first {
+            let point = touch.location(in: self)
+            mouseMoved(x: Float(point.x), y: Float(point.y))
+        }
     }
     
     override public func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -300,9 +333,65 @@ public class MMBaseView : MTKView
                 focusWidget!.mouseUp(event)
                 focusWidget!._clicked(event)
             }
+            
             hoverWidget = nil
             focusWidget = nil
         }
+    }
+    
+    func mouseMoved(x: Float, y: Float)
+    {
+        let event = MMMouseEvent(x, y)
+                
+        let mmView : MMView = self as! MMView
+        event.x /= Float(bounds.width) / mmView.renderer.cWidth
+        event.y /= Float(bounds.height) / mmView.renderer.cHeight
+                
+        if mouseTrackWidget != nil {
+            mouseTrackWidget!.mouseMoved(event)
+        } else {
+            let oldHoverWidget = hoverWidget
+            hoverWidget = nil
+
+            for widget in widgets {
+                if widget.rect.contains( event.x, event.y ) {
+                    hoverWidget = widget
+                    if hoverWidget !== oldHoverWidget {
+                        hoverWidget!.addState(.Hover)
+                        hoverWidget!.mouseEnter(event)
+                    }
+                    hoverWidget!.mouseMoved(event)
+                    break;
+                }
+            }
+            
+            if oldHoverWidget !== hoverWidget {
+                if oldHoverWidget != nil {
+                    oldHoverWidget!.removeState(.Hover)
+                    oldHoverWidget!.mouseLeave(event)
+                }
+            }
+        }
+    }
+}
+
+@available(iOS 13.4, *)
+extension MMBaseView: UIPointerInteractionDelegate {
+
+    func enablePointerInteraction() {
+        self.addInteraction(UIPointerInteraction(delegate: self))
+    }
+
+    // This isn't even needed — just indicating what the default does!
+    public func pointerInteraction(_ interaction: UIPointerInteraction, regionFor request: UIPointerRegionRequest, defaultRegion: UIPointerRegion) -> UIPointerRegion? {
+
+        mouseMoved(x: Float(request.location.x), y: Float(request.location.y))
+        
+        return defaultRegion
+    }
+
+    public func pointerInteraction(_ interaction: UIPointerInteraction, styleFor region: UIPointerRegion) -> UIPointerStyle? {
+        return UIPointerStyle(effect: .automatic(.init(view: self)))
     }
 }
 
