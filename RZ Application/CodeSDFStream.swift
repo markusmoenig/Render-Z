@@ -566,6 +566,11 @@ class CodeSDFStream
 
                         for layer in terrain.layers.reversed() {
                             
+                            var oldOffset : Int = 0
+                            ctx.cComponent!.toolPropertyIndex.forEach { (key, value) in
+                                oldOffset += value.count - 1
+                            }
+                            
                             if layer.noiseType != .None {
                                 if layer.blendType == .Add {
                                     terrainMapCode +=
@@ -629,6 +634,13 @@ class CodeSDFStream
                                 
                                 """
                             }
+                            
+                            var newOffset : Int = 0
+                            ctx.cComponent!.toolPropertyIndex.forEach { (key, value) in
+                                newOffset += value.count - 1
+                            }
+                            
+                            ctx.propertyDataOffset += newOffset - oldOffset
                         }
                         headerCode += component.globalCode!
                         instance.collectProperties(component)
