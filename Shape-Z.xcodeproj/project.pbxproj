@@ -35,6 +35,8 @@
 		2B169BDE2464D80800366E19 /* Z_green.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B169BD82464D80700366E19 /* Z_green.tiff */; };
 		2B169BE0246B67D000366E19 /* TerrainEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BDF246B67D000366E19 /* TerrainEditor.swift */; };
 		2B169BE1246B67D000366E19 /* TerrainEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BDF246B67D000366E19 /* TerrainEditor.swift */; };
+		2B169BE3246E19DE00366E19 /* UploadDialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BE2246E195400366E19 /* UploadDialogs.swift */; };
+		2B169BE4246E19DF00366E19 /* UploadDialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B169BE2246E195400366E19 /* UploadDialogs.swift */; };
 		2B1ACBE023597D2600ED19AD /* TVOS_Framework.h in Headers */ = {isa = PBXBuildFile; fileRef = 2B1ACBDE23597D2600ED19AD /* TVOS_Framework.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		2B1ACBE423597D5900ED19AD /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF119F21EAD46B001C94E9 /* App.swift */; };
 		2B1ACBE523597D5900ED19AD /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
@@ -712,6 +714,7 @@
 		2B169BD72464D80700366E19 /* X_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = X_blue.tiff; path = "../../../Downloads/untitled folder/X_blue.tiff"; sourceTree = "<group>"; };
 		2B169BD82464D80700366E19 /* Z_green.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = Z_green.tiff; path = "../../../Downloads/untitled folder/Z_green.tiff"; sourceTree = "<group>"; };
 		2B169BDF246B67D000366E19 /* TerrainEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainEditor.swift; sourceTree = "<group>"; };
+		2B169BE2246E195400366E19 /* UploadDialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadDialogs.swift; sourceTree = "<group>"; };
 		2B1ACBDC23597D2600ED19AD /* TVOS_Framework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TVOS_Framework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B1ACBDE23597D2600ED19AD /* TVOS_Framework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TVOS_Framework.h; sourceTree = "<group>"; };
 		2B1ACBDF23597D2600ED19AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -1076,6 +1079,7 @@
 				2B50635723CEC98500124517 /* LibraryDialog.swift */,
 				2BE847B52453C49700409AAE /* NewDialog.swift */,
 				2B2B6006242601C300B9CCF1 /* ExportDialog.swift */,
+				2B169BE2246E195400366E19 /* UploadDialogs.swift */,
 				2BE9488623D0675600DB0BCD /* DefaultItems.swift */,
 				2B4600EB2442EAC0004DAF5E /* AppShaders.metal */,
 				2B4600EE244530CE004DAF5E /* PropertiesWidget.swift */,
@@ -1950,6 +1954,7 @@
 				2B7A3C3C23B46838002EC5FC /* BottomRegion.swift in Sources */,
 				2B7A3C1523B46546002EC5FC /* MMTabWidget.swift in Sources */,
 				2B7A3C0823B4653F002EC5FC /* MMView.swift in Sources */,
+				2B169BE3246E19DE00366E19 /* UploadDialogs.swift in Sources */,
 				2BE847B92453C75C00409AAE /* NewDialog.swift in Sources */,
 				2B7A3C2423B46560002EC5FC /* App.swift in Sources */,
 				2B7A3C0B23B46546002EC5FC /* MMWidget.swift in Sources */,
@@ -2237,6 +2242,7 @@
 				2B9B29E123BB45B900C2F387 /* App.swift in Sources */,
 				2B9B29C523BB453400C2F387 /* MMUtils.swift in Sources */,
 				2B9B29D323BB453400C2F387 /* MMTreeWidget.swift in Sources */,
+				2B169BE4246E19DF00366E19 /* UploadDialogs.swift in Sources */,
 				2BE5A4DA240CBB1B00890281 /* Camera3D.swift in Sources */,
 				2B65083423D69922003DE093 /* CodeSDFStream.swift in Sources */,
 				2B1AF8B024133D7900AA82B0 /* Pipeline2D.swift in Sources */,

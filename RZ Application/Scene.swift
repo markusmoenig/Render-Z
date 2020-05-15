@@ -133,7 +133,11 @@ class StageItem             : Codable, Equatable
     var stageItemType       : Stage.StageType = .PreStage
     var name                : String = ""
     var uuid                : UUID = UUID()
- 
+    
+    var libraryCategory     : String = ""
+    var libraryDescription  : String = ""
+    var libraryAuthor       : String = ""
+
     var folderIsOpen        : Bool = false
 
     var components          : [String:CodeComponent] = [:]
@@ -154,6 +158,9 @@ class StageItem             : Codable, Equatable
         case stageItemType
         case name
         case uuid
+        case libraryCategory
+        case libraryDescription
+        case libraryAuthor
         case folderIsOpen
         case components
         case componentLists
@@ -168,6 +175,15 @@ class StageItem             : Codable, Equatable
         stageItemType = try container.decode(Stage.StageType.self, forKey: .stageItemType)
         name = try container.decode(String.self, forKey: .name)
         uuid = try container.decode(UUID.self, forKey: .uuid)
+        if let category = try container.decodeIfPresent(String.self, forKey: .libraryCategory) {
+            libraryCategory = category
+        }
+        if let description = try container.decodeIfPresent(String.self, forKey: .libraryDescription) {
+            libraryDescription = description
+        }
+        if let author = try container.decodeIfPresent(String.self, forKey: .libraryAuthor) {
+            libraryAuthor = author
+        }
         folderIsOpen = try container.decode(Bool.self, forKey: .folderIsOpen)
         components = try container.decode([String:CodeComponent].self, forKey: .components)
         componentLists = try container.decode([String:[CodeComponent]].self, forKey: .componentLists)
@@ -182,6 +198,9 @@ class StageItem             : Codable, Equatable
         try container.encode(stageItemType, forKey: .stageItemType)
         try container.encode(name, forKey: .name)
         try container.encode(uuid, forKey: .uuid)
+        try container.encode(libraryCategory, forKey: .libraryCategory)
+        try container.encode(libraryDescription, forKey: .libraryDescription)
+        try container.encode(libraryAuthor, forKey: .libraryAuthor)
         try container.encode(folderIsOpen, forKey: .folderIsOpen)
         try container.encode(components, forKey: .components)
         try container.encode(componentLists, forKey: .componentLists)

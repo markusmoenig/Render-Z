@@ -1237,6 +1237,66 @@ class SceneGraph                : MMWidget
             }
         }
         
+        func buildChangeMaterial(_ item: SceneGraphItem, name: String)
+        {
+            if let stageItem = item.stageItem {
+                let menuItem = MMMenuItem(text: "Change " + name, cb: { () in
+                    globalApp!.libraryDialog.showMaterials(cb: { (jsonComponent, jsonStageItem) in
+                        if jsonComponent.count > 0 {
+                            if let comp = decodeComponentFromJSON(jsonComponent) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Change " + name)
+                                
+                                //comp.uuid = UUID()
+                                comp.selected = nil
+                                
+                                comp.uuid = item.component!.uuid
+                                globalApp!.currentEditor.setComponent(comp)
+                                globalApp!.project.selected!.updateComponent(comp)
+
+                                globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
+                                self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                
+                                if comp.componentType == .Material3D || comp.componentType == .UVMAP3D || comp.componentType == .Ground3D {
+                                    stageItem.name = comp.libraryName
+                                    stageItem.label = nil
+                                }
+                            }
+                        } else {
+                            if let newStageItem = decodeStageItemFromJSON(jsonStageItem) {
+                                let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Change " + name)
+                                
+                                let comp = newStageItem.components[newStageItem.defaultName]!
+                                
+                                stageItem.components[stageItem.defaultName] = newStageItem.components[stageItem.defaultName]
+                                stageItem.componentLists["patterns"] = newStageItem.componentLists["patterns"]
+                                
+                                stageItem.components[stageItem.defaultName]!.libraryName = newStageItem.name
+
+                                stageItem.libraryCategory = newStageItem.libraryCategory
+                                stageItem.libraryDescription = newStageItem.libraryDescription
+                                stageItem.libraryAuthor = newStageItem.libraryAuthor
+
+                                globalApp!.currentEditor.setComponent(comp)
+                                globalApp!.project.selected!.updateComponent(comp)
+                                globalApp!.project.selected!.updateStageItem(stageItem)
+
+                                globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
+                                self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
+                                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                
+                                stageItem.name = newStageItem.name
+                                stageItem.label = nil
+                            }
+                        }
+                    })
+                } )
+                items.append(menuItem)
+            }
+        }
+        
         if let uuid = uuid {
             if let item = itemMap[uuid] {
                 
@@ -1307,7 +1367,13 @@ class SceneGraph                : MMWidget
                         buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])
                     } else
                     if comp.componentType == .Material3D {
-                        buildChangeComponent(item, name: "Material", ids: ["Material3D"])
+                        buildChangeMaterial(item, name: "Material")
+                        items.append(MMMenuItem())
+                        let uploadItem = MMMenuItem(text: "Upload...", cb: { () in
+                            let dialog = UploadMaterialsDialog(self.mmView, material: item.stageItem!)
+                            dialog.show()
+                        } )
+                        items.append(uploadItem)
                     } else
                     if comp.componentType == .Render2D || comp.componentType == .Render3D {
                         let menuItem = MMMenuItem(text: "Change Renderer", cb: { () in

@@ -51,9 +51,13 @@ class LibraryDialog: MMDialog {
     }
     
     var style           : Style = .Icon
+    
     var itemMap         : [String:[LibraryItem]] = [:]
     var privateItemMap  : [String:[LibraryItem]] = [:]
 
+    var materialsItemMap: [String:[LibraryItem]] = [:]
+    var privateMaterialsItemMap  : [String:[LibraryItem]] = [:]
+    
     var currentItems    : [LibraryItem]? = nil
 
     var hoverItem       : LibraryItem? = nil
@@ -68,7 +72,8 @@ class LibraryDialog: MMDialog {
     var currentType     : String = ""
     
     var _cb             : ((String)->())? = nil
-    
+    var _cbMaterials    : ((String, String)->())? = nil
+
     var borderlessSkin  : MMSkinButton
     var publicPrivateTab: MMTabButtonWidget
     
@@ -187,10 +192,74 @@ class LibraryDialog: MMDialog {
                 self.privateItemMap[type] = list
             })
         }
+        
+        let publicMaterialsQuery = CKQuery(recordType: "materials", predicate: NSPredicate(value: true))
+        CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase.perform(publicMaterialsQuery, inZoneWith: nil) { (records, error) in
+            
+            records?.forEach({ (record) in
+
+                if !record.recordID.recordName.contains(" :: ") {
+                    return
+                }
+                let arr = record.recordID.recordName.components(separatedBy: " :: ")
+                let name = arr[0]
+                let type = arr[1]
+                
+                var description : String = ""
+                if let desc = record.value(forKey: "description") {
+                    description = desc as! String
+                }
+
+                let item = LibraryItem(view, name, description, record.value(forKey: "json") as! String, record.recordID.recordName, type)
+                if self.materialsItemMap[type] == nil {
+                    self.materialsItemMap[type] = []
+                }
+                var list = self.materialsItemMap[type]!
+                list.append(item)
+                self.materialsItemMap[type] = list
+            })
+            
+            globalApp!.topRegion!.libraryButton.isDisabled = false
+            DispatchQueue.main.async {
+                self.mmView.update()
+                globalApp!.sceneGraph.libraryLoaded()
+                globalApp!.thumbnail.libraryLoaded()
+            }
+        }
+        
+        let privateMaterialsQuery = CKQuery(recordType: "materials", predicate: NSPredicate(value: true))
+        CKContainer.init(identifier: "iCloud.com.moenig.renderz").privateCloudDatabase.perform(privateMaterialsQuery, inZoneWith: nil) { (records, error) in
+            
+            records?.forEach({ (record) in
+
+                if !record.recordID.recordName.contains(" :: ") {
+                    return
+                }
+                let arr = record.recordID.recordName.components(separatedBy: " :: ")
+                let name = arr[0]
+                let type = arr[1]
+                
+                var description : String = ""
+                if let desc = record.value(forKey: "description") {
+                    description = desc as! String
+                }
+
+                let item = LibraryItem(view, name, description, record.value(forKey: "json") as! String, record.recordID.recordName, type)
+                if self.privateMaterialsItemMap[type] == nil {
+                    self.privateMaterialsItemMap[type] = []
+                }
+                var list = self.privateMaterialsItemMap[type]!
+                list.append(item)
+                self.privateMaterialsItemMap[type] = list
+            })
+        }
     }
     
     func show(ids: [String], style: Style = .List, cb: ((String)->())? = nil )
     {
+        _cb = cb
+        _cbMaterials = nil
+        
         self.style = style
 
         currentId = ids[0]
@@ -198,7 +267,21 @@ class LibraryDialog: MMDialog {
         
         createButtons(ids)
         
-        _cb = cb
+        mmView.showDialog(self)
+    }
+    
+    func showMaterials(style: Style = .List, cb: ((String, String)->())? = nil )
+    {
+        _cb = nil
+        _cbMaterials = cb
+        
+        self.style = style
+
+        currentId = "Basic"
+        setCurrentItems()
+        
+        createButtons(["Basic", "Architecture", "Metal", "Organic", "Stone", "Wood"])
+        
         mmView.showDialog(self)
     }
     
@@ -244,14 +327,35 @@ class LibraryDialog: MMDialog {
     
     func setCurrentItems()
     {
-        if publicPrivateTab.index == 0 {
-            if itemMap[currentId] == nil { itemMap[currentId] = [] }
-            currentItems = itemMap[currentId]!
-        } else {
-            if privateItemMap[currentId] == nil { privateItemMap[currentId] = [] }
-            currentItems = privateItemMap[currentId]!
+        if _cb != nil {
+            if publicPrivateTab.index == 0 {
+                if itemMap[currentId] == nil { itemMap[currentId] = [] }
+                currentItems = itemMap[currentId]!
+            } else {
+                if privateItemMap[currentId] == nil { privateItemMap[currentId] = [] }
+                currentItems = privateItemMap[currentId]!
+            }
+        } else
+        if _cbMaterials != nil {
+            if currentId == "Basic" {
+                if publicPrivateTab.index == 0 {
+                    if itemMap["Material3D"] == nil { itemMap["Material3D"] = [] }
+                    currentItems = itemMap["Material3D"]!
+                } else {
+                    if privateItemMap["Material3D"] == nil { privateItemMap["Material3D"] = [] }
+                    currentItems = privateItemMap["Material3D"]!
+                }
+            } else {
+                if publicPrivateTab.index == 0 {
+                    if materialsItemMap[currentId] == nil { materialsItemMap[currentId] = [] }
+                    currentItems = materialsItemMap[currentId]!
+                } else {
+                    if privateMaterialsItemMap[currentId] == nil { privateMaterialsItemMap[currentId] = [] }
+                    currentItems = privateMaterialsItemMap[currentId]!
+                }
+            }
         }
-        
+                
         if currentItems != nil && currentItems!.count > 0 {
             currentItems = currentItems!.sorted(by: { $0.titleLabel.text < $1.titleLabel.text })
             selectedItem = currentItems![0]
@@ -308,6 +412,21 @@ class LibraryDialog: MMDialog {
                         if let comp = decodeComponentAndProcess(selected.json) {
                             let recoded = encodeComponentToJSON(comp)
                             cb(recoded)
+                        }
+                    }
+                }
+            } else
+            if _cbMaterials != nil {
+                DispatchQueue.main.async {
+                    if let cb = self._cbMaterials {
+                        if self.currentId == "Basic" {
+                            //if let comp = decodeComponentFromJSON(selected.json) {
+                            //    let recoded = encodeComponentToJSON(comp)
+                            //    cb(recoded, "")
+                            //}
+                            cb(selected.json, "")
+                        } else {
+                            cb("", selected.json)
                         }
                     }
                 }

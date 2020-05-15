@@ -334,6 +334,18 @@ func decodeComponentFromJSON(_ json: String) -> CodeComponent?
     return nil
 }
 
+/// Decode StageItem from JSON
+func decodeStageItemFromJSON(_ json: String) -> StageItem?
+{
+    if let jsonData = json.data(using: .utf8)
+    {
+        if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
+            return stageItem
+        }
+    }
+    return nil
+}
+
 /// Decode component and adjust uuids
 func decodeComponentAndProcess(_ json: String) -> CodeComponent?
 {

@@ -562,10 +562,10 @@ class CodeSDFStream
                         let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
                         ctx.reset(globalApp!.developerEditor.codeEditor.rect.width, instance.data.count, patternList: [])
                         ctx.cComponent = component
-                        
-                        for layer in terrain.layers {
+                        component.globalCode = ""
+
+                        for layer in terrain.layers.reversed() {
                             
-                            component.globalCode = ""
                             if layer.noiseType != .None {
                                 if layer.blendType == .Add {
                                     terrainMapCode +=
@@ -593,7 +593,6 @@ class CodeSDFStream
                             if layer.noiseType == .TwoD {
 
                                 let layerName = generateNoise2DFunction(ctx, layer.noise2DFragment)
-                                headerCode += component.globalCode!
                                 terrainMapCode +=
                                 """
                                 \(layerName)(position.xz, __funcData)
@@ -602,7 +601,6 @@ class CodeSDFStream
                             if layer.noiseType == .ThreeD {
 
                                 let layerName = generateNoise3DFunction(ctx, layer.noise3DFragment)
-                                headerCode += component.globalCode!
                                 terrainMapCode +=
                                 """
                                 \(layerName)(position, __funcData)
@@ -611,7 +609,6 @@ class CodeSDFStream
                             if layer.noiseType == .Image {
 
                                 let layerName = generateImageFunction(ctx, layer.imageFragment)
-                                headerCode += component.globalCode!
                                 terrainMapCode +=
                                 """
                                 \(layerName)(position.xz, __funcData).x
@@ -633,6 +630,7 @@ class CodeSDFStream
                                 """
                             }
                         }
+                        headerCode += component.globalCode!
                         instance.collectProperties(component)
                         
                         terrainMapCode +=
@@ -642,7 +640,7 @@ class CodeSDFStream
                         }
                          
                         """
-
+                        
                         //headerCode += regionCode
                         headerCode += terrainMapCode
                         
