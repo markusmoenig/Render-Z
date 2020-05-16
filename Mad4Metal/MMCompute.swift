@@ -81,6 +81,12 @@ class MMCompute {
         return library;
     }
     
+    /// --- Creates a library from the given source
+    func createLibraryFromSourceAsync( source: String, cb: @escaping MTLNewLibraryCompletionHandler)
+    {
+        device.makeLibrary(source: source, options: nil, completionHandler: cb)
+    }
+    
     /// Allocate the output texture, optionally can be used to create an arbitray texture by setting output to false
     @discardableResult func allocateTexture( width: Float, height: Float, output: Bool? = true, pixelFormat: MTLPixelFormat = .bgra8Unorm ) -> MTLTexture?
     {

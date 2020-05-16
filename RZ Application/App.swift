@@ -349,6 +349,10 @@ class Editor
     {
     }
     
+    func render()
+    {
+    }
+    
     func instantUpdate()
     {
     }

@@ -38,6 +38,8 @@ class CodeBuilderInstance
     var materialIdHierarchy : [Int] = []
     
     var idStart             : Int = 0
+    
+    var finishedCompiling   : Bool = false
 
     /// Adds a global variable manually, used when we need to know the index of a global variable
     func addGlobalVariable(name: String) -> Int?
@@ -270,6 +272,36 @@ class CodeBuilder
         for name in additionalNames {
             inst.additionalStates[name] = compute.createState(library: library, name: name)
         }
+        
+        inst.finishedCompiling = true
+    }
+    
+    func buildInstanceAsync(_ inst: CodeBuilderInstance, name: String = "componentBuilder", additionalNames: [String] = [])
+    {
+        sdfStream.replaceTexturReferences(inst)
+        
+        inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
+
+        compute.createLibraryFromSourceAsync(source: inst.code, cb: { (library, error) in
+
+            inst.computeState = self.compute.createState(library: library, name: name)
+            
+            if inst.computeState == nil {
+                //print(error?.localizedDescription)
+                print(inst.code)
+            }
+            
+            for name in additionalNames {
+                inst.additionalStates[name] = self.compute.createState(library: library, name: name)
+            }
+            
+            inst.finishedCompiling = true
+                        
+            DispatchQueue.main.async {
+                globalApp!.currentEditor.render()
+            }
+        })
     }
     
     /// Build the source code for the component
@@ -980,63 +1012,54 @@ class CodeBuilder
         clearBuffer = compute.device.makeBuffer(bytes: [data], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
         compute.run( clearState!, outTexture: texture, inBuffer: clearBuffer)
-        compute.commandBuffer.waitUntilCompleted()
     }
     
     // Clear the shadow
     func renderClearShadow(texture: MTLTexture)
     {
         compute.run( clearShadowState!, outTexture: texture)
-        compute.commandBuffer.waitUntilCompleted()
     }
     
     // Clear terrain
     func renderClearTerrain(texture: MTLTexture)
     {
         compute.run( clearTerrainState!, outTexture: texture)
-        compute.commandBuffer.waitUntilCompleted()
     }
     
     // Copy the texture
     func renderCopy(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
         compute.run( copyState!, outTexture: to, inTexture: from, syncronize: syncronize)
-        compute.commandBuffer.waitUntilCompleted()
     }
     
     // Copy and gamma correct the texture
     func renderCopyGamma(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
         compute.run( copyGammaState!, outTexture: to, inTexture: from, syncronize: syncronize)
-        compute.commandBuffer.waitUntilCompleted()
     }
     
     // Render the Depth Map
     func renderDepthMap(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
         compute.run( depthMapState!, outTexture: to, inTexture: from, syncronize: syncronize)
-        compute.commandBuffer.waitUntilCompleted()
     }
     
     // Render the AO
     func renderAO(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
         compute.run( aoState!, outTexture: to, inTexture: from, syncronize: syncronize)
-        compute.commandBuffer.waitUntilCompleted()
     }
     
     // Render the Shadows
     func renderShadow(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
         compute.run( shadowState!, outTexture: to, inTexture: from, syncronize: syncronize)
-        compute.commandBuffer.waitUntilCompleted()
     }
     
     // Copy the texture and swap the rgb values
     func renderCopyAndSwap(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
         compute.run( copyAndSwapState!, outTexture: to, inTexture: from, syncronize: syncronize)
-        compute.commandBuffer.waitUntilCompleted()
     }
     
     // Copy the texture using nearest sampling
@@ -1045,7 +1068,6 @@ class CodeBuilder
         sampleBuffer = compute.device.makeBuffer(bytes: [SIMD4<Float>(Float(frame), 0, 0, 0)], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
 
         compute.run( sampleState!, outTexture: sampleTexture, inBuffer: sampleBuffer, inTextures: [resultTexture])
-        compute.commandBuffer.waitUntilCompleted()
     }
     
     // Render the component into a texture
@@ -1056,7 +1078,9 @@ class CodeBuilder
         var state : MTLComputePipelineState? = nil
         
         if let oState = optionalState {
-            state = inst.additionalStates[oState]!
+            if let s =  inst.additionalStates[oState] {
+                state = s
+            }
         } else {
             state = inst.computeState
         }
@@ -1074,7 +1098,6 @@ class CodeBuilder
         
         if let state = state {
             compute.run( state, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, outTextures: myOuTextures, inBuffers: inBuffers, syncronize: syncronize)
-            compute.commandBuffer.waitUntilCompleted()
         }
     }
     

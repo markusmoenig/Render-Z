@@ -1343,7 +1343,7 @@ class CodeSDFStream
         }
     }
 
-    func closeStream()
+    func closeStream(async : Bool = false)
     {
         if type == .SDF2D {
             instance.code +=
@@ -1417,7 +1417,11 @@ class CodeSDFStream
             instance.code = headerCode + backgroundCode + mapCode + shadowCode + hitAndNormalsCode + aoCode + materialFuncCode + materialCode
         }
         
-        codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow", "computeMaterial"] : [])
+        if async {
+            codeBuilder.buildInstanceAsync(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow", "computeMaterial"] : [])
+        } else {
+            codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow", "computeMaterial"] : [])
+        }
     }
     
     func pushComponent(_ component: CodeComponent)

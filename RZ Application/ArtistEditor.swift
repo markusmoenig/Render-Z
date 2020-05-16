@@ -187,6 +187,11 @@ class ArtistEditor          : Editor
         terrainEditor.deactivate()
     }
     
+    override func render()
+    {
+        globalApp!.currentPipeline!.render(designEditor.rect.width, designEditor.rect.height)
+    }
+    
     func getTerrain() -> Terrain?
     {
         let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)

@@ -66,7 +66,7 @@ class Pipeline3D            : Pipeline
         if globalApp!.hasValidScene == false || globalApp!.viewsAreAnimating == true {
             return
         }
-        
+
         self.scene = scene
         renderId += 1
         
@@ -155,7 +155,7 @@ class Pipeline3D            : Pipeline
                     processChildren(item)
                     codeBuilder.sdfStream.pullStageItem()
                     instanceMap["shape_\(index)"] = instance
-                    codeBuilder.sdfStream.closeStream()
+                    codeBuilder.sdfStream.closeStream(async: true)
                     
                     idCounter += codeBuilder.sdfStream.idCounter - idCounter + 1
                     item.builderInstance = instance
@@ -172,7 +172,7 @@ class Pipeline3D            : Pipeline
                     //}
                     codeBuilder.sdfStream.pullStageItem()
                     instanceMap["shape_\(index)"] = instance
-                    codeBuilder.sdfStream.closeStream()
+                    codeBuilder.sdfStream.closeStream(async: true)
                     
                     idCounter += codeBuilder.sdfStream.idCounter - idCounter + 1
                     item.builderInstance = instance
@@ -210,8 +210,10 @@ class Pipeline3D            : Pipeline
             }
         }
         
+        compiledSuccessfully = true
+
         // Check if we succeeded
-        
+        /*
         compiledSuccessfully = true
         for (_, instance) in instanceMap {
             if instance.computeState == nil {
@@ -224,7 +226,7 @@ class Pipeline3D            : Pipeline
                     break
                 }
             }
-        }
+        }*/
     }
         
     // Render the pipeline
@@ -232,6 +234,23 @@ class Pipeline3D            : Pipeline
     {
         if globalApp!.hasValidScene == false || globalApp!.viewsAreAnimating == true {
             return
+        }
+        
+        // Finished compiling ?
+        compiledSuccessfully = true
+        for (_, instance) in instanceMap {
+            if instance.finishedCompiling {
+                if instance.computeState == nil {
+                    compiledSuccessfully = false
+                }
+            } else {
+                return
+            }
+            for (_, inst) in instance.additionalStates {
+                if inst == nil {
+                    compiledSuccessfully = false
+                }
+            }
         }
         
         width = round(widthIn); height = round(heightIn)
@@ -305,7 +324,7 @@ class Pipeline3D            : Pipeline
     
     func nextStage()
     {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
             if self.startId < self.renderId { return }
 
             //print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "renderId", self.renderId)

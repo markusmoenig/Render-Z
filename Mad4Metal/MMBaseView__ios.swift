@@ -386,7 +386,14 @@ extension MMBaseView: UIPointerInteractionDelegate {
     public func pointerInteraction(_ interaction: UIPointerInteraction, regionFor request: UIPointerRegionRequest, defaultRegion: UIPointerRegion) -> UIPointerRegion? {
 
         mouseMoved(x: Float(request.location.x), y: Float(request.location.y))
-        
+        /*
+        if let h = hoverWidget {
+            let rect = CGRect(
+                origin: CGPoint(x: CGFloat(h.rect.x), y: CGFloat(h.rect.x)),
+                size: CGSize(width: CGFloat(h.rect.width), height: CGFloat(h.rect.height))
+            )
+            return UIPointerRegion(rect: rect)
+        }*/
         return defaultRegion
     }
 

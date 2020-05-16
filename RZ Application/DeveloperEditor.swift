@@ -92,6 +92,11 @@ class DeveloperEditor   : Editor
         mmView.deregisterWidgets(widgets: codeList, codeEditor, codeProperties, showButton, liveButton, navButton)
     }
     
+    override func render()
+    {
+        globalApp!.currentPipeline!.render(codeEditor.rect.width, codeEditor.rect.height)
+    }
+    
     override func setComponent(_ component: CodeComponent)
     {
         // Store scroll offset of the previous component
