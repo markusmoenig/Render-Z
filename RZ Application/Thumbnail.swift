@@ -94,7 +94,6 @@ class Thumbnail
             
             // Render
             codeBuilder.compute.run( codeBuilder.previewState!, outTexture: result, inTextures: [depthTexture!, backTexture!, normalTexture!, metaTexture!])
-            codeBuilder.compute.commandBuffer.waitUntilCompleted()
         }
         return result
     }

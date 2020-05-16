@@ -162,7 +162,8 @@ class DesignEditor          : MMWidget
                 if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
                 
                     globalApp!.currentPipeline!.codeBuilder.renderCopy(convertTo, texture, syncronize: true)
-                    
+                    globalApp!.currentPipeline!.codeBuilder.compute.commandBuffer.waitUntilCompleted()
+
                     let region = MTLRegionMake2D(min(Int(x), convertTo.width-1), min(Int(y), convertTo.height-1), 1, 1)
 
                     var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(repeating: 0), count: 1)
