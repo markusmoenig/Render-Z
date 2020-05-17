@@ -887,7 +887,7 @@ class CodeBuilder
     }
     
     /// Update the instance data
-    func updateData(_ inst: CodeBuilderInstance)
+    func updateData(_ inst: CodeBuilderInstance,_ jitter: Bool = true)
     {
         let timeline = globalApp!.artistEditor.timeline
         
@@ -903,8 +903,13 @@ class CodeBuilder
         }
         
         inst.data[0].x = time
-        inst.data[0].z = Float.random(in: 0.0...1.0)
-        inst.data[0].w = Float.random(in: 0.0...1.0)
+        if jitter {
+            inst.data[0].z = Float.random(in: 0.0...1.0)
+            inst.data[0].w = Float.random(in: 0.0...1.0)
+        } else {
+            inst.data[0].z = 0.5
+            inst.data[0].w = 0.5
+        }
         
         //inst.data[0].z = 1
         //inst.data[0].w = 1
@@ -1075,9 +1080,9 @@ class CodeBuilder
     }
     
     // Render the component into a texture
-    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], inBuffers: [MTLBuffer] = [], syncronize: Bool = false, optionalState: String? = nil)
+    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], inBuffers: [MTLBuffer] = [], syncronize: Bool = false, optionalState: String? = nil, jitter: Bool = true)
     {
-        updateData(inst)
+        updateData(inst, jitter)
         
         var state : MTLComputePipelineState? = nil
         

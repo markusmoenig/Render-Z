@@ -454,13 +454,14 @@ class Pipeline3D            : Pipeline
         var objectIndex : Int = 0
         var shapeText : String = "shape_" + String(objectIndex)
         
+        let jitter : Bool = maxStage != .HitAndNormals
         while let inst = instanceMap[shapeText] {
             
             var terrainTexture : MTLTexture? = dummyTerrainTexture
             if let terrain = globalApp!.artistEditor.getTerrain(), objectIndex == 0 {
                 terrainTexture = terrain.getTexture()
             }
-            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), terrainTexture!])
+            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), terrainTexture!], jitter: jitter)
 
             objectIndex += 1
             shapeText = "shape_" + String(objectIndex)
