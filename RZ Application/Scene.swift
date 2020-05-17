@@ -86,10 +86,15 @@ class Terrain               : Codable
     var texture             : MTLTexture? = nil
     var terrainData         : Data!
     var terrainSize         : Float = 1024
-    
+    var terrainScale        : Float = 0.1
+    var terrainHeightScale  : Float = 0.5
+
     private enum CodingKeys: String, CodingKey {
         case layers
         case terrainData
+        case terrainSize
+        case terrainScale
+        case terrainHeightScale
     }
      
     required init(from decoder: Decoder) throws
@@ -97,6 +102,20 @@ class Terrain               : Codable
         let container = try decoder.container(keyedBy: CodingKeys.self)
         layers = try container.decode([TerrainLayer].self, forKey: .layers)
         terrainData = try container.decode(Data.self, forKey: .terrainData)
+        terrainSize = try container.decode(Float.self, forKey: .terrainSize)
+        terrainScale = try container.decode(Float.self, forKey: .terrainScale)
+        terrainHeightScale = try container.decode(Float.self, forKey: .terrainHeightScale)
+        
+        texture = globalApp!.currentPipeline?.checkTextureSize(terrainSize, terrainSize, texture, .r8Sint)
+
+        let region = MTLRegionMake2D(0, 0, Int(terrainSize) - 1, Int(terrainSize)-1)
+        terrainData.withUnsafeMutableBytes { texArrayPtr in
+            if let ptr = texArrayPtr.baseAddress {
+                if let texture = texture {
+                    texture.replace(region: region, mipmapLevel: 0, withBytes: ptr, bytesPerRow: (MemoryLayout<Int8>.size * texture.width))
+                }
+            }
+        }
     }
      
     func encode(to encoder: Encoder) throws
@@ -104,15 +123,26 @@ class Terrain               : Codable
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(layers, forKey: .layers)
         
-        let texArray = Array<Int8>(repeating: Int8(0), count: Int(terrainSize*terrainSize))
-        //let texArray = Array<Int8>(repeating: Int8(0), count: 4096*4096*2)
+        let region = MTLRegionMake2D(0, 0, Int(terrainSize) - 1, Int(terrainSize)-1)
+        var texArray = Array<Int8>(repeating: Int8(0), count: Int(terrainSize*terrainSize))
+        texArray.withUnsafeMutableBytes { texArrayPtr in
+            if let ptr = texArrayPtr.baseAddress {
+                if let texture = getTexture() {
+                    texture.getBytes(ptr, bytesPerRow: (MemoryLayout<Int8>.size * texture.width), from: region, mipmapLevel: 0)
+                }
+            }
+        }
         let data = Data(bytes: texArray, count: Int(terrainSize*terrainSize))
         try container.encode(data, forKey: .terrainData)
+        
+        try container.encode(terrainSize, forKey: .terrainSize)
+        try container.encode(terrainScale, forKey: .terrainScale)
+        try container.encode(terrainHeightScale, forKey: .terrainHeightScale)
     }
      
     init()
     {
-        texture = globalApp!.currentPipeline?.checkTextureSize(terrainSize, terrainSize, texture, .rg8Sint)
+        texture = globalApp!.currentPipeline?.checkTextureSize(terrainSize, terrainSize, texture, .r8Sint)
         globalApp!.currentPipeline?.codeBuilder.renderClearTerrain(texture: texture!)
     }
     

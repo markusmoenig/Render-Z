@@ -194,7 +194,7 @@ class TerrainEditor         : PropertiesWidget
         if actionState == .PaintHeight {
             if let loc = getHitLocationAt(event) {
                 let val = getValue(loc)
-                setValue(loc, value: Int8(val + 1))
+                setValue(loc, value: Int8(val - 1))
 
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
                 
@@ -376,6 +376,22 @@ class TerrainEditor         : PropertiesWidget
                 let _ = generateImageFunction(ctx, currentLayerItem.layer!.imageFragment)
                 c2Node!.uiItems.append(setupImageUI(c2Node!, currentLayerItem.layer!.imageFragment))
             }
+        } else {
+            let terrainScaleVar = NodeUINumber(c1Node!, variable: "terrainScale", title: "Terrain Scale", range: SIMD2<Float>(0.5, 1), value: 1.0 - terrain.terrainScale, precision: Int(3))
+            c1Node?.uiItems.append(terrainScaleVar)
+            let terrainHeightScaleVar = NodeUINumber(c1Node!, variable: "terrainHeightScale", title: "Height Scale", range: SIMD2<Float>(0.1, 2), value: terrain.terrainHeightScale, precision: Int(3))
+            c1Node?.uiItems.append(terrainHeightScaleVar)
+            c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                if variable == "terrainScale" {
+                    self.terrain.terrainScale = max(1.0 - newValue, 0.001)
+                    self.terrainNeedsUpdate()
+                }
+                if variable == "terrainHeightScale" {
+                    self.terrain.terrainHeightScale = newValue
+                    self.terrainNeedsUpdate()
+                }
+                self.terrainNeedsUpdate(false)
+            }
         }
                 
         c1Node?.setupUI(mmView: mmView)
@@ -433,19 +449,19 @@ class TerrainEditor         : PropertiesWidget
         var loc = location
         var value : Int8 = 0;
         
-        loc.x += terrain.terrainSize / 2.0
-        loc.y += terrain.terrainSize / 2.0
+        loc.x += terrain.terrainSize / terrain.terrainScale / 2.0 * terrain.terrainScale
+        loc.y += terrain.terrainSize / terrain.terrainScale / 2.0 * terrain.terrainScale
         
         let x : Int = Int(loc.x)
         let y : Int = Int(loc.y)
         
         let region = MTLRegionMake2D(min(Int(x), Int(terrain.terrainSize)-1), min(Int(y), Int(terrain.terrainSize)-1), 1, 1)
 
-        var texArray = Array<Int8>(repeating: Int8(0), count: 2)
+        var texArray = Array<Int8>(repeating: Int8(0), count: 1)
         texArray.withUnsafeMutableBytes { texArrayPtr in
             if let ptr = texArrayPtr.baseAddress {
                 if let texture = terrain.getTexture() {
-                    texture.getBytes(ptr, bytesPerRow: (MemoryLayout<Int8>.size * 2 * texture.width), from: region, mipmapLevel: 0)
+                    texture.getBytes(ptr, bytesPerRow: (MemoryLayout<Int8>.size * texture.width), from: region, mipmapLevel: 0)
                 }
             }
         }
@@ -458,19 +474,19 @@ class TerrainEditor         : PropertiesWidget
     {
         var loc = location
         
-        loc.x += terrain.terrainSize / 2.0
-        loc.y += terrain.terrainSize / 2.0
+        loc.x += terrain.terrainSize / terrain.terrainScale / 2.0 * terrain.terrainScale
+        loc.y += terrain.terrainSize / terrain.terrainScale / 2.0 * terrain.terrainScale
         
         let x : Int = Int(loc.x)
         let y : Int = Int(loc.y)
 
         let region = MTLRegionMake2D(min(Int(x), Int(terrain.terrainSize)-1), min(Int(y), Int(terrain.terrainSize)-1), 1, 1)
 
-        var texArray = Array<Int8>(repeating: value, count: 2)
+        var texArray = Array<Int8>(repeating: value, count: 1)
         texArray.withUnsafeMutableBytes { texArrayPtr in
             if let ptr = texArrayPtr.baseAddress {
                 if let texture = terrain.getTexture() {
-                    texture.replace(region: region, mipmapLevel: 0, withBytes: ptr, bytesPerRow: (MemoryLayout<Int8>.size * 2 * texture.width))
+                    texture.replace(region: region, mipmapLevel: 0, withBytes: ptr, bytesPerRow: (MemoryLayout<Int8>.size * texture.width))
                 }
             }
         }
@@ -504,7 +520,7 @@ class TerrainEditor         : PropertiesWidget
                     let camera = getCameraValues(event)
                     let hit = camera.0 + normalize(camera.1) * value.y
 
-                    return SIMD2<Float>(hit.x, hit.z)
+                    return SIMD2<Float>(hit.x * terrain.terrainScale, hit.z * terrain.terrainScale)
                 }
             }
         }

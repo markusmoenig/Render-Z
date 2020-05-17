@@ -551,8 +551,7 @@ class CodeSDFStream
                              
                             float outDistance = 1000000.0;
                         
-                        //float2 tMap = float2(__funcData->terrainTexture->sample(__textureSampler, (position.xz + \(terrain.terrainSize) / 2.) / \(terrain.terrainSize)).xy);
-                            float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + \(terrain.terrainSize) / 2.) / \(terrain.terrainSize));
+                            float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + \(terrain.terrainSize) / \(terrain.terrainScale) / 2.0) / \(terrain.terrainSize) * \(terrain.terrainScale)) * \(terrain.terrainHeightScale);
                         
                         """
                         
