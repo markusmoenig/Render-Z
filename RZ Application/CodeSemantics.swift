@@ -2161,7 +2161,6 @@ class CodeComponent         : Codable, Equatable
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "hitPosition", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "hitNormal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float3", "directionToLight", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4"))
-            f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float4", "lightType", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float4", "lightColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float", "shadow", [.Selectable, .Dragable, .NotCodeable], ["float"], "float"))
             f.header.statement.fragments.append(CodeFragment(.VariableDefinition, "float", "occlusion", [.Selectable, .Dragable, .NotCodeable], ["float"], "float"))

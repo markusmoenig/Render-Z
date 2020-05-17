@@ -485,7 +485,7 @@ class GizmoCombo3D          : GizmoBase
             if dragState == .xAxisScale || scaleAllAxis {
                 if isTransform {
                     let properties : [String:Float] = [
-                        "_scale" : initialValues["_scale"]! + diff
+                        "_scale" : max(initialValues["_scale"]! + diff, 0.001)
                     ]
                     processGizmoProperties(properties)
                 } else
@@ -498,7 +498,7 @@ class GizmoCombo3D          : GizmoBase
             if dragState == .yAxisScale || scaleAllAxis {
                 if isTransform {
                     let properties : [String:Float] = [
-                        "_scale" : initialValues["_scale"]! + diff
+                        "_scale" : max(initialValues["_scale"]! + diff, 0.001)
                     ]
                     processGizmoProperties(properties)
                 } else
@@ -511,7 +511,7 @@ class GizmoCombo3D          : GizmoBase
             if dragState == .zAxisScale || scaleAllAxis {
                 if isTransform {
                     let properties : [String:Float] = [
-                        "_scale" : initialValues["_scale"]! + diff
+                        "_scale" : max(initialValues["_scale"]! + diff, 0.001)
                     ]
                     processGizmoProperties(properties)
                 } else

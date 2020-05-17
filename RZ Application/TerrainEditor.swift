@@ -79,12 +79,16 @@ class TerrainEditor         : PropertiesWidget
         cameraButton.clicked = { (event) in
             self.topDownButton.removeState(.Checked)
             self.deinstallTopDownView()
+            self.topDownIsActive = false
+            self.computeCameraTextures()
         }
         
         topDownButton = MMButtonWidget(mmView, skinToUse: smallButtonSkin, text: "Top Down", fixedWidth: buttonWidth)
         topDownButton.clicked = { (event) in
             self.cameraButton.removeState(.Checked)
             self.installTopDownView()
+            self.topDownIsActive = true
+            self.computeCameraTextures()
         }
         
         var borderlessSkin = MMSkinButton()
@@ -119,15 +123,17 @@ class TerrainEditor         : PropertiesWidget
     func activate()
     {
         mmView.registerPriorityWidgets(widgets: self)
-        computeCameraTextures()
-        
+
         if topDownIsActive {
             cameraButton.removeState(.Checked)
             topDownButton.addState(.Checked)
+            installTopDownView()
         } else {
             topDownButton.removeState(.Checked)
             cameraButton.addState(.Checked)
         }
+        
+        computeCameraTextures()
     }
     
     func deactivate()
@@ -432,7 +438,7 @@ class TerrainEditor         : PropertiesWidget
         
         let x : Int = Int(loc.x)
         let y : Int = Int(loc.y)
-
+        
         let region = MTLRegionMake2D(min(Int(x), Int(terrain.terrainSize)-1), min(Int(y), Int(terrain.terrainSize)-1), 1, 1)
 
         var texArray = Array<Int8>(repeating: Int8(0), count: 2)
@@ -482,7 +488,8 @@ class TerrainEditor         : PropertiesWidget
             if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
              
                 globalApp!.currentPipeline!.codeBuilder.renderCopy(convertTo, texture, syncronize: true)
-                 
+                globalApp!.currentPipeline!.codeBuilder.waitUntilCompleted()
+
                 let region = MTLRegionMake2D(min(Int(x), convertTo.width-1), min(Int(y), convertTo.height-1), 1, 1)
 
                 var texArray = Array<SIMD4<Float>>(repeating: SIMD4<Float>(repeating: 0), count: 1)
@@ -509,6 +516,8 @@ class TerrainEditor         : PropertiesWidget
         if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
          
             globalApp!.currentPipeline!.codeBuilder.renderCopy(convertTo, texture, syncronize: true)
+            globalApp!.currentPipeline!.codeBuilder.waitUntilCompleted()
+
             return convertTo
         }
         return nil
@@ -543,7 +552,8 @@ class TerrainEditor         : PropertiesWidget
             if let inst = pipeline.instanceMap["camera3D"] {
                 
                 pipeline.codeBuilder.render(inst, originTexture!, outTextures: [directionTexture!])
-                
+                pipeline.codeBuilder.waitUntilCompleted()
+
                 originTexture = convertTexture(originTexture!)
                 directionTexture = convertTexture(directionTexture!)
             }
@@ -579,7 +589,6 @@ class TerrainEditor         : PropertiesWidget
             
             if index == nil {
                 preStage.children3D.insert(orthoStageItem!, at: 0)
-                topDownIsActive = true
                 
                 globalApp!.developerEditor.codeEditor.markStageItemInvalid(orthoStageItem!)
                 terrainNeedsUpdate()
@@ -593,7 +602,6 @@ class TerrainEditor         : PropertiesWidget
         
         if let index = preStage.children3D.firstIndex(of: orthoStageItem!) {
             preStage.children3D.remove(at: index)
-            topDownIsActive = false
             
             globalApp!.developerEditor.codeEditor.markStageItemInvalid(orthoStageItem!)
             terrainNeedsUpdate()
