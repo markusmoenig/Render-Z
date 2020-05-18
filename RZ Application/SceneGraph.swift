@@ -1272,6 +1272,8 @@ class SceneGraph                : MMWidget
                                 let comp = newStageItem.components[newStageItem.defaultName]!
                                 
                                 stageItem.components[stageItem.defaultName] = newStageItem.components[stageItem.defaultName]
+                                stageItem.components[stageItem.defaultName]!.uuid = UUID()
+                                
                                 stageItem.componentLists["patterns"] = newStageItem.componentLists["patterns"]
                                 
                                 stageItem.components[stageItem.defaultName]!.libraryName = newStageItem.name
