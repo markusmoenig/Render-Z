@@ -558,19 +558,66 @@ class CodeSDFStream
                         """
                         
                         // Insert the noise layers
-                        
-                        let component = CodeComponent(.Dummy)
-                        let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
-                        ctx.reset(globalApp!.developerEditor.codeEditor.rect.width, instance.data.count, patternList: [])
-                        ctx.cComponent = component
-                        component.globalCode = ""
 
                         for layer in terrain.layers.reversed() {
                             
-                            var oldOffset : Int = 0
-                            ctx.cComponent!.toolPropertyIndex.forEach { (key, value) in
-                                oldOffset += value.count - 1
+                            if layer.shapes.isEmpty == false {
+                                
+                                var posX : Int = 0
+                                var posY : Int = 0
+                                var rotate : Int = 0
+
+                                terrainMapCode +=
+                                """
+                                
+                                    {
+                                        outDistance = 1000000.0;
+                                        float oldDistance = outDistance;
+                                        float3 position3 = position;
+                                        float2 position = position3.xz;//__translate(position3.xz, float2(__data[\(posX)].x, -__data[\(posY)].x));
+                                        //position = rotate( position, radians(360 - __data[\(rotate)].x) );
+
+                                """
+                                
+                                // Add the shapes
+                                for shapeComponent in layer.shapes {
+                                    dryRunComponent(shapeComponent, instance.data.count)
+                                    instance.collectProperties(shapeComponent)
+                                    
+                                    if let globalCode = shapeComponent.globalCode {
+                                        headerCode += globalCode
+                                    }
+                                    
+                                    posX = instance.getTransformPropertyIndex(shapeComponent, "_posX")
+                                    posY = instance.getTransformPropertyIndex(shapeComponent, "_posY")
+                                    rotate = instance.getTransformPropertyIndex(shapeComponent, "_rotate")
+                                    
+                                    terrainMapCode += shapeComponent.code!
+                                    terrainMapCode +=
+                                    """
+
+                                        outDistance = min( outDistance, oldDistance );
+                                        oldDistance = outDistance;
+                                    
+                                    """
+                                }
+
+                                terrainMapCode +=
+                                """
+                                    }
+                                    
+                                    if (outDistance <= 0.0)
+                                    {
+                                        height += abs(outDistance);
+
+                                """
                             }
+                            
+                            let component = CodeComponent(.Dummy)
+                            let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
+                            ctx.reset(globalApp!.developerEditor.codeEditor.rect.width, instance.data.count, patternList: [])
+                            ctx.cComponent = component
+                            component.globalCode = ""
                             
                             if layer.noiseType != .None {
                                 if layer.blendType == .Add {
@@ -601,7 +648,7 @@ class CodeSDFStream
                                 let layerName = generateNoise2DFunction(ctx, layer.noise2DFragment)
                                 terrainMapCode +=
                                 """
-                                \(layerName)(position.xz, __funcData)
+                                 \(layerName)(position.xz, __funcData)
                                 """
                             } else
                             if layer.noiseType == .ThreeD {
@@ -609,7 +656,7 @@ class CodeSDFStream
                                 let layerName = generateNoise3DFunction(ctx, layer.noise3DFragment)
                                 terrainMapCode +=
                                 """
-                                \(layerName)(position, __funcData)
+                                 \(layerName)(position, __funcData)
                                 """
                             } else
                             if layer.noiseType == .Image {
@@ -617,7 +664,14 @@ class CodeSDFStream
                                 let layerName = generateImageFunction(ctx, layer.imageFragment)
                                 terrainMapCode +=
                                 """
-                                \(layerName)(position.xz, __funcData).x
+                                 \(layerName)(position.xz, __funcData).x
+                                """
+                            }
+                            
+                            if layer.noiseType != .None && layer.shapes.isEmpty == false {
+                                terrainMapCode +=
+                                """
+                                 * smoothstep(0.0, -0.20, outDistance)
                                 """
                             }
                             
@@ -638,15 +692,18 @@ class CodeSDFStream
                                 }
                             }
                             
-                            var newOffset : Int = 0
-                            ctx.cComponent!.toolPropertyIndex.forEach { (key, value) in
-                                newOffset += value.count - 1
-                            }
+                            headerCode += component.globalCode!
+                            instance.collectProperties(component)
                             
-                            ctx.propertyDataOffset += newOffset - oldOffset
+                            if layer.shapes.isEmpty == false {
+                                terrainMapCode +=
+                                """
+                                
+                                    }
+
+                                """
+                            }
                         }
-                        headerCode += component.globalCode!
-                        instance.collectProperties(component)
                         
                         terrainMapCode +=
                         """
@@ -655,6 +712,8 @@ class CodeSDFStream
                         }
                          
                         """
+                        
+                        print(terrainMapCode)
                         
                         headerCode += terrainMapCode
 

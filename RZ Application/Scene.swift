@@ -26,13 +26,14 @@ class TerrainLayer          : Codable, Equatable
     var noise2DFragment     : CodeFragment
     var noise3DFragment     : CodeFragment
     var imageFragment       : CodeFragment
-
+    
     enum LayerRegionType    : Int, Codable {
         case Global, Regional
     }
     
     var regionType          : LayerRegionType = .Global
-    
+    var shapes              : [CodeComponent] = []
+
     private enum CodingKeys : String, CodingKey {
         case uuid
         case noiseType
@@ -41,6 +42,7 @@ class TerrainLayer          : Codable, Equatable
         case noise3DFragment
         case imageFragment
         case regionType
+        case shapes
     }
      
     required init(from decoder: Decoder) throws
@@ -53,6 +55,7 @@ class TerrainLayer          : Codable, Equatable
         noise3DFragment = try container.decode(CodeFragment.self, forKey: .noise3DFragment)
         imageFragment = try container.decode(CodeFragment.self, forKey: .imageFragment)
         regionType = try container.decode(LayerRegionType.self, forKey: .regionType)
+        shapes = try container.decode([CodeComponent].self, forKey: .shapes)
     }
      
     func encode(to encoder: Encoder) throws
@@ -65,6 +68,7 @@ class TerrainLayer          : Codable, Equatable
         try container.encode(noise3DFragment, forKey: .noise3DFragment)
         try container.encode(imageFragment, forKey: .imageFragment)
         try container.encode(regionType, forKey: .regionType)
+        try container.encode(shapes, forKey: .shapes)
     }
      
     static func ==(lhs:TerrainLayer, rhs:TerrainLayer) -> Bool {

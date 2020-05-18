@@ -60,6 +60,9 @@ class TerrainEditor         : PropertiesWidget
     var addLayerButton      : MMButtonWidget!
     var deleteLayerButton   : MMButtonWidget!
     
+    var addRegionButton     : MMButtonWidget!
+    var deleteRegionButton  : MMButtonWidget!
+    
     var topDownIsActive     : Bool = false
     
     let height              : Float = 200
@@ -116,6 +119,25 @@ class TerrainEditor         : PropertiesWidget
                 self.terrainNeedsUpdate()
             }
             self.deleteLayerButton.removeState(.Checked)
+        }
+        
+        
+        addRegionButton = MMButtonWidget(mmView, skinToUse: borderlessSkin, text: "Add Shape", fixedWidth: buttonWidth)
+        addRegionButton.clicked = { (event) in
+            globalApp!.libraryDialog.show(ids: ["SDF2D"], style: .Icon, cb: { (json) in
+                if let comp = decodeComponentFromJSON(json) {
+                    
+                    self.currentLayerItem.layer!.shapes.append(comp)
+                    
+                    self.terrainNeedsUpdate()
+                    self.addRegionButton.removeState(.Checked)
+                }
+            } )
+        }
+        
+        deleteRegionButton = MMButtonWidget(mmView, skinToUse: borderlessSkin, text: "Delete", fixedWidth: buttonWidth)
+        deleteRegionButton.clicked = { (event) in
+
         }
     }
     
@@ -273,6 +295,11 @@ class TerrainEditor         : PropertiesWidget
         
         addButton(addLayerButton)
         addButton(deleteLayerButton)
+        
+        if currentLayerItem.layerType == .NoiseLayer {
+            addButton(addRegionButton)
+            addButton(deleteRegionButton)
+        }
         
         c1Node = Node()
         c1Node?.rect.x = 10
@@ -433,6 +460,14 @@ class TerrainEditor         : PropertiesWidget
         deleteLayerButton.rect.x = addLayerButton.rect.right() + 5
         deleteLayerButton.rect.y = startY + 10
         deleteLayerButton.rect.width = 80
+        
+        if currentLayerItem.layerType == .NoiseLayer {
+            addRegionButton.rect.x = rect.x + 5
+            addRegionButton.rect.y = startY - addLayerButton.rect.height - 5
+            
+            deleteRegionButton.rect.x = addRegionButton.rect.right() + 5
+            deleteRegionButton.rect.y = addRegionButton.rect.y
+        }
         
         c1Node?.rect.x = layerListWidget.rect.right() + 30
         c1Node?.rect.y = startY + 20 - rect.y
