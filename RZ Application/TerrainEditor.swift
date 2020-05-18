@@ -65,7 +65,6 @@ class TerrainEditor         : PropertiesWidget
     let height              : Float = 200
     
     var orthoCamera         : CodeComponent? = nil
-    var orthoStageItem      : StageItem? = nil
     
     var layerListNeedsUpdate: Bool = false
 
@@ -454,19 +453,20 @@ class TerrainEditor         : PropertiesWidget
         
         let x : Int = Int(loc.x)
         let y : Int = Int(loc.y)
-        
-        let region = MTLRegionMake2D(min(Int(x), Int(terrain.terrainSize)-1), min(Int(y), Int(terrain.terrainSize)-1), 1, 1)
-
-        var texArray = Array<Int8>(repeating: Int8(0), count: 1)
-        texArray.withUnsafeMutableBytes { texArrayPtr in
-            if let ptr = texArrayPtr.baseAddress {
-                if let texture = terrain.getTexture() {
-                    texture.getBytes(ptr, bytesPerRow: (MemoryLayout<Int8>.size * texture.width), from: region, mipmapLevel: 0)
+                
+        if x >= 0 && x < Int(terrain.terrainSize) && y >= 0 && y < Int(terrain.terrainSize) {
+            let region = MTLRegionMake2D(min(Int(x), Int(terrain.terrainSize)-1), min(Int(y), Int(terrain.terrainSize)-1), 1, 1)
+            var texArray = Array<Int8>(repeating: Int8(0), count: 1)
+            texArray.withUnsafeMutableBytes { texArrayPtr in
+                if let ptr = texArrayPtr.baseAddress {
+                    if let texture = terrain.getTexture() {
+                        texture.getBytes(ptr, bytesPerRow: (MemoryLayout<Int8>.size * texture.width), from: region, mipmapLevel: 0)
+                    }
                 }
             }
+            value = texArray[0]
         }
-            
-        value = texArray[0]
+        
         return value
     }
     
@@ -480,13 +480,14 @@ class TerrainEditor         : PropertiesWidget
         let x : Int = Int(loc.x)
         let y : Int = Int(loc.y)
 
-        let region = MTLRegionMake2D(min(Int(x), Int(terrain.terrainSize)-1), min(Int(y), Int(terrain.terrainSize)-1), 1, 1)
-
-        var texArray = Array<Int8>(repeating: value, count: 1)
-        texArray.withUnsafeMutableBytes { texArrayPtr in
-            if let ptr = texArrayPtr.baseAddress {
-                if let texture = terrain.getTexture() {
-                    texture.replace(region: region, mipmapLevel: 0, withBytes: ptr, bytesPerRow: (MemoryLayout<Int8>.size * texture.width))
+        if x >= 0 && x < Int(terrain.terrainSize) && y >= 0 && y < Int(terrain.terrainSize) {
+            let region = MTLRegionMake2D(min(Int(x), Int(terrain.terrainSize)-1), min(Int(y), Int(terrain.terrainSize)-1), 1, 1)
+            var texArray = Array<Int8>(repeating: value, count: 1)
+            texArray.withUnsafeMutableBytes { texArrayPtr in
+                if let ptr = texArrayPtr.baseAddress {
+                    if let texture = terrain.getTexture() {
+                        texture.replace(region: region, mipmapLevel: 0, withBytes: ptr, bytesPerRow: (MemoryLayout<Int8>.size * texture.width))
+                    }
                 }
             }
         }
@@ -588,39 +589,37 @@ class TerrainEditor         : PropertiesWidget
     /// Installs a StageItem with an orthographic camera for the top down view
     func installTopDownView()
     {
-        if orthoStageItem == nil {
+        if orthoCamera == nil {
             if let ortho = globalApp!.libraryDialog.getItem(ofId: "Camera3D", withName: "Orthographic Camera") {
                 setPropertyValue3(component: ortho, name: "origin", value: SIMD3<Float>(0,2,0))
                 setPropertyValue3(component: ortho, name: "lookAt", value: SIMD3<Float>(-0.05,0,0))
                 setPropertyValue1(component: ortho, name: "fov", value: 160)
 
-                orthoStageItem = StageItem(.PreStage, "Camera")
-                orthoStageItem?.components[orthoStageItem!.defaultName] = ortho
+                orthoCamera = ortho
             }
         }
         
-        if orthoStageItem != nil {
-            let preStage = globalApp!.project.selected!.getStage(.PreStage)
-            let index = preStage.children3D.firstIndex(of: orthoStageItem!)
+        if orthoCamera != nil {
+            globalApp!.globalCamera = orthoCamera
             
-            if index == nil {
-                preStage.children3D.insert(orthoStageItem!, at: 0)
-                
-                globalApp!.developerEditor.codeEditor.markStageItemInvalid(orthoStageItem!)
-                terrainNeedsUpdate()
+            let preStage = globalApp!.project.selected!.getStage(.PreStage)
+            let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
+            if let stageItem = result.0 {
+                stageItem.builderInstance = nil
             }
+            terrainNeedsUpdate()
         }
     }
     
     func deinstallTopDownView()
     {
+        globalApp!.globalCamera = nil
+
         let preStage = globalApp!.project.selected!.getStage(.PreStage)
-        
-        if let index = preStage.children3D.firstIndex(of: orthoStageItem!) {
-            preStage.children3D.remove(at: index)
-            
-            globalApp!.developerEditor.codeEditor.markStageItemInvalid(orthoStageItem!)
-            terrainNeedsUpdate()
+        let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
+        if let stageItem = result.0 {
+            stageItem.builderInstance = nil
         }
+        terrainNeedsUpdate()
     }
 }

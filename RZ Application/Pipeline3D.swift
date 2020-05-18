@@ -92,10 +92,16 @@ class Pipeline3D            : Pipeline
         // Camera
         let preStage = scene.getStage(.PreStage)
         let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
-        let cameraComponent = result.1!
+        var cameraComponent = result.1!
+        
+        if let globalCamera = globalApp!.globalCamera {
+            cameraComponent = globalCamera
+            print("using global camera")
+        }
+        
         if let stageItem = result.0 {
             if stageItem.builderInstance == nil {
-                stageItem.builderInstance = codeBuilder.build(result.1!, camera: result.1!)
+                stageItem.builderInstance = codeBuilder.build(cameraComponent, camera: cameraComponent)
                 instanceMap["camera3D"] = stageItem.builderInstance
                 #if DEBUG
                 print("compile camera")

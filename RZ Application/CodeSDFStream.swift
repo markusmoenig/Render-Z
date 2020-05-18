@@ -652,8 +652,9 @@ class CodeSDFStream
                          
                         """
                         
-                        //headerCode += regionCode
                         headerCode += terrainMapCode
+
+                        //headerCode += regionCode
                         
                         if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false
                         {
@@ -666,11 +667,12 @@ class CodeSDFStream
                                 hitAndNormalsCode += code.replacingOccurrences(of: "sceneMap", with: "terrainMapCode")
                             }
                         }
+ 
                         hitAndNormalsCode +=
                         """
                         
                         if (inShape.y != outShape.y) {
-
+                        
                         """
                         
                         if let normal = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Normal3D) {

@@ -28,7 +28,7 @@ class GizmoCamera3D         : GizmoBase
     var camera3D            : CamHelper3D = CamHelper3D()
 
     var moveButton          : MMButtonWidget
-    var panButton           : MMButtonWidget
+    //var panButton           : MMButtonWidget
     var rotateButton        : MMButtonWidget
     var zoomButton          : MMButtonWidget
     
@@ -49,12 +49,12 @@ class GizmoCamera3D         : GizmoBase
         smallButtonSkin.fontScale = view.skin.Button.fontScale
 
         moveButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Move" )
-        panButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Pan" )
+        //panButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Pan" )
         rotateButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Rotate" )
         zoomButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Zoom" )
         
         moveButton.rect.width = rotateButton.rect.width
-        panButton.rect.width = rotateButton.rect.width
+        //panButton.rect.width = rotateButton.rect.width
         rotateButton.rect.width = rotateButton.rect.width
         zoomButton.rect.width = rotateButton.rect.width
 
@@ -132,11 +132,12 @@ class GizmoCamera3D         : GizmoBase
                 hoverState = .CameraMove
                 moveButton.addState(.Hover)
             } else
+            /*
             if panButton.rect.contains(event.x, event.y) {
                 hoverButton = panButton
                 hoverState = .CameraPan
                 panButton.addState(.Hover)
-            } else
+            } else*/
             if rotateButton.rect.contains(event.x, event.y) {
                 hoverButton = rotateButton
                 hoverState = .CameraRotate
@@ -295,9 +296,9 @@ class GizmoCamera3D         : GizmoBase
         moveButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2 - 40
         moveButton.draw()
         
-        panButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2
-        panButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2 + 40
-        panButton.draw()
+//        panButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2
+//        panButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2 + 40
+//        panButton.draw()
         
         rotateButton.rect.x = rect.x + (rect.width - rotateButton.rect.width) / 2 + 50
         rotateButton.rect.y = rect.y + (rect.height - rotateButton.rect.height) / 2

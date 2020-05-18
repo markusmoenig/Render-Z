@@ -59,6 +59,8 @@ class App
     
     var firstStart      = true
     
+    var globalCamera    : CodeComponent? = nil
+    
     init(_ view : MMView )
     {
         mmView = view
