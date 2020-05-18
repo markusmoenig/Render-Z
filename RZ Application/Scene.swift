@@ -82,6 +82,7 @@ class TerrainLayer          : Codable, Equatable
 class Terrain               : Codable
 {
     var layers              : [TerrainLayer] = []
+    var materials           : [StageItem] = []
     
     var texture             : MTLTexture? = nil
     var terrainData         : Data!
@@ -91,6 +92,7 @@ class Terrain               : Codable
 
     private enum CodingKeys: String, CodingKey {
         case layers
+        case materials
         case terrainData
         case terrainSize
         case terrainScale
@@ -101,6 +103,7 @@ class Terrain               : Codable
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         layers = try container.decode([TerrainLayer].self, forKey: .layers)
+        materials = try container.decode([StageItem].self, forKey: .materials)
         terrainData = try container.decode(Data.self, forKey: .terrainData)
         terrainSize = try container.decode(Float.self, forKey: .terrainSize)
         terrainScale = try container.decode(Float.self, forKey: .terrainScale)
@@ -122,7 +125,8 @@ class Terrain               : Codable
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(layers, forKey: .layers)
-        
+        try container.encode(materials, forKey: .materials)
+
         let region = MTLRegionMake2D(0, 0, Int(terrainSize) - 1, Int(terrainSize)-1)
         var texArray = Array<Int8>(repeating: Int8(0), count: Int(terrainSize*terrainSize))
         texArray.withUnsafeMutableBytes { texArrayPtr in
@@ -144,6 +148,12 @@ class Terrain               : Codable
     {
         texture = globalApp!.currentPipeline?.checkTextureSize(terrainSize, terrainSize, texture, .r8Sint)
         globalApp!.currentPipeline?.codeBuilder.renderClearTerrain(texture: texture!)
+        
+        if let material = globalApp!.libraryDialog.getMaterial(ofId: "Architecture", withName: "Bricks") {
+            material.uuid = UUID()
+            material.components[material.defaultName]!.uuid = UUID()
+            materials.append(material)
+        }
     }
     
     func getTexture() -> MTLTexture?
@@ -1035,6 +1045,15 @@ class Scene                 : Codable, Equatable
                         globalApp!.sceneGraph.setCurrent(stage: s, stageItem: result.stageItem, component: result.component)
                     }
                     break
+                }
+            }
+        }
+        
+        if result.stageItem == nil {
+            // Check terrain materials
+            if let terrain = globalApp!.artistEditor.getTerrain() {
+                for m in terrain.materials {
+                    findInItem(m)
                 }
             }
         }

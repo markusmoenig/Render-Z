@@ -2398,13 +2398,22 @@ class SceneGraph                : MMWidget
         }
         
         if let component = o.components[o.defaultName] {
-            if component.values["minimized"] != 1 && !(component.componentType == .Ground3D && o.name == "Terrain") {
-                drawShapesBox(parent: item, skin: skin)
-                drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
-                drawItemList(parent: item, listId: "modifier" + getCurrentModeId(), graphId: "_graphModifier", name: "Modifier", containerId: .ModifierContainer, itemId: .ModifierItem, skin: skin)
+            if component.values["minimized"] != 1 {
+                if (component.componentType == .Ground3D && o.name == "Terrain") {
+                    // Terrain, draw only the materials
                 
-                for c in o.children {
-                    drawObject(stage: stage, o: c, parent: item, skin: skin)
+                    let materials = globalApp!.artistEditor.getTerrain()!.materials
+                    for c in materials {
+                        drawObject(stage: stage, o: c, parent: item, skin: skin)
+                    }
+                } else {
+                    drawShapesBox(parent: item, skin: skin)
+                    drawItemList(parent: item, listId: "domain" + getCurrentModeId(), graphId: "_graphDomain", name: "Domain", containerId: .DomainContainer, itemId: .DomainItem, skin: skin)
+                    drawItemList(parent: item, listId: "modifier" + getCurrentModeId(), graphId: "_graphModifier", name: "Modifier", containerId: .ModifierContainer, itemId: .ModifierItem, skin: skin)
+                    
+                    for c in o.children {
+                        drawObject(stage: stage, o: c, parent: item, skin: skin)
+                    }
                 }
             }
         }

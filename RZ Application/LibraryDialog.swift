@@ -388,6 +388,32 @@ class LibraryDialog: MMDialog {
         }
     }
     
+    func getMaterial(ofId: String, withName: String = "") -> StageItem?
+    {
+        var json = ""
+        
+        if let typeList = materialsItemMap[ofId] {
+            if withName == "" {
+                if typeList.count > 0 {
+                    json = typeList[0].json
+                }
+            } else {
+                for item in typeList {
+                    if item.titleLabel.text == withName {
+                        json = item.json
+                        break
+                    }
+                }
+            }
+        }
+        
+        if json == "" {
+            return nil
+        } else {
+            return decodeStageItemFromJSON(json)
+        }
+    }
+    
     // Gets a list of library items for the given id
     func getItems(ofId: String) -> [LibraryItem]
     {

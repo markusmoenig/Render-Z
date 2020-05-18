@@ -43,6 +43,7 @@ class CodeSDFStream
     var globalsAddedFor     : [UUID] = []
     
     var scene               : Scene? = nil
+    var isGroundComponent   : CodeComponent? = nil
 
     init()
     {
@@ -66,6 +67,7 @@ class CodeSDFStream
         self.instance = instance
         self.codeBuilder = codeBuilder
         self.scene = scene
+        isGroundComponent = groundComponent
         
         globalsAddedFor = []
         
@@ -584,7 +586,7 @@ class CodeSDFStream
                                     
                                     height -=
                                     """
-                                }
+                                } else
                                 if layer.blendType == .Max {
                                     terrainMapCode +=
                                     """
@@ -619,19 +621,21 @@ class CodeSDFStream
                                 """
                             }
                             
-                            if layer.blendType == .Max {
-                                terrainMapCode +=
-                                """
-                                - 0.5);
-                                
-                                """
-                            } else
                             if layer.noiseType != .None {
-                                terrainMapCode +=
-                                """
-                                ;
-                                
-                                """
+                                if layer.blendType == .Max {
+                                    terrainMapCode +=
+                                    """
+                                    - 0.5);
+                                    
+                                    """
+                                } else
+                                if layer.noiseType != .None {
+                                    terrainMapCode +=
+                                    """
+                                    ;
+                                    
+                                    """
+                                }
                             }
                             
                             var newOffset : Int = 0
@@ -647,7 +651,7 @@ class CodeSDFStream
                         terrainMapCode +=
                         """
                         
-                            return position.y - height;
+                            return float4(position.y - height, 0, 0, 0);
                         }
                          
                         """
@@ -1642,6 +1646,128 @@ class CodeSDFStream
     {
         hierarchy.append(stageItem)
         
+        // Insert terrain materials
+        if isGroundComponent != nil && scene != nil && scene!.getStage(.ShapeStage).terrain != nil {
+            for materialStageItem in scene!.getStage(.ShapeStage).terrain!.materials {
+                
+                materialFuncCode +=
+                """
+                
+                void material\(materialIdCounter)(float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+                float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
+                {
+                    float2 uv = float2(hitPosition.xz);
+                    constant float4 *__data = __funcData->__data;
+                    float GlobalTime = __funcData->GlobalTime;
+                    float GlobalSeed = __funcData->GlobalSeed;
+                    __CREATE_TEXTURE_DEFINITIONS__
+
+
+                    float4 outColor = __materialOut->color;
+                    float3 outMask = __materialOut->mask;
+                    float3 outReflectionDir = float3(0);
+                    float outReflectionBlur = 0.;
+                    float outReflectionDist = 0.;
+                
+                    float3 localPosition = hitPosition;
+                
+                """
+                
+                // Get the patterns of the material if any
+                var patterns : [CodeComponent] = []
+                if materialStageItem.componentLists["patterns"] != nil {
+                    patterns = materialStageItem.componentLists["patterns"]!
+                }
+                
+                let material = materialStageItem.components[materialStageItem.defaultName]!
+                 
+                dryRunComponent(material, instance.data.count, patternList: patterns)
+                instance.collectProperties(material)
+                if let globalCode = material.globalCode {
+                    headerCode += globalCode
+                }
+                if let code = material.code {
+                    materialFuncCode += code
+                }
+         
+                // Check if material has a bump
+                var hasBump = false
+                for (_, conn) in material.propertyConnections {
+                    let fragment = conn.2
+                    if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
+                         
+                        // First, insert the uvmapping code
+                        terrainMapCode +=
+                        """
+                         
+                        {
+                        float3 position = __origin; float3 normal = float3(0);
+                        float2 outUV = float2(position.xz);
+                         
+                        struct PatternOut data;
+                        \(conn.3)(outUV, position, normal, float3(0), &data, __funcData );
+                        bump = data.\(conn.1) * 0.02;
+                        }
+                         
+                        """
+                         
+                        hasBump = true
+                    }
+                }
+                 
+                // If material has no bump, reset it
+                if hasBump == false {
+                    terrainMapCode +=
+                    """
+                     
+                    bump = 0;
+                     
+                    """
+                }
+
+                materialFuncCode +=
+                """
+                     
+                    __materialOut->color = outColor;
+                    __materialOut->mask = outMask;
+                    __materialOut->reflectionDir = outReflectionDir;
+                    __materialOut->reflectionDist = outReflectionDist;
+                }
+                 
+                """
+
+                materialCode +=
+                """
+                else
+                if (shape.z > \(Float(materialIdCounter) - 0.5) && shape.z < \(Float(materialIdCounter) + 0.5))
+                {
+                """
+                 
+                materialCode +=
+                     
+                """
+                    
+                    material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+                     if (lightType.z == lightType.w) {
+                         rayDirection = __materialOut.reflectionDir;
+                         rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
+                    }
+                    color.xyz = color.xyz + __materialOut.color.xyz * mask;
+                    color = clamp(color, 0.0, 1.0);
+                    if (lightType.z == lightType.w) {
+                        mask *= __materialOut.mask;
+                    }
+                }
+
+                """
+                                 
+                // Push it on the stack
+                instance.materialIdHierarchy.append(materialIdCounter)
+                instance.materialIds[materialIdCounter] = stageItem
+                currentMaterialId = materialIdCounter
+                materialIdCounter += 1
+            }
+        } else
         // Handle the materials
         if let material = getFirstComponentOfType(stageItem.children, .Material3D) {
             // If this item has a material, generate the material function code and push it on the stack
@@ -1914,8 +2040,13 @@ class CodeSDFStream
     {
         let stageItem = hierarchy.removeLast()
         
+        if isGroundComponent != nil && scene != nil && scene!.getStage(.ShapeStage).terrain != nil {
+            // Terrain materials
+
+        } else
         // If object had a material, pop the materialHierarchy
         if getFirstComponentOfType(stageItem.children, .Material3D) != nil {
+            
             instance.materialIdHierarchy.removeLast()
             if instance.materialIdHierarchy.count > 0 {
                 currentMaterialId = instance.materialIdHierarchy.last!

@@ -96,7 +96,6 @@ class Pipeline3D            : Pipeline
         
         if let globalCamera = globalApp!.globalCamera {
             cameraComponent = globalCamera
-            print("using global camera")
         }
         
         if let stageItem = result.0 {

@@ -286,8 +286,8 @@ class CodeBuilder
 
             inst.computeState = self.compute.createState(library: library, name: name)
             
-            if inst.computeState == nil {
-                //print(error?.localizedDescription)
+            if inst.computeState == nil && error != nil {
+                print(error!.localizedDescription)
                 print(inst.code)
             }
             
