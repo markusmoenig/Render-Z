@@ -107,6 +107,7 @@ class UploadMaterialsDialog: MMDialog {
         
         okButton.removeState(.Checked)
         
+        material.name = nameVar.value
         material.libraryCategory = categoryItems[Int(categoryVar.index)]
         material.libraryDescription = descriptionVar.value
         material.libraryAuthor = authorVar.value
@@ -120,7 +121,7 @@ class UploadMaterialsDialog: MMDialog {
         if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8) {
             record["json"] = encodedObjectJsonString
         }
-        
+                
         record["author"] = authorVar.value
         record["description"] = descriptionVar.value
 
