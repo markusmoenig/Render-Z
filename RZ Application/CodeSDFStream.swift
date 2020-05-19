@@ -608,7 +608,7 @@ class CodeSDFStream
                                     
                                     if (outDistance <= 0.0)
                                     {
-                                        height += abs(outDistance);
+                                        height += \(layer.shapesBlendType == .FactorTimesShape ? "abs(outDistance) * " : "") \(layer.shapeFactor);
 
                                 """
                             }

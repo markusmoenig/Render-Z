@@ -43,6 +43,11 @@ class PropertiesWidget      : MMWidget
         smallButtonSkin.fontScale = mmView.skin.Button.fontScale
     }
     
+    func isUIActive() -> Bool
+    {
+        return hoverMode != .None || hoverUITitle != nil
+    }
+    
     func deregisterButtons()
     {
         for w in buttons {
