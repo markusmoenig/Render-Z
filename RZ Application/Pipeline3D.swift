@@ -57,7 +57,7 @@ class Pipeline3D            : Pipeline
         } else {
             maxStage = .Reflection
         }
-        globalApp!.currentEditor.updateOnNextDraw(compile: false)
+        globalApp!.currentEditor.render()
     }
     
     // Build the pipeline elements

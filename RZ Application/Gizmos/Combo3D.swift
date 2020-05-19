@@ -49,7 +49,6 @@ class GizmoCombo3D          : GizmoBase
     var undoComponent       : CodeUndoComponent? = nil
     
     var dispatched          : Bool = false
-    var zoomBuffer          : SIMD3<Float> = SIMD3<Float>(0,0,0)
     
     var planeCenter         : SIMD3<Float> = SIMD3<Float>(0,0,0)
 
@@ -62,7 +61,6 @@ class GizmoCombo3D          : GizmoBase
 
     var compute             : MMCompute
     
-    //var camera3D            : CamHelper3D = CamHelper3D()
     var mouseIsDown         : Bool = false
     var scaleAllAxis        : Bool = false
     
@@ -555,103 +553,6 @@ class GizmoCombo3D          : GizmoBase
         clickWasConsumed = false
         activeButton = nil
     }
-    
-    /*
-    override func mouseScrolled(_ event: MMMouseEvent)
-    {
-        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
-
-        var originFrag  : CodeFragment? = nil
-        var lookAtFrag  : CodeFragment? = nil
-        var fovFrag     : CodeFragment? = nil
-
-        for uuid in camera.properties {
-            let rc = camera.getPropertyOfUUID(uuid)
-            if let frag = rc.0 {
-                if frag.name == "origin" {
-                    originFrag = rc.1
-                } else
-                if frag.name == "lookAt" {
-                    lookAtFrag = rc.1
-                } else
-                if frag.name == "fov" {
-                    fovFrag = rc.1
-                }
-            }
-        }
-        
-        camera3D.initFromCamera(aspect: rect.width/rect.height, originFrag: originFrag, lookAtFrag: lookAtFrag, fovFrag: fovFrag)
-        
-        #if os(iOS)
-        if mmView.numberOfTouches > 1 {
-            camera3D.rotate(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
-        } else {
-            camera3D.pan(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
-        }
-        #elseif os(OSX)
-        if mmView.commandIsDown {
-            if event.deltaY! != 0 {
-                camera3D.zoom(dx: 0, dy: event.deltaY! * 0.03)
-            }
-        } else {
-            if mmView.shiftIsDown {
-                camera3D.rotate(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
-            } else {
-                camera3D.pan(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
-            }
-        }
-        #endif
-        
-        globalApp!.currentEditor.updateOnNextDraw(compile: false)
-        
-        if !dispatched {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.mmView.unlockFramerate()
-                self.dispatched = false
-            }
-            dispatched = true
-        }
-        
-        if mmView.maxFramerateLocks == 0 {
-            mmView.lockFramerate()
-        }
-    }
-    
-    override func pinchGesture(_ scale: Float,_ firstTouch: Bool)
-    {
-        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
-
-        var originFrag  : CodeFragment? = nil
-        var lookAtFrag  : CodeFragment? = nil
-        var fovFrag     : CodeFragment? = nil
-
-        for uuid in camera.properties {
-            let rc = camera.getPropertyOfUUID(uuid)
-            if let frag = rc.0 {
-                if frag.name == "origin" {
-                    originFrag = rc.1
-                } else
-                if frag.name == "lookAt" {
-                    lookAtFrag = rc.1
-                } else
-                if frag.name == "fov" {
-                    fovFrag = rc.1
-                }
-            }
-        }
-    
-        camera3D.initFromCamera(aspect: rect.width/rect.height, originFrag: originFrag, lookAtFrag: lookAtFrag, fovFrag: fovFrag)
-
-        if let origin = originFrag {
-            if let lookAt = lookAtFrag {
-                if firstTouch == true {
-                    zoomBuffer = extractValueFromFragment3(origin) - extractValueFromFragment3(lookAt)
-                }
-                camera3D.zoomRelative(dx: 0, dy: scale, start: zoomBuffer)
-                globalApp!.currentEditor.updateOnNextDraw(compile: false)
-            }
-        }
-    }*/
     
     /// Updates the UI properties
     func updateUIProperties()

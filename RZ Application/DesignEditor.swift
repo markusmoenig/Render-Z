@@ -210,10 +210,10 @@ class DesignEditor          : MMWidget
         }
     }
     
-    override func mouseScrolled(_ event: MMMouseEvent) {
-    }
+    //override func mouseScrolled(_ event: MMMouseEvent) {
+    //}
     
-    /*
+    
     override func mouseScrolled(_ event: MMMouseEvent)
     {
         #if os(iOS)
@@ -231,7 +231,7 @@ class DesignEditor          : MMWidget
         if globalApp!.currentSceneMode == .TwoD {
             gizmoCombo2D.mouseScrolled(event)
         } else {
-            gizmoCombo3D.mouseScrolled(event)
+            gizmoCamera3D.mouseScrolled(event)
             if let comp = designComponent {
                 if comp.componentType == .Camera3D {
                     editor.designProperties.setSelected(comp)
@@ -245,21 +245,21 @@ class DesignEditor          : MMWidget
         if globalApp!.currentSceneMode == .TwoD {
             gizmoCombo2D.pinchGesture(scale, firstTouch)
         } else {
-            gizmoCombo3D.pinchGesture(scale, firstTouch)
+            gizmoCamera3D.pinchGesture(scale, firstTouch)
             if let comp = designComponent {
                 if comp.componentType == .Camera3D {
                     editor.designProperties.setSelected(comp)
                 }
             }
         }
-    }*/
+    }
     
     override func update()
     {
         if fragment.width != rect.width * zoom || fragment.height != rect.height * zoom {
             fragment.allocateTexture(width: rect.width * zoom, height: rect.height * zoom)
         }
-                
+          
         if fragment.encoderStart()
         {
             fragment.encodeEnd()
