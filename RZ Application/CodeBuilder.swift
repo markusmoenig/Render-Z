@@ -881,9 +881,9 @@ class CodeBuilder
     /// Update the instance buffer
     func updateBuffer(_ inst: CodeBuilderInstance)
     {
-        if inst.computeState != nil {
+        //if inst.computeState != nil {
             inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
-        }
+        //}
     }
     
     /// Update the instance data

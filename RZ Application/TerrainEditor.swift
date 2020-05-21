@@ -11,7 +11,7 @@ import MetalKit
 class TerrainEditor         : PropertiesWidget
 {
     enum ActionState : Int {
-        case None, PaintHeight
+        case None, PaintHeight, MoveShape
     }
     
     var actionState         : ActionState = .None
@@ -25,7 +25,8 @@ class TerrainEditor         : PropertiesWidget
 
     var originTexture       : MTLTexture? = nil
     var directionTexture    : MTLTexture? = nil
-    
+    var shapeIdTexture      : MTLTexture? = nil
+
     var addLayerButton      : MMButtonWidget!
     var deleteLayerButton   : MMButtonWidget!
     
@@ -37,8 +38,16 @@ class TerrainEditor         : PropertiesWidget
     let height              : Float = 200
     var propMap             : [String:CodeFragment] = [:]
     
+    let fragment            : MMFragment
+    var drawHighlightShape  : MTLRenderPipelineState?
+    var shapeInstance       : CodeBuilderInstance!
+    var shapeMoveStart      : SIMD2<Float> = SIMD2<Float>()
+    
+    var shapeLayoutChanged  : Bool = false
+    
     override required init(_ view: MMView)
     {
+        fragment = MMFragment(view)
         super.init(view)
         
         var borderlessSkin = MMSkinButton()
@@ -93,10 +102,26 @@ class TerrainEditor         : PropertiesWidget
         
         deleteShapeButton = MMButtonWidget(mmView, skinToUse: borderlessSkin, text: "Delete", fixedWidth: buttonWidth)
         deleteShapeButton.clicked = { (event) in
-
+            if let shape = self.currentShape {
+                if self.currentLayerIndex >= 0 {
+                    let layer = self.terrain.layers[self.currentLayerIndex]
+                    
+                    if let index = layer.shapes.firstIndex(of: shape) {
+                        layer.shapes.remove(at: index)
+                        
+                        if layer.shapes.count > 0 {
+                            self.currentShape = layer.shapes[0]
+                        } else {
+                            self.currentShape = nil
+                        }
+                        self.updateUI()
+                        self.terrainNeedsUpdate(true)
+                    }
+                }
+            }
+            self.deleteShapeButton.removeState(.Checked)
         }
         deleteShapeButton.rect.width = 80
-
     }
     
     func activate()
@@ -111,6 +136,7 @@ class TerrainEditor         : PropertiesWidget
         mmView.deregisterWidgets(widgets: self)
         originTexture = nil
         directionTexture = nil
+        shapeIdTexture = nil
     }
     
     override func mouseDown(_ event: MMMouseEvent)
@@ -135,6 +161,27 @@ class TerrainEditor         : PropertiesWidget
                     actionState = .PaintHeight
                 }
                 return
+            } else {
+                // Noise Layer, see if we select a shape
+                if currentLayerIndex >= 0 {
+                    let layer = terrain.layers[currentLayerIndex]
+                    
+                    if layer.shapes.count > 0 {
+                        let id = getShapeIdAt(event)
+                        
+                        if id >= 0.0 {
+                            currentShape = layer.shapes[Int(id)]
+                            actionState = .MoveShape
+                            if let loc = getHitLocationAt(event), currentShape != nil {
+                                shapeMoveStart.x = loc.x / terrain.terrainScale - currentShape!.values["_posX"]!
+                                shapeMoveStart.y = loc.y / terrain.terrainScale + currentShape!.values["_posY"]!
+                            } else {
+                                shapeMoveStart = SIMD2<Float>(0, 0)
+                            }
+                            updateUI()
+                        }
+                    }
+                }
             }
         }
         
@@ -154,6 +201,15 @@ class TerrainEditor         : PropertiesWidget
             }
             
             return
+        } else
+        if actionState == .MoveShape {
+            if let loc = getHitLocationAt(event) {
+                if let shape = currentShape {
+                    shape.values["_posX"] = -(shapeMoveStart.x - loc.x / terrain.terrainScale)
+                    shape.values["_posY"] = shapeMoveStart.y - loc.y / terrain.terrainScale
+                }
+            }
+            mmView.update()
         }
         
         super.mouseMoved(event)
@@ -165,6 +221,9 @@ class TerrainEditor         : PropertiesWidget
         
         if actionState == .PaintHeight {
             globalApp!.currentPipeline?.setMinimalPreview()
+        } else
+        if actionState == .MoveShape {
+            globalApp!.currentEditor.render()
         }
         
         super.mouseUp(event)
@@ -201,10 +260,11 @@ class TerrainEditor         : PropertiesWidget
         addButton(deleteLayerButton)
         
         deleteLayerButton.isDisabled = currentLayerIndex == -1
-        
+
         if currentLayerIndex >= 0 {
             addButton(addShapeButton)
             addButton(deleteShapeButton)
+            deleteShapeButton.isDisabled = currentShape == nil
         }
         
         c1Node = Node()
@@ -418,6 +478,14 @@ class TerrainEditor         : PropertiesWidget
     {
         drawPreview(mmView: mmView, rect)
         
+        if currentLayerIndex >= 0 {
+            let layer = terrain.layers[currentLayerIndex]
+            if layer.shapes.isEmpty == false {
+                generateShapeHighlightingState()
+                drawShapeHighlight()
+            }
+        }
+        
         //mmView.drawBox.draw( x: rect.x, y: rect.bottom() - height + 0.5, width: rect.width + 0.5, height: height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1.0 ))
         
         addLayerButton.rect.x = rect.x + 3
@@ -493,6 +561,37 @@ class TerrainEditor         : PropertiesWidget
         }
     }
     
+    /// Returns the
+    func getShapeIdAt(_ event: MMMouseEvent) -> Float
+    {
+        let x : Float = event.x - rect.x
+        let y : Float = event.y - rect.y
+        
+        let rc : Float = -1
+         
+        // Selection
+        if let texture = shapeIdTexture {
+             
+            if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .r32Float) {
+             
+                globalApp!.currentPipeline!.codeBuilder.renderCopy(convertTo, texture, syncronize: true)
+                globalApp!.currentPipeline!.codeBuilder.waitUntilCompleted()
+
+                let region = MTLRegionMake2D(min(Int(x), convertTo.width-1), min(Int(y), convertTo.height-1), 1, 1)
+
+                var texArray = Array<Float>(repeating: Float(0), count: 1)
+                texArray.withUnsafeMutableBytes { texArrayPtr in
+                    if let ptr = texArrayPtr.baseAddress {
+                        convertTo.getBytes(ptr, bytesPerRow: (MemoryLayout<Float>.size * convertTo.width), from: region, mipmapLevel: 0)
+                    }
+                }
+                let value = texArray[0]
+                return value
+            }
+        }
+        return rc
+    }
+    
     /// Returns the XZ location of the mouse location
     func getHitLocationAt(_ event: MMMouseEvent) -> SIMD2<Float>?
     {
@@ -565,7 +664,8 @@ class TerrainEditor         : PropertiesWidget
     
             originTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
             directionTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
-            
+            shapeIdTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .r16Float)
+
             if let inst = pipeline.instanceMap["camera3D"] {
                 
                 pipeline.codeBuilder.render(inst, originTexture!, outTextures: [directionTexture!])
@@ -584,5 +684,205 @@ class TerrainEditor         : PropertiesWidget
         let lookAt = getTextureValueAt(event, texture: directionTexture!)
             
         return (SIMD3<Float>(origin.x, origin.y, origin.z), SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z))
+    }
+    
+    func generateShapeHighlightingState()
+    {
+        var headerCode =
+        """
+
+        #define PI 3.1415926535897932384626422832795028841971
+
+        float2 __translate(float2 p, float2 t)
+        {
+            return p - t;
+        }
+
+        float degrees(float radians)
+        {
+            return radians * 180.0 / PI;
+        }
+
+        float radians(float degrees)
+        {
+            return degrees * PI / 180.0;
+        }
+
+        float2 rotate(float2 pos, float angle)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pos * float2x2(ca, sa, -sa, ca);
+        }
+
+        float2 rotatePivot(float2 pos, float angle, float2 pivot)
+        {
+            float ca = cos(angle), sa = sin(angle);
+            return pivot + (pos-pivot) * float2x2(ca, sa, -sa, ca);
+        }
+
+        """
+        
+        var code =
+        """
+
+        typedef struct
+        {
+            float currentId;
+        } HIGHLIGHT_TERRAINSHAPE;
+
+        fragment float4 highlightTerrainShape(RasterizerData in [[stage_in]],
+                                        texture2d<half, access::read>  depthTexture [[texture(0)]],
+                                        texture2d<half, access::read>  cameraOriginTexture [[texture(1)]],
+                                        texture2d<half, access::read>  cameraDirectionTexture [[texture(2)]],
+                                        texture2d<half, access::write> shapeIdTexture [[texture(3)]],
+                                        constant HIGHLIGHT_TERRAINSHAPE *terrainData [[ buffer(4) ]],
+                                        constant float4 *__data [[ buffer(5) ]])
+        {
+            float4 color = float4(0);
+            float2 gid_ = float2(in.textureCoordinate.x, 1.0 - in.textureCoordinate.y) * float2(depthTexture.get_width(), depthTexture.get_height());
+            uint2 gid = uint2(gid_);
+
+            float outDistance = 1000000.0;
+
+            float4 shape = float4(depthTexture.read(gid));
+
+            float id = shape.w;
+            float outShapeId = -1;
+
+            float3 origin = float4(cameraOriginTexture.read(gid)).xyz;
+            float3 dir = float4(cameraDirectionTexture.read(gid)).xyz;
+            float3 position = origin + dir * shape.y;
+
+
+            //if (id == data->id) color = float4(0.816, 0.345, 0.188, 0.8);
+            //else color = float4(0);
+
+            if (id == 0) {
+                //color = float4(0.816, 0.345, 0.188, 0.8);
+
+        """
+        
+        shapeInstance = CodeBuilderInstance()
+        shapeInstance.data.append(SIMD4<Float>(0,0,0,0))
+
+        if currentLayerIndex >= 0 {
+            let layer = terrain.layers[currentLayerIndex]
+            
+            code +=
+            """
+            
+                {
+                    outDistance = 1000000.0;
+                    float oldDistance = outDistance;
+                    float3 position3 = position;
+                    float2 position;
+
+
+            """
+            
+            // Add the shapes
+            var posX : Int = 0
+            var posY : Int = 0
+            var rotate : Int = 0
+            
+            for (index, shapeComponent) in layer.shapes.enumerated() {
+                dryRunComponent(shapeComponent, shapeInstance.data.count)
+                shapeInstance.collectProperties(shapeComponent)
+                
+                if let globalCode = shapeComponent.globalCode {
+                    headerCode += globalCode
+                }
+                
+                posX = shapeInstance.getTransformPropertyIndex(shapeComponent, "_posX")
+                posY = shapeInstance.getTransformPropertyIndex(shapeComponent, "_posY")
+                rotate = shapeInstance.getTransformPropertyIndex(shapeComponent, "_rotate")
+                    
+                code +=
+                """
+                        
+                        position = __translate(position3.xz, float2(__data[\(posX)].x, -__data[\(posY)].x));
+                        position = rotate( position, radians(360 - __data[\(rotate)].x) );
+
+                """
+                
+                code += shapeComponent.code!
+                code +=
+                """
+
+                    if (outDistance < oldDistance && outDistance < 0.0 ) {
+                        outShapeId = \(index);
+                    }
+                
+                    outDistance = min( outDistance, oldDistance );
+                    oldDistance = outDistance;
+                
+                """
+
+            }
+            
+            code +=
+            """
+
+                }
+
+                if (outDistance <= 0.) {
+                    if (terrainData->currentId == outShapeId)
+                        color = float4(0.816, 0.345, 0.188, 0.8);
+                    else
+                        color = float4(0.816, 0.345, 0.188, 0.4);
+                }
+            
+            """
+        }
+        
+        code +=
+        """
+
+            }
+        
+            shapeIdTexture.write(half4(outShapeId), gid);
+            
+            return color;
+        }
+
+        """
+        
+        code = headerCode + code;
+        
+        let library = fragment.createLibraryFromSource(source: code)
+        drawHighlightShape = fragment.createState(library: library, name: "highlightTerrainShape")
+    }
+    
+    func drawShapeHighlight()
+    {
+        var currentId : Float = 0
+        
+        if currentLayerIndex >= 0 && currentShape != nil {
+            let layer = terrain.layers[currentLayerIndex]
+            if let index = layer.shapes.firstIndex(of: currentShape!) {
+                currentId = Float(index)
+            }
+        }
+        
+        let settings: [Float] = [Float(currentId)];
+        
+        let renderEncoder = mmView.renderer.renderEncoder!
+        
+        let vertexBuffer = mmView.renderer.createVertexBuffer( MMRect( rect.x, rect.y, rect.width, rect.height, scale: mmView.scaleFactor ) )
+        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        
+        let buffer = mmView.renderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
+        
+        renderEncoder.setFragmentTexture(globalApp!.currentPipeline?.getTextureOfId("id"), index: 0)
+        renderEncoder.setFragmentTexture(originTexture!, index: 1)
+        renderEncoder.setFragmentTexture(directionTexture!, index: 2)
+        renderEncoder.setFragmentTexture(shapeIdTexture!, index: 3)
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 4)
+
+        globalApp!.currentPipeline?.codeBuilder.updateData(shapeInstance)
+        renderEncoder.setFragmentBuffer(shapeInstance.buffer, offset: 0, index: 5)
+
+        renderEncoder.setRenderPipelineState( drawHighlightShape! )
+        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
     }
 }

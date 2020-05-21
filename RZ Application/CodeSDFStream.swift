@@ -550,6 +550,7 @@ class CodeSDFStream
                             constant float4 *__data = __funcData->__data;
                             float GlobalTime = __funcData->GlobalTime;
                             float GlobalSeed = __funcData->GlobalSeed;
+                            float materialId = 0.0;
                              
                             float outDistance = 1000000.0;
                         
@@ -574,8 +575,8 @@ class CodeSDFStream
                                         outDistance = 1000000.0;
                                         float oldDistance = outDistance;
                                         float3 position3 = position;
-                                        float2 position = position3.xz;//__translate(position3.xz, float2(__data[\(posX)].x, -__data[\(posY)].x));
-                                        //position = rotate( position, radians(360 - __data[\(rotate)].x) );
+                                        float2 position;
+
 
                                 """
                                 
@@ -591,6 +592,14 @@ class CodeSDFStream
                                     posX = instance.getTransformPropertyIndex(shapeComponent, "_posX")
                                     posY = instance.getTransformPropertyIndex(shapeComponent, "_posY")
                                     rotate = instance.getTransformPropertyIndex(shapeComponent, "_rotate")
+                                    
+                                    terrainMapCode +=
+                                    """
+                                            
+                                            position = __translate(position3.xz, float2(__data[\(posX)].x, -__data[\(posY)].x));
+                                            position = rotate( position, radians(360 - __data[\(rotate)].x) );
+
+                                    """
                                     
                                     terrainMapCode += shapeComponent.code!
                                     terrainMapCode +=

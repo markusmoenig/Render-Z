@@ -264,7 +264,9 @@ class NewDialog: MMDialog {
         super.mouseDown(event)
         
         if style == .Templates {
-            selectedTempItem = hoverTempItem
+            if let item = hoverTempItem {
+                selectedTempItem = item
+            }
         } else {
             if let item = hoverFileItem {
                 selectedFileItem = item
