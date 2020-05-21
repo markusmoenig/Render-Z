@@ -560,7 +560,8 @@ class CodeSDFStream
                         
                         // Insert the noise layers
 
-                        for layer in terrain.layers.reversed() {
+                        let materialId = terrain.materials.count
+                        for (index, layer) in terrain.layers.reversed().enumerated() {
                             
                             if layer.shapes.isEmpty == false {
                                 
@@ -613,12 +614,14 @@ class CodeSDFStream
 
                                 terrainMapCode +=
                                 """
+                                
                                     }
                                     
                                     if (outDistance <= 0.0)
                                     {
                                         height += \(layer.shapesBlendType == .FactorTimesShape ? "abs(outDistance) * " : "") \(layer.shapeFactor);
-
+                                        materialId = \(materialId + index);
+                                
                                 """
                             }
                             
@@ -717,7 +720,7 @@ class CodeSDFStream
                         terrainMapCode +=
                         """
                         
-                            return float4(position.y - height, 0, 0, 0);
+                            return float4(position.y - height, 0, materialId, 0);
                         }
                          
                         """
@@ -1716,8 +1719,9 @@ class CodeSDFStream
         
         // Insert terrain materials
         if isGroundComponent != nil && scene != nil && scene!.getStage(.ShapeStage).terrain != nil {
-            for materialStageItem in scene!.getStage(.ShapeStage).terrain!.materials {
-                
+            
+            func processMaterial(materialStageItem: StageItem)
+            {
                 materialFuncCode +=
                 """
                 
@@ -1736,72 +1740,72 @@ class CodeSDFStream
                     float3 outReflectionDir = float3(0);
                     float outReflectionBlur = 0.;
                     float outReflectionDist = 0.;
-                
+                    
                     float3 localPosition = hitPosition;
-                
+                    
                 """
-                
+               
                 // Get the patterns of the material if any
                 var patterns : [CodeComponent] = []
                 if materialStageItem.componentLists["patterns"] != nil {
                     patterns = materialStageItem.componentLists["patterns"]!
                 }
-                
+               
                 let material = materialStageItem.components[materialStageItem.defaultName]!
-                 
+                
                 dryRunComponent(material, instance.data.count, patternList: patterns)
                 instance.collectProperties(material)
                 if let globalCode = material.globalCode {
                     headerCode += globalCode
                 }
                 if let code = material.code {
-                    materialFuncCode += code
+                   materialFuncCode += code
                 }
-         
+        
                 // Check if material has a bump
                 var hasBump = false
                 for (_, conn) in material.propertyConnections {
                     let fragment = conn.2
                     if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
-                         
+                        
                         // First, insert the uvmapping code
                         terrainMapCode +=
                         """
-                         
+                        
                         {
                         float3 position = __origin; float3 normal = float3(0);
                         float2 outUV = float2(position.xz);
-                         
+                        
                         struct PatternOut data;
                         \(conn.3)(outUV, position, normal, float3(0), &data, __funcData );
                         bump = data.\(conn.1) * 0.02;
                         }
-                         
+                        
                         """
-                         
+                        
                         hasBump = true
                     }
                 }
-                 
+                
                 // If material has no bump, reset it
                 if hasBump == false {
                     terrainMapCode +=
                     """
-                     
+                    
                     bump = 0;
-                     
+                    
                     """
                 }
 
                 materialFuncCode +=
                 """
-                     
+                    
                     __materialOut->color = outColor;
                     __materialOut->mask = outMask;
                     __materialOut->reflectionDir = outReflectionDir;
                     __materialOut->reflectionDist = outReflectionDist;
                 }
-                 
+                
                 """
 
                 materialCode +=
@@ -1810,30 +1814,40 @@ class CodeSDFStream
                 if (shape.z > \(Float(materialIdCounter) - 0.5) && shape.z < \(Float(materialIdCounter) + 0.5))
                 {
                 """
-                 
+                
                 materialCode +=
-                     
-                """
                     
+                """
+                   
                     material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
-                     if (lightType.z == lightType.w) {
-                         rayDirection = __materialOut.reflectionDir;
-                         rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
-                    }
-                    color.xyz = color.xyz + __materialOut.color.xyz * mask;
-                    color = clamp(color, 0.0, 1.0);
                     if (lightType.z == lightType.w) {
-                        mask *= __materialOut.mask;
-                    }
+                        rayDirection = __materialOut.reflectionDir;
+                        rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
+                   }
+                   color.xyz = color.xyz + __materialOut.color.xyz * mask;
+                   color = clamp(color, 0.0, 1.0);
+                   if (lightType.z == lightType.w) {
+                       mask *= __materialOut.mask;
+                   }
                 }
 
                 """
-                                 
+                                
                 // Push it on the stack
                 instance.materialIdHierarchy.append(materialIdCounter)
                 instance.materialIds[materialIdCounter] = stageItem
                 currentMaterialId = materialIdCounter
                 materialIdCounter += 1
+            }
+            
+            for stageItem in scene!.getStage(.ShapeStage).terrain!.materials {
+                processMaterial(materialStageItem: stageItem)
+            }
+            
+            for layer in scene!.getStage(.ShapeStage).terrain!.layers.reversed() {
+                if let material = layer.material {
+                    processMaterial(materialStageItem: material)
+                }
             }
         } else
         // Handle the materials
@@ -2102,6 +2116,7 @@ class CodeSDFStream
                 """
             }
         }
+
     }
     
     func pullStageItem()

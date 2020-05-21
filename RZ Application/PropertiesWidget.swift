@@ -198,7 +198,7 @@ class PropertiesWidget      : MMWidget
                     mmView.update()
                     return
                 }
-                uiItemY += uiItem.rect.height
+                uiItemY += uiItem.rect.height + uiItem.additionalSpacing
             }
         }
         
@@ -229,7 +229,7 @@ class PropertiesWidget      : MMWidget
             for uiItem in node.uiItems {
                 uiItem.rect.x = uiItemX
                 uiItem.rect.y = uiItemY
-                uiItemY += uiItem.rect.height
+                uiItemY += uiItem.rect.height + uiItem.additionalSpacing
             }
             
             for uiItem in node.uiItems {
@@ -245,7 +245,7 @@ class PropertiesWidget      : MMWidget
             for uiItem in node.uiItems {
                 uiItem.rect.x = uiItemX
                 uiItem.rect.y = uiItemY
-                uiItemY += uiItem.rect.height
+                uiItemY += uiItem.rect.height + uiItem.additionalSpacing
             }
             
             for uiItem in node.uiItems {
@@ -261,7 +261,7 @@ class PropertiesWidget      : MMWidget
             for uiItem in node.uiItems {
                 uiItem.rect.x = uiItemX
                 uiItem.rect.y = uiItemY
-                uiItemY += uiItem.rect.height
+                uiItemY += uiItem.rect.height + uiItem.additionalSpacing
             }
             
             for uiItem in node.uiItems {

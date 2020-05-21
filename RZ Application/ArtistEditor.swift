@@ -314,9 +314,26 @@ class ArtistEditor          : Editor
         } else
         if region.type == .Editor {
             
+            func doDrawSamples()
+            {
+                if currentSamples != globalApp!.currentPipeline!.samples {
+                    let samplesString = String(globalApp!.currentPipeline!.samples)
+                    samplesLabel.setText(samplesString)
+                    currentSamples = globalApp!.currentPipeline!.samples
+                }
+                
+                if currentSamples > 0 {
+                    samplesLabel.rect.x = region.rect.x + 8
+                    samplesLabel.rect.y = region.rect.bottom() - 17
+                    samplesLabel.draw()
+                }
+            }
+            
             if terrainIsActive {
                 terrainEditor.rect.copy(region.rect)
                 terrainEditor.draw()
+                
+                doDrawSamples()                
                 return
             }
             
@@ -371,17 +388,7 @@ class ArtistEditor          : Editor
                 }
                 
                 if drawSamples {
-                    if currentSamples != globalApp!.currentPipeline!.samples {
-                        let samplesString = String(globalApp!.currentPipeline!.samples)
-                        samplesLabel.setText(samplesString)
-                        currentSamples = globalApp!.currentPipeline!.samples
-                    }
-                    
-                    if currentSamples > 0 {
-                        samplesLabel.rect.x = region.rect.x + 8
-                        samplesLabel.rect.y = region.rect.bottom() - 17
-                        samplesLabel.draw()
-                    }
+                    doDrawSamples()
                 }
             }
         } else

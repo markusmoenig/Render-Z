@@ -45,6 +45,8 @@ class NodeUI
     var contentY            : Float = 0
     
     var titleShadows        : Bool = false
+    
+    var additionalSpacing   : Float = 0
 
     // --- Statics
     

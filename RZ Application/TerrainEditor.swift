@@ -45,10 +45,29 @@ class TerrainEditor         : PropertiesWidget
     
     var shapeLayoutChanged  : Bool = false
     
+    var editTab             : MMTabButtonWidget
+    
     override required init(_ view: MMView)
     {
         fragment = MMFragment(view)
+        
+        var tabSkin = MMSkinButton()
+        tabSkin.margin = MMMargin( 14, 4, 14, 4 )
+        tabSkin.borderSize = 0
+        tabSkin.height = view.skin.Button.height - 1
+        tabSkin.fontScale = 0.44
+        tabSkin.round = 28
+        
+        editTab = MMTabButtonWidget(view, skinToUse: tabSkin)
+        
+        editTab.addTab("Edit")
+        editTab.addTab("Materials")
+        
         super.init(view)
+        
+        editTab.clicked = { (event) in
+            
+        }
         
         var borderlessSkin = MMSkinButton()
         borderlessSkin.margin = MMMargin( 7, 4, 7, 4 )
@@ -99,7 +118,6 @@ class TerrainEditor         : PropertiesWidget
         }
         addShapeButton.rect.width = 100
 
-        
         deleteShapeButton = MMButtonWidget(mmView, skinToUse: borderlessSkin, text: "Delete", fixedWidth: buttonWidth)
         deleteShapeButton.clicked = { (event) in
             if let shape = self.currentShape {
@@ -126,14 +144,14 @@ class TerrainEditor         : PropertiesWidget
     
     func activate()
     {
-        mmView.registerPriorityWidgets(widgets: self)
+        mmView.registerPriorityWidgets(widgets: self, editTab)
         computeCameraTextures()
     }
     
     func deactivate()
     {
         clear()
-        mmView.deregisterWidgets(widgets: self)
+        mmView.deregisterWidgets(widgets: editTab, self)
         originTexture = nil
         directionTexture = nil
         shapeIdTexture = nil
@@ -284,8 +302,8 @@ class TerrainEditor         : PropertiesWidget
         
         let layerSelector = NodeUISelector(c1Node!, variable: "layerSelector", title: "Layers", items: layerItems, index: layerIndex)
         layerSelector.titleShadows = true
+        layerSelector.additionalSpacing = 10
         c1Node!.uiItems.append(layerSelector)
-
 
         if currentLayerIndex >= 0 {
             let layer = terrain.layers[currentLayerIndex]
@@ -425,9 +443,24 @@ class TerrainEditor         : PropertiesWidget
                 
                 let factorVar = NodeUINumber(c2Node!, variable: "factor", title: "Factor", range: SIMD2<Float>(-2, 2), value: layer.shapeFactor, precision: Int(3))
                 factorVar.titleShadows = true
+                factorVar.additionalSpacing = 20
                 c2Node?.uiItems.append(factorVar)
+                
+                var materialItems = ["None"]
+                var materialIndex : Float = 0
+                
+                if let material = layer.material {
+                    materialItems.append(material.name)
+                    materialIndex = 1
+                } else {
+                    materialItems.append("Material")
+                }
+                
+                let materialVar = NodeUISelector(c2Node!, variable: "material", title: "Material", items: materialItems, index: materialIndex, shadows: true)
+                materialVar.additionalSpacing = 20
+                c2Node!.uiItems.append(materialVar)
             
-                for uuid in shape.properties {
+                for (index,uuid) in shape.properties.enumerated() {
                     let rc = shape.getPropertyOfUUID(uuid)
                     if let frag = rc.0 {
                         propMap[frag.name] = rc.1!
@@ -435,7 +468,7 @@ class TerrainEditor         : PropertiesWidget
                         let data = extractValueFromFragment(rc.1!)
                                         
                         if components == 1 {
-                            let numberVar = NodeUINumber(c2Node!, variable: frag.name, title: shape.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), int: frag.typeName == "int", value: data.x, precision: Int(rc.1!.values["precision"]!))
+                            let numberVar = NodeUINumber(c2Node!, variable: frag.name, title: (index == 0 ?"Current Shape: " : "") + shape.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), int: frag.typeName == "int", value: data.x, precision: Int(rc.1!.values["precision"]!))
                             numberVar.titleShadows = true
                             numberVar.autoAdjustMargin = true
                             c2Node!.uiItems.append(numberVar)
@@ -446,9 +479,31 @@ class TerrainEditor         : PropertiesWidget
             
             c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 
+                if variable == "material" {
+                    if newValue == 0 {
+                        layer.material = nil
+                        
+                        self.updateUI()
+                        globalApp!.project.selected!.invalidateCompilerInfos()
+                        self.terrainNeedsUpdate(true)
+                    } else {
+                        
+                        DispatchQueue.main.async {
+                            self.getMaterialFromLibrary({ (stageItem) -> () in
+                                layer.material = stageItem
+                                
+                                self.updateUI()
+                                globalApp!.project.selected!.invalidateCompilerInfos()
+                                self.terrainNeedsUpdate(true)
+                            })
+                        }
+                    }
+                    
+                    return
+                }
+                
                 if variable == "shapesBlendMode" {
                     layer.shapesBlendType = TerrainLayer.ShapesBlendType(rawValue: Int(newValue))!
-                    print(newValue)
                     self.terrainNeedsUpdate(true)
                     return
                 }
@@ -486,10 +541,14 @@ class TerrainEditor         : PropertiesWidget
             }
         }
         
+        editTab.rect.x = (rect.width - editTab.rect.width) / 2
+        editTab.rect.y = rect.y + 15
+        editTab.draw()
+
         //mmView.drawBox.draw( x: rect.x, y: rect.bottom() - height + 0.5, width: rect.width + 0.5, height: height, round: 0, borderSize: 0, fillColor : SIMD4<Float>( 0.145, 0.145, 0.145, 1.0 ))
         
         addLayerButton.rect.x = rect.x + 3
-        addLayerButton.rect.y = rect.y + 8
+        addLayerButton.rect.y = rect.y + 40
         
         deleteLayerButton.rect.x = addLayerButton.rect.right() + 5
         deleteLayerButton.rect.y = addLayerButton.rect.y
@@ -503,10 +562,10 @@ class TerrainEditor         : PropertiesWidget
         }
         
         c1Node?.rect.x = 10
-        c1Node?.rect.y = 35
+        c1Node?.rect.y = addLayerButton.rect.bottom() + 10 - rect.y
         
         c2Node?.rect.x = rect.right() - 200 - rect.x
-        c2Node?.rect.y = 35
+        c2Node?.rect.y = c1Node!.rect.y
         
         super.draw(xOffset: xOffset, yOffset: yOffset)
     }
@@ -884,5 +943,43 @@ class TerrainEditor         : PropertiesWidget
 
         renderEncoder.setRenderPipelineState( drawHighlightShape! )
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+    }
+    
+    /// Get a material from the library
+    func getMaterialFromLibrary(_ callback: @escaping (StageItem)->())
+    {
+        globalApp!.libraryDialog.showMaterials(cb: { (jsonComponent, jsonStageItem) in
+            if jsonComponent.count > 0 {
+                if let comp = decodeComponentFromJSON(jsonComponent) {
+
+                    let stageItem = StageItem(.ShapeStage, comp.libraryName)
+
+                    stageItem.components[stageItem.defaultName] = comp
+
+                    callback(stageItem)
+                }
+            } else {
+                if let newStageItem = decodeStageItemFromJSON(jsonStageItem) {
+                                        
+                    let stageItem = StageItem(.ShapeStage)
+
+                    stageItem.components[stageItem.defaultName] = newStageItem.components[stageItem.defaultName]
+                    stageItem.components[stageItem.defaultName]!.uuid = UUID()
+                    
+                    stageItem.componentLists["patterns"] = newStageItem.componentLists["patterns"]
+                    
+                    stageItem.components[stageItem.defaultName]!.libraryName = newStageItem.name
+
+                    stageItem.libraryCategory = newStageItem.libraryCategory
+                    stageItem.libraryDescription = newStageItem.libraryDescription
+                    stageItem.libraryAuthor = newStageItem.libraryAuthor
+                    
+                    stageItem.name = newStageItem.name
+                    stageItem.label = nil
+                    
+                    callback(stageItem)
+                }
+            }
+        })
     }
 }
