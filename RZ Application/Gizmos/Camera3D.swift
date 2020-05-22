@@ -330,7 +330,8 @@ class GizmoCamera3D         : GizmoBase
             if mmView.shiftIsDown {
                 camera3D.rotate(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
             } else {
-                camera3D.pan(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
+                //camera3D.pan(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
+                return
             }
         }
         #endif

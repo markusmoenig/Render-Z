@@ -179,7 +179,7 @@ class Pipeline3D            : Pipeline
                     instanceMap["shape_\(index)"] = instance
                     codeBuilder.sdfStream.closeStream(async: true)
                     
-                    idCounter += codeBuilder.sdfStream.idCounter - idCounter + 1
+                    idCounter += 10//codeBuilder.sdfStream.idCounter - idCounter + 1
                     item.builderInstance = instance
                 }
             } else {
@@ -240,7 +240,7 @@ class Pipeline3D            : Pipeline
         if globalApp!.hasValidScene == false || globalApp!.viewsAreAnimating == true {
             return
         }
-        
+                
         // Finished compiling ?
         compiledSuccessfully = true
         for (_, instance) in instanceMap {
@@ -257,7 +257,7 @@ class Pipeline3D            : Pipeline
                 }
             }
         }
-        
+                
         width = round(widthIn); height = round(heightIn)
 
         // Return a red texture if compilation failed
@@ -330,7 +330,7 @@ class Pipeline3D            : Pipeline
     func nextStage()
     {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-            if self.startId < self.renderId { return }
+            if self.startId < self.renderId || self.samples >= self.maxSamples { return }
 
             //print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "renderId", self.renderId)
 

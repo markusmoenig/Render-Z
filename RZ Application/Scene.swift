@@ -163,10 +163,13 @@ class Terrain               : Codable
         texture = globalApp!.currentPipeline?.checkTextureSize(terrainSize, terrainSize, texture, .r8Sint)
         globalApp!.currentPipeline?.codeBuilder.renderClearTerrain(texture: texture!)
         
-        if let material = globalApp!.libraryDialog.getMaterial(ofId: "Architecture", withName: "Bricks") {
+        if let material = globalApp!.libraryDialog.getMaterial(ofId: "Organic", withName: "Ground") {
             material.uuid = UUID()
             material.components[material.defaultName]!.uuid = UUID()
             materials.append(material)
+            
+            material.values["topSteepness"] = 1
+            material.values["lowerSteepness"] = 0
         }
     }
     
