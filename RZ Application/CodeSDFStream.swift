@@ -243,6 +243,7 @@ class CodeSDFStream
                 float4 inShape = outShape;
                 float3 outNormal = float4(__normalTexture.read(__gid)).xyz;
                 float4 outMeta = float4(__metaTexture.read(__gid));
+                __funcData->hash = outMeta.z;
             
             """
             
@@ -277,6 +278,12 @@ class CodeSDFStream
             
             """
             aoCode += codeBuilder.getFuncDataCode(instance, "AO", 6)
+            aoCode +=
+            """
+            
+            __funcData->hash = outMeta.z;
+            
+            """
             
             shadowCode =
                 
@@ -351,6 +358,12 @@ class CodeSDFStream
             
             """
             shadowCode += codeBuilder.getFuncDataCode(instance, "SHADOW", 7)
+            aoCode +=
+            """
+            
+            __funcData->hash = outMeta.z;
+            
+            """
 
             materialCode =
                 
@@ -406,6 +419,9 @@ class CodeSDFStream
 
             materialCode +=
             """
+            
+                __funcData->hash = meta.z;
+                __funcData->distance2D = abs(meta.w);
             
                 float4 light = __lightData[0];
                 float4 lightType = __lightData[1];
@@ -1325,7 +1341,10 @@ class CodeSDFStream
         if type == .SDF3D {
             hitAndNormalsCode +=
             """
-            
+                
+                outMeta.z = __funcData->hash;
+                outMeta.w = __funcData->distance2D;
+
                 __normalTexture.write(half4(float4(outNormal, 0)), __gid);
                 __metaTexture.write(half4(outMeta), __gid);
                 __depthTexture.write(half4(outShape), __gid);
@@ -1337,6 +1356,7 @@ class CodeSDFStream
             aoCode +=
             """
             
+                outMeta.z = __funcData->hash;
                 __metaTexture.write(half4(outMeta), __gid);
             }
             
@@ -1346,6 +1366,7 @@ class CodeSDFStream
             shadowCode +=
             """
             
+                outMeta.z = __funcData->hash;
                 __metaTexture.write(half4(outMeta), __gid);
             }
             
@@ -1497,7 +1518,7 @@ class CodeSDFStream
                         position = float2( length(originalPos.xz) - __data[\(revolution)].x, originalPos.y );
                 
                     \(component.code!)
-                
+                    __funcData->distance2D = outDistance;
                     if (__data[\(revolution)].x == 0.)
                     {
                         float2 w = float2( outDistance, abs(originalPos.z) - __data[\(extrusion)].x );

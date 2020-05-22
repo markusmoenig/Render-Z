@@ -1124,6 +1124,8 @@ class CodeBuilder
             float                            GlobalTime;
             float                            GlobalSeed;
             constant float4                 *__data;
+            float                            hash;
+            float                            distance2D;
             thread texture2d<half, access::sample>   *texture1;
             thread texture2d<half, access::sample>   *texture2;
             thread texture2d<int, access::sample>    *terrainTexture;

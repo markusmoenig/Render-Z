@@ -1678,6 +1678,15 @@ class CodeComponent         : Codable, Equatable
             self.scrollOffsetY = scrollOffsetY
         }
 
+        if componentType == .Pattern {
+            if let f = functions.last {
+                
+                if f.header.statement.fragments[1].name != "distance2D" {
+                    let arg = CodeFragment(.VariableDefinition, "float", "distance2D", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+                    f.header.statement.fragments.insert(arg, at: 1)
+                }
+            }
+        }
         /*
         if componentType == .PostFX {
             functions.remove(at: 0)
@@ -2229,14 +2238,17 @@ class CodeComponent         : Codable, Equatable
             let arg1 = CodeFragment(.VariableDefinition, "float3", "rayDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)
             
-            let arg2 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg2 = CodeFragment(.VariableDefinition, "float", "distance2D", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
             f.header.statement.fragments.append(arg2)
             
-            let arg3 = CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg3 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg3)
             
-            let arg4 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            let arg4 = CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg4)
+            
+            let arg5 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg5)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
@@ -2621,6 +2633,7 @@ class CodeComponent         : Codable, Equatable
                     constant float4 *__data = __funcData->__data;
                     float GlobalTime = __funcData->GlobalTime;
                     float GlobalSeed = __funcData->GlobalSeed;
+                    float distance2D = __funcData->distance2D;
                     __CREATE_TEXTURE_DEFINITIONS__
 
                 """
