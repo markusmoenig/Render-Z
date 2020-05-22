@@ -553,6 +553,8 @@ class CodeSDFStream
                             float materialId = 0.0;
                              
                             float outDistance = 1000000.0;
+                            float localHeight = 0.;
+
                         
                             float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + \(terrain.terrainSize) / \(terrain.terrainScale) / 2.0) / \(terrain.terrainSize) * \(terrain.terrainScale)) * \(terrain.terrainHeightScale);
                         
@@ -572,6 +574,8 @@ class CodeSDFStream
                                 terrainMapCode +=
                                 """
                                 
+                                    localHeight = 0.;
+
                                     {
                                         outDistance = 1000000.0;
                                         float oldDistance = outDistance;
@@ -619,7 +623,7 @@ class CodeSDFStream
                                     
                                     if (outDistance <= 0.0)
                                     {
-                                        height += \(layer.shapesBlendType == .FactorTimesShape ? "abs(outDistance) * " : "") \(layer.shapeFactor);
+                                        localHeight += \(layer.shapesBlendType == .FactorTimesShape ? "abs(outDistance) * " : "") \(layer.shapeFactor);
                                         materialId = \(materialId + index);
                                 
                                 """
@@ -632,25 +636,18 @@ class CodeSDFStream
                             component.globalCode = ""
                             
                             if layer.noiseType != .None {
-                                if layer.blendType == .Add {
+                                if layer.blendType == .Add || layer.blendType == .Max {
                                     terrainMapCode +=
                                     """
                                     
-                                    height +=
+                                    localHeight +=
                                     """
                                 } else
                                 if layer.blendType == .Subtract {
                                     terrainMapCode +=
                                     """
                                     
-                                    height -=
-                                    """
-                                } else
-                                if layer.blendType == .Max {
-                                    terrainMapCode +=
-                                    """
-                                    
-                                    height = max(height,
+                                    localHeight -=
                                     """
                                 }
                             }
@@ -660,7 +657,7 @@ class CodeSDFStream
                                 let layerName = generateNoise2DFunction(ctx, layer.noise2DFragment)
                                 terrainMapCode +=
                                 """
-                                 \(layerName)(position.xz, __funcData)
+                                 \(layerName)(position.xz, __funcData);
                                 """
                             } else
                             if layer.noiseType == .ThreeD {
@@ -668,7 +665,7 @@ class CodeSDFStream
                                 let layerName = generateNoise3DFunction(ctx, layer.noise3DFragment)
                                 terrainMapCode +=
                                 """
-                                 \(layerName)(position, __funcData)
+                                 \(layerName)(position, __funcData);
                                 """
                             } else
                             if layer.noiseType == .Image {
@@ -676,32 +673,33 @@ class CodeSDFStream
                                 let layerName = generateImageFunction(ctx, layer.imageFragment)
                                 terrainMapCode +=
                                 """
-                                 \(layerName)(position.xz, __funcData).x
+                                 \(layerName)(position.xz, __funcData).x;
                                 """
                             }
                             
                             if layer.noiseType != .None && layer.shapes.isEmpty == false {
                                 terrainMapCode +=
                                 """
-                                 * smoothstep(0.0, -0.20, outDistance)
+                                
+                                localHeight = localHeight * smoothstep(0.0, -0.20, outDistance);
+                                
                                 """
                             }
                             
-                            if layer.noiseType != .None {
-                                if layer.blendType == .Max {
-                                    terrainMapCode +=
-                                    """
-                                    - 0.5);
-                                    
-                                    """
-                                } else
-                                if layer.noiseType != .None {
-                                    terrainMapCode +=
-                                    """
-                                    ;
-                                    
-                                    """
-                                }
+                            if layer.blendType == .Max {
+                                terrainMapCode +=
+                                """
+                                
+                                height = max(height, localHeight);
+                                
+                                """
+                            } else {
+                                terrainMapCode +=
+                                """
+                                
+                                height += localHeight;
+                                
+                                """
                             }
                             
                             headerCode += component.globalCode!
