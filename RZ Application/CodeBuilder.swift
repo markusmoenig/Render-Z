@@ -1507,6 +1507,7 @@ class CodeBuilder
         thread struct FuncData *__funcData = &__funcData_;
         __funcData_.GlobalTime = GlobalTime;
         __funcData_.GlobalSeed = GlobalSeed;
+
         {
             float2 uv = float2(__gid.x, __gid.y);
             //__funcData_.seed = fract(cos((uv.xy+uv.yx * float2(1000.0,1000.0) ) + float2(__data[0].z, __data[0].w)*10.0));

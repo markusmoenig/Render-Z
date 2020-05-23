@@ -643,7 +643,7 @@ class CodeSDFStream
                                 
                                 """
                                 
-                                if layer.material != nil {
+                                if layer.material != nil && layer.blendType != .Max {
                                     terrainMapCode +=
                                     """
                                     
@@ -654,7 +654,7 @@ class CodeSDFStream
                                     terrainMapCode +=
                                     """
                                     
-                                    materialId = 0.0;
+                                    //materialId = 0.0;
                                     
                                     """
                                 }
@@ -713,7 +713,7 @@ class CodeSDFStream
                                 """
                                 
                                 localHeight = localHeight * smoothstep(0.0, -0.20, outDistance);
-                                
+
                                 """
                             }
                             
@@ -721,7 +721,12 @@ class CodeSDFStream
                                 terrainMapCode +=
                                 """
                                 
-                                height = max(height, localHeight);
+                                //height = max(height, localHeight - 0.5);
+                                if (height + localHeight - 0.5 > height)
+                                {
+                                    height = height + localHeight - 0.5;
+                                    \(layer.material != nil ? " materialId = \(materialId + index);" : "")
+                                }
                                 
                                 """
                             } else {
@@ -767,11 +772,8 @@ class CodeSDFStream
                         //print(terrainMapCode)
                         
                         headerCode += terrainMapCode
-
-                        //headerCode += regionCode
                         
-                        if let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D), thumbNail == false
-                        {
+                        if let rayMarch = terrain.rayMarcher {
                             dryRunComponent(rayMarch, instance.data.count)
                             instance.collectProperties(rayMarch)
                             if let globalCode = rayMarch.globalCode {
@@ -835,7 +837,7 @@ class CodeSDFStream
                                 hitAndNormalsCode +=
                                 """
                                 
-                                if ( normal.y <= \(material.values["topSteepness"]!) && normal.y >= \(material.values["lowerSteepness"]!))
+                                if ( normal.y >= 1.0 - \(material.values["maxSlope"]!) && normal.y <= 1.0 - \(material.values["minSlope"]!))
                                     outShape.z = \(index);
                                 
                                 """                                

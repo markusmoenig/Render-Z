@@ -406,7 +406,11 @@ class CodeFragment          : Codable, Equatable
             ctx.rectEnd(rect, rStart)
             ctx.cX += ctx.gapX
             
-            ctx.addCode(name)
+            if name == "GlobalHash" {
+                ctx.addCode("__funcData->hash")
+            } else {
+                ctx.addCode(name)
+            }
         } else
         if fragmentType == .End {
             let rStart = ctx.rectStart()

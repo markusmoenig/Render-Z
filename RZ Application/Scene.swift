@@ -103,6 +103,8 @@ class Terrain               : Codable
     var terrainSize         : Float = 1024
     var terrainScale        : Float = 0.1
     var terrainHeightScale  : Float = 0.5
+    
+    var rayMarcher          : CodeComponent? = nil
 
     private enum CodingKeys: String, CodingKey {
         case layers
@@ -111,6 +113,7 @@ class Terrain               : Codable
         case terrainSize
         case terrainScale
         case terrainHeightScale
+        case rayMarcher
     }
      
     required init(from decoder: Decoder) throws
@@ -122,7 +125,8 @@ class Terrain               : Codable
         terrainSize = try container.decode(Float.self, forKey: .terrainSize)
         terrainScale = try container.decode(Float.self, forKey: .terrainScale)
         terrainHeightScale = try container.decode(Float.self, forKey: .terrainHeightScale)
-        
+        rayMarcher = try container.decode(CodeComponent?.self, forKey: .rayMarcher)
+
         texture = globalApp!.currentPipeline?.checkTextureSize(terrainSize, terrainSize, texture, .r8Sint)
 
         let region = MTLRegionMake2D(0, 0, Int(terrainSize) - 1, Int(terrainSize)-1)
@@ -156,6 +160,7 @@ class Terrain               : Codable
         try container.encode(terrainSize, forKey: .terrainSize)
         try container.encode(terrainScale, forKey: .terrainScale)
         try container.encode(terrainHeightScale, forKey: .terrainHeightScale)
+        try container.encode(rayMarcher, forKey: .rayMarcher)
     }
      
     init()
@@ -168,20 +173,20 @@ class Terrain               : Codable
             material.components[material.defaultName]!.uuid = UUID()
             materials.append(material)
             
-            material.values["topSteepness"] = 1
-            material.values["lowerSteepness"] = 0
+            material.values["maxSlope"] = 1
+            material.values["minSlope"] = 0
+        }
+        
+        rayMarcher = globalApp!.libraryDialog.getItem(ofId: "RayMarch3D", withName: "RayMarch")
+        if let raymarch = rayMarcher {
+            setPropertyValue1(component: raymarch, name: "steps", value: 300)
+            setPropertyValue1(component: raymarch, name: "stepSize", value: 0.5)
         }
     }
     
     func getTexture() -> MTLTexture?
     {
         return texture
-    }
-    
-    func textureToData()
-    {
-
-        
     }
 }
 

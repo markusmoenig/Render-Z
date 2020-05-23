@@ -360,6 +360,18 @@ class TerrainEditor         : PropertiesWidget
         c2Node?.rect.x = 10
         c2Node?.rect.y = 10
         
+        c3Node = Node()
+        c3Node?.rect.x = 10
+        c3Node?.rect.y = 10
+        
+        if currentLayerIndex >= terrain.layers.count {
+            currentLayerIndex = -1
+        }
+        
+        if currentMaterialIndex >= terrain.materials.count {
+            currentMaterialIndex = 0
+        }
+        
         if editTab.index == 0 {
             
             addButton(addLayerButton)
@@ -515,30 +527,22 @@ class TerrainEditor         : PropertiesWidget
             
             if currentLayerIndex >= 0 {
                 let layer = terrain.layers[currentLayerIndex]
+                
+                if let shape = currentShape {
+                    if layer.shapes.firstIndex(of: shape) == nil {
+                        currentShape = nil
+                    }
+                }
 
                 if let shape = currentShape {
                     
                     let shapeBlendVar = NodeUISelector(c2Node!, variable: "shapesBlendMode", title: "Custome Height", items: ["Distance * Height", "Height"], index: Float(layer.shapesBlendType.rawValue), shadows: true)
                     c2Node!.uiItems.append(shapeBlendVar)
                     
-                    let factorVar = NodeUINumber(c2Node!, variable: "factor", title: "Height", range: SIMD2<Float>(0, 5), value: layer.shapeFactor, precision: Int(3))
+                    let factorVar = NodeUINumber(c2Node!, variable: "factor", title: "Height", range: SIMD2<Float>(-5, 5), value: layer.shapeFactor, precision: Int(3))
                     factorVar.titleShadows = true
                     factorVar.additionalSpacing = 20
                     c2Node?.uiItems.append(factorVar)
-                    
-                    var materialItems = ["None"]
-                    var materialIndex : Float = 0
-                    
-                    if let material = layer.material {
-                        materialItems.append(material.name)
-                        materialIndex = 1
-                    } else {
-                        materialItems.append("Material")
-                    }
-                    
-                    let materialVar = NodeUISelector(c2Node!, variable: "material", title: "Material", items: materialItems, index: materialIndex, shadows: true)
-                    materialVar.additionalSpacing = 20
-                    c2Node!.uiItems.append(materialVar)
                 
                     for (index,uuid) in shape.properties.enumerated() {
                         let rc = shape.getPropertyOfUUID(uuid)
@@ -555,6 +559,28 @@ class TerrainEditor         : PropertiesWidget
                             }
                         }
                     }
+                }
+                
+                if currentShape != nil || layer.blendType == .Max {
+                    
+                    if let last = c2Node?.uiItems.last {
+                        if last.additionalSpacing == 0 {
+                            last.additionalSpacing = 20
+                        }
+                    }
+                    
+                    var materialItems = ["None"]
+                    var materialIndex : Float = 0
+                    
+                    if let material = layer.material {
+                        materialItems.append(material.name)
+                        materialIndex = 1
+                    } else {
+                        materialItems.append("Material")
+                    }
+                    
+                    let materialVar = NodeUISelector(c2Node!, variable: "material", title: "Material", items: materialItems, index: materialIndex, shadows: true)
+                    c2Node!.uiItems.append(materialVar)
                 }
                 
                 c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
@@ -623,13 +649,13 @@ class TerrainEditor         : PropertiesWidget
             
             let currentMaterial = terrain.materials[currentMaterialIndex]
             
-            let topSteepnessVar = NodeUINumber(c1Node!, variable: "topSteepness", title: "Top Steepness", range: SIMD2<Float>(0, 1), value: currentMaterial.values["topSteepness"]!, precision: Int(3))
-            topSteepnessVar.titleShadows = true
-            c1Node?.uiItems.append(topSteepnessVar)
+            let topSlopeVar = NodeUINumber(c1Node!, variable: "maxSlope", title: "Max Slope", range: SIMD2<Float>(0, 1), value: currentMaterial.values["maxSlope"]!, precision: Int(3))
+            topSlopeVar.titleShadows = true
+            c1Node?.uiItems.append(topSlopeVar)
             
-            let lowerSteepnessVar = NodeUINumber(c1Node!, variable: "lowerSteepness", title: "Lower Steepness", range: SIMD2<Float>(0, 1), value: currentMaterial.values["lowerSteepness"]!, precision: Int(3))
-            lowerSteepnessVar.titleShadows = true
-            c1Node?.uiItems.append(lowerSteepnessVar)
+            let minSlopeVar = NodeUINumber(c1Node!, variable: "minSlope", title: "Min Slope", range: SIMD2<Float>(0, 1), value: currentMaterial.values["minSlope"]!, precision: Int(3))
+            minSlopeVar.titleShadows = true
+            c1Node?.uiItems.append(minSlopeVar)
             
             c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                 if variable == "materialSelector" {
@@ -643,9 +669,42 @@ class TerrainEditor         : PropertiesWidget
                 self.terrainNeedsUpdate(true)
             }
         }
+        
+        // Raymarcher in Node 3
+        
+        if let raymarcher = terrain.rayMarcher {
+            for (index,uuid) in raymarcher.properties.enumerated() {
+                let rc = raymarcher.getPropertyOfUUID(uuid)
+                if let frag = rc.0 {
+                    propMap[frag.name] = rc.1!
+                    let components = frag.evaluateComponents()
+                    let data = extractValueFromFragment(rc.1!)
+                                    
+                    if components == 1 {
+                        let numberVar = NodeUINumber(c3Node!, variable: frag.name, title: (index == 0 ? "Raymarcher: " : "") + raymarcher.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), int: frag.typeName == "int", value: data.x, precision: Int(rc.1!.values["precision"]!))
+                        numberVar.titleShadows = true
+                        numberVar.autoAdjustMargin = true
+                        c3Node!.uiItems.append(numberVar)
+                    }
+                }
+            }
+            
+            c3Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                if let frag = self.propMap[variable] {
+                    frag.values["value"] = oldValue
+                    //let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
+                    frag.values["value"] = newValue
+                    self.terrainNeedsUpdate(false)
+                    //self.addKey([variable:newValue])
+                    //if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
+                    self.terrainNeedsUpdate(false)
+                }
+            }
+        }
                 
         c1Node?.setupUI(mmView: mmView)
         c2Node?.setupUI(mmView: mmView)
+        c3Node?.setupUI(mmView: mmView)
     }
 
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
@@ -701,6 +760,9 @@ class TerrainEditor         : PropertiesWidget
             c1Node?.rect.x = 10
             c1Node?.rect.y = addLayerButton.rect.bottom() + 10 - rect.y
         }
+        
+        c3Node?.rect.x = rect.right() - 200 - rect.x
+        c3Node?.rect.y = rect.bottom() - 188
         
         super.draw(xOffset: xOffset, yOffset: yOffset)
     }
@@ -1085,8 +1147,8 @@ class TerrainEditor         : PropertiesWidget
     {
         func fillInDefaults(_ stageItem: StageItem)
         {
-            stageItem.values["topSteepness"] = 1
-            stageItem.values["lowerSteepness"] = 0
+            stageItem.values["maxSlope"] = 1
+            stageItem.values["minSlope"] = 0
         }
         
         globalApp!.libraryDialog.showMaterials(cb: { (jsonComponent, jsonStageItem) in
