@@ -1087,6 +1087,13 @@ class Scene                 : Codable, Equatable
                 for m in terrain.materials {
                     findInItem(m)
                 }
+                if result.stageItem == nil {
+                    for l in terrain.layers {
+                        if let m = l.material {
+                            findInItem(m)
+                        }
+                    }
+                }
             }
         }
         

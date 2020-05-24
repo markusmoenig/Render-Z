@@ -168,6 +168,12 @@ class MMCompute {
         }
         #endif
         
+        commandBuffer.addCompletedHandler { cb in
+            let executionDuration = cb.gpuEndTime - cb.gpuStartTime
+            print(executionDuration)
+            /* ... */
+        }
+        
         commandBuffer.commit()
     }
     

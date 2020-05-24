@@ -246,7 +246,7 @@ class TerrainEditor         : PropertiesWidget
         if actionState == .PaintHeight {
             if let loc = getHitLocationAt(event) {
                 let val = getValue(loc)
-                setValue(loc, value: Int8(val - 1))
+                setValue(loc, value: Int8(val + 1))
 
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
                 

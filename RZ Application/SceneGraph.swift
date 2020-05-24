@@ -420,7 +420,6 @@ class SceneGraph                : MMWidget
             }
         }
         
-        
         if selectedTerminal != nil {
             if let propT = selectedTerminal {
                 let comp = propT.0
@@ -1254,6 +1253,8 @@ class SceneGraph                : MMWidget
                                 comp.uuid = item.component!.uuid
                                 globalApp!.currentEditor.setComponent(comp)
                                 globalApp!.project.selected!.updateComponent(comp)
+                                
+                                stageItem.componentLists["patterns"] = []
 
                                 globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
                                 self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
@@ -2404,9 +2405,16 @@ class SceneGraph                : MMWidget
                 if (component.componentType == .Ground3D && o.name == "Terrain") {
                     // Terrain, draw only the materials
                 
-                    let materials = globalApp!.artistEditor.getTerrain()!.materials
+                    let terrain = globalApp!.artistEditor.getTerrain()!
+                    
+                    let materials = terrain.materials
                     for c in materials {
                         drawObject(stage: stage, o: c, parent: item, skin: skin)
+                    }
+                    for l in terrain.layers {
+                        if let material = l.material {
+                            drawObject(stage: stage, o: material, parent: item, skin: skin)
+                        }
                     }
                 } else {
                     drawShapesBox(parent: item, skin: skin)
