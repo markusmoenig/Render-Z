@@ -1126,6 +1126,8 @@ class CodeBuilder
             constant float4                 *__data;
             float                            hash;
             float                            distance2D;
+            float4                           inShape;
+            float3                           inHitPoint;
             thread texture2d<half, access::sample>   *texture1;
             thread texture2d<half, access::sample>   *texture2;
             thread texture2d<int, access::sample>    *terrainTexture;
@@ -1507,6 +1509,7 @@ class CodeBuilder
         thread struct FuncData *__funcData = &__funcData_;
         __funcData_.GlobalTime = GlobalTime;
         __funcData_.GlobalSeed = GlobalSeed;
+        __funcData_.inShape = float4(1000, 1000, -1, -1);
 
         {
             float2 uv = float2(__gid.x, __gid.y);

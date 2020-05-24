@@ -524,7 +524,6 @@ class TerrainEditor         : PropertiesWidget
             }
             
             // Right Side c2Node
-            
             if currentLayerIndex >= 0 {
                 let layer = terrain.layers[currentLayerIndex]
                 
@@ -536,8 +535,8 @@ class TerrainEditor         : PropertiesWidget
 
                 if let shape = currentShape {
                     
-                    let shapeBlendVar = NodeUISelector(c2Node!, variable: "shapesBlendMode", title: "Custome Height", items: ["Distance * Height", "Height"], index: Float(layer.shapesBlendType.rawValue), shadows: true)
-                    c2Node!.uiItems.append(shapeBlendVar)
+                    //let shapeBlendVar = NodeUISelector(c2Node!, variable: "shapesBlendMode", title: "Custome Height", items: ["Distance * Height", "Height"], index: Float(layer.shapesBlendType.rawValue), shadows: true)
+                    //c2Node!.uiItems.append(shapeBlendVar)
                     
                     let factorVar = NodeUINumber(c2Node!, variable: "factor", title: "Height", range: SIMD2<Float>(-5, 5), value: layer.shapeFactor, precision: Int(3))
                     factorVar.titleShadows = true

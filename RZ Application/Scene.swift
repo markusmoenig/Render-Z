@@ -334,25 +334,35 @@ class StageItem             : Codable, Equatable
     }
     
     /// Adds a material to this item
-    func addMaterial()
+    func addMaterial(defaults: Bool = false)
     {
         let materialItem = StageItem(.ShapeStage, "Material")
         //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
-        var codeComponent = CodeComponent(.Material3D, "Material")
-        codeComponent.createDefaultFunction(.Material3D)
-        codeComponent.uuid = UUID()
-        codeComponent.selected = nil
-        materialItem.components[materialItem.defaultName] = codeComponent
+        if defaults == false {
+            let codeComponent = CodeComponent(.Material3D, "Material")
+            codeComponent.createDefaultFunction(.Material3D)
+            codeComponent.uuid = UUID()
+            codeComponent.selected = nil
+            materialItem.components[materialItem.defaultName] = codeComponent
+        } else {
+            materialItem.components[materialItem.defaultName] = globalApp!.libraryDialog.getItem(ofId: "Material3D", withName: "PBR")
+            materialItem.name = "PBR"
+        }
         children.append(materialItem)
         placeChild(modeId: "3D", parent: self, child: materialItem, stepSize: 60, radius: 110, defaultStart: 10)
         
         let uvItem = StageItem(.ShapeStage, "UV Map")
         //var codeComponent = decodeComponentFromJSON(defaultRender2D)!
-        codeComponent = CodeComponent(.UVMAP3D, "UV Map")
-        codeComponent.createDefaultFunction(.UVMAP3D)
-        codeComponent.uuid = UUID()
-        codeComponent.selected = nil
-        uvItem.components[uvItem.defaultName] = codeComponent
+        if defaults == false {
+            let codeComponent = CodeComponent(.UVMAP3D, "UV Map")
+            codeComponent.createDefaultFunction(.UVMAP3D)
+            codeComponent.uuid = UUID()
+            codeComponent.selected = nil
+            uvItem.components[uvItem.defaultName] = codeComponent
+        } else {
+            uvItem.components[uvItem.defaultName] = globalApp!.libraryDialog.getItem(ofId: "UVMAP3D", withName: "Auto UV")
+            uvItem.name = "Auto UV"
+        }
         children.append(uvItem)
         placeChild(modeId: "3D", parent: self, child: uvItem, stepSize: 50, radius: 110)
     }

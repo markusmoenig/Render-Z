@@ -193,11 +193,15 @@ class CodeSDFStream
             {
                 float3 __originBackupForScaling = __origin;
                 float3 __objectPosition = float3(0);
-                float4 outShape = float4(100000, 100000, -1, -1);
                 float outDistance = 10;
                 float bump = 0;
                 float scale = 1;
             
+                float4 outShape = __funcData->inShape;
+                outShape.x = length(__origin - __funcData->inHitPoint) + 0.5;
+            
+                //float4 outShape = float4(1000, 1000, -1, -1);
+
                 constant float4 *__data = __funcData->__data;
                 float GlobalTime = __funcData->GlobalTime;
                 float GlobalSeed = __funcData->GlobalSeed;
@@ -238,6 +242,9 @@ class CodeSDFStream
                 __funcData->terrainTexture = &__terrainTexture;
             
                 float4 outShape = float4(__depthTexture.read(__gid));
+
+                __funcData->inShape = outShape;
+                __funcData->inHitPoint = rayOrigin + rayDirection * outShape.y;
             
                 float maxDistance = outShape.y;
                 float4 inShape = outShape;
@@ -282,6 +289,9 @@ class CodeSDFStream
             """
             
             __funcData->hash = outMeta.z;
+            
+            __funcData->inShape = outShape;
+            __funcData->inHitPoint = rayOrigin + rayDirection * outShape.y;
             
             """
             
@@ -358,7 +368,7 @@ class CodeSDFStream
             
             """
             shadowCode += codeBuilder.getFuncDataCode(instance, "SHADOW", 7)
-            aoCode +=
+            shadowCode +=
             """
             
             __funcData->hash = outMeta.z;
@@ -422,6 +432,9 @@ class CodeSDFStream
             
                 __funcData->hash = meta.z;
                 __funcData->distance2D = abs(meta.w);
+            
+                __funcData->inShape = shape;
+                __funcData->inHitPoint = rayOrigin + rayDirection * shape.y;
             
                 float4 light = __lightData[0];
                 float4 lightType = __lightData[1];
@@ -639,7 +652,10 @@ class CodeSDFStream
                                     
                                     if (outDistance <= 0.0)
                                     {
-                                        localHeight += \(layer.shapesBlendType == .FactorTimesShape ? "abs(outDistance) * " : "") \(layer.shapeFactor);
+                                        if (\(layer.shapeFactor) < 0.0)
+                                            localHeight += max(\(layer.shapesBlendType == .FactorTimesShape ? "abs(outDistance) * " : "") \(layer.shapeFactor), \(layer.shapeFactor));
+                                        else
+                                            localHeight += min(\(layer.shapesBlendType == .FactorTimesShape ? "abs(outDistance) * " : "") \(layer.shapeFactor), \(layer.shapeFactor));
                                 
                                 """
                                 
@@ -696,7 +712,7 @@ class CodeSDFStream
                                 let layerName = generateNoise3DFunction(ctx, layer.noise3DFragment)
                                 terrainMapCode +=
                                 """
-                                 \(layerName)(position, __funcData);
+                                 \(layerName)(position + float3(0,localHeight, 0), __funcData);
                                 """
                             } else
                             if layer.noiseType == .Image {
