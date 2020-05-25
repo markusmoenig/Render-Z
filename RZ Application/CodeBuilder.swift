@@ -40,6 +40,8 @@ class CodeBuilderInstance
     var idStart             : Int = 0
     
     var finishedCompiling   : Bool = false
+    
+    var lineNumber          : Float = 0
 
     /// Adds a global variable manually, used when we need to know the index of a global variable
     func addGlobalVariable(name: String) -> Int?
@@ -911,6 +913,8 @@ class CodeBuilder
             inst.data[0].w = 0.5
         }
         
+        inst.data[0].y = inst.lineNumber
+        
         //inst.data[0].z = 1
         //inst.data[0].w = 1
 
@@ -1080,7 +1084,7 @@ class CodeBuilder
     }
     
     // Render the component into a texture
-    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], inBuffers: [MTLBuffer] = [], syncronize: Bool = false, optionalState: String? = nil, jitter: Bool = true)
+    func render(_ inst: CodeBuilderInstance,_ outTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], inBuffers: [MTLBuffer] = [], syncronize: Bool = false, optionalState: String? = nil, jitter: Bool = true, finishedCB: ((Double)->())? = nil)
     {
         updateData(inst, jitter)
         
@@ -1106,7 +1110,7 @@ class CodeBuilder
         }
         
         if let state = state {
-            compute.run( state, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, outTextures: myOuTextures, inBuffers: inBuffers, syncronize: syncronize)
+            compute.run( state, outTexture: outTexture, inBuffer: inst.buffer, inTextures: inTextures, outTextures: myOuTextures, inBuffers: inBuffers, syncronize: syncronize, finishedCB: finishedCB)
         }
     }
     

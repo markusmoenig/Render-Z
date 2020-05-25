@@ -112,7 +112,7 @@ class MMCompute {
     }
 
     /// Run the given state
-    func run(_ state: MTLComputePipelineState?, outTexture: MTLTexture? = nil, inBuffer: MTLBuffer? = nil, inTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], inBuffers: [MTLBuffer] = [], syncronize: Bool = false )
+    func run(_ state: MTLComputePipelineState?, outTexture: MTLTexture? = nil, inBuffer: MTLBuffer? = nil, inTexture: MTLTexture? = nil, inTextures: [MTLTexture] = [], outTextures: [MTLTexture] = [], inBuffers: [MTLBuffer] = [], syncronize: Bool = false, finishedCB: ((Double)->())? = nil )
     {
         commandBuffer = commandQueue!.makeCommandBuffer()!
         let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
@@ -168,10 +168,12 @@ class MMCompute {
         }
         #endif
         
-        commandBuffer.addCompletedHandler { cb in
-            let executionDuration = cb.gpuEndTime - cb.gpuStartTime
-            print(executionDuration)
-            /* ... */
+        if let finished = finishedCB {
+            commandBuffer.addCompletedHandler { cb in
+                let executionDuration = cb.gpuEndTime - cb.gpuStartTime
+                //print(executionDuration)
+                finished(executionDuration)
+            }
         }
         
         commandBuffer.commit()

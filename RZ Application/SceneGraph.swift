@@ -2404,7 +2404,6 @@ class SceneGraph                : MMWidget
             if component.values["minimized"] != 1 {
                 if (component.componentType == .Ground3D && o.name == "Terrain") {
                     // Terrain, draw only the materials
-                
                     let terrain = globalApp!.artistEditor.getTerrain()!
                     
                     let materials = terrain.materials

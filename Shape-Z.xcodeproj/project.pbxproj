@@ -920,6 +920,7 @@
 		2BBFA83F24389CDA008981B7 /* Pebbles.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Pebbles.tiff; sourceTree = "<group>"; };
 		2BBFA84824395C79008981B7 /* GreyStone.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GreyStone.tiff; sourceTree = "<group>"; };
 		2BC5DCE3231794050081A018 /* Dialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dialogs.swift; sourceTree = "<group>"; };
+		2BCD175F247B71A400C02A5C /* Pipeline3D copy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Pipeline3D copy.swift"; sourceTree = "<group>"; };
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
 		2BD0E1D5245A5F6000A61586 /* maximize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = maximize.tiff; sourceTree = "<group>"; };
@@ -1056,6 +1057,7 @@
 				2B8E2FED23C96919005619E4 /* Pipeline.swift */,
 				2BAA45BF24133B0C00744A0A /* Pipeline2D.swift */,
 				2BAA45C224133B1900744A0A /* Pipeline3D.swift */,
+				2BCD175F247B71A400C02A5C /* Pipeline3D copy.swift */,
 				2B9B29F523BF1DD700C2F387 /* Dialogs.swift */,
 				2B9B299B23BAD15700C2F387 /* Node.swift */,
 				2B9B299E23BAD2DB00C2F387 /* NodeUI.swift */,

@@ -223,8 +223,11 @@ class CodeSDFStream
             __HITANDNORMALS_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
+                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                    return;
+            
                 float2 __size = float2( __depthTexture.get_width(), __depthTexture.get_height() );
-
+            
                 float2 __uv = float2(__gid.x, __gid.y);
                 float3 rayOrigin = float4(__rayOriginTexture.read(__gid)).xyz;
                 float3 rayDirection = float4(__rayDirectionTexture.read(__gid)).xyz;
@@ -267,6 +270,9 @@ class CodeSDFStream
             __AO_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
+                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                    return;
+            
                 float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
 
                 float2 __uv = float2(__gid.x, __gid.y);
@@ -350,6 +356,9 @@ class CodeSDFStream
             constant float4                        *__lightData   [[ buffer(__SHADOW_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
+                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                    return;
+            
                 float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
 
                 float2 __uv = float2(__gid.x, __gid.y);
@@ -392,6 +401,9 @@ class CodeSDFStream
             constant float4                        *__lightData   [[ buffer(__MATERIAL_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
+                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                    return;
+            
                 float2 __size = float2( __colorTexture.get_width(), __colorTexture.get_height() );
 
                 float2 __uv = float2(__gid.x, __gid.y);
@@ -1004,18 +1016,23 @@ class CodeSDFStream
                         shadowCode += code
                         
                         var hasFogOrClouds = false
-                        
+                        var hasFog = false
+                        var hasClouds = false
+
                         if let scene = scene {
                             let preStage = scene.getStage(.PreStage)
                             for c in preStage.children3D {
                                 if let list = c.componentLists["fog"] {
                                     if list.count > 0 {
                                         hasFogOrClouds = true
+                                        hasFog = true
                                     }
                                 }
+                                
                                 if let list = c.componentLists["clouds"] {
                                     if list.count > 0 {
                                         hasFogOrClouds = true
+                                        hasClouds = true
                                     }
                                 }
                             }
@@ -1048,6 +1065,7 @@ class CodeSDFStream
                             float t = random(__funcData) * maxDistance;
                             float tt = 0.0;
 
+                            if (\(String(hasFog))) {
                             for( int i=0; i < 5 && t < maxDistance; i++ )
                             {
                                 float3 pos = rayOrigin + rayDirection * t;
@@ -1133,10 +1151,11 @@ class CodeSDFStream
                                 tt += random(__funcData);
                                 t += tt;
                             }
+                            }
                         
                             // Cloud Density Code
                         
-                            if (lightType.y == 0.0) {
+                            if (lightType.y == 0.0 && \(String(hasClouds))) {
 
                                 float3 lightDirection = normalize(__lightData[0].xyz);
                                 float lengthToLight = 0.5;
@@ -1257,7 +1276,7 @@ class CodeSDFStream
                                                     float scattering =  mix( __HenyeyGreenstein(sundotrd, CLOUDS_FORWARD_SCATTERING_G),
                                                         __HenyeyGreenstein(sundotrd, CLOUDS_BACKWARD_SCATTERING_G), CLOUDS_SCATTERING_LERP );
                                             
-                                                    for( int i=0; i < 5 && t < end; i++ )
+                                                    for( int i=0; i < 10 && t < end; i++ )
                                                     {
                                                         float3 pos = ro + rayDirection * t;
                                                         

@@ -11,7 +11,7 @@ import MetalKit
 class Pipeline3D            : Pipeline
 {
     enum Stage : Int {
-        case None, Compiling, Compiled, HitAndNormals, AO, ShadowsAndMaterials, Reflection
+        case None, Compiling, Compiled, HitAndNormals, AO, Shadows, Materials, Reflection
     }
 
     var currentStage        : Stage = .None
@@ -43,13 +43,20 @@ class Pipeline3D            : Pipeline
     
     var dummyTerrainTexture : MTLTexture? = nil
     
+    var objectCounter       : Int = -1
+    var lightCounter        : Int = -1
+
+    var renderIsRunning     : Bool = false
+    
+    let waitTime            : Double = 0.05
+    
     var lineNumber          : Float = 0
 
     override init(_ mmView: MMView)
     {
         super.init(mmView)
         finalTexture = checkTextureSize(10, 10, nil, .rgba16Float)
-        dummyTerrainTexture = checkTextureSize(10, 10, nil, .rg8Sint)
+        dummyTerrainTexture = checkTextureSize(10, 10, nil, .r8Sint)
     }
     
     override func setMinimalPreview(_ mode: Bool = false)
@@ -298,23 +305,37 @@ class Pipeline3D            : Pipeline
                 maxSamples = settings!.samples
             }
             
-            DispatchQueue.main.async { //After(deadline: .now() + 0.0001) {
+            func startRender()
+            {
+                print("started")
                 self.startId = self.renderId
                 self.resetSample()
 
                 self.allocTextureId("color", self.width, self.height, .rgba16Float)
                 self.allocTextureId("mask", self.width, self.height, .rgba16Float)
                 self.allocTextureId("id", self.width, self.height, .rgba16Float)
-
-                self.allocTextureId("depth", self.width, self.height, .rgba16Float)
-
-                self.codeBuilder.renderClear(texture: self.getTextureOfId("depth"), data: SIMD4<Float>(1000, 1000, -1, -1))
-
+                
+                self.renderIsRunning = true
+                self.lineNumber = 0
+                self.objectCounter = 0
                 self.stage_HitAndNormals()
-                self.lineNumber = 0;
                 self.currentStage = .HitAndNormals
                 self.startedRender = false
             }
+            
+            func tryToStartRender()
+            {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    print("try to start")
+                    if self.renderIsRunning {
+                        tryToStartRender()
+                    } else {
+                        startRender()
+                    }
+                }
+            }
+            
+            tryToStartRender()
             startedRender = true
         }
     }
@@ -334,48 +355,38 @@ class Pipeline3D            : Pipeline
         }
     }
     
+    func hasToFinish() -> Bool
+    {
+        if self.startId < self.renderId || self.samples >= self.maxSamples {
+            renderIsRunning = false
+            print("renderer forced to stop")
+            return true
+        } else { return false }
+    }
+    
     func nextStage()
     {
-        DispatchQueue.main.async {//After(deadline: .now() + 0.05) {
-            if self.startId < self.renderId || self.samples >= self.maxSamples { return }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+            if self.hasToFinish() { return }
 
-            //print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "renderId", self.renderId)
+            print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "renderId", self.renderId)
 
-            // Preview Render: Fake Lighting
-            if self.maxStage == .HitAndNormals {
-                
-                if self.lineNumber + 50 < self.height {
-                    self.lineNumber += 50
-                    
-                    self.stage_HitAndNormals()
-                    self.currentStage = .HitAndNormals
-
-                    print(self.lineNumber)
-                    return
-                }
-                
-                self.lineNumber = 0
-                
-                self.codeBuilder.compute.run( self.codeBuilder.previewState!, outTexture: self.getTextureOfId("result"), inTextures: [self.getTextureOfId("depth")!, self.getTextureOfId("back"), self.getTextureOfId("normal"), self.getTextureOfId("meta")])
-                self.codeBuilder.compute.commandBuffer.waitUntilCompleted()
-
-                self.checkFinalTexture()
-                self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
-                self.mmView.update()
-                                                
-                return
-            }
-            
             let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
             
             if let nextStage = nextStage {
+                self.objectCounter = 0
+                self.lightCounter = 0
                 if nextStage == .AO {
                     self.stage_computeAO()
                     self.currentStage = .AO
                 } else
-                if nextStage == .ShadowsAndMaterials {
+                if nextStage == .Shadows {
+                    self.currentStage = .Shadows
                     self.stage_computeShadowsAndMaterials()
-                    self.currentStage = .ShadowsAndMaterials
+                } else
+                if nextStage == .Materials {
+                    self.currentStage = .Materials
+                    self.stage_computeShadowsAndMaterials()
                 } else
                 if nextStage == .Reflection {
                     
@@ -425,18 +436,6 @@ class Pipeline3D            : Pipeline
                     } else {
                         self.checkFinalTexture()
                         
-                        if self.lineNumber + 50 < self.height {
-                            self.lineNumber += 50
-                            self.reflections = 0
-                                                 
-                            self.stage_HitAndNormals()
-                            self.currentStage = .HitAndNormals
-
-                            return
-                        }
-                        
-                        self.lineNumber = 0
-
                         // Sampling
                         if self.samples == 0 { self.checkFinalTexture(true) }
                         self.finish()
@@ -467,6 +466,8 @@ class Pipeline3D            : Pipeline
                                     cbFinished(self.finalTexture!)
                                 }
                             }
+                            self.renderIsRunning = false
+                            print("render is finished")
                         }
                     }
                 }
@@ -477,156 +478,170 @@ class Pipeline3D            : Pipeline
     /// Compute the hitpoints and normals
     func stage_HitAndNormals()
     {
-        if reflections == 0 && lineNumber == 0 {
-            // Render the Camera Textures
-            allocTextureId("rayOrigin", width, height, .rgba16Float)
-            allocTextureId("rayDirection", width, height, .rgba16Float)
-            if let inst = instanceMap["camera3D"] {
-                codeBuilder.render(inst, getTextureOfId("rayOrigin"), outTextures: [getTextureOfId("rayDirection")])
+        if objectCounter == 0 {
+            if reflections == 0 {
+                // Render the Camera Textures
+                allocTextureId("rayOrigin", width, height, .rgba16Float)
+                allocTextureId("rayDirection", width, height, .rgba16Float)
+                if let inst = instanceMap["camera3D"] {
+                    codeBuilder.render(inst, getTextureOfId("rayOrigin"), outTextures: [getTextureOfId("rayDirection")])
+                }
             }
-        }
-        
-        if lineNumber == 0 {
+            
             // Render the SkyDome into backTexture
             allocTextureId("back", width, height, .rgba16Float)
             if let inst = instanceMap["pre"] {
                 codeBuilder.render(inst, getTextureOfId("back"), inTextures: [getTextureOfId("rayDirection")])
             }
-        
+            
             allocTextureId("depth", width, height, .rgba16Float)
             allocTextureId("normal", width, height, .rgba16Float)
             allocTextureId("meta", width, height, .rgba16Float)
             allocTextureId("density", width, height, .rgba16Float)
-            allocTextureId("result", width, height, .rgba16Float)
-            
+
+            codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(1000, 1000, -1, -1))
             codeBuilder.renderClear(texture: getTextureOfId("meta"), data: SIMD4<Float>(1, 1, 0, 0))
         }
 
-        if maxStage != .HitAndNormals {
-            codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(1000, 1000, -1, -1))
-        }
-        
-        var objectIndex : Int = 0
-        var shapeText : String = "shape_" + String(objectIndex)
+        let objectIndex : Int = objectCounter
+        let shapeText : String = "shape_" + String(objectIndex)
         
         let jitter : Bool = maxStage != .HitAndNormals
-        while let inst = instanceMap[shapeText] {
+        if let inst = instanceMap[shapeText] {
             
             var terrainTexture : MTLTexture? = dummyTerrainTexture
             if let terrain = globalApp!.artistEditor.getTerrain(), objectIndex == 0 {
                 terrainTexture = terrain.getTexture()
             }
-            
-            inst.lineNumber = lineNumber
-            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), terrainTexture!], jitter: jitter)
 
-            objectIndex += 1
-            shapeText = "shape_" + String(objectIndex)
+            inst.lineNumber = lineNumber
+            codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), terrainTexture!], jitter: jitter, finishedCB: { (timer) in
+
+                if self.hasToFinish() == false {
+                    
+                    self.objectCounter += 1
+                    let shapeText : String = "shape_" + String(self.objectCounter)
+                    
+                    if self.instanceMap[shapeText] != nil {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + self.waitTime) {
+                            self.stage_HitAndNormals()
+                        }
+                    } else {
+                        if self.samples == 0 && self.reflections == 0 {
+                            // On first pass copy the depth buffer to id, which the UI can use for object selection
+                            self.codeBuilder.renderCopy(self.getTextureOfId("id"), self.getTextureOfId("depth"))
+                        }
+                        
+                        self.allocTextureId("result", self.width, self.height, .rgba16Float)
+                        if self.maxStage == .HitAndNormals {
+                            // Preview Render: Fake Lighting + AO
+                            self.codeBuilder.compute.run( self.codeBuilder.previewState!, outTexture: self.getTextureOfId("result"), inTextures: [self.getTextureOfId("depth")!, self.getTextureOfId("back"), self.getTextureOfId("normal"), self.getTextureOfId("meta")], finishedCB: { (timer) in
+
+                                self.checkFinalTexture()
+                                self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
+                                self.mmView.update()
+                                self.renderIsRunning = false
+                            } )
+                        } else {
+                            self.nextStage()
+                        }
+                    }
+                }
+            } )
         }
-        
-        if samples == 0 && reflections == 0 {
-            // On first pass copy the depth buffer to id, which the UI can use for object selection
-            self.codeBuilder.renderCopy(getTextureOfId("id"), getTextureOfId("depth"))
-        }
-        
-        nextStage()
     }
     
     /// Compute the AO stage
     func stage_computeAO()
     {
-        var objectIndex : Int = 0
-        var shapeText : String = "shape_" + String(objectIndex)
+        let objectIndex : Int = 0
+        let shapeText : String = "shape_" + String(objectIndex)
         
-        while let inst = instanceMap[shapeText] {
+        if let inst = instanceMap[shapeText] {
             
-            inst.lineNumber = lineNumber
-            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], optionalState: "computeAO")
+            codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], optionalState: "computeAO", finishedCB: { (timer) in
             
-            objectIndex += 1
-            shapeText = "shape_" + String(objectIndex)
+                if self.hasToFinish() == false {
+                    self.objectCounter += 1
+                    let shapeText : String = "shape_" + String(self.objectCounter)
+
+                    if self.instanceMap[shapeText] != nil {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + self.waitTime) {
+                            self.stage_computeAO()
+                        }
+                    } else {
+                        self.nextStage()
+                    }
+                }
+            } )
         }
-        
-        nextStage()
     }
     
     /// Compute shadows and materials
     func stage_computeShadowsAndMaterials()
     {
-        var objectIndex : Int = 0
-        var shapeText : String = "shape_" + String(objectIndex)
-     
+        print("stage_computeShadowsAndMaterials", lightCounter, objectCounter, currentStage)
         func sampleLightAndMaterial(lightBuffer: MTLBuffer)
         {
-            // Shadows
-            
-            // Reset the shadow data to 1.0 in the meta data while not touching anything else (ambient etc).
-            
-            if lineNumber == 0 {
-                codeBuilder.renderClearShadow(texture: getTextureOfId("meta"))
-            }
-            
-            /*
-            // Reset the fog density data
-            var fogDensity : Float = 0.02
-            if let fogVar = getGlobalVariableValue(withName: "World.worldFogDensity") {
-                fogDensity = fogVar.x
-            }
-            if fogDensity > 0.0 && reflections == 0 {
-                codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(fogDensity,0,1,1))
-            } else {
-                codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(0,0,0,1))
-            }
-            */
+            if currentStage == .Shadows {
+                // Shadows
+                
+                if objectCounter == 0 {
+                    // Reset the shadow data to 1.0 in the meta data while not touching anything else (ambient etc).
+                    codeBuilder.renderClearShadow(texture: getTextureOfId("meta"))
+                    codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(0,0,0,1))
+                }
 
-            objectIndex = 0
-            shapeText = "shape_" + String(objectIndex)
-            while let inst = instanceMap[shapeText] {
-                
-                inst.lineNumber = lineNumber
-                codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("density")], inBuffers: [lightBuffer], optionalState: "computeShadow")
-                
-                objectIndex += 1
-                shapeText = "shape_" + String(objectIndex)
-            }
-            /*
-            if fogDensity > 0.0 && reflections == 0 {
-                let data : [SIMD4<Float>] = [SIMD4<Float>(Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0),Float.random(in: 0.0...1.0))]
-                let buffer = codeBuilder.compute.device.makeBuffer(bytes: data, length: data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
-                
-                codeBuilder.compute.run( codeBuilder.densityState!, outTexture: getTextureOfId("density"), inBuffer: buffer, inTextures: [getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("depth")], inBuffers: [lightBuffer])
-                codeBuilder.compute.commandBuffer.waitUntilCompleted()
-            }*/
-            
-            // Materials
-            
-            objectIndex = 0
-            shapeText = "shape_" + String(objectIndex)
-            
-            while let inst = instanceMap[shapeText] {
+                let shapeText = "shape_" + String(objectCounter)
+                if let inst = instanceMap[shapeText] {
                     
-                inst.lineNumber = lineNumber
-                codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), getTextureOfId("density")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
+                    print("render", objectCounter)
+                    codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("density")], inBuffers: [lightBuffer], optionalState: "computeShadow", finishedCB: { (timer) in
+                    
+                        if self.hasToFinish() == false {
 
-                objectIndex += 1
-                shapeText = "shape_" + String(objectIndex)
+                            self.objectCounter += 1
+                            let shapeText : String = "shape_" + String(self.objectCounter)
+
+                            if self.instanceMap[shapeText] == nil {
+                                self.lightCounter += 1
+                                self.objectCounter = 0
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + self.waitTime) {
+                                self.stage_computeShadowsAndMaterials()
+                            }
+                        }
+                    } )
+                }
+            } else
+            if currentStage == .Materials {
+                // Materials
+                
+                let shapeText = "shape_" + String(objectCounter)
+                if let inst = instanceMap[shapeText] {
+                        
+                    codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), getTextureOfId("density")], inBuffers: [lightBuffer], optionalState: "computeMaterial", finishedCB: { (timer) in
+                        
+                        if self.hasToFinish() == false {
+                            self.objectCounter += 1
+                            let shapeText : String = "shape_" + String(self.objectCounter)
+
+                            if self.instanceMap[shapeText] == nil {
+                                self.lightCounter += 1
+                                self.objectCounter = 0
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + self.waitTime) {
+                                self.stage_computeShadowsAndMaterials()
+                            }
+                        }
+                    } )
+                }
             }
         }
         
-        var sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
-        let sunStrength : Float = getGlobalVariableValue(withName: "Sun.sunStrength")!.x
-        var sunColor : SIMD4<Float>? = getGlobalVariableValue(withName: "Sun.sunColor")
-        if sunColor != nil {
-            var norm = SIMD3<Float>(sunColor!.x, sunColor!.y, sunColor!.z)
-            norm = normalize(norm)
-            
-            sunColor!.x = norm.x * sunStrength
-            sunColor!.y = norm.y * sunStrength
-            sunColor!.z = norm.z * sunStrength
-        } else {
-            sunColor = SIMD4<Float>(sunStrength,sunStrength,sunStrength,1)
-        }
-                
+        let stage = globalApp!.project.selected!.getStage(.LightStage)
+        let lights = stage.getChildren()
+        
         // Setup the density, is passed as .w in the light position
         var fogDensity : Float = 0.0
         //if reflections == 0 {
@@ -635,53 +650,62 @@ class Pipeline3D            : Pipeline
             }
         //}
         
-        if lineNumber == 0 {
-            codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(0,0,0,1))
-        }
-        
-        sunDirection!.w = fogDensity
-        //
-        
-        let stage = globalApp!.project.selected!.getStage(.LightStage)
-        let lights = stage.getChildren()
+        if lightCounter == 0 {
+            var sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
+            let sunStrength : Float = getGlobalVariableValue(withName: "Sun.sunStrength")!.x
+            var sunColor : SIMD4<Float>? = getGlobalVariableValue(withName: "Sun.sunColor")
+            if sunColor != nil {
+                var norm = SIMD3<Float>(sunColor!.x, sunColor!.y, sunColor!.z)
+                norm = normalize(norm)
+                
+                sunColor!.x = norm.x * sunStrength
+                sunColor!.y = norm.y * sunStrength
+                sunColor!.z = norm.z * sunStrength
+            } else {
+                sunColor = SIMD4<Float>(sunStrength,sunStrength,sunStrength,1)
+            }
+                        
+            sunDirection!.w = fogDensity
+            //
 
-        // X: Key Light
-        // Y: Directional, Spherical
-        // Z: Current Light Index
-        // W: Maximum Light Index
+            // X: Key Light
+            // Y: Directional, Spherical
+            // Z: Current Light Index
+            // W: Maximum Light Index
 
-        var lightdata : [SIMD4<Float>] = [sunDirection!, SIMD4<Float>(0,0,0,Float(lights.count)), sunColor!]
-        var lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
-        
-        // Sample the sun
-        sampleLightAndMaterial(lightBuffer: lightBuffer)
-        
-        // Sample the light sources
-        
-        for (index, lightItem) in lights.enumerated() {
+            let lightdata : [SIMD4<Float>] = [sunDirection!, SIMD4<Float>(0,0,0,Float(lights.count)), sunColor!]
+            let lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
             
-            let component = lightItem.components[lightItem.defaultName]!
-            let t = getTransformedComponentValues(component)
-            
-            var lightColor = getTransformedComponentProperty(component, "lightColor")
-            let lightStrength = getTransformedComponentProperty(component, "lightStrength")
-            lightColor.x *= lightStrength.x
-            lightColor.y *= lightStrength.x
-            lightColor.z *= lightStrength.x
-
-            lightdata = [SIMD4<Float>(t["_posX"]!, t["_posY"]!, t["_posZ"]!, fogDensity), SIMD4<Float>(1,1,Float(index+1), Float(lights.count)), lightColor]
-            lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
-            
+            // Sample the sun
             sampleLightAndMaterial(lightBuffer: lightBuffer)
+        } else {
+            // Sample the light sources
+            
+            let index : Int = lightCounter - 1
+            if index < lights.count {
+                         
+                let lightItem = lights[index]
+                
+                let component = lightItem.components[lightItem.defaultName]!
+                let t = getTransformedComponentValues(component)
+                
+                var lightColor = getTransformedComponentProperty(component, "lightColor")
+                let lightStrength = getTransformedComponentProperty(component, "lightStrength")
+                lightColor.x *= lightStrength.x
+                lightColor.y *= lightStrength.x
+                lightColor.z *= lightStrength.x
+
+                let lightdata = [SIMD4<Float>(t["_posX"]!, t["_posY"]!, t["_posZ"]!, fogDensity), SIMD4<Float>(1,1,Float(index+1), Float(lights.count)), lightColor]
+                let lightBuffer = codeBuilder.compute.device.makeBuffer(bytes: lightdata, length: lightdata.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+                
+                sampleLightAndMaterial(lightBuffer: lightBuffer)
+            } else {
+                if currentStage == .Materials {
+                    codeBuilder.renderCopyGamma(getTextureOfId("result"), getTextureOfId("color"))
+                }
+                nextStage()
+            }
         }
-        
-        // Render it all
-        //if let inst = instanceMap["render"] {
-            //codeBuilder.render(inst, getTextureOfId("result"), inTextures: [getTextureOfId("meta"), getTextureOfId("depth")])
-        //}
-        codeBuilder.renderCopyGamma(getTextureOfId("result"), getTextureOfId("color"))
-        
-        nextStage()
     }
     
     func finish()
