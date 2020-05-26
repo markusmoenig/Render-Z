@@ -90,6 +90,13 @@ class Thumbnail
             codeBuilder.sdfStream.pushComponent(comp)
             codeBuilder.sdfStream.closeStream()
                         
+            instance.lineNumber = 0
+            codeBuilder.render(instance, depthTexture, inTextures: [normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!])
+            instance.lineNumber = 50
+            codeBuilder.render(instance, depthTexture, inTextures: [normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!])
+            instance.lineNumber = 100
+            codeBuilder.render(instance, depthTexture, inTextures: [normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!])
+            instance.lineNumber = 150
             codeBuilder.render(instance, depthTexture, inTextures: [normalTexture!, metaTexture!, rayOriginTexture!, rayDirectionTexture!])
             
             // Render

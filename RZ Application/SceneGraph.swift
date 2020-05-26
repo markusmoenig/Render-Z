@@ -1244,7 +1244,7 @@ class SceneGraph                : MMWidget
                 let menuItem = MMMenuItem(text: "Change " + name, cb: { () in
                     globalApp!.libraryDialog.showMaterials(cb: { (jsonComponent, jsonStageItem) in
                         if jsonComponent.count > 0 {
-                            if let comp = decodeComponentFromJSON(jsonComponent) {
+                            if let comp = decodeComponentAndProcess(jsonComponent) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Change " + name)
                                 
                                 //comp.uuid = UUID()
@@ -1267,7 +1267,7 @@ class SceneGraph                : MMWidget
                                 }
                             }
                         } else {
-                            if let newStageItem = decodeStageItemFromJSON(jsonStageItem) {
+                            if let newStageItem = decodeStageItemAndProcess(jsonStageItem) {
                                 let undo = globalApp!.currentEditor.undoStageItemStart(stageItem, "Change " + name)
                                 
                                 let comp = newStageItem.components[newStageItem.defaultName]!
@@ -2214,8 +2214,8 @@ class SceneGraph                : MMWidget
                     // Draw the right sided property terminals
                     for uuid in component.properties {
                         let name = component.artistPropertyNames[uuid]!
-                        //let label = getLabel(uuid, name, skin: skin)
-                        let label = getLabel(name, skin: skin)
+                        let label = getLabel(uuid, name, skin: skin)
+                        //let label = getLabel(name, skin: skin)
 
                         let frag = component.getPropertyOfUUID(uuid)
                         label.rect.x = rect.x + item.rect.right() - label.rect.width - tWidth
@@ -2225,7 +2225,6 @@ class SceneGraph                : MMWidget
                         let tX : Float = rect.x + item.rect.right() - tHalfWidth
                         let tY : Float = rect.y + y + 1.5 * graphZoom
 
-                        
                         var pColor = skin.normalInteriorColor
                         if let selectedTerminal = selectedTerminal {
                             if selectedTerminal.0 === component && selectedTerminal.1 == uuid {

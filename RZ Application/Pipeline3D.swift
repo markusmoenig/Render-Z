@@ -44,6 +44,7 @@ class Pipeline3D            : Pipeline
     var dummyTerrainTexture : MTLTexture? = nil
     
     var lineNumber          : Float = 0
+    var renderIsRunning     : Bool = false
 
     override init(_ mmView: MMView)
     {
@@ -298,7 +299,9 @@ class Pipeline3D            : Pipeline
                 maxSamples = settings!.samples
             }
             
-            DispatchQueue.main.async { //After(deadline: .now() + 0.0001) {
+            func startRender()
+            {
+                print("started")
                 self.startId = self.renderId
                 self.resetSample()
 
@@ -308,13 +311,26 @@ class Pipeline3D            : Pipeline
 
                 self.allocTextureId("depth", self.width, self.height, .rgba16Float)
 
-                self.codeBuilder.renderClear(texture: self.getTextureOfId("depth"), data: SIMD4<Float>(1000, 1000, -1, -1))
-
+                self.renderIsRunning = true
                 self.stage_HitAndNormals()
                 self.lineNumber = 0;
                 self.currentStage = .HitAndNormals
                 self.startedRender = false
             }
+            
+            func tryToStartRender()
+            {
+                DispatchQueue.main.async { //After(deadline: .now() + 0.05) {
+                    print("try to start")
+                    if self.renderIsRunning {
+                        tryToStartRender()
+                    } else {
+                        startRender()
+                    }
+                }
+            }
+            
+            tryToStartRender()
             startedRender = true
         }
     }
@@ -334,10 +350,18 @@ class Pipeline3D            : Pipeline
         }
     }
     
+    func hasToFinish() -> Bool
+    {
+        if self.startId < self.renderId || self.samples >= self.maxSamples {
+            renderIsRunning = false
+            print("renderer forced to stop")
+            return true
+        } else { return false }
+    }
+    
     func nextStage()
     {
         DispatchQueue.main.async {//After(deadline: .now() + 0.05) {
-            if self.startId < self.renderId || self.samples >= self.maxSamples { return }
 
             //print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "renderId", self.renderId)
 
@@ -345,6 +369,7 @@ class Pipeline3D            : Pipeline
             if self.maxStage == .HitAndNormals {
                 
                 if self.lineNumber + 50 < self.height {
+                                        
                     self.lineNumber += 50
                     
                     self.stage_HitAndNormals()
@@ -354,17 +379,20 @@ class Pipeline3D            : Pipeline
                     return
                 }
                 
-                self.lineNumber = 0
-                
                 self.codeBuilder.compute.run( self.codeBuilder.previewState!, outTexture: self.getTextureOfId("result"), inTextures: [self.getTextureOfId("depth")!, self.getTextureOfId("back"), self.getTextureOfId("normal"), self.getTextureOfId("meta")])
                 self.codeBuilder.compute.commandBuffer.waitUntilCompleted()
 
                 self.checkFinalTexture()
                 self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
                 self.mmView.update()
+                
+                self.lineNumber = 0
+                self.renderIsRunning = false
                                                 
                 return
             }
+            
+            if self.hasToFinish() { return }
             
             let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
             
@@ -467,6 +495,8 @@ class Pipeline3D            : Pipeline
                                     cbFinished(self.finalTexture!)
                                 }
                             }
+                            self.renderIsRunning = false
+                            print("render is finished")
                         }
                     }
                 }
@@ -502,7 +532,7 @@ class Pipeline3D            : Pipeline
             codeBuilder.renderClear(texture: getTextureOfId("meta"), data: SIMD4<Float>(1, 1, 0, 0))
         }
 
-        if maxStage != .HitAndNormals {
+        if maxStage != .HitAndNormals || lineNumber == 0 {
             codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(1000, 1000, -1, -1))
         }
         
@@ -675,10 +705,6 @@ class Pipeline3D            : Pipeline
             sampleLightAndMaterial(lightBuffer: lightBuffer)
         }
         
-        // Render it all
-        //if let inst = instanceMap["render"] {
-            //codeBuilder.render(inst, getTextureOfId("result"), inTextures: [getTextureOfId("meta"), getTextureOfId("depth")])
-        //}
         codeBuilder.renderCopyGamma(getTextureOfId("result"), getTextureOfId("color"))
         
         nextStage()

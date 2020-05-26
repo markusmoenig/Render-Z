@@ -1152,7 +1152,7 @@ class TerrainEditor         : PropertiesWidget
         
         globalApp!.libraryDialog.showMaterials(cb: { (jsonComponent, jsonStageItem) in
             if jsonComponent.count > 0 {
-                if let comp = decodeComponentFromJSON(jsonComponent) {
+                if let comp = decodeComponentAndProcess(jsonComponent) {
 
                     let stageItem = StageItem(.ShapeStage, comp.libraryName)
 
@@ -1162,7 +1162,7 @@ class TerrainEditor         : PropertiesWidget
                     callback(stageItem)
                 }
             } else {
-                if let newStageItem = decodeStageItemFromJSON(jsonStageItem) {
+                if let newStageItem = decodeStageItemAndProcess(jsonStageItem) {
                                         
                     let stageItem = StageItem(.ShapeStage)
 

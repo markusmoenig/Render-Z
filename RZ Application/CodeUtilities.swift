@@ -346,8 +346,103 @@ func decodeStageItemFromJSON(_ json: String) -> StageItem?
     return nil
 }
 
+/// Decode StageItem and process the items
+func decodeStageItemAndProcess(_ json: String) -> StageItem?
+{
+    var replaced        : [UUID:UUID] = [:]
+
+    var referseCount    : Int = 0
+    var propertyCount   : Int = 0
+    
+    func processComponent(_ component: CodeComponent)
+    {
+        func processFragment(_ fragment: CodeFragment) {
+
+            let old = fragment.uuid
+            
+            fragment.uuid = UUID()
+            replaced[old] = fragment.uuid
+            
+            // Property ?
+            if let index = component.properties.firstIndex(of: old) {
+                component.properties[index] = fragment.uuid
+                propertyCount += 1
+                
+                // Replace artistName
+                if let artistName = component.artistPropertyNames[old] {
+                    component.artistPropertyNames[old] = nil
+                    component.artistPropertyNames[fragment.uuid] = artistName
+                }
+                
+                // Replace gizmo type
+                if let gizmoName = component.propertyGizmoName[old] {
+                    component.propertyGizmoName[old] = nil
+                    component.propertyGizmoName[fragment.uuid] = gizmoName
+                }
+            }
+            
+            // This fragment referse to another one ? If yes replace it
+            if let referse = fragment.referseTo {
+                if let wasReplaced = replaced[referse] {
+                    fragment.referseTo = wasReplaced
+                    referseCount += 1
+                } else {
+                    //fragment.referseTo = nil
+                }
+            }
+        }
+        
+        for f in component.functions {
+            for b in f .body {
+                parseCodeBlock(b, process: processFragment)
+            }
+        }
+        
+        let old = component.uuid
+        component.uuid = UUID()
+        replaced[old] = component.uuid
+
+        let conn = component.connections
+        component.connections = [:]
+        
+        for (uuid,cc) in conn {
+            let newUUID = replaced[uuid] == nil ? uuid : replaced[uuid]
+            
+            var newCCUUID = cc.componentUUID
+            if newCCUUID != nil && replaced[newCCUUID!] != nil {
+                newCCUUID = replaced[newCCUUID!]
+            }
+            
+            let newCC = CodeConnection(newCCUUID!, cc.outName!)
+            component.connections[newUUID!] = newCC
+        }
+
+        //print("Properties replaced: ", propertyCount, "Referse replaced: ", referseCount)
+    }
+
+    
+    if let jsonData = json.data(using: .utf8)
+    {
+        if let stageItem =  try? JSONDecoder().decode(StageItem.self, from: jsonData) {
+            
+            if let patterns = stageItem.componentLists["patterns"] {
+                for p in patterns.reversed() {
+                    processComponent(p)
+                }
+            }
+            
+            if let def = stageItem.components[stageItem.defaultName] {
+                processComponent(def)
+            }
+            
+            return stageItem
+        }
+    }
+    return nil
+}
+
 /// Decode component and adjust uuids
-func decodeComponentAndProcess(_ json: String) -> CodeComponent?
+func decodeComponentAndProcess(_ json: String, replaced: [UUID:UUID] = [:]) -> CodeComponent?
 {
     var replaced        : [UUID:UUID] = [:]
 

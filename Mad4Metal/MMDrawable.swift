@@ -748,6 +748,10 @@ class MMDrawText : MMDrawable
         } else {
             var posX = x
             var array : [MMCharBuffer] = []
+            
+            //if textBuffer != nil {
+            //    print("No buffer for", text, textBuffer, textBuffer!.x, x, textBuffer!.y, y)
+            //}
 
             for c in text {
                 let bmChar = font.getItemForChar( c )
