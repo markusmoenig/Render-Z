@@ -1772,6 +1772,15 @@ class SceneGraph                : MMWidget
                             } )
                             items.append(addMaterialItem)
                         }
+                    } else {
+                        // Has no child, i.e. top level object, add "Upload"
+                        let uploadItem = MMMenuItem(text: "Upload...", cb: { () in
+                            let dialog = UploadObjectsDialog(self.mmView, object: item.stageItem!)
+                            dialog.show()
+                        } )
+                        items.append(MMMenuItem())
+                        items.append(uploadItem)
+                        items.append(MMMenuItem())
                     }
 
                     let renameItem = MMMenuItem(text: "Rename", cb: { () in

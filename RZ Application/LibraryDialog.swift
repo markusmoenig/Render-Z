@@ -56,7 +56,10 @@ class LibraryDialog: MMDialog {
     var privateItemMap  : [String:[LibraryItem]] = [:]
 
     var materialsItemMap: [String:[LibraryItem]] = [:]
-    var privateMaterialsItemMap  : [String:[LibraryItem]] = [:]
+    var privateMaterialsItemMap: [String:[LibraryItem]] = [:]
+    
+    var objectsItemMap  : [String:[LibraryItem]] = [:]
+    var privateObjectsItemMap: [String:[LibraryItem]] = [:]
     
     var currentItems    : [LibraryItem]? = nil
 
@@ -73,6 +76,7 @@ class LibraryDialog: MMDialog {
     
     var _cb             : ((String)->())? = nil
     var _cbMaterials    : ((String, String)->())? = nil
+    var _cbObjects      : ((String)->())? = nil
 
     var borderlessSkin  : MMSkinButton
     var publicPrivateTab: MMTabButtonWidget
@@ -193,6 +197,8 @@ class LibraryDialog: MMDialog {
             })
         }
         
+        // --- Materials
+        
         let publicMaterialsQuery = CKQuery(recordType: "materials", predicate: NSPredicate(value: true))
         CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase.perform(publicMaterialsQuery, inZoneWith: nil) { (records, error) in
             
@@ -218,13 +224,6 @@ class LibraryDialog: MMDialog {
                 list.append(item)
                 self.materialsItemMap[type] = list
             })
-            
-            globalApp!.topRegion!.libraryButton.isDisabled = false
-            DispatchQueue.main.async {
-                self.mmView.update()
-                globalApp!.sceneGraph.libraryLoaded()
-                globalApp!.thumbnail.libraryLoaded()
-            }
         }
         
         let privateMaterialsQuery = CKQuery(recordType: "materials", predicate: NSPredicate(value: true))
@@ -251,6 +250,69 @@ class LibraryDialog: MMDialog {
                 var list = self.privateMaterialsItemMap[type]!
                 list.append(item)
                 self.privateMaterialsItemMap[type] = list
+            })
+        }
+        
+        // --- Objects
+        
+        let publicObjectsQuery = CKQuery(recordType: "objects", predicate: NSPredicate(value: true))
+        CKContainer.init(identifier: "iCloud.com.moenig.renderz").publicCloudDatabase.perform(publicObjectsQuery, inZoneWith: nil) { (records, error) in
+            
+            records?.forEach({ (record) in
+
+                if !record.recordID.recordName.contains(" :: ") {
+                    return
+                }
+                let arr = record.recordID.recordName.components(separatedBy: " :: ")
+                let name = arr[0]
+                let type = arr[1]
+                
+                var description : String = ""
+                if let desc = record.value(forKey: "description") {
+                    description = desc as! String
+                }
+
+                let item = LibraryItem(view, name, description, record.value(forKey: "json") as! String, record.recordID.recordName, type)
+                if self.objectsItemMap[type] == nil {
+                    self.objectsItemMap[type] = []
+                }
+                var list = self.objectsItemMap[type]!
+                list.append(item)
+                self.objectsItemMap[type] = list
+            })
+            
+            globalApp!.topRegion!.libraryButton.isDisabled = false
+            DispatchQueue.main.async {
+                self.mmView.update()
+                globalApp!.sceneGraph.libraryLoaded()
+                globalApp!.thumbnail.libraryLoaded()
+            }
+        }
+        
+        let privateObjectsQuery = CKQuery(recordType: "objects", predicate: NSPredicate(value: true))
+        CKContainer.init(identifier: "iCloud.com.moenig.renderz").privateCloudDatabase.perform(privateObjectsQuery, inZoneWith: nil) { (records, error) in
+            
+            records?.forEach({ (record) in
+
+                if !record.recordID.recordName.contains(" :: ") {
+                    return
+                }
+                let arr = record.recordID.recordName.components(separatedBy: " :: ")
+                let name = arr[0]
+                let type = arr[1]
+                
+                var description : String = ""
+                if let desc = record.value(forKey: "description") {
+                    description = desc as! String
+                }
+
+                let item = LibraryItem(view, name, description, record.value(forKey: "json") as! String, record.recordID.recordName, type)
+                if self.privateObjectsItemMap[type] == nil {
+                    self.privateObjectsItemMap[type] = []
+                }
+                var list = self.privateObjectsItemMap[type]!
+                list.append(item)
+                self.privateObjectsItemMap[type] = list
             })
         }
     }
@@ -281,6 +343,22 @@ class LibraryDialog: MMDialog {
         setCurrentItems()
         
         createButtons(["Basic", "Architecture", "Metal", "Organic", "Stone", "Wood"])
+        
+        mmView.showDialog(self)
+    }
+    
+    func showObjects(style: Style = .List, cb: ((String)->())? = nil )
+    {
+        _cb = nil
+        _cbMaterials = nil
+        _cbObjects = cb
+
+        self.style = style
+
+        currentId = "Architecture"
+        setCurrentItems()
+        
+        createButtons(["Architecture", "Metal", "Organic", "Stone", "Wood"])
         
         mmView.showDialog(self)
     }
@@ -353,6 +431,15 @@ class LibraryDialog: MMDialog {
                     if privateMaterialsItemMap[currentId] == nil { privateMaterialsItemMap[currentId] = [] }
                     currentItems = privateMaterialsItemMap[currentId]!
                 }
+            }
+        } else
+        if _cbObjects != nil {
+            if publicPrivateTab.index == 0 {
+                if objectsItemMap[currentId] == nil { objectsItemMap[currentId] = [] }
+                currentItems = objectsItemMap[currentId]!
+            } else {
+                if privateObjectsItemMap[currentId] == nil { privateObjectsItemMap[currentId] = [] }
+                currentItems = privateObjectsItemMap[currentId]!
             }
         }
                 
@@ -450,6 +537,13 @@ class LibraryDialog: MMDialog {
                         } else {
                             cb("", selected.json)
                         }
+                    }
+                }
+            }
+            if _cbObjects != nil {
+                DispatchQueue.main.async {
+                    if let cb = self._cbObjects {
+                        cb(selected.json)
                     }
                 }
             } else {

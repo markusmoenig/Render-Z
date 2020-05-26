@@ -175,7 +175,24 @@ class TopRegion: MMRegion
         
         libraryButton = MMButtonWidget( mmView, skinToUse: borderlessSkin, text: "Library" )
         libraryButton.clicked = { (event) -> Void in
-            globalApp!.libraryDialog.show(ids: ["FuncNoise", "FuncHash", "FuncMisc"])
+            
+            if app.currentEditor === app.developerEditor {
+                globalApp!.libraryDialog.show(ids: ["FuncNoise", "FuncHash", "FuncMisc"])
+            } else {
+                globalApp!.libraryDialog.showObjects(cb: { (object) in                    
+                    let stageItem = decodeStageItemFromJSON(object)
+                    
+                    stageItem?.values["_posX"] = 0
+                    stageItem?.values["_posY"] = 0
+                    stageItem?.values["_posZ"] = 0
+
+                    let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+                    shapeStage.children3D.append(stageItem!)
+                    
+                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                })
+            }
+            
             self.libraryButton.removeState(.Checked)
         }
         libraryButton.isDisabled = true
