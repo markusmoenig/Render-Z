@@ -303,7 +303,6 @@ class Pipeline3D            : Pipeline
             {
                 print("started")
                 self.startId = self.renderId
-                self.resetSample()
 
                 self.allocTextureId("color", self.width, self.height, .rgba16Float)
                 self.allocTextureId("mask", self.width, self.height, .rgba16Float)
@@ -312,15 +311,18 @@ class Pipeline3D            : Pipeline
                 self.allocTextureId("depth", self.width, self.height, .rgba16Float)
 
                 self.renderIsRunning = true
+                self.startedRender = false
+
+                self.resetSample()
+
                 self.stage_HitAndNormals()
                 self.lineNumber = 0;
                 self.currentStage = .HitAndNormals
-                self.startedRender = false
             }
             
             func tryToStartRender()
             {
-                DispatchQueue.main.async { //After(deadline: .now() + 0.05) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
                     print("try to start")
                     if self.renderIsRunning {
                         tryToStartRender()
@@ -375,7 +377,6 @@ class Pipeline3D            : Pipeline
                     self.stage_HitAndNormals()
                     self.currentStage = .HitAndNormals
 
-                    print(self.lineNumber)
                     return
                 }
                 
@@ -507,7 +508,7 @@ class Pipeline3D            : Pipeline
     /// Compute the hitpoints and normals
     func stage_HitAndNormals()
     {
-        if reflections == 0 && lineNumber == 0 {
+        if reflections == 0 {
             // Render the Camera Textures
             allocTextureId("rayOrigin", width, height, .rgba16Float)
             allocTextureId("rayDirection", width, height, .rgba16Float)
@@ -516,21 +517,19 @@ class Pipeline3D            : Pipeline
             }
         }
         
-        if lineNumber == 0 {
-            // Render the SkyDome into backTexture
-            allocTextureId("back", width, height, .rgba16Float)
-            if let inst = instanceMap["pre"] {
-                codeBuilder.render(inst, getTextureOfId("back"), inTextures: [getTextureOfId("rayDirection")])
-            }
-        
-            allocTextureId("depth", width, height, .rgba16Float)
-            allocTextureId("normal", width, height, .rgba16Float)
-            allocTextureId("meta", width, height, .rgba16Float)
-            allocTextureId("density", width, height, .rgba16Float)
-            allocTextureId("result", width, height, .rgba16Float)
-            
-            codeBuilder.renderClear(texture: getTextureOfId("meta"), data: SIMD4<Float>(1, 1, 0, 0))
+        // Render the SkyDome into backTexture
+        allocTextureId("back", width, height, .rgba16Float)
+        if let inst = instanceMap["pre"] {
+            codeBuilder.render(inst, getTextureOfId("back"), inTextures: [getTextureOfId("rayDirection")])
         }
+    
+        allocTextureId("depth", width, height, .rgba16Float)
+        allocTextureId("normal", width, height, .rgba16Float)
+        allocTextureId("meta", width, height, .rgba16Float)
+        allocTextureId("density", width, height, .rgba16Float)
+        allocTextureId("result", width, height, .rgba16Float)
+        
+        codeBuilder.renderClear(texture: getTextureOfId("meta"), data: SIMD4<Float>(1, 1, 0, 0))
 
         if maxStage != .HitAndNormals || lineNumber == 0 {
             codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(1000, 1000, -1, -1))
@@ -556,7 +555,7 @@ class Pipeline3D            : Pipeline
         
         if samples == 0 && reflections == 0 {
             // On first pass copy the depth buffer to id, which the UI can use for object selection
-            self.codeBuilder.renderCopy(getTextureOfId("id"), getTextureOfId("depth"))
+            self.codeBuilder.renderCopyLine(getTextureOfId("id"), getTextureOfId("depth"), lineNumber: lineNumber)
         }
         
         nextStage()
@@ -705,7 +704,7 @@ class Pipeline3D            : Pipeline
             sampleLightAndMaterial(lightBuffer: lightBuffer)
         }
         
-        codeBuilder.renderCopyGamma(getTextureOfId("result"), getTextureOfId("color"))
+        codeBuilder.renderCopyGammaLine(getTextureOfId("result"), getTextureOfId("color"), lineNumber: lineNumber)
         
         nextStage()
     }

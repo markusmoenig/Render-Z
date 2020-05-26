@@ -185,7 +185,9 @@ class CodeBuilder
     var clearTerrainState   : MTLComputePipelineState? = nil
 
     var copyState           : MTLComputePipelineState? = nil
+    var copyLineState       : MTLComputePipelineState? = nil
     var copyGammaState      : MTLComputePipelineState? = nil
+    var copyGammaLineState  : MTLComputePipelineState? = nil
     var copyAndSwapState    : MTLComputePipelineState? = nil
     var sampleState         : MTLComputePipelineState? = nil
     var previewState        : MTLComputePipelineState? = nil
@@ -804,6 +806,28 @@ class CodeBuilder
         #include <simd/simd.h>
         using namespace metal;
         
+        kernel void copyLineBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
+        texture2d<half, access::read>           inTexture [[texture(2)]],
+        uint2 __gid                             [[thread_position_in_grid]])
+        {
+            if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                return;
+
+            outTexture.write(inTexture.read(__gid), __gid);
+        }
+        """
+    
+        library = compute.createLibraryFromSource(source: code)
+        copyLineState = compute.createState(library: library, name: "copyLineBuilder")
+        
+        code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
         kernel void copyGammaBuilder(
         texture2d<half, access::write>          outTexture  [[texture(0)]],
         texture2d<half, access::read>           inTexture [[texture(2)]],
@@ -818,6 +842,31 @@ class CodeBuilder
 
         library = compute.createLibraryFromSource(source: code)
         copyGammaState = compute.createState(library: library, name: "copyGammaBuilder")
+        
+        code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void copyGammaLineBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
+        texture2d<half, access::read>           inTexture [[texture(2)]],
+        uint2 __gid                               [[thread_position_in_grid]])
+        {
+            if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                return;
+        
+            half4 color = inTexture.read(__gid);
+            color.xyz = pow(color.xyz, 1./2.2);
+            outTexture.write(color, __gid);
+        }
+         
+        """
+
+        library = compute.createLibraryFromSource(source: code)
+        copyGammaLineState = compute.createState(library: library, name: "copyGammaLineBuilder")
         
         code =
         """
@@ -1045,10 +1094,24 @@ class CodeBuilder
         compute.run( copyState!, outTexture: to, inTexture: from, syncronize: syncronize)
     }
     
+    // Copy the texture lines
+    func renderCopyLine(_ to: MTLTexture,_ from: MTLTexture, lineNumber: Float, syncronize: Bool = false)
+    {
+        let lineBuffer = compute.device.makeBuffer(bytes: [SIMD4<Float>(lineNumber, lineNumber, lineNumber, lineNumber)], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        compute.run( copyLineState!, outTexture: to, inBuffer: lineBuffer, inTexture: from, syncronize: syncronize)
+    }
+    
     // Copy and gamma correct the texture
     func renderCopyGamma(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
         compute.run( copyGammaState!, outTexture: to, inTexture: from, syncronize: syncronize)
+    }
+    
+    // Copy and gamma correct the texture
+    func renderCopyGammaLine(_ to: MTLTexture,_ from: MTLTexture, lineNumber: Float, syncronize: Bool = false)
+    {
+        let lineBuffer = compute.device.makeBuffer(bytes: [SIMD4<Float>(lineNumber, lineNumber, lineNumber, lineNumber)], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        compute.run( copyGammaLineState!, outTexture: to, inBuffer: lineBuffer, inTexture: from, syncronize: syncronize)
     }
     
     // Render the Depth Map
