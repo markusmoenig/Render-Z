@@ -743,6 +743,10 @@ class TerrainEditor         : PropertiesWidget
     {
         drawPreview(mmView: mmView, rect)
         
+        if originTexture!.width != Int(rect.width) || originTexture!.height != Int(rect.height) {
+            computeCameraTextures()
+        }
+        
         if currentLayerIndex >= 0 {
             let layer = terrain.layers[currentLayerIndex]
             if layer.shapes.isEmpty == false {
