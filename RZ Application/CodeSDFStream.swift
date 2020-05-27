@@ -608,6 +608,7 @@ class CodeSDFStream
                         
                         // Insert the noise layers
                         
+                        var instancingCode = ""
                         let materialId = terrain.materials.count
                         for (index, layer) in terrain.layers.reversed().enumerated() {
                             
@@ -699,6 +700,18 @@ class CodeSDFStream
                                 // Instantiate object in this area
                                 if let object = layer.object {
                                     terrainObjects.append(object)
+                                                                                
+                                    instancingCode +=
+                                    """
+                                                               
+                                    float3 pos = position - float3(__data[\(posX)].x, height, -__data[\(posY)].x);
+                                    pos.xz = fmod(pos.xz, 4.0) - 2.0;
+                                    
+                                    instObject = sceneMap(pos, __funcData);
+                                    if (instObject.x < rc.x)
+                                        rc = instObject;
+                                    
+                                    """
                                 }
                             }
                             
@@ -812,17 +825,7 @@ class CodeSDFStream
                         
                         """
                                                 
-                        for _ in terrainObjects {
-                                
-                            terrainMapCode +=
-                            """
-                                                            
-                            instObject = sceneMap(position - float3(0, height, 0), __funcData);
-                            if (instObject.x < rc.x)
-                                rc = instObject;
-                            
-                            """
-                        }
+                        terrainMapCode += instancingCode
                         
                         terrainMapCode +=
                         """
