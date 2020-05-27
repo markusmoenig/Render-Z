@@ -11,6 +11,11 @@ import Foundation
 import MetalKit
 import CloudKit
 
+enum Constants {
+    static let LinesToRenderFloat: Float = 50
+    static let LinesToRenderInt: Int = 50
+}
+
 // Necessary for undo / redo situations
 var globalApp : App? = nil
 

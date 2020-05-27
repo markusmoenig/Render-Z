@@ -580,6 +580,19 @@ class TerrainEditor         : PropertiesWidget
                     
                     let materialVar = NodeUISelector(c2Node!, variable: "material", title: "Material", items: materialItems, index: materialIndex, shadows: true)
                     c2Node!.uiItems.append(materialVar)
+                    
+                    var objectItems = ["None"]
+                    var objectIndex : Float = 0
+                    
+                    if let object = layer.object {
+                        objectItems.append(object.name)
+                        objectIndex = 1
+                    } else {
+                        objectItems.append("Object")
+                    }
+                    
+                    let objectVar = NodeUISelector(c2Node!, variable: "object", title: "Object", items: objectItems, index: objectIndex, shadows: true)
+                    c2Node!.uiItems.append(objectVar)
                 }
                 
                 c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
@@ -603,7 +616,27 @@ class TerrainEditor         : PropertiesWidget
                                 })
                             }
                         }
-                        
+                        return
+                    }
+                    
+                    if variable == "object" {
+                        if newValue == 0 {
+                            layer.object = nil
+                            
+                            self.updateUI()
+                            globalApp!.project.selected!.invalidateCompilerInfos()
+                            self.terrainNeedsUpdate(true)
+                        } else {
+                            DispatchQueue.main.async {
+                                self.getObjectFromLibrary({ (stageItem) -> () in
+                                    layer.object = stageItem
+                                    
+                                    self.updateUI()
+                                    globalApp!.project.selected!.invalidateCompilerInfos()
+                                    self.terrainNeedsUpdate(true)
+                                })
+                            }
+                        }
                         return
                     }
                     
@@ -1183,6 +1216,18 @@ class TerrainEditor         : PropertiesWidget
                     fillInDefaults(stageItem)
                     callback(stageItem)
                 }
+            }
+        })
+    }
+    
+    /// Get a object from the library
+    func getObjectFromLibrary(_ callback: @escaping (StageItem)->())
+    {
+        globalApp!.libraryDialog.showObjects(cb: { (jsonStageItem) in
+            if let stageItem = decodeStageItemFromJSON(jsonStageItem) {
+                                    
+                stageItem.uuid = UUID()
+                callback(stageItem)
             }
         })
     }

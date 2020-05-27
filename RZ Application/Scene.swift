@@ -34,6 +34,7 @@ class TerrainLayer          : Codable, Equatable
     var shapesBlendType     : ShapesBlendType = .FactorTimesShape
     var shapes              : [CodeComponent] = []
     var material            : StageItem? = nil
+    var object              : StageItem? = nil
 
     var shapeFactor         : Float = 0
 
@@ -47,8 +48,9 @@ class TerrainLayer          : Codable, Equatable
         case regionType
         case shapesBlendType
         case shapes
-        case material
         case shapeFactor
+        case material
+        case object
     }
      
     required init(from decoder: Decoder) throws
@@ -63,6 +65,9 @@ class TerrainLayer          : Codable, Equatable
         shapesBlendType = try container.decode(ShapesBlendType.self, forKey: .shapesBlendType)
         shapes = try container.decode([CodeComponent].self, forKey: .shapes)
         material = try container.decode(StageItem?.self, forKey: .material)
+        if let obj = try container.decodeIfPresent(StageItem?.self, forKey: .object) {
+            object = obj
+        }
         shapeFactor = try container.decode(Float.self, forKey: .shapeFactor)
     }
      
@@ -77,8 +82,9 @@ class TerrainLayer          : Codable, Equatable
         try container.encode(imageFragment, forKey: .imageFragment)
         try container.encode(shapesBlendType, forKey: .shapesBlendType)
         try container.encode(shapes, forKey: .shapes)
-        try container.encode(material, forKey: .material)
         try container.encode(shapeFactor, forKey: .shapeFactor)
+        try container.encode(material, forKey: .material)
+        try container.encode(object, forKey: .object)
     }
      
     static func ==(lhs:TerrainLayer, rhs:TerrainLayer) -> Bool {

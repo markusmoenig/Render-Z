@@ -44,6 +44,8 @@ class CodeSDFStream
     
     var scene               : Scene? = nil
     var isGroundComponent   : CodeComponent? = nil
+    
+    var terrainObjects      : [StageItem] = []
 
     init()
     {
@@ -69,6 +71,7 @@ class CodeSDFStream
         self.scene = scene
         isGroundComponent = groundComponent
         
+        terrainObjects = []
         globalsAddedFor = []
         
         terrainCode = ""
@@ -592,9 +595,11 @@ class CodeSDFStream
                             float GlobalTime = __funcData->GlobalTime;
                             float GlobalSeed = __funcData->GlobalSeed;
                             float materialId = 0.0;
-                             
+
                             float outDistance = 1000000.0;
                             float localHeight = 0.;
+                            float bump = 0;
+                            float localDistance;
 
                         
                             float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + \(terrain.terrainSize) / \(terrain.terrainScale) / 2.0) / \(terrain.terrainSize) * \(terrain.terrainScale)) * \(terrain.terrainHeightScale);
@@ -602,12 +607,14 @@ class CodeSDFStream
                         """
                         
                         // Insert the noise layers
-
+                        
                         let materialId = terrain.materials.count
                         for (index, layer) in terrain.layers.reversed().enumerated() {
                             
+                            let layerMaterialId : Int = materialId + index
+
                             if layer.shapes.isEmpty == false {
-                                
+                                                                
                                 var posX : Int = 0
                                 var posY : Int = 0
                                 var rotate : Int = 0
@@ -651,6 +658,7 @@ class CodeSDFStream
                                     terrainMapCode +=
                                     """
 
+                                        localDistance = outDistance;
                                         outDistance = min( outDistance, oldDistance );
                                         oldDistance = outDistance;
                                     
@@ -662,7 +670,7 @@ class CodeSDFStream
                                 
                                     }
                                     
-                                    if (outDistance <= 0.0)
+                                    if (localDistance <= 0.0)
                                     {
                                         if (\(layer.shapeFactor) < 0.0)
                                             localHeight += max(\(layer.shapesBlendType == .FactorTimesShape ? "abs(outDistance) * " : "") \(layer.shapeFactor), \(layer.shapeFactor));
@@ -675,9 +683,10 @@ class CodeSDFStream
                                     terrainMapCode +=
                                     """
                                     
-                                    materialId = \(materialId + index);
+                                    materialId = \(layerMaterialId);
                                     
                                     """
+                                    
                                 } else {
                                     terrainMapCode +=
                                     """
@@ -685,6 +694,11 @@ class CodeSDFStream
                                     //materialId = 0.0;
                                     
                                     """
+                                }
+                                
+                                // Instantiate object in this area
+                                if let object = layer.object {
+                                    terrainObjects.append(object)
                                 }
                             }
                             
@@ -753,10 +767,11 @@ class CodeSDFStream
                                 if (height + localHeight - 0.5 > height)
                                 {
                                     height = height + localHeight - 0.5;
-                                    \(layer.material != nil ? " materialId = \(materialId + index);" : "")
+                                    \(layer.material != nil ? " materialId = \(layerMaterialId);" : "")
                                 }
                                 
                                 """
+                                
                             } else {
                                 
                                 if layer.blendType == .Subtract {
@@ -792,14 +807,34 @@ class CodeSDFStream
                         terrainMapCode +=
                         """
                         
-                            return float4(position.y - height, 0, materialId, 0);
+                        float4 rc = float4(position.y - height, 0, materialId, 0);
+                        float4 instObject;
+                        
+                        """
+                                                
+                        for _ in terrainObjects {
+                                
+                            terrainMapCode +=
+                            """
+                                                            
+                            instObject = sceneMap(position - float3(0, height, 0), __funcData);
+                            if (instObject.x < rc.x)
+                                rc = instObject;
+                            
+                            """
+                        }
+                        
+                        terrainMapCode +=
+                        """
+                        
+                            return rc;
                         }
                          
                         """
                         
                         //print(terrainMapCode)
                         
-                        headerCode += terrainMapCode
+                        //headerCode += terrainMapCode
                         
                         if let rayMarch = terrain.rayMarcher {
                             dryRunComponent(rayMarch, instance.data.count)
@@ -852,15 +887,15 @@ class CodeSDFStream
                                 float3 position = rayOrigin + outShape.y * rayDirection;
                                 float3 normal = outNormal;
                             
-                                if (outShape.z == 0.0)
+                                if (outShape.w == 0.0)
                                 {
-                                
+                            
                             """
                             
                             for (index, material) in terrain.materials.enumerated() {
-                                if index == 0 {
-                                    continue
-                                }
+                                //if index == 0 {
+                                //    continue
+                                //}
                                 
                                 hitAndNormalsCode +=
                                 """
@@ -1440,7 +1475,7 @@ class CodeSDFStream
             
             """
             
-            instance.code = headerCode + backgroundCode + mapCode + shadowCode + hitAndNormalsCode + aoCode + materialFuncCode + materialCode
+            instance.code = headerCode + backgroundCode + mapCode + terrainMapCode + shadowCode + hitAndNormalsCode + aoCode + materialFuncCode + materialCode
         }
         
         if async {
@@ -1711,7 +1746,7 @@ class CodeSDFStream
                 if let code = material.code {
                    materialFuncCode += code
                 }
-        
+                /*
                 // Check if material has a bump
                 var hasBump = false
                 for (_, conn) in material.propertyConnections {
@@ -1737,6 +1772,7 @@ class CodeSDFStream
                     }
                 }
                 
+                
                 // If material has no bump, reset it
                 if hasBump == false {
                     terrainMapCode +=
@@ -1745,7 +1781,7 @@ class CodeSDFStream
                     bump = 0;
                     
                     """
-                }
+                }*/
 
                 materialFuncCode +=
                 """
@@ -1796,6 +1832,41 @@ class CodeSDFStream
             for layer in scene!.getStage(.ShapeStage).terrain!.layers.reversed() {
                 if let material = layer.material {
                     processMaterial(materialStageItem: material)
+                } else {
+                    currentMaterialId = materialIdCounter
+                    materialIdCounter += 1
+                }
+            }
+            
+            /// Recursively iterate the object hierarchy
+            func processChildren(_ stageItem: StageItem)
+            {
+                for child in stageItem.children {
+                    if let shapes = child.getComponentList("shapes") {
+                        codeBuilder.sdfStream.pushStageItem(child)
+                        for shape in shapes {
+                            codeBuilder.sdfStream.pushComponent(shape)
+                        }
+                        processChildren(child)
+                        codeBuilder.sdfStream.pullStageItem()
+                    }
+                }
+            }
+            
+            for object in terrainObjects {
+                if let shapes = object.getComponentList("shapes") {
+
+                    let gComponent = isGroundComponent
+                    isGroundComponent = nil
+                    
+                    codeBuilder.sdfStream.pushStageItem(object)
+                    for shape in shapes {
+                        codeBuilder.sdfStream.pushComponent(shape)
+                    }
+                    processChildren(object)
+                    codeBuilder.sdfStream.pullStageItem()
+                                        
+                    isGroundComponent = gComponent
                 }
             }
         } else
@@ -2065,7 +2136,6 @@ class CodeSDFStream
                 """
             }
         }
-
     }
     
     func pullStageItem()
