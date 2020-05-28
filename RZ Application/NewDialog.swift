@@ -131,7 +131,7 @@ class NewDialog: MMDialog {
         selectedFileItem = files.first
         
         rect.width = 800
-        rect.height = 600
+        rect.height = 620
 
         sceneGraphButton = MMButtonWidget(view, skinToUse: smallButtonSkin, text: "Scene Graph" )
         sceneGraphButton.clicked = { (event) -> Void in

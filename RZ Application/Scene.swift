@@ -37,6 +37,10 @@ class TerrainLayer          : Codable, Equatable
     var object              : StageItem? = nil
 
     var shapeFactor         : Float = 0
+    
+    var objectSpacing       : Float = 5
+    var objectRandom        : Float = 0
+    var objectVisible       : Float = 1
 
     private enum CodingKeys : String, CodingKey {
         case uuid
@@ -51,6 +55,9 @@ class TerrainLayer          : Codable, Equatable
         case shapeFactor
         case material
         case object
+        case objectSpacing
+        case objectRandom
+        case objectVisible
     }
      
     required init(from decoder: Decoder) throws
@@ -69,6 +76,15 @@ class TerrainLayer          : Codable, Equatable
             object = obj
         }
         shapeFactor = try container.decode(Float.self, forKey: .shapeFactor)
+        if let spacing = try container.decodeIfPresent(Float.self, forKey: .objectSpacing) {
+            self.objectSpacing = spacing
+        }
+        if let random = try container.decodeIfPresent(Float.self, forKey: .objectRandom) {
+            self.objectRandom = random
+        }
+        if let visible = try container.decodeIfPresent(Float.self, forKey: .objectVisible) {
+            self.objectVisible = visible
+        }
     }
      
     func encode(to encoder: Encoder) throws
@@ -85,6 +101,9 @@ class TerrainLayer          : Codable, Equatable
         try container.encode(shapeFactor, forKey: .shapeFactor)
         try container.encode(material, forKey: .material)
         try container.encode(object, forKey: .object)
+        try container.encode(objectSpacing, forKey: .objectSpacing)
+        try container.encode(objectRandom, forKey: .objectRandom)
+        try container.encode(objectVisible, forKey: .objectVisible)
     }
      
     static func ==(lhs:TerrainLayer, rhs:TerrainLayer) -> Bool {

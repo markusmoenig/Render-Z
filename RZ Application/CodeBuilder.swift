@@ -1577,6 +1577,7 @@ class CodeBuilder
         __funcData_.GlobalTime = GlobalTime;
         __funcData_.GlobalSeed = GlobalSeed;
         __funcData_.inShape = float4(1000, 1000, -1, -1);
+        __funcData_.hash = 1.0;
 
         {
             float2 uv = float2(__gid.x, __gid.y);

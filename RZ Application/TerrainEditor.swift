@@ -54,6 +54,8 @@ class TerrainEditor         : PropertiesWidget
     
     var terrainUndo         : SceneGraphItemUndo? = nil
     
+    var brushModeVar        : NodeUISelector!
+    
     override required init(_ view: MMView)
     {
         fragment = MMFragment(view)
@@ -246,7 +248,12 @@ class TerrainEditor         : PropertiesWidget
         if actionState == .PaintHeight {
             if let loc = getHitLocationAt(event) {
                 let val = getValue(loc)
-                setValue(loc, value: Int8(val + 1))
+                
+                if brushModeVar.index == 0 {
+                    setValue(loc, value: Int8(val + 1))
+                } else {
+                    setValue(loc, value: Int8(val - 1))
+                }
 
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
                 
@@ -391,6 +398,14 @@ class TerrainEditor         : PropertiesWidget
             }
             
             let layerIndex : Float = currentLayerIndex == -1 ? 0.0 : Float(currentLayerIndex + 1)
+            if layerIndex >= 1 {
+                let layer = terrain.layers[currentLayerIndex]
+
+                currentShape = nil
+                if layer.shapes.count > 0 {
+                    currentShape = layer.shapes[0]
+                }
+            }
             
             let layerSelector = NodeUISelector(c1Node!, variable: "layerSelector", title: "Layers", items: layerItems, index: layerIndex)
             layerSelector.titleShadows = true
@@ -493,16 +508,23 @@ class TerrainEditor         : PropertiesWidget
                 }
                 
                 if layer.noiseType != .None {
-                    let blendModeVar = NodeUISelector(c1Node!, variable: "blendMode", title: "Blend Mode", items: ["Add", "Subtract", "Max"], index: Float(layer.blendType.rawValue), shadows: false)
+                    let blendModeVar = NodeUISelector(c1Node!, variable: "blendMode", title: "Blend Mode", items: ["Add", "Subtract", "Max"], index: Float(layer.blendType.rawValue), shadows: true)
                     c1Node!.uiItems.append(blendModeVar)
                 }
             } else {
+                
+                // Paint Layer UI
                 let terrainScaleVar = NodeUINumber(c1Node!, variable: "terrainScale", title: "Terrain Scale", range: SIMD2<Float>(0.5, 1), value: 1.0 - terrain.terrainScale, precision: Int(3))
                 terrainScaleVar.titleShadows = true
                 c1Node?.uiItems.append(terrainScaleVar)
+                
                 let terrainHeightScaleVar = NodeUINumber(c1Node!, variable: "terrainHeightScale", title: "Height Scale", range: SIMD2<Float>(0.1, 2), value: terrain.terrainHeightScale, precision: Int(3))
                 terrainHeightScaleVar.titleShadows = true
                 c1Node?.uiItems.append(terrainHeightScaleVar)
+                
+                brushModeVar = NodeUISelector(c1Node!, variable: "brushMode", title: "Brush Mode", items: ["Add", "Subtract"], index: 0, shadows: true)
+                c1Node!.uiItems.append(brushModeVar)
+                
                 c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
                     
                     if variable == "layerSelector" {
@@ -593,9 +615,41 @@ class TerrainEditor         : PropertiesWidget
                     
                     let objectVar = NodeUISelector(c2Node!, variable: "object", title: "Object", items: objectItems, index: objectIndex, shadows: true)
                     c2Node!.uiItems.append(objectVar)
+                    
+                    if objectIndex == 1 {
+                        let objectSpacingVar = NodeUINumber(c2Node!, variable: "objectSpacing", title: "Spacing", range: SIMD2<Float>(0.1, 10), value: layer.objectSpacing, precision: Int(3))
+                        objectSpacingVar.titleShadows = true
+                        c2Node?.uiItems.append(objectSpacingVar)
+                        
+                        let objectRandomVar = NodeUINumber(c2Node!, variable: "objectRandom", title: "Randomness", range: SIMD2<Float>(0, 1), value: layer.objectRandom, precision: Int(3))
+                        objectRandomVar.titleShadows = true
+                        c2Node?.uiItems.append(objectRandomVar)
+                        
+                        let objectVisibleVar = NodeUINumber(c2Node!, variable: "objectVisible", title: "Visibility", range: SIMD2<Float>(0, 1), value: layer.objectVisible, precision: Int(3))
+                        objectVisibleVar.titleShadows = true
+                        c2Node?.uiItems.append(objectVisibleVar)
+                    }
                 }
                 
                 c2Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                    
+                    if variable == "objectSpacing" {
+                        layer.objectSpacing = newValue
+                        self.terrainNeedsUpdate()
+                        return
+                    }
+                    
+                    if variable == "objectRandom" {
+                        layer.objectRandom = newValue
+                        self.terrainNeedsUpdate()
+                        return
+                    }
+                    
+                    if variable == "objectVisible" {
+                        layer.objectVisible = newValue
+                        self.terrainNeedsUpdate()
+                        return
+                    }
                     
                     if variable == "material" {
                         if newValue == 0 {

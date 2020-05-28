@@ -301,7 +301,6 @@ class Pipeline3D            : Pipeline
             
             func startRender()
             {
-                print("started")
                 self.startId = self.renderId
 
                 self.allocTextureId("color", self.width, self.height, .rgba16Float)
@@ -315,15 +314,14 @@ class Pipeline3D            : Pipeline
 
                 self.resetSample()
 
-                self.stage_HitAndNormals()
                 self.lineNumber = 0;
+                self.stage_HitAndNormals()
                 self.currentStage = .HitAndNormals
             }
             
             func tryToStartRender()
             {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                    print("try to start")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     if self.renderIsRunning {
                         tryToStartRender()
                     } else {
@@ -356,7 +354,6 @@ class Pipeline3D            : Pipeline
     {
         if self.startId < self.renderId || self.samples >= self.maxSamples {
             renderIsRunning = false
-            print("renderer forced to stop")
             return true
         } else { return false }
     }
@@ -497,7 +494,6 @@ class Pipeline3D            : Pipeline
                                 }
                             }
                             self.renderIsRunning = false
-                            print("render is finished")
                         }
                     }
                 }
@@ -529,7 +525,7 @@ class Pipeline3D            : Pipeline
         allocTextureId("density", width, height, .rgba16Float)
         allocTextureId("result", width, height, .rgba16Float)
         
-        codeBuilder.renderClear(texture: getTextureOfId("meta"), data: SIMD4<Float>(1, 1, 0, 0))
+        codeBuilder.renderClear(texture: getTextureOfId("meta"), data: SIMD4<Float>(1, 1, 1, 0))
 
         if maxStage != .HitAndNormals || lineNumber == 0 {
             codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(1000, 1000, -1, -1))

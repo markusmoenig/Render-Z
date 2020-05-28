@@ -659,9 +659,16 @@ class CodeEditor        : MMWidget
         }
         
         // Do the preview
-        if drawPreview(mmView: mmView, rect) {
+        
+        mmView.renderer.setClipRect(rect)
+
+        let previewRect = MMRect(rect)
+        previewRect.x -= globalApp!.leftRegion!.rect.width
+        previewRect.width += globalApp!.leftRegion!.rect.width
+        previewRect.height += globalApp!.bottomRegion!.rect.height
+
+        if drawPreview(mmView: mmView, previewRect) {
             if showCode {
-                mmView.renderer.setClipRect(rect)
                 if let comp = currentComponent {
                     // Draw semi transparent function backgrounds
                     for f in comp.functions {
@@ -673,9 +680,9 @@ class CodeEditor        : MMWidget
                         mmView.drawBox.draw(x: rect.x + f.rect.x + scrollArea.offsetX, y: rect.y + f.rect.y + scrollArea.offsetY, width: f.rect.width, height: f.rect.height, round: 6, borderSize: 0, fillColor: color)
                     }
                 }
-                mmView.renderer.setClipRect()
             }
         }
+        mmView.renderer.setClipRect()
         
         // Draw the code
         if codeHasRendered == true && showCode {

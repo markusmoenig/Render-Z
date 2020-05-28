@@ -286,7 +286,7 @@ class ArtistEditor          : Editor
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
             
-            materialButton.rect.x = (globalApp!.topRegion!.rect.width - (materialButton.rect.width + cameraButton.rect.width + renderButton.rect.width + 2 * 6)) / 2
+            materialButton.rect.x = (globalApp!.topRegion!.rect.width - (-groundButton.rect.width - 20 + materialButton.rect.width + cameraButton.rect.width + renderButton.rect.width + 2 * 6)) / 2
             materialButton.rect.y = 4 + 44
             materialButton.draw()
             

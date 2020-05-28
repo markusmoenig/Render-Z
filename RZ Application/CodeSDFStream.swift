@@ -586,6 +586,13 @@ class CodeSDFStream
                         
                         terrainMapCode +=
                         """
+                        
+                        float __hash12(float2 p)
+                        {
+                            float3 p3  = fract(float3(p.xyx) * .1031);
+                            p3 += dot(p3, p3.yzx + 33.33);
+                            return fract((p3.x + p3.y) * p3.z);
+                        }
 
                         float4 terrainMapCode(float3 position, thread struct FuncData *__funcData)
                         {
@@ -600,7 +607,7 @@ class CodeSDFStream
                             float localHeight = 0.;
                             float bump = 0;
                             float localDistance;
-
+                            float4 instObject = float4(1000, 1000, -1, -1);
                         
                             float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + \(terrain.terrainSize) / \(terrain.terrainScale) / 2.0) / \(terrain.terrainSize) * \(terrain.terrainScale)) * \(terrain.terrainHeightScale);
                         
@@ -608,7 +615,6 @@ class CodeSDFStream
                         
                         // Insert the noise layers
                         
-                        var instancingCode = ""
                         let materialId = terrain.materials.count
                         for (index, layer) in terrain.layers.reversed().enumerated() {
                             
@@ -701,16 +707,17 @@ class CodeSDFStream
                                 if let object = layer.object {
                                     terrainObjects.append(object)
                                                                                 
-                                    instancingCode +=
+                                    terrainMapCode +=
                                     """
-                                                               
-                                    float3 pos = position - float3(__data[\(posX)].x, height, -__data[\(posY)].x);
-                                    pos.xz = fmod(pos.xz, 4.0) - 2.0;
-                                    
-                                    instObject = sceneMap(pos, __funcData);
-                                    if (instObject.x < rc.x)
-                                        rc = instObject;
-                                    
+                                               
+                                    float3 pos = position - float3(__data[\(posX)].x - 50., height, -__data[\(posY)].x - 50.);
+                                    __funcData->hash = __hash12(floor(pos.xz / \(layer.objectSpacing)));
+                                    if (__funcData->hash <= \(layer.objectVisible)) {
+                                        pos.xz = fmod(pos.xz, \(layer.objectSpacing)) - \(layer.objectSpacing) / 2.0;
+                                        pos.xz += \(layer.objectRandom) * random(__funcData) / 5.0;
+                                        instObject = sceneMap\(terrainObjects.count)(pos, __funcData);
+                                    }
+                                        
                                     """
                                 }
                             }
@@ -821,12 +828,11 @@ class CodeSDFStream
                         """
                         
                         float4 rc = float4(position.y - height, 0, materialId, 0);
-                        float4 instObject;
+                        if (instObject.x < rc.x)
+                            rc = instObject;
                         
                         """
-                                                
-                        terrainMapCode += instancingCode
-                        
+                                                                    
                         terrainMapCode +=
                         """
                         
@@ -836,9 +842,7 @@ class CodeSDFStream
                         """
                         
                         //print(terrainMapCode)
-                        
-                        //headerCode += terrainMapCode
-                        
+                                                
                         if let rayMarch = terrain.rayMarcher {
                             dryRunComponent(rayMarch, instance.data.count)
                             instance.collectProperties(rayMarch)
@@ -896,9 +900,9 @@ class CodeSDFStream
                             """
                             
                             for (index, material) in terrain.materials.enumerated() {
-                                //if index == 0 {
-                                //    continue
-                                //}
+                                if index == 0 {
+                                    continue
+                                }
                                 
                                 hitAndNormalsCode +=
                                 """
@@ -1856,7 +1860,8 @@ class CodeSDFStream
                 }
             }
             
-            for object in terrainObjects {
+            // Build the objects
+            for (index, object) in terrainObjects.enumerated() {
                 if let shapes = object.getComponentList("shapes") {
 
                     let gComponent = isGroundComponent
@@ -1869,6 +1874,7 @@ class CodeSDFStream
                     processChildren(object)
                     codeBuilder.sdfStream.pullStageItem()
                                         
+                    mapCode = mapCode.replacingOccurrences(of: "float4 sceneMap(", with: "float4 sceneMap\(index+1)(")
                     isGroundComponent = gComponent
                 }
             }
