@@ -25,8 +25,8 @@
 		2B12841223475B55001170B2 /* navigation.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B12841023475B54001170B2 /* navigation.tiff */; };
 		2B128761225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
 		2B128762225DA70600BF0E22 /* MMFloatPopUp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B128760225DA62E00BF0E22 /* MMFloatPopUp.swift */; };
-		2B14E15023BF243500B45B9D /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5FE42822C213690046A435 /* CloudKit.framework */; };
 		2B14E15323BF278800B45B9D /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B14E15223BF278800B45B9D /* CloudKit.framework */; };
+		2B14F3E724812B260055FA10 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2B5FE42822C213690046A435 /* CloudKit.framework */; };
 		2B169BD92464D80800366E19 /* Y_red.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B169BD62464D80700366E19 /* Y_red.tiff */; };
 		2B169BDA2464D80800366E19 /* Y_red.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B169BD62464D80700366E19 /* Y_red.tiff */; };
 		2B169BDB2464D80800366E19 /* X_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B169BD72464D80700366E19 /* X_blue.tiff */; };
@@ -150,8 +150,6 @@
 		2B42251C2471579F002FD442 /* Minimal.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B42251A2471579F002FD442 /* Minimal.render-z */; };
 		2B42251F247157A9002FD442 /* DensityTest.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B42251D247157A8002FD442 /* DensityTest.render-z */; };
 		2B422520247157A9002FD442 /* DensityTest.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B42251D247157A8002FD442 /* DensityTest.render-z */; };
-		2B422521247157A9002FD442 /* Material_Bricks.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B42251E247157A8002FD442 /* Material_Bricks.render-z */; };
-		2B422522247157A9002FD442 /* Material_Bricks.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B42251E247157A8002FD442 /* Material_Bricks.render-z */; };
 		2B422524247157AF002FD442 /* Willys.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B422523247157AF002FD442 /* Willys.render-z */; };
 		2B422525247157AF002FD442 /* Willys.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B422523247157AF002FD442 /* Willys.render-z */; };
 		2B4600EC2442EAC5004DAF5E /* AppShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2B4600EB2442EAC0004DAF5E /* AppShaders.metal */; };
@@ -582,6 +580,10 @@
 		2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
 		2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B05F231A069A0067B217 /* sz_ui_grey.tiff */; };
 		2BB6B063231A069A0067B217 /* sz_ui_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */; };
+		2BBEF2F0247F5FD600C42145 /* Material_Bricks.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BBEF2EF247F5FD600C42145 /* Material_Bricks.render-z */; };
+		2BBEF2F1247F5FD600C42145 /* Material_Bricks.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BBEF2EF247F5FD600C42145 /* Material_Bricks.render-z */; };
+		2BBEF2F3247F627400C42145 /* Bridge.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BBEF2F2247F627400C42145 /* Bridge.render-z */; };
+		2BBEF2F4247F627400C42145 /* Bridge.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BBEF2F2247F627400C42145 /* Bridge.render-z */; };
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
 		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
 		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
@@ -744,7 +746,6 @@
 		2B40D80523FCCDB300D46B2F /* Combo3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combo3D.swift; sourceTree = "<group>"; };
 		2B42251A2471579F002FD442 /* Minimal.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Minimal.render-z"; sourceTree = "<group>"; };
 		2B42251D247157A8002FD442 /* DensityTest.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "DensityTest.render-z"; sourceTree = "<group>"; };
-		2B42251E247157A8002FD442 /* Material_Bricks.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Material_Bricks.render-z"; sourceTree = "<group>"; };
 		2B422523247157AF002FD442 /* Willys.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Willys.render-z"; sourceTree = "<group>"; };
 		2B4600EB2442EAC0004DAF5E /* AppShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = AppShaders.metal; sourceTree = "<group>"; };
 		2B4600EE244530CE004DAF5E /* PropertiesWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertiesWidget.swift; sourceTree = "<group>"; };
@@ -869,6 +870,8 @@
 		2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiskBuilder.swift; sourceTree = "<group>"; };
 		2BB6B05F231A069A0067B217 /* sz_ui_grey.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_grey.tiff; sourceTree = "<group>"; };
 		2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_blue.tiff; sourceTree = "<group>"; };
+		2BBEF2EF247F5FD600C42145 /* Material_Bricks.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Material_Bricks.render-z"; sourceTree = "<group>"; };
+		2BBEF2F2247F627400C42145 /* Bridge.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Bridge.render-z"; sourceTree = "<group>"; };
 		2BBF0F4B225C397A009950E3 /* Renderer.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Renderer.metal; sourceTree = "<group>"; };
 		2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -958,7 +961,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2B14E15023BF243500B45B9D /* CloudKit.framework in Frameworks */,
+				2B14F3E724812B260055FA10 /* CloudKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1424,9 +1427,10 @@
 			isa = PBXGroup;
 			children = (
 				2B42251D247157A8002FD442 /* DensityTest.render-z */,
-				2B42251E247157A8002FD442 /* Material_Bricks.render-z */,
 				2B42251A2471579F002FD442 /* Minimal.render-z */,
+				2BBEF2EF247F5FD600C42145 /* Material_Bricks.render-z */,
 				2B422523247157AF002FD442 /* Willys.render-z */,
+				2BBEF2F2247F627400C42145 /* Bridge.render-z */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -1721,7 +1725,6 @@
 				2B838DD324492363004BDE56 /* ground.tiff in Resources */,
 				2B169BDD2464D80800366E19 /* Z_green.tiff in Resources */,
 				2B7A3C4F23B46B53002EC5FC /* sz_toolbar.tiff in Resources */,
-				2B422521247157A9002FD442 /* Material_Bricks.render-z in Resources */,
 				2BD0E1D7245A5F6100A61586 /* maximize.tiff in Resources */,
 				2B8E2FE523C71F36005619E4 /* SourceCodePro.tiff in Resources */,
 				2B2B5FE0242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
@@ -1735,7 +1738,9 @@
 				2B7A3C5023B46B53002EC5FC /* sz_ui_grey.tiff in Resources */,
 				2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */,
 				2B666FAE2464D4AC00BE3E4F /* Z_green_ring.tiff in Resources */,
+				2BBEF2F3247F627400C42145 /* Bridge.render-z in Resources */,
 				2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */,
+				2BBEF2F0247F5FD600C42145 /* Material_Bricks.render-z in Resources */,
 				2B422524247157AF002FD442 /* Willys.render-z in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1771,6 +1776,7 @@
 				2B666FAF2464D4AC00BE3E4F /* Z_green_ring.tiff in Resources */,
 				2B838DD424492363004BDE56 /* ground.tiff in Resources */,
 				2B666FB52464D58F00BE3E4F /* rotate.tiff in Resources */,
+				2BBEF2F4247F627400C42145 /* Bridge.render-z in Resources */,
 				2BBFA84A24395C7A008981B7 /* GreyStone.tiff in Resources */,
 				2B2B5FF1242442AD00B9CCF1 /* timeline.tiff in Resources */,
 				2B2B5FD92422F68A00B9CCF1 /* camera.tiff in Resources */,
@@ -1787,6 +1793,7 @@
 				2B9B29BC23BB452B00C2F387 /* sz_ui_blue.tiff in Resources */,
 				2B9B29DA23BB453B00C2F387 /* Square.json in Resources */,
 				2B9B29DC23BB453B00C2F387 /* GameCuben.json in Resources */,
+				2BBEF2F1247F5FD600C42145 /* Material_Bricks.render-z in Resources */,
 				2B9B29B023BB44C000C2F387 /* Assets.xcassets in Resources */,
 				2B8E2FE623C71F36005619E4 /* SourceCodePro.tiff in Resources */,
 				2B7A45BE243EEAC6000C91C9 /* material.tiff in Resources */,
@@ -1799,7 +1806,6 @@
 				2B666FAC2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
 				2BE847B82453C58200409AAE /* fileicon.tiff in Resources */,
 				2B2B5FEF242442AD00B9CCF1 /* scenegraph.tiff in Resources */,
-				2B422522247157A9002FD442 /* Material_Bricks.render-z in Resources */,
 				2B2B5FEB242442AD00B9CCF1 /* dev_on.tiff in Resources */,
 				2B422520247157A9002FD442 /* DensityTest.render-z in Resources */,
 				2B169BDC2464D80800366E19 /* X_blue.tiff in Resources */,
@@ -2576,6 +2582,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Render-Z/Info.plist";
@@ -2584,9 +2591,10 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 0.3;
+				MARKETING_VERSION = 0.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderz;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
@@ -2599,6 +2607,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Render-Z/Info.plist";
@@ -2607,9 +2616,10 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 0.3;
+				MARKETING_VERSION = 0.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderz;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -2748,6 +2758,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Render-Z iOS/Render-Z.entitlements";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				INFOPLIST_FILE = "Render-Z iOS/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
@@ -2771,6 +2782,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Render-Z iOS/Render-Z.entitlements";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				INFOPLIST_FILE = "Render-Z iOS/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;

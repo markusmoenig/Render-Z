@@ -111,7 +111,8 @@ class NewDialog: MMDialog {
         materials3D.items.append(TemplateItem(view, "Bricks", "Material_Bricks"))
         templates.append(materials3D)
         
-        let modeling = Template(view, "Modeling")
+        let modeling = Template(view, "Modeling and Terrain (Work in Progress)")
+        modeling.items.append(TemplateItem(view, "Bridge", "Bridge"))
         modeling.items.append(TemplateItem(view, "Willys WiP", "Willys"))
         templates.append(modeling)
         
@@ -191,7 +192,7 @@ class NewDialog: MMDialog {
     {
         if sceneGraphButton.states.contains(.Checked) {
             globalApp!.topRegion!.graphButton.addState(.Checked)
-            globalApp!.sceneGraph.openWidth = globalApp!.editorRegion!.rect.width * 0.4
+            globalApp!.sceneGraph.openWidth = globalApp!.mmView.renderer.cWidth * 0.4
             globalApp!.sceneGraph.currentWidth = globalApp!.sceneGraph.openWidth
             globalApp!.sceneGraph.sceneGraphState = .Open
             globalApp!.sceneGraph.activate()

@@ -390,6 +390,43 @@ class Pipeline3D            : Pipeline
                 return
             }
             
+            if self.outputType != .FinalImage {
+                if self.lineNumber + 50 >= self.height {
+                    if self.outputType == .DepthMap {
+                        self.codeBuilder.renderDepthMap(self.finalTexture!, self.getTextureOfId("id"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        self.renderIsRunning = false
+                        return
+                    } else
+                    if self.outputType == .AO {
+                        self.codeBuilder.renderAO(self.finalTexture!, self.getTextureOfId("meta"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        self.renderIsRunning = false
+                        return
+                    } else
+                    if self.outputType == .Shadows {
+                        self.codeBuilder.renderShadow(self.finalTexture!, self.getTextureOfId("meta"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        self.renderIsRunning = false
+                        return
+                    } else
+                    if self.outputType == .FogDensity {
+                        self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("density"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        self.renderIsRunning = false
+                        return
+                    }
+                }
+            }
+              
             if self.hasToFinish() { return }
             
             let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
@@ -414,35 +451,6 @@ class Pipeline3D            : Pipeline
                             self.mmView.update()
                         }
                     }*/
-                    
-                    if self.outputType == .DepthMap {
-                        self.codeBuilder.renderDepthMap(self.finalTexture!, self.getTextureOfId("id"))
-
-                        self.mmView.update()
-                        self.samples = self.maxSamples
-                        return
-                    } else
-                    if self.outputType == .AO {
-                        self.codeBuilder.renderAO(self.finalTexture!, self.getTextureOfId("meta"))
-
-                        self.mmView.update()
-                        self.samples = self.maxSamples
-                        return
-                    } else
-                    if self.outputType == .Shadows {
-                        self.codeBuilder.renderShadow(self.finalTexture!, self.getTextureOfId("meta"))
-
-                        self.mmView.update()
-                        self.samples = self.maxSamples
-                        return
-                    } else
-                    if self.outputType == .FogDensity {
-                        self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("density"))
-
-                        self.mmView.update()
-                        self.samples = self.maxSamples
-                        return
-                    }
                     
                     self.reflections += 1
                     if self.reflections < self.maxReflections {

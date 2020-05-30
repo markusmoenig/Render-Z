@@ -9,6 +9,209 @@
 import MetalKit
 import CloudKit
 
+class LibraryComponent      : Codable
+{
+    var name                : String
+    var author              : String
+    var description         : String
+    var json                : String
+
+    private enum CodingKeys : String, CodingKey {
+        case name
+        case author
+        case description
+        case json
+    }
+     
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        author = try container.decode(String.self, forKey: .author)
+        description = try container.decode(String.self, forKey: .description)
+        json = try container.decode(String.self, forKey: .json)
+    }
+     
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(author, forKey: .author)
+        try container.encode(description, forKey: .description)
+        try container.encode(json, forKey: .json)
+    }
+     
+    init(name: String, author: String?, description: String?, json: String?)
+    {
+        self.name = name
+        self.author = author == nil ? "" : author!
+        self.description = description == nil ? "" : description!
+        self.json = json == nil ? "" : json!
+    }
+}
+
+class LibraryBackup         : Codable
+{
+    var components          : [LibraryComponent] = []
+    var objects             : [LibraryComponent] = []
+    var materials           : [LibraryComponent] = []
+
+    private enum CodingKeys : String, CodingKey {
+        case components
+        case objects
+        case materials
+    }
+     
+    required init(from decoder: Decoder) throws
+    {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        components = try container.decode([LibraryComponent].self, forKey: .components)
+        objects = try container.decode([LibraryComponent].self, forKey: .objects)
+        materials = try container.decode([LibraryComponent].self, forKey: .materials)
+    }
+     
+    func encode(to encoder: Encoder) throws
+    {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(components, forKey: .components)
+        try container.encode(objects, forKey: .objects)
+        try container.encode(materials, forKey: .materials)
+    }
+     
+    init()
+    {
+    }
+    
+    func write()
+    {
+        let encodedData = try? JSONEncoder().encode(self)
+        if let encodedObjectJsonString = String(data: encodedData!, encoding: .utf8)
+        {
+            globalApp!.mmFile.saveAs(encodedObjectJsonString, globalApp!)
+            print("Written to Disk: components \(components.count), objects \(objects.count), materials \(materials.count)")
+        }
+    }
+    
+    func read()
+    {
+        let fileURL = globalApp!.mmFile.customUrl(fileName: "backup")
+        do {
+            let json = try String(contentsOf: fileURL!, encoding: .utf8)
+            
+            if let jsonData = json.data(using: .utf8)
+            {
+                if let backup =  try? JSONDecoder().decode(LibraryBackup.self, from: jsonData) {
+                    self.components = backup.components
+                    self.objects = backup.objects
+                    self.materials = backup.materials
+                    print("Read from Disk: components \(components.count), objects \(objects.count), materials \(materials.count)")
+                    upload()
+                }
+            }
+        }
+        catch {}
+    }
+    
+    func upload()
+    {
+        for c in components {
+            let recordID  = CKRecord.ID(recordName: c.name)
+            let record    = CKRecord(recordType: "components", recordID: recordID)
+            
+            record["json"] = c.json
+            record["description"] = c.description
+            record["author"] = c.author
+
+            var uploadComponents = [CKRecord]()
+            uploadComponents.append(record)
+
+            let operation = CKModifyRecordsOperation(recordsToSave: uploadComponents, recordIDsToDelete: nil)
+            operation.savePolicy = .allKeys
+
+            operation.modifyRecordsCompletionBlock = { savedRecords, deletedRecordIDs, operationError in
+
+                if let error = operationError {
+                    // error
+                    print("error", error)
+                }
+
+                if let saved = savedRecords {
+                    // print artist.name, or count the array, or whatever..
+                    #if DEBUG
+                    print("saved", saved)
+                    #endif
+                }
+            }
+
+            globalApp!.publicDatabase.add(operation)
+        }
+        
+        for c in objects {
+            let recordID  = CKRecord.ID(recordName: c.name)
+            let record    = CKRecord(recordType: "objects", recordID: recordID)
+            
+            record["json"] = c.json
+            record["description"] = c.description
+            record["author"] = c.author
+
+            var uploadComponents = [CKRecord]()
+            uploadComponents.append(record)
+
+            let operation = CKModifyRecordsOperation(recordsToSave: uploadComponents, recordIDsToDelete: nil)
+            operation.savePolicy = .allKeys
+
+            operation.modifyRecordsCompletionBlock = { savedRecords, deletedRecordIDs, operationError in
+
+                if let error = operationError {
+                    // error
+                    print("error", error)
+                }
+
+                if let saved = savedRecords {
+                    // print artist.name, or count the array, or whatever..
+                    #if DEBUG
+                    print("saved", saved)
+                    #endif
+                }
+            }
+
+            globalApp!.publicDatabase.add(operation)
+        }
+        
+        for c in materials {
+            let recordID  = CKRecord.ID(recordName: c.name)
+            let record    = CKRecord(recordType: "materials", recordID: recordID)
+            
+            record["json"] = c.json
+            record["description"] = c.description
+            record["author"] = c.author
+
+            var uploadComponents = [CKRecord]()
+            uploadComponents.append(record)
+
+            let operation = CKModifyRecordsOperation(recordsToSave: uploadComponents, recordIDsToDelete: nil)
+            operation.savePolicy = .allKeys
+
+            operation.modifyRecordsCompletionBlock = { savedRecords, deletedRecordIDs, operationError in
+
+                if let error = operationError {
+                    // error
+                    print("error", error)
+                }
+
+                if let saved = savedRecords {
+                    // print artist.name, or count the array, or whatever..
+                    #if DEBUG
+                    print("saved", saved)
+                    #endif
+                }
+            }
+
+            globalApp!.publicDatabase.add(operation)
+        }
+    }
+}
+
 class LibraryItem {
     
     var titleLabel          : MMTextLabel
@@ -87,6 +290,8 @@ class LibraryDialog: MMDialog {
     var buttonSkin      : MMSkinButton
     var buttons         : [MMWidget] = []
     
+    //var backup          : LibraryBackup = LibraryBackup()
+    
     var textMap         : [String:String] = [
         "FuncHash"      : "Hash",
         "FuncNoise"     : "Noise",
@@ -147,6 +352,8 @@ class LibraryDialog: MMDialog {
                 let arr = record.recordID.recordName.components(separatedBy: " :: ")
                 let name = arr[0]
                 let type = arr[1]
+                                
+                //self.backup.components.append(LibraryComponent(name: record.recordID.recordName, author: record.value(forKey: "author") as? String, description: record.value(forKey: "description") as? String, json: record.value(forKey: "json") as? String))
                 
                 var description : String = ""
                 if let desc = record.value(forKey: "description") {
@@ -211,6 +418,8 @@ class LibraryDialog: MMDialog {
                 let name = arr[0]
                 let type = arr[1]
                 
+                //self.backup.materials.append(LibraryComponent(name: record.recordID.recordName, author: record.value(forKey: "author") as? String, description: record.value(forKey: "description") as? String, json: record.value(forKey: "json") as? String))
+                
                 var description : String = ""
                 if let desc = record.value(forKey: "description") {
                     description = desc as! String
@@ -267,6 +476,8 @@ class LibraryDialog: MMDialog {
                 let name = arr[0]
                 let type = arr[1]
                 
+                //self.backup.objects.append(LibraryComponent(name: record.recordID.recordName, author: record.value(forKey: "author") as? String, description: record.value(forKey: "description") as? String, json: record.value(forKey: "json") as? String))
+                
                 var description : String = ""
                 if let desc = record.value(forKey: "description") {
                     description = desc as! String
@@ -315,6 +526,14 @@ class LibraryDialog: MMDialog {
                 self.privateObjectsItemMap[type] = list
             })
         }
+        
+        //DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+        //    self.backup.write()
+        //}
+        
+        //DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        //    self.backup.read()
+        //}
     }
     
     func show(ids: [String], style: Style = .List, cb: ((String)->())? = nil )

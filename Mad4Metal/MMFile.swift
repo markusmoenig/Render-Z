@@ -83,6 +83,14 @@ class MMFile : NSObject
         return documentUrl
     }
     
+    func customUrl(fileName: String) -> URL?
+    {
+        let documentUrl = self.containerUrl?
+                    .appendingPathComponent(fileName)
+                    .appendingPathExtension(appExtension)
+        return documentUrl
+    }
+    
     /// Saves the file to iCloud
     func save(_ stringData: String)
     {
