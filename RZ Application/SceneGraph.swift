@@ -1318,7 +1318,7 @@ class SceneGraph                : MMWidget
                         buildChangeComponent(item, name: "Normal", ids: ["Normal3D"])
                     } else
                     if comp.componentType == .SkyDome {
-                        buildChangeComponent(item, name: "Sky Dome", ids: ["SkyDome", "Pattern"])
+                        buildChangeComponent(item, name: "Sky Dome", ids: ["SkyDome", "Pattern2D"])
                     } else
                     if comp.componentType == .Pattern && item.stageItem!.stageItemType == .PreStage {
                         var items : [String] = []

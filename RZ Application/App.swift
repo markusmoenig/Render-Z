@@ -173,7 +173,6 @@ class App
                 if let project =  try? JSONDecoder().decode(Project.self, from: jsonData) {
                     self.project = project
                     
-                    globalApp!.currentEditor.textureAlpha = 0
                     globalApp!.currentPipeline?.finalTexture = globalApp!.currentPipeline?.checkTextureSize(10, 10, globalApp!.currentPipeline?.finalTexture)
                     
                     //project.selected!.stages[5] = Stage(.VariablePool, "Variables")
@@ -342,7 +341,7 @@ class App
 
 class Editor
 {
-    var textureAlpha    : Float = 0
+    var textureAlpha    : Float = 1
 
     func activate()
     {

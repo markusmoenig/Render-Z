@@ -540,7 +540,8 @@ class LibraryDialog: MMDialog {
     {
         _cb = cb
         _cbMaterials = nil
-        
+        _cbObjects = nil
+
         self.style = style
 
         currentId = ids[0]
@@ -555,6 +556,7 @@ class LibraryDialog: MMDialog {
     {
         _cb = nil
         _cbMaterials = cb
+        _cbObjects = nil
         
         self.style = style
 
@@ -624,7 +626,7 @@ class LibraryDialog: MMDialog {
     
     func setCurrentItems()
     {
-        if _cb != nil {
+        if _cb != nil || (_cbMaterials == nil && _cbObjects == nil) {
             if publicPrivateTab.index == 0 {
                 if itemMap[currentId] == nil { itemMap[currentId] = [] }
                 currentItems = itemMap[currentId]!

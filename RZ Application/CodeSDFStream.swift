@@ -691,6 +691,7 @@ class CodeSDFStream
                                     """
                                     
                                     materialId = \(layerMaterialId);
+                                    __BUMP_CODE_\(layerMaterialId)__
                                     
                                     """
                                     
@@ -921,10 +922,10 @@ class CodeSDFStream
                             
                             """
                         }
-                        
+                                                
                         hitAndNormalsCode +=
                         """
-                        
+
                         }
                         
                         """
@@ -1534,9 +1535,9 @@ class CodeSDFStream
                     float3 position = __translate(__origin, __originalPosition);
                     float3 __offsetFromCenter = __objectPosition - __originalPosition;
 
-                    position.yz = rotatePivot( position.yz, radians(__data[\(rotateX)].x), __offsetFromCenter.yz );
-                    position.xz = rotatePivot( position.xz, radians(__data[\(rotateY)].x), __offsetFromCenter.xz );
-                    position.xy = rotatePivot( position.xy, radians(__data[\(rotateZ)].x), __offsetFromCenter.xy );
+                    position.yz = rotatePivot( position.yz, radians(__data[\(rotateX)].x\(getInstantiationModifier("_rotateRandomX", component.values))), __offsetFromCenter.yz );
+                    position.xz = rotatePivot( position.xz, radians(__data[\(rotateY)].x\(getInstantiationModifier("_rotateRandomY", component.values))), __offsetFromCenter.xz );
+                    position.xy = rotatePivot( position.xy, radians(__data[\(rotateZ)].x\(getInstantiationModifier("_rotateRandomZ", component.values))), __offsetFromCenter.xy );
 
             """
             
@@ -1712,7 +1713,7 @@ class CodeSDFStream
         // Insert terrain materials
         if isGroundComponent != nil && scene != nil && scene!.getStage(.ShapeStage).terrain != nil {
             
-            func processMaterial(materialStageItem: StageItem)
+            func processMaterial(materialStageItem: StageItem, processBumps: Bool = false)
             {
                 materialFuncCode +=
                 """
@@ -1753,42 +1754,41 @@ class CodeSDFStream
                 if let code = material.code {
                    materialFuncCode += code
                 }
-                /*
-                // Check if material has a bump
-                var hasBump = false
-                for (_, conn) in material.propertyConnections {
-                    let fragment = conn.2
-                    if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
+                
+                if processBumps {
+                    var bumpCode = ""
+
+                    // Check if material has a bump
+                    for (_, conn) in material.propertyConnections {
+                        let fragment = conn.2
+                        if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
+                            
+                            bumpCode =
+                            """
+                            
+                            {
+                                float3 normal = float3(0);
+                                float2 outUV = float2(position.xz);
+                                
+                            """
+                                                  
+                            // Than call the pattern and assign it to the output of the bump terminal
+                            bumpCode +=
+                            """
+                            
+                            struct PatternOut data;
+                            \(conn.3)(outUV, position, normal, float3(0), &data, __funcData );
+                            localHeight += data.\(conn.1) * 0.02;
+                            }
+                            
+                            """
                         
-                        // First, insert the uvmapping code
-                        terrainMapCode +=
-                        """
-                        
-                        {
-                        float3 position = __origin; float3 normal = float3(0);
-                        float2 outUV = float2(position.xz);
-                        
-                        struct PatternOut data;
-                        \(conn.3)(outUV, position, normal, float3(0), &data, __funcData );
-                        bump = data.\(conn.1) * 0.02;
+                            
                         }
-                        
-                        """
-                        
-                        hasBump = true
                     }
+                    
+                    terrainMapCode = terrainMapCode.replacingOccurrences(of: "__BUMP_CODE_\(materialIdCounter)__", with: bumpCode)
                 }
-                
-                
-                // If material has no bump, reset it
-                if hasBump == false {
-                    terrainMapCode +=
-                    """
-                    
-                    bump = 0;
-                    
-                    """
-                }*/
 
                 materialFuncCode +=
                 """
@@ -1838,7 +1838,7 @@ class CodeSDFStream
             
             for layer in scene!.getStage(.ShapeStage).terrain!.layers.reversed() {
                 if let material = layer.material {
-                    processMaterial(materialStageItem: material)
+                    processMaterial(materialStageItem: material, processBumps: true)
                 } else {
                     currentMaterialId = materialIdCounter
                     materialIdCounter += 1
@@ -1929,7 +1929,7 @@ class CodeSDFStream
                     """
                     
                     __objectPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x ) / scale;
-                    scale = __data[\(scale)].x;
+                    scale = __data[\(scale)].x\(getInstantiationModifier("_scaleRandom", transform.values));
                     __origin = __originBackupForScaling / scale;
                     
                     """
@@ -1950,9 +1950,9 @@ class CodeSDFStream
                     float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
                     localPosition = __translate(hitPosition, __originalPosition);
                 
-                    localPosition.yz = rotate( localPosition.yz, radians(__data[\(rotateX)].x) );
-                    localPosition.xz = rotate( localPosition.xz, radians(__data[\(rotateY)].x) );
-                    localPosition.xy = rotate( localPosition.xy, radians(__data[\(rotateZ)].x) );
+                    localPosition.yz = rotate( localPosition.yz, radians(__data[\(rotateX)].x\(getInstantiationModifier("_rotateRandomX", transform.values))) );
+                    localPosition.xz = rotate( localPosition.xz, radians(__data[\(rotateY)].x\(getInstantiationModifier("_rotateRandomY", transform.values))) );
+                    localPosition.xy = rotate( localPosition.xy, radians(__data[\(rotateZ)].x\(getInstantiationModifier("_rotateRandomZ", transform.values))) );
                 
                 """
                 
@@ -2213,5 +2213,18 @@ class CodeSDFStream
         code = code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: funcData)
         code = code.replacingOccurrences(of: "__CREATE_TEXTURE_DEFINITIONS__", with: textureDefs)
         instance.code = code
+    }
+    
+    /// Creates code for value modifiers
+    func getInstantiationModifier(_ variable: String,_ values: [String:Float],_ multiplier: Float = 1.0) -> String
+    {
+        var result = ""
+        
+        if let value = values[variable] {
+            if value != 0 {
+                result = " + " + String(value) + " * (__funcData->hash - 0.5)"
+            }
+        }
+        return result
     }
 }

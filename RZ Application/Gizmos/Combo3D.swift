@@ -146,14 +146,20 @@ class GizmoCombo3D          : GizmoBase
             
             if isPoint == false {
                 
-                let rotateVar = NodeUINumber3(tNode, variable: "_rotate", title: "Rotate", value: SIMD3<Float>(comp.values["_rotateX"]!, comp.values["_rotateY"]!, comp.values["_rotateZ"]!), precision: 3)
+                var rotateRandom : SIMD3<Float>? = nil
+                
+                if comp.componentType == .SDF3D {
+                    rotateRandom = SIMD3<Float>(comp.values["_rotateRandomX"] == nil ? 0 : comp.values["_rotateRandomX"]!, comp.values["_rotateRandomY"] == nil ? 0 : comp.values["_rotateRandomY"]!, comp.values["_rotateRandomZ"] == nil ? 0 : comp.values["_rotateRandomZ"]!)
+                }
+                
+                let rotateVar = NodeUINumber3(tNode, variable: "_rotate", title: "Rotate", value: SIMD3<Float>(comp.values["_rotateX"]!, comp.values["_rotateY"]!, comp.values["_rotateZ"]!), precision: 3, valueRandom: rotateRandom)
                 
                 rotateVar.titleShadows = true
                 tNode.uiItems.append(rotateVar)
             }
             
             if isTransform {
-                let scaleVar = NodeUINumber(tNode, variable: "_scale", title: "Scale", range: SIMD2<Float>(0.001,5), value: comp.values["_scale"]!,  precision: 3, halfWidthValue: 1)
+                let scaleVar = NodeUINumber(tNode, variable: "_scale", title: "Scale", range: SIMD2<Float>(0.001,5), value: comp.values["_scale"]!,  precision: 3, halfWidthValue: 1, valueRandom: comp.values["_scaleRandom"] == nil ? 0 : comp.values["_scaleRandom"]!)
                 scaleVar.titleShadows = true
                 scaleVar.autoAdjustMargin = true
                 tNode.uiItems.append(scaleVar)
@@ -177,6 +183,14 @@ class GizmoCombo3D          : GizmoBase
             }
 
             tNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                
+                if variable.hasSuffix("Random") {
+                    comp.values[variable] = newValue
+                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                    return
+                }
+                    
                 comp.values[variable] = oldValue
                 let codeUndo : CodeUndoComponent? = continous == false ? designEditor.undoStart("Value Changed") : nil
                 comp.values[variable] = newValue
@@ -187,6 +201,17 @@ class GizmoCombo3D          : GizmoBase
             }
             
             tNode.float3ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+                
+                if variable.hasSuffix("Random") {
+                    //print(variable, newValue)
+                    comp.values[variable + "X"] = newValue.x
+                    comp.values[variable + "Y"] = newValue.y
+                    comp.values[variable + "Z"] = newValue.z
+                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                    return
+                }
+                
                 comp.values[variable + "X"] = oldValue.x
                 comp.values[variable + "Y"] = oldValue.y
                 comp.values[variable + "Z"] = oldValue.z

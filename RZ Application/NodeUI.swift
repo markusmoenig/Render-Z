@@ -35,6 +35,12 @@ class NodeUI
     var supportsTitleHover  : Bool = false
     var titleHover          : Bool = false
     
+    var supportsRandom      : Bool = false
+    var randomIsOn          : Bool = false
+    var randomLabel         : MMTextLabel? = nil
+    var randomShadowLabel   : MMTextLabel? = nil
+    var randomHover         : Bool = false
+
     var isDisabled          : Bool = false
     
     var linkedTo            : NodeUI? = nil
@@ -75,6 +81,10 @@ class NodeUI
     }
     
     func titleClicked()
+    {
+    }
+    
+    func randomClicked()
     {
     }
     
@@ -145,6 +155,25 @@ class NodeUI
         titleLabel!.draw()
         
         contentY = rect.y + titleLabel!.rect.height + NodeUI.titleSpacing * scale
+        
+        if supportsRandom {
+            if randomLabel == nil {
+                randomLabel = MMTextLabel(mmView, font: mmView.openSans, text: "R", scale: NodeUI.titleFontScale * scale, color: NodeUI.titleTextColor)
+            }
+            if titleShadows && randomShadowLabel == nil {
+                randomShadowLabel = MMTextLabel(mmView, font: mmView.openSans, text: "R", scale: NodeUI.titleFontScale * scale, color: NodeUI.titleShadowTextColor)
+            }
+            if randomShadowLabel != nil {
+                randomShadowLabel!.isDisabled = isDisabled
+                randomShadowLabel!.rect.x = rect.x + rect.width - randomLabel!.rect.width - 5 + 0.5
+                randomShadowLabel!.rect.y = rect.y + 0.5
+                randomShadowLabel!.draw()
+            }
+            randomLabel!.rect.x = rect.x + rect.width - randomLabel!.rect.width - 5
+            randomLabel!.rect.y = rect.y
+            randomLabel!.color = (randomHover && isDisabled == false) ? SIMD4<Float>(1,1,1,1) : NodeUI.contentTextColor
+            randomLabel!.draw()
+        }
     }
     
     /// Adjust color to disabled if necessary
@@ -631,6 +660,8 @@ class NodeUIKeyDown : NodeUI
 class NodeUINumber : NodeUI
 {
     var value       : Float
+    var valueRandom : Float? = nil
+
     var range       : SIMD2<Float>?
     var defaultValue: Float
     var mouseIsDown : Bool = false
@@ -642,7 +673,7 @@ class NodeUINumber : NodeUI
     var contentLabel: MMTextLabel!
     var contentText : String = ""
     var contentValue: Float? = nil
-    
+        
     var precision   : Int = 3
     var autoAdjustMargin : Bool = false
     
@@ -650,7 +681,7 @@ class NodeUINumber : NodeUI
     
     var halfWidth   : Float? = nil
     
-    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = SIMD2<Float>(0,1), int: Bool = false, value: Float = 0, precision: Int = 3, halfWidthValue : Float? = nil)
+    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = SIMD2<Float>(0,1), int: Bool = false, value: Float = 0, precision: Int = 3, halfWidthValue : Float? = nil, valueRandom: Float? = nil)
     {
         self.value = value
         self.defaultValue = value
@@ -658,6 +689,7 @@ class NodeUINumber : NodeUI
         self.int = int
         self.precision = precision
         self.halfWidth = halfWidthValue
+        self.valueRandom = valueRandom
 
         if node.properties[variable] == nil {
             node.properties[variable] = value
@@ -666,6 +698,10 @@ class NodeUINumber : NodeUI
         }
         
         super.init(node, brand: .Number, variable: variable, title: title)
+        
+        if valueRandom != nil {
+            supportsRandom = true
+        }
         supportsTitleHover = true
     }
     
@@ -709,6 +745,22 @@ class NodeUINumber : NodeUI
             self.node.properties[self.variable] = self.value
             self.titleHover = false
             self.updateLinked()
+            self.mmView.update()
+        } )
+    }
+    
+    override func randomClicked()
+    {
+        if isDisabled {
+            return
+        }
+        getNumberDialog(view: mmView, title: title, message: "Enter new random modifier used on instantiation", defaultValue: valueRandom!, int: int, precision: precision, cb: { (value) -> Void in
+            let oldValue = self.valueRandom!
+            self.valueRandom = value
+            self.node.variableChanged(variable: self.variable + "Random", oldValue: oldValue, newValue: self.valueRandom!, continuous: false)
+
+            self.node.properties[self.variable + "Random"] = self.valueRandom!
+            self.randomHover = false
             self.mmView.update()
         } )
     }
@@ -1168,6 +1220,8 @@ class NodeUINumber2 : NodeUI
 class NodeUINumber3 : NodeUI
 {
     var value       = SIMD3<Float>(0,0,0)
+    var valueRandom : SIMD3<Float>? = nil
+
     var range       : SIMD2<Float>?
     var defaultValue: SIMD3<Float>? = nil
     var mouseIsDown : Bool = false
@@ -1189,13 +1243,14 @@ class NodeUINumber3 : NodeUI
     var stepSize    : Float = 0
     var sub         : Int = 0
     
-    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = nil, value: SIMD3<Float> = SIMD3<Float>(0,0,0), precision: Int = 3)
+    init(_ node: Node, variable: String, title: String, range: SIMD2<Float>? = nil, value: SIMD3<Float> = SIMD3<Float>(0,0,0), precision: Int = 3, valueRandom: SIMD3<Float>? = nil)
     {
         self.value = value
         self.defaultValue = value
         self.range = range
         self.precision = precision
-        
+        self.valueRandom = valueRandom
+
         contentText = ["", "", ""]
         contentLabel = [nil, nil, nil]
         labelTexture = [nil, nil, nil]
@@ -1212,6 +1267,9 @@ class NodeUINumber3 : NodeUI
         }*/
         
         super.init(node, brand: .Number, variable: variable, title: title)
+        if valueRandom != nil {
+            supportsRandom = true
+        }
         supportsTitleHover = true
     }
     
@@ -1257,6 +1315,22 @@ class NodeUINumber3 : NodeUI
             //self.node.properties[self.variable] = self.value
             self.titleHover = false
             self.updateLinked()
+            self.mmView.update()
+        } )
+    }
+    
+    override func randomClicked()
+    {
+        if isDisabled {
+            return
+        }
+        
+        getNumber3Dialog(view: mmView, title: title, message: "Enter new random modifier used on instantiation", defaultValue: valueRandom!, precision: precision, cb: { (value) -> Void in
+
+            self.node.variableChanged(variable: self.variable + "Random", oldValue: self.valueRandom!, newValue: value, continuous: false)
+            self.valueRandom = value
+        
+            self.randomHover = false
             self.mmView.update()
         } )
     }

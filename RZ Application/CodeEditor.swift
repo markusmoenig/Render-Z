@@ -626,6 +626,15 @@ class CodeEditor        : MMWidget
         context.fragment = fragment
     }
     
+    func getPreviewRect() -> MMRect
+    {
+        let previewRect = MMRect(rect)
+        previewRect.x -= globalApp!.leftRegion!.rect.width
+        previewRect.width += globalApp!.leftRegion!.rect.width
+        previewRect.height += globalApp!.bottomRegion!.rect.height
+        return previewRect
+    }
+    
     override func draw(xOffset: Float = 0, yOffset: Float = 0)
     {
         // Texture ?
@@ -667,7 +676,7 @@ class CodeEditor        : MMWidget
         previewRect.width += globalApp!.leftRegion!.rect.width
         previewRect.height += globalApp!.bottomRegion!.rect.height
 
-        if drawPreview(mmView: mmView, previewRect) {
+        if drawPreview(mmView: mmView, getPreviewRect()) {
             if showCode {
                 if let comp = currentComponent {
                     // Draw semi transparent function backgrounds

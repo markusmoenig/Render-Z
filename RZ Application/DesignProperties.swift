@@ -23,6 +23,7 @@ class DesignProperties      : MMWidget
     
     var hoverUIItem         : NodeUI? = nil
     var hoverUITitle        : NodeUI? = nil
+    var hoverUIRandom       : NodeUI? = nil
 
     var buttons             : [MMButtonWidget] = []
     var smallButtonSkin     : MMSkinButton
@@ -89,6 +90,7 @@ class DesignProperties      : MMWidget
         
         hoverUIItem = nil
         hoverUITitle = nil
+        hoverUIRandom = nil
         hoverMode = .None
         
         if comp.componentType == .Render3D {
@@ -175,6 +177,14 @@ class DesignProperties      : MMWidget
             if variable == "renderMode" {
                 globalApp!.currentPipeline!.outputType = Pipeline.OutputType(rawValue: Int(newValue))!
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                return
+            }
+            
+            if variable.hasSuffix("Random") {
+                comp.values[variable] = newValue
+                print(variable, newValue)
+                globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                globalApp!.currentEditor.updateOnNextDraw(compile: true)
                 return
             }
             
@@ -330,6 +340,12 @@ class DesignProperties      : MMWidget
         }
         #endif
         
+        #if os(OSX)
+        if hoverUIRandom != nil {
+            hoverUIRandom?.randomClicked()
+        }
+        #endif
+        
         if hoverMode == .NodeUI {
             hoverUIItem!.mouseDown(event)
             hoverMode = .NodeUIMouseLocked
@@ -346,6 +362,9 @@ class DesignProperties      : MMWidget
         #if os(iOS)
         if hoverUITitle != nil {
             hoverUITitle?.titleClicked()
+        }
+        if hoverUIRandom != nil {
+            hoverUIRandom?.randomClicked()
         }
         #endif
         
@@ -375,10 +394,17 @@ class DesignProperties      : MMWidget
             mmView.update()
         }
         
+        if hoverUIRandom != nil {
+            hoverUIRandom?.randomHover = false
+            hoverUIRandom = nil
+            mmView.update()
+        }
+        
         let oldHoverMode = hoverMode
         
         hoverUIItem = nil
         hoverUITitle = nil
+        hoverUIRandom = nil
         hoverMode = .None
                 
         func checkNodeUI(_ node: Node)
@@ -404,6 +430,20 @@ class DesignProperties      : MMWidget
                     if uiRect.contains(event.x, event.y) {
                         uiItem.titleHover = true
                         hoverUITitle = uiItem
+                        mmView.update()
+                        return
+                    }
+                }
+                
+                if uiItem.supportsRandom && uiItem.randomLabel != nil {
+                    uiRect.x = uiItem.randomLabel!.rect.x - 2
+                    uiRect.y = uiItem.randomLabel!.rect.y - 2
+                    uiRect.width = uiItem.randomLabel!.rect.width + 4
+                    uiRect.height = uiItem.randomLabel!.rect.height + 6
+                    
+                    if uiRect.contains(event.x, event.y) {
+                        uiItem.randomHover = true
+                        hoverUIRandom = uiItem
                         mmView.update()
                         return
                     }

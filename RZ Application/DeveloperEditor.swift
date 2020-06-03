@@ -94,7 +94,8 @@ class DeveloperEditor   : Editor
     
     override func render()
     {
-        globalApp!.currentPipeline!.render(codeEditor.rect.width, codeEditor.rect.height)
+        let rect = codeEditor.getPreviewRect()
+        globalApp!.currentPipeline!.render(rect.width, rect.height)
     }
     
     override func setComponent(_ component: CodeComponent)
