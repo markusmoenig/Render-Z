@@ -300,14 +300,12 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
         operation.modifyRecordsCompletionBlock = { savedRecords, deletedRecordIDs, operationError in
 
             if let error = operationError {
-                // error
                 print("error", error)
             }
 
             if let saved = savedRecords {
-                // print artist.name, or count the array, or whatever..
                 #if DEBUG
-                print("saved", saved)
+                print("Uploaded successfully")
                 #endif
             }
         }

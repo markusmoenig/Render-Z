@@ -534,6 +534,26 @@ class LibraryDialog: MMDialog {
         //DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
         //    self.backup.read()
         //}
+        
+        /*
+        // Code to create a subscription
+        let predicate = NSPredicate(value: true)
+        let newSubscription = CKQuerySubscription(recordType: "objects", predicate: predicate, options: [.firesOnRecordCreation, .firesOnRecordDeletion, .firesOnRecordUpdate])
+        let info = CKSubscription.NotificationInfo()
+        info.shouldSendContentAvailable = true
+        info.alertBody = ""
+        newSubscription.notificationInfo = info
+
+        globalApp!.publicDatabase.save(newSubscription, completionHandler: { (subscription, error) in
+            print("here")
+            if error != nil {
+                print("Error Creating Subscription")
+                print(error)
+            } else {
+                //userSettings.set(true, forKey: "subscriptionSaved")
+                print(subscription)
+            }
+        })*/
     }
     
     func show(ids: [String], style: Style = .List, cb: ((String)->())? = nil )

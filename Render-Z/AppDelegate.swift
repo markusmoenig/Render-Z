@@ -32,7 +32,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let mainStoryboard = NSStoryboard.init(name: "Main", bundle: nil)
         helpWindowController = (mainStoryboard.instantiateController(withIdentifier: "HelpWindow") as! NSWindowController)
         //let request = URLRequest(url:URL(string: "https://moenig.atlassian.net/wiki/spaces/SHAPEZ/pages/5406721/Getting+Started")!)
-        //webView.load(request)
+        //webView.load(request)        
     }
     
     func windowWillReturnUndoManager(window: NSWindow) -> UndoManager? {

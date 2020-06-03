@@ -7,8 +7,9 @@
 //
 
 import Cocoa
+import UserNotifications
 
-class ViewController: NSViewController, NSWindowDelegate {
+class ViewController: NSViewController, NSWindowDelegate, UNUserNotificationCenterDelegate {
 
     var app : App!
     var mmView : MMView!
@@ -21,7 +22,8 @@ class ViewController: NSViewController, NSWindowDelegate {
         
         (NSApplication.shared.delegate as! AppDelegate).app = app
         
-        //authenticateLocalPlayer()
+        NSApplication.shared.registerForRemoteNotifications()
+        UNUserNotificationCenter.current().delegate = self
     }
 
     override func viewDidAppear() {
@@ -54,6 +56,30 @@ class ViewController: NSViewController, NSWindowDelegate {
         }
         app!.mmView.undoManager!.removeAllActions()
         return true
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        print("Test: \(response.notification.request.identifier)")
+        print(response.actionIdentifier)
+        switch response.actionIdentifier {
+            case "Complete":
+                print("Complete")
+                completionHandler()
+            case "Edit":
+                print("Edit")
+                completionHandler()
+            case "Delete":
+                print("Delete")
+                completionHandler()
+            default:
+                completionHandler()
+        }
+        completionHandler()
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        print("Test Foreground: \(notification.request.identifier)")
+        completionHandler([.alert, .sound])
     }
 }
 
