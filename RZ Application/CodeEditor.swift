@@ -590,7 +590,7 @@ class CodeEditor        : MMWidget
     {
         component.builderInstance = nil
         if let stageItem = globalApp!.project.selected!.getStageItem(component) {
-            //print("markStageItemOfComponentInvalid", stageItem.stageItemType, component.componentType)
+            //print("markStageItemOfComponentInvalid", stageItem.stageItemType, stageItem.components[stageItem.defaultName]!.componentType, component.componentType)
             markStageItemInvalid(stageItem)
         }
     }

@@ -182,18 +182,18 @@ class DesignProperties      : MMWidget
             
             if variable.hasSuffix("Random") {
                 comp.values[variable] = newValue
-                print(variable, newValue)
+                //print(variable, newValue)
                 globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
                 return
             }
-            
+                        
             if variable.starts(with: "noise") || variable.starts(with: "image") {
                 if let fragment = self.propMap["image"] {
                     fragment.values[variable] = oldValue
                     let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Image Changed") : nil
                     fragment.values[variable] = newValue
-                    if variable == "image" {
+                    if variable == "imageIndex" {
                         globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                         self.editor.updateOnNextDraw(compile: true)
                     } else {

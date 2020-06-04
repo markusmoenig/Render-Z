@@ -303,7 +303,7 @@ func uploadToLibrary(_ component: CodeComponent, _ privateLibrary: Bool = true,_
                 print("error", error)
             }
 
-            if let saved = savedRecords {
+            if savedRecords != nil {
                 #if DEBUG
                 print("Uploaded successfully")
                 #endif

@@ -1890,7 +1890,7 @@ class NodeUIImage : NodeUISelector
         menuNode = Node()
         menuNode2 = Node()
 
-        let imageScale = NodeUINumber(menuNode, variable: "imageScale", title: "Scale", range: SIMD2<Float>(0, 10), value: fragment.values["imageScale"]!, halfWidthValue: 1)
+        let imageScale = NodeUINumber(menuNode, variable: "imageScale", title: "Scale", range: SIMD2<Float>(0, 10), value: fragment.values["imageScale"]!, precision: 4, halfWidthValue: 1)
         menuNode.uiItems.append(imageScale)
 
         menuNode.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in

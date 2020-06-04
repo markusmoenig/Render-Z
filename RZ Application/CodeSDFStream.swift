@@ -609,6 +609,8 @@ class CodeSDFStream
                             float localDistance;
                             float4 instObject = float4(1000, 1000, -1, -1);
                         
+                            bool layerMaterial = false;
+                        
                             float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + \(terrain.terrainSize) / \(terrain.terrainScale) / 2.0) / \(terrain.terrainSize) * \(terrain.terrainScale)) * \(terrain.terrainHeightScale);
                         
                         """
@@ -692,6 +694,7 @@ class CodeSDFStream
                                     
                                     materialId = \(layerMaterialId);
                                     __BUMP_CODE_\(layerMaterialId)__
+                                    layerMaterial = true;
                                     
                                     """
                                     
@@ -827,6 +830,13 @@ class CodeSDFStream
                         
                         terrainMapCode +=
                         """
+                        
+                        if (layerMaterial == false)
+                        {
+                            float localHeight = 0;
+                            __BUMP_CODE_0__
+                            height += localHeight;
+                        }
                         
                         float4 rc = float4(position.y - height, 0, materialId, 0);
                         if (instObject.x < rc.x)
@@ -1832,8 +1842,8 @@ class CodeSDFStream
                 materialIdCounter += 1
             }
             
-            for stageItem in scene!.getStage(.ShapeStage).terrain!.materials {
-                processMaterial(materialStageItem: stageItem)
+            for (index, stageItem) in scene!.getStage(.ShapeStage).terrain!.materials.enumerated() {
+                processMaterial(materialStageItem: stageItem, processBumps: index == 0 ? true : false)
             }
             
             for layer in scene!.getStage(.ShapeStage).terrain!.layers.reversed() {

@@ -1119,6 +1119,11 @@ class Scene                 : Codable, Equatable
                         }
                     }
                 }
+                if result.stageItem != nil && selectIt == false {
+                    // If this component was inside the terrain, return the ground item to ensure proper rendering update
+                    let stage = getStage(.ShapeStage)
+                    result.stageItem = stage.children3D[0]
+                }
             }
         }
         

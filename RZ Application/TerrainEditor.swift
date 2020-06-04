@@ -155,6 +155,7 @@ class TerrainEditor         : PropertiesWidget
         }
         deleteShapeButton.rect.width = 80
         
+        // Materials
         addMaterialButton = MMButtonWidget(mmView, skinToUse: borderlessSkin, text: "Add", fixedWidth: buttonWidth)
         addMaterialButton.clicked = { (event) in
             self.getMaterialFromLibrary({ (stageItem) -> () in
@@ -168,6 +169,11 @@ class TerrainEditor         : PropertiesWidget
         
         changeMaterialButton = MMButtonWidget(mmView, skinToUse: borderlessSkin, text: "Change", fixedWidth: buttonWidth)
         changeMaterialButton.clicked = { (event) in
+            self.getMaterialFromLibrary({ (stageItem) -> () in
+                self.terrain.materials [self.currentMaterialIndex] = stageItem
+                self.updateUI()
+                self.terrainNeedsUpdate(true)
+            })
         }
         changeMaterialButton.rect.width = 80
         
@@ -443,7 +449,7 @@ class TerrainEditor         : PropertiesWidget
                             fragment.values[variable] = oldValue
                             let codeUndo : CodeUndoComponent? = continous == false ? globalApp!.currentEditor.undoComponentStart("Image Changed") : nil
                             fragment.values[variable] = newValue
-                            if variable == "image" {
+                            if variable == "imageIndex" {
                                 self.terrainNeedsUpdate()
                             }
                             if let undo = codeUndo { globalApp!.currentEditor.undoComponentEnd(undo) }

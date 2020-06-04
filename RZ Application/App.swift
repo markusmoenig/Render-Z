@@ -98,7 +98,7 @@ class App
         sceneGraph = SceneGraph(mmView)
         
         // Initialize images
-        let imageNames = ["Pebbles", "GreyStone"]
+        let imageNames = ["Pebbles", "GreyStone", "Soil"]
         for name in imageNames {
             if let texture = mmView.loadTexture(name, mipmaps: false, sRGB: true) {
                 images.append(("Images." + name, texture))
