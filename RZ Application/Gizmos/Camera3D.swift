@@ -292,34 +292,36 @@ class GizmoCamera3D         : GizmoBase
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
-        let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
+        if event.deltaX == 0 && event.deltaY == 0 {
+            let camera : CodeComponent = getFirstComponentOfType(globalApp!.project.selected!.getStage(.PreStage).getChildren(), globalApp!.currentSceneMode == .TwoD ? .Camera2D : .Camera3D)!
 
-        var originFrag  : CodeFragment? = nil
-        var lookAtFrag  : CodeFragment? = nil
-        var fovFrag     : CodeFragment? = nil
+            var originFrag  : CodeFragment? = nil
+            var lookAtFrag  : CodeFragment? = nil
+            var fovFrag     : CodeFragment? = nil
 
-        for uuid in camera.properties {
-            let rc = camera.getPropertyOfUUID(uuid)
-            if let frag = rc.0 {
-                if frag.name == "origin" {
-                    originFrag = rc.1
-                } else
-                if frag.name == "lookAt" {
-                    lookAtFrag = rc.1
-                } else
-                if frag.name == "fov" {
-                    fovFrag = rc.1
+            for uuid in camera.properties {
+                let rc = camera.getPropertyOfUUID(uuid)
+                if let frag = rc.0 {
+                    if frag.name == "origin" {
+                        originFrag = rc.1
+                    } else
+                    if frag.name == "lookAt" {
+                        lookAtFrag = rc.1
+                    } else
+                    if frag.name == "fov" {
+                        fovFrag = rc.1
+                    }
                 }
             }
+        
+            camera3D.initFromCamera(aspect: rect.width/rect.height, originFrag: originFrag, lookAtFrag: lookAtFrag, fovFrag: fovFrag)
         }
         
-        camera3D.initFromCamera(aspect: rect.width/rect.height, originFrag: originFrag, lookAtFrag: lookAtFrag, fovFrag: fovFrag)
-        
         #if os(iOS)
-        if mmView.numberOfTouches > 1 {
-            camera3D.rotate(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
+        if event.clickCount == 2 {
+            camera3D.rotate(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.003)
         } else {
-            camera3D.pan(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
+            camera3D.move(dx: event.deltaX! * 0.0006, dy: event.deltaY! * 0.0006)
         }
         #elseif os(OSX)
         if mmView.commandIsDown {

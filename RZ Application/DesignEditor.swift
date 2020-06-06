@@ -229,8 +229,10 @@ class DesignEditor          : MMWidget
         #endif
         
         if globalApp!.currentSceneMode == .TwoD {
+            gizmoCamera3D.rect.copy(rect)
             gizmoCombo2D.mouseScrolled(event)
         } else {
+            gizmoCamera3D.rect.copy(rect)
             gizmoCamera3D.mouseScrolled(event)
             if let comp = designComponent {
                 if comp.componentType == .Camera3D {
