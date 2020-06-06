@@ -304,6 +304,12 @@
 		2B8CC6CC23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */; };
 		2B8CC6CE23C55DAD00CFCB93 /* CodeAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */; };
 		2B8CC6CF23C55DAD00CFCB93 /* CodeAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */; };
+		2B8DB37B2489CEB700D57DC4 /* Soil.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB37A2489CEB700D57DC4 /* Soil.tiff */; };
+		2B8DB37C2489CEB700D57DC4 /* Soil.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB37A2489CEB700D57DC4 /* Soil.tiff */; };
+		2B8DB3842489D0FF00D57DC4 /* GreyStone.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB3832489D0FF00D57DC4 /* GreyStone.tiff */; };
+		2B8DB3852489D0FF00D57DC4 /* GreyStone.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB3832489D0FF00D57DC4 /* GreyStone.tiff */; };
+		2B8DB3872489D20B00D57DC4 /* StoneWall.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB3862489D20B00D57DC4 /* StoneWall.tiff */; };
+		2B8DB3882489D20B00D57DC4 /* StoneWall.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB3862489D20B00D57DC4 /* StoneWall.tiff */; };
 		2B8E2FD923C5CF40005619E4 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FD823C5CF40005619E4 /* Scene.swift */; };
 		2B8E2FDA23C5CF40005619E4 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FD823C5CF40005619E4 /* Scene.swift */; };
 		2B8E2FDF23C6D7B4005619E4 /* DesignEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */; };
@@ -652,10 +658,6 @@
 		2BBF120321F80B32001C94E9 /* Gizmo.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF120121F80B32001C94E9 /* Gizmo.metal */; };
 		2BBFA82D24346027008981B7 /* CodeClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBFA82C24346027008981B7 /* CodeClipboard.swift */; };
 		2BBFA82E24346027008981B7 /* CodeClipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBFA82C24346027008981B7 /* CodeClipboard.swift */; };
-		2BBFA84024389CDA008981B7 /* Pebbles.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBFA83F24389CDA008981B7 /* Pebbles.tiff */; };
-		2BBFA84124389CDA008981B7 /* Pebbles.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBFA83F24389CDA008981B7 /* Pebbles.tiff */; };
-		2BBFA84924395C7A008981B7 /* GreyStone.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBFA84824395C79008981B7 /* GreyStone.tiff */; };
-		2BBFA84A24395C7A008981B7 /* GreyStone.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BBFA84824395C79008981B7 /* GreyStone.tiff */; };
 		2BC5DCE4231794050081A018 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
 		2BC5DCE5231794050081A018 /* Dialogs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BC5DCE3231794050081A018 /* Dialogs.swift */; };
 		2BCEC68E22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
@@ -694,8 +696,6 @@
 		2BEA8C3822573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
 		2BED879D228B9D9C005CE147 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
 		2BED879E228B9D9C005CE147 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
-		2BF226EA24886A7B00F60FFA /* Soil.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BF226E924886A7B00F60FFA /* Soil.tiff */; };
-		2BF226EB24886A7B00F60FFA /* Soil.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BF226E924886A7B00F60FFA /* Soil.tiff */; };
 		2BF5D361221D2B2400EAAA76 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
 		2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
 		2BF5D3652220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
@@ -827,6 +827,9 @@
 		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
 		2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperEditor.swift; sourceTree = "<group>"; };
 		2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeAccess.swift; sourceTree = "<group>"; };
+		2B8DB37A2489CEB700D57DC4 /* Soil.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Soil.tiff; sourceTree = "<group>"; };
+		2B8DB3832489D0FF00D57DC4 /* GreyStone.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GreyStone.tiff; sourceTree = "<group>"; };
+		2B8DB3862489D20B00D57DC4 /* StoneWall.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = StoneWall.tiff; sourceTree = "<group>"; };
 		2B8E2FD823C5CF40005619E4 /* Scene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scene.swift; sourceTree = "<group>"; };
 		2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignEditor.swift; sourceTree = "<group>"; };
 		2B8E2FE123C71F36005619E4 /* SourceCodePro.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SourceCodePro.json; sourceTree = "<group>"; };
@@ -922,8 +925,6 @@
 		2BBF11FE21F808B1001C94E9 /* Gizmo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gizmo.swift; sourceTree = "<group>"; };
 		2BBF120121F80B32001C94E9 /* Gizmo.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Gizmo.metal; sourceTree = "<group>"; };
 		2BBFA82C24346027008981B7 /* CodeClipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeClipboard.swift; sourceTree = "<group>"; };
-		2BBFA83F24389CDA008981B7 /* Pebbles.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Pebbles.tiff; sourceTree = "<group>"; };
-		2BBFA84824395C79008981B7 /* GreyStone.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GreyStone.tiff; sourceTree = "<group>"; };
 		2BC5DCE3231794050081A018 /* Dialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dialogs.swift; sourceTree = "<group>"; };
 		2BCD175F247B71A400C02A5C /* Pipeline3D copy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Pipeline3D copy.swift"; sourceTree = "<group>"; };
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
@@ -944,7 +945,6 @@
 		2BE9488623D0675600DB0BCD /* DefaultItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultItems.swift; sourceTree = "<group>"; };
 		2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatWidget.swift; sourceTree = "<group>"; };
 		2BED879C228B9D9C005CE147 /* MMScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScreen.swift; sourceTree = "<group>"; };
-		2BF226E924886A7B00F60FFA /* Soil.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Soil.tiff; sourceTree = "<group>"; };
 		2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectNodes.swift; sourceTree = "<group>"; };
 		2BF5D363221E7E2D00EAAA76 /* Data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
 		2BF5D3642220D50D00EAAA76 /* Behavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Behavior.swift; sourceTree = "<group>"; };
@@ -1401,9 +1401,9 @@
 		2BBFA82F2436E1BF008981B7 /* images */ = {
 			isa = PBXGroup;
 			children = (
-				2BF226E924886A7B00F60FFA /* Soil.tiff */,
-				2BBFA84824395C79008981B7 /* GreyStone.tiff */,
-				2BBFA83F24389CDA008981B7 /* Pebbles.tiff */,
+				2B8DB3862489D20B00D57DC4 /* StoneWall.tiff */,
+				2B8DB3832489D0FF00D57DC4 /* GreyStone.tiff */,
+				2B8DB37A2489CEB700D57DC4 /* Soil.tiff */,
 			);
 			path = images;
 			sourceTree = "<group>";
@@ -1711,7 +1711,6 @@
 				2B9B299323BA327A00C2F387 /* rz_toolbar.tiff in Resources */,
 				2B666FB42464D58F00BE3E4F /* rotate.tiff in Resources */,
 				2B7A3C0623B4652E002EC5FC /* OpenSans.json in Resources */,
-				2BBFA84024389CDA008981B7 /* Pebbles.tiff in Resources */,
 				2B7A45BD243EEAC6000C91C9 /* material.tiff in Resources */,
 				2B9CB6F62485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2B42251B2471579F002FD442 /* Minimal.render-z in Resources */,
@@ -1724,8 +1723,8 @@
 				2B7A3C5123B46B53002EC5FC /* sz_ui_blue.tiff in Resources */,
 				2B7A45BA243C9B2F000C91C9 /* render.tiff in Resources */,
 				2BE847B72453C58200409AAE /* fileicon.tiff in Resources */,
+				2B8DB37B2489CEB700D57DC4 /* Soil.tiff in Resources */,
 				2B42251F247157A9002FD442 /* DensityTest.render-z in Resources */,
-				2BBFA84924395C7A008981B7 /* GreyStone.tiff in Resources */,
 				2B838DD324492363004BDE56 /* ground.tiff in Resources */,
 				2B9CB6F92485CD1000CFFA51 /* X_blue.tiff in Resources */,
 				2B7A3C4F23B46B53002EC5FC /* sz_toolbar.tiff in Resources */,
@@ -1737,10 +1736,11 @@
 				2B2B5FEA242442AD00B9CCF1 /* dev_on.tiff in Resources */,
 				2B666FB12464D4F500BE3E4F /* move.tiff in Resources */,
 				2B7A3BFB23B4583E002EC5FC /* Main.storyboard in Resources */,
+				2B8DB3872489D20B00D57DC4 /* StoneWall.tiff in Resources */,
 				2B7A3C0223B4652E002EC5FC /* Square.json in Resources */,
 				2B7A3C5023B46B53002EC5FC /* sz_ui_grey.tiff in Resources */,
-				2BF226EA24886A7B00F60FFA /* Soil.tiff in Resources */,
 				2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */,
+				2B8DB3842489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
 				2B666FAE2464D4AC00BE3E4F /* Z_green_ring.tiff in Resources */,
 				2BBEF2F3247F627400C42145 /* Bridge.render-z in Resources */,
 				2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */,
@@ -1781,14 +1781,12 @@
 				2B838DD424492363004BDE56 /* ground.tiff in Resources */,
 				2B666FB52464D58F00BE3E4F /* rotate.tiff in Resources */,
 				2BBEF2F4247F627400C42145 /* Bridge.render-z in Resources */,
-				2BBFA84A24395C7A008981B7 /* GreyStone.tiff in Resources */,
 				2B2B5FF1242442AD00B9CCF1 /* timeline.tiff in Resources */,
 				2B2B5FD92422F68A00B9CCF1 /* camera.tiff in Resources */,
 				2B666FB82464D5CF00BE3E4F /* scale.tiff in Resources */,
 				2B9CB6FA2485CD1000CFFA51 /* X_blue.tiff in Resources */,
 				2B9B29B923BB452B00C2F387 /* rz_toolbar.tiff in Resources */,
 				2B42251C2471579F002FD442 /* Minimal.render-z in Resources */,
-				2BBFA84124389CDA008981B7 /* Pebbles.tiff in Resources */,
 				2BD0E1DA245A5F6100A61586 /* minimize.tiff in Resources */,
 				2B9B29DD23BB453B00C2F387 /* GameCuben.tiff in Resources */,
 				2B2B5FE1242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
@@ -1801,6 +1799,7 @@
 				2BBEF2F1247F5FD600C42145 /* Material_Bricks.render-z in Resources */,
 				2B9B29B023BB44C000C2F387 /* Assets.xcassets in Resources */,
 				2B8E2FE623C71F36005619E4 /* SourceCodePro.tiff in Resources */,
+				2B8DB3852489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
 				2B7A45BE243EEAC6000C91C9 /* material.tiff in Resources */,
 				2B9B29DF23BB453B00C2F387 /* OpenSans.tiff in Resources */,
 				2B666FA92464D3EF00BE3E4F /* X_blue_ring.tiff in Resources */,
@@ -1812,10 +1811,11 @@
 				2B9CB6F72485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2BE847B82453C58200409AAE /* fileicon.tiff in Resources */,
 				2B2B5FEF242442AD00B9CCF1 /* scenegraph.tiff in Resources */,
+				2B8DB37C2489CEB700D57DC4 /* Soil.tiff in Resources */,
 				2B9CB6F42485CC9900CFFA51 /* Z_green.tiff in Resources */,
-				2BF226EB24886A7B00F60FFA /* Soil.tiff in Resources */,
 				2B2B5FEB242442AD00B9CCF1 /* dev_on.tiff in Resources */,
 				2B422520247157A9002FD442 /* DensityTest.render-z in Resources */,
+				2B8DB3882489D20B00D57DC4 /* StoneWall.tiff in Resources */,
 				2B2B5FED242442AD00B9CCF1 /* dev_off.tiff in Resources */,
 				2B2B5FDF242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B9B29BA23BB452B00C2F387 /* sz_toolbar.tiff in Resources */,
