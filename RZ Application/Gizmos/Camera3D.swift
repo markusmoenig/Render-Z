@@ -19,7 +19,8 @@ class GizmoCamera3D         : GizmoBase
     var undoComponent       : CodeUndoComponent? = nil
     
     var dispatched          : Bool = false
-    
+    var dispatched2         : Bool = false
+
     var gizmoDistance       : Float = 0
     var gizmoDragLocked     : Int = 0
 
@@ -324,16 +325,28 @@ class GizmoCamera3D         : GizmoBase
             camera3D.move(dx: event.deltaX! * 0.0006, dy: event.deltaY! * 0.0006)
         }
         #elseif os(OSX)
-        if mmView.commandIsDown {
-            if event.deltaY! != 0 {
-                camera3D.zoom(dx: 0, dy: event.deltaY! * 0.03)
-            }
-        } else {
+        if !dispatched2 {
+            if mmView.commandIsDown {
+                if event.deltaY! != 0 {
+                    self.dispatched2 = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
+                        self.camera3D.zoom(dx: 0, dy: event.deltaY! * 0.03)
+                        self.dispatched2 = false
+                    }
+                }
+            } else
             if mmView.shiftIsDown {
-                camera3D.rotate(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
+                self.dispatched2 = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
+                    self.camera3D.rotate(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.003)
+                    self.dispatched2 = false
+                }
             } else {
-                //camera3D.pan(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.03)
-                return
+                self.dispatched2 = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
+                    self.camera3D.move(dx: event.deltaX! * 0.003, dy: event.deltaY! * 0.003)
+                    self.dispatched2 = false
+                }
             }
         }
         #endif
@@ -384,8 +397,8 @@ class GizmoCamera3D         : GizmoBase
                 if firstTouch == true {
                     zoomBuffer = extractValueFromFragment3(origin) - extractValueFromFragment3(lookAt)
                 }
+                
                 camera3D.zoomRelative(dx: 0, dy: scale, start: zoomBuffer)
-
                 globalApp!.currentPipeline?.setMinimalPreview(true)
                         
                 if !dispatched {
