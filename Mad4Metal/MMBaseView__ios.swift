@@ -55,8 +55,9 @@ public class MMBaseView : MTKView
         
         mouseDownPos = SIMD2<Float>()
         
-        //let panRecognizer = UIPanGestureRecognizer(target: self, action:(#selector(self.handlePanGesture(_:))))
-        //addGestureRecognizer(panRecognizer)
+        let panRecognizer = UIPanGestureRecognizer(target: self, action:(#selector(self.handlePanGesture(_:))))
+        panRecognizer.minimumNumberOfTouches = 2
+        addGestureRecognizer(panRecognizer)
         
         let pinchRecognizer = UIPinchGestureRecognizer(target: self, action:(#selector(self.handlePinchGesture(_:))))
         addGestureRecognizer(pinchRecognizer)
@@ -116,6 +117,39 @@ public class MMBaseView : MTKView
         }
     }
     
+    @objc func handlePanGesture(_ recognizer: UIPanGestureRecognizer)
+    {
+        if let hover = hoverWidget {
+            if recognizer.numberOfTouches > 1 {
+                let translation = recognizer.translation(in: self)
+
+                let event = MMMouseEvent(Float(translation.x) + mouseDownPos.x, Float(translation.y) + mouseDownPos.y, recognizer.numberOfTouches)
+                
+                let mmView : MMView = self as! MMView
+                event.x /= Float(bounds.width) / mmView.renderer.cWidth
+                event.y /= Float(bounds.height) / mmView.renderer.cHeight
+                
+                mousePos.x = event.x
+                mousePos.y = event.y
+                
+                if ( recognizer.state == .began ) {
+                    lastX = 0
+                    lastY = 0
+                }
+                
+                event.deltaX = Float(translation.x) - lastX!
+                event.deltaY = Float(translation.y) - lastY!
+                event.deltaZ = 0
+                
+                lastX = Float(translation.x)
+                lastY = Float(translation.y)
+                
+                hover.mouseScrolled(event)
+            }
+        }
+    }
+    
+    /*
     @objc func handlePanGesture(_ recognizer: UIPanGestureRecognizer)
     {
         let translation = recognizer.translation(in: self)
@@ -237,7 +271,7 @@ public class MMBaseView : MTKView
         
         lastX = Float(translation.x)
         lastY = Float(translation.y)
-    }
+    }*/
     
     override public func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let touch = touches.first {
@@ -252,6 +286,13 @@ public class MMBaseView : MTKView
             
             mouseDownPos.x = event.x
             mouseDownPos.y = event.y
+            
+            event.deltaX = 0
+            event.deltaY = 0
+            event.deltaZ = 0
+
+            lastX = mouseDownPos.x
+            lastY = mouseDownPos.y
 
             if hoverWidget != nil {
                 hoverWidget!.removeState(.Hover)
@@ -346,6 +387,12 @@ public class MMBaseView : MTKView
         let mmView : MMView = self as! MMView
         event.x /= Float(bounds.width) / mmView.renderer.cWidth
         event.y /= Float(bounds.height) / mmView.renderer.cHeight
+                
+        if lastX != nil {
+            event.deltaX = event.x - lastX!
+            event.deltaY = event.y - lastY!
+            event.deltaZ = 0
+        }
                 
         if mouseTrackWidget != nil {
             mouseTrackWidget!.mouseMoved(event)

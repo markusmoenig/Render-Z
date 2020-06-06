@@ -36,6 +36,8 @@ public class MMBaseView : MTKView
     
     var keysDown        : [Float] = []
     
+    var lastX, lastY    : Float?
+    
     // For pinch gesture
     var zoom            : Float = 1
 
@@ -67,7 +69,8 @@ public class MMBaseView : MTKView
     /// Mouse has been clicked
     override public func mouseDown(with event: NSEvent) {
         let event = MMMouseEvent( Float(event.locationInWindow.x ), Float( frame.height ) - Float(event.locationInWindow.y ), event.clickCount )
-        
+        lastX = event.x
+        lastY = event.y
         if mouseTrackWidget != nil {
             mouseTrackWidget!.mouseDown(event)
         } else
@@ -125,6 +128,11 @@ public class MMBaseView : MTKView
         
         mousePos.x = event.x
         mousePos.y = event.y
+        
+        if lastX != nil {
+            event.deltaX = event.x - lastX!
+            event.deltaY = event.y - lastY!
+        }
         
 //        if hoverWidget != nil {
 //            hoverWidget!.removeState(.Hover)

@@ -102,11 +102,11 @@ class MMWidget : Equatable
     {
     }
     
-    func mouseEnter(_ event:MMMouseEvent)
+    func mouseEnter(_ event: MMMouseEvent)
     {
     }
     
-    func mouseLeave(_ event:MMMouseEvent)
+    func mouseLeave(_ event: MMMouseEvent)
     {
     }
     

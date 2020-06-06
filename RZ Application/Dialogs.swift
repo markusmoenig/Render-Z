@@ -244,6 +244,7 @@ class MMFileDialog : MMDialog {
     var alpha           : Float = 0
     
     var hasTextFocus    : Bool = false
+    var mouseIsDown     : Bool = false
 
     #if os(iOS)
     var textField       : UITextField!
@@ -283,6 +284,9 @@ class MMFileDialog : MMDialog {
                 items.append( MMFileDialogItem(mmView, url ) )
             })
         }
+        
+        items = items.sorted(by: { $0.titleLabel.text < $1.titleLabel.text })
+        selItem = items.first
 
         widgets.append(self)
     }
@@ -329,7 +333,13 @@ class MMFileDialog : MMDialog {
     
     override func mouseMoved(_ event: MMMouseEvent) {
         super.mouseMoved(event)
-        
+
+        if mouseIsDown {
+            mouseScrolled(event)
+        }
+
+        //print("mouseMoved", event.deltaY)
+                
         hoverItem = nil
         if let scrollRect = scrollRect {
             if scrollRect.contains(event.x, event.y) {
@@ -344,11 +354,14 @@ class MMFileDialog : MMDialog {
     }
     
     override func mouseDown(_ event: MMMouseEvent) {
+        
+        mouseIsDown = true
+
         #if os(iOS)
         mouseMoved(event)
         #endif
         super.mouseDown(event)
-        
+                
         #if os(iOS)
         if mode == .Save {
             if nameRect.contains(event.x, event.y) {
@@ -370,6 +383,10 @@ class MMFileDialog : MMDialog {
         }
     }
     
+    override func mouseUp(_ event: MMMouseEvent) {
+        mouseIsDown = false
+    }
+    
     #if os(iOS)
     @objc func textFieldDidChange(textField: UITextField) {
         fileNameLabel.setText(textField.text!)
@@ -383,7 +400,7 @@ class MMFileDialog : MMDialog {
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
-        scrollOffset += event.deltaY! * 4
+        scrollOffset += event.deltaY!
         
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {

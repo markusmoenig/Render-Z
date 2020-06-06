@@ -76,6 +76,8 @@ class NewDialog: MMDialog {
     
     var sceneGraphButton: MMButtonWidget!
     var sceneGraphState : Bool = true
+    
+    var mouseIsDown     : Bool = false
 
     init(_ view: MMView) {
         
@@ -237,6 +239,10 @@ class NewDialog: MMDialog {
     override func mouseMoved(_ event: MMMouseEvent) {
         super.mouseMoved(event)
         
+        if mouseIsDown {
+            mouseScrolled(event)
+        }
+        
         if style == .Templates {
             hoverTempItem = nil
             for t in templates {
@@ -271,8 +277,13 @@ class NewDialog: MMDialog {
         } else {
             if let item = hoverFileItem {
                 selectedFileItem = item
+                mouseIsDown = true
             }
         }
+    }
+    
+    override func mouseUp(_ event: MMMouseEvent) {
+        mouseIsDown = false
     }
     
     override func mouseScrolled(_ event: MMMouseEvent)
@@ -280,7 +291,7 @@ class NewDialog: MMDialog {
         if style == .Templates {
             //tempScrollOffset += event.deltaY! * 4
         } else {
-            fileScrollOffset += event.deltaY! * 4
+            fileScrollOffset += event.deltaY!
         }
         
         if !dispatched {
