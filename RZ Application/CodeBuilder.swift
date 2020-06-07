@@ -42,6 +42,8 @@ class CodeBuilderInstance
     var finishedCompiling   : Bool = false
     
     var lineNumber          : Float = 0
+    
+    var rootObject          : StageItem? = nil
 
     /// Adds a global variable manually, used when we need to know the index of a global variable
     func addGlobalVariable(name: String) -> Int?

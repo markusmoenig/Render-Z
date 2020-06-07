@@ -167,6 +167,7 @@ class Pipeline3D            : Pipeline
                     
                     idCounter += codeBuilder.sdfStream.idCounter - idCounter + 1
                     item.builderInstance = instance
+                    instance.rootObject = item
                 } else
                 if let ground = item.components[item.defaultName]
                 {
@@ -184,6 +185,7 @@ class Pipeline3D            : Pipeline
                     
                     idCounter += 10//codeBuilder.sdfStream.idCounter - idCounter + 1
                     item.builderInstance = instance
+                    instance.rootObject = item
                 }
             } else {
                 instanceMap["shape_\(index)"] = item.builderInstance
@@ -545,6 +547,15 @@ class Pipeline3D            : Pipeline
         let jitter : Bool = maxStage != .HitAndNormals
         while let inst = instanceMap[shapeText] {
             
+            // Disabled ?
+            if let object = inst.rootObject {
+                if object.values["disabled"] == 1 {
+                    objectIndex += 1
+                    shapeText = "shape_" + String(objectIndex)
+                    continue
+                }
+            }
+            
             var terrainTexture : MTLTexture? = dummyTerrainTexture
             if let terrain = globalApp!.artistEditor.getTerrain(), objectIndex == 0 {
                 terrainTexture = terrain.getTexture()
@@ -572,6 +583,15 @@ class Pipeline3D            : Pipeline
         var shapeText : String = "shape_" + String(objectIndex)
         
         while let inst = instanceMap[shapeText] {
+            
+            // Disabled ?
+            if let object = inst.rootObject {
+                if object.values["disabled"] == 1 {
+                    objectIndex += 1
+                    shapeText = "shape_" + String(objectIndex)
+                    continue
+                }
+            }
             
             inst.lineNumber = lineNumber
             codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], optionalState: "computeAO")
@@ -616,6 +636,15 @@ class Pipeline3D            : Pipeline
             shapeText = "shape_" + String(objectIndex)
             while let inst = instanceMap[shapeText] {
                 
+                // Disabled ?
+                if let object = inst.rootObject {
+                    if object.values["disabled"] == 1 {
+                        objectIndex += 1
+                        shapeText = "shape_" + String(objectIndex)
+                        continue
+                    }
+                }
+                
                 inst.lineNumber = lineNumber
                 codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("density")], inBuffers: [lightBuffer], optionalState: "computeShadow")
                 
@@ -638,6 +667,15 @@ class Pipeline3D            : Pipeline
             
             while let inst = instanceMap[shapeText] {
                     
+                // Disabled ?
+                if let object = inst.rootObject {
+                    if object.values["disabled"] == 1 {
+                        objectIndex += 1
+                        shapeText = "shape_" + String(objectIndex)
+                        continue
+                    }
+                }
+                
                 inst.lineNumber = lineNumber
                 codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), getTextureOfId("density")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
 

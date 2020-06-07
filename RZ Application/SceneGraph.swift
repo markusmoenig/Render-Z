@@ -1367,6 +1367,23 @@ class SceneGraph                : MMWidget
                             hasMinMaxButton = true
                             buildChangeComponent(item, name: "Ground", ids: ["Ground3D"])
                         }
+                        
+                        items.append(MMMenuItem())
+                        if item.stageItem!.values["disabled"] == 1 {
+                            let enableItem = MMMenuItem(text: "Enable", cb: { () in
+                                item.stageItem!.values["disabled"] = nil
+                                globalApp!.currentEditor.render()
+                                self.buildMenu(uuid: self.currentUUID)
+                            } )
+                            items.append(enableItem)
+                        } else {
+                            let disableItem = MMMenuItem(text: "Disable", cb: { () in
+                                item.stageItem!.values["disabled"] = 1
+                                globalApp!.currentEditor.render()
+                                self.buildMenu(uuid: self.currentUUID)
+                            } )
+                            items.append(disableItem)
+                        }
                     } else
                     if comp.componentType == .UVMAP3D {
                         buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])
@@ -1781,6 +1798,24 @@ class SceneGraph                : MMWidget
                         items.append(MMMenuItem())
                         items.append(uploadItem)
                         items.append(MMMenuItem())
+                        
+                        if item.stageItem!.values["disabled"] == 1 {
+                            let enableItem = MMMenuItem(text: "Enable", cb: { () in
+                                item.stageItem!.values["disabled"] = nil
+                                globalApp!.currentEditor.render()
+                                self.buildMenu(uuid: self.currentUUID)
+                            } )
+                            items.append(enableItem)
+                            items.append(MMMenuItem())
+                        } else {
+                            let disableItem = MMMenuItem(text: "Disable", cb: { () in
+                                item.stageItem!.values["disabled"] = 1
+                                globalApp!.currentEditor.render()
+                                self.buildMenu(uuid: self.currentUUID)
+                            } )
+                            items.append(disableItem)
+                            items.append(MMMenuItem())
+                        }
                     }
 
                     let renameItem = MMMenuItem(text: "Rename", cb: { () in
@@ -2435,7 +2470,11 @@ class SceneGraph                : MMWidget
             }
         }
         
-        drawItem(item, selected: o === currentStageItem, parent: nil, skin: skin, color: dottedConnection ? nil : (color == nil ? skin.objectColor : color))
+        var color = dottedConnection ? nil : (color == nil ? skin.objectColor : color)
+        if color != nil && o.values["disabled"] == 1 {
+            color!.w = 0.5
+        }
+        drawItem(item, selected: o === currentStageItem, parent: nil, skin: skin, color: color)
     }
     
     func drawShapesBox(parent: SceneGraphItem, skin: SceneGraphSkin)
