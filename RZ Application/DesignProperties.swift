@@ -111,22 +111,36 @@ class DesignProperties      : MMWidget
                 let components = frag.evaluateComponents()
                 let data = extractValueFromFragment(rc.1!)
                                 
+                if frag.name == "bump" {
+                    continue
+                }
+                
+                var isDisabled : Bool = false
+                for t in comp.connections {
+                    if t.key == uuid {
+                        isDisabled = true
+                    }
+                }
+                
                 if components == 1 {
                     if rc.1!.fragmentType == .Primitive && rc.1!.name == "noise3D" {
                         propMap["noise3D"] = rc.1!
                         let noiseUI = setupNoise3DUI(c1Node!, rc.1!, title: comp.artistPropertyNames[uuid]!)
                         noiseUI.titleShadows = true
+                        noiseUI.isDisabled = isDisabled
                         c1Node!.uiItems.append(noiseUI)
                     } else
                     if rc.1!.fragmentType == .Primitive && rc.1!.name == "noise2D" {
                         propMap["noise2D"] = rc.1!
                         let noiseUI = setupNoise2DUI(c1Node!, rc.1!, title: comp.artistPropertyNames[uuid]!)
                         noiseUI.titleShadows = true
+                        noiseUI.isDisabled = isDisabled
                         c1Node!.uiItems.append(noiseUI)
                     } else {
                         let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), int: frag.typeName == "int", value: data.x, precision: Int(rc.1!.values["precision"]!))
                         numberVar.titleShadows = true
                         numberVar.autoAdjustMargin = true
+                        numberVar.isDisabled = isDisabled
                         c1Node!.uiItems.append(numberVar)
                     }
                 } else
@@ -140,6 +154,7 @@ class DesignProperties      : MMWidget
                     
                     let numberVar = NodeUINumber2(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: range, value: SIMD2<Float>(data.x, data.y), precision: Int(frag.values["precision"]!))
                     numberVar.titleShadows = true
+                    numberVar.isDisabled = isDisabled
                     c1Node?.uiItems.append(numberVar)
                 } else
                 if components == 3 {
@@ -155,6 +170,7 @@ class DesignProperties      : MMWidget
                     
                     let numberVar = NodeUINumber3(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: range, value: SIMD3<Float>(data.x, data.y, data.z), precision: Int(frag.values["precision"]!))
                     numberVar.titleShadows = true
+                    numberVar.isDisabled = isDisabled
                     c1Node?.uiItems.append(numberVar)
                 } else
                 if components == 4 {
@@ -162,10 +178,12 @@ class DesignProperties      : MMWidget
                         propMap["image"] = rc.1!
                         let imageUI = setupImageUI(c1Node!, rc.1!, title: comp.artistPropertyNames[uuid]!)
                         imageUI.titleShadows = true
+                        imageUI.isDisabled = isDisabled
                         c1Node!.uiItems.append(imageUI)
                     } else {
                         let colorItem = NodeUIColor(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z))
                         colorItem.titleShadows = true
+                        colorItem.isDisabled = isDisabled
                         c1Node?.uiItems.append(colorItem)
                     }
                 }
@@ -173,7 +191,7 @@ class DesignProperties      : MMWidget
         }
         
         c1Node?.floatChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
-            
+                        
             if variable == "renderMode" {
                 globalApp!.currentPipeline!.outputType = Pipeline.OutputType(rawValue: Int(newValue))!
                 globalApp!.currentEditor.updateOnNextDraw(compile: false)

@@ -435,6 +435,7 @@ class SceneGraph                : MMWidget
                     globalApp!.currentEditor.updateOnNextDraw(compile: true)
                         
                     globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
+                    globalApp!.currentEditor.setComponent(comp)
                     selectedTerminal = nil
                     clickWasConsumed = true
                     return
@@ -750,6 +751,7 @@ class SceneGraph                : MMWidget
                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
                     
                 globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
+                globalApp!.currentEditor.setComponent(comp)
             }
         }
         
@@ -1254,7 +1256,7 @@ class SceneGraph                : MMWidget
                                 globalApp!.currentEditor.setComponent(comp)
                                 globalApp!.project.selected!.updateComponent(comp)
                                 
-                                stageItem.componentLists["patterns"] = []
+                                //stageItem.componentLists["patterns"] = []
 
                                 globalApp!.currentEditor.undoStageItemEnd(stageItem, undo)
                                 self.setCurrent(stage: item.stage, stageItem: item.stageItem, component: comp)
