@@ -1372,6 +1372,9 @@ class SceneGraph                : MMWidget
                         if item.stageItem!.values["disabled"] == 1 {
                             let enableItem = MMMenuItem(text: "Enable", cb: { () in
                                 item.stageItem!.values["disabled"] = nil
+                                if let comp = item.component {
+                                    comp.values["minimized"] = 0
+                                }
                                 globalApp!.currentEditor.render()
                                 self.buildMenu(uuid: self.currentUUID)
                             } )
@@ -1379,6 +1382,9 @@ class SceneGraph                : MMWidget
                         } else {
                             let disableItem = MMMenuItem(text: "Disable", cb: { () in
                                 item.stageItem!.values["disabled"] = 1
+                                if let comp = item.component {
+                                    comp.values["minimized"] = 1
+                                }
                                 globalApp!.currentEditor.render()
                                 self.buildMenu(uuid: self.currentUUID)
                             } )
@@ -1802,6 +1808,7 @@ class SceneGraph                : MMWidget
                         if item.stageItem!.values["disabled"] == 1 {
                             let enableItem = MMMenuItem(text: "Enable", cb: { () in
                                 item.stageItem!.values["disabled"] = nil
+                                item.stageItem!.components[item.stageItem!.defaultName]!.values["minimized"] = 0
                                 globalApp!.currentEditor.render()
                                 self.buildMenu(uuid: self.currentUUID)
                             } )
@@ -1810,6 +1817,7 @@ class SceneGraph                : MMWidget
                         } else {
                             let disableItem = MMMenuItem(text: "Disable", cb: { () in
                                 item.stageItem!.values["disabled"] = 1
+                                item.stageItem!.components[item.stageItem!.defaultName]!.values["minimized"] = 1
                                 globalApp!.currentEditor.render()
                                 self.buildMenu(uuid: self.currentUUID)
                             } )
