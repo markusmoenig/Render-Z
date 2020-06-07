@@ -1427,9 +1427,53 @@ class SceneGraph                : MMWidget
                     } else
                     if comp.componentType == .Modifier3D {
                         var ids : [String] = []
+                        var listId : String = "modifier3D"
                         if globalApp!.currentSceneMode == .ThreeD { ids = ["Modifier3D", "Modifier2D"] }
-                        else { ids = ["Modifier2D"] }
+                        else { ids = ["Modifier2D"]; listId = "modifier2D" }
                         buildChangeComponent(item, name: "Modifier", ids: ids)
+                        
+                        var index : Int = -1
+                        var count : Int = 0
+                        
+                        if let stageItem = item.stageItem {
+                            if let firstIndex = stageItem.componentLists[listId]!.firstIndex(of: comp) {
+                                index = firstIndex
+                                count = stageItem.componentLists[listId]!.count
+                            }
+                        }
+                        
+                        if count > 1 {
+                            items.append(MMMenuItem())
+                            if index > 0 {
+                                let moveUpItem = MMMenuItem(text: "Move Up", cb: { () in
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Move Up")
+                                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                    item.stageItem!.componentLists[listId]!.remove(at: index)
+                                    item.stageItem!.componentLists[listId]!.insert(comp, at: index - 1)
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                    
+                                    self.buildMenu(uuid: self.currentUUID)
+                                } )
+                                items.append(moveUpItem)
+                            }
+                            
+                            if index < item.stageItem!.componentLists[listId]!.count - 1 {
+                                let moveDownItem = MMMenuItem(text: "Move Down", cb: { () in
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Move Down")
+                                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                    item.stageItem!.componentLists[listId]!.remove(at: index)
+                                    item.stageItem!.componentLists[listId]!.insert(comp, at: index + 1)
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                    
+                                    self.buildMenu(uuid: self.currentUUID)
+                                } )
+                                items.append(moveDownItem)
+                            }
+                        }
+                        
+                        items.append(MMMenuItem())
                         let menuItem = MMMenuItem(text: "Remove", cb: { () in
                             let id = "modifier" + getCurrentModeId()
                             
@@ -1446,7 +1490,51 @@ class SceneGraph                : MMWidget
                     if comp.componentType == .Domain3D {
                         buildChangeComponent(item, name: "Domain", ids: ["Domain3D"])
                         
-                        let menuItem = MMMenuItem(text: "Remove Modifier", cb: { () in
+                        let listId : String = "domain" + getCurrentModeId()
+
+                        var index : Int = -1
+                        var count : Int = 0
+                        
+                        if let stageItem = item.stageItem {
+                            if let firstIndex = stageItem.componentLists[listId]!.firstIndex(of: comp) {
+                                index = firstIndex
+                                count = stageItem.componentLists[listId]!.count
+                            }
+                        }
+                        
+                        if count > 1 {
+                            items.append(MMMenuItem())
+                            if index > 0 {
+                                let moveUpItem = MMMenuItem(text: "Move Up", cb: { () in
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Move Up")
+                                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                    item.stageItem!.componentLists[listId]!.remove(at: index)
+                                    item.stageItem!.componentLists[listId]!.insert(comp, at: index - 1)
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                    
+                                    self.buildMenu(uuid: self.currentUUID)
+                                } )
+                                items.append(moveUpItem)
+                            }
+                            
+                            if index < item.stageItem!.componentLists[listId]!.count - 1 {
+                                let moveDownItem = MMMenuItem(text: "Move Down", cb: { () in
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Move Down")
+                                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                    item.stageItem!.componentLists[listId]!.remove(at: index)
+                                    item.stageItem!.componentLists[listId]!.insert(comp, at: index + 1)
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                    
+                                    self.buildMenu(uuid: self.currentUUID)
+                                } )
+                                items.append(moveDownItem)
+                            }
+                        }
+                        
+                        items.append(MMMenuItem())
+                        let menuItem = MMMenuItem(text: "Remove", cb: { () in
                             let id = "domain" + getCurrentModeId()
                             
                             if let index = item.stageItem!.componentLists[id]!.firstIndex(of: item.component!) {
@@ -1493,6 +1581,47 @@ class SceneGraph                : MMWidget
                     } else
                     if comp.componentType == .PostFX {
                         buildChangeComponent(item, name: "FX", ids: ["PostFX"])
+                        var index : Int = -1
+                        var count : Int = 0
+                        
+                        if let stageItem = item.stageItem {
+                            if let firstIndex = stageItem.componentLists["PostFX"]!.firstIndex(of: comp) {
+                                index = firstIndex
+                                count = stageItem.componentLists["PostFX"]!.count
+                            }
+                        }
+                        
+                        if count > 1 {
+                            items.append(MMMenuItem())
+                            if index > 0 {
+                                let moveUpItem = MMMenuItem(text: "Move Up", cb: { () in
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Move Up")
+                                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                    item.stageItem!.componentLists["PostFX"]!.remove(at: index)
+                                    item.stageItem!.componentLists["PostFX"]!.insert(comp, at: index - 1)
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                    
+                                    self.buildMenu(uuid: self.currentUUID)
+                                } )
+                                items.append(moveUpItem)
+                            }
+                            
+                            if index < item.stageItem!.componentLists["PostFX"]!.count - 1 {
+                                let moveDownItem = MMMenuItem(text: "Move Down", cb: { () in
+                                    let undo = globalApp!.currentEditor.undoStageItemStart("Move Down")
+                                    globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
+                                    item.stageItem!.componentLists["PostFX"]!.remove(at: index)
+                                    item.stageItem!.componentLists["PostFX"]!.insert(comp, at: index + 1)
+                                    globalApp!.currentEditor.undoStageItemEnd(undo)
+                                    globalApp!.currentEditor.updateOnNextDraw(compile: true)
+                                    
+                                    self.buildMenu(uuid: self.currentUUID)
+                                } )
+                                items.append(moveDownItem)
+                            }
+                            items.append(MMMenuItem())
+                        }
                         
                         let menuItem = MMMenuItem(text: "Remove", cb: { () in
                             let id = "PostFX"
