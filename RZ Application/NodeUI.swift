@@ -754,7 +754,7 @@ class NodeUINumber : NodeUI
         if isDisabled {
             return
         }
-        getNumberDialog(view: mmView, title: title, message: "Enter new random modifier used on instantiation", defaultValue: valueRandom!, int: int, precision: precision, cb: { (value) -> Void in
+        getNumberDialog(view: mmView, title: title, message: "Enter new random modifier used on instantiation", defaultValue: valueRandom!, int: false, precision: 3, cb: { (value) -> Void in
             let oldValue = self.valueRandom!
             self.valueRandom = value
             self.node.variableChanged(variable: self.variable + "Random", oldValue: oldValue, newValue: self.valueRandom!, continuous: false)
@@ -1733,22 +1733,29 @@ class NodeUIColor : NodeUI
     var x           : Float = 0
     var width       : Float = 0
     
+    var valueRandom : Float? = nil
+    
     var prevSize    : SIMD2<Float> = SIMD2<Float>(120,120)
     
     var colorWidget : MMColorWidget? = nil
     var undoValue   : SIMD3<Float> = SIMD3<Float>()
     
-    init(_ node: Node, variable: String, title: String, value: SIMD3<Float> = SIMD3<Float>(0,0,0))
+    init(_ node: Node, variable: String, title: String, value: SIMD3<Float> = SIMD3<Float>(0,0,0), valueRandom: Float? = nil)
     {
         self.value = value
         self.defaultValue = value
-    
+        self.valueRandom = valueRandom
+
         super.init(node, brand: .Number, variable: variable, title: title)
 
         if node.properties[variable + "_x"] == nil {
             setValue(value)
         } else {
             self.value = getValue()
+        }
+        
+        if valueRandom != nil {
+            supportsRandom = true
         }
         supportsTitleHover = true
     }
@@ -1789,6 +1796,22 @@ class NodeUIColor : NodeUI
             self.node.variableChanged(variable: self.variable, oldValue: old, newValue: self.value, continuous: false)
         } )
         return
+    }
+    
+    override func randomClicked()
+    {
+        if isDisabled {
+            return
+        }
+        getNumberDialog(view: mmView, title: title, message: "Enter new random modifier used on instantiation", defaultValue: valueRandom!, int: false, precision: 3, cb: { (value) -> Void in
+            let oldValue = self.valueRandom!
+            self.valueRandom = value
+            self.node.variableChanged(variable: self.variable + "Random", oldValue: oldValue, newValue: self.valueRandom!, continuous: false)
+
+            self.node.properties[self.variable + "Random"] = self.valueRandom!
+            self.randomHover = false
+            self.mmView.update()
+        } )
     }
     
     override func mouseDown(_ event: MMMouseEvent)

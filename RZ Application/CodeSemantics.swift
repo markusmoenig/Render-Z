@@ -1179,11 +1179,11 @@ class CodeBlock             : Codable, Equatable
                         ctx.cComponent!.inputComponentList.append(ctx.cComponent!)
 
                         let components = fragment.evaluateComponents()
-                        
+                                            
                         if ctx.cFunction!.functionType == .FreeFlow {
-                            ctx.addCode( "__funcData->__data[\(dataIndex)]" )
+                            ctx.addCode( "__funcData->__data[\(dataIndex)]")
                         } else {
-                            ctx.addCode( "__data[\(dataIndex)]" )
+                            ctx.addCode( "__data[\(dataIndex)]")
                         }
                         
                         //print("property dataIndex", ctx.cComponent!.uuid, ctx.cComponent!.libraryName, dataIndex)
@@ -1195,6 +1195,12 @@ class CodeBlock             : Codable, Equatable
                         } else
                         if components == 3 {
                             ctx.addCode( ".xyz" )
+                        }
+                        
+                        let rc = ctx.cComponent!.getPropertyOfUUID(fragment.uuid)
+                        if let valueFragment = rc.1, valueFragment.values["random"] != nil {
+                            let randomCode = getInstantiationModifier("random", valueFragment.values)
+                            ctx.addCode(randomCode)
                         }
                     }
                 }

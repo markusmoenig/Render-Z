@@ -1456,3 +1456,16 @@ func drawLogo(_ rect: MMRect, _ alpha: Float = 1)
     }
     return false
 }
+
+/// Creates code for value modifiers
+func getInstantiationModifier(_ variable: String,_ values: [String:Float],_ multiplier: Float = 1.0) -> String
+{
+    var result = ""
+    
+    if let value = values[variable] {
+        if value != 0 {
+            result = " + " + String(value) + " * (__funcData->hash - 0.5)"
+        }
+    }
+    return result
+}

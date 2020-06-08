@@ -122,6 +122,13 @@ class DesignProperties      : MMWidget
                     }
                 }
                 
+                let supportsRandom : Bool = comp.componentType == .SDF3D || comp.componentType == .Material3D || comp.componentType == .Pattern
+                
+                var random : Float? = nil
+                if supportsRandom {
+                    random = rc.1!.values["random"] == nil ? 0 : rc.1!.values["random"]!
+                }
+                
                 if components == 1 {
                     if rc.1!.fragmentType == .Primitive && rc.1!.name == "noise3D" {
                         propMap["noise3D"] = rc.1!
@@ -137,7 +144,7 @@ class DesignProperties      : MMWidget
                         noiseUI.isDisabled = isDisabled
                         c1Node!.uiItems.append(noiseUI)
                     } else {
-                        let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), int: frag.typeName == "int", value: data.x, precision: Int(rc.1!.values["precision"]!))
+                        let numberVar = NodeUINumber(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, range: SIMD2<Float>(rc.1!.values["min"]!, rc.1!.values["max"]!), int: frag.typeName == "int", value: data.x, precision: Int(rc.1!.values["precision"]!), valueRandom: random)
                         numberVar.titleShadows = true
                         numberVar.autoAdjustMargin = true
                         numberVar.isDisabled = isDisabled
@@ -181,7 +188,7 @@ class DesignProperties      : MMWidget
                         imageUI.isDisabled = isDisabled
                         c1Node!.uiItems.append(imageUI)
                     } else {
-                        let colorItem = NodeUIColor(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z))
+                        let colorItem = NodeUIColor(c1Node!, variable: frag.name, title: comp.artistPropertyNames[uuid]!, value: SIMD3<Float>(data.x, data.y, data.z), valueRandom: random)
                         colorItem.titleShadows = true
                         colorItem.isDisabled = isDisabled
                         c1Node?.uiItems.append(colorItem)
@@ -199,8 +206,11 @@ class DesignProperties      : MMWidget
             }
             
             if variable.hasSuffix("Random") {
-                comp.values[variable] = newValue
-                //print(variable, newValue)
+                if let frag = self.propMap[variable.replacingOccurrences(of: "Random", with: "")] {
+                    frag.values["random"] = newValue
+                } else {
+                    comp.values[variable] = newValue
+                }
                 globalApp!.developerEditor.codeEditor.markStageItemOfComponentInvalid(comp)
                 globalApp!.currentEditor.updateOnNextDraw(compile: true)
                 return
