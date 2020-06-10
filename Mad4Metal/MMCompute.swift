@@ -160,7 +160,6 @@ class MMCompute {
         computeEncoder.endEncoding()
 
         #if os(OSX) || targetEnvironment(macCatalyst)
-
         if syncronize {
             let blitEncoder = commandBuffer.makeBlitCommandEncoder()!
             blitEncoder.synchronize(texture: texture, slice: 0, level: 0)

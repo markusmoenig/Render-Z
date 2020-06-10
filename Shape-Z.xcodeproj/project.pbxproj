@@ -310,6 +310,8 @@
 		2B8DB3852489D0FF00D57DC4 /* GreyStone.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB3832489D0FF00D57DC4 /* GreyStone.tiff */; };
 		2B8DB3872489D20B00D57DC4 /* StoneWall.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB3862489D20B00D57DC4 /* StoneWall.tiff */; };
 		2B8DB3882489D20B00D57DC4 /* StoneWall.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB3862489D20B00D57DC4 /* StoneWall.tiff */; };
+		2B8DB390248E5FAC00D57DC4 /* Bridge.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB38F248E5FAC00D57DC4 /* Bridge.render-z */; };
+		2B8DB391248E5FAC00D57DC4 /* Bridge.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB38F248E5FAC00D57DC4 /* Bridge.render-z */; };
 		2B8E2FD923C5CF40005619E4 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FD823C5CF40005619E4 /* Scene.swift */; };
 		2B8E2FDA23C5CF40005619E4 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FD823C5CF40005619E4 /* Scene.swift */; };
 		2B8E2FDF23C6D7B4005619E4 /* DesignEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */; };
@@ -588,8 +590,6 @@
 		2BB6B063231A069A0067B217 /* sz_ui_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */; };
 		2BBEF2F0247F5FD600C42145 /* Material_Bricks.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BBEF2EF247F5FD600C42145 /* Material_Bricks.render-z */; };
 		2BBEF2F1247F5FD600C42145 /* Material_Bricks.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BBEF2EF247F5FD600C42145 /* Material_Bricks.render-z */; };
-		2BBEF2F3247F627400C42145 /* Bridge.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BBEF2F2247F627400C42145 /* Bridge.render-z */; };
-		2BBEF2F4247F627400C42145 /* Bridge.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BBEF2F2247F627400C42145 /* Bridge.render-z */; };
 		2BBF10FA21EAD2AF001C94E9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */; };
 		2BBF10FC21EAD2AF001C94E9 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FB21EAD2AF001C94E9 /* ViewController.swift */; };
 		2BBF10FF21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2BBF10FD21EAD2AF001C94E9 /* Shape_Z.xcdatamodeld */; };
@@ -830,6 +830,7 @@
 		2B8DB37A2489CEB700D57DC4 /* Soil.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Soil.tiff; sourceTree = "<group>"; };
 		2B8DB3832489D0FF00D57DC4 /* GreyStone.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GreyStone.tiff; sourceTree = "<group>"; };
 		2B8DB3862489D20B00D57DC4 /* StoneWall.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = StoneWall.tiff; sourceTree = "<group>"; };
+		2B8DB38F248E5FAC00D57DC4 /* Bridge.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Bridge.render-z"; sourceTree = "<group>"; };
 		2B8E2FD823C5CF40005619E4 /* Scene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scene.swift; sourceTree = "<group>"; };
 		2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignEditor.swift; sourceTree = "<group>"; };
 		2B8E2FE123C71F36005619E4 /* SourceCodePro.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SourceCodePro.json; sourceTree = "<group>"; };
@@ -876,7 +877,6 @@
 		2BB6B05F231A069A0067B217 /* sz_ui_grey.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_grey.tiff; sourceTree = "<group>"; };
 		2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = sz_ui_blue.tiff; sourceTree = "<group>"; };
 		2BBEF2EF247F5FD600C42145 /* Material_Bricks.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Material_Bricks.render-z"; sourceTree = "<group>"; };
-		2BBEF2F2247F627400C42145 /* Bridge.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Bridge.render-z"; sourceTree = "<group>"; };
 		2BBF0F4B225C397A009950E3 /* Renderer.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Renderer.metal; sourceTree = "<group>"; };
 		2BBF10F621EAD2AF001C94E9 /* Shape-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Shape-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2BBF10F921EAD2AF001C94E9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -1434,7 +1434,7 @@
 				2B42251A2471579F002FD442 /* Minimal.render-z */,
 				2BBEF2EF247F5FD600C42145 /* Material_Bricks.render-z */,
 				2B422523247157AF002FD442 /* Willys.render-z */,
-				2BBEF2F2247F627400C42145 /* Bridge.render-z */,
+				2B8DB38F248E5FAC00D57DC4 /* Bridge.render-z */,
 			);
 			path = Templates;
 			sourceTree = "<group>";
@@ -1735,6 +1735,7 @@
 				2B2B5FEE242442AD00B9CCF1 /* scenegraph.tiff in Resources */,
 				2B2B5FEA242442AD00B9CCF1 /* dev_on.tiff in Resources */,
 				2B666FB12464D4F500BE3E4F /* move.tiff in Resources */,
+				2B8DB390248E5FAC00D57DC4 /* Bridge.render-z in Resources */,
 				2B7A3BFB23B4583E002EC5FC /* Main.storyboard in Resources */,
 				2B8DB3872489D20B00D57DC4 /* StoneWall.tiff in Resources */,
 				2B7A3C0223B4652E002EC5FC /* Square.json in Resources */,
@@ -1742,7 +1743,6 @@
 				2B7A3C0323B4652E002EC5FC /* Square.tiff in Resources */,
 				2B8DB3842489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
 				2B666FAE2464D4AC00BE3E4F /* Z_green_ring.tiff in Resources */,
-				2BBEF2F3247F627400C42145 /* Bridge.render-z in Resources */,
 				2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */,
 				2B9CB6F32485CC9900CFFA51 /* Z_green.tiff in Resources */,
 				2BBEF2F0247F5FD600C42145 /* Material_Bricks.render-z in Resources */,
@@ -1780,7 +1780,6 @@
 				2B666FAF2464D4AC00BE3E4F /* Z_green_ring.tiff in Resources */,
 				2B838DD424492363004BDE56 /* ground.tiff in Resources */,
 				2B666FB52464D58F00BE3E4F /* rotate.tiff in Resources */,
-				2BBEF2F4247F627400C42145 /* Bridge.render-z in Resources */,
 				2B2B5FF1242442AD00B9CCF1 /* timeline.tiff in Resources */,
 				2B2B5FD92422F68A00B9CCF1 /* camera.tiff in Resources */,
 				2B666FB82464D5CF00BE3E4F /* scale.tiff in Resources */,
@@ -1807,6 +1806,7 @@
 				2BD0E1D8245A5F6100A61586 /* maximize.tiff in Resources */,
 				2B9B29AE23BB44BF00C2F387 /* Main.storyboard in Resources */,
 				2B8E2FE423C71F36005619E4 /* SourceCodePro.json in Resources */,
+				2B8DB391248E5FAC00D57DC4 /* Bridge.render-z in Resources */,
 				2B666FAC2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
 				2B9CB6F72485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2BE847B82453C58200409AAE /* fileicon.tiff in Resources */,
@@ -2588,7 +2588,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 0;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Render-Z/Info.plist";
@@ -2597,7 +2597,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 0.6;
+				MARKETING_VERSION = 0.61;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderz;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2613,7 +2613,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 0;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = "Render-Z/Info.plist";
@@ -2622,7 +2622,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 0.6;
+				MARKETING_VERSION = 0.61;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderz;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2764,7 +2764,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Render-Z iOS/Render-Z.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				INFOPLIST_FILE = "Render-Z iOS/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
@@ -2772,7 +2772,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.6;
+				MARKETING_VERSION = 0.61;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderzios;
 				PRODUCT_NAME = "Render-Z";
 				SDKROOT = iphoneos;
@@ -2788,7 +2788,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = "Render-Z iOS/Render-Z.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = G6R6L3VH62;
 				INFOPLIST_FILE = "Render-Z iOS/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.4;
@@ -2796,7 +2796,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.6;
+				MARKETING_VERSION = 0.61;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moenig.renderzios;
 				PRODUCT_NAME = "Render-Z";
 				SDKROOT = iphoneos;

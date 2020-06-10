@@ -967,6 +967,9 @@ class CodeSDFStream
                 
                 if (outShape.w != inShape.w) {
 
+                outMeta.z = __funcData->hash;
+                outMeta.w = __funcData->distance2D;
+                
                 """
                 
                 // For hitAndNormals Stage compute the normals
@@ -1431,9 +1434,6 @@ class CodeSDFStream
         if type == .SDF3D {
             hitAndNormalsCode +=
             """
-                
-                outMeta.z = __funcData->hash;
-                outMeta.w = __funcData->distance2D;
 
                 __normalTexture.write(half4(float4(outNormal, 0)), __gid);
                 __metaTexture.write(half4(outMeta), __gid);
@@ -1446,7 +1446,6 @@ class CodeSDFStream
             aoCode +=
             """
             
-                outMeta.z = __funcData->hash;
                 __metaTexture.write(half4(outMeta), __gid);
             }
             
@@ -1456,7 +1455,6 @@ class CodeSDFStream
             shadowCode +=
             """
             
-                outMeta.z = __funcData->hash;
                 __metaTexture.write(half4(outMeta), __gid);
             }
             
@@ -1554,11 +1552,19 @@ class CodeSDFStream
             if let stageItem = hierarchy.last {
                 if let list = stageItem.componentLists["domain3D"] {
                     for domain in list {
-                        dryRunComponent(domain, instance.data.count)
-                        instance.collectProperties(domain)
+                        
+                        var firstRun = false
+                        if globalsAddedFor.contains(domain.uuid) == false {
+                            dryRunComponent(domain, instance.data.count)
+                            instance.collectProperties(domain)
+                            globalsAddedFor.append(domain.uuid)
+                            firstRun = true
+                        }
                         
                         if let globalCode = domain.globalCode {
-                            headerCode += globalCode
+                            if firstRun == true {
+                                headerCode += globalCode
+                            }
                         }
                         
                         code +=

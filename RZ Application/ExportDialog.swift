@@ -434,6 +434,7 @@ class ExportDialog: MMDialog {
             } else {
                 globalApp!.currentPipeline!.codeBuilder.renderCopy(convertTo, texture, syncronize: true)
             }
+            globalApp!.currentPipeline!.codeBuilder.compute.commandBuffer.waitUntilCompleted()
             
             let width = convertTo.width
             let height = convertTo.height
@@ -445,7 +446,7 @@ class ExportDialog: MMDialog {
             defer {
                 imageBytes.deallocate()
             }
-
+ 
             convertTo.getBytes(imageBytes,
                              bytesPerRow: imageBytesPerRow,
                              from: MTLRegionMake2D(0, 0, width, height),
