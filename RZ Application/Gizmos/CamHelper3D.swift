@@ -27,6 +27,30 @@ class CamHelper3D
     var lookAtFrag      : CodeFragment? = nil
     var fovFrag         : CodeFragment? = nil
     
+    func initFromComponent(aspect: Float, component: CodeComponent)
+    {
+        var originFrag  : CodeFragment? = nil
+        var lookAtFrag  : CodeFragment? = nil
+        var fovFrag     : CodeFragment? = nil
+
+        for uuid in component.properties {
+            let rc = component.getPropertyOfUUID(uuid)
+            if let frag = rc.0 {
+                if frag.name == "origin" {
+                    originFrag = rc.1
+                } else
+                if frag.name == "lookAt" {
+                    lookAtFrag = rc.1
+                } else
+                if frag.name == "fov" {
+                    fovFrag = rc.1
+                }
+            }
+        }
+        
+        initFromCamera(aspect: aspect, originFrag: originFrag, lookAtFrag: lookAtFrag, fovFrag: fovFrag)
+    }
+    
     func initFromCamera(aspect: Float, originFrag: CodeFragment?, lookAtFrag: CodeFragment?, fovFrag : CodeFragment?)
     {
         self.aspect = aspect
@@ -75,6 +99,43 @@ class CamHelper3D
         projMatrix[3, 1] = 0
         projMatrix[3, 2] = -2 * near * far * rd
         projMatrix[3, 3] = 0
+    }
+    
+    func getTransform() -> matrix_float4x4
+    {
+        var m = matrix_identity_float4x4
+        
+        let z = simd_normalize( eye - center )
+        let x = simd_cross(up, z)
+        let y = simd_cross(z, x)
+        
+        m[0, 0] = x.x
+        m[0, 1] = x.y
+        m[0, 2] = x.z
+        m[0, 3] = 0
+        
+        m[1, 0] = y.x
+        m[1, 1] = y.y
+        m[1, 2] = y.z
+        m[1, 3] = 0
+        
+        m[2, 0] = z.x
+        m[2, 1] = z.y
+        m[2, 2] = z.z
+        m[2, 3] = 0
+        
+        m[3, 0] = eye.x
+        m[3, 1] = eye.y
+        m[3, 2] = eye.z
+        m[3, 3] = 1
+
+        return m
+    }
+    
+    func getMatrix() -> matrix_float4x4
+    {
+        updateProjection()
+        return projMatrix * getTransform().inverse
     }
     
     func calculateDirXY() -> (SIMD3<Float>, SIMD3<Float>)

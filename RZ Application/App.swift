@@ -31,6 +31,7 @@ class App
     var codeBuilder     : CodeBuilder
     var pipeline2D      : Pipeline2D
     var pipeline3D      : Pipeline3D
+    var pipelineCloud3D : PipelineCloud3D
     var currentPipeline : Pipeline?
     var thumbnail       : Thumbnail
 
@@ -110,9 +111,11 @@ class App
         codeBuilder = CodeBuilder(mmView)
         pipeline2D = Pipeline2D(mmView)
         pipeline3D = Pipeline3D(mmView)
+        pipelineCloud3D = PipelineCloud3D(mmView)
         thumbnail = Thumbnail(mmView)
 
-        currentPipeline = pipeline3D
+        currentPipeline = pipelineCloud3D
+        //currentPipeline = pipeline3D
 
         currentEditor = artistEditor
         project = Project(currentSceneMode)
