@@ -98,8 +98,8 @@ class DesignProperties      : MMWidget
             c1Node?.uiItems.append(renderModeVar)
         }
         
-        if comp.componentType == .Transform3D && comp.values["_bbox"] != nil {
-            let bboxVar = NodeUINumber(c1Node!, variable: "bbox", title: "Bounding Sphere Radius", range: SIMD2<Float>(0, 50), value:  comp.values["_bbox"]!, precision: 1)
+        if comp.componentType == .Transform3D && comp.values["_bb_x"] != nil {
+            let bboxVar = NodeUINumber3(c1Node!, variable: "_bb", title: "Bounding Box", range: SIMD2<Float>(0, 10), value: SIMD3<Float>(comp.values["_bb_x"]!, comp.values["_bb_y"]!, comp.values["_bb_z"]!), precision: 3)
             bboxVar.titleShadows = true
             c1Node?.uiItems.append(bboxVar)
         }
@@ -256,17 +256,6 @@ class DesignProperties      : MMWidget
                 return
             }
             
-            if variable == "bbox" {
-                comp.values["_bbox"] = oldValue
-                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
-                comp.values["_bbox"] = newValue
-                self.updatePreview()
-                self.addKey([variable:newValue])
-                if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
-                globalApp!.currentEditor.updateOnNextDraw(compile: false)
-                return
-            }
-            
             if let frag = self.propMap[variable] {
                 frag.values["value"] = oldValue
                 let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
@@ -293,6 +282,27 @@ class DesignProperties      : MMWidget
         }
         
         c1Node?.float3ChangedCB = { (variable, oldValue, newValue, continous, noUndo)->() in
+            
+            if variable == "_bb" {
+                comp.values["_bb_x"] = oldValue.x
+                comp.values["_bb_y"] = oldValue.y
+                comp.values["_bb_z"] = oldValue.z
+                let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil
+                comp.values["_bb_x"] = newValue.x
+                comp.values["_bb_y"] = newValue.y
+                comp.values["_bb_z"] = newValue.z
+                self.updatePreview()
+                var props : [String:Float] = [:]
+                props[variable + "_x"] = newValue.x
+                props[variable + "_y"] = newValue.y
+                props[variable + "_z"] = newValue.z
+                
+                self.addKey(props)
+                if let undo = codeUndo { self.editor.designEditor.undoEnd(undo) }
+                globalApp!.currentEditor.updateOnNextDraw(compile: false)
+                return
+            }
+            
             if let frag = self.propMap[variable] {
                 insertValueToFragment3(frag, oldValue)
                 let codeUndo : CodeUndoComponent? = continous == false ? self.editor.designEditor.undoStart("Value Changed") : nil

@@ -56,6 +56,8 @@ class PipelineCloud3D       : Pipeline
         super.init(mmView)
         finalTexture = checkTextureSize(10, 10, nil, .rgba16Float)
         dummyTerrainTexture = checkTextureSize(10, 10, nil, .rg8Sint)
+        
+        codeBuilder.sdfStream.pointBuilderCode = pointCloudBuilder.getPointCloudBuilder()
     }
     
     override func setMinimalPreview(_ mode: Bool = false)
@@ -75,6 +77,98 @@ class PipelineCloud3D       : Pipeline
         let preStage = scene.getStage(.PreStage)
         let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
         cameraComponent = result.1!
+        
+        /// Recursively iterate the object hierarchy
+        func processChildren(_ stageItem: StageItem)
+        {
+          for child in stageItem.children {
+              if let shapes = child.getComponentList("shapes") {
+                  codeBuilder.sdfStream.pushStageItem(child)
+                  for shape in shapes {
+                      codeBuilder.sdfStream.pushComponent(shape)
+                  }
+                  processChildren(child)
+                  codeBuilder.sdfStream.pullStageItem()
+              }
+          }
+        }
+          
+        var backComponent : CodeComponent? = nil
+
+        // SkyDome
+        for item in preStage.getChildren() {
+            if let comp = item.components[item.defaultName], comp.componentType == .SkyDome || comp.componentType == .Pattern {
+              backComponent = comp
+              if item.builderInstance == nil {
+                  item.builderInstance = codeBuilder.build(comp, camera: cameraComponent)
+                  instanceMap["pre"] = item.builderInstance
+                  #if DEBUG
+                  print("compile background")
+                  #endif
+              } else {
+                  instanceMap["pre"] = item.builderInstance
+                  #if DEBUG
+                  print("reuse background")
+                  #endif
+              }
+              break
+            }
+        }
+        
+        
+        let shapeStage = scene.getStage(.ShapeStage)
+        codeBuilder.sdfStream.reset()
+        for (index, item) in shapeStage.getChildren().enumerated() {
+            if index > 0 {
+                /*
+                if let transform = item.components[item.defaultName] {
+                    points.append(transform.values["_posX"]!)
+                    points.append(transform.values["_posY"]!)
+                    points.append(transform.values["_posZ"]!)
+                }*/
+            }
+            
+            if item.builderInstance == nil {
+                // Normal Object
+                if let shapes = item.getComponentList("shapes") {
+                    let instance = CodeBuilderInstance()
+                    instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+                    codeBuilder.sdfStream.openStream(.SDF3D, instance, codeBuilder, camera: cameraComponent, backgroundComponent: backComponent, idStart: idCounter, scene: scene)
+                    codeBuilder.sdfStream.pushStageItem(item)
+                    for shape in shapes {
+                        codeBuilder.sdfStream.pushComponent(shape)
+                    }
+                    processChildren(item)
+                    codeBuilder.sdfStream.pullStageItem()
+                    instanceMap["shape_\(index)"] = instance
+                    codeBuilder.sdfStream.closeStream(async: true)
+                    
+                    idCounter += codeBuilder.sdfStream.idCounter - idCounter + 1
+                    item.builderInstance = instance
+                    instance.rootObject = item
+                } else
+                //if let ground = item.components[item.defaultName]
+                {
+                    /*
+                    // Ground Object
+                    let instance = CodeBuilderInstance()
+                    instance.data.append( SIMD4<Float>( 0, 0, 0, 0 ) )
+                    codeBuilder.sdfStream.openStream(.SDF3D, instance, codeBuilder, camera: cameraComponent, groundComponent: ground, backgroundComponent: backComponent, idStart: 0, scene: scene)
+                    codeBuilder.sdfStream.pushStageItem(item)
+                    //for shape in shapes {
+                    //    codeBuilder.sdfStream.pushComponent(shape)
+                    //}
+                    codeBuilder.sdfStream.pullStageItem()
+                    instanceMap["shape_\(index)"] = instance
+                    codeBuilder.sdfStream.closeStream(async: true)
+                    
+                    idCounter += 10//codeBuilder.sdfStream.idCounter - idCounter + 1
+                    item.builderInstance = instance
+                    instance.rootObject = item
+                    */
+                }
+            }
+        }
     }
         
     // Render the pipeline
@@ -84,21 +178,9 @@ class PipelineCloud3D       : Pipeline
 
         checkFinalTexture(true)
         
+          
         var points : [Float] = []
         
-        let shapeStage = scene.getStage(.ShapeStage)
-        codeBuilder.sdfStream.reset()
-        for (index, item) in shapeStage.getChildren().enumerated() {
-            if index > 0 {
-                if let transform = item.components[item.defaultName] {
-                    points.append(transform.values["_posX"]!)
-                    points.append(transform.values["_posY"]!)
-                    points.append(transform.values["_posZ"]!)
-                }
-            }
-        }
-        
-        print(points.count)
         pointCloudBuilder.render(points: points, texture: finalTexture!, camera: cameraComponent)
     }
     

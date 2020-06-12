@@ -31,7 +31,7 @@ class CodeSDFStream
     
     var terrainMapCode      : String = ""
     var terrainCode         : String = ""
-    
+        
     var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
     var idCounter           : Int = 0
     
@@ -46,10 +46,11 @@ class CodeSDFStream
     var isGroundComponent   : CodeComponent? = nil
     
     var terrainObjects      : [StageItem] = []
+    
+    var pointBuilderCode    : String = ""
 
     init()
     {
-        
     }
     
     func reset()
@@ -80,7 +81,7 @@ class CodeSDFStream
         fogDensityCode = ""
         
         boundingBoxCode = "if (true) {\n"
-        
+                
         idCounter = idStart
         materialIdCounter = idStart
         currentMaterialId = idStart
@@ -226,9 +227,6 @@ class CodeSDFStream
             __HITANDNORMALS_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
-                    return;
-            
                 float2 __size = float2( __depthTexture.get_width(), __depthTexture.get_height() );
             
                 float2 __uv = float2(__gid.x, __gid.y);
@@ -273,9 +271,6 @@ class CodeSDFStream
             __AO_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
-                    return;
-            
                 float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
 
                 float2 __uv = float2(__gid.x, __gid.y);
@@ -359,9 +354,6 @@ class CodeSDFStream
             constant float4                        *__lightData   [[ buffer(__SHADOW_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
-                    return;
-            
                 float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
 
                 float2 __uv = float2(__gid.x, __gid.y);
@@ -404,9 +396,6 @@ class CodeSDFStream
             constant float4                        *__lightData   [[ buffer(__MATERIAL_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
-                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
-                    return;
-            
                 float2 __size = float2( __colorTexture.get_width(), __colorTexture.get_height() );
 
                 float2 __uv = float2(__gid.x, __gid.y);
@@ -1491,13 +1480,24 @@ class CodeSDFStream
             
             """
             
-            instance.code = headerCode + backgroundCode + mapCode + terrainMapCode + shadowCode + hitAndNormalsCode + aoCode + materialFuncCode + materialCode
+            // --- Point Builder Code
+            if pointBuilderCode.count > 0 {
+                let funcData = globalApp!.pipeline3D.codeBuilder.getFuncDataCode(instance, "POINTCLOUDBUILDER", 2)
+                pointBuilderCode = pointBuilderCode.replacingOccurrences(of: "__FUNCDATA_CODE__", with: funcData)
+            }
+            
+            instance.code = headerCode + backgroundCode + mapCode + terrainMapCode + shadowCode + hitAndNormalsCode + aoCode + materialFuncCode + materialCode + pointBuilderCode
+        }
+        
+        var addInstances = ["computeAO", "computeShadow", "computeMaterial"]
+        if pointBuilderCode.count > 0 {
+            addInstances.append("pointBuilder")
         }
         
         if async {
-            codeBuilder.buildInstanceAsync(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow", "computeMaterial"] : [])
+            codeBuilder.buildInstanceAsync(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? addInstances : [])
         } else {
-            codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? ["computeAO", "computeShadow", "computeMaterial"] : [])
+            codeBuilder.buildInstance(instance, name: "hitAndNormals", additionalNames: type == .SDF3D ? addInstances : [])
         }
     }
     
@@ -1973,19 +1973,29 @@ class CodeSDFStream
                 """
                 
                 if hierarchy.count == 1 {
-                    let bBox = instance.getTransformPropertyIndex(transform, "_bbox")
-
+                    let bbX = instance.getTransformPropertyIndex(transform, "_bb_x")
+                    let bbY = instance.getTransformPropertyIndex(transform, "_bb_y")
+                    let bbZ = instance.getTransformPropertyIndex(transform, "_bb_z")
+                    
                     // Bounding Box code
                     boundingBoxCode =
                     """
-                    
+                        
                         float3 __bbPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
                     
-                        float2 bDistance = sphereIntersect(rayOrigin, rayDirection, __bbPosition, __data[\(bBox)].x);
-                        if (bDistance.y >= 0.0) {
+                        //float2 bDistance = boxIntersection(rayOrigin, rayDirection, float3(__data[\(bbX)].x, __data[\(bbY)].x, __data[\(bbZ)].x) );
+                            
+                        float3 _bbMin = __bbPosition - float3(__data[\(bbX)].x, __data[\(bbY)].x, __data[\(bbZ)].x) / 2;
+                        float3 _bbMax = __bbPosition + float3(__data[\(bbX)].x, __data[\(bbY)].x, __data[\(bbZ)].x) / 2;
+
+                        float2 bb = hitBBox(rayOrigin, rayDirection, _bbMin, _bbMax );
                     
-                        //if (bDistance.x >= 0.0)
-                            //rayOrigin = rayOrigin + bDistance.x * rayDirection;
+                        if (bb.y >= 0.0) {
+                    
+                        if (bb.x >= 0.0)
+                            rayOrigin = rayOrigin + bb.x * rayDirection;
+                        
+                        maxDistance = min(bb.y, maxDistance);
                         
                     """
                 }

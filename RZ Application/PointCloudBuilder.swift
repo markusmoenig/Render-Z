@@ -74,9 +74,35 @@ class PointCloudBuilder
         renderEncoder.setRenderPipelineState(pipelineState)
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         renderEncoder.setVertexBytes(&matrix, length: MemoryLayout<float4x4>.stride, index: 1)
-        renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: 3, instanceCount: 1)
+        renderEncoder.drawPrimitives(type: .point, vertexStart: 0, vertexCount: 3)
         renderEncoder.endEncoding()
         
         commandBuffer.commit()
+    }
+    
+    func getPointCloudBuilder() -> String
+    {
+        var code =
+        """
+        kernel void pointBuilder(
+        texture3d<half, access::read_write>     texture [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
+        __POINTCLOUDBUILDER_TEXTURE_HEADER_CODE__
+        uint3 __gid                             [[thread_position_in_grid]])
+        {
+        __FUNCDATA_CODE__
+
+        """
+        
+        //hitAndNormalsCode += globalApp!.pipeline3D.codeBuilder.getFuncDataCode(instance, "HITANDNORMALS", 7)
+        //hitAndNormalsCode +=
+        
+        code +=
+        """
+        
+            texture.write(half4(float4(0)), __gid);
+        }
+        """
+        return code
     }
 }
