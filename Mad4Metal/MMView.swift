@@ -62,6 +62,8 @@ public class MMView : MMBaseView {
     
     var delayedDraws    : [MMWidget] = []
     var icons           : [String:MTLTexture] = [:]
+    
+    var defaultLibrary  : MTLLibrary!
 
     // ---
     
@@ -102,6 +104,7 @@ public class MMView : MMBaseView {
         sourceCodePro = MMFont( self, name: "SourceCodePro" )
 
         defaultFont = square
+        defaultLibrary = device!.makeDefaultLibrary()!
 
         // --- Drawables
         drawSphere = MMDrawSphere( renderer )

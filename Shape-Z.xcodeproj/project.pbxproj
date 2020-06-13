@@ -294,6 +294,8 @@
 		2B7A45BE243EEAC6000C91C9 /* material.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B7A45BC243EEAC5000C91C9 /* material.tiff */; };
 		2B838DD324492363004BDE56 /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B838DD224492363004BDE56 /* ground.tiff */; };
 		2B838DD424492363004BDE56 /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B838DD224492363004BDE56 /* ground.tiff */; };
+		2B8444DC24945B890082EE1D /* BackgroundShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD675A2494514600E066C0 /* BackgroundShader.swift */; };
+		2B8444DD24945B8A0082EE1D /* BackgroundShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD675A2494514600E066C0 /* BackgroundShader.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
@@ -312,8 +314,8 @@
 		2B8DB3882489D20B00D57DC4 /* StoneWall.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB3862489D20B00D57DC4 /* StoneWall.tiff */; };
 		2B8DB390248E5FAC00D57DC4 /* Bridge.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB38F248E5FAC00D57DC4 /* Bridge.render-z */; };
 		2B8DB391248E5FAC00D57DC4 /* Bridge.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2B8DB38F248E5FAC00D57DC4 /* Bridge.render-z */; };
-		2B8DB3932491A9C300D57DC4 /* PipelineCloud3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8DB3922491A9C300D57DC4 /* PipelineCloud3D.swift */; };
-		2B8DB3942491A9C300D57DC4 /* PipelineCloud3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8DB3922491A9C300D57DC4 /* PipelineCloud3D.swift */; };
+		2B8DB3932491A9C300D57DC4 /* Pipeline3DRT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8DB3922491A9C300D57DC4 /* Pipeline3DRT.swift */; };
+		2B8DB3942491A9C300D57DC4 /* Pipeline3DRT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8DB3922491A9C300D57DC4 /* Pipeline3DRT.swift */; };
 		2B8E2FD923C5CF40005619E4 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FD823C5CF40005619E4 /* Scene.swift */; };
 		2B8E2FDA23C5CF40005619E4 /* Scene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FD823C5CF40005619E4 /* Scene.swift */; };
 		2B8E2FDF23C6D7B4005619E4 /* DesignEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */; };
@@ -666,6 +668,10 @@
 		2BCD67512491B18B00E066C0 /* PointCloudBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD674F2491B05300E066C0 /* PointCloudBuilder.swift */; };
 		2BCD67532491B3EB00E066C0 /* PointCloud.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67522491B3EB00E066C0 /* PointCloud.metal */; };
 		2BCD67542491B3EB00E066C0 /* PointCloud.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67522491B3EB00E066C0 /* PointCloud.metal */; };
+		2BCD67572493486700E066C0 /* BaseShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67562493486600E066C0 /* BaseShader.swift */; };
+		2BCD67582493486700E066C0 /* BaseShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67562493486600E066C0 /* BaseShader.swift */; };
+		2BCD675B249451E600E066C0 /* ObjectShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67592494510E00E066C0 /* ObjectShader.swift */; };
+		2BCD675C249451E600E066C0 /* ObjectShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67592494510E00E066C0 /* ObjectShader.swift */; };
 		2BCEC68E22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCEC68F22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCF5FA3227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
@@ -837,7 +843,7 @@
 		2B8DB3832489D0FF00D57DC4 /* GreyStone.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GreyStone.tiff; sourceTree = "<group>"; };
 		2B8DB3862489D20B00D57DC4 /* StoneWall.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = StoneWall.tiff; sourceTree = "<group>"; };
 		2B8DB38F248E5FAC00D57DC4 /* Bridge.render-z */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "Bridge.render-z"; sourceTree = "<group>"; };
-		2B8DB3922491A9C300D57DC4 /* PipelineCloud3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineCloud3D.swift; sourceTree = "<group>"; };
+		2B8DB3922491A9C300D57DC4 /* Pipeline3DRT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pipeline3DRT.swift; sourceTree = "<group>"; };
 		2B8E2FD823C5CF40005619E4 /* Scene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Scene.swift; sourceTree = "<group>"; };
 		2B8E2FDE23C6D6C8005619E4 /* DesignEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignEditor.swift; sourceTree = "<group>"; };
 		2B8E2FE123C71F36005619E4 /* SourceCodePro.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SourceCodePro.json; sourceTree = "<group>"; };
@@ -935,6 +941,9 @@
 		2BC5DCE3231794050081A018 /* Dialogs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dialogs.swift; sourceTree = "<group>"; };
 		2BCD674F2491B05300E066C0 /* PointCloudBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PointCloudBuilder.swift; sourceTree = "<group>"; };
 		2BCD67522491B3EB00E066C0 /* PointCloud.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = PointCloud.metal; sourceTree = "<group>"; };
+		2BCD67562493486600E066C0 /* BaseShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseShader.swift; sourceTree = "<group>"; };
+		2BCD67592494510E00E066C0 /* ObjectShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectShader.swift; sourceTree = "<group>"; };
+		2BCD675A2494514600E066C0 /* BackgroundShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundShader.swift; sourceTree = "<group>"; };
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
 		2BD0E1D5245A5F6000A61586 /* maximize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = maximize.tiff; sourceTree = "<group>"; };
@@ -1067,15 +1076,10 @@
 		2B7A3C0123B46422002EC5FC /* RZ Application */ = {
 			isa = PBXGroup;
 			children = (
+				2B8444DE24945CCC0082EE1D /* 3D Pipeline */,
 				2B7A3C2323B46560002EC5FC /* App.swift */,
 				2B8E2FED23C96919005619E4 /* Pipeline.swift */,
 				2BAA45BF24133B0C00744A0A /* Pipeline2D.swift */,
-				2BAA45C224133B1900744A0A /* Pipeline3D.swift */,
-				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
-				2B8DB3922491A9C300D57DC4 /* PipelineCloud3D.swift */,
-				2BCD674F2491B05300E066C0 /* PointCloudBuilder.swift */,
-				2BCD67522491B3EB00E066C0 /* PointCloud.metal */,
-				2B65083223D69922003DE093 /* CodeSDFStream.swift */,
 				2B9B29F523BF1DD700C2F387 /* Dialogs.swift */,
 				2B9B299B23BAD15700C2F387 /* Node.swift */,
 				2B9B299E23BAD2DB00C2F387 /* NodeUI.swift */,
@@ -1153,6 +1157,22 @@
 				2BD0E1D6245A5F6100A61586 /* minimize.tiff */,
 			);
 			path = Icons;
+			sourceTree = "<group>";
+		};
+		2B8444DE24945CCC0082EE1D /* 3D Pipeline */ = {
+			isa = PBXGroup;
+			children = (
+				2BCD67562493486600E066C0 /* BaseShader.swift */,
+				2BCD67592494510E00E066C0 /* ObjectShader.swift */,
+				2BCD675A2494514600E066C0 /* BackgroundShader.swift */,
+				2BAA45C224133B1900744A0A /* Pipeline3D.swift */,
+				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
+				2B8DB3922491A9C300D57DC4 /* Pipeline3DRT.swift */,
+				2BCD674F2491B05300E066C0 /* PointCloudBuilder.swift */,
+				2BCD67522491B3EB00E066C0 /* PointCloud.metal */,
+				2B65083223D69922003DE093 /* CodeSDFStream.swift */,
+			);
+			path = "3D Pipeline";
 			sourceTree = "<group>";
 		};
 		2B91CBF12358629300DED7B1 /* OSX Framework */ = {
@@ -2013,8 +2033,9 @@
 				2B8CC6CB23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */,
 				2B1AF8AF24133D7800AA82B0 /* Pipeline2D.swift in Sources */,
 				2B7A3C1C23B46546002EC5FC /* MMTreeWidget.swift in Sources */,
+				2BCD675B249451E600E066C0 /* ObjectShader.swift in Sources */,
 				2B7A3BF623B4583A002EC5FC /* ViewController.swift in Sources */,
-				2B8DB3932491A9C300D57DC4 /* PipelineCloud3D.swift in Sources */,
+				2B8DB3932491A9C300D57DC4 /* Pipeline3DRT.swift in Sources */,
 				2B7A3C2023B46546002EC5FC /* MMFile.swift in Sources */,
 				2B7A3C3723B46838002EC5FC /* EditorRegion.swift in Sources */,
 				2B7A3C1F23B46546002EC5FC /* MMTimeline.swift in Sources */,
@@ -2023,6 +2044,7 @@
 				2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */,
 				2B65083323D69922003DE093 /* CodeSDFStream.swift in Sources */,
 				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
+				2B8444DC24945B890082EE1D /* BackgroundShader.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
@@ -2037,6 +2059,7 @@
 				2B7A3C1123B46546002EC5FC /* MMFloatWidget.swift in Sources */,
 				2B7A3C2223B46546002EC5FC /* MMInfoArea.swift in Sources */,
 				2B7A3C3F23B469AD002EC5FC /* Mad4Metal.metal in Sources */,
+				2BCD67572493486700E066C0 /* BaseShader.swift in Sources */,
 				2B7A3BF423B4583A002EC5FC /* AppDelegate.swift in Sources */,
 				2B7A3C1223B46546002EC5FC /* MMSliderWidget.swift in Sources */,
 				2B40D80723FCCED600D46B2F /* Combo3D.swift in Sources */,
@@ -2235,11 +2258,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BCD675C249451E600E066C0 /* ObjectShader.swift in Sources */,
 				2B9B29C323BB453400C2F387 /* MMRegion.swift in Sources */,
 				2B9B29E323BB45C000C2F387 /* TopRegion.swift in Sources */,
 				2B9B29AB23BB44BF00C2F387 /* ViewController.swift in Sources */,
 				2B2B60082426028000B9CCF1 /* ExportDialog.swift in Sources */,
-				2B8DB3942491A9C300D57DC4 /* PipelineCloud3D.swift in Sources */,
+				2B8DB3942491A9C300D57DC4 /* Pipeline3DRT.swift in Sources */,
 				2B9B29C823BB453400C2F387 /* MMFloatWidget.swift in Sources */,
 				2B9B29D223BB453400C2F387 /* MMListWidget.swift in Sources */,
 				2B9B29C223BB453400C2F387 /* MMWidget.swift in Sources */,
@@ -2258,10 +2282,12 @@
 				2B40D80B23FE0D8300D46B2F /* Combo3D.metal in Sources */,
 				2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
 				2B9B29A723BB44BF00C2F387 /* AppDelegate.swift in Sources */,
+				2B8444DD24945B8A0082EE1D /* BackgroundShader.swift in Sources */,
 				2B9B29C723BB453400C2F387 /* MMLabel.swift in Sources */,
 				2BE5A4DD240CE5E700890281 /* Camera2D.swift in Sources */,
 				2B9B29E023BB45A700C2F387 /* Node.swift in Sources */,
 				2B9B29CA23BB453400C2F387 /* MMFloatPopUp.swift in Sources */,
+				2BCD67582493486700E066C0 /* BaseShader.swift in Sources */,
 				2BE9488823D0677700DB0BCD /* DefaultItems.swift in Sources */,
 				2B8E2FEF23C9691A005619E4 /* Pipeline.swift in Sources */,
 				2B4600F0244530CE004DAF5E /* PropertiesWidget.swift in Sources */,
