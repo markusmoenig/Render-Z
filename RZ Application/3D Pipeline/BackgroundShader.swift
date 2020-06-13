@@ -23,23 +23,44 @@ class BackgroundShader      : BaseShader
         let preStage = scene.getStage(.PreStage)
         for item in preStage.getChildren() {
             if let comp = item.components[item.defaultName], comp.componentType == .SkyDome || comp.componentType == .Pattern {
-                createFragmentSource(backComponent: comp)
+                createFragmentSource(backComponent: comp, camera: camera)
             }
         }
     }
     
-    func createFragmentSource(backComponent: CodeComponent)
+    func createFragmentSource(backComponent: CodeComponent, camera: CodeComponent)
     {
+        dryRunComponent(camera, data.count)
+        collectProperties(camera)
+        
+        dryRunComponent(backComponent, data.count)
+        collectProperties(backComponent)
+
         let fragmentCode =
         """
 
-        fragment half4 procFragment() {
-            return half4(0,0,1,1.0);
+        \(camera.globalCode!)
+
+        fragment float4 procFragment(RasterizerData in [[stage_in]],
+                                     constant float4 *__data [[ buffer(2) ]])
+        {
+            float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
+            float2 size = in.viewportSize;
+            float2 jitter = float2(1);
+
+            __INITIALIZE_FUNC_DATA__
+
+            float3 outPosition = float3(0,0,0);
+            float3 outDirection = float3(0,0,0);
+
+            \(camera.code!)
+
+            return float4(uv.x, uv.y, 0, 1.0);
         }
 
         """
         
-        compile(vertexCode: getQuadVertexSource(), fragmentCode: fragmentCode)
+        compile(vertexCode: BaseShader.getQuadVertexSource(), fragmentCode: fragmentCode, textureOffset: 3)
     }
     
     func render(texture: MTLTexture)
