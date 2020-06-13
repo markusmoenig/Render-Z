@@ -23,7 +23,6 @@ class BaseShader
     let device              : MTLDevice
     
     // Instance Data
-    
     var data                : [SIMD4<Float>] = []
     var buffer              : MTLBuffer!
             
@@ -106,6 +105,122 @@ class BaseShader
                 self.shaderState = .Compiled
             }
         } )
+    }
+    
+    /// Update the instance data
+    func updateData()
+    {
+        let timeline = globalApp!.artistEditor.timeline
+        
+        var time : Float
+
+        // Timeline Playback
+        time = (Float(timeline.currentFrame) * 1000/60) / 1000
+        
+        data[0].x = time
+                
+        //inst.data[0].z = 1
+        //inst.data[0].w = 1
+
+        for property in properties {
+            
+            let dataIndex = property.3
+            let component = property.4
+
+            if property.0 != nil
+            {
+                // Property, stored in the CodeFragments
+                
+                let isToolProperty : Bool = property.2 != nil && property.1 != nil
+                
+                let data = isToolProperty ? SIMD4<Float>(property.1!.values[property.2!]!,0,0,0) : extractValueFromFragment(property.1!)
+                let components = isToolProperty ? 1 : property.1!.evaluateComponents()
+                
+                // Transform the properties inside the artist editor
+                
+                let name = isToolProperty ? property.2! : property.0!.name
+                var properties : [String:Float] = [:]
+                
+                if components == 1 {
+                    properties[name] = data.x
+                    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                    self.data[dataIndex].x = transformed[name]!
+                } else
+                if components == 2 {
+                    properties[name + "_x"] = data.x
+                    properties[name + "_y"] = data.y
+                    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                    self.data[dataIndex].x = transformed[name + "_x"]!
+                    self.data[dataIndex].y = transformed[name + "_y"]!
+                } else
+                if components == 3 {
+                    properties[name + "_x"] = data.x
+                    properties[name + "_y"] = data.y
+                    properties[name + "_z"] = data.z
+                    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                    self.data[dataIndex].x = transformed[name + "_x"]!
+                    self.data[dataIndex].y = transformed[name + "_y"]!
+                    self.data[dataIndex].z = transformed[name + "_z"]!
+                } else
+                if components == 4 {
+                    properties[name + "_x"] = data.x
+                    properties[name + "_y"] = data.y
+                    properties[name + "_z"] = data.z
+                    properties[name + "_w"] = data.w
+                    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                    self.data[dataIndex].x = transformed[name + "_x"]!
+                    self.data[dataIndex].y = transformed[name + "_y"]!
+                    self.data[dataIndex].z = transformed[name + "_z"]!
+                    self.data[dataIndex].w = transformed[name + "_w"]!
+                }
+                if globalApp!.currentEditor === globalApp!.artistEditor {
+                    globalApp!.artistEditor.designProperties.updateTransformedProperty(component: property.4, name: name, data: self.data[dataIndex])
+                }
+                if components == 4 {
+                    // For colors, convert them to sRGB for rendering
+                    self.data[dataIndex].x = pow(self.data[dataIndex].x, 2.2)
+                    self.data[dataIndex].y = pow(self.data[dataIndex].y, 2.2)
+                    self.data[dataIndex].z = pow(self.data[dataIndex].z, 2.2)
+                }
+            } else
+            if let name = property.2 {
+                // Transform property, stored in the values of the component
+                
+                // Recursively add the parent values for this transform
+                var parentValue : Float = 0
+                
+                for stageItem in property.5.reversed() {
+                    if let transComponent = stageItem.components[stageItem.defaultName] {
+                        // Transform
+                        var properties : [String:Float] = [:]
+                        
+                        if let value = transComponent.values[name] {
+                            properties[name] = value
+                            
+                            let transformed = timeline.transformProperties(sequence: transComponent.sequence, uuid: transComponent.uuid, properties: properties, frame: timeline.currentFrame)
+                            
+                            parentValue += transformed[name]!
+                        }
+                    }
+                }
+                
+                var properties : [String:Float] = [:]
+                if let value = component.values[name] {
+                    properties[name] = value
+                    
+                    let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
+                    
+                    if component.componentType != .Transform2D && component.componentType != .Transform3D {
+                        self.data[dataIndex].x = transformed[name]! + parentValue
+                    } else {
+                        // Transforms do not get their parent values, these are added by hand in the shader for the pivot
+                        self.data[dataIndex].x = transformed[name]!
+                    }
+                }
+            }
+        }
+        
+        buffer = device.makeBuffer(bytes: self.data, length: self.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
     }
     
     /// Adds a global variable to the instance data

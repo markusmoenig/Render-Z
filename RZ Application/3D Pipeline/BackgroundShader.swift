@@ -40,6 +40,7 @@ class BackgroundShader      : BaseShader
         """
 
         \(camera.globalCode!)
+        \(backComponent.globalCode!)
 
         fragment float4 procFragment(RasterizerData in [[stage_in]],
                                      constant float4 *__data [[ buffer(2) ]])
@@ -53,9 +54,20 @@ class BackgroundShader      : BaseShader
             float3 outPosition = float3(0,0,0);
             float3 outDirection = float3(0,0,0);
 
-            \(camera.code!)
+            float3 position = float3(uv.x, uv.y, 0);
+        
+            float outMask = 0;
+            float outId = 0;
 
-            return float4(uv.x, uv.y, 0, 1.0);
+            float4 outColor = float4(0,0,0,1);
+        
+            \(camera.code!)
+        
+            float3 rayDirection = outDirection;
+        
+            \(backComponent.code!)
+
+            return float4(pow(outColor.x, 0.4545), pow(outColor.y, 0.4545), pow(outColor.z, 0.4545), 1.0);
         }
 
         """
@@ -69,6 +81,8 @@ class BackgroundShader      : BaseShader
         //camHelper.initFromComponent(aspect: Float(texture.width) / Float(texture.height), component: camera)
         //var matrix = camHelper.getMatrix()
         //memcpy(renderParams?.contents(), camHelper.getMatrix().m, MemoryLayout<matrix_float4x4>.size)
+        
+        updateData()
         
         let renderPassDescriptor = MTLRenderPassDescriptor()
         renderPassDescriptor.colorAttachments[0].texture = texture
@@ -87,6 +101,9 @@ class BackgroundShader      : BaseShader
         
         var viewportSize : vector_uint2 = vector_uint2( UInt32( texture.width ), UInt32( texture.height ) )
         renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 2)
+
         // ---
         
         //renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
