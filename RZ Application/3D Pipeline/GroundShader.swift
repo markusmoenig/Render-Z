@@ -37,8 +37,6 @@ class GroundShader      : BaseShader
 
         let material = generateMaterialCode(stageItem: self.object)
         
-        print(material)
-        
         let fragmentCode =
         """
 
@@ -92,20 +90,12 @@ class GroundShader      : BaseShader
         }
 
         """
-                
-        //void material\(materialIndex)(float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
-        //float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
         
         compile(vertexCode: BaseShader.getQuadVertexSource(), fragmentCode: fragmentCode, textureOffset: 3)
     }
     
     override func render(texture: MTLTexture)
     {
-        //let camHelper = CamHelper3D()
-        //camHelper.initFromComponent(aspect: Float(texture.width) / Float(texture.height), component: camera)
-        //var matrix = camHelper.getMatrix()
-        //memcpy(renderParams?.contents(), camHelper.getMatrix().m, MemoryLayout<matrix_float4x4>.size)
-        
         updateData()
         
         let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -126,11 +116,8 @@ class GroundShader      : BaseShader
         renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
         
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 2)
-
         // ---
         
-        //renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        //renderEncoder.setVertexBytes(&matrix, length: MemoryLayout<float4x4>.stride, index: 1)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         renderEncoder.endEncoding()
         

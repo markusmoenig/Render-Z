@@ -520,7 +520,6 @@ class BaseShader
             
             """
             
-            
             // UV Mapping
             
             if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {

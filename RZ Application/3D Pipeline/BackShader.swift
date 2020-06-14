@@ -77,11 +77,6 @@ class BackgroundShader      : BaseShader
     
     override func render(texture: MTLTexture)
     {
-        //let camHelper = CamHelper3D()
-        //camHelper.initFromComponent(aspect: Float(texture.width) / Float(texture.height), component: camera)
-        //var matrix = camHelper.getMatrix()
-        //memcpy(renderParams?.contents(), camHelper.getMatrix().m, MemoryLayout<matrix_float4x4>.size)
-        
         updateData()
         
         let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -103,11 +98,8 @@ class BackgroundShader      : BaseShader
         renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
         
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 2)
-
         // ---
         
-        //renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        //renderEncoder.setVertexBytes(&matrix, length: MemoryLayout<float4x4>.stride, index: 1)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         renderEncoder.endEncoding()
         
