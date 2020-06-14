@@ -240,6 +240,7 @@ class StageItem             : Codable, Equatable
     var componentLabels     : [String:MMTextLabel] = [:]
     
     var builderInstance     : CodeBuilderInstance? = nil
+    var shader              : BaseShader? = nil
 
     private enum CodingKeys: String, CodingKey {
         case stageItemType

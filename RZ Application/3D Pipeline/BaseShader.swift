@@ -97,7 +97,15 @@ class BaseShader
 
                 self.pipelineStateDesc.vertexFunction = library.makeFunction(name: "procVertex")
                 self.pipelineStateDesc.fragmentFunction = library.makeFunction(name: "procFragment")
-                self.pipelineStateDesc.colorAttachments[0].pixelFormat = .rgba16Float
+                self.pipelineStateDesc.colorAttachments[0].pixelFormat = .bgra8Unorm
+                
+                self.pipelineStateDesc.colorAttachments[0].isBlendingEnabled = true
+                self.pipelineStateDesc.colorAttachments[0].rgbBlendOperation = .add
+                self.pipelineStateDesc.colorAttachments[0].alphaBlendOperation = .add
+                self.pipelineStateDesc.colorAttachments[0].sourceRGBBlendFactor = .sourceAlpha
+                self.pipelineStateDesc.colorAttachments[0].sourceAlphaBlendFactor = .sourceAlpha
+                self.pipelineStateDesc.colorAttachments[0].destinationRGBBlendFactor = .oneMinusSourceAlpha
+                self.pipelineStateDesc.colorAttachments[0].destinationAlphaBlendFactor = .oneMinusSourceAlpha
 
                 self.pipelineState = try! self.device.makeRenderPipelineState(descriptor: self.pipelineStateDesc)
                 

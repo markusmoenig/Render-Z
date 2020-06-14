@@ -49,7 +49,7 @@ class Pipeline3DRT          : Pipeline
     var cameraComponent     : CodeComponent!
     
     var backgroundShader    : BackgroundShader? = nil
-    var objects             : [ObjectShader] = []
+    var shaders             : [BaseShader] = []
 
     override init(_ mmView: MMView)
     {
@@ -77,7 +77,38 @@ class Pipeline3DRT          : Pipeline
         let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
         cameraComponent = result.1!
         
+        shaders = []
+        
         backgroundShader = BackgroundShader(scene: scene, camera: cameraComponent)
+        
+        let shapeStage = scene.getStage(.ShapeStage)
+        for item in shapeStage.getChildren() {
+            
+            if 1 > 0 { //item.builderInstance == nil {
+                // Object
+                if item.getComponentList("shapes") != nil {
+
+                    
+                    //item.builderInstance = instance
+                    //instance.rootObject = item
+                } else
+                if let ground = item.components[item.defaultName], ground.componentType == .Ground3D {
+                    // Ground Object
+
+                    let shader = GroundShader(scene: scene, object: item, camera: cameraComponent)
+                    shaders.append(shader)
+                }
+            } else {
+                /*
+                instanceMap["shape_\(index)"] = item.builderInstance
+                
+                item.builderInstance!.ids.forEach { (key, value) in codeBuilder.sdfStream.ids[key] = value }
+
+                #if DEBUG
+                print("reusing", "shape_\(index)")
+                #endif*/
+            }
+        }
     }
         
     // Render the pipeline
@@ -90,6 +121,12 @@ class Pipeline3DRT          : Pipeline
         if let background = backgroundShader, background.shaderState == .Compiled {
             background.render(texture: finalTexture!)
         }
+        
+        for shader in shaders {
+            if shader.shaderState == .Compiled {
+                shader.render(texture: finalTexture!)
+            }
+        }
 
         //var points : [Float] = []
         //pointCloudBuilder.render(points: points, texture: finalTexture!, camera: cameraComponent)
@@ -98,7 +135,7 @@ class Pipeline3DRT          : Pipeline
     func checkFinalTexture(_ clear: Bool = false)
     {
         let needsResize = width != Float(finalTexture!.width) || height != Float(finalTexture!.height)
-        finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
+        finalTexture = checkTextureSize(width, height, finalTexture, .bgra8Unorm)
         if needsResize || clear {
             codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 0, 1))
         }

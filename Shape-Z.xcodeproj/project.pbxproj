@@ -172,6 +172,8 @@
 		2B501A5E22CC5602008D409F /* DebugBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B501A5C22CC5426008D409F /* DebugBuilder.swift */; };
 		2B50635823CEC98600124517 /* LibraryDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635723CEC98500124517 /* LibraryDialog.swift */; };
 		2B50635923CEC98600124517 /* LibraryDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635723CEC98500124517 /* LibraryDialog.swift */; };
+		2B52E5AC2495C1FE009CFE1F /* GroundShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */; };
+		2B52E5AD2495C1FF009CFE1F /* GroundShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */; };
 		2B57D7902358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7922358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
@@ -775,6 +777,7 @@
 		2B501A5C22CC5426008D409F /* DebugBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugBuilder.swift; sourceTree = "<group>"; };
 		2B50635423CE9ABE00124517 /* Context.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Context.swift; sourceTree = "<group>"; };
 		2B50635723CEC98500124517 /* LibraryDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDialog.swift; sourceTree = "<group>"; };
+		2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundShader.swift; sourceTree = "<group>"; };
 		2B57D78E2358149600E8BF65 /* GameCuben.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GameCuben.tiff; sourceTree = "<group>"; };
 		2B57D78F2358149600E8BF65 /* GameCuben.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = GameCuben.json; sourceTree = "<group>"; };
 		2B59875723D15BD0007E335F /* Combo2D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combo2D.swift; sourceTree = "<group>"; };
@@ -1165,6 +1168,7 @@
 				2BCD67562493486600E066C0 /* BaseShader.swift */,
 				2BCD67592494510E00E066C0 /* ObjectShader.swift */,
 				2BCD675A2494514600E066C0 /* BackShader.swift */,
+				2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */,
 				2BAA45C224133B1900744A0A /* Pipeline3D.swift */,
 				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
 				2B8DB3922491A9C300D57DC4 /* Pipeline3DRT.swift */,
@@ -2073,6 +2077,7 @@
 				2B7A3C1B23B46546002EC5FC /* MMListWidget.swift in Sources */,
 				2B9B298A23B9D4F500C2F387 /* CodeBuilder.swift in Sources */,
 				2B7A3C3923B46838002EC5FC /* LeftRegion.swift in Sources */,
+				2B52E5AC2495C1FE009CFE1F /* GroundShader.swift in Sources */,
 				2B7A3C0A23B46546002EC5FC /* MMRenderer.swift in Sources */,
 				2B7A3C0923B4653F002EC5FC /* MMBaseView_mac.swift in Sources */,
 				2B8E2FEB23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
@@ -2314,6 +2319,7 @@
 				2B59875923D15BD0007E335F /* Combo2D.swift in Sources */,
 				2B9B29E123BB45B900C2F387 /* App.swift in Sources */,
 				2B9B29C523BB453400C2F387 /* MMUtils.swift in Sources */,
+				2B52E5AD2495C1FF009CFE1F /* GroundShader.swift in Sources */,
 				2B9B29D323BB453400C2F387 /* MMTreeWidget.swift in Sources */,
 				2B169BE4246E19DF00366E19 /* UploadDialogs.swift in Sources */,
 				2BE5A4DA240CBB1B00890281 /* Camera3D.swift in Sources */,
