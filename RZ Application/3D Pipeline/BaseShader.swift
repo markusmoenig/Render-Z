@@ -107,6 +107,10 @@ class BaseShader
         } )
     }
     
+    func render(texture: MTLTexture)
+    {
+    }
+    
     /// Update the instance data
     func updateData()
     {

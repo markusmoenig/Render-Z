@@ -10,12 +10,6 @@ import MetalKit
 
 class ObjectShader  : BaseShader
 {
-    enum ShaderType {
-        case Background, Ground, Terrain, Object
-    }
-    
-    var shaderType  : ShaderType
-    
     var scene       : Scene
     var object      : StageItem
     var camera      : CodeComponent
@@ -25,20 +19,6 @@ class ObjectShader  : BaseShader
         self.scene = scene
         self.object = object
         self.camera = camera
-        
-        shaderType = .Background
-
-        if object.stageItemType == .PreStage {
-            shaderType = .Background
-            
-            let preStage = scene.getStage(.PreStage)
-
-            for item in preStage.getChildren() {
-                if let comp = item.components[item.defaultName], comp.componentType == .SkyDome || comp.componentType == .Pattern {
-                    //backComponent = comp
-                }
-            }
-        }
     }
     
     func buildShader()
@@ -46,8 +26,7 @@ class ObjectShader  : BaseShader
         
     }
     
-    func render(texture: MTLTexture)
+    override func render(texture: MTLTexture)
     {
-        
     }
 }

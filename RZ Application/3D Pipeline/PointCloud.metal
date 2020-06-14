@@ -25,7 +25,7 @@ vertex VertexOut basic_vertex(const device packed_float3 *points [[ buffer(0) ]]
     return out;
 }
 
-fragment half4 basic_fragment() {
-
+fragment half4 basic_fragment()
+{
     return half4(1.0);
 }

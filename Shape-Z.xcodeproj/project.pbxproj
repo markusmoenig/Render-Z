@@ -294,8 +294,8 @@
 		2B7A45BE243EEAC6000C91C9 /* material.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B7A45BC243EEAC5000C91C9 /* material.tiff */; };
 		2B838DD324492363004BDE56 /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B838DD224492363004BDE56 /* ground.tiff */; };
 		2B838DD424492363004BDE56 /* ground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B838DD224492363004BDE56 /* ground.tiff */; };
-		2B8444DC24945B890082EE1D /* BackgroundShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD675A2494514600E066C0 /* BackgroundShader.swift */; };
-		2B8444DD24945B8A0082EE1D /* BackgroundShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD675A2494514600E066C0 /* BackgroundShader.swift */; };
+		2B8444DC24945B890082EE1D /* BackShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD675A2494514600E066C0 /* BackShader.swift */; };
+		2B8444DD24945B8A0082EE1D /* BackShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD675A2494514600E066C0 /* BackShader.swift */; };
 		2B8864ED21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8864EE21FABAAB00F24E8A /* MMAnimate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */; };
 		2B8BBA8822A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
@@ -943,7 +943,7 @@
 		2BCD67522491B3EB00E066C0 /* PointCloud.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = PointCloud.metal; sourceTree = "<group>"; };
 		2BCD67562493486600E066C0 /* BaseShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseShader.swift; sourceTree = "<group>"; };
 		2BCD67592494510E00E066C0 /* ObjectShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectShader.swift; sourceTree = "<group>"; };
-		2BCD675A2494514600E066C0 /* BackgroundShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundShader.swift; sourceTree = "<group>"; };
+		2BCD675A2494514600E066C0 /* BackShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackShader.swift; sourceTree = "<group>"; };
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
 		2BD0E1D5245A5F6000A61586 /* maximize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = maximize.tiff; sourceTree = "<group>"; };
@@ -1164,7 +1164,7 @@
 			children = (
 				2BCD67562493486600E066C0 /* BaseShader.swift */,
 				2BCD67592494510E00E066C0 /* ObjectShader.swift */,
-				2BCD675A2494514600E066C0 /* BackgroundShader.swift */,
+				2BCD675A2494514600E066C0 /* BackShader.swift */,
 				2BAA45C224133B1900744A0A /* Pipeline3D.swift */,
 				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
 				2B8DB3922491A9C300D57DC4 /* Pipeline3DRT.swift */,
@@ -2044,7 +2044,7 @@
 				2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */,
 				2B65083323D69922003DE093 /* CodeSDFStream.swift in Sources */,
 				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
-				2B8444DC24945B890082EE1D /* BackgroundShader.swift in Sources */,
+				2B8444DC24945B890082EE1D /* BackShader.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
@@ -2282,7 +2282,7 @@
 				2B40D80B23FE0D8300D46B2F /* Combo3D.metal in Sources */,
 				2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
 				2B9B29A723BB44BF00C2F387 /* AppDelegate.swift in Sources */,
-				2B8444DD24945B8A0082EE1D /* BackgroundShader.swift in Sources */,
+				2B8444DD24945B8A0082EE1D /* BackShader.swift in Sources */,
 				2B9B29C723BB453400C2F387 /* MMLabel.swift in Sources */,
 				2BE5A4DD240CE5E700890281 /* Camera2D.swift in Sources */,
 				2B9B29E023BB45A700C2F387 /* Node.swift in Sources */,

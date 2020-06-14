@@ -1,5 +1,5 @@
 //
-//  ObjectShader.swift
+//  BackgroundShader.swift
 //  Shape-Z
 //
 //  Created by Markus Moenig on 12/6/20.
@@ -75,7 +75,7 @@ class BackgroundShader      : BaseShader
         compile(vertexCode: BaseShader.getQuadVertexSource(), fragmentCode: fragmentCode, textureOffset: 3)
     }
     
-    func render(texture: MTLTexture)
+    override func render(texture: MTLTexture)
     {
         //let camHelper = CamHelper3D()
         //camHelper.initFromComponent(aspect: Float(texture.width) / Float(texture.height), component: camera)
