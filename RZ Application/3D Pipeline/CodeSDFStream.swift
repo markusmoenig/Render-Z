@@ -227,6 +227,9 @@ class CodeSDFStream
             __HITANDNORMALS_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
+                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                    return;
+            
                 float2 __size = float2( __depthTexture.get_width(), __depthTexture.get_height() );
             
                 float2 __uv = float2(__gid.x, __gid.y);
@@ -271,6 +274,9 @@ class CodeSDFStream
             __AO_TEXTURE_HEADER_CODE__
             uint2 __gid                             [[thread_position_in_grid]])
             {
+                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                    return;
+
                 float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
 
                 float2 __uv = float2(__gid.x, __gid.y);
@@ -354,6 +360,9 @@ class CodeSDFStream
             constant float4                        *__lightData   [[ buffer(__SHADOW_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
+                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                    return;
+            
                 float2 __size = float2( __metaTexture.get_width(), __metaTexture.get_height() );
 
                 float2 __uv = float2(__gid.x, __gid.y);
@@ -396,6 +405,9 @@ class CodeSDFStream
             constant float4                        *__lightData   [[ buffer(__MATERIAL_AFTER_TEXTURE_OFFSET__) ]],
             uint2 __gid                             [[thread_position_in_grid]])
             {
+                if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                    return;
+            
                 float2 __size = float2( __colorTexture.get_width(), __colorTexture.get_height() );
 
                 float2 __uv = float2(__gid.x, __gid.y);

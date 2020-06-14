@@ -43,6 +43,7 @@ class Pipeline3D            : Pipeline
     
     var dummyTerrainTexture : MTLTexture? = nil
     
+    var lineNumber          : Float = 0
     var renderIsRunning     : Bool = false
 
     override init(_ mmView: MMView)
@@ -54,12 +55,11 @@ class Pipeline3D            : Pipeline
     
     override func setMinimalPreview(_ mode: Bool = false)
     {
-        /*
         if mode == true {
             maxStage = .HitAndNormals
         } else {
             maxStage = .Reflection
-        }*/
+        }
         globalApp!.currentEditor.render()
     }
     
@@ -313,14 +313,12 @@ class Pipeline3D            : Pipeline
 
                 self.allocTextureId("depth", self.width, self.height, .rgba16Float)
 
-                self.samples = 0
-                self.reflections = 0
-
                 self.renderIsRunning = true
                 self.startedRender = false
 
                 self.resetSample()
 
+                self.lineNumber = 0;
                 self.stage_HitAndNormals()
                 self.currentStage = .HitAndNormals
             }
@@ -369,42 +367,72 @@ class Pipeline3D            : Pipeline
         DispatchQueue.main.async {//After(deadline: .now() + 0.05) {
 
             //print( "Stage Finished:", self.currentStage, "Samples", self.samples, "Reflections:", self.reflections, "renderId", self.renderId)
-            
-            if self.outputType != .FinalImage {
-                if self.outputType == .DepthMap {
-                    self.codeBuilder.renderDepthMap(self.finalTexture!, self.getTextureOfId("id"))
 
-                    self.mmView.update()
-                    self.samples = self.maxSamples
-                    self.renderIsRunning = false
-                    return
-                } else
-                if self.outputType == .AO {
-                    self.codeBuilder.renderAO(self.finalTexture!, self.getTextureOfId("meta"))
+            // Preview Render: Fake Lighting
+            if self.maxStage == .HitAndNormals {
+                
+                if self.lineNumber + 50 < self.height {
+                                        
+                    self.lineNumber += 50
+                    
+                    self.stage_HitAndNormals()
+                    self.currentStage = .HitAndNormals
 
-                    self.mmView.update()
-                    self.samples = self.maxSamples
-                    self.renderIsRunning = false
-                    return
-                } else
-                if self.outputType == .Shadows {
-                    self.codeBuilder.renderShadow(self.finalTexture!, self.getTextureOfId("meta"))
-
-                    self.mmView.update()
-                    self.samples = self.maxSamples
-                    self.renderIsRunning = false
-                    return
-                } else
-                if self.outputType == .FogDensity {
-                    self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("density"))
-
-                    self.mmView.update()
-                    self.samples = self.maxSamples
-                    self.renderIsRunning = false
                     return
                 }
+                
+                self.codeBuilder.compute.run( self.codeBuilder.previewState!, outTexture: self.getTextureOfId("result"), inTextures: [self.getTextureOfId("depth")!, self.getTextureOfId("back"), self.getTextureOfId("normal"), self.getTextureOfId("meta")])
+                self.codeBuilder.compute.commandBuffer.waitUntilCompleted()
+
+                self.checkFinalTexture()
+                self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
+                self.mmView.update()
+                
+                self.lineNumber = 0
+                self.renderIsRunning = false
+                                                
+                return
             }
-                          
+            
+            if self.outputType != .FinalImage {
+                if self.lineNumber + 50 >= self.height {
+                    if self.outputType == .DepthMap {
+                        self.codeBuilder.renderDepthMap(self.finalTexture!, self.getTextureOfId("id"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        self.renderIsRunning = false
+                        return
+                    } else
+                    if self.outputType == .AO {
+                        self.codeBuilder.renderAO(self.finalTexture!, self.getTextureOfId("meta"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        self.renderIsRunning = false
+                        return
+                    } else
+                    if self.outputType == .Shadows {
+                        self.codeBuilder.renderShadow(self.finalTexture!, self.getTextureOfId("meta"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        self.renderIsRunning = false
+                        return
+                    } else
+                    if self.outputType == .FogDensity {
+                        self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("density"))
+
+                        self.mmView.update()
+                        self.samples = self.maxSamples
+                        self.renderIsRunning = false
+                        return
+                    }
+                }
+            }
+              
+            if self.hasToFinish() { return }
+            
             let nextStage : Stage? = Stage(rawValue: self.currentStage.rawValue + 1)
             
             if let nextStage = nextStage {
@@ -418,12 +446,34 @@ class Pipeline3D            : Pipeline
                 } else
                 if nextStage == .Reflection {
                     
+                    // Show reflection updates for sample 0
+                    /*
+                    if self.samples == 0 {
+                        if self.reflections == 0 { self.checkFinalTexture(true) }
+                        if self.reflections > 0 {
+                            self.codeBuilder.renderCopy(self.finalTexture!, self.getTextureOfId("result"))
+                            self.mmView.update()
+                        }
+                    }*/
+                    
                     self.reflections += 1
                     if self.reflections < self.maxReflections {
                         self.stage_HitAndNormals()
                         self.currentStage = .HitAndNormals
                     } else {
                         self.checkFinalTexture()
+                        
+                        if self.lineNumber + 50 < self.height {
+                            self.lineNumber += 50
+                            self.reflections = 0
+                                                 
+                            self.stage_HitAndNormals()
+                            self.currentStage = .HitAndNormals
+
+                            return
+                        }
+                        
+                        self.lineNumber = 0
 
                         // Sampling
                         if self.samples == 0 { self.checkFinalTexture(true) }
@@ -442,8 +492,6 @@ class Pipeline3D            : Pipeline
                         
                         // Finished ?
                         if self.samples < self.maxSamples {
-                            if self.hasToFinish() { return }
-                            
                             self.reflections = 0
                             
                             self.resetSample()
@@ -490,7 +538,10 @@ class Pipeline3D            : Pipeline
         allocTextureId("result", width, height, .rgba16Float)
         
         codeBuilder.renderClear(texture: getTextureOfId("meta"), data: SIMD4<Float>(1, 1, 1, 0))
-        codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(1000, 1000, -1, -1))
+
+        if maxStage != .HitAndNormals || lineNumber == 0 {
+            codeBuilder.renderClear(texture: getTextureOfId("depth"), data: SIMD4<Float>(1000, 1000, -1, -1))
+        }
         
         var objectIndex : Int = 0
         var shapeText : String = "shape_" + String(objectIndex)
@@ -512,6 +563,7 @@ class Pipeline3D            : Pipeline
                 terrainTexture = terrain.getTexture()
             }
             
+            inst.lineNumber = lineNumber
             codeBuilder.render(inst, getTextureOfId("depth"), inTextures: [getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), terrainTexture!], jitter: jitter)
 
             objectIndex += 1
@@ -520,7 +572,7 @@ class Pipeline3D            : Pipeline
         
         if samples == 0 && reflections == 0 {
             // On first pass copy the depth buffer to id, which the UI can use for object selection
-            self.codeBuilder.renderCopy(getTextureOfId("id"), getTextureOfId("depth"))
+            self.codeBuilder.renderCopyLine(getTextureOfId("id"), getTextureOfId("depth"), lineNumber: lineNumber)
         }
         
         nextStage()
@@ -543,6 +595,7 @@ class Pipeline3D            : Pipeline
                 }
             }
             
+            inst.lineNumber = lineNumber
             codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection")], optionalState: "computeAO")
             
             objectIndex += 1
@@ -563,7 +616,10 @@ class Pipeline3D            : Pipeline
             // Shadows
             
             // Reset the shadow data to 1.0 in the meta data while not touching anything else (ambient etc).
-            codeBuilder.renderClearShadow(texture: getTextureOfId("meta"))
+            
+            if lineNumber == 0 {
+                codeBuilder.renderClearShadow(texture: getTextureOfId("meta"))
+            }
             
             /*
             // Reset the fog density data
@@ -591,6 +647,7 @@ class Pipeline3D            : Pipeline
                     }
                 }
                 
+                inst.lineNumber = lineNumber
                 codeBuilder.render(inst, getTextureOfId("meta"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("density")], inBuffers: [lightBuffer], optionalState: "computeShadow")
                 
                 objectIndex += 1
@@ -621,6 +678,7 @@ class Pipeline3D            : Pipeline
                     }
                 }
                 
+                inst.lineNumber = lineNumber
                 codeBuilder.render(inst, getTextureOfId("color"), inTextures: [getTextureOfId("depth"), getTextureOfId("normal"), getTextureOfId("meta"), getTextureOfId("rayOrigin"), getTextureOfId("rayDirection"), getTextureOfId("mask"), getTextureOfId("density")], inBuffers: [lightBuffer], optionalState: "computeMaterial")
 
                 objectIndex += 1
@@ -650,7 +708,9 @@ class Pipeline3D            : Pipeline
             }
         //}
         
-        codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(0,0,0,1))
+        if lineNumber == 0 {
+            codeBuilder.renderClear(texture: getTextureOfId("density"), data: SIMD4<Float>(0,0,0,1))
+        }
         
         sunDirection!.w = fogDensity
         //
@@ -688,7 +748,7 @@ class Pipeline3D            : Pipeline
             sampleLightAndMaterial(lightBuffer: lightBuffer)
         }
         
-        codeBuilder.renderCopyGamma(getTextureOfId("result"), getTextureOfId("color"))
+        codeBuilder.renderCopyGammaLine(getTextureOfId("result"), getTextureOfId("color"), lineNumber: lineNumber)
         
         nextStage()
     }

@@ -1,5 +1,5 @@
 //
-//  CodeProperties.swift
+//  CodeBuilder.swift
 //  Render-Z
 //
 //  Created by Markus Moenig on 30/12/19.
@@ -40,7 +40,9 @@ class CodeBuilderInstance
     var idStart             : Int = 0
     
     var finishedCompiling   : Bool = false
-        
+    
+    var lineNumber          : Float = 0
+    
     var rootObject          : StageItem? = nil
 
     /// Adds a global variable manually, used when we need to know the index of a global variable
@@ -189,7 +191,9 @@ class CodeBuilder
     var clearTerrainState   : MTLComputePipelineState? = nil
 
     var copyState           : MTLComputePipelineState? = nil
+    var copyLineState       : MTLComputePipelineState? = nil
     var copyGammaState      : MTLComputePipelineState? = nil
+    var copyGammaLineState  : MTLComputePipelineState? = nil
     var copyAndSwapState    : MTLComputePipelineState? = nil
     var sampleState         : MTLComputePipelineState? = nil
     var previewState        : MTLComputePipelineState? = nil
@@ -808,6 +812,28 @@ class CodeBuilder
         #include <simd/simd.h>
         using namespace metal;
         
+        kernel void copyLineBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
+        texture2d<half, access::read>           inTexture [[texture(2)]],
+        uint2 __gid                             [[thread_position_in_grid]])
+        {
+            if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                return;
+
+            outTexture.write(inTexture.read(__gid), __gid);
+        }
+        """
+    
+        library = compute.createLibraryFromSource(source: code)
+        copyLineState = compute.createState(library: library, name: "copyLineBuilder")
+        
+        code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
         kernel void copyGammaBuilder(
         texture2d<half, access::write>          outTexture  [[texture(0)]],
         texture2d<half, access::read>           inTexture [[texture(2)]],
@@ -822,6 +848,31 @@ class CodeBuilder
 
         library = compute.createLibraryFromSource(source: code)
         copyGammaState = compute.createState(library: library, name: "copyGammaBuilder")
+        
+        code =
+        """
+        #include <metal_stdlib>
+        #include <simd/simd.h>
+        using namespace metal;
+        
+        kernel void copyGammaLineBuilder(
+        texture2d<half, access::write>          outTexture  [[texture(0)]],
+        constant float4                        *__data   [[ buffer(1) ]],
+        texture2d<half, access::read>           inTexture [[texture(2)]],
+        uint2 __gid                               [[thread_position_in_grid]])
+        {
+            if (__gid.y < int(__data[0].y) || __gid.y >= int(__data[0].y) + 50)
+                return;
+        
+            half4 color = inTexture.read(__gid);
+            color.xyz = pow(color.xyz, 1./2.2);
+            outTexture.write(color, __gid);
+        }
+         
+        """
+
+        library = compute.createLibraryFromSource(source: code)
+        copyGammaLineState = compute.createState(library: library, name: "copyGammaLineBuilder")
         
         code =
         """
@@ -916,7 +967,9 @@ class CodeBuilder
             inst.data[0].z = 0.5
             inst.data[0].w = 0.5
         }
-                
+        
+        inst.data[0].y = inst.lineNumber
+        
         //inst.data[0].z = 1
         //inst.data[0].w = 1
 
@@ -987,6 +1040,7 @@ class CodeBuilder
                 // Recursively add the parent values for this transform
                 var parentValue : Float = 0
                 
+                
                 for stageItem in property.5.reversed() {
                     if let transComponent = stageItem.components[stageItem.defaultName] {
                         // Transform
@@ -1005,7 +1059,7 @@ class CodeBuilder
                 var properties : [String:Float] = [:]
                 if let value = component.values[name] {
                     properties[name] = value
-                    
+
                     let transformed = timeline.transformProperties(sequence: component.sequence, uuid: component.uuid, properties: properties, frame: timeline.currentFrame)
                     
                     if component.componentType != .Transform2D && component.componentType != .Transform3D {
@@ -1046,10 +1100,24 @@ class CodeBuilder
         compute.run( copyState!, outTexture: to, inTexture: from, syncronize: syncronize)
     }
     
+    // Copy the texture lines
+    func renderCopyLine(_ to: MTLTexture,_ from: MTLTexture, lineNumber: Float, syncronize: Bool = false)
+    {
+        let lineBuffer = compute.device.makeBuffer(bytes: [SIMD4<Float>(lineNumber, lineNumber, lineNumber, lineNumber)], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        compute.run( copyLineState!, outTexture: to, inBuffer: lineBuffer, inTexture: from, syncronize: syncronize)
+    }
+    
     // Copy and gamma correct the texture
     func renderCopyGamma(_ to: MTLTexture,_ from: MTLTexture, syncronize: Bool = false)
     {
         compute.run( copyGammaState!, outTexture: to, inTexture: from, syncronize: syncronize)
+    }
+    
+    // Copy and gamma correct the texture
+    func renderCopyGammaLine(_ to: MTLTexture,_ from: MTLTexture, lineNumber: Float, syncronize: Bool = false)
+    {
+        let lineBuffer = compute.device.makeBuffer(bytes: [SIMD4<Float>(lineNumber, lineNumber, lineNumber, lineNumber)], length: 1 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+        compute.run( copyGammaLineState!, outTexture: to, inBuffer: lineBuffer, inTexture: from, syncronize: syncronize)
     }
     
     // Render the Depth Map
@@ -1256,20 +1324,6 @@ class CodeBuilder
             return float2( -b-h, -b+h );
         }
         
-        // axis aligned box centered at the origin, with size boxSize
-        float2 boxIntersection( float3 ro, float3 rd, float3 boxSize )
-        {
-            float3 m = 1.0/rd; // can precompute if traversing a set of aligned boxes
-            float3 n = m*ro;   // can precompute if traversing a set of aligned boxes
-            float3 k = abs(m)*boxSize;
-            float3 t1 = -n - k;
-            float3 t2 = -n + k;
-            float tN = max( max( t1.x, t1.y ), t1.z );
-            float tF = min( min( t2.x, t2.y ), t2.z );
-            if( tN>tF || tF < 0.0) return float2(-1.0); // no intersection
-            return float2( tN, tF );
-        }
-        
         float2 hitBBox( float3 rO, float3 rD, float3 min, float3 max )
         {
             // --- aabb check
@@ -1329,6 +1383,7 @@ class CodeBuilder
 
             return float2(lo, hi);
         }
+
         
         /*
         float4 __sampleTexture(texture2d<half, access::sample> texture, float2 uv)
