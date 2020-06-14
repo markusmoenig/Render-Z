@@ -13,7 +13,7 @@ class GroundShader      : BaseShader
     var scene           : Scene
     var object          : StageItem
     var camera          : CodeComponent
-        
+    
     init(scene: Scene, object: StageItem, camera: CodeComponent)
     {
         self.scene = scene
@@ -35,11 +35,16 @@ class GroundShader      : BaseShader
         dryRunComponent(groundComponent, data.count)
         collectProperties(groundComponent)
 
+        let material = generateMaterialCode(stageItem: self.object)
+        
+        print(material)
+        
         let fragmentCode =
         """
 
         \(camera.globalCode!)
         \(groundComponent.globalCode!)
+        \(material)
 
         fragment float4 procFragment(RasterizerData in [[stage_in]],
                                      constant float4 *__data [[ buffer(2) ]])
@@ -70,14 +75,26 @@ class GroundShader      : BaseShader
         
             \(groundComponent.code!)
 
-            if (outShape.x == 0.0)
-                outColor = float4(0,1,0,1);
-            else outColor = float4(0);
+            if (isEqual(outShape.x, 0.0)) {
+                
+                float3 hitPosition = rayOrigin + rayDirection * outShape.y;
+                
+                struct MaterialOut materialOut;
+                materialOut.color = float4(0,0,0,1);
+                materialOut.mask = float3(0);
+                material0(rayDirection, hitPosition, outNormal, float3(0,1,0), float4(0), float4(20), 1.0, 1.0, &materialOut, __funcData);
+        
+                outColor.xyz = materialOut.color.xyz;
+
+            } else outColor = float4(0);
             
             return outColor;
         }
 
         """
+                
+        //void material\(materialIndex)(float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+        //float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
         
         compile(vertexCode: BaseShader.getQuadVertexSource(), fragmentCode: fragmentCode, textureOffset: 3)
     }
@@ -116,6 +133,10 @@ class GroundShader      : BaseShader
         //renderEncoder.setVertexBytes(&matrix, length: MemoryLayout<float4x4>.stride, index: 1)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         renderEncoder.endEncoding()
+        
+        commandBuffer.addCompletedHandler { cb in
+            globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
+        }
         
         commandBuffer.commit()
     }

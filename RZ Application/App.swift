@@ -56,6 +56,8 @@ class App
     var images          : [(String,MTLTexture)] = []
     
     var viewsAreAnimating = false
+    
+    var executionTime   : Double = 0
         
     #if os(iOS)
     var viewController  : ViewController?

@@ -118,6 +118,8 @@ class Pipeline3DRT          : Pipeline
 
         checkFinalTexture(true)
         
+        globalApp!.executionTime = 0
+        
         if let background = backgroundShader, background.shaderState == .Compiled {
             background.render(texture: finalTexture!)
         }
@@ -128,6 +130,9 @@ class Pipeline3DRT          : Pipeline
             }
         }
 
+        #if DEBUG
+        print("Execution Time: ", globalApp!.executionTime * 1000)
+        #endif
         //var points : [Float] = []
         //pointCloudBuilder.render(points: points, texture: finalTexture!, camera: cameraComponent)
     }

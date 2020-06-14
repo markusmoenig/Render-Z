@@ -22,7 +22,10 @@ class BaseShader
     var commandQueue        : MTLCommandQueue!
     let device              : MTLDevice
     
+    var executionTime       : Double = 0
+    
     // Instance Data
+    
     var data                : [SIMD4<Float>] = []
     var buffer              : MTLBuffer!
             
@@ -431,6 +434,145 @@ class BaseShader
         return device.makeBuffer(bytes: quadVertices, length: quadVertices.count * MemoryLayout<Float>.stride, options: [])!
     }
     
+    /// Inserts the texture code into the source code
+    func insertTextureCode(sourceCode: String, startOffset: Int, id: String) -> String
+    {
+        // Replace
+        var code = ""
+        
+        for (index, t) in textures.enumerated() {
+            code += "texture2d<half, access::sample>     \(t.1) [[texture(\(index + startOffset))]], \n"
+            //print(t.0, index + startOffset)
+        }
+
+        var changed = sourceCode.replacingOccurrences(of: "__\(id)_TEXTURE_HEADER_CODE__", with: code)
+
+        changed = changed.replacingOccurrences(of: "__\(id)_AFTER_TEXTURE_OFFSET__", with: String(startOffset + textures.count))
+        //print("__AFTER_TEXTURE_OFFSET__", startOffset + instance.textures.count)
+
+        code = ""
+        if textures.count > 0 {
+            code = "constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
+        }
+        for t in textures{
+            code += "__funcData->\(t.1) = \(t.1);\n"
+        }
+        
+        changed = changed.replacingOccurrences(of: "__\(id)_TEXTURE_ASSIGNMENT_CODE__", with: code)
+        return changed
+    }
+    
+    /// Inserts the texture references into the source code
+    func replaceTexturReferences(sourceCode: String) -> String
+    {
+        var replacedSource = sourceCode
+        
+        for tR in textureRep {
+            replacedSource = insertTextureCode(sourceCode: replacedSource, startOffset: tR.1, id: tR.0)
+        }
+        
+        var code = replacedSource
+        
+        // __FuncData structure and texture definitions
+        var funcData = ""
+        var textureDefs = ""//constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
+
+        for t in textures {
+            funcData += "texture2d<half, access::sample> " + t.1 + ";"
+            textureDefs += "texture2d<half, access::sample> " + t.1 + " = __funcData->\(t.1);\n"
+        }
+
+        code = code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: funcData)
+        code = code.replacingOccurrences(of: "__CREATE_TEXTURE_DEFINITIONS__", with: textureDefs)
+        
+        return code
+    }
+    
+    func generateMaterialCode(stageItem: StageItem, materialIndex: Int = 0) -> String
+    {
+        var globalCode = ""
+        
+        if let material = getFirstComponentOfType(stageItem.children, .Material3D) {
+
+            globalCode +=
+            """
+            
+            void material\(materialIndex)(float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+            float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
+            {
+                float2 uv = float2(0);
+                constant float4 *__data = __funcData->__data;
+                float GlobalTime = __funcData->GlobalTime;
+                float GlobalSeed = __funcData->GlobalSeed;
+                __CREATE_TEXTURE_DEFINITIONS__
+
+
+                float4 outColor = __materialOut->color;
+                float3 outMask = __materialOut->mask;
+                float3 outReflectionDir = float3(0);
+                float outReflectionBlur = 0.;
+                float outReflectionDist = 0.;
+            
+                float3 localPosition = hitPosition;
+            
+                float2 outUV = float2(0);
+                float3 position = hitPosition;
+            
+            """
+            
+            
+            // UV Mapping
+            
+            if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
+                dryRunComponent(uvMap, data.count)
+                collectProperties(uvMap)
+                
+                globalCode = uvMap.globalCode! + globalCode
+                globalCode += uvMap.code!
+            }
+            
+            globalCode +=
+            """
+            
+            uv = outUV;
+            
+            """
+            
+            // ---
+            
+            // Get the patterns of the material if any
+            var patterns : [CodeComponent] = []
+            if let materialStageItem = getFirstStageItemOfComponentOfType(stageItem.children, .Material3D) {
+                if materialStageItem.componentLists["patterns"] != nil {
+                    patterns = materialStageItem.componentLists["patterns"]!
+                }
+            }
+            
+            dryRunComponent(material, data.count, patternList: patterns)
+            collectProperties(material)
+            if let gCode = material.globalCode {
+                globalCode = gCode + globalCode
+            }
+            if let code = material.code {
+                globalCode += code
+            }
+            
+            globalCode +=
+            """
+                
+                __materialOut->color = outColor;
+                __materialOut->mask = outMask;
+                __materialOut->reflectionDir = outReflectionDir;
+                __materialOut->reflectionDist = outReflectionDist;
+            }
+            
+            """
+        }
+        
+        
+        return globalCode
+    }
+    
     /// Returns the header code required by every shader
     static func getHeaderCode() -> String
     {
@@ -472,6 +614,11 @@ class BaseShader
         };
         
         #define PI 3.1415926535897932384626422832795028841971
+        
+        bool isEqual(float a, float b, float epsilon = 0.00001)
+        {
+            return abs(a-b) < epsilon;
+        }
         
         uint baseHash( uint2 p ) {
             p = 1103515245U*((p >> 1U)^(p.yx));
@@ -890,59 +1037,5 @@ class BaseShader
         }
         
         """
-    }
-    
-    /// Inserts the texture code into the source code
-    func insertTextureCode(sourceCode: String, startOffset: Int, id: String) -> String
-    {
-        // Replace
-        var code = ""
-        
-        for (index, t) in textures.enumerated() {
-            code += "texture2d<half, access::sample>     \(t.1) [[texture(\(index + startOffset))]], \n"
-            //print(t.0, index + startOffset)
-        }
-
-        var changed = sourceCode.replacingOccurrences(of: "__\(id)_TEXTURE_HEADER_CODE__", with: code)
-
-        changed = changed.replacingOccurrences(of: "__\(id)_AFTER_TEXTURE_OFFSET__", with: String(startOffset + textures.count))
-        //print("__AFTER_TEXTURE_OFFSET__", startOffset + instance.textures.count)
-
-        code = ""
-        if textures.count > 0 {
-            code = "constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
-        }
-        for t in textures{
-            code += "__funcData->\(t.1) = \(t.1);\n"
-        }
-        
-        changed = changed.replacingOccurrences(of: "__\(id)_TEXTURE_ASSIGNMENT_CODE__", with: code)
-        return changed
-    }
-    
-    /// Inserts the texture references into the source code
-    func replaceTexturReferences(sourceCode: String) -> String
-    {
-        var replacedSource = sourceCode
-        
-        for tR in textureRep {
-            replacedSource = insertTextureCode(sourceCode: replacedSource, startOffset: tR.1, id: tR.0)
-        }
-        
-        var code = replacedSource
-        
-        // __FuncData structure and texture definitions
-        var funcData = ""
-        var textureDefs = ""//constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
-
-        for t in textures {
-            funcData += "texture2d<half, access::sample> " + t.1 + ";"
-            textureDefs += "texture2d<half, access::sample> " + t.1 + " = __funcData->\(t.1);\n"
-        }
-
-        code = code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: funcData)
-        code = code.replacingOccurrences(of: "__CREATE_TEXTURE_DEFINITIONS__", with: textureDefs)
-        
-        return code
     }
 }

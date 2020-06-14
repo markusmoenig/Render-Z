@@ -12,7 +12,7 @@ class BackgroundShader      : BaseShader
 {
     var scene           : Scene
     var camera          : CodeComponent
-        
+            
     init(scene: Scene, camera: CodeComponent)
     {
         self.scene = scene
@@ -110,6 +110,10 @@ class BackgroundShader      : BaseShader
         //renderEncoder.setVertexBytes(&matrix, length: MemoryLayout<float4x4>.stride, index: 1)
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
         renderEncoder.endEncoding()
+        
+        commandBuffer.addCompletedHandler { cb in
+            globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
+        }
         
         commandBuffer.commit()
     }
