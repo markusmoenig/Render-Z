@@ -8,6 +8,17 @@
 
 import MetalKit
 
+class PRTInstance {
+    
+    var cameraOrigin        : float3 = float3(0,0,0)
+    var cameraLookAt        : float3 = float3(0,0,0)
+    var projectionMatrix    : matrix_float4x4 = matrix_identity_float4x4
+    var viewMatrix          : matrix_float4x4 = matrix_identity_float4x4
+
+    var depthTexture        : MTLTexture? = nil
+    
+}
+
 class Pipeline3DRT          : Pipeline
 {
     enum Stage : Int {
@@ -50,6 +61,8 @@ class Pipeline3DRT          : Pipeline
     
     var backgroundShader    : BackgroundShader? = nil
     var shaders             : [BaseShader] = []
+    
+    var prtInstance         : PRTInstance!
 
     override init(_ mmView: MMView)
     {
@@ -79,7 +92,9 @@ class Pipeline3DRT          : Pipeline
         
         shaders = []
         
-        backgroundShader = BackgroundShader(scene: scene, camera: cameraComponent)
+        prtInstance = PRTInstance()
+        
+        backgroundShader = BackgroundShader(instance: prtInstance, scene: scene, camera: cameraComponent)
         
         let shapeStage = scene.getStage(.ShapeStage)
         for item in shapeStage.getChildren() {
@@ -88,7 +103,7 @@ class Pipeline3DRT          : Pipeline
                 // Object
                 if item.getComponentList("shapes") != nil {
 
-                    let shader = ObjectShader(scene: scene, object: item, camera: cameraComponent)
+                    let shader = ObjectShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
                     shaders.append(shader)
 
                     //item.builderInstance = instance
@@ -97,7 +112,7 @@ class Pipeline3DRT          : Pipeline
                 if let ground = item.components[item.defaultName], ground.componentType == .Ground3D {
                     // Ground Object
 
-                    let shader = GroundShader(scene: scene, object: item, camera: cameraComponent)
+                    let shader = GroundShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
                     shaders.append(shader)
                 }
             } else {
@@ -117,7 +132,16 @@ class Pipeline3DRT          : Pipeline
     override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
         width = round(widthIn); height = round(heightIn)
+        
+        let camHelper = CamHelper3D()
+        camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
+        camHelper.updateProjection()
+        
+        prtInstance.projectionMatrix = camHelper.projMatrix
+        prtInstance.viewMatrix = camHelper.getTransform().inverse
 
+        prtInstance.depthTexture = checkTextureSize(width, height, prtInstance.depthTexture, .rgba16Float)
+        
         checkFinalTexture(true)
         
         globalApp!.executionTime = 0

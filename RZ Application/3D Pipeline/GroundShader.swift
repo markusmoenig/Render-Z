@@ -14,13 +14,13 @@ class GroundShader      : BaseShader
     var object          : StageItem
     var camera          : CodeComponent
     
-    init(scene: Scene, object: StageItem, camera: CodeComponent)
+    init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
         self.scene = scene
         self.object = object
         self.camera = camera
                     
-        super.init()
+        super.init(instance: instance)
         
         if let ground = object.components[object.defaultName] {
             createFragmentSource(groundComponent: ground, camera: camera)

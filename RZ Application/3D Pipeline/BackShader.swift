@@ -13,12 +13,12 @@ class BackgroundShader      : BaseShader
     var scene           : Scene
     var camera          : CodeComponent
             
-    init(scene: Scene, camera: CodeComponent)
+    init(instance: PRTInstance, scene: Scene, camera: CodeComponent)
     {
         self.scene = scene
         self.camera = camera
                     
-        super.init()
+        super.init(instance: instance)
         
         let preStage = scene.getStage(.PreStage)
         for item in preStage.getChildren() {

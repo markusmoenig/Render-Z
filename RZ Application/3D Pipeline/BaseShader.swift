@@ -49,9 +49,12 @@ class BaseShader
     var finishedCompiling   : Bool = false
         
     var rootObject          : StageItem? = nil
+    
+    var prtInstance         : PRTInstance
 
-    init()
+    init(instance: PRTInstance)
     {
+        self.prtInstance = instance
         device = globalApp!.mmView.device!
         data.append(SIMD4<Float>(0, 0 ,0, 0))
     }
@@ -391,8 +394,7 @@ class BaseShader
                      constant VertexData *vertexArray [[ buffer(0) ]],
                      constant vector_uint2 *viewportSizePointer  [[ buffer(1) ]])
 
-        {
-            
+        {            
             RasterizerData out;
             
             float2 pixelSpacePosition = vertexArray[vertexID].position.xy;

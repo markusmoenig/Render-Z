@@ -16,13 +16,13 @@ class ObjectShader  : BaseShader
     
     var bbTriangles : [Float] = []
     
-    init(scene: Scene, object: StageItem, camera: CodeComponent)
+    init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
         self.scene = scene
         self.object = object
         self.camera = camera
         
-        super.init()
+        super.init(instance: instance)
         
         buildShader()
     }
@@ -39,16 +39,16 @@ class ObjectShader  : BaseShader
         } ObjectUniforms;
 
         struct VertexOut{
-            float4 position[[position]];
+            float4 worldPosition[[position]];
         };
 
-        vertex VertexOut procVertex(const device packed_float4 *points [[ buffer(0) ]],
+        vertex VertexOut procVertex(const device packed_float4 *triangles [[ buffer(0) ]],
                                     constant ObjectUniforms &uniforms [[ buffer(1) ]],
                                     unsigned int vid [[ vertex_id ]] )
         {
             VertexOut out;
 
-            out.position = uniforms.projectionMatrix * uniforms.viewMatrix * uniforms.modelMatrix * float4(points[vid]);
+            out.worldPosition = uniforms.projectionMatrix * uniforms.viewMatrix * uniforms.modelMatrix * float4(triangles[vid]);
             
             return out;
         }
@@ -58,8 +58,11 @@ class ObjectShader  : BaseShader
         let fragmentShader =
         """
 
-        fragment half4 procFragment()
+        fragment half4 procFragment(VertexOut in [[stage_in]])
+        //                                    texture2d<half, access::write> depthTexture [[texture(0)]] )
         {
+            //constexpr sampler sampler(mag_filter::linear, min_filter::linear);
+
             return half4(1.0);
         }
 
@@ -93,13 +96,6 @@ class ObjectShader  : BaseShader
         if bbTriangles.count == 0 { return }
         let dataSize = bbTriangles.count * MemoryLayout<Float>.size
         let vertexBuffer = device.makeBuffer(bytes: bbTriangles, length: dataSize, options: [])
-        
-        let camHelper = CamHelper3D()
-        camHelper.initFromComponent(aspect: Float(texture.width) / Float(texture.height), component: camera)
-        //var matrix = camHelper.getTransform()
-        //memcpy(renderParams?.contents(), camHelper.getMatrix().m, MemoryLayout<matrix_float4x4>.size)
-        
-        camHelper.updateProjection()
 
         var mTranslation = matrix_identity_float4x4
         var mRotation = matrix_identity_float4x4
@@ -121,9 +117,9 @@ class ObjectShader  : BaseShader
         }
         
         var uniforms = ObjectUniforms();
-        uniforms.projectionMatrix = camHelper.projMatrix
+        uniforms.projectionMatrix = prtInstance.projectionMatrix
         uniforms.modelMatrix = mTranslation * mRotation * mScale
-        uniforms.viewMatrix = camHelper.getTransform().inverse
+        uniforms.viewMatrix = prtInstance.viewMatrix
         
         let renderPassDescriptor = MTLRenderPassDescriptor()
         renderPassDescriptor.colorAttachments[0].texture = texture
@@ -132,8 +128,12 @@ class ObjectShader  : BaseShader
         let commandBuffer = commandQueue.makeCommandBuffer()!
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
         renderEncoder.setRenderPipelineState(pipelineState)
+        
         renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         renderEncoder.setVertexBytes(&uniforms, length: MemoryLayout<ObjectUniforms>.stride, index: 1)
+        
+        //renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 0)
+        
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: bbTriangles.count / 4)
         renderEncoder.endEncoding()
         
