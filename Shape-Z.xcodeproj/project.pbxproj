@@ -174,6 +174,8 @@
 		2B50635923CEC98600124517 /* LibraryDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B50635723CEC98500124517 /* LibraryDialog.swift */; };
 		2B52E5AC2495C1FE009CFE1F /* GroundShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */; };
 		2B52E5AD2495C1FF009CFE1F /* GroundShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */; };
+		2B52E5B124972847009CFE1F /* MathLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B52E5B024972846009CFE1F /* MathLibrary.swift */; };
+		2B52E5B224972847009CFE1F /* MathLibrary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B52E5B024972846009CFE1F /* MathLibrary.swift */; };
 		2B57D7902358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7912358149600E8BF65 /* GameCuben.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78E2358149600E8BF65 /* GameCuben.tiff */; };
 		2B57D7922358149600E8BF65 /* GameCuben.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B57D78F2358149600E8BF65 /* GameCuben.json */; };
@@ -778,6 +780,8 @@
 		2B50635423CE9ABE00124517 /* Context.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Context.swift; sourceTree = "<group>"; };
 		2B50635723CEC98500124517 /* LibraryDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryDialog.swift; sourceTree = "<group>"; };
 		2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroundShader.swift; sourceTree = "<group>"; };
+		2B52E5AF24971E63009CFE1F /* Shader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Shader.h; sourceTree = "<group>"; };
+		2B52E5B024972846009CFE1F /* MathLibrary.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MathLibrary.swift; sourceTree = "<group>"; };
 		2B57D78E2358149600E8BF65 /* GameCuben.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = GameCuben.tiff; sourceTree = "<group>"; };
 		2B57D78F2358149600E8BF65 /* GameCuben.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = GameCuben.json; sourceTree = "<group>"; };
 		2B59875723D15BD0007E335F /* Combo2D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Combo2D.swift; sourceTree = "<group>"; };
@@ -1166,15 +1170,17 @@
 			isa = PBXGroup;
 			children = (
 				2BCD67562493486600E066C0 /* BaseShader.swift */,
-				2BCD67592494510E00E066C0 /* ObjectShader.swift */,
 				2BCD675A2494514600E066C0 /* BackShader.swift */,
 				2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */,
+				2BCD67592494510E00E066C0 /* ObjectShader.swift */,
 				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
 				2BAA45C224133B1900744A0A /* Pipeline3D.swift */,
 				2B8DB3922491A9C300D57DC4 /* Pipeline3DRT.swift */,
 				2BCD674F2491B05300E066C0 /* PointCloudBuilder.swift */,
 				2BCD67522491B3EB00E066C0 /* PointCloud.metal */,
 				2B65083223D69922003DE093 /* CodeSDFStream.swift */,
+				2B52E5B024972846009CFE1F /* MathLibrary.swift */,
+				2B52E5AF24971E63009CFE1F /* Shader.h */,
 			);
 			path = "3D Pipeline";
 			sourceTree = "<group>";
@@ -2030,6 +2036,7 @@
 				2B65083C23E50133003DE093 /* SceneGraph.swift in Sources */,
 				2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */,
 				2BD291BA23D43AB0006F66BC /* Base.swift in Sources */,
+				2B52E5B124972847009CFE1F /* MathLibrary.swift in Sources */,
 				2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */,
 				2B59875823D15BD0007E335F /* Combo2D.swift in Sources */,
 				2B7A3C1323B46546002EC5FC /* MMFloatPopUp.swift in Sources */,
@@ -2342,6 +2349,7 @@
 				2B9B29E223BB45C000C2F387 /* LeftRegion.swift in Sources */,
 				2BBFA82E24346027008981B7 /* CodeClipboard.swift in Sources */,
 				2B9B29BF23BB453400C2F387 /* MMBaseView__ios.swift in Sources */,
+				2B52E5B224972847009CFE1F /* MathLibrary.swift in Sources */,
 				2B9B29CD23BB453400C2F387 /* MMTabButtonWidget.swift in Sources */,
 				2B9B29D023BB453400C2F387 /* MMScrollArea.swift in Sources */,
 			);
@@ -2909,9 +2917,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
+				"MTL_HEADER_SEARCH_PATHS[sdk=*]" = "";
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = "RZ Application/3D Pipeline/Shader.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -2964,8 +2974,10 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				"MTL_HEADER_SEARCH_PATHS[sdk=*]" = "";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = "RZ Application/3D Pipeline/Shader.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
 			name = Release;

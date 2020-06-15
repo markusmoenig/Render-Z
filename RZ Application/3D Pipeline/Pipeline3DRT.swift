@@ -88,7 +88,9 @@ class Pipeline3DRT          : Pipeline
                 // Object
                 if item.getComponentList("shapes") != nil {
 
-                    
+                    let shader = ObjectShader(scene: scene, object: item, camera: cameraComponent)
+                    shaders.append(shader)
+
                     //item.builderInstance = instance
                     //instance.rootObject = item
                 } else
@@ -131,7 +133,7 @@ class Pipeline3DRT          : Pipeline
         }
 
         #if DEBUG
-        print("Execution Time: ", globalApp!.executionTime * 1000)
+        //print("Execution Time: ", globalApp!.executionTime * 1000)
         #endif
         //var points : [Float] = []
         //pointCloudBuilder.render(points: points, texture: finalTexture!, camera: cameraComponent)
