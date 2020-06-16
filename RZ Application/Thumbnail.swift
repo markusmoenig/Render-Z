@@ -67,6 +67,8 @@ class Thumbnail
                 return result
             }
             
+            return nil
+            
             depthTexture = checkTextureSize(width, height, depthTexture)
             backTexture = checkTextureSize(width, height, backTexture)
             
