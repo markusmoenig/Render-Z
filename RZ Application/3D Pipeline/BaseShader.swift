@@ -93,6 +93,7 @@ class BaseShader
         source = source.replacingOccurrences(of: "__INITIALIZE_FUNC_DATA__", with: funcDataCode)
         source = replaceTexturReferences(sourceCode: source)
         
+        print(source)
         shaderState = .Compiling
         device.makeLibrary( source: source, options: nil, completionHandler: { (library, error) in
             if let error = error, library == nil {
@@ -569,7 +570,6 @@ class BaseShader
             
             """
         }
-        
         
         return globalCode
     }
