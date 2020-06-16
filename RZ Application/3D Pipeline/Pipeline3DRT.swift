@@ -12,6 +12,9 @@ class PRTInstance {
     
     var cameraOrigin        : float3 = float3(0,0,0)
     var cameraLookAt        : float3 = float3(0,0,0)
+    
+    var screenSize          : float2 = float2(0,0)
+    
     var projectionMatrix    : matrix_float4x4 = matrix_identity_float4x4
     var viewMatrix          : matrix_float4x4 = matrix_identity_float4x4
 
@@ -137,6 +140,11 @@ class Pipeline3DRT          : Pipeline
         camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
         camHelper.updateProjection()
         
+        prtInstance.cameraOrigin = camHelper.eye
+        prtInstance.cameraLookAt = camHelper.center
+
+        prtInstance.screenSize = float2(width, height)
+
         prtInstance.projectionMatrix = camHelper.projMatrix
         prtInstance.viewMatrix = camHelper.getTransform().inverse
 

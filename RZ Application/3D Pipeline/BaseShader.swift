@@ -394,7 +394,7 @@ class BaseShader
                      constant VertexData *vertexArray [[ buffer(0) ]],
                      constant vector_uint2 *viewportSizePointer  [[ buffer(1) ]])
 
-        {            
+        {
             RasterizerData out;
             
             float2 pixelSpacePosition = vertexArray[vertexID].position.xy;

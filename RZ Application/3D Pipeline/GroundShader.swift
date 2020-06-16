@@ -49,7 +49,7 @@ class GroundShader      : BaseShader
         {
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             float2 size = in.viewportSize;
-            float2 jitter = float2(1);
+            float2 jitter = float2(0.5);
 
             __INITIALIZE_FUNC_DATA__
 
