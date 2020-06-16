@@ -221,6 +221,8 @@ class ObjectShader  : BaseShader
     
     func createMapCode() -> String
     {
+        var hierarchy           : [StageItem] = []
+        
         var headerCode = ""
         var mapCode = """
 
@@ -241,15 +243,6 @@ class ObjectShader  : BaseShader
             float GlobalTime = __funcData->GlobalTime;
             float GlobalSeed = __funcData->GlobalSeed;
 
-            __CREATE_TEXTURE_DEFINITIONS__
-
-            //float d = length(__origin) - 1.0;
-            //if ( d < outShape.x ) {
-            //    outShape = float4(d,0,1,1);
-            //}
-            //return outShape;
-        //}
-
         """
                         
         func pushComponent(component: CodeComponent)
@@ -262,10 +255,25 @@ class ObjectShader  : BaseShader
             }
             
             if let code = component.code {
+                
+                let posX = getTransformPropertyIndex(component, "_posX")
+                let posY = getTransformPropertyIndex(component, "_posY")
+                let posZ = getTransformPropertyIndex(component, "_posZ")
+                
+                let rotateX = getTransformPropertyIndex(component, "_rotateX")
+                let rotateY = getTransformPropertyIndex(component, "_rotateY")
+                let rotateZ = getTransformPropertyIndex(component, "_rotateZ")
+                
                 mapCode += """
                 
                     {
-                        float3 position = __origin;
+                        float3 __originalPosition = float3(__data[\(posX)].x, __data[\(posY)].x, __data[\(posZ)].x);
+                        float3 position = __translate(__origin, __originalPosition);
+                        float3 __offsetFromCenter = __objectPosition - __originalPosition;
+
+                        position.yz = rotatePivot( position.yz, radians(__data[\(rotateX)].x\(getInstantiationModifier("_rotateRandomX", component.values))), __offsetFromCenter.yz );
+                        position.xz = rotatePivot( position.xz, radians(__data[\(rotateY)].x\(getInstantiationModifier("_rotateRandomY", component.values))), __offsetFromCenter.xz );
+                        position.xy = rotatePivot( position.xy, radians(__data[\(rotateZ)].x\(getInstantiationModifier("_rotateRandomZ", component.values))), __offsetFromCenter.xy );
                 
                 """
                 mapCode += code
@@ -292,7 +300,9 @@ class ObjectShader  : BaseShader
         }
         
         if let shapes = object.getComponentList("shapes") {
-            pushComponent(component: shapes[0])
+            for shape in shapes {
+                pushComponent(component: shape)
+            }
         }
         
         mapCode += """

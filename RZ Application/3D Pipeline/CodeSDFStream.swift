@@ -1734,6 +1734,7 @@ class CodeSDFStream
         componentCounter += 1
     }
     
+    // MARK:- pushStageItem
     func pushStageItem(_ stageItem: StageItem)
     {
         hierarchy.append(stageItem)
@@ -1924,7 +1925,6 @@ class CodeSDFStream
                 float GlobalTime = __funcData->GlobalTime;
                 float GlobalSeed = __funcData->GlobalSeed;
                 __CREATE_TEXTURE_DEFINITIONS__
-
 
                 float4 outColor = __materialOut->color;
                 float3 outMask = __materialOut->mask;

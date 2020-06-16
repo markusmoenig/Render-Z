@@ -838,6 +838,11 @@ class BaseShader
             return p - t;
         }
         
+        float3 __translate(float3 p, float3 t)
+        {
+            return p - t;
+        }
+        
         // 2D Noise -------------
         float hash(float2 p) {float3 p3 = fract(float3(p.xyx) * 0.13); p3 += dot(p3, p3.yzx + 3.333); return fract((p3.x + p3.y) * p3.z); }
 
