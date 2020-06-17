@@ -7,25 +7,52 @@
 //
 
 #include <metal_stdlib>
+#include <simd/simd.h>
 using namespace metal;
 
-struct VertexOut{
-    float4 position[[position]];
-    float pointsize[[point_size]];
-};
-
-vertex VertexOut basic_vertex(const device packed_float3 *points [[ buffer(0) ]], const device float4x4 *m [[ buffer(1) ]],
-                           unsigned int vid [[ vertex_id ]] )
+typedef struct
 {
-    VertexOut out;
+    float4 clipSpacePosition [[position]];
+    float2 textureCoordinate;
+} RasterizerData;
 
-    out.position = *m * float4(points[vid], 1.0);
-    out.pointsize = 80;
+typedef struct
+{
+    vector_float2 position;
+    vector_float2 textureCoordinate;
+} MM_Vertex;
+
+vertex RasterizerData
+PRTQuadVertexShader(uint vertexID [[ vertex_id ]],
+             constant MM_Vertex *vertexArray [[ buffer(0) ]],
+             constant vector_uint2 *viewportSizePointer  [[ buffer(1) ]])
+{
+    RasterizerData out;
     
+    float2 pixelSpacePosition = vertexArray[vertexID].position.xy;
+    float2 viewportSize = float2(*viewportSizePointer);
+    
+    out.clipSpacePosition.xy = pixelSpacePosition / (viewportSize / 2.0);
+    out.clipSpacePosition.z = 0.0;
+    out.clipSpacePosition.w = 1.0;
+    
+    out.textureCoordinate = vertexArray[vertexID].textureCoordinate;
     return out;
 }
 
-fragment half4 basic_fragment()
+fragment float4 prtMergeLocal(RasterizerData in [[stage_in]])
 {
-    return half4(1.0);
+    /*
+    float2 uv = in.textureCoordinate * float2( data->radius * 2 + data->borderSize, data->radius * 2 + data->borderSize );
+    uv -= float2( data->radius + data->borderSize / 2 );
+    
+    float dist = length( uv ) - data->radius;
+    
+    
+    float4 col = float4( data->fillColor.x, data->fillColor.y, data->fillColor.z, m4mFillMask( dist ) * data->fillColor.w );
+    col = mix( col, data->borderColor, m4mBorderMask( dist, data->borderSize ) );
+    */
+    
+    float4 outColor = float4(0);
+    return outColor;
 }

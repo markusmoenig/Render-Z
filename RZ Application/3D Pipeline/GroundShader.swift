@@ -40,12 +40,17 @@ class GroundShader      : BaseShader
         let fragmentCode =
         """
 
+        \(prtInstance.fragmentUniforms)
+        
         \(camera.globalCode!)
         \(groundComponent.globalCode!)
         \(material)
 
         fragment float4 procFragment(RasterizerData in [[stage_in]],
-                                     constant float4 *__data [[ buffer(2) ]])
+                                     __MAIN_TEXTURE_HEADER_CODE__
+                                     constant float4 *__data [[ buffer(0) ]],
+                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                     texture2d<half, access::write> depthTexture [[texture(2)]])
         {
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             float2 size = in.viewportSize;
@@ -85,6 +90,8 @@ class GroundShader      : BaseShader
                 outColor.xyz = materialOut.color.xyz;
 
             } else outColor = float4(0);
+        
+            depthTexture.write(half4(outShape), ushort2(uv.x * size.x, uv.y * size.y));
             
             return outColor;
         }
@@ -106,7 +113,7 @@ class GroundShader      : BaseShader
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
         renderEncoder.setRenderPipelineState(pipelineState)
         
-        // ---
+        // --- Vertex
         renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(texture.width), height: Double(texture.height), znear: -1.0, zfar: 1.0 ) )
         
         let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, Float(texture.width), Float(texture.height) ) )
@@ -115,7 +122,17 @@ class GroundShader      : BaseShader
         var viewportSize : vector_uint2 = vector_uint2( UInt32( texture.width ), UInt32( texture.height ) )
         renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
         
-        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 2)
+        // --- Fragment
+        
+        var fragmentUniforms = ObjectFragmentUniforms()
+        fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+        fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+        fragmentUniforms.screenSize = prtInstance.screenSize
+
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+
+        renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 1)
         // ---
         
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

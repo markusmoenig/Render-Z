@@ -8,12 +8,14 @@
 
 import MetalKit
 
-class ObjectShader  : BaseShader
+class ObjectShader      : BaseShader
 {
-    var scene       : Scene
-    var object      : StageItem
-    var camera      : CodeComponent
+    var scene           : Scene
+    var object          : StageItem
+    var camera          : CodeComponent
     
+    var materialCode    = ""
+
     var bbTriangles : [Float] = []
     
     init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
@@ -69,11 +71,19 @@ class ObjectShader  : BaseShader
         var headerCode = ""
         let mapCode = createMapCode()
         
+        // Raymarch
         let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D)!
-        
         dryRunComponent(rayMarch, data.count)
         collectProperties(rayMarch)
         if let globalCode = rayMarch.globalCode {
+            headerCode += globalCode
+        }
+        
+        // Normals
+        let normal = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Normal3D)!
+        dryRunComponent(normal, data.count)
+        collectProperties(normal)
+        if let globalCode = normal.globalCode {
             headerCode += globalCode
         }
         
@@ -84,27 +94,19 @@ class ObjectShader  : BaseShader
 
         fragment half4 procFragment(VertexOut vertexIn [[stage_in]],
                                     __MAIN_TEXTURE_HEADER_CODE__
-                                    constant float4 *__data [[ buffer(2) ]],
-                                    constant ObjectFragmentUniforms &uniforms [[ buffer(3) ]])
+                                    constant float4 *__data [[ buffer(0) ]],
+                                    constant ObjectFragmentUniforms &uniforms [[ buffer(1) ]],
+                                    texture2d<half, access::read_write> depthTexture [[texture(2)]])
         {
             __INITIALIZE_FUNC_DATA__
         
             float2 size = uniforms.screenSize;
-            /*
-            float2 uv = (vertexIn.screenPosition.xyz / vertexIn.screenPosition.w).xy;
-            uv = uv * 0.5 + 0.5;
-            uv.y = 1 - uv.y;
-        
-            float3 outPosition = float3(0,0,0);
-            float3 outDirection = float3(0,0,0);
-            float2 jitter = float2(0.5);
-        
-            */
             float3 position = vertexIn.worldPosition.xyz;
         
             float3 rayOrigin = position;//uniforms.cameraOrigin;//position;
             float3 rayDirection = normalize(position - uniforms.cameraOrigin);
 
+            float4 inShape = float4(1000, 1000, -1, -1);
             float4 outShape = float4(1000, 1000, -1, -1);
             float maxDistance = 1000;
 
@@ -112,23 +114,44 @@ class ObjectShader  : BaseShader
             //__funcData->inHitPoint = rayOrigin + rayDirection * outShape.y;
 
             \(rayMarch.code!)
-
+        
             float4 outColor = float4(0);
+            if (inShape.w != outShape.w)
+            {
+                float3 outNormal = float3(0);
         
-            if (outShape.w >= 0) {
-                outColor = float4(1);
+                \(normal.code!)
+            
+                float4 shape = outShape;
+        
+                struct MaterialOut __materialOut;
+                __materialOut.color = float4(0,0,0,1);
+                __materialOut.mask = float3(0);
+        
+                float3 incomingDirection = rayDirection;
+                float3 hitPosition = position;
+                float3 hitNormal = outNormal;
+                float3 directionToLight = float3(0,1,0);
+                float4 lightType = float4(0);
+                float4 lightColor = float4(20);
+                float shadow = 1.0;
+                float occlusion = 1.0;
+                float3 mask = float3(1);
+                        
+                float3 color = float3(0);
+
+                \(materialCode)
+        
+                outColor.xyz = color;
+                outColor.w = outShape.y;
             }
-        
-            //return half4(uv.x, uv.y, 0, 1);
-            //return half4(half3(outShape.w), 1.0);
-            //return half4(half3(outColor.xyz), 1.0);
         
             return half4(outColor);
         }
 
         """
                         
-        compile(vertexCode: vertexShader, fragmentCode: fragmentShader, textureOffset: 4)
+        compile(vertexCode: vertexShader, fragmentCode: fragmentShader, textureOffset: 4, pixelFormat: .rgba16Float, blending: true, depthTest: true)
         bbTriangles = [
             // left
             -1, +1, +1, 1.0, -1, +1, -1, 1.0, -1, -1, -1, 1.0,
@@ -179,12 +202,14 @@ class ObjectShader  : BaseShader
         }
         
         let renderPassDescriptor = MTLRenderPassDescriptor()
-        renderPassDescriptor.colorAttachments[0].texture = texture
-        renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
-        
+        renderPassDescriptor.colorAttachments[0].texture = prtInstance.localTexture!
+        renderPassDescriptor.colorAttachments[0].loadAction = .clear
+        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0, blue: 0, alpha: 0.0)
+
         let commandBuffer = commandQueue.makeCommandBuffer()!
         let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
         renderEncoder.setRenderPipelineState(pipelineState)
+        //renderEncoder.setDepthStencilState(buildDepthStencilState())
         
         // Vertex Uniforms
         
@@ -203,16 +228,19 @@ class ObjectShader  : BaseShader
         fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
         fragmentUniforms.screenSize = prtInstance.screenSize
         
-        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 2)
-        renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 3)
-
-        //renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 0)
-        
+        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+        renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+        renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 2)
         // ---
+        
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: bbTriangles.count / 4)
         renderEncoder.endEncoding()
         
         commandBuffer.commit()
+        
+        // --- Merge the result
+        
+        prtInstance.mergeShader.merge(output: texture, localDepth: prtInstance.localTexture!)
     }
     
     func createMapCode() -> String
@@ -230,7 +258,6 @@ class ObjectShader  : BaseShader
         var currentMaterialId   : Int = 0
         
         var materialFuncCode    = ""
-        var materialCode        = ""
 
         var headerCode = ""
         var mapCode = """

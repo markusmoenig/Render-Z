@@ -10,6 +10,17 @@ import MetalKit
 
 class PRTInstance {
     
+    var fragmentUniforms    : String = """
+
+    typedef struct {
+        simd_float3         cameraOrigin;
+        simd_float3         cameraLookAt;
+        
+        simd_float2         screenSize;
+    } FragmentUniforms;
+
+    """
+    
     var cameraOrigin        : float3 = float3(0,0,0)
     var cameraLookAt        : float3 = float3(0,0,0)
     
@@ -19,7 +30,9 @@ class PRTInstance {
     var viewMatrix          : matrix_float4x4 = matrix_identity_float4x4
 
     var depthTexture        : MTLTexture? = nil
+    var localTexture        : MTLTexture? = nil
     
+    var mergeShader         : MergeShader!
 }
 
 class Pipeline3DRT          : Pipeline
@@ -96,6 +109,7 @@ class Pipeline3DRT          : Pipeline
         shaders = []
         
         prtInstance = PRTInstance()
+        prtInstance.mergeShader = MergeShader(instance: prtInstance)
         
         backgroundShader = BackgroundShader(instance: prtInstance, scene: scene, camera: cameraComponent)
         
@@ -149,7 +163,8 @@ class Pipeline3DRT          : Pipeline
         prtInstance.viewMatrix = camHelper.getTransform().inverse
 
         prtInstance.depthTexture = checkTextureSize(width, height, prtInstance.depthTexture, .rgba16Float)
-        
+        prtInstance.localTexture = checkTextureSize(width, height, prtInstance.depthTexture, .rgba16Float)
+
         checkFinalTexture(true)
         
         globalApp!.executionTime = 0

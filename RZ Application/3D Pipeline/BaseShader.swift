@@ -59,7 +59,7 @@ class BaseShader
         data.append(SIMD4<Float>(0, 0 ,0, 0))
     }
     
-    func compile(vertexCode: String, fragmentCode: String, textureOffset: Int)
+    func compile(vertexCode: String, fragmentCode: String, textureOffset: Int, pixelFormat: MTLPixelFormat = .bgra8Unorm, blending: Bool = true, depthTest: Bool = false)
     {
         pipelineStateDesc = MTLRenderPipelineDescriptor()
         
@@ -93,7 +93,7 @@ class BaseShader
         source = source.replacingOccurrences(of: "__INITIALIZE_FUNC_DATA__", with: funcDataCode)
         source = replaceTexturReferences(sourceCode: source)
         
-        print(source)
+        //print(source)
         shaderState = .Compiling
         device.makeLibrary( source: source, options: nil, completionHandler: { (library, error) in
             if let error = error, library == nil {
@@ -104,15 +104,21 @@ class BaseShader
 
                 self.pipelineStateDesc.vertexFunction = library.makeFunction(name: "procVertex")
                 self.pipelineStateDesc.fragmentFunction = library.makeFunction(name: "procFragment")
-                self.pipelineStateDesc.colorAttachments[0].pixelFormat = .bgra8Unorm
+                self.pipelineStateDesc.colorAttachments[0].pixelFormat = pixelFormat
                 
-                self.pipelineStateDesc.colorAttachments[0].isBlendingEnabled = true
-                self.pipelineStateDesc.colorAttachments[0].rgbBlendOperation = .add
-                self.pipelineStateDesc.colorAttachments[0].alphaBlendOperation = .add
-                self.pipelineStateDesc.colorAttachments[0].sourceRGBBlendFactor = .sourceAlpha
-                self.pipelineStateDesc.colorAttachments[0].sourceAlphaBlendFactor = .sourceAlpha
-                self.pipelineStateDesc.colorAttachments[0].destinationRGBBlendFactor = .oneMinusSourceAlpha
-                self.pipelineStateDesc.colorAttachments[0].destinationAlphaBlendFactor = .oneMinusSourceAlpha
+                if depthTest == true {
+                    //self.pipelineStateDesc.depthAttachmentPixelFormat = .depth32Float
+                }
+                
+                if blending {
+                    self.pipelineStateDesc.colorAttachments[0].isBlendingEnabled = true
+                    self.pipelineStateDesc.colorAttachments[0].rgbBlendOperation = .add
+                    self.pipelineStateDesc.colorAttachments[0].alphaBlendOperation = .add
+                    self.pipelineStateDesc.colorAttachments[0].sourceRGBBlendFactor = .sourceAlpha
+                    self.pipelineStateDesc.colorAttachments[0].sourceAlphaBlendFactor = .sourceAlpha
+                    self.pipelineStateDesc.colorAttachments[0].destinationRGBBlendFactor = .oneMinusSourceAlpha
+                    self.pipelineStateDesc.colorAttachments[0].destinationAlphaBlendFactor = .oneMinusSourceAlpha
+                }
 
                 self.pipelineState = try! self.device.makeRenderPipelineState(descriptor: self.pipelineStateDesc)
                 
@@ -240,6 +246,14 @@ class BaseShader
         }
         
         buffer = device.makeBuffer(bytes: self.data, length: self.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+    }
+    
+    func buildDepthStencilState() -> MTLDepthStencilState?
+    {
+        let descriptor = MTLDepthStencilDescriptor()
+        descriptor.depthCompareFunction = .less
+        descriptor.isDepthWriteEnabled = true
+        return device.makeDepthStencilState( descriptor: descriptor)
     }
     
     /// Adds a global variable to the instance data
