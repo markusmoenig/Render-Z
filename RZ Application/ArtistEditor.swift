@@ -409,7 +409,6 @@ class ArtistEditor          : Editor
         let bottomRegion = globalApp!.bottomRegion!
         
         if bottomRegionMode == .Open {
-            globalApp!.viewsAreAnimating = true
             globalApp!.currentPipeline!.cancel()
             globalApp!.mmView.startAnimate( startValue: bottomRegion.rect.height, endValue: 0, duration: 500, cb: { (value,finished) in
                 self.bottomHeight = value
@@ -420,13 +419,10 @@ class ArtistEditor          : Editor
                     
                     self.mmView.deregisterWidget(self.timeline)
                     self.timeline.deactivate()
-                    globalApp!.viewsAreAnimating = false
                 }
-                self.updateOnNextDraw(compile: false)
             } )
             animating = true
         } else if bottomRegion.rect.height != 130 {
-            globalApp!.viewsAreAnimating = true
             globalApp!.currentPipeline!.cancel()
             globalApp!.mmView.startAnimate( startValue: bottomRegion.rect.height, endValue: 130, duration: 500, cb: { (value,finished) in
                 if finished {
@@ -434,10 +430,8 @@ class ArtistEditor          : Editor
                     self.bottomRegionMode = .Open
                     self.timeline.activate()
                     self.mmView.registerWidget(self.timeline)
-                    globalApp!.viewsAreAnimating = false
                 }
                 self.bottomHeight = value
-                self.updateOnNextDraw(compile: false)
             } )
             animating = true
         }

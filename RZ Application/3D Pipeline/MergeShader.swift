@@ -33,12 +33,12 @@ class MergeShader      : BaseShader
             float2 size = in.viewportSize;
         
             float4 depth = float4(depthTexture.read(ushort2(uv.x * size.x, uv.y * size.y)));
-            float4 local = float4(localDepthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));            
+            float4 local = float4(localDepthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
         
             float4 outColor = float4(0, 0, 0, 0);
             
             if (local.w > 0.0 && local.w < depth.y) {
-                outColor = float4(local.xyz, 1);
+                outColor = float4(local.xyz, local.w);
             }
 
             //outColor = float4(float3(depth.y / 10.0), 1);// float4(local.xyz, 1);

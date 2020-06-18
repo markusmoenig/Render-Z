@@ -235,7 +235,10 @@ class ObjectShader      : BaseShader
         renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
         renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 2)
         
-        renderEncoder.setCullMode(.front)
+        renderEncoder.setCullMode(.back)
+        renderEncoder.setFrontFacing(.counterClockwise)
+        renderEncoder.setDepthClipMode(.clamp)
+        
         // ---
         
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: bbTriangles.count / 4)
@@ -246,6 +249,7 @@ class ObjectShader      : BaseShader
         // --- Merge the result
         
         prtInstance.mergeShader.merge(output: texture, localDepth: prtInstance.localTexture!)
+        
     }
     
     func createMapCode() -> String
@@ -313,7 +317,7 @@ class ObjectShader      : BaseShader
                     float3 __offsetFromCenter = __objectPosition - __originalPosition;
 
                     position.yz = rotatePivot( position.yz, radians(__data[\(rotateX)].x\(getInstantiationModifier("_rotateRandomX", component.values))), __offsetFromCenter.yz );
-                    position.xz = rotatePivot( position.xz, radians(__data[\(rotateY)].x\(getInstantiationModifier("_rotateRandomY", component.values))), __offsetFromCenter.xz );
+                    position.xz = rotatePivot( position.xz, radians(-__data[\(rotateY)].x\(getInstantiationModifier("_rotateRandomY", component.values))), __offsetFromCenter.xz );
                     position.xy = rotatePivot( position.xy, radians(__data[\(rotateZ)].x\(getInstantiationModifier("_rotateRandomZ", component.values))), __offsetFromCenter.xy );
 
             """

@@ -1435,24 +1435,9 @@ func drawLogo(_ rect: MMRect, _ alpha: Float = 1)
 @discardableResult func drawPreview(mmView: MMView, _ rect: MMRect) -> Bool
 {
     if let texture = globalApp!.currentPipeline!.finalTexture {
-        if round(rect.width) == Float(texture.width) && round(rect.height) == Float(texture.height) {
-            if globalApp!.currentEditor.textureAlpha < 1 {
-                drawLogo(rect, 1.0 - globalApp!.currentEditor.textureAlpha)
-                mmView.drawTexture.draw(texture, x: rect.x, y: rect.y, globalAlpha: globalApp!.currentEditor.textureAlpha)
-                globalApp!.currentEditor.textureAlpha += 0.1
-                mmView.update()
-            } else {
-                mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
-            }
-        } else {
-            drawLogo(rect)
-            globalApp!.currentEditor.textureAlpha = 0
-        }
+        mmView.drawTexture.draw(texture, x: rect.x, y: rect.y)
         globalApp!.currentPipeline!.renderIfResolutionChanged(rect.width, rect.height)
         return true
-    } else {
-        drawLogo(rect)
-        globalApp!.currentEditor.textureAlpha = 0
     }
     return false
 }

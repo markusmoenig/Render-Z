@@ -899,7 +899,6 @@ class SceneGraph                : MMWidget
         openWidth = globalApp!.editorRegion!.rect.width * 0.4
         
         if sceneGraphState == .Open {
-            globalApp!.viewsAreAnimating = true
             globalApp!.currentPipeline!.cancel()
             globalApp!.mmView.startAnimate( startValue: rightRegion.rect.width, endValue: 0, duration: 500, cb: { (value,finished) in
                 self.currentWidth = value
@@ -910,12 +909,10 @@ class SceneGraph                : MMWidget
                     self.mmView.deregisterWidget(self)
                     self.deactivate()
                     globalApp!.topRegion?.graphButton.removeState(.Checked)
-                    globalApp!.viewsAreAnimating = false
                 }
             } )
             animating = true
         } else if rightRegion.rect.height != openWidth {
-            globalApp!.viewsAreAnimating = true
             globalApp!.currentPipeline!.cancel()
             globalApp!.mmView.startAnimate( startValue: rightRegion.rect.width, endValue: openWidth, duration: 500, cb: { (value,finished) in
                 if finished {
@@ -924,7 +921,6 @@ class SceneGraph                : MMWidget
                     self.activate()
                     self.mmView.registerWidget(self)
                     globalApp!.topRegion?.graphButton.addState(.Checked)
-                    globalApp!.viewsAreAnimating = false
                 }
                 self.currentWidth = value
             } )

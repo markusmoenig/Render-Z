@@ -66,7 +66,7 @@ class Pipeline3D            : Pipeline
     // Build the pipeline elements
     override func build(scene: Scene)
     {
-        if globalApp!.hasValidScene == false || globalApp!.viewsAreAnimating == true {
+        if globalApp!.hasValidScene == false {
             return
         }
 
@@ -244,7 +244,7 @@ class Pipeline3D            : Pipeline
     // Render the pipeline
     override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
-        if globalApp!.hasValidScene == false || globalApp!.viewsAreAnimating == true {
+        if globalApp!.hasValidScene == false {
             return
         }
                 
