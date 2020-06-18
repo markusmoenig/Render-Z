@@ -635,6 +635,11 @@ class BaseShader
             return abs(a-b) < epsilon;
         }
         
+        bool isNotEqual(float a, float b, float epsilon = 0.00001)
+        {
+            return abs(a-b) > epsilon;
+        }
+        
         uint baseHash( uint2 p ) {
             p = 1103515245U*((p >> 1U)^(p.yx));
             uint h32 = 1103515245U*((p.x)^(p.y>>3U));

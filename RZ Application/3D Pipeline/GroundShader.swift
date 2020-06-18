@@ -132,7 +132,7 @@ class GroundShader      : BaseShader
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
         renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
 
-        renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 1)
+        renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 2)
         // ---
         
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

@@ -61,7 +61,6 @@ class ObjectShader      : BaseShader
 
             out.position = uniforms.projectionMatrix * uniforms.viewMatrix * uniforms.modelMatrix * float4(triangles[vid]);
             out.worldPosition = (uniforms.modelMatrix * float4(triangles[vid])).xyz;
-            //out.screenPosition = uniforms.projectionMatrix * uniforms.viewMatrix * float4(triangles[vid]);
 
             return out;
         }
@@ -96,7 +95,7 @@ class ObjectShader      : BaseShader
                                     __MAIN_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
                                     constant ObjectFragmentUniforms &uniforms [[ buffer(1) ]],
-                                    texture2d<half, access::read_write> depthTexture [[texture(2)]])
+                                    texture2d<half, access::read> depthTexture [[texture(2)]])
         {
             __INITIALIZE_FUNC_DATA__
         
@@ -115,8 +114,8 @@ class ObjectShader      : BaseShader
 
             \(rayMarch.code!)
         
-            float4 outColor = float4(0);
-            if (inShape.w != outShape.w)
+            float4 outColor = float4(1,0,0,0.5);
+            if (isNotEqual(inShape.w, outShape.w))
             {
                 float3 outNormal = float3(0);
         
@@ -129,7 +128,7 @@ class ObjectShader      : BaseShader
                 __materialOut.mask = float3(0);
         
                 float3 incomingDirection = rayDirection;
-                float3 hitPosition = position;
+                float3 hitPosition = position + outShape.y * rayDirection;
                 float3 hitNormal = outNormal;
                 float3 directionToLight = float3(0,1,0);
                 float4 lightType = float4(0);
@@ -142,16 +141,20 @@ class ObjectShader      : BaseShader
 
                 \(materialCode)
         
+                //float4 in = depthTexture.read( ushort2(vertexIn.worldPosition.xy) );
+        
                 outColor.xyz = color;
-                outColor.w = outShape.y;
+                outColor.w = distance(uniforms.cameraOrigin, hitPosition);
             }
         
             return half4(outColor);
         }
 
         """
+        
+        //print(fragmentShader)
                         
-        compile(vertexCode: vertexShader, fragmentCode: fragmentShader, textureOffset: 4, pixelFormat: .rgba16Float, blending: true, depthTest: true)
+        compile(vertexCode: vertexShader, fragmentCode: fragmentShader, textureOffset: 4, pixelFormat: .rgba16Float, blending: false)
         bbTriangles = [
             // left
             -1, +1, +1, 1.0, -1, +1, -1, 1.0, -1, -1, -1, 1.0,
@@ -193,9 +196,9 @@ class ObjectShader      : BaseShader
             mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
             
             if transform.values["_bb_x"] == nil {
-                transform.values["_bb_x"] = 1
-                transform.values["_bb_y"] = 1
-                transform.values["_bb_z"] = 1
+                transform.values["_bb_x"] = 1.1
+                transform.values["_bb_y"] = 1.1
+                transform.values["_bb_z"] = 1.1
             }
             
             mScale = float4x4(scaling: [(transform.values["_bb_x"]! * scale), (transform.values["_bb_y"]! * scale), (transform.values["_bb_z"]! * scale)])
@@ -231,6 +234,8 @@ class ObjectShader      : BaseShader
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
         renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
         renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 2)
+        
+        renderEncoder.setCullMode(.front)
         // ---
         
         renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: bbTriangles.count / 4)
@@ -657,10 +662,11 @@ class ObjectShader      : BaseShader
                 """
                 
                     material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
-                    if (lightType.z == lightType.w) {
-                        rayDirection = __materialOut.reflectionDir;
-                        rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
-                    }
+                
+                    //if (lightType.z == lightType.w) {
+                    //    rayDirection = __materialOut.reflectionDir;
+                    //    rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
+                    //}
                     color.xyz = color.xyz + __materialOut.color.xyz * mask;
                     color = clamp(color, 0.0, 1.0);
                     if (lightType.z == lightType.w) {

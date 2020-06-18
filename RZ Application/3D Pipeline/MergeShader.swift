@@ -32,15 +32,18 @@ class MergeShader      : BaseShader
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             float2 size = in.viewportSize;
         
-            float4 depth = float4(depthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
-            float4 local = float4(localDepthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
-
-            //depthTexture.write(half4(outShape), ushort2(uv.x * size.x, uv.y * size.y));
-            
+            float4 depth = float4(depthTexture.read(ushort2(uv.x * size.x, uv.y * size.y)));
+            float4 local = float4(localDepthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));            
+        
             float4 outColor = float4(0, 0, 0, 0);
-            if (local.w > 0.0 && local.w > depth.y) {
+            
+            if (local.w > 0.0 && local.w < depth.y) {
                 outColor = float4(local.xyz, 1);
             }
+
+            //outColor = float4(float3(depth.y / 10.0), 1);// float4(local.xyz, 1);
+
+            //outColor = float4(float3(local.y / 10), 1);
 
             return outColor;
         }
@@ -76,9 +79,7 @@ class MergeShader      : BaseShader
         fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
         fragmentUniforms.screenSize = prtInstance.screenSize
 
-        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
-        renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
-
+        renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 0)
         renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 1)
         renderEncoder.setFragmentTexture(localDepth, index: 2)
         // ---

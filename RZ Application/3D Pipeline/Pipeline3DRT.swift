@@ -153,7 +153,7 @@ class Pipeline3DRT          : Pipeline
         let camHelper = CamHelper3D()
         camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
         camHelper.updateProjection()
-        
+                
         prtInstance.cameraOrigin = camHelper.eye
         prtInstance.cameraLookAt = camHelper.center
 
@@ -163,7 +163,7 @@ class Pipeline3DRT          : Pipeline
         prtInstance.viewMatrix = camHelper.getTransform().inverse
 
         prtInstance.depthTexture = checkTextureSize(width, height, prtInstance.depthTexture, .rgba16Float)
-        prtInstance.localTexture = checkTextureSize(width, height, prtInstance.depthTexture, .rgba16Float)
+        prtInstance.localTexture = checkTextureSize(width, height, prtInstance.localTexture, .rgba16Float)
 
         checkFinalTexture(true)
         
