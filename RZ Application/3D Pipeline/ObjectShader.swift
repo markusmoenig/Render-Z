@@ -6,6 +6,7 @@
 //  Copyright © 2020 Markus Moenig. All rights reserved.
 //
 
+import simd
 import MetalKit
 
 class ObjectShader      : BaseShader
@@ -34,18 +35,13 @@ class ObjectShader      : BaseShader
         let vertexShader =
         """
         
+        \(prtInstance.fragmentUniforms)
+
         typedef struct {
             matrix_float4x4     modelMatrix;
             matrix_float4x4     viewMatrix;
             matrix_float4x4     projectionMatrix;
         } ObjectVertexUniforms;
-
-        typedef struct {
-            simd_float3         cameraOrigin;
-            simd_float3         cameraLookAt;
-            
-            simd_float2         screenSize;
-        } ObjectFragmentUniforms;
 
         struct VertexOut{
             float4              position[[position]];
@@ -94,7 +90,7 @@ class ObjectShader      : BaseShader
         fragment half4 procFragment(VertexOut vertexIn [[stage_in]],
                                     __MAIN_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
-                                    constant ObjectFragmentUniforms &uniforms [[ buffer(1) ]],
+                                    constant FragmentUniforms &uniforms [[ buffer(1) ]],
                                     texture2d<half, access::read> depthTexture [[texture(2)]])
         {
             __INITIALIZE_FUNC_DATA__
@@ -107,7 +103,7 @@ class ObjectShader      : BaseShader
 
             float4 inShape = float4(1000, 1000, -1, -1);
             float4 outShape = float4(1000, 1000, -1, -1);
-            float maxDistance = 1000;
+            float maxDistance = uniforms.maxDistance;
 
             //__funcData->inShape = float4(1000, 1000, -1, -1);
             //__funcData->inHitPoint = rayOrigin + rayDirection * outShape.y;
@@ -188,6 +184,8 @@ class ObjectShader      : BaseShader
         var mTranslation = matrix_identity_float4x4
         var mRotation = matrix_identity_float4x4
         var mScale = matrix_identity_float4x4
+        
+        var maxDistance : Float = 100
 
         if let transform = self.object.components[self.object.defaultName] {
             let scale = transform.values["_scale"]!
@@ -195,13 +193,23 @@ class ObjectShader      : BaseShader
             mTranslation = float4x4(translation: [transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!])
             mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
             
+            let bbX : Float
+            let bbY : Float
+            let bbZ : Float
+
             if transform.values["_bb_x"] == nil {
-                transform.values["_bb_x"] = 1.1
-                transform.values["_bb_y"] = 1.1
-                transform.values["_bb_z"] = 1.1
+                bbX = 1
+                bbY = 1
+                bbZ = 1
+            } else {
+                bbX = transform.values["_bb_x"]!
+                bbY = transform.values["_bb_y"]!
+                bbZ = transform.values["_bb_z"]!
             }
             
-            mScale = float4x4(scaling: [(transform.values["_bb_x"]! * scale), (transform.values["_bb_y"]! * scale), (transform.values["_bb_z"]! * scale)])
+            maxDistance = simd_rsqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
+            
+            mScale = float4x4(scaling: [(bbX * scale), (bbY * scale), (bbZ * scale)])
         }
         
         let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -230,6 +238,7 @@ class ObjectShader      : BaseShader
         fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
         fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
         fragmentUniforms.screenSize = prtInstance.screenSize
+        fragmentUniforms.maxDistance = maxDistance
         
         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
         renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)

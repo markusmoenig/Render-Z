@@ -26,7 +26,7 @@ class MergeShader      : BaseShader
 
         fragment float4 procFragment(RasterizerData in [[stage_in]],
                                      constant FragmentUniforms &uniforms [[ buffer(0) ]],
-                                     texture2d<half, access::read_write> depthTexture [[texture(1)]],
+                                     texture2d<half, access::read> depthTexture [[texture(1)]],
                                      texture2d<half, access::read> localDepthTexture [[texture(2)]])
         {
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);

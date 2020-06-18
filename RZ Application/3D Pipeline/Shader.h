@@ -23,6 +23,8 @@ typedef struct {
     simd_float3         cameraLookAt;
     
     simd_float2         screenSize;
+    
+    float               maxDistance;
 } ObjectFragmentUniforms;
 
 #endif /* Shader_h */
