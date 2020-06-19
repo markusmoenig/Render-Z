@@ -594,6 +594,8 @@
 		2BAC26DF226D6B8F00E20ADD /* GameNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26DD226D6B8F00E20ADD /* GameNodes.swift */; };
 		2BAC26E1226FEC7E00E20ADD /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
 		2BAC26E2226FEC7F00E20ADD /* DiskBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BAC26E0226FE7A900E20ADD /* DiskBuilder.swift */; };
+		2BB4CC4C249C6AC000123017 /* ObjectShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67592494510E00E066C0 /* ObjectShader.swift */; };
+		2BB4CC4D249C6AC100123017 /* ObjectShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67592494510E00E066C0 /* ObjectShader.swift */; };
 		2BB6B061231A069A0067B217 /* sz_ui_grey.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B05F231A069A0067B217 /* sz_ui_grey.tiff */; };
 		2BB6B063231A069A0067B217 /* sz_ui_blue.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BB6B060231A069A0067B217 /* sz_ui_blue.tiff */; };
 		2BBEF2F0247F5FD600C42145 /* Material_Bricks.render-z in Resources */ = {isa = PBXBuildFile; fileRef = 2BBEF2EF247F5FD600C42145 /* Material_Bricks.render-z */; };
@@ -674,8 +676,6 @@
 		2BCD67542491B3EB00E066C0 /* PointCloud.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67522491B3EB00E066C0 /* PointCloud.metal */; };
 		2BCD67572493486700E066C0 /* BaseShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67562493486600E066C0 /* BaseShader.swift */; };
 		2BCD67582493486700E066C0 /* BaseShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67562493486600E066C0 /* BaseShader.swift */; };
-		2BCD675B249451E600E066C0 /* ObjectShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67592494510E00E066C0 /* ObjectShader.swift */; };
-		2BCD675C249451E600E066C0 /* ObjectShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCD67592494510E00E066C0 /* ObjectShader.swift */; };
 		2BCEC68E22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCEC68F22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCF5FA3227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
@@ -2048,7 +2048,6 @@
 				2B8CC6CB23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */,
 				2B1AF8AF24133D7800AA82B0 /* Pipeline2D.swift in Sources */,
 				2B7A3C1C23B46546002EC5FC /* MMTreeWidget.swift in Sources */,
-				2BCD675B249451E600E066C0 /* ObjectShader.swift in Sources */,
 				2B7A3BF623B4583A002EC5FC /* ViewController.swift in Sources */,
 				2B8DB3932491A9C300D57DC4 /* Pipeline3DRT.swift in Sources */,
 				2B7A3C2023B46546002EC5FC /* MMFile.swift in Sources */,
@@ -2092,6 +2091,7 @@
 				2B52E5AC2495C1FE009CFE1F /* GroundShader.swift in Sources */,
 				2B7A3C0A23B46546002EC5FC /* MMRenderer.swift in Sources */,
 				2B7A3C0923B4653F002EC5FC /* MMBaseView_mac.swift in Sources */,
+				2BB4CC4D249C6AC100123017 /* ObjectShader.swift in Sources */,
 				2B8E2FEB23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
 				2BE5A4D9240CBB1B00890281 /* Camera3D.swift in Sources */,
 				2B7A3C0D23B46546002EC5FC /* MMDrawable.swift in Sources */,
@@ -2275,7 +2275,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2BCD675C249451E600E066C0 /* ObjectShader.swift in Sources */,
 				2B9B29C323BB453400C2F387 /* MMRegion.swift in Sources */,
 				2B9B29E323BB45C000C2F387 /* TopRegion.swift in Sources */,
 				2B9B29AB23BB44BF00C2F387 /* ViewController.swift in Sources */,
@@ -2344,6 +2343,7 @@
 				2BD291B823D435B6006F66BC /* Combo2D.metal in Sources */,
 				2B9B29B823BB452800C2F387 /* NodeUI.swift in Sources */,
 				2BE847BA2453C75D00409AAE /* NewDialog.swift in Sources */,
+				2BB4CC4C249C6AC000123017 /* ObjectShader.swift in Sources */,
 				2BCD67542491B3EB00E066C0 /* PointCloud.metal in Sources */,
 				2B9B29ED23BB45CA00C2F387 /* CodeSemantics.swift in Sources */,
 				2BE5A4D42405EF8000890281 /* CamHelper3D.swift in Sources */,

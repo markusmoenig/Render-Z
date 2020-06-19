@@ -121,6 +121,7 @@ class Pipeline3DRT          : Pipeline
                 // Object
                 if item.getComponentList("shapes") != nil {
 
+                    
                     let shader = ObjectShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
                     shaders.append(shader)
 
@@ -170,14 +171,12 @@ class Pipeline3DRT          : Pipeline
         
         globalApp!.executionTime = 0
         
-        if let background = backgroundShader, background.shaderState == .Compiled {
+        if let background = backgroundShader {
             background.render(texture: finalTexture!)
         }
         
         for shader in shaders {
-            if shader.shaderState == .Compiled {
-                shader.render(texture: finalTexture!)
-            }
+            shader.render(texture: finalTexture!)
         }
 
         #if DEBUG

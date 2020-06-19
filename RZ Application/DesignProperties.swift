@@ -98,8 +98,13 @@ class DesignProperties      : MMWidget
             c1Node?.uiItems.append(renderModeVar)
         }
         
-        if comp.componentType == .Transform3D && comp.values["_bb_x"] != nil {
-            let bboxVar = NodeUINumber3(c1Node!, variable: "_bb", title: "Bounding Box", range: SIMD2<Float>(0, 10), value: SIMD3<Float>(comp.values["_bb_x"]!, comp.values["_bb_y"]!, comp.values["_bb_z"]!), precision: 3)
+        if comp.componentType == .Transform3D {
+            
+            let bbX : Float = comp.values["_bb_x"] == nil ? 1 : comp.values["_bb_x"]!
+            let bbY : Float = comp.values["_bb_y"] == nil ? 1 : comp.values["_bb_y"]!
+            let bbZ : Float = comp.values["_bb_z"] == nil ? 1 : comp.values["_bb_z"]!
+
+            let bboxVar = NodeUINumber3(c1Node!, variable: "_bb", title: "Bounding Box", range: SIMD2<Float>(0, 10), value: SIMD3<Float>(bbX, bbY, bbZ), precision: 3)
             bboxVar.titleShadows = true
             c1Node?.uiItems.append(bboxVar)
         }

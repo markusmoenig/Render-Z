@@ -8,13 +8,43 @@
 
 import MetalKit
 
-class BaseShader
+class Shader
 {
     enum ShaderState {
         case Undefined, Compiling, Compiled
     }
     
+    var id                  : String
+    var vertexName          : String
+    var fragmentName        : String
+    
+    var textureOffset       : Int
+    var pixelFormat         : MTLPixelFormat
+    var blending            : Bool
+        
     var shaderState         : ShaderState = .Undefined
+    
+    var pipelineStateDesc   : MTLRenderPipelineDescriptor!
+    var pipelineState       : MTLRenderPipelineState!
+
+    var commandQueue        : MTLCommandQueue!
+    
+    var executionTime       : Double = 0
+    
+    init(id: String, vertexName: String = "procVertex", fragmentName: String = "procFragment", textureOffset: Int, pixelFormat: MTLPixelFormat = .bgra8Unorm, blending: Bool = true)
+    {
+        self.id = id
+        self.vertexName = vertexName
+        self.fragmentName = fragmentName
+        
+        self.textureOffset = textureOffset
+        self.pixelFormat = pixelFormat
+        self.blending = blending
+    }
+}
+
+class BaseShader
+{
     
     var pipelineStateDesc   : MTLRenderPipelineDescriptor!
     var pipelineState       : MTLRenderPipelineState!
@@ -24,6 +54,8 @@ class BaseShader
     
     var executionTime       : Double = 0
     
+    var library             : MTLLibrary!
+
     // Instance Data
     
     var data                : [SIMD4<Float>] = []
@@ -51,7 +83,9 @@ class BaseShader
     var rootObject          : StageItem? = nil
     
     var prtInstance         : PRTInstance
-
+    
+    var shaders             : [String:Shader] = [:]
+    
     init(instance: PRTInstance)
     {
         self.prtInstance = instance
@@ -59,71 +93,73 @@ class BaseShader
         data.append(SIMD4<Float>(0, 0 ,0, 0))
     }
     
-    func compile(vertexCode: String, fragmentCode: String, textureOffset: Int, pixelFormat: MTLPixelFormat = .bgra8Unorm, blending: Bool = true, depthTest: Bool = false)
+    func compile(code: String, shaders: [Shader])
     {
-        pipelineStateDesc = MTLRenderPipelineDescriptor()
+        var source = BaseShader.getHeaderCode() + code
         
-        var source = BaseShader.getHeaderCode() + vertexCode + fragmentCode
-        
-        let funcDataCode =
-        """
+        for shader in shaders {
+            let funcDataCode =
+            """
 
-        float GlobalTime = __data[0].x;
-        float GlobalSeed = __data[0].z;
-        
-        struct FuncData __funcData_;
-        thread struct FuncData *__funcData = &__funcData_;
-        __funcData_.GlobalTime = GlobalTime;
-        __funcData_.GlobalSeed = GlobalSeed;
-        __funcData_.inShape = float4(1000, 1000, -1, -1);
-        __funcData_.hash = 1.0;
+            float GlobalTime = __data[0].x;
+            float GlobalSeed = __data[0].z;
+            
+            struct FuncData __funcData_;
+            thread struct FuncData *__funcData = &__funcData_;
+            __funcData_.GlobalTime = GlobalTime;
+            __funcData_.GlobalSeed = GlobalSeed;
+            __funcData_.inShape = float4(1000, 1000, -1, -1);
+            __funcData_.hash = 1.0;
 
-        {
-            float2 uv = float2(uv.x, uv.y);
-            //__funcData_.seed = fract(cos((uv.xy+uv.yx * float2(1000.0,1000.0) ) + float2(__data[0].z, __data[0].w)*10.0));
-            __funcData_.GlobalSeed = float(baseHash(as_type<uint2>(uv - (float2(__data[0].z, __data[0].w) * 100.0) )))/float(0xffffffffU);
+            {
+                float2 uv = float2(uv.x, uv.y);
+                //__funcData_.seed = fract(cos((uv.xy+uv.yx * float2(1000.0,1000.0) ) + float2(__data[0].z, __data[0].w)*10.0));
+                __funcData_.GlobalSeed = float(baseHash(as_type<uint2>(uv - (float2(__data[0].z, __data[0].w) * 100.0) )))/float(0xffffffffU);
+            }
+            __funcData_.__data = __data;
+
+            __\(shader.id)_TEXTURE_ASSIGNMENT_CODE__
+
+            """
+
+            textureRep.append((shader.id, shader.textureOffset))
+            source = source.replacingOccurrences(of: "__\(shader.id)_INITIALIZE_FUNC_DATA__", with: funcDataCode)
         }
-        __funcData_.__data = __data;
-
-        __MAIN_TEXTURE_ASSIGNMENT_CODE__
-
-        """
-
-        textureRep.append(("MAIN", textureOffset))
-        source = source.replacingOccurrences(of: "__INITIALIZE_FUNC_DATA__", with: funcDataCode)
         source = replaceTexturReferences(sourceCode: source)
         
         //print(source)
-        shaderState = .Compiling
         device.makeLibrary( source: source, options: nil, completionHandler: { (library, error) in
             if let error = error, library == nil {
                 print(error)
-                self.shaderState = .Undefined
             } else
             if let library = library {
+                
+                for shader in shaders {
+                
+                    shader.shaderState = .Compiling
+                    
+                    shader.pipelineStateDesc = MTLRenderPipelineDescriptor()
+                    shader.pipelineStateDesc.vertexFunction = library.makeFunction(name: shader.vertexName)
+                    shader.pipelineStateDesc.fragmentFunction = library.makeFunction(name: shader.fragmentName)
+                    shader.pipelineStateDesc.colorAttachments[0].pixelFormat = shader.pixelFormat
+                    
+                    if shader.blending {
+                        shader.pipelineStateDesc.colorAttachments[0].isBlendingEnabled = true
+                        shader.pipelineStateDesc.colorAttachments[0].rgbBlendOperation = .add
+                        shader.pipelineStateDesc.colorAttachments[0].alphaBlendOperation = .add
+                        shader.pipelineStateDesc.colorAttachments[0].sourceRGBBlendFactor = .sourceAlpha
+                        shader.pipelineStateDesc.colorAttachments[0].sourceAlphaBlendFactor = .sourceAlpha
+                        shader.pipelineStateDesc.colorAttachments[0].destinationRGBBlendFactor = .oneMinusSourceAlpha
+                        shader.pipelineStateDesc.colorAttachments[0].destinationAlphaBlendFactor = .oneMinusSourceAlpha
+                    }
 
-                self.pipelineStateDesc.vertexFunction = library.makeFunction(name: "procVertex")
-                self.pipelineStateDesc.fragmentFunction = library.makeFunction(name: "procFragment")
-                self.pipelineStateDesc.colorAttachments[0].pixelFormat = pixelFormat
-                
-                if depthTest == true {
-                    //self.pipelineStateDesc.depthAttachmentPixelFormat = .depth32Float
+                    shader.pipelineState = try! self.device.makeRenderPipelineState(descriptor: shader.pipelineStateDesc)
+                    
+                    shader.commandQueue = self.device.makeCommandQueue()
+                    shader.shaderState = .Compiled
+                    
+                    self.shaders[shader.id] = shader
                 }
-                
-                if blending {
-                    self.pipelineStateDesc.colorAttachments[0].isBlendingEnabled = true
-                    self.pipelineStateDesc.colorAttachments[0].rgbBlendOperation = .add
-                    self.pipelineStateDesc.colorAttachments[0].alphaBlendOperation = .add
-                    self.pipelineStateDesc.colorAttachments[0].sourceRGBBlendFactor = .sourceAlpha
-                    self.pipelineStateDesc.colorAttachments[0].sourceAlphaBlendFactor = .sourceAlpha
-                    self.pipelineStateDesc.colorAttachments[0].destinationRGBBlendFactor = .oneMinusSourceAlpha
-                    self.pipelineStateDesc.colorAttachments[0].destinationAlphaBlendFactor = .oneMinusSourceAlpha
-                }
-
-                self.pipelineState = try! self.device.makeRenderPipelineState(descriptor: self.pipelineStateDesc)
-                
-                self.commandQueue = self.device.makeCommandQueue()
-                self.shaderState = .Compiled
             }
         } )
     }

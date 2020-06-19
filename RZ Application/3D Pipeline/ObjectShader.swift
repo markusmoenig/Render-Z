@@ -93,7 +93,7 @@ class ObjectShader      : BaseShader
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
                                     texture2d<half, access::read> depthTexture [[texture(2)]])
         {
-            __INITIALIZE_FUNC_DATA__
+            __MAIN_INITIALIZE_FUNC_DATA__
         
             float2 size = uniforms.screenSize;
             float3 position = vertexIn.worldPosition.xyz;
@@ -150,7 +150,9 @@ class ObjectShader      : BaseShader
         
         //print(fragmentShader)
                         
-        compile(vertexCode: vertexShader, fragmentCode: fragmentShader, textureOffset: 4, pixelFormat: .rgba16Float, blending: false)
+        compile(code: vertexShader + fragmentShader, shaders: [Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false)])
+
+        //compile(vertexCode: vertexShader, fragmentCode: fragmentShader, textureOffset: 4, pixelFormat: .rgba16Float, blending: false)
         bbTriangles = [
             // left
             -1, +1, +1, 1.0, -1, +1, -1, 1.0, -1, -1, -1, 1.0,
@@ -176,89 +178,90 @@ class ObjectShader      : BaseShader
     override func render(texture: MTLTexture)
     {
         updateData()
+    
+        if let mainShader = shaders["MAIN"] {
 
-        if bbTriangles.count == 0 { return }
-        let dataSize = bbTriangles.count * MemoryLayout<Float>.size
-        let vertexBuffer = device.makeBuffer(bytes: bbTriangles, length: dataSize, options: [])
+            if bbTriangles.count == 0 { return }
+            let dataSize = bbTriangles.count * MemoryLayout<Float>.size
+            let vertexBuffer = device.makeBuffer(bytes: bbTriangles, length: dataSize, options: [])
 
-        var mTranslation = matrix_identity_float4x4
-        var mRotation = matrix_identity_float4x4
-        var mScale = matrix_identity_float4x4
-        
-        var maxDistance : Float = 100
-
-        if let transform = self.object.components[self.object.defaultName] {
-            let scale = transform.values["_scale"]!
+            var mTranslation = matrix_identity_float4x4
+            var mRotation = matrix_identity_float4x4
+            var mScale = matrix_identity_float4x4
             
-            mTranslation = float4x4(translation: [transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!])
-            mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
-            
-            let bbX : Float
-            let bbY : Float
-            let bbZ : Float
+            var maxDistance : Float = 100
 
-            if transform.values["_bb_x"] == nil {
-                bbX = 1
-                bbY = 1
-                bbZ = 1
-            } else {
-                bbX = transform.values["_bb_x"]!
-                bbY = transform.values["_bb_y"]!
-                bbZ = transform.values["_bb_z"]!
+            if let transform = self.object.components[self.object.defaultName] {
+                let scale = transform.values["_scale"]!
+                
+                mTranslation = float4x4(translation: [transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!])
+                mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
+                
+                let bbX : Float
+                let bbY : Float
+                let bbZ : Float
+
+                if transform.values["_bb_x"] == nil {
+                    bbX = 1
+                    bbY = 1
+                    bbZ = 1
+                } else {
+                    bbX = transform.values["_bb_x"]!
+                    bbY = transform.values["_bb_y"]!
+                    bbZ = transform.values["_bb_z"]!
+                }
+                
+                maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)                
+                mScale = float4x4(scaling: [(bbX * scale), (bbY * scale), (bbZ * scale)])
             }
             
-            maxDistance = simd_rsqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
-            
-            mScale = float4x4(scaling: [(bbX * scale), (bbY * scale), (bbZ * scale)])
-        }
-        
-        let renderPassDescriptor = MTLRenderPassDescriptor()
-        renderPassDescriptor.colorAttachments[0].texture = prtInstance.localTexture!
-        renderPassDescriptor.colorAttachments[0].loadAction = .clear
-        renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0, blue: 0, alpha: 0.0)
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = prtInstance.localTexture!
+            renderPassDescriptor.colorAttachments[0].loadAction = .clear
+            renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0, blue: 0, alpha: 0.0)
 
-        let commandBuffer = commandQueue.makeCommandBuffer()!
-        let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
-        renderEncoder.setRenderPipelineState(pipelineState)
-        //renderEncoder.setDepthStencilState(buildDepthStencilState())
-        
-        // Vertex Uniforms
-        
-        var vertexUniforms = ObjectVertexUniforms()
-        vertexUniforms.projectionMatrix = prtInstance.projectionMatrix
-        vertexUniforms.modelMatrix = mTranslation * mRotation * mScale
-        vertexUniforms.viewMatrix = prtInstance.viewMatrix
-        
-        renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
-        renderEncoder.setVertexBytes(&vertexUniforms, length: MemoryLayout<ObjectVertexUniforms>.stride, index: 1)
-        
-        // Fragment Uniforms
-        
-        var fragmentUniforms = ObjectFragmentUniforms()
-        fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
-        fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
-        fragmentUniforms.screenSize = prtInstance.screenSize
-        fragmentUniforms.maxDistance = maxDistance
-        
-        renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
-        renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
-        renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 2)
-        
-        renderEncoder.setCullMode(.back)
-        renderEncoder.setFrontFacing(.counterClockwise)
-        renderEncoder.setDepthClipMode(.clamp)
-        
-        // ---
-        
-        renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: bbTriangles.count / 4)
-        renderEncoder.endEncoding()
-        
-        commandBuffer.commit()
-        
-        // --- Merge the result
-        
-        prtInstance.mergeShader.merge(output: texture, localDepth: prtInstance.localTexture!)
-        
+            let commandBuffer = mainShader.commandQueue.makeCommandBuffer()!
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(mainShader.pipelineState)
+            //renderEncoder.setDepthStencilState(buildDepthStencilState())
+            
+            // Vertex Uniforms
+            
+            var vertexUniforms = ObjectVertexUniforms()
+            vertexUniforms.projectionMatrix = prtInstance.projectionMatrix
+            vertexUniforms.modelMatrix = mTranslation * mRotation * mScale
+            vertexUniforms.viewMatrix = prtInstance.viewMatrix
+            
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            renderEncoder.setVertexBytes(&vertexUniforms, length: MemoryLayout<ObjectVertexUniforms>.stride, index: 1)
+            
+            // Fragment Uniforms
+            
+            var fragmentUniforms = ObjectFragmentUniforms()
+            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+            fragmentUniforms.screenSize = prtInstance.screenSize
+            fragmentUniforms.maxDistance = maxDistance
+            
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 2)
+            
+            renderEncoder.setCullMode(.back)
+            renderEncoder.setFrontFacing(.counterClockwise)
+            renderEncoder.setDepthClipMode(.clamp)
+            
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: bbTriangles.count / 4)
+            renderEncoder.endEncoding()
+            
+            commandBuffer.commit()
+            
+            // --- Merge the result
+            
+            prtInstance.mergeShader.merge(output: texture, localDepth: prtInstance.localTexture!)
+        }
     }
     
     func createMapCode() -> String
