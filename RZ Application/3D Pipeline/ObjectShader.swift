@@ -283,7 +283,7 @@ class ObjectShader      : BaseShader
         if let shader = shaders["MATERIAL"] {
             let renderPassDescriptor = MTLRenderPassDescriptor()
             renderPassDescriptor.colorAttachments[0].texture = texture
-            renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
+            renderPassDescriptor.colorAttachments[0].loadAction = .load
             
             let commandBuffer = shader.commandQueue.makeCommandBuffer()!
             let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!

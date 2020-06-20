@@ -64,9 +64,7 @@ class GroundShader      : BaseShader
         
             float outMask = 0;
             float outId = 0;
-
-            float4 outColor = float4(0,0,0,1);
-        
+            
             \(camera.code!)
         
             float3 rayOrigin = outPosition;
@@ -80,7 +78,7 @@ class GroundShader      : BaseShader
             return outShape;
         }
                 
-        fragment half4 materialFragment(RasterizerData in [[stage_in]],
+        fragment float4 materialFragment(RasterizerData in [[stage_in]],
                                     __MATERIAL_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
@@ -131,7 +129,7 @@ class GroundShader      : BaseShader
                 outColor = materialOut.color;
             }
         
-            return half4(outColor);
+            return outColor;
         }
 
         """
@@ -195,7 +193,7 @@ class GroundShader      : BaseShader
         if let shader = shaders["MATERIAL"] {
             let renderPassDescriptor = MTLRenderPassDescriptor()
             renderPassDescriptor.colorAttachments[0].texture = texture
-            renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
+            renderPassDescriptor.colorAttachments[0].loadAction = .load
             
             let commandBuffer = shader.commandQueue.makeCommandBuffer()!
             let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
