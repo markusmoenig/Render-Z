@@ -14,7 +14,7 @@ class ObjectShader      : BaseShader
     var scene           : Scene
     var object          : StageItem
     var camera          : CodeComponent
-    
+
     var materialCode    = ""
 
     var bbTriangles : [Float] = []
@@ -64,8 +64,14 @@ class ObjectShader      : BaseShader
         """
         
         var headerCode = ""
-        let mapCode = createMapCode()
         
+        dryRunComponent(camera, data.count)
+        collectProperties(camera)
+        
+        idStart = Float(prtInstance.idCounter)
+        let mapCode = createMapCode()
+        idEnd = Float(prtInstance.idCounter)
+                
         // Raymarch
         let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D)!
         dryRunComponent(rayMarch, data.count)
@@ -85,19 +91,19 @@ class ObjectShader      : BaseShader
         let fragmentShader =
         """
         
+        \(camera.globalCode!)
         \(mapCode)
 
         fragment half4 procFragment(VertexOut vertexIn [[stage_in]],
                                     __MAIN_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
-                                    constant FragmentUniforms &uniforms [[ buffer(1) ]],
-                                    texture2d<half, access::read> depthTexture [[texture(2)]])
+                                    constant FragmentUniforms &uniforms [[ buffer(1) ]])
         {
             __MAIN_INITIALIZE_FUNC_DATA__
         
             float2 size = uniforms.screenSize;
             float3 position = vertexIn.worldPosition.xyz;
-        
+
             float3 rayOrigin = position;//uniforms.cameraOrigin;//position;
             float3 rayDirection = normalize(position - uniforms.cameraOrigin);
 
@@ -110,21 +116,49 @@ class ObjectShader      : BaseShader
 
             \(rayMarch.code!)
         
-            float4 outColor = float4(1,0,0,0.5);
-            if (isNotEqual(inShape.w, outShape.w))
+            return half4(outShape);
+        }
+        
+        \(BaseShader.getQuadVertexSource(name: "materialVertex"))
+        
+        fragment half4 materialFragment(RasterizerData vertexIn [[stage_in]],
+                                    __MATERIAL_TEXTURE_HEADER_CODE__
+                                    constant float4 *__data [[ buffer(0) ]],
+                                    constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                    texture2d<half, access::read> depthTexture [[texture(2)]])
+        {
+            __MATERIAL_INITIALIZE_FUNC_DATA__
+        
+            float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
+            float2 size = uniforms.screenSize;
+
+            float4 outColor = float4(0);
+            float4 shape = float4(depthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
+        
+            if (shape.w >= \(idStart - 0.1) && shape.w <= \(idEnd + 0.1))
             {
+                float2 jitter = float2(0.5);
+                float3 outPosition = float3(0,0,0);
+                float3 outDirection = float3(0,0,0);
+        
+                float3 position = float3(uv.x, uv.y, 0);
+
+                \(camera.code!)
+        
+                float3 rayOrigin = outPosition;
+                float3 rayDirection = outDirection;
+        
+                position = rayOrigin + shape.y * rayDirection;
                 float3 outNormal = float3(0);
-        
-                \(normal.code!)
             
-                float4 shape = outShape;
-        
+                \(normal.code!)
+                        
                 struct MaterialOut __materialOut;
                 __materialOut.color = float4(0,0,0,1);
                 __materialOut.mask = float3(0);
-        
+                
                 float3 incomingDirection = rayDirection;
-                float3 hitPosition = position + outShape.y * rayDirection;
+                float3 hitPosition = position;
                 float3 hitNormal = outNormal;
                 float3 directionToLight = float3(0,1,0);
                 float4 lightType = float4(0);
@@ -136,11 +170,9 @@ class ObjectShader      : BaseShader
                 float3 color = float3(0);
 
                 \(materialCode)
-        
-                //float4 in = depthTexture.read( ushort2(vertexIn.worldPosition.xy) );
-        
+                
                 outColor.xyz = color;
-                outColor.w = distance(uniforms.cameraOrigin, hitPosition);
+                outColor.w = 1.0;
             }
         
             return half4(outColor);
@@ -150,29 +182,13 @@ class ObjectShader      : BaseShader
         
         //print(fragmentShader)
                         
-        compile(code: vertexShader + fragmentShader, shaders: [Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false)])
+        compile(code: vertexShader + fragmentShader, shaders: [
+            Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
+            Shader(id: "MATERIAL", vertexName: "materialVertex", fragmentName: "materialFragment", textureOffset: 4, blending: true)
+        ])
 
         //compile(vertexCode: vertexShader, fragmentCode: fragmentShader, textureOffset: 4, pixelFormat: .rgba16Float, blending: false)
-        bbTriangles = [
-            // left
-            -1, +1, +1, 1.0, -1, +1, -1, 1.0, -1, -1, -1, 1.0,
-            -1, +1, +1, 1.0, -1, -1, -1, 1.0, -1, -1, +1, 1.0,
-            // right
-            +1, +1, -1, 1.0, +1, +1, +1, 1.0, +1, -1, +1, 1.0,
-            +1, +1, -1, 1.0, +1, -1, +1, 1.0, +1, -1, -1, 1.0,
-            // bottom
-            -1, -1, -1, 1.0, +1, -1, -1, 1.0, +1, -1, +1, 1.0,
-            -1, -1, -1, 1.0, +1, -1, +1, 1.0, -1, -1, +1, 1.0,
-            // top
-            -1, +1, +1, 1.0, +1, +1, +1, 1.0, +1, +1, -1, 1.0,
-            -1, +1, +1, 1.0, +1, +1, -1, 1.0, -1, +1, -1, 1.0,
-            // back
-            -1, +1, -1, 1.0, +1, +1, -1, 1.0, +1, -1, -1, 1.0,
-            -1, +1, -1, 1.0, +1, -1, -1, 1.0, -1, -1, -1, 1.0,
-            // front
-            +1, +1, +1, 1.0, -1, +1, +1, 1.0, -1, -1, +1, 1.0,
-            +1, +1, +1, 1.0, -1, -1, +1, 1.0, +1, -1, +1, 1.0
-        ]
+        buildTriangles()
     }
 
     override func render(texture: MTLTexture)
@@ -211,7 +227,7 @@ class ObjectShader      : BaseShader
                     bbZ = transform.values["_bb_z"]!
                 }
                 
-                maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)                
+                maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
                 mScale = float4x4(scaling: [(bbX * scale), (bbY * scale), (bbZ * scale)])
             }
             
@@ -245,7 +261,6 @@ class ObjectShader      : BaseShader
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
-            renderEncoder.setFragmentTexture(prtInstance.depthTexture!, index: 2)
             
             renderEncoder.setCullMode(.back)
             renderEncoder.setFrontFacing(.counterClockwise)
@@ -259,8 +274,51 @@ class ObjectShader      : BaseShader
             commandBuffer.commit()
             
             // --- Merge the result
+            prtInstance.mergeShader.merge()
+        }
+    }
+    
+    override func materialPass(texture: MTLTexture)
+    {
+        if let shader = shaders["MATERIAL"] {
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = texture
+            renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            prtInstance.mergeShader.merge(output: texture, localDepth: prtInstance.localTexture!)
+            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(shader.pipelineState)
+            
+            // --- Vertex
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 ) )
+            
+            let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, Float(prtInstance.screenSize.x), Float(prtInstance.screenSize.y) ) )
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            
+            var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
+            renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            
+            // --- Fragment
+            
+            var fragmentUniforms = ObjectFragmentUniforms()
+            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+            fragmentUniforms.screenSize = prtInstance.screenSize
+
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+
+            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 2)
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            renderEncoder.endEncoding()
+            
+            commandBuffer.addCompletedHandler { cb in
+                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
+            }
+            
+            commandBuffer.commit()
         }
     }
     
@@ -269,9 +327,6 @@ class ObjectShader      : BaseShader
         var hierarchy           : [StageItem] = []
         
         var globalsAddedFor     : [UUID] = []
-
-        var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
-        var idCounter           : Int = 0
         
         var componentCounter    : Int = 0
 
@@ -458,7 +513,7 @@ class ObjectShader      : BaseShader
             """
              
                 float4 shapeA = outShape;
-                float4 shapeB = float4((outDistance - bump) * scale, -1, \(currentMaterialId), \(idCounter));
+                float4 shapeB = float4((outDistance - bump) * scale, -1, \(currentMaterialId), \(prtInstance.idCounter));
              
             """
              
@@ -473,10 +528,9 @@ class ObjectShader      : BaseShader
              
             // If we have a stageItem, store the id
             if hierarchy.count > 0 {
-                ids[idCounter] = (hierarchy, component)
-                ids[idCounter] = ids[idCounter]
+                prtInstance.ids[prtInstance.idCounter] = (hierarchy, component)
             }
-            idCounter += 1
+            prtInstance.idCounter += 1
             componentCounter += 1
         }
         
@@ -744,7 +798,7 @@ class ObjectShader      : BaseShader
                 if materialIdHierarchy.count > 0 {
                     currentMaterialId = materialIdHierarchy.last!
                 } else {
-                    currentMaterialId = idStart
+                    currentMaterialId = 0
                 }
             }
         }
@@ -783,5 +837,29 @@ class ObjectShader      : BaseShader
         """
         
         return headerCode + materialFuncCode + mapCode
+    }
+    
+    func buildTriangles()
+    {
+        bbTriangles = [
+            // left
+            -1, +1, +1, 1.0, -1, +1, -1, 1.0, -1, -1, -1, 1.0,
+            -1, +1, +1, 1.0, -1, -1, -1, 1.0, -1, -1, +1, 1.0,
+            // right
+            +1, +1, -1, 1.0, +1, +1, +1, 1.0, +1, -1, +1, 1.0,
+            +1, +1, -1, 1.0, +1, -1, +1, 1.0, +1, -1, -1, 1.0,
+            // bottom
+            -1, -1, -1, 1.0, +1, -1, -1, 1.0, +1, -1, +1, 1.0,
+            -1, -1, -1, 1.0, +1, -1, +1, 1.0, -1, -1, +1, 1.0,
+            // top
+            -1, +1, +1, 1.0, +1, +1, +1, 1.0, +1, +1, -1, 1.0,
+            -1, +1, +1, 1.0, +1, +1, -1, 1.0, -1, +1, -1, 1.0,
+            // back
+            -1, +1, -1, 1.0, +1, +1, -1, 1.0, +1, -1, -1, 1.0,
+            -1, +1, -1, 1.0, +1, -1, -1, 1.0, -1, -1, -1, 1.0,
+            // front
+            +1, +1, +1, 1.0, -1, +1, +1, 1.0, -1, -1, +1, 1.0,
+            +1, +1, +1, 1.0, -1, -1, +1, 1.0, +1, -1, +1, 1.0
+        ]
     }
 }

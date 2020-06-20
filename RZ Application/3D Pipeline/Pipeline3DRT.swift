@@ -22,6 +22,11 @@ class PRTInstance {
 
     """
     
+    // Component Ids
+    var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
+    var idCounter           : Int = 0
+
+    // Camera
     var cameraOrigin        : float3 = float3(0,0,0)
     var cameraLookAt        : float3 = float3(0,0,0)
     
@@ -31,8 +36,13 @@ class PRTInstance {
     var viewMatrix          : matrix_float4x4 = matrix_identity_float4x4
 
     var depthTexture        : MTLTexture? = nil
-    var localTexture        : MTLTexture? = nil
     
+    var localTexture        : MTLTexture? = nil
+    var shapeTexture1       : MTLTexture? = nil
+    var shapeTexture2       : MTLTexture? = nil
+    var currentShapeTexture : MTLTexture? = nil
+    var otherShapeTexture   : MTLTexture? = nil
+
     var mergeShader         : MergeShader!
 }
 
@@ -44,35 +54,13 @@ class Pipeline3DRT          : Pipeline
 
     var currentStage        : Stage = .None
     var maxStage            : Stage = .Reflection
-
-    var instanceMap         : [String:CodeBuilderInstance] = [:]
         
     var width               : Float = 0
     var height              : Float = 0
     
-    var reflections         : Int = 0
-    var maxReflections      : Int = 4
-    
-    var maxSamples          : Int = 4
-
-    var renderId            : UInt = 0
-    var justStarted         : Bool = true
-    var startedRender       : Bool = false
-    
-    var startId             : UInt = 0
-    
-    var settings            : PipelineRenderSettings? = nil
-    
-    var compiledSuccessfully: Bool = true
-    
-    var idCounter           : Int = 0
-    
     var scene               : Scene!
     
     var dummyTerrainTexture : MTLTexture? = nil
-    
-    var lineNumber          : Float = 0
-    var renderIsRunning     : Bool = false
     
     var cameraComponent     : CodeComponent!
     
@@ -155,7 +143,7 @@ class Pipeline3DRT          : Pipeline
         let camHelper = CamHelper3D()
         camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
         camHelper.updateProjection()
-                
+        
         prtInstance.cameraOrigin = camHelper.eye
         prtInstance.cameraLookAt = camHelper.center
 
@@ -165,9 +153,32 @@ class Pipeline3DRT          : Pipeline
         prtInstance.viewMatrix = camHelper.getTransform().inverse
 
         prtInstance.depthTexture = checkTextureSize(width, height, prtInstance.depthTexture, .rgba16Float)
+        
+        // The texture objects use for their local distance estimations
         prtInstance.localTexture = checkTextureSize(width, height, prtInstance.localTexture, .rgba16Float)
+        
+        // The depth / shape textures which get ping ponged
+        prtInstance.shapeTexture1 = checkTextureSize(width, height, prtInstance.shapeTexture1, .rgba16Float)
+        prtInstance.shapeTexture2 = checkTextureSize(width, height, prtInstance.shapeTexture2, .rgba16Float)
+        
+        // The pointers to the current and the other depth / shape texture
+        prtInstance.currentShapeTexture = prtInstance.shapeTexture1
+        prtInstance.otherShapeTexture = prtInstance.shapeTexture2
 
         checkFinalTexture(true)
+        
+        func swapShapeTextures()
+        {
+            if prtInstance.currentShapeTexture === prtInstance.shapeTexture1 {
+                prtInstance.currentShapeTexture = prtInstance.shapeTexture2
+                prtInstance.otherShapeTexture = prtInstance.shapeTexture1
+            } else {
+                prtInstance.currentShapeTexture = prtInstance.shapeTexture1
+                prtInstance.otherShapeTexture = prtInstance.shapeTexture2
+            }
+        }
+        
+        print("Last Execution Time: ", globalApp!.executionTime * 1000)
         
         globalApp!.executionTime = 0
         
@@ -175,10 +186,23 @@ class Pipeline3DRT          : Pipeline
             background.render(texture: finalTexture!)
         }
         
+        // Get the depth
         for shader in shaders {
-            shader.render(texture: finalTexture!)
+            //if let ground = shader as? GroundShader {
+                shader.render(texture: finalTexture!)
+                swapShapeTextures()
+            //}
         }
-
+        
+        //swapShapeTextures()
+        
+        // Get the materials
+        for shader in shaders {
+            shader.materialPass(texture: finalTexture!)
+        }
+        
+        textureMap["shape"] = prtInstance.currentShapeTexture!
+        
         #if DEBUG
         //print("Execution Time: ", globalApp!.executionTime * 1000)
         #endif

@@ -76,12 +76,9 @@ class BaseShader
     var materialIds         : [Int:StageItem] = [:]
     var materialIdHierarchy : [Int] = []
     
-    var idStart             : Int = 0
-    
-    var finishedCompiling   : Bool = false
-        
-    var rootObject          : StageItem? = nil
-    
+    var idStart             : Float = 0
+    var idEnd               : Float = 0
+            
     var prtInstance         : PRTInstance
     
     var shaders             : [String:Shader] = [:]
@@ -165,6 +162,10 @@ class BaseShader
     }
     
     func render(texture: MTLTexture)
+    {
+    }
+    
+    func materialPass(texture: MTLTexture)
     {
     }
     
@@ -421,7 +422,7 @@ class BaseShader
     }
     
     /// Creates vertex shader source code for a quad shader
-    static func getQuadVertexSource() -> String
+    static func getQuadVertexSource(name: String = "procVertex") -> String
     {
         let code =
         """
@@ -441,7 +442,7 @@ class BaseShader
 
         // Quad Vertex Function
         vertex RasterizerData
-        procVertex(uint vertexID [[ vertex_id ]],
+        __NAME__(uint vertexID [[ vertex_id ]],
                      constant VertexData *vertexArray [[ buffer(0) ]],
                      constant vector_uint2 *viewportSizePointer  [[ buffer(1) ]])
 
@@ -460,9 +461,10 @@ class BaseShader
 
             return out;
         }
+
         """
 
-        return code
+        return code.replacingOccurrences(of: "__NAME__", with: name)
     }
     
     /// Creates a vertex buffer for a quad shader
@@ -691,6 +693,25 @@ class BaseShader
             uint n = baseHash(as_type<uint2>(float2(__funcData->GlobalSeed+=.1,__funcData->GlobalSeed+=.1)));
             uint2 rz = uint2(n, n*48271U);
             return float2(rz.xy & uint2(0x7fffffffU))/float(0x7fffffff);
+        }
+
+        float normalizedToFloat(float3 color) {
+            const float c_precision = 256.0;
+            const float c_precisionp1 = c_precision + 1.0;
+            color = clamp(color, 0.0, 1.0);
+            return floor(color.r * c_precision + 0.5)
+                + floor(color.b * c_precision + 0.5) * c_precisionp1
+                + floor(color.g * c_precision + 0.5) * c_precisionp1 * c_precisionp1;
+        }
+
+        float3 floatToNormalized(float value) {
+            const float c_precision = 256.0;
+            const float c_precisionp1 = c_precision + 1.0;
+            float3 color;
+            color.r = fmod(value, c_precisionp1) / c_precision;
+            color.b = fmod(floor(value / c_precisionp1), c_precisionp1) / c_precision;
+            color.g = floor(value / (c_precisionp1 * c_precisionp1)) / c_precision;
+            return color;
         }
         
         float axis(int index, float3 domain)

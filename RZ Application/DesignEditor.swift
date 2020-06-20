@@ -157,7 +157,7 @@ class DesignEditor          : MMWidget
             let y : Float = event.y - rect.y
             
             // Selection
-            if let texture = globalApp!.currentPipeline!.getTextureOfId("id") {
+            if let texture = globalApp!.currentPipeline!.getTextureOfId("shape") {
                 
                 if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
                 
@@ -174,6 +174,8 @@ class DesignEditor          : MMWidget
                         }
                     }
                     let value = texArray[0]
+                    
+                    print(value.x, value.y, value.z, value.w)
                     
                     var valid : Bool = true
                     if globalApp!.currentSceneMode == .TwoD && value.x > 0 {
