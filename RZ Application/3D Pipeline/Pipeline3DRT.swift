@@ -203,6 +203,8 @@ class Pipeline3DRT          : Pipeline
         
         textureMap["shape"] = prtInstance.currentShapeTexture!
         
+        ids = prtInstance.ids
+        
         #if DEBUG
         //print("Execution Time: ", globalApp!.executionTime * 1000)
         #endif

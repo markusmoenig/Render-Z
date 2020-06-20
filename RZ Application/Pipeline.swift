@@ -36,6 +36,9 @@ class Pipeline
 
     var textureMap          : [String:MTLTexture] = [:]
     
+    // Ids of the hit geometry and their hierarchy
+    var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
+    
     init(_ mmView: MMView)
     {
         self.mmView = mmView

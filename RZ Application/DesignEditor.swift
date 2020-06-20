@@ -187,7 +187,7 @@ class DesignEditor          : MMWidget
                         valid = false
                     }
                                
-                    if let id = globalApp!.currentPipeline!.codeBuilder.sdfStream.ids[Int(value.w)], valid {
+                    if let id = globalApp!.currentPipeline!.ids[Int(value.w)], valid {
                         blockRendering = true
                         globalApp!.sceneGraph.setCurrent(stage: globalApp!.project.selected!.getStage(.ShapeStage), stageItem: id.0.last, component: event.clickCount == 1 ? nil : id.1)
                         blockRendering = false
