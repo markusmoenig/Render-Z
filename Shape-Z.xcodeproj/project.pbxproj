@@ -712,8 +712,8 @@
 		2BEA8C3822573CE20010C204 /* MMFloatWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */; };
 		2BED879D228B9D9C005CE147 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
 		2BED879E228B9D9C005CE147 /* MMScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BED879C228B9D9C005CE147 /* MMScreen.swift */; };
-		2BF1ABE62499E3E000466979 /* MergeShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF1ABE52499E3E000466979 /* MergeShader.swift */; };
-		2BF1ABE72499E3E000466979 /* MergeShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF1ABE52499E3E000466979 /* MergeShader.swift */; };
+		2BF1ABE62499E3E000466979 /* UtilityShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF1ABE52499E3E000466979 /* UtilityShader.swift */; };
+		2BF1ABE72499E3E000466979 /* UtilityShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF1ABE52499E3E000466979 /* UtilityShader.swift */; };
 		2BF5D361221D2B2400EAAA76 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
 		2BF5D362221D2B2400EAAA76 /* ObjectNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */; };
 		2BF5D3652220D50D00EAAA76 /* Behavior.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF5D3642220D50D00EAAA76 /* Behavior.swift */; };
@@ -971,7 +971,7 @@
 		2BE9488623D0675600DB0BCD /* DefaultItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultItems.swift; sourceTree = "<group>"; };
 		2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatWidget.swift; sourceTree = "<group>"; };
 		2BED879C228B9D9C005CE147 /* MMScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScreen.swift; sourceTree = "<group>"; };
-		2BF1ABE52499E3E000466979 /* MergeShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MergeShader.swift; sourceTree = "<group>"; };
+		2BF1ABE52499E3E000466979 /* UtilityShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UtilityShader.swift; sourceTree = "<group>"; };
 		2BF5D360221D2B2400EAAA76 /* ObjectNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectNodes.swift; sourceTree = "<group>"; };
 		2BF5D363221E7E2D00EAAA76 /* Data.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Data.h; sourceTree = "<group>"; };
 		2BF5D3642220D50D00EAAA76 /* Behavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Behavior.swift; sourceTree = "<group>"; };
@@ -1175,7 +1175,7 @@
 				2BCD67562493486600E066C0 /* BaseShader.swift */,
 				2BCD675A2494514600E066C0 /* BackShader.swift */,
 				2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */,
-				2BF1ABE52499E3E000466979 /* MergeShader.swift */,
+				2BF1ABE52499E3E000466979 /* UtilityShader.swift */,
 				2BCD67592494510E00E066C0 /* ObjectShader.swift */,
 				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
 				2BAA45C224133B1900744A0A /* Pipeline3D.swift */,
@@ -2060,7 +2060,7 @@
 				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
 				2B8444DC24945B890082EE1D /* BackShader.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
-				2BF1ABE62499E3E000466979 /* MergeShader.swift in Sources */,
+				2BF1ABE62499E3E000466979 /* UtilityShader.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
 				2B50635923CEC98600124517 /* LibraryDialog.swift in Sources */,
@@ -2357,7 +2357,7 @@
 				2B52E5B224972847009CFE1F /* MathLibrary.swift in Sources */,
 				2B9B29CD23BB453400C2F387 /* MMTabButtonWidget.swift in Sources */,
 				2B9B29D023BB453400C2F387 /* MMScrollArea.swift in Sources */,
-				2BF1ABE72499E3E000466979 /* MergeShader.swift in Sources */,
+				2BF1ABE72499E3E000466979 /* UtilityShader.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

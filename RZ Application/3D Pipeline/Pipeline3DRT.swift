@@ -20,6 +20,16 @@ class PRTInstance {
         float               maxDistance;
     } FragmentUniforms;
 
+    typedef struct {
+        simd_float4         lightColor;
+        simd_float4         directionToLight;
+    } Light;
+
+    typedef struct {
+        int                 numberOfLights;
+        Light               lights[10];
+    } LightUniforms;
+
     """
     
     // Component Ids
@@ -38,12 +48,18 @@ class PRTInstance {
     var depthTexture        : MTLTexture? = nil
     
     var localTexture        : MTLTexture? = nil
+    
     var shapeTexture1       : MTLTexture? = nil
     var shapeTexture2       : MTLTexture? = nil
     var currentShapeTexture : MTLTexture? = nil
     var otherShapeTexture   : MTLTexture? = nil
+    
+    var shadowTexture1      : MTLTexture? = nil
+    var shadowTexture2      : MTLTexture? = nil
+    var currentShadowTexture: MTLTexture? = nil
+    var otherShadowTexture  : MTLTexture? = nil
 
-    var mergeShader         : MergeShader!
+    var utilityShader       : UtilityShader!
 }
 
 class Pipeline3DRT          : Pipeline
@@ -98,7 +114,7 @@ class Pipeline3DRT          : Pipeline
         shaders = []
         
         prtInstance = PRTInstance()
-        prtInstance.mergeShader = MergeShader(instance: prtInstance)
+        prtInstance.utilityShader = UtilityShader(instance: prtInstance)
         
         backgroundShader = BackgroundShader(instance: prtInstance, scene: scene, camera: cameraComponent)
         
@@ -188,15 +204,49 @@ class Pipeline3DRT          : Pipeline
         
         // Get the depth
         for shader in shaders {
-            //if let ground = shader as? GroundShader {
-                shader.render(texture: finalTexture!)
-                swapShapeTextures()
-            //}
+            shader.render(texture: finalTexture!)
+            swapShapeTextures()
+        }
+
+        // Free the other shape texture
+        if prtInstance.currentShapeTexture === prtInstance.shapeTexture1 {
+            prtInstance.shapeTexture2 = nil
+            prtInstance.otherShapeTexture = nil
+        } else {
+            prtInstance.shapeTexture1 = nil
+            prtInstance.otherShapeTexture = nil
         }
         
-        //swapShapeTextures()
+        // The ao / shadow textures which get ping ponged
+        prtInstance.shadowTexture1 = checkTextureSize(width, height, prtInstance.shadowTexture1, .rg16Float)
+        prtInstance.shadowTexture2 = checkTextureSize(width, height, prtInstance.shadowTexture2, .rg16Float)
         
-        // Get the materials
+        // The pointers to the current and the other ao / shadow texture
+        prtInstance.currentShadowTexture = prtInstance.shadowTexture1
+        prtInstance.otherShadowTexture = prtInstance.shadowTexture2
+        
+        func swapShadowTextures()
+        {
+            if prtInstance.currentShadowTexture === prtInstance.shadowTexture1 {
+                prtInstance.currentShadowTexture = prtInstance.shadowTexture2
+                prtInstance.otherShadowTexture = prtInstance.shadowTexture1
+            } else {
+                prtInstance.currentShadowTexture = prtInstance.shadowTexture1
+                prtInstance.otherShadowTexture = prtInstance.shadowTexture2
+            }
+        }
+        
+        prtInstance.utilityShader.clearShadow(shadowTexture: prtInstance.shadowTexture1!)
+        
+        // Calculate the shadows
+        for shader in shaders {
+            if let object = shader as? ObjectShader {
+                object.shadowPass(texture: finalTexture!)
+                swapShadowTextures()
+            }
+        }
+        
+        // Calculate the materials
         for shader in shaders {
             shader.materialPass(texture: finalTexture!)
         }

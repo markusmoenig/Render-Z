@@ -88,6 +88,34 @@ class ObjectShader      : BaseShader
             headerCode += globalCode
         }
         
+        // Create Soft Shadow Function Code
+        var softShadowCode =
+        """
+        float calcSoftShadow( float3 ro, float3 rd, thread struct FuncData *__funcData)
+        {
+            float outShadow = 1.;
+            float3 position = ro;
+            float3 direction = rd;
+
+        """
+        if let shadows = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Shadows3D) {
+            dryRunComponent(shadows, data.count)
+            collectProperties(shadows)
+            if let globalCode = shadows.globalCode {
+                headerCode += globalCode
+            }
+            if let code = shadows.code {
+                softShadowCode += code
+            }
+        }
+        softShadowCode +=
+        """
+
+            return outShadow;
+        }
+
+        """
+        
         let fragmentShader =
         """
         
@@ -116,16 +144,20 @@ class ObjectShader      : BaseShader
 
             \(rayMarch.code!)
         
+            if (isNotEqual(outShape.w, inShape.w)) {
+                outShape.y += distance(position, uniforms.cameraOrigin);
+            }
             return half4(outShape);
         }
         
-        \(BaseShader.getQuadVertexSource(name: "materialVertex"))
+        \(BaseShader.getQuadVertexSource(name: "quadVertex"))
         
-        fragment half4 materialFragment(RasterizerData vertexIn [[stage_in]],
+        fragment float4 materialFragment(RasterizerData vertexIn [[stage_in]],
                                     __MATERIAL_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
-                                    texture2d<half, access::read> depthTexture [[texture(2)]])
+                                    texture2d<half, access::read> depthTexture [[texture(2)]],
+                                    texture2d<half, access::read> shadowTexture [[texture(3)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
         
@@ -137,6 +169,8 @@ class ObjectShader      : BaseShader
         
             if (shape.w >= \(idStart - 0.1) && shape.w <= \(idEnd + 0.1))
             {
+                float2 shadows = float2(shadowTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)).xy);
+
                 float2 jitter = float2(0.5);
                 float3 outPosition = float3(0,0,0);
                 float3 outDirection = float3(0,0,0);
@@ -163,8 +197,8 @@ class ObjectShader      : BaseShader
                 float3 directionToLight = float3(0,1,0);
                 float4 lightType = float4(0);
                 float4 lightColor = float4(20);
-                float shadow = 1.0;
-                float occlusion = 1.0;
+                float shadow = shadows.y;
+                float occlusion = shadows.x;
                 float3 mask = float3(1);
                         
                 float3 color = float3(0);
@@ -175,7 +209,49 @@ class ObjectShader      : BaseShader
                 outColor.w = 1.0;
             }
         
-            return half4(outColor);
+            return outColor;
+        }
+        
+        \(softShadowCode)
+        
+        fragment float2 shadowFragment(RasterizerData vertexIn [[stage_in]],
+                                    __MATERIAL_TEXTURE_HEADER_CODE__
+                                    constant float4 *__data [[ buffer(0) ]],
+                                    constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                    constant LightUniforms &lights [[ buffer(2) ]],
+                                    texture2d<half, access::read> shadowTexture [[texture(3)]],
+                                    texture2d<half, access::read> shapeTexture [[texture(4)]])
+        {
+            __SHADOW_INITIALIZE_FUNC_DATA__
+        
+            float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
+            float2 size = uniforms.screenSize;
+
+            float4 shape = float4(shapeTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
+            float2 shadows = float2(shadowTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)).xy);
+        
+            if (shape.w > -0.5)
+            {
+                float2 jitter = float2(0.5);
+                float3 outPosition = float3(0,0,0);
+                float3 outDirection = float3(0,0,0);
+        
+                float3 position = float3(uv.x, uv.y, 0);
+
+                \(camera.code!)
+        
+                float3 rayOrigin = outPosition;
+                float3 rayDirection = outDirection;
+        
+                position = rayOrigin + shape.y * rayDirection;
+        
+                // Sample sun
+        
+                float sunShadow = calcSoftShadow(position, normalize(lights.lights[0].directionToLight.xyz), __funcData);
+        
+                shadows.y = min(shape.y, sunShadow);
+            }
+            return shadows;
         }
 
         """
@@ -184,7 +260,8 @@ class ObjectShader      : BaseShader
                         
         compile(code: vertexShader + fragmentShader, shaders: [
             Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "MATERIAL", vertexName: "materialVertex", fragmentName: "materialFragment", textureOffset: 4, blending: true)
+            Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 3, blending: true),
+            Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 5, pixelFormat: .rg16Float, blending: false)
         ])
 
         //compile(vertexCode: vertexShader, fragmentCode: fragmentShader, textureOffset: 4, pixelFormat: .rgba16Float, blending: false)
@@ -274,7 +351,75 @@ class ObjectShader      : BaseShader
             commandBuffer.commit()
             
             // --- Merge the result
-            prtInstance.mergeShader.merge()
+            prtInstance.utilityShader.mergeShapes()
+        }
+    }
+    
+    override func shadowPass(texture: MTLTexture)
+    {
+        if let shader = shaders["SHADOW"] {
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShadowTexture!
+            renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
+            
+            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(shader.pipelineState)
+            
+            // --- Vertex
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 ) )
+            
+            let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, Float(prtInstance.screenSize.x), Float(prtInstance.screenSize.y) ) )
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            
+            var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
+            renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            
+            // --- Fragment
+            
+            var fragmentUniforms = ObjectFragmentUniforms()
+            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+            fragmentUniforms.screenSize = prtInstance.screenSize
+            
+            // Fill out the lights, first sun
+            
+            var lightUniforms = LightUniforms()
+            lightUniforms.numberOfLights = 1
+            
+            let sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
+            let sunStrength : Float = getGlobalVariableValue(withName: "Sun.sunStrength")!.x
+            var sunColor : SIMD4<Float>? = getGlobalVariableValue(withName: "Sun.sunColor")
+            if sunColor != nil {
+                var norm = SIMD3<Float>(sunColor!.x, sunColor!.y, sunColor!.z)
+                norm = normalize(norm)
+                
+                sunColor!.x = norm.x * sunStrength
+                sunColor!.y = norm.y * sunStrength
+                sunColor!.z = norm.z * sunStrength
+            } else {
+                sunColor = SIMD4<Float>(sunStrength,sunStrength,sunStrength,1)
+            }
+            
+            lightUniforms.lights.0.lightColor = sunColor!
+            lightUniforms.lights.0.directionToLight = sunDirection!
+
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentBytes(&lightUniforms, length: MemoryLayout<LightUniforms>.stride, index: 2)
+
+            renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 3)
+            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 4)
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            renderEncoder.endEncoding()
+            
+            commandBuffer.addCompletedHandler { cb in
+                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
+            }
+            
+            commandBuffer.commit()
         }
     }
     
@@ -309,6 +454,7 @@ class ObjectShader      : BaseShader
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
 
             renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 2)
+            renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 3)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

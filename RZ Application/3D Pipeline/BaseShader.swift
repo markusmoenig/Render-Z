@@ -165,6 +165,10 @@ class BaseShader
     {
     }
     
+    func shadowPass(texture: MTLTexture)
+    {
+    }
+    
     func materialPass(texture: MTLTexture)
     {
     }

@@ -82,7 +82,8 @@ class GroundShader      : BaseShader
                                     __MATERIAL_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
-                                    texture2d<half, access::read> shapeTexture [[texture(2)]])
+                                    texture2d<half, access::read> shapeTexture [[texture(2)]],
+                                    texture2d<half, access::read> shadowTexture [[texture(3)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
         
@@ -93,6 +94,8 @@ class GroundShader      : BaseShader
 
             float4 outShape = float4(shapeTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
             if (isEqual(outShape.w, 0.0)) {
+        
+                float2 shadows = float2(shadowTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)).xy);
                 float2 jitter = float2(0.5);
 
                 float3 outPosition = float3(0,0,0);
@@ -120,8 +123,8 @@ class GroundShader      : BaseShader
                 float3 directionToLight = float3(0,1,0);
                 float4 lightType = float4(0);
                 float4 lightColor = float4(20);
-                float shadow = 1.0;
-                float occlusion = 1.0;
+                float shadow = shadows.y;
+                float occlusion = shadows.x;
                 float3 mask = float3(1);
                                             
                 material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &materialOut, __funcData);
@@ -174,7 +177,6 @@ class GroundShader      : BaseShader
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
 
-            //renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 2)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -219,6 +221,8 @@ class GroundShader      : BaseShader
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
 
             renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 2)
+            renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 3)
+
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

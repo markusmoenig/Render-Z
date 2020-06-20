@@ -27,4 +27,14 @@ typedef struct {
     float               maxDistance;
 } ObjectFragmentUniforms;
 
+typedef struct {
+    simd_float4         lightColor;
+    simd_float4         directionToLight;
+} Light;
+
+typedef struct {
+    int                 numberOfLights;
+    Light               lights[10];
+} LightUniforms;
+
 #endif /* Shader_h */

@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class MergeShader      : BaseShader
+class UtilityShader         : BaseShader
 {
     override init(instance: PRTInstance)
     {                    
@@ -43,15 +43,23 @@ class MergeShader      : BaseShader
 
             return outShape;
         }
+        
+        fragment float2 clearShadowsFragment(RasterizerData in [[stage_in]])
+        {
+            return float2(1,1);
+        }
 
         """
         
-        compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [Shader(id: "MAIN", textureOffset: 0, pixelFormat: .rgba16Float, blending: false)])
+        compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
+            Shader(id: "MERGE", textureOffset: 0, pixelFormat: .rgba16Float, blending: false),
+            Shader(id: "CLEARSHADOW", fragmentName: "clearShadowFragment", textureOffset: 0, pixelFormat: .rg16Float, blending: false),
+        ])
     }
     
-    func merge()
+    func mergeShapes()
     {
-        if let mainShader = shaders["MAIN"] {
+        if let mainShader = shaders["MERGE"] {
 
             let renderPassDescriptor = MTLRenderPassDescriptor()
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShapeTexture!
@@ -71,7 +79,6 @@ class MergeShader      : BaseShader
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
             // --- Fragment
-            
             var fragmentUniforms = ObjectFragmentUniforms()
             fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
             fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
@@ -88,6 +95,41 @@ class MergeShader      : BaseShader
             commandBuffer.addCompletedHandler { cb in
                 globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
                 //print("Merge Shader: ", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
+            }
+            
+            commandBuffer.commit()
+        }
+    }
+    
+    func clearShadow(shadowTexture: MTLTexture)
+    {
+        if let shader = shaders["CLEARSHADOW"] {
+
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = shadowTexture
+            renderPassDescriptor.colorAttachments[0].loadAction = .clear
+            renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 1.0, green: 1, blue: 1, alpha: 1.0)
+
+            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(shader.pipelineState)
+            
+            // --- Vertex
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 ) )
+            
+            let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, prtInstance.screenSize.x, prtInstance.screenSize.y ) )
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            
+            var viewportSize : vector_uint2 = vector_uint2( UInt32( prtInstance.screenSize.x ), UInt32( prtInstance.screenSize.y ) )
+            renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            renderEncoder.endEncoding()
+            
+            commandBuffer.addCompletedHandler { cb in
+                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
+                //print("Shadow Shader: ", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
             }
             
             commandBuffer.commit()
