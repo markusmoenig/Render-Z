@@ -37,6 +37,8 @@ class GroundShader      : BaseShader
 
         let material = generateMaterialCode(stageItem: self.object)
         
+        let lightSamplingCode = prtInstance.utilityShader.createLightSamplingMaterialCode(materialCode: "material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);")
+
         let fragmentCode =
         """
 
@@ -45,6 +47,7 @@ class GroundShader      : BaseShader
         \(camera.globalCode!)
         \(groundComponent.globalCode!)
         \(material)
+        \(createLightCode(scene: scene))
 
         fragment float4 procFragment(RasterizerData in [[stage_in]],
                                      __MAIN_TEXTURE_HEADER_CODE__
@@ -82,8 +85,9 @@ class GroundShader      : BaseShader
                                     __MATERIAL_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
-                                    texture2d<half, access::read> shapeTexture [[texture(2)]],
-                                    texture2d<half, access::read> shadowTexture [[texture(3)]])
+                                    constant LightUniforms &lights [[ buffer(2) ]],
+                                    texture2d<half, access::read> shapeTexture [[texture(3)]],
+                                    texture2d<half, access::read> shadowTexture [[texture(4)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
         
@@ -115,21 +119,27 @@ class GroundShader      : BaseShader
             
                 \(groundComponent.code!)
             
-                struct MaterialOut materialOut;
-                materialOut.color = float4(0,0,0,1);
-                materialOut.mask = float3(0);
-                
-                float3 hitPosition = rayOrigin + rayDirection * outShape.y;
-                float3 directionToLight = float3(0,1,0);
-                float4 lightType = float4(0);
-                float4 lightColor = float4(20);
-                float shadow = shadows.y;
-                float occlusion = shadows.x;
-                float3 mask = float3(1);
-                                            
-                material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &materialOut, __funcData);
-            
-                outColor = materialOut.color;
+                position = rayOrigin + rayDirection * outShape.y;
+        
+                // Sun
+                {
+                    struct MaterialOut materialOut;
+                    materialOut.color = float4(0,0,0,1);
+                    materialOut.mask = float3(0);
+                    
+                    float3 hitPosition = position;
+                    float3 directionToLight = normalize(lights.lights[0].directionToLight.xyz);
+                    float4 lightType = float4(0);
+                    float4 lightColor = lights.lights[0].lightColor;
+                    float shadow = shadows.y;
+                    float occlusion = shadows.x;
+                    float3 mask = float3(1);
+                                                
+                    material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &materialOut, __funcData);
+                    outColor += materialOut.color;
+                }
+        
+                \(lightSamplingCode)
             }
         
             return outColor;
@@ -217,11 +227,14 @@ class GroundShader      : BaseShader
             fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
             fragmentUniforms.screenSize = prtInstance.screenSize
 
+            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentBytes(&lightUniforms, length: MemoryLayout<LightUniforms>.stride, index: 2)
 
-            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 2)
-            renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 3)
+            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
+            renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 4)
 
             // ---
             

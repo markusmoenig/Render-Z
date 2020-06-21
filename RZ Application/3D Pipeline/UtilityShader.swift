@@ -182,12 +182,54 @@ class UtilityShader         : BaseShader
                 lightUniforms.lights.1.lightType = 1
                 lightUniforms.lights.1.lightColor = lightColor
                 lightUniforms.lights.1.directionToLight = SIMD4<Float>(t["_posX"]!, t["_posY"]!, t["_posZ"]!, 1)
-                print(t["_posX"]!, t["_posY"]!, t["_posZ"]!)
             }
             
             lightUniforms.numberOfLights += 1
         }
         
         return lightUniforms
+    }
+    
+    func createLightSamplingMaterialCode(materialCode: String) -> String
+    {
+        // --- Create Light Sampling Material Code
+        var lightSamplingCode = ""
+        let stage = globalApp!.project.selected!.getStage(.LightStage)
+        let lights = stage.getChildren()
+        
+        for (index, _) in lights.enumerated()
+        {
+            lightSamplingCode +=
+            """
+            
+                {
+                    Light light = lights.lights[\(index+1)];
+                    float3 lightDir = float3(0);
+
+                    if (light.lightType == 0) lightDir = normalize(light.directionToLight.xyz);
+                    else lightDir = normalize(light.directionToLight.xyz - position);
+                    
+                    struct MaterialOut __materialOut;
+                    __materialOut.color = float4(0,0,0,1);
+                    __materialOut.mask = float3(0);
+                    
+                    float3 incomingDirection = rayDirection;
+                    float3 hitPosition = position;
+                    float3 hitNormal = outNormal;
+                    float3 directionToLight = lightDir;
+                    float4 lightType = float4(0);
+                    float4 lightColor = light\(index)(light.directionToLight.xyz, position, __funcData);
+                    float shadow = shadows.y;
+                    float occlusion = shadows.x;
+                    float3 mask = float3(1);
+
+                    \(materialCode)
+                    
+                    outColor += __materialOut.color;
+                }
+            
+            """
+        }
+        return lightSamplingCode
     }
 }
