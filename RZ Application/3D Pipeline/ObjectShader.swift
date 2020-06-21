@@ -88,7 +88,7 @@ class ObjectShader      : BaseShader
             headerCode += globalCode
         }
                 
-        // Create Soft Shadow Function Code
+        // --- Create Soft Shadow Function Code
         var softShadowCode =
         """
         float calcSoftShadow( float3 ro, float3 rd, thread struct FuncData *__funcData)
@@ -115,6 +115,46 @@ class ObjectShader      : BaseShader
         }
 
         """
+        
+        // --- Create Light Sampling Material Code
+        var lightSamplingCode = ""
+        let stage = globalApp!.project.selected!.getStage(.LightStage)
+        let lights = stage.getChildren()
+        
+        for (index, _) in lights.enumerated()
+        {
+            lightSamplingCode +=
+            """
+            
+                {
+                    Light light = lights.lights[\(index+1)];
+                    float3 lightDir = float3(0);
+
+                    if (light.lightType == 0) lightDir = normalize(light.directionToLight.xyz);
+                    else lightDir = normalize(light.directionToLight.xyz - position);
+                    
+                    struct MaterialOut __materialOut;
+                    __materialOut.color = float4(0,0,0,1);
+                    __materialOut.mask = float3(0);
+                    
+                    float3 incomingDirection = rayDirection;
+                    float3 hitPosition = position;
+                    float3 hitNormal = outNormal;
+                    float3 directionToLight = lightDir;
+                    float4 lightType = float4(0);
+                    float4 lightColor = light\(index)(light.directionToLight.xyz, position, __funcData);
+                    float shadow = shadows.y;
+                    float occlusion = shadows.x;
+                    float3 mask = float3(1);
+
+                    \(materialCode)
+                    
+                    outColor += __materialOut.color;
+                }
+            
+            """
+        }
+        
         
         let fragmentShader =
         """
@@ -189,14 +229,8 @@ class ObjectShader      : BaseShader
         
                 \(normal.code!)
         
-                for (int i = 0; i < lights.numberOfLights; ++i)
+                // Sun
                 {
-                    Light light = lights.lights[i];
-                    float3 lightDir = float3(0);
-
-                    if (light.lightType == 0) lightDir = normalize(light.directionToLight.xyz);
-                    else lightDir = normalize(light.directionToLight.xyz - position);
-        
                     struct MaterialOut __materialOut;
                     __materialOut.color = float4(0,0,0,1);
                     __materialOut.mask = float3(0);
@@ -204,19 +238,19 @@ class ObjectShader      : BaseShader
                     float3 incomingDirection = rayDirection;
                     float3 hitPosition = position;
                     float3 hitNormal = outNormal;
-                    float3 directionToLight = lightDir;
+                    float3 directionToLight = normalize(lights.lights[0].directionToLight.xyz);
                     float4 lightType = float4(0);
                     float4 lightColor = lights.lights[0].lightColor;
                     float shadow = shadows.y;
                     float occlusion = shadows.x;
                     float3 mask = float3(1);
 
-                            
                     \(materialCode)
         
                     outColor += __materialOut.color;
                 }
-                
+        
+                \(lightSamplingCode)
             }
         
             return outColor;
@@ -262,16 +296,16 @@ class ObjectShader      : BaseShader
                 position = rayOrigin + shape.y * rayDirection;
                 
                 // Calculate shadows
-                float shadow = 1.0;
-                float3 lightDir = float3(0);
+                float shadow = calcSoftShadow(position, normalize(lights.lights[0].directionToLight.xyz), __funcData);
 
-                for (int i = 0; i < lights.numberOfLights; ++i)
+                float3 lightDir = float3(0);
+                for (int i = 1; i < lights.numberOfLights; ++i)
                 {
                     Light light = lights.lights[i];
                     if (light.lightType == 0) lightDir = normalize(light.directionToLight.xyz);
                     else lightDir = normalize(light.directionToLight.xyz - position);
         
-                    shadow = smin(calcSoftShadow(position, lightDir, __funcData), shadow, 0.5);
+                    shadow = max(calcSoftShadow(position, lightDir, __funcData), shadow);
                 }
         
                 shadows.y = min(shape.y, shadow);
