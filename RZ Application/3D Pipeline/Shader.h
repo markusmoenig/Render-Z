@@ -28,6 +28,7 @@ typedef struct {
 } ObjectFragmentUniforms;
 
 typedef struct {
+    int                 lightType;
     simd_float4         lightColor;
     simd_float4         directionToLight;
 } Light;

@@ -150,12 +150,25 @@ class BaseShader
                         shader.pipelineStateDesc.colorAttachments[0].destinationAlphaBlendFactor = .oneMinusSourceAlpha
                     }
 
-                    shader.pipelineState = try! self.device.makeRenderPipelineState(descriptor: shader.pipelineStateDesc)
+                    do {
+                        shader.pipelineState = try self.device.makeRenderPipelineState(descriptor: shader.pipelineStateDesc)
+                    } catch {
+                        shader.shaderState = .Undefined
+                        self.shaders[shader.id] = nil
+                        return
+                    }
                     
                     shader.commandQueue = self.device.makeCommandQueue()
                     shader.shaderState = .Compiled
                     
                     self.shaders[shader.id] = shader
+                }
+                
+                if self as? ObjectShader != nil || self as? GroundShader != nil || self as? BackgroundShader != nil {
+                    DispatchQueue.main.async {
+                        globalApp!.currentEditor.render()
+                        globalApp!.mmView.update()
+                    }
                 }
             }
         } )
@@ -171,6 +184,51 @@ class BaseShader
     
     func materialPass(texture: MTLTexture)
     {
+    }
+    
+    func createLightCode(scene: Scene) -> String
+    {
+        let lightStage = scene.getStage(.LightStage)
+
+        var headerCode = ""
+
+        for (index,l) in lightStage.children3D.enumerated() {
+            if let light = l.components[l.defaultName] {
+                dryRunComponent(light, data.count)
+                collectProperties(light)
+                if let globalCode = light.globalCode {
+                    headerCode += globalCode
+                }
+
+                var code =
+                """
+
+                float4 light\(index)(float3 lightPosition, float3 position, thread struct FuncData *__funcData )
+                {
+                    float4 outColor = float4(0);
+
+                    constant float4 *__data = __funcData->__data;
+                    float GlobalTime = __funcData->GlobalTime;
+                    float GlobalSeed = __funcData->GlobalSeed;
+                    __CREATE_TEXTURE_DEFINITIONS__
+
+                """
+                
+                code += light.code!
+                
+                code +=
+                """
+
+                    return outColor;
+                }
+                
+                """
+                
+                headerCode += code
+            }
+        }
+        
+        return headerCode
     }
     
     /// Update the instance data

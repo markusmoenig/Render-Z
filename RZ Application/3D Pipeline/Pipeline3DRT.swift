@@ -21,6 +21,7 @@ class PRTInstance {
     } FragmentUniforms;
 
     typedef struct {
+        int                 lightType;
         simd_float4         lightColor;
         simd_float4         directionToLight;
     } Light;
@@ -114,7 +115,7 @@ class Pipeline3DRT          : Pipeline
         shaders = []
         
         prtInstance = PRTInstance()
-        prtInstance.utilityShader = UtilityShader(instance: prtInstance)
+        prtInstance.utilityShader = UtilityShader(instance: prtInstance, scene: scene)
         
         backgroundShader = BackgroundShader(instance: prtInstance, scene: scene, camera: cameraComponent)
         
@@ -155,6 +156,14 @@ class Pipeline3DRT          : Pipeline
     override func render(_ widthIn: Float,_ heightIn: Float, settings: PipelineRenderSettings? = nil)
     {
         width = round(widthIn); height = round(heightIn)
+        
+        for shader in shaders {
+            for sh in shader.shaders {
+                if sh.value.shaderState != .Compiled {
+                    return
+                }
+            }
+        }
         
         let camHelper = CamHelper3D()
         camHelper.initFromComponent(aspect: width / height, component: cameraComponent)

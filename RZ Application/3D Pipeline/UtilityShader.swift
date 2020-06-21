@@ -10,8 +10,11 @@ import MetalKit
 
 class UtilityShader         : BaseShader
 {
-    override init(instance: PRTInstance)
-    {                    
+    let scene               : Scene
+    
+    init(instance: PRTInstance, scene: Scene)
+    {
+        self.scene = scene
         super.init(instance: instance)
         
         createFragmentSource()
@@ -103,12 +106,12 @@ class UtilityShader         : BaseShader
     
     func clearShadow(shadowTexture: MTLTexture)
     {
-        if let shader = shaders["CLEARSHADOW"] {
+        if let shader = shaders["CLEARSHADOW"], shader.shaderState == .Compiled {
 
             let renderPassDescriptor = MTLRenderPassDescriptor()
             renderPassDescriptor.colorAttachments[0].texture = shadowTexture
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
-            renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 1.0, green: 1, blue: 1, alpha: 1.0)
+            renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 1.0, green: 1.0, blue: 1, alpha: 1.0)
 
             let commandBuffer = shader.commandQueue.makeCommandBuffer()!
             let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
@@ -134,5 +137,57 @@ class UtilityShader         : BaseShader
             
             commandBuffer.commit()
         }
+    }
+    
+    func createLightStruct() -> LightUniforms
+    {
+        // Fill out the lights, first sun
+        
+        var lightUniforms = LightUniforms()
+        lightUniforms.numberOfLights = 1
+        
+        let sunDirection = getGlobalVariableValue(withName: "Sun.sunDirection")
+        let sunStrength : Float = getGlobalVariableValue(withName: "Sun.sunStrength")!.x
+        var sunColor : SIMD4<Float>? = getGlobalVariableValue(withName: "Sun.sunColor")
+        if sunColor != nil {
+            var norm = SIMD3<Float>(sunColor!.x, sunColor!.y, sunColor!.z)
+            norm = normalize(norm)
+            
+            sunColor!.x = norm.x * sunStrength
+            sunColor!.y = norm.y * sunStrength
+            sunColor!.z = norm.z * sunStrength
+        } else {
+            sunColor = SIMD4<Float>(sunStrength,sunStrength,sunStrength,1)
+        }
+        
+        lightUniforms.lights.0.lightType = 0
+        lightUniforms.lights.0.lightColor = sunColor!
+        lightUniforms.lights.0.directionToLight = sunDirection!
+        
+        let stage = globalApp!.project.selected!.getStage(.LightStage)
+        let lights = stage.getChildren()
+        
+        for (index, lightItem) in lights.enumerated() {
+            
+            let component = lightItem.components[lightItem.defaultName]!
+            let t = getTransformedComponentValues(component)
+            
+            var lightColor = getTransformedComponentProperty(component, "lightColor")
+            let lightStrength = getTransformedComponentProperty(component, "lightStrength")
+            lightColor.x *= lightStrength.x
+            lightColor.y *= lightStrength.x
+            lightColor.z *= lightStrength.x
+
+            if index == 0 {
+                lightUniforms.lights.1.lightType = 1
+                lightUniforms.lights.1.lightColor = lightColor
+                lightUniforms.lights.1.directionToLight = SIMD4<Float>(t["_posX"]!, t["_posY"]!, t["_posZ"]!, 1)
+                print(t["_posX"]!, t["_posY"]!, t["_posZ"]!)
+            }
+            
+            lightUniforms.numberOfLights += 1
+        }
+        
+        return lightUniforms
     }
 }
