@@ -237,6 +237,8 @@
 		2B6CCE5C231F5E5F00ECA35B /* foreground.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B6CCE58231F5E5F00ECA35B /* foreground.tiff */; };
 		2B6D0035228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
 		2B6D0036228907F500BEDCFD /* LayerAreaMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */; };
+		2B716BEE24A039D0002DA1FD /* ThumbnailShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B716BED24A039CF002DA1FD /* ThumbnailShader.swift */; };
+		2B716BEF24A039D0002DA1FD /* ThumbnailShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B716BED24A039CF002DA1FD /* ThumbnailShader.swift */; };
 		2B7A3BE823B2F1F9002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
 		2B7A3BE923B2F1FA002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
 		2B7A3BEA23B2F1FA002EC5FC /* MMTreeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */; };
@@ -817,6 +819,7 @@
 		2B6CCE57231F5E5E00ECA35B /* background.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = background.tiff; sourceTree = "<group>"; };
 		2B6CCE58231F5E5F00ECA35B /* foreground.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = foreground.tiff; sourceTree = "<group>"; };
 		2B6D0034228907F400BEDCFD /* LayerAreaMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayerAreaMaxDelegate.swift; sourceTree = "<group>"; };
+		2B716BED24A039CF002DA1FD /* ThumbnailShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThumbnailShader.swift; sourceTree = "<group>"; };
 		2B7A3BE723B2F1E3002EC5FC /* MMTreeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTreeWidget.swift; sourceTree = "<group>"; };
 		2B7A3BF123B4583A002EC5FC /* Render-Z.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Render-Z.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		2B7A3BF323B4583A002EC5FC /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -1177,6 +1180,7 @@
 				2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */,
 				2BF1ABE52499E3E000466979 /* UtilityShader.swift */,
 				2BCD67592494510E00E066C0 /* ObjectShader.swift */,
+				2B716BED24A039CF002DA1FD /* ThumbnailShader.swift */,
 				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
 				2BAA45C224133B1900744A0A /* Pipeline3D.swift */,
 				2B8DB3922491A9C300D57DC4 /* Pipeline3DRT.swift */,
@@ -2059,6 +2063,7 @@
 				2B65083323D69922003DE093 /* CodeSDFStream.swift in Sources */,
 				2B7A3C3A23B46838002EC5FC /* TopRegion.swift in Sources */,
 				2B8444DC24945B890082EE1D /* BackShader.swift in Sources */,
+				2B716BEE24A039D0002DA1FD /* ThumbnailShader.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
 				2BF1ABE62499E3E000466979 /* UtilityShader.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
@@ -2296,6 +2301,7 @@
 				2B9B29EE23BB45CA00C2F387 /* CodeFragList.swift in Sources */,
 				2B9B29CE23BB453400C2F387 /* MMCompute.swift in Sources */,
 				2B40D80B23FE0D8300D46B2F /* Combo3D.metal in Sources */,
+				2B716BEF24A039D0002DA1FD /* ThumbnailShader.swift in Sources */,
 				2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
 				2B9B29A723BB44BF00C2F387 /* AppDelegate.swift in Sources */,
 				2B8444DD24945B8A0082EE1D /* BackShader.swift in Sources */,

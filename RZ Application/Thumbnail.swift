@@ -46,7 +46,7 @@ class Thumbnail
     
     func generate(_ comp: CodeComponent,_ width: Float = 200,_ height: Float = 200) -> MTLTexture?
     {
-        let result = checkTextureSize(width, height)
+        let result = checkTextureSize(width, height, nil, .bgra8Unorm)
         if comp.componentType == .SDF2D {
             depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
             backTexture = checkTextureSize(width, height, backTexture)
@@ -63,11 +63,18 @@ class Thumbnail
             codeBuilder.render(renderInstance, result, inTextures: [depthTexture!, backTexture!])
         } else
         if comp.componentType == .SDF3D {
-            if componentMap["camera3D"] == nil {
-                return result
-            }
+            //if componentMap["camera3D"] == nil {
+            //    return result
+            //}
             
-            return nil
+            let instance = PRTInstance()
+            instance.cameraOrigin = SIMD3<Float>(8,8,8)
+            instance.cameraLookAt = SIMD3<Float>(0,0,0)
+            instance.screenSize.x = width
+            instance.screenSize.y = height
+            let th = ThumbnailShader(instance: instance, shape: comp, camera: componentMap["camera3D"]!)
+            th.render(texture: result!)
+            /*
 
             depthTexture = checkTextureSize(width, height, depthTexture)
             backTexture = checkTextureSize(width, height, backTexture)
@@ -96,6 +103,7 @@ class Thumbnail
             
             // Render
             codeBuilder.compute.run( codeBuilder.previewState!, outTexture: result, inTextures: [depthTexture!, backTexture!, normalTexture!, metaTexture!])
+            */
         }
         return result
     }

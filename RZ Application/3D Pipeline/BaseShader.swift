@@ -90,7 +90,7 @@ class BaseShader
         data.append(SIMD4<Float>(0, 0 ,0, 0))
     }
     
-    func compile(code: String, shaders: [Shader])
+    func compile(code: String, shaders: [Shader], sync: Bool = false)
     {
         var source = BaseShader.getHeaderCode() + code
         
@@ -124,8 +124,7 @@ class BaseShader
         }
         source = replaceTexturReferences(sourceCode: source)
         
-        //print(source)
-        device.makeLibrary( source: source, options: nil, completionHandler: { (library, error) in
+        let compiledCB : MTLNewLibraryCompletionHandler = { (library, error) in
             if let error = error, library == nil {
                 print(error)
             } else
@@ -171,7 +170,19 @@ class BaseShader
                     }
                 }
             }
-        } )
+        }
+        
+        //print(source)
+        if sync == false {
+            device.makeLibrary( source: source, options: nil, completionHandler: compiledCB)
+        } else {
+            do {
+                let library = try device.makeLibrary( source: source, options: nil)
+                compiledCB(library, nil)
+            } catch {
+                print(error)
+            }
+        }
     }
     
     func render(texture: MTLTexture)
