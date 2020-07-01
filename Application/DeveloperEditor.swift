@@ -28,9 +28,9 @@ class DeveloperEditor   : Editor
         codeProperties = CodeProperties(view)
         
         var liveSkin = MMSkinButton()
-        liveSkin.borderColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
-        liveSkin.hoverColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
-        liveSkin.activeColor = SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.borderColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.hoverColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.activeColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
 
         navButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "NAV" )
         showButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "SHOW" )

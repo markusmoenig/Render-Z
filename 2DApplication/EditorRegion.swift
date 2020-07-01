@@ -11,16 +11,26 @@ import MetalKit
 class EditorRegion: MMRegion
 {
     var app                     : App
+    var widget                  : EditorWidget!
         
     init( _ view: MMView, app: App )
     {
         self.app = app
 
         super.init( view, type: .Editor )
+        
+        widget = EditorWidget(view, editorRegion: self, app: app)
+        registerWidgets( widgets: widget! )
     }
     
     override func build()
     {
-        app.currentEditor.drawRegion(self)
+        if app.nodeGraph.maximizedNode == nil {
+            app.nodeGraph.drawRegion(self)
+        } else {
+            app.nodeGraph.maximizedNode?.maxDelegate?.drawRegion(self)
+        }
+        
+        widget.rect.copy(rect)
     }
 }

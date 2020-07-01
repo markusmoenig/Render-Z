@@ -20,7 +20,7 @@ class TemplateChooserItem {
     init(_ mmView: MMView,_ title: String, _ fileName: String = "", _ description: String = "")
     {
         titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title)
-        descriptionLabel = MMTextLabel(mmView, font: mmView.openSans, text: description, scale: 0.36, color: float4(mmView.skin.Item.textColor))
+        descriptionLabel = MMTextLabel(mmView, font: mmView.openSans, text: description, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
         self.fileName = fileName
     }
 }
@@ -144,7 +144,7 @@ class MMTemplateChooser : MMDialog {
             var x : Float = rect.x + 3
             
             let borderColor = selItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
-            let textColor = selItem === item ? mmView.skin.Item.selectionColor : float4(1,1,1,1)
+            let textColor = selItem === item ? mmView.skin.Item.selectionColor : SIMD4<Float>(1,1,1,1)
 
             x += (Float(index).truncatingRemainder(dividingBy: 3)) * (itemSize + 2)
 
@@ -177,14 +177,14 @@ class MMTemplateChooser : MMDialog {
         
         let cb : Float = 1
         // Erase Edges
-        mmView.drawBox.draw( x: boxRect.x - cb, y: boxRect.y - cb, width: boxRect.width + 2*cb, height: boxRect.height + 2*cb, round: 30, borderSize: 4, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Dialog.color)
+        mmView.drawBox.draw( x: boxRect.x - cb, y: boxRect.y - cb, width: boxRect.width + 2*cb, height: boxRect.height + 2*cb, round: 30, borderSize: 4, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Dialog.color)
         
         // Box Border
-        mmView.drawBox.draw( x: boxRect.x, y: boxRect.y, width: boxRect.width, height: boxRect.height, round: 30, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
+        mmView.drawBox.draw( x: boxRect.x, y: boxRect.y, width: boxRect.width, height: boxRect.height, round: 30, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
         
         y = rect.y + 35 + rect.height - 90 - 30
         
-        mmView.drawBox.draw( x: rect.x + 10, y: y, width: rect.width - 20, height: 30, round: 26, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
+        mmView.drawBox.draw( x: rect.x + 10, y: y, width: rect.width - 20, height: 30, round: 26, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
         if let item = selItem {
             item.descriptionLabel.drawCentered(x: rect.x + 10, y: y, width: rect.width - 20, height: 30)
         }
@@ -211,17 +211,17 @@ class MMFileDialogItem {
         
         do {
             let values = try? url.resourceValues(forKeys: [.nameKey, .contentModificationDateKey])
-            title = values!.name!.replacingOccurrences(of: ".shape-z", with: "")
+            title = values!.name!.replacingOccurrences(of: "." + globalApp!.mmFile.appExtension, with: "")
             
             let dateFormatter = DateFormatter()
-            let localFormatter = DateFormatter.dateFormat(fromTemplate: "MM/dd HH-mm", options: 0, locale: NSLocale.current)
+            let localFormatter = DateFormatter.dateFormat(fromTemplate: "E, MMM d, yyyy HH:mm"/*"MM/dd HH-mm"*/, options: 0, locale: NSLocale.current)
             dateFormatter.dateFormat = localFormatter
 
             date = dateFormatter.string(from: values!.contentModificationDate!)
         }
 
-        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: 0.36, color: float4(mmView.skin.Item.textColor))
-        dateLabel = MMTextLabel(mmView, font: mmView.openSans, text: date, scale: 0.36, color: float4(mmView.skin.Item.textColor))
+        titleLabel = MMTextLabel(mmView, font: mmView.openSans, text: title, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
+        dateLabel = MMTextLabel(mmView, font: mmView.openSans, text: date, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
     }
 }
 
@@ -244,11 +244,14 @@ class MMFileDialog : MMDialog {
     var alpha           : Float = 0
     
     var hasTextFocus    : Bool = false
+    var mouseIsDown     : Bool = false
 
     #if os(iOS)
     var textField       : UITextField!
     var fileNameLabel   : MMTextLabel!
     #endif
+    
+    var scrollRect      : MMRect? = nil
     
     init(_ view: MMView,_ mode: Mode = .Open) {
         self.mode = mode
@@ -269,30 +272,21 @@ class MMFileDialog : MMDialog {
             textField.addTarget(self, action: #selector(textFieldDidChange(textField:)), for: .editingChanged)
             textField.addTarget(self, action: #selector(textFieldEditingDidEnd(textField:)), for: .editingDidEnd)
 
-            fileNameLabel = MMTextLabel(mmView, font: mmView.openSans, text: globalApp!.mmFile!.name, scale: 0.36, color: float4(mmView.skin.Item.textColor))
+            fileNameLabel = MMTextLabel(mmView, font: mmView.openSans, text: globalApp!.mmFile!.name, scale: 0.36, color: SIMD4<Float>(mmView.skin.Item.textColor))
         }
         #endif
         
-        let mmFile = globalApp!.mmFile!
-        var contents : [URL] = []
+        let fc = NSFileCoordinator()
+        for item in globalApp!.mmFile.result
+        {
+            let itemUrl = item.value(forAttribute: NSMetadataItemURLKey) as! URL
+            fc.coordinate(readingItemAt: itemUrl, options: .resolvesSymbolicLink, error: nil, byAccessor: { url in
+                items.append( MMFileDialogItem(mmView, url ) )
+            })
+        }
         
-        do {
-            contents = try FileManager.default.contentsOfDirectory(at: mmFile.containerUrl!, includingPropertiesForKeys: nil, options: [])
-            
-            for item in contents {
-                
-                let values = try? item.resourceValues(forKeys: [.isRegularFileKey, .nameKey])
-
-                if values!.isRegularFile! {
-                    if values!.name!.contains(".shape-z") && !values!.name!.starts(with: ".") {
-                        items.append( MMFileDialogItem(mmView, item ) )
-                    }
-                }
-            }
-        }
-        catch {
-            print(error.localizedDescription)
-        }
+        items = items.sorted(by: { $0.titleLabel.text < $1.titleLabel.text })
+        selItem = items.first
 
         widgets.append(self)
     }
@@ -327,7 +321,7 @@ class MMFileDialog : MMDialog {
             mmFile.name = textField.text!
 
             do {
-                let json = globalApp!.nodeGraph.encodeJSON()
+                let json = globalApp!.encodeJSON()
                 try json.write(to: path, atomically: false, encoding: .utf8)
             } catch
             {
@@ -339,22 +333,35 @@ class MMFileDialog : MMDialog {
     
     override func mouseMoved(_ event: MMMouseEvent) {
         super.mouseMoved(event)
-        
+
+        if mouseIsDown {
+            mouseScrolled(event)
+        }
+
+        //print("mouseMoved", event.deltaY)
+                
         hoverItem = nil
-        for item in items {
-            if item.rect.contains(event.x, event.y) {
-                hoverItem = item
-                break
+        if let scrollRect = scrollRect {
+            if scrollRect.contains(event.x, event.y) {
+                for item in items {
+                    if item.rect.contains(event.x, event.y) {
+                        hoverItem = item
+                        break
+                    }
+                }
             }
         }
     }
     
     override func mouseDown(_ event: MMMouseEvent) {
+        
+        mouseIsDown = true
+
         #if os(iOS)
         mouseMoved(event)
         #endif
         super.mouseDown(event)
-        
+                
         #if os(iOS)
         if mode == .Save {
             if nameRect.contains(event.x, event.y) {
@@ -376,6 +383,10 @@ class MMFileDialog : MMDialog {
         }
     }
     
+    override func mouseUp(_ event: MMMouseEvent) {
+        mouseIsDown = false
+    }
+    
     #if os(iOS)
     @objc func textFieldDidChange(textField: UITextField) {
         fileNameLabel.setText(textField.text!)
@@ -389,7 +400,7 @@ class MMFileDialog : MMDialog {
     
     override func mouseScrolled(_ event: MMMouseEvent)
     {
-        scrollOffset += event.deltaY! * 4
+        scrollOffset += event.deltaY!
         
         if !dispatched {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -432,12 +443,12 @@ class MMFileDialog : MMDialog {
         let itemWidth : Float = (rect.width - 4 - 2)
         let itemHeight : Float = 30
         
-        mmView.drawBox.draw( x: rect.x, y: rect.y + 35, width: rect.width, height: rect.height - 90 - 40, round: 30, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
+        mmView.drawBox.draw( x: rect.x, y: rect.y + 35, width: rect.width, height: rect.height - 90 - 40, round: 30, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: mmView.skin.Item.borderColor)
         
         var y : Float = rect.y + 38
         if rect.y == 0 {
             let scrollHeight : Float = rect.height - 90 - 46
-            let scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
+            scrollRect = MMRect(rect.x + 3, y, itemWidth, scrollHeight)
             mmView.renderer.setClipRect(scrollRect)
             
             var maxHeight : Float = Float(items.count) * itemHeight
@@ -462,7 +473,7 @@ class MMFileDialog : MMDialog {
                 let x : Float = rect.x + 3
                 
                 var borderColor = selItem === item ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor
-                var textColor = selItem === item ? mmView.skin.Item.selectionColor : float4(1,1,1,1)
+                var textColor = selItem === item ? mmView.skin.Item.selectionColor : SIMD4<Float>(1,1,1,1)
                 borderColor.w = alpha
                 textColor.w = alpha
 
@@ -487,7 +498,7 @@ class MMFileDialog : MMDialog {
         nameRect.width = rect.width - 20
         nameRect.height = 30
         
-        mmView.drawBox.draw( x: nameRect.x, y: nameRect.y, width: nameRect.width, height: nameRect.height, round: 26, borderSize: 2, fillColor: float4(0,0,0,0), borderColor: hasTextFocus ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor)
+        mmView.drawBox.draw( x: nameRect.x, y: nameRect.y, width: nameRect.width, height: nameRect.height, round: 26, borderSize: 2, fillColor: SIMD4<Float>(0,0,0,0), borderColor: hasTextFocus ? mmView.skin.Item.selectionColor : mmView.skin.Item.borderColor)
         
         var drawTitle : Bool = true
         #if os(iOS)

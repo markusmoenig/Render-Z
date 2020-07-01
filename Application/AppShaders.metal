@@ -16,11 +16,42 @@ typedef struct
     float2 textureCoordinate;
 } RasterizerData;
 
+
+typedef struct
+{
+    float id;
+    
+} HIGHLIGHT_COMPONENT;
+
+// --- highlight component
+fragment float4 highlightComponent(RasterizerData in [[stage_in]],
+                                texture2d<half, access::read>  depthTexture [[texture(0)]],
+                                constant HIGHLIGHT_COMPONENT *data [[ buffer(1) ]])
+{
+    float4 color;
+    float2 gid_ = float2(in.textureCoordinate.x, 1.0 - in.textureCoordinate.y) * float2(depthTexture.get_width(), depthTexture.get_height());
+    uint2 gid = uint2(gid_);
+
+    float id = float4(depthTexture.read(gid)).w;
+
+    if (id == data->id) color = float4(0.278, 0.553, 0.722, 0.5);//float4(0.816, 0.345, 0.188, 0.8);
+    else color = float4(0);
+    
+    return color;
+}
+
 typedef struct
 {
     float2 size;
     
 } MODULO_PATTERN;
+
+typedef struct
+{
+    float2 size;
+    float2 gridSize;
+    float2 offset;
+} GRID_PATTERN;
 
 // --- moduloPattern
 fragment float4 moduloPattern(RasterizerData in [[stage_in]],
@@ -56,6 +87,17 @@ float IsGridLine(float2 fragCoord)
     return fIsGridLine;
 }
 
+float IsGridLine(float2 fragCoord, float2 vPixelsPerGridSquare)
+{
+    float2 vScreenPixelCoordinate = fragCoord.xy;
+    float2 vGridSquareCoords = fract(vScreenPixelCoordinate / vPixelsPerGridSquare);
+    float2 vGridSquarePixelCoords = vGridSquareCoords * vPixelsPerGridSquare;
+    float2 vIsGridLine = step(vGridSquarePixelCoords, float2(1.0));
+    
+    float fIsGridLine = max(vIsGridLine.x, vIsGridLine.y);
+    return fIsGridLine;
+}
+
 fragment float4 coordinateSystem(RasterizerData in [[stage_in]],
                                 constant COORDINATE_SYSTEM *data [[ buffer(0) ]] )
 {
@@ -76,16 +118,16 @@ fragment float4 coordinateSystem(RasterizerData in [[stage_in]],
 }
 
 fragment float4 nodeGridPattern(RasterizerData in [[stage_in]],
-                                constant MODULO_PATTERN *data [[ buffer(0) ]] )
+                                constant GRID_PATTERN *data [[ buffer(0) ]] )
 {
-    
     float4 checkerColor1 = float4(0.110, 0.114, 0.118, 1.000);
     float4 checkerColor2 = float4(0.094, 0.094, 0.098, 1.000);
     
     float2 uv = in.textureCoordinate * data->size;
     uv -= float2( data->size / 2 );
+    uv -= data->offset;
 
-    float grid = IsGridLine( uv );
+    float grid = IsGridLine( uv, data->gridSize );
     float4 col = mix(checkerColor2, checkerColor1, grid);
     
     return col;

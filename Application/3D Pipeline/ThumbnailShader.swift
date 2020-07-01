@@ -108,10 +108,10 @@ class ThumbnailShader       : BaseShader
                 float3 L = float3(-0.5, 0.3, 0.7);
                 outColor.xyz = dot(L, outNormal);
 
-                L = float3(0.5, 0.3, 0.7);
+                L = float3(0.5, 0.3, -0.7);
                 outColor.xyz += dot(L, outNormal);
 
-                L = float3(0.5, -0.3, -0.7);
+                L = float3(0.5, -0.3, 0.7);
                 outColor.xyz += dot(L, outNormal);
                 outColor.w = 1.0;
             }

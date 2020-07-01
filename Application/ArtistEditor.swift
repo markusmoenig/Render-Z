@@ -348,7 +348,7 @@ class ArtistEditor          : Editor
                     // Get the component id for highlighting
                     componentId = nil
                     if component.componentType == .SDF3D || component.componentType == .SDF2D {
-                        for (id, value) in globalApp!.currentPipeline!.codeBuilder.sdfStream.ids {
+                        for (id, value) in globalApp!.currentPipeline!.ids {
                             if value.1 === component {
                                 componentId = id
                             }
@@ -365,7 +365,7 @@ class ArtistEditor          : Editor
                         
                         let buffer = mmView.renderer.device.makeBuffer(bytes: settings, length: settings.count * MemoryLayout<Float>.stride, options: [])!
                         
-                        renderEncoder.setFragmentTexture(globalApp!.currentPipeline?.getTextureOfId("id"), index: 0)
+                        renderEncoder.setFragmentTexture(globalApp!.currentPipeline?.getTextureOfId("shape"), index: 0)
                         renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 1)
                         
                         renderEncoder.setRenderPipelineState( drawComponentId! )

@@ -675,7 +675,7 @@
                         <outlet property="delegate" destination="Voe-Tx-rLC" id="PrD-fu-P6m"/>
                     </connections>
                 </application>
-                <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="Render_Z" customModuleProvider="target"/>
+                <customObject id="Voe-Tx-rLC" customClass="AppDelegate" customModule="Shape_Z" customModuleProvider="target"/>
                 <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
                 <customObject id="Ady-hI-5gd" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
@@ -706,8 +706,8 @@
         <!--View Controller-->
         <scene sceneID="hIz-AP-VOD">
             <objects>
-                <viewController id="XfG-lQ-9wD" customClass="ViewController" customModule="Render_Z" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" id="m2S-Jp-Qdl" customClass="MMView" customModule="Render_Z" customModuleProvider="target">
+                <viewController id="XfG-lQ-9wD" customClass="ViewController" customModule="Shape_Z" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" id="m2S-Jp-Qdl" customClass="MMView" customModule="Shape_Z" customModuleProvider="target">
                         <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </view>
@@ -719,7 +719,7 @@
         <!--Help View Controller-->
         <scene sceneID="ypv-TX-PvE">
             <objects>
-                <viewController id="94j-4u-nhy" customClass="HelpViewController" customModule="Render_Z" sceneMemberID="viewController">
+                <viewController id="94j-4u-nhy" customClass="HelpViewController" customModule="Shape_Z" sceneMemberID="viewController">
                     <view key="view" id="VCt-7S-zEh">
                         <rect key="frame" x="0.0" y="0.0" width="480" height="270"/>
                         <autoresizingMask key="autoresizingMask"/>

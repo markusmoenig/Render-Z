@@ -2,7 +2,7 @@
 //  LeftRegion.swift
 //  Framework
 //
-//  Created by Markus Moenig on 26/12/19.
+//  Created by Markus Moenig on 10/1/19.
 //  Copyright © 2019 Markus Moenig. All rights reserved.
 //
 
@@ -16,10 +16,16 @@ class LeftRegion: MMRegion
     {
         self.app = app
         super.init( view, type: .Left )
+        
+        rect.width = 0
     }
 
     override func build()
     {
-        app.currentEditor.drawRegion(self)
+        if app.nodeGraph.maximizedNode == nil {
+            app.nodeGraph.drawRegion(self)
+        } else {
+            app.nodeGraph.maximizedNode?.maxDelegate?.drawRegion(self)
+        }
     }
 }

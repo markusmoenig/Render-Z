@@ -15,8 +15,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2BBF10F521EAD2AF001C94E9"
-               BuildableName = "Shape-Z.app"
-               BlueprintName = "Shape-Z"
+               BuildableName = "_Shape-Z.app"
+               BlueprintName = "_Shape-Z"
                ReferencedContainer = "container:Shape-Z.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -31,8 +31,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2BBF10F521EAD2AF001C94E9"
-            BuildableName = "Shape-Z.app"
-            BlueprintName = "Shape-Z"
+            BuildableName = "_Shape-Z.app"
+            BlueprintName = "_Shape-Z"
             ReferencedContainer = "container:Shape-Z.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -54,8 +54,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2BBF10F521EAD2AF001C94E9"
-            BuildableName = "Shape-Z.app"
-            BlueprintName = "Shape-Z"
+            BuildableName = "_Shape-Z.app"
+            BlueprintName = "_Shape-Z"
             ReferencedContainer = "container:Shape-Z.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -71,8 +71,8 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2BBF10F521EAD2AF001C94E9"
-            BuildableName = "Shape-Z.app"
-            BlueprintName = "Shape-Z"
+            BuildableName = "_Shape-Z.app"
+            BlueprintName = "_Shape-Z"
             ReferencedContainer = "container:Shape-Z.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
