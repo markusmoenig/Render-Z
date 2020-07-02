@@ -46,6 +46,9 @@ class PRTInstance {
     var projectionMatrix    : matrix_float4x4 = matrix_identity_float4x4
     var viewMatrix          : matrix_float4x4 = matrix_identity_float4x4
 
+    var camOriginTexture    : MTLTexture? = nil
+    var camDirTexture       : MTLTexture? = nil
+
     var depthTexture        : MTLTexture? = nil
     
     var localTexture        : MTLTexture? = nil
@@ -59,6 +62,11 @@ class PRTInstance {
     var shadowTexture2      : MTLTexture? = nil
     var currentShadowTexture: MTLTexture? = nil
     var otherShadowTexture  : MTLTexture? = nil
+    
+    var reflectionTexture1  : MTLTexture? = nil
+    var reflectionTexture2  : MTLTexture? = nil
+    var currentReflTexture  : MTLTexture? = nil
+    var otherReflTexture    : MTLTexture? = nil
 
     var utilityShader       : UtilityShader!
 }
@@ -115,7 +123,7 @@ class Pipeline3DRT          : Pipeline
         shaders = []
         
         prtInstance = PRTInstance()
-        prtInstance.utilityShader = UtilityShader(instance: prtInstance, scene: scene)
+        prtInstance.utilityShader = UtilityShader(instance: prtInstance, scene: scene, camera: cameraComponent)
         
         backgroundShader = BackgroundShader(instance: prtInstance, scene: scene, camera: cameraComponent)
         
@@ -182,6 +190,9 @@ class Pipeline3DRT          : Pipeline
         prtInstance.projectionMatrix = camHelper.projMatrix
         prtInstance.viewMatrix = camHelper.getTransform().inverse
 
+        prtInstance.camOriginTexture = checkTextureSize(width, height, prtInstance.camOriginTexture, .rgba16Float)
+        prtInstance.camDirTexture = checkTextureSize(width, height, prtInstance.camDirTexture, .rgba16Float)
+
         prtInstance.depthTexture = checkTextureSize(width, height, prtInstance.depthTexture, .rgba16Float)
         
         // The texture objects use for their local distance estimations
@@ -196,6 +207,8 @@ class Pipeline3DRT          : Pipeline
         prtInstance.otherShapeTexture = prtInstance.shapeTexture2
 
         checkFinalTexture(true)
+        
+        prtInstance.utilityShader.cameraTextures()
         
         func swapShapeTextures()
         {
@@ -261,8 +274,31 @@ class Pipeline3DRT          : Pipeline
         }
         
         // Calculate the materials
+        
+        // The reflection textures which get ping ponged
+        prtInstance.reflectionTexture1 = checkTextureSize(width, height, prtInstance.reflectionTexture1, .rg16Float)
+        prtInstance.reflectionTexture2 = checkTextureSize(width, height, prtInstance.reflectionTexture2, .rg16Float)
+        
+        // The pointers to the current and the other reflection texture
+        prtInstance.currentReflTexture = prtInstance.reflectionTexture1
+        prtInstance.otherReflTexture = prtInstance.reflectionTexture2
+        
+        func swapReflectionTextures()
+        {
+            if prtInstance.currentReflTexture === prtInstance.reflectionTexture1 {
+                prtInstance.currentReflTexture = prtInstance.reflectionTexture2
+                prtInstance.otherReflTexture = prtInstance.reflectionTexture1
+            } else {
+                prtInstance.currentReflTexture = prtInstance.reflectionTexture1
+                prtInstance.otherReflTexture = prtInstance.reflectionTexture2
+            }
+        }
+        
+        codeBuilder.renderClear(texture: prtInstance.currentReflTexture!, data: SIMD4<Float>(1000, 1000, -1, -1))
+        
         for shader in shaders {
             shader.materialPass(texture: finalTexture!)
+            swapReflectionTextures()
         }
         
         textureMap["shape"] = prtInstance.currentShapeTexture!

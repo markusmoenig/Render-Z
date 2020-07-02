@@ -29,9 +29,6 @@ class GroundShader      : BaseShader
     
     func createFragmentSource(groundComponent: CodeComponent, camera: CodeComponent)
     {
-        dryRunComponent(camera, data.count)
-        collectProperties(camera)
-        
         dryRunComponent(groundComponent, data.count)
         collectProperties(groundComponent)
 
@@ -44,7 +41,6 @@ class GroundShader      : BaseShader
 
         \(prtInstance.fragmentUniforms)
         
-        \(camera.globalCode!)
         \(groundComponent.globalCode!)
         \(material)
         \(createLightCode(scene: scene))
@@ -52,26 +48,20 @@ class GroundShader      : BaseShader
         fragment float4 procFragment(RasterizerData in [[stage_in]],
                                      __MAIN_TEXTURE_HEADER_CODE__
                                      constant float4 *__data [[ buffer(0) ]],
-                                     constant FragmentUniforms &uniforms [[ buffer(1) ]])
+                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                     texture2d<half, access::read> camOriginTexture [[texture(2)]],
+                                     texture2d<half, access::read> camDirectionTexture [[texture(3)]])
         {
             float2 size = in.viewportSize;
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
-            float2 jitter = float2(0.5);
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
 
             __MAIN_INITIALIZE_FUNC_DATA__
 
-            float3 outPosition = float3(0,0,0);
-            float3 outDirection = float3(0,0,0);
-
             float3 position = float3(uv.x, uv.y, 0);
-        
-            float outMask = 0;
-            float outId = 0;
-            
-            \(camera.code!)
-        
-            float3 rayOrigin = outPosition;
-            float3 rayDirection = outDirection;
+                    
+            float3 rayOrigin = float3(camOriginTexture.read(textureUV).xyz);
+            float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
         
             float4 outShape = float4(1000, 1000, -1, -1);
             float3 outNormal = float3(0);
@@ -87,39 +77,30 @@ class GroundShader      : BaseShader
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
                                     constant LightUniforms &lights [[ buffer(2) ]],
                                     texture2d<half, access::read> shapeTexture [[texture(3)]],
-                                    texture2d<half, access::read> shadowTexture [[texture(4)]])
+                                    texture2d<half, access::read> shadowTexture [[texture(4)]],
+                                    texture2d<half, access::read> camOriginTexture [[texture(5)]],
+                                    texture2d<half, access::read> camDirectionTexture [[texture(6)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
         
             float2 size = in.viewportSize;
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
-        
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
+
             float4 outColor = float4(0,0,0,0);
 
             float4 outShape = float4(shapeTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
             if (isEqual(outShape.w, 0.0)) {
-        
                 float2 shadows = float2(shadowTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)).xy);
-                float2 jitter = float2(0.5);
-
-                float3 outPosition = float3(0,0,0);
-                float3 outDirection = float3(0,0,0);
-
-                float3 position = float3(uv.x, uv.y, 0);
             
-                float outMask = 0;
-                float outId = 0;
-            
-                \(camera.code!)
-            
-                float3 rayOrigin = outPosition;
-                float3 rayDirection = outDirection;
-            
+                float3 rayOrigin = float3(camOriginTexture.read(textureUV).xyz);
+                float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
+        
                 float3 outNormal = float3(0);
             
                 \(groundComponent.code!)
             
-                position = rayOrigin + rayDirection * outShape.y;
+                float3 position = rayOrigin + rayDirection * outShape.y;
         
                 // Sun
                 {
@@ -149,7 +130,7 @@ class GroundShader      : BaseShader
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
             Shader(id: "MAIN", textureOffset: 3, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 4, blending: true)
+            Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 7, blending: true)
         ])
         
         prtInstance.idCounter += 1
@@ -178,7 +159,6 @@ class GroundShader      : BaseShader
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
             // --- Fragment
-            
             var fragmentUniforms = ObjectFragmentUniforms()
             fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
             fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
@@ -186,7 +166,8 @@ class GroundShader      : BaseShader
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
-
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 2)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 3)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -235,7 +216,8 @@ class GroundShader      : BaseShader
 
             renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
             renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 4)
-
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 5)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 6)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

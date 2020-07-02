@@ -11,10 +11,12 @@ import MetalKit
 class UtilityShader         : BaseShader
 {
     let scene               : Scene
+    var camera              : CodeComponent!
     
-    init(instance: PRTInstance, scene: Scene)
+    init(instance: PRTInstance, scene: Scene, camera: CodeComponent)
     {
         self.scene = scene
+        self.camera = camera
         super.init(instance: instance)
         
         createFragmentSource()
@@ -22,10 +24,14 @@ class UtilityShader         : BaseShader
     
     func createFragmentSource()
     {
+        dryRunComponent(camera, data.count)
+        collectProperties(camera)
+        
         let fragmentCode =
         """
 
         \(prtInstance.fragmentUniforms)
+        \(camera.globalCode!)
 
         fragment float4 procFragment(RasterizerData in [[stage_in]],
                                      constant FragmentUniforms &uniforms [[ buffer(0) ]],
@@ -51,12 +57,38 @@ class UtilityShader         : BaseShader
         {
             return float2(1,1);
         }
+        
+        fragment half4 cameraFragment(RasterizerData in [[stage_in]],
+                                     __CAMERA_TEXTURE_HEADER_CODE__
+                                     constant float4 *__data [[ buffer(0) ]],
+                                     texture2d<half, access::write> directionTexture [[texture(1)]])
+        {
+            __CAMERA_INITIALIZE_FUNC_DATA__
+        
+            float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
+            float2 size = in.viewportSize;
+        
+            //float4 local = float4(localDepthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
+            //float4 depth = float4(shapeInTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
+        
+            float2 jitter = float2(0.5);
+            float3 outPosition = float3(0,0,0);
+            float3 outDirection = float3(0,0,0);
+            
+            float3 position = float3(uv.x, uv.y, 0);
+
+            \(camera.code!)
+
+            directionTexture.write(half4(half3(outDirection), 1.), ushort2(uv.x * size.x, (1.0 - uv.y) * size.y) );
+            return half4(half3(outPosition), 1.);
+        }
 
         """
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
             Shader(id: "MERGE", textureOffset: 0, pixelFormat: .rgba16Float, blending: false),
             Shader(id: "CLEARSHADOW", fragmentName: "clearShadowFragment", textureOffset: 0, pixelFormat: .rg16Float, blending: false),
+            Shader(id: "CAMERA", fragmentName: "cameraFragment", textureOffset: 2, pixelFormat: .rgba16Float, blending: false)
         ])
     }
     
@@ -133,6 +165,50 @@ class UtilityShader         : BaseShader
             commandBuffer.addCompletedHandler { cb in
                 globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
                 //print("Shadow Shader: ", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
+            }
+            
+            commandBuffer.commit()
+        }
+    }
+    
+    func cameraTextures()
+    {
+        if let mainShader = shaders["CAMERA"] {
+
+            updateData()
+
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = prtInstance.camOriginTexture!
+            renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
+            
+            let commandBuffer = mainShader.commandQueue.makeCommandBuffer()!
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(mainShader.pipelineState)
+            
+            // --- Vertex
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 ) )
+            
+            let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, prtInstance.screenSize.x, prtInstance.screenSize.y ) )
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            
+            var viewportSize : vector_uint2 = vector_uint2( UInt32( prtInstance.screenSize.x ), UInt32( prtInstance.screenSize.y ) )
+            renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            
+            // --- Fragment
+            var fragmentUniforms = ObjectFragmentUniforms()
+            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+            fragmentUniforms.screenSize = prtInstance.screenSize
+
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture, index: 1)
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            renderEncoder.endEncoding()
+            
+            commandBuffer.addCompletedHandler { cb in
+                print("Camera Shader: ", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
             }
             
             commandBuffer.commit()

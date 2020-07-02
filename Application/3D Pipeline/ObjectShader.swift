@@ -65,9 +65,6 @@ class ObjectShader      : BaseShader
         
         var headerCode = ""
         
-        dryRunComponent(camera, data.count)
-        collectProperties(camera)
-        
         idStart = Float(prtInstance.idCounter)
         let mapCode = createMapCode()
         idEnd = Float(prtInstance.idCounter)
@@ -135,7 +132,6 @@ class ObjectShader      : BaseShader
         let fragmentShader =
         """
         
-        \(camera.globalCode!)
         \(mapCode)
         \(createLightCode(scene: scene))
         \(headerCode)
@@ -176,32 +172,30 @@ class ObjectShader      : BaseShader
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
                                     constant LightUniforms &lights [[ buffer(2) ]],
                                     texture2d<half, access::read> depthTexture [[texture(3)]],
-                                    texture2d<half, access::read> shadowTexture [[texture(4)]])
+                                    texture2d<half, access::read> shadowTexture [[texture(4)]],
+                                    texture2d<half, access::read> reflectionTextureIn [[texture(5)]],
+                                    texture2d<half, access::read> reflectionTextureOut [[texture(6)]],
+                                    texture2d<half, access::read> camOriginTexture [[texture(7)]],
+                                    texture2d<half, access::read> camDirectionTexture [[texture(8)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
         
             float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
             float2 size = uniforms.screenSize;
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
 
             float4 outColor = float4(0);
             float4 shape = float4(depthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
-        
+            //float4 reflections = float4(reflectionTextureIn.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
+
             if (shape.w >= \(idStart - 0.1) && shape.w <= \(idEnd + 0.1))
             {
                 float2 shadows = float2(shadowTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)).xy);
-
-                float2 jitter = float2(0.5);
-                float3 outPosition = float3(0,0,0);
-                float3 outDirection = float3(0,0,0);
         
-                float3 position = float3(uv.x, uv.y, 0);
-
-                \(camera.code!)
+                float3 rayOrigin = float3(camOriginTexture.read(textureUV).xyz);
+                float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
         
-                float3 rayOrigin = outPosition;
-                float3 rayDirection = outDirection;
-        
-                position = rayOrigin + shape.y * rayDirection;
+                float3 position = rayOrigin + shape.y * rayDirection;
                 float3 outNormal = float3(0);
         
                 \(normal.code!)
@@ -247,38 +241,34 @@ class ObjectShader      : BaseShader
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
                                     constant LightUniforms &lights [[ buffer(2) ]],
                                     texture2d<half, access::read> shadowTexture [[texture(3)]],
-                                    texture2d<half, access::read> shapeTexture [[texture(4)]])
+                                    texture2d<half, access::read> shapeTexture [[texture(4)]],
+                                    texture2d<half, access::read> camOriginTexture [[texture(5)]],
+                                    texture2d<half, access::read> camDirectionTexture [[texture(6)]])
         {
             __SHADOW_INITIALIZE_FUNC_DATA__
         
             float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
             float2 size = uniforms.screenSize;
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
 
             float4 shape = float4(shapeTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
             float2 shadows = float2(shadowTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)).xy);
             
             if (shape.w > -0.5)
             {
-                float2 jitter = float2(0.5);
-                float3 outPosition = float3(0,0,0);
-                float3 outDirection = float3(0,0,0);
+                float3 rayOrigin = float3(camOriginTexture.read(textureUV).xyz);
+                float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
                 
-                float3 position = float3(uv.x, uv.y, 0);
-
-                \(camera.code!)
-                
-                float3 rayOrigin = outPosition;
-                float3 rayDirection = outDirection;
-                
-                position = rayOrigin + shape.y * rayDirection;
+                float3 position = rayOrigin + shape.y * rayDirection;
             
                 float3 outNormal = float3(0,0,0);
                 \(normal.code!)
             
-                float3 normal = normalize(outNormal);
+                float3 normal = outNormal;
                 float outAO = 1.;
             
                 \(aoCode)
+        
                 shadows.x = min(shadows.x, outAO);
                 
                 if (shape.w < \(idStart - 0.1) || shape.w > \(idEnd + 0.1))
@@ -308,8 +298,8 @@ class ObjectShader      : BaseShader
                         
         compile(code: vertexShader + fragmentShader, shaders: [
             Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 5, blending: true),
-            Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 5, pixelFormat: .rg16Float, blending: false)
+            Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 9, blending: true),
+            Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 7, pixelFormat: .rg16Float, blending: false)
         ])
         buildTriangles()
     }
@@ -436,6 +426,8 @@ class ObjectShader      : BaseShader
 
             renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 3)
             renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 4)
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 5)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 6)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -484,6 +476,10 @@ class ObjectShader      : BaseShader
 
             renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
             renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 4)
+            renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 5)
+            renderEncoder.setFragmentTexture(prtInstance.otherReflTexture, index: 6)
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 7)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 8)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
