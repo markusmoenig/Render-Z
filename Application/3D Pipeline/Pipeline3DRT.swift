@@ -48,6 +48,11 @@ class PRTInstance {
 
     var camOriginTexture    : MTLTexture? = nil
     var camDirTexture       : MTLTexture? = nil
+    
+    var reflDirTexture1     : MTLTexture? = nil
+    var reflDirTexture2     : MTLTexture? = nil
+    var currentReflDirTexture: MTLTexture? = nil
+    var otherReflDirTexture : MTLTexture? = nil
 
     var depthTexture        : MTLTexture? = nil
     
@@ -156,6 +161,18 @@ class Pipeline3DRT          : Pipeline
                 #if DEBUG
                 print("reusing", "shape_\(index)")
                 #endif*/
+            }
+        }
+        
+        // PostFX
+        let postStage = scene.getStage(.PostStage)
+        if let item = postStage.children2D.first {
+            if let list = item.componentLists["PostFX"] {
+                for c in list {
+                    if c.builderInstance == nil {
+                        c.builderInstance = codeBuilder.build(c)
+                    }
+                }
             }
         }
     }
@@ -276,12 +293,16 @@ class Pipeline3DRT          : Pipeline
         // Calculate the materials
         
         // The reflection textures which get ping ponged
-        prtInstance.reflectionTexture1 = checkTextureSize(width, height, prtInstance.reflectionTexture1, .rg16Float)
-        prtInstance.reflectionTexture2 = checkTextureSize(width, height, prtInstance.reflectionTexture2, .rg16Float)
-        
-        // The pointers to the current and the other reflection texture
+        prtInstance.reflectionTexture1 = checkTextureSize(width, height, prtInstance.reflectionTexture1, .rgba16Float)
+        prtInstance.reflectionTexture2 = checkTextureSize(width, height, prtInstance.reflectionTexture2, .rgba16Float)
         prtInstance.currentReflTexture = prtInstance.reflectionTexture1
         prtInstance.otherReflTexture = prtInstance.reflectionTexture2
+        
+        // Reflection direction textures
+        prtInstance.reflDirTexture1 = checkTextureSize(width, height, prtInstance.reflDirTexture1, .rgba16Float)
+        prtInstance.reflDirTexture2 = checkTextureSize(width, height, prtInstance.reflDirTexture2, .rgba16Float)
+        prtInstance.currentReflDirTexture = prtInstance.reflDirTexture1
+        prtInstance.otherReflTexture = prtInstance.reflDirTexture2
         
         func swapReflectionTextures()
         {
@@ -294,16 +315,42 @@ class Pipeline3DRT          : Pipeline
             }
         }
         
-        codeBuilder.renderClear(texture: prtInstance.currentReflTexture!, data: SIMD4<Float>(1000, 1000, -1, -1))
-        
+        func swapReflectionDirTextures()
+        {
+            if prtInstance.currentReflDirTexture === prtInstance.reflDirTexture1 {
+                prtInstance.currentReflDirTexture = prtInstance.reflDirTexture2
+                prtInstance.otherReflDirTexture = prtInstance.reflDirTexture1
+            } else {
+                prtInstance.currentReflDirTexture = prtInstance.reflDirTexture1
+                prtInstance.otherReflDirTexture = prtInstance.reflDirTexture2
+            }
+        }
+                
+        // Calculate the materials
         for shader in shaders {
             shader.materialPass(texture: finalTexture!)
             swapReflectionTextures()
+            swapReflectionDirTextures()
         }
         
-        textureMap["shape"] = prtInstance.currentShapeTexture!
+        // Free the other reflection dir texture
+        if prtInstance.currentReflDirTexture === prtInstance.reflDirTexture1 {
+            prtInstance.reflDirTexture2 = nil
+            prtInstance.otherShapeTexture = nil
+        } else {
+            prtInstance.reflDirTexture1 = nil
+            prtInstance.otherShapeTexture = nil
+        }
         
+        prtInstance.shadowTexture1 = nil
+        prtInstance.shadowTexture2 = nil
+        prtInstance.currentShadowTexture = nil
+        prtInstance.otherShadowTexture = nil
+
+        textureMap["shape"] = prtInstance.currentShapeTexture!
         ids = prtInstance.ids
+        
+        postFX()
         
         #if DEBUG
         //print("Execution Time: ", globalApp!.executionTime * 1000)
@@ -311,11 +358,33 @@ class Pipeline3DRT          : Pipeline
         //var points : [Float] = []
         //pointCloudBuilder.render(points: points, texture: finalTexture!, camera: cameraComponent)
     }
+
+    // Post FX
+    func postFX()
+    {
+        let postStage = scene.getStage(.PostStage)
+        if let item = postStage.children2D.first {
+            if let list = item.componentLists["PostFX"] {
+                                
+                let source = finalTexture!
+                let dest = prtInstance.reflectionTexture1!
+                
+                for c in list {
+                    if let instance = c.builderInstance {
+                        codeBuilder.render(instance, dest, inTextures: [source, source, getTextureOfId("shape"), getTextureOfId("shape")])
+                        
+                        // Copy the result back into final
+                        codeBuilder.renderCopy(source, dest)
+                    }
+                }
+            }
+        }
+    }
     
     func checkFinalTexture(_ clear: Bool = false)
     {
         let needsResize = width != Float(finalTexture!.width) || height != Float(finalTexture!.height)
-        finalTexture = checkTextureSize(width, height, finalTexture, .bgra8Unorm)
+        finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
         if needsResize || clear {
             codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 0, 1))
         }

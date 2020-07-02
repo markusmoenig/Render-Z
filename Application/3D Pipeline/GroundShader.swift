@@ -78,8 +78,12 @@ class GroundShader      : BaseShader
                                     constant LightUniforms &lights [[ buffer(2) ]],
                                     texture2d<half, access::read> shapeTexture [[texture(3)]],
                                     texture2d<half, access::read> shadowTexture [[texture(4)]],
-                                    texture2d<half, access::read> camOriginTexture [[texture(5)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(6)]])
+                                    texture2d<half, access::read> reflectionTextureIn [[texture(5)]],
+                                    texture2d<half, access::write> reflectionTextureOut [[texture(6)]],
+                                    texture2d<half, access::read> reflectionDirTextureIn [[texture(7)]],
+                                    texture2d<half, access::write> reflectionDirTextureOut [[texture(8)]],
+                                    texture2d<half, access::read> camOriginTexture [[texture(9)]],
+                                    texture2d<half, access::read> camDirectionTexture [[texture(10)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
         
@@ -89,9 +93,12 @@ class GroundShader      : BaseShader
 
             float4 outColor = float4(0,0,0,0);
 
-            float4 outShape = float4(shapeTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
+            float4 reflectionShape = float4(reflectionTextureIn.read(textureUV));
+            float4 reflectionDir = float4(reflectionDirTextureIn.read(textureUV));
+        
+            float4 outShape = float4(shapeTexture.read(textureUV));
             if (isEqual(outShape.w, 0.0)) {
-                float2 shadows = float2(shadowTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)).xy);
+                float2 shadows = float2(shadowTexture.read(textureUV).xy);
             
                 float3 rayOrigin = float3(camOriginTexture.read(textureUV).xyz);
                 float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
@@ -118,10 +125,16 @@ class GroundShader      : BaseShader
                                                 
                     material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &materialOut, __funcData);
                     outColor += materialOut.color;
+        
+                    reflectionShape = float4(1000, 1000, -1, -1);
+                    reflectionDir.xyz = materialOut.reflectionDir;
                 }
         
                 \(lightSamplingCode)
             }
+        
+            reflectionTextureOut.write(half4(reflectionShape), textureUV);
+            reflectionDirTextureOut.write(half4(reflectionDir), textureUV);
         
             return outColor;
         }
@@ -130,7 +143,7 @@ class GroundShader      : BaseShader
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
             Shader(id: "MAIN", textureOffset: 3, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 7, blending: true)
+            Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 11, blending: true)
         ])
         
         prtInstance.idCounter += 1
@@ -216,8 +229,12 @@ class GroundShader      : BaseShader
 
             renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
             renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 4)
-            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 5)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 6)
+            renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 5)
+            renderEncoder.setFragmentTexture(prtInstance.otherReflTexture, index: 6)
+            renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 7)
+            renderEncoder.setFragmentTexture(prtInstance.otherReflDirTexture, index: 8)
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 9)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 10)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

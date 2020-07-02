@@ -122,7 +122,7 @@ class ThumbnailShader       : BaseShader
         """
                 
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
-            Shader(id: "MAIN", textureOffset: 0)
+            Shader(id: "MAIN", textureOffset: 0, pixelFormat: .bgra8Unorm)
         ], sync: true)
     }
     
@@ -130,7 +130,7 @@ class ThumbnailShader       : BaseShader
     {
         if let shader = shaders["MAIN"] {
             updateData()
-
+            
             let renderPassDescriptor = MTLRenderPassDescriptor()
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .clear

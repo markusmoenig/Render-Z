@@ -68,9 +68,6 @@ class UtilityShader         : BaseShader
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             float2 size = in.viewportSize;
         
-            //float4 local = float4(localDepthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
-            //float4 depth = float4(shapeInTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
-        
             float2 jitter = float2(0.5);
             float3 outPosition = float3(0,0,0);
             float3 outDirection = float3(0,0,0);
@@ -207,9 +204,9 @@ class UtilityShader         : BaseShader
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
             
-            commandBuffer.addCompletedHandler { cb in
-                print("Camera Shader: ", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
-            }
+            //commandBuffer.addCompletedHandler { cb in
+            //    print("Camera Shader: ", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
+            //}
             
             commandBuffer.commit()
         }

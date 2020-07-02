@@ -575,7 +575,6 @@ class CodeBuilder
 
         inst.code +=
         """
-                       
             __outTexture.write(half4(outColor), __gid);
         }
           

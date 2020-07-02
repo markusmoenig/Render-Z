@@ -174,9 +174,11 @@ class ObjectShader      : BaseShader
                                     texture2d<half, access::read> depthTexture [[texture(3)]],
                                     texture2d<half, access::read> shadowTexture [[texture(4)]],
                                     texture2d<half, access::read> reflectionTextureIn [[texture(5)]],
-                                    texture2d<half, access::read> reflectionTextureOut [[texture(6)]],
-                                    texture2d<half, access::read> camOriginTexture [[texture(7)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(8)]])
+                                    texture2d<half, access::write> reflectionTextureOut [[texture(6)]],
+                                    texture2d<half, access::read> reflectionDirTextureIn [[texture(7)]],
+                                    texture2d<half, access::write> reflectionDirTextureOut [[texture(8)]],
+                                    texture2d<half, access::read> camOriginTexture [[texture(9)]],
+                                    texture2d<half, access::read> camDirectionTexture [[texture(10)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
         
@@ -185,8 +187,9 @@ class ObjectShader      : BaseShader
             ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
 
             float4 outColor = float4(0);
-            float4 shape = float4(depthTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
-            //float4 reflections = float4(reflectionTextureIn.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
+            float4 shape = float4(depthTexture.read(textureUV));
+            float4 reflectionShape = float4(reflectionTextureIn.read(textureUV));
+            float4 reflectionDir = float4(reflectionDirTextureIn.read(textureUV));
 
             if (shape.w >= \(idStart - 0.1) && shape.w <= \(idEnd + 0.1))
             {
@@ -218,12 +221,18 @@ class ObjectShader      : BaseShader
 
                     \(materialCode)
         
+                    reflectionShape = float4(1000, 1000, -1, -1);
+                    reflectionDir.xyz = __materialOut.reflectionDir;
+        
                     outColor += __materialOut.color;
                 }
         
                 \(lightSamplingCode)
             }
         
+            reflectionTextureOut.write(half4(reflectionShape), textureUV);
+            reflectionDirTextureOut.write(half4(reflectionDir), textureUV);
+
             return outColor;
         }
         
@@ -298,7 +307,7 @@ class ObjectShader      : BaseShader
                         
         compile(code: vertexShader + fragmentShader, shaders: [
             Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 9, blending: true),
+            Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 11, blending: true),
             Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 7, pixelFormat: .rg16Float, blending: false)
         ])
         buildTriangles()
@@ -478,8 +487,10 @@ class ObjectShader      : BaseShader
             renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 4)
             renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 5)
             renderEncoder.setFragmentTexture(prtInstance.otherReflTexture, index: 6)
-            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 7)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 8)
+            renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 7)
+            renderEncoder.setFragmentTexture(prtInstance.otherReflDirTexture, index: 8)
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 9)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 10)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

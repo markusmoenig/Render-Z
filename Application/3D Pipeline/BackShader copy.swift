@@ -8,7 +8,7 @@
 
 import MetalKit
 
-class BackgroundShader      : BaseShader
+class PostShader      : BaseShader
 {
     var scene           : Scene
     var camera          : CodeComponent

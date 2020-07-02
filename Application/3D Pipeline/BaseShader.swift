@@ -31,7 +31,7 @@ class Shader
     
     var executionTime       : Double = 0
     
-    init(id: String, vertexName: String = "procVertex", fragmentName: String = "procFragment", textureOffset: Int, pixelFormat: MTLPixelFormat = .bgra8Unorm, blending: Bool = true)
+    init(id: String, vertexName: String = "procVertex", fragmentName: String = "procFragment", textureOffset: Int, pixelFormat: MTLPixelFormat = .rgba16Float, blending: Bool = true)
     {
         self.id = id
         self.vertexName = vertexName
