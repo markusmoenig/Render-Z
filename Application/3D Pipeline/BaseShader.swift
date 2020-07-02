@@ -90,8 +90,9 @@ class BaseShader
         data.append(SIMD4<Float>(0, 0 ,0, 0))
     }
     
-    func compile(code: String, shaders: [Shader], sync: Bool = false)
+    func compile(code: String, shaders: [Shader], sync: Bool = true)
     {
+        self.shaders = [:]
         var source = BaseShader.getHeaderCode() + code
         
         for shader in shaders {
@@ -133,6 +134,8 @@ class BaseShader
                 for shader in shaders {
                 
                     shader.shaderState = .Compiling
+                    
+                    //print(shader.id, shader.vertexName, shader.fragmentName, self as? BackgroundShader != nil)
                     
                     shader.pipelineStateDesc = MTLRenderPipelineDescriptor()
                     shader.pipelineStateDesc.vertexFunction = library.makeFunction(name: shader.vertexName)

@@ -116,6 +116,20 @@ class ObjectShader      : BaseShader
 
         """
         
+        // --- Create AO Code
+        var aoCode = ""
+        if let ao = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .AO3D) {
+            dryRunComponent(ao, data.count)
+            collectProperties(ao)
+            if let globalCode = ao.globalCode {
+                headerCode += globalCode
+            }
+            if let code = ao.code {
+                aoCode = code
+            }
+        }
+        
+        // Light Sampling Code
         let lightSamplingCode = prtInstance.utilityShader.createLightSamplingMaterialCode(materialCode: materialCode)
         
         let fragmentShader =
@@ -124,6 +138,7 @@ class ObjectShader      : BaseShader
         \(camera.globalCode!)
         \(mapCode)
         \(createLightCode(scene: scene))
+        \(headerCode)
 
         fragment half4 procFragment(VertexOut vertexIn [[stage_in]],
                                     __MAIN_TEXTURE_HEADER_CODE__
@@ -241,36 +256,48 @@ class ObjectShader      : BaseShader
 
             float4 shape = float4(shapeTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
             float2 shadows = float2(shadowTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)).xy);
-        
-            if (shape.w > -0.5 && (shape.w < \(idStart - 0.1) || shape.w > \(idEnd + 0.1)))
+            
+            if (shape.w > -0.5)
             {
                 float2 jitter = float2(0.5);
                 float3 outPosition = float3(0,0,0);
                 float3 outDirection = float3(0,0,0);
-        
+                
                 float3 position = float3(uv.x, uv.y, 0);
 
                 \(camera.code!)
-        
+                
                 float3 rayOrigin = outPosition;
                 float3 rayDirection = outDirection;
-        
-                position = rayOrigin + shape.y * rayDirection;
                 
-                // Calculate shadows
-                float shadow = calcSoftShadow(position, normalize(lights.lights[0].directionToLight.xyz), __funcData);
-
-                float3 lightDir = float3(0);
-                for (int i = 1; i < lights.numberOfLights; ++i)
+                position = rayOrigin + shape.y * rayDirection;
+            
+                float3 outNormal = float3(0,0,0);
+                \(normal.code!)
+            
+                float3 normal = normalize(outNormal);
+                float outAO = 1.;
+            
+                \(aoCode)
+                shadows.x = min(shadows.x, outAO);
+                
+                if (shape.w < \(idStart - 0.1) || shape.w > \(idEnd + 0.1))
                 {
-                    Light light = lights.lights[i];
-                    if (light.lightType == 0) lightDir = normalize(light.directionToLight.xyz);
-                    else lightDir = normalize(light.directionToLight.xyz - position);
-        
-                    shadow = max(calcSoftShadow(position, lightDir, __funcData), shadow);
+                    // Calculate shadows (No self shadowing)
+                    float shadow = calcSoftShadow(position, normalize(lights.lights[0].directionToLight.xyz), __funcData);
+
+                    float3 lightDir = float3(0);
+                    for (int i = 1; i < lights.numberOfLights; ++i)
+                    {
+                        Light light = lights.lights[i];
+                        if (light.lightType == 0) lightDir = normalize(light.directionToLight.xyz);
+                        else lightDir = normalize(light.directionToLight.xyz - position);
+            
+                        shadow = max(calcSoftShadow(position, lightDir, __funcData), shadow);
+                    }
+            
+                    shadows.y = min(shadows.y, shadow);
                 }
-        
-                shadows.y = min(shape.y, shadow);
             }
             return shadows;
         }
@@ -284,8 +311,6 @@ class ObjectShader      : BaseShader
             Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 5, blending: true),
             Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 5, pixelFormat: .rg16Float, blending: false)
         ])
-
-        //compile(vertexCode: vertexShader, fragmentCode: fragmentShader, textureOffset: 4, pixelFormat: .rgba16Float, blending: false)
         buildTriangles()
     }
 

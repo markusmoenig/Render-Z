@@ -157,7 +157,12 @@ class Pipeline3DRT          : Pipeline
     {
         width = round(widthIn); height = round(heightIn)
         
-        for shader in shaders {
+        var shadersToTest = shaders
+        if let background = backgroundShader {
+            shadersToTest.append(background)
+        }
+        
+        for shader in shadersToTest {
             for sh in shader.shaders {
                 if sh.value.shaderState != .Compiled {
                     return
