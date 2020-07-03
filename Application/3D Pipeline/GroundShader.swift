@@ -128,6 +128,7 @@ class GroundShader      : BaseShader
         
                     reflectionShape = float4(1000, 1000, -1, -1);
                     reflectionDir.xyz = materialOut.reflectionDir;
+                    reflectionDir.w = materialOut.mask.x * shadows.y;
                 }
         
                 \(lightSamplingCode)
@@ -160,7 +161,8 @@ class GroundShader      : BaseShader
             float4 inShape = float4(1000, 1000, -1, -1);
             float4 outShape = inShape;
         
-            if (shape.w >= \(idStart - 0.1) && shape.w <= \(idEnd + 0.1))
+            // Check if anything ELSE reflects on the ground
+            if (shape.w > -0.4 && (shape.w < \(idStart - 0.1) || shape.w > \(idEnd + 0.1)))
             {
                 float maxDistance = 10.0;
             
@@ -228,10 +230,11 @@ class GroundShader      : BaseShader
                      float4 lightColor = lights.lights[0].lightColor;
                      float shadow = shadows.y;
                      float occlusion = shadows.x;
-                     float3 mask = float3(1);
 
                      material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
-                     outColor += __materialOut.color;
+        
+                     outColor.xyz += __materialOut.color.xyz * reflectionDir.w;
+                     outColor.w = 1.0;
                  }
          
                  \(lightSamplingCode)
@@ -246,7 +249,7 @@ class GroundShader      : BaseShader
             Shader(id: "MAIN", textureOffset: 3, pixelFormat: .rgba16Float, blending: false),
             Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 11, blending: true),
             Shader(id: "REFLECTION", fragmentName: "reflectionFragment", textureOffset: 7, blending: false),
-            Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 8, blending: true)
+            Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 8, addition: true)
         ])
         
         prtInstance.idCounter += 1

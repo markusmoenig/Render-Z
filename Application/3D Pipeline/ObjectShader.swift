@@ -286,7 +286,8 @@ class ObjectShader      : BaseShader
                     \(materialCode)
         
                     reflectionDir.xyz = __materialOut.reflectionDir;
-        
+                    reflectionDir.w = __materialOut.mask.x * shadows.y;
+                
                     outColor += __materialOut.color;
                 }
         
@@ -320,7 +321,8 @@ class ObjectShader      : BaseShader
             float4 inShape = float4(reflectionTexture.read(textureUV));
             float4 outShape = inShape;
         
-            if (shape.w >= \(idStart - 0.1) && shape.w <= \(idEnd + 0.1))
+            // Check if anything ELSE reflects on this object
+            if (shape.w > -0.4 && (shape.w < \(idStart - 0.1) || shape.w > \(idEnd + 0.1)))
             {
                 float maxDistance = 10.0;
             
@@ -385,10 +387,11 @@ class ObjectShader      : BaseShader
                     float4 lightColor = lights.lights[0].lightColor;
                     float shadow = shadows.y;
                     float occlusion = shadows.x;
-                    float3 mask = float3(1);
 
                     \(materialCode)
-                    outColor += __materialOut.color;
+        
+                    outColor.xyz += __materialOut.color.xyz * reflectionDir.w;
+                    outColor.w = 1.0;
                 }
         
                 \(lightSamplingCode)
@@ -406,7 +409,7 @@ class ObjectShader      : BaseShader
             Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 10, blending: true),
             Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 7, pixelFormat: .rg16Float, blending: false),
             Shader(id: "REFLECTION", vertexName: "quadVertex", fragmentName: "reflectionFragment", textureOffset: 7, blending: false),
-            Shader(id: "REFLMATERIAL", vertexName: "quadVertex", fragmentName: "reflMaterialFragment", textureOffset: 8, blending: true)
+            Shader(id: "REFLMATERIAL", vertexName: "quadVertex", fragmentName: "reflMaterialFragment", textureOffset: 8, addition: true)
         ])
         buildTriangles()
     }

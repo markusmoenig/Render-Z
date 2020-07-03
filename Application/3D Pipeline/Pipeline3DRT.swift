@@ -362,7 +362,6 @@ class Pipeline3DRT          : Pipeline
         // DONE
 
         textureMap["shape"] = prtInstance.currentShapeTexture!
-        textureMap["shape"] = prtInstance.currentReflTexture!
         ids = prtInstance.ids
         
         postFX()

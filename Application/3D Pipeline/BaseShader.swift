@@ -20,6 +20,8 @@ class Shader
     
     var textureOffset       : Int
     var pixelFormat         : MTLPixelFormat
+
+    var addition            : Bool
     var blending            : Bool
         
     var shaderState         : ShaderState = .Undefined
@@ -31,7 +33,7 @@ class Shader
     
     var executionTime       : Double = 0
     
-    init(id: String, vertexName: String = "procVertex", fragmentName: String = "procFragment", textureOffset: Int, pixelFormat: MTLPixelFormat = .rgba16Float, blending: Bool = true)
+    init(id: String, vertexName: String = "procVertex", fragmentName: String = "procFragment", textureOffset: Int, pixelFormat: MTLPixelFormat = .rgba16Float, blending: Bool = true, addition: Bool = false)
     {
         self.id = id
         self.vertexName = vertexName
@@ -40,6 +42,7 @@ class Shader
         self.textureOffset = textureOffset
         self.pixelFormat = pixelFormat
         self.blending = blending
+        self.addition = addition
     }
 }
 
@@ -142,6 +145,15 @@ class BaseShader
                     shader.pipelineStateDesc.fragmentFunction = library.makeFunction(name: shader.fragmentName)
                     shader.pipelineStateDesc.colorAttachments[0].pixelFormat = shader.pixelFormat
                     
+                    if shader.addition {
+                        shader.pipelineStateDesc.colorAttachments[0].isBlendingEnabled = true
+                        shader.pipelineStateDesc.colorAttachments[0].rgbBlendOperation = .add
+                        shader.pipelineStateDesc.colorAttachments[0].alphaBlendOperation = .add
+                        shader.pipelineStateDesc.colorAttachments[0].sourceRGBBlendFactor = .one
+                        shader.pipelineStateDesc.colorAttachments[0].sourceAlphaBlendFactor = .one
+                        shader.pipelineStateDesc.colorAttachments[0].destinationRGBBlendFactor = .one
+                        shader.pipelineStateDesc.colorAttachments[0].destinationAlphaBlendFactor = .one
+                    } else
                     if shader.blending {
                         shader.pipelineStateDesc.colorAttachments[0].isBlendingEnabled = true
                         shader.pipelineStateDesc.colorAttachments[0].rgbBlendOperation = .add
