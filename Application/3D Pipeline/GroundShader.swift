@@ -138,12 +138,115 @@ class GroundShader      : BaseShader
         
             return outColor;
         }
+        
+        fragment float4 reflectionFragment(RasterizerData vertexIn [[stage_in]],
+                                    __REFLECTION_TEXTURE_HEADER_CODE__
+                                    constant float4 *__data [[ buffer(0) ]],
+                                    constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                    texture2d<half, access::read> depthTexture [[texture(2)]],
+                                    texture2d<half, access::read> reflectionTexture [[texture(3)]],
+                                    texture2d<half, access::read> reflectionDirTexture [[texture(4)]],
+                                    texture2d<half, access::read> camOriginTexture [[texture(5)]],
+                                    texture2d<half, access::read> camDirectionTexture [[texture(6)]])
+        {
+            __REFLECTION_INITIALIZE_FUNC_DATA__
+        
+            float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
+            float2 size = uniforms.screenSize;
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
+
+            float4 shape = float4(depthTexture.read(textureUV));
+        
+            float4 inShape = float4(1000, 1000, -1, -1);
+            float4 outShape = inShape;
+        
+            if (shape.w >= \(idStart - 0.1) && shape.w <= \(idEnd + 0.1))
+            {
+                float maxDistance = 10.0;
+            
+                float3 camOrigin = float3(camOriginTexture.read(textureUV).xyz);
+                float3 camDirection = float3(camDirectionTexture.read(textureUV).xyz);
+            
+                float3 rayOrigin = camOrigin + shape.y * camDirection;
+                float3 rayDirection = float3(reflectionDirTexture.read(textureUV).xyz);
+
+                float3 outNormal = float3(0);
+        
+                \(groundComponent.code!)
+            }
+
+            return outShape;
+        }
+        
+        fragment float4 reflMaterialFragment(RasterizerData vertexIn [[stage_in]],
+                                     __REFLMATERIAL_TEXTURE_HEADER_CODE__
+                                     constant float4 *__data [[ buffer(0) ]],
+                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                     constant LightUniforms &lights [[ buffer(2) ]],
+                                     texture2d<half, access::read> depthTexture [[texture(3)]],
+                                     texture2d<half, access::read> reflectionTexture [[texture(4)]],
+                                     texture2d<half, access::read> reflectionDirTexture [[texture(5)]],
+                                     texture2d<half, access::read> camOriginTexture [[texture(6)]],
+                                     texture2d<half, access::read> camDirectionTexture [[texture(7)]])
+         {
+             __REFLMATERIAL_INITIALIZE_FUNC_DATA__
+         
+             float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
+             float2 size = uniforms.screenSize;
+             ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
+
+             float4 outColor = float4(0);
+             float4 shape = float4(depthTexture.read(textureUV));
+             float4 reflectionShape = float4(reflectionTexture.read(textureUV));
+
+             if (reflectionShape.w >= \(idStart - 0.1) && reflectionShape.w <= \(idEnd + 0.1))
+             {
+                 float2 shadows = float2(1,1);
+
+                 float3 rayOrigin = float3(camOriginTexture.read(textureUV).xyz);
+                 float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
+
+                 float4 reflectionDir = float4(reflectionDirTexture.read(textureUV));
+
+                 float3 position = (rayOrigin + shape.y * rayDirection) + reflectionDir.xyz * reflectionShape.y;
+                 float3 outNormal = float3(0);
+                 float4 outShape = shape;
+         
+                 \(groundComponent.code!)
+         
+                 // Sun
+                 {
+                     struct MaterialOut __materialOut;
+                     __materialOut.color = float4(0,0,0,1);
+                     __materialOut.mask = float3(0);
+                     
+                     float3 incomingDirection = rayDirection;
+                     float3 hitPosition = position;
+                     float3 hitNormal = outNormal;
+                     float3 directionToLight = normalize(lights.lights[0].directionToLight.xyz);
+                     float4 lightType = float4(0);
+                     float4 lightColor = lights.lights[0].lightColor;
+                     float shadow = shadows.y;
+                     float occlusion = shadows.x;
+                     float3 mask = float3(1);
+
+                     material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+                     outColor += __materialOut.color;
+                 }
+         
+                 \(lightSamplingCode)
+             }
+         
+             return outColor;
+         }
 
         """
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
             Shader(id: "MAIN", textureOffset: 3, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 11, blending: true)
+            Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 11, blending: true),
+            Shader(id: "REFLECTION", fragmentName: "reflectionFragment", textureOffset: 7, blending: false),
+            Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 8, blending: true)
         ])
         
         prtInstance.idCounter += 1
@@ -235,6 +338,103 @@ class GroundShader      : BaseShader
             renderEncoder.setFragmentTexture(prtInstance.otherReflDirTexture, index: 8)
             renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 9)
             renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 10)
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            renderEncoder.endEncoding()
+            
+            commandBuffer.addCompletedHandler { cb in
+                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
+            }
+            
+            commandBuffer.commit()
+        }
+    }
+    
+    override func reflectionPass(texture: MTLTexture)
+    {
+        if let shader = shaders["REFLECTION"] {
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherReflTexture!
+            renderPassDescriptor.colorAttachments[0].loadAction = .load
+            
+            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(shader.pipelineState)
+            
+            // --- Vertex
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 ) )
+            
+            let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, Float(prtInstance.screenSize.x), Float(prtInstance.screenSize.y) ) )
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            
+            var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
+            renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            
+            // --- Fragment
+            var fragmentUniforms = ObjectFragmentUniforms()
+            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+            fragmentUniforms.screenSize = prtInstance.screenSize
+            
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+
+            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 2)
+            renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 3)
+            renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 4)
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 5)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 6)
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            renderEncoder.endEncoding()
+            
+            commandBuffer.addCompletedHandler { cb in
+                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
+            }
+            
+            commandBuffer.commit()
+        }
+    }
+    
+    override func reflectionMaterialPass(texture: MTLTexture)
+    {
+        if let shader = shaders["REFLMATERIAL"] {
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = texture
+            renderPassDescriptor.colorAttachments[0].loadAction = .load
+            
+            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(shader.pipelineState)
+            
+            // --- Vertex
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 ) )
+            
+            let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, Float(prtInstance.screenSize.x), Float(prtInstance.screenSize.y) ) )
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            
+            var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
+            renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            
+            // --- Fragment
+            var fragmentUniforms = ObjectFragmentUniforms()
+            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+            fragmentUniforms.screenSize = prtInstance.screenSize
+
+            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+            
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentBytes(&lightUniforms, length: MemoryLayout<LightUniforms>.stride, index: 2)
+            
+            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
+            renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 4)
+            renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 5)
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 6)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 7)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

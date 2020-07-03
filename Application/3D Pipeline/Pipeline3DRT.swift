@@ -302,7 +302,7 @@ class Pipeline3DRT          : Pipeline
         prtInstance.reflDirTexture1 = checkTextureSize(width, height, prtInstance.reflDirTexture1, .rgba16Float)
         prtInstance.reflDirTexture2 = checkTextureSize(width, height, prtInstance.reflDirTexture2, .rgba16Float)
         prtInstance.currentReflDirTexture = prtInstance.reflDirTexture1
-        prtInstance.otherReflTexture = prtInstance.reflDirTexture2
+        prtInstance.otherReflDirTexture = prtInstance.reflDirTexture2
         
         func swapReflectionTextures()
         {
@@ -329,25 +329,40 @@ class Pipeline3DRT          : Pipeline
         // Calculate the materials
         for shader in shaders {
             shader.materialPass(texture: finalTexture!)
-            swapReflectionTextures()
             swapReflectionDirTextures()
         }
         
         // Free the other reflection dir texture
         if prtInstance.currentReflDirTexture === prtInstance.reflDirTexture1 {
             prtInstance.reflDirTexture2 = nil
-            prtInstance.otherShapeTexture = nil
+            prtInstance.otherReflDirTexture = nil
         } else {
             prtInstance.reflDirTexture1 = nil
-            prtInstance.otherShapeTexture = nil
+            prtInstance.otherReflDirTexture = nil
         }
         
         prtInstance.shadowTexture1 = nil
         prtInstance.shadowTexture2 = nil
         prtInstance.currentShadowTexture = nil
         prtInstance.otherShadowTexture = nil
+        
+        // Calculate the reflection hits
+        for shader in shaders {
+            //if let ground = shader as? GroundShader {
+                shader.reflectionPass(texture: finalTexture!)
+                swapReflectionTextures()
+            //}
+        }
+        
+        // Calculate the reflection material colors and blend them in
+        for shader in shaders {
+            shader.reflectionMaterialPass(texture: finalTexture!)
+        }
+        
+        // DONE
 
         textureMap["shape"] = prtInstance.currentShapeTexture!
+        textureMap["shape"] = prtInstance.currentReflTexture!
         ids = prtInstance.ids
         
         postFX()

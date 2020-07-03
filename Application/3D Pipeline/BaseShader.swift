@@ -200,6 +200,14 @@ class BaseShader
     {
     }
     
+    func reflectionPass(texture: MTLTexture)
+    {
+    }
+    
+    func reflectionMaterialPass(texture: MTLTexture)
+    {
+    }
+    
     func createLightCode(scene: Scene) -> String
     {
         let lightStage = scene.getStage(.LightStage)
