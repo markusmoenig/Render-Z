@@ -139,15 +139,19 @@ class ObjectShader      : BaseShader
         fragment half4 procFragment(VertexOut vertexIn [[stage_in]],
                                     __MAIN_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
-                                    constant FragmentUniforms &uniforms [[ buffer(1) ]])
+                                    constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                    texture2d<half, access::read> camOriginTexture [[texture(2)]],
+                                    texture2d<half, access::read> camDirectionTexture [[texture(3)]])
         {
             __MAIN_INITIALIZE_FUNC_DATA__
         
             float2 size = uniforms.screenSize;
-            float3 position = vertexIn.worldPosition.xyz;
+            float3 position = vertexIn.position.xyz;
+            float2 uv = float2((position.x / size.x), 1.0 - (position.y / size.y));
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
 
-            float3 rayOrigin = position;//uniforms.cameraOrigin;//position;
-            float3 rayDirection = normalize(position - uniforms.cameraOrigin);
+            float3 rayOrigin = float3(0);//position;
+            float3 rayDirection = float3(0);//normalize(position - uniforms.cameraOrigin);
 
             float4 inShape = float4(1000, 1000, -1, -1);
             float4 outShape = float4(1000, 1000, -1, -1);
@@ -155,11 +159,17 @@ class ObjectShader      : BaseShader
 
             //__funcData->inShape = float4(1000, 1000, -1, -1);
             //__funcData->inHitPoint = rayOrigin + rayDirection * outShape.y;
+        
+            float3 outPosition = float3(camOriginTexture.read(textureUV).xyz);
+            float3 outDirection = float3(camDirectionTexture.read(textureUV).xyz);
+                            
+            rayOrigin = outPosition + distance(outPosition, vertexIn.worldPosition.xyz) * outDirection;
+            rayDirection = outDirection;
 
             \(rayMarch.code!)
         
             if (isNotEqual(outShape.w, inShape.w)) {
-                outShape.y += distance(position, uniforms.cameraOrigin);
+                outShape.y += distance(outPosition, vertexIn.worldPosition.xyz);//distance(position, uniforms.cameraOrigin);
             }
             return half4(outShape);
         }
@@ -484,6 +494,8 @@ class ObjectShader      : BaseShader
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 2)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 3)
             
             renderEncoder.setCullMode(.back)
             renderEncoder.setFrontFacing(.counterClockwise)
