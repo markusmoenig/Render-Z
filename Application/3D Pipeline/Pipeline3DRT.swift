@@ -363,6 +363,13 @@ class Pipeline3DRT          : Pipeline
         if let background = backgroundShader {
             background.reflectionMaterialPass(texture: finalTexture!)
         }
+        
+        // BBOX DEBUG
+        for shader in shaders {
+            if let object = shader as? ObjectShader {
+                object.bbox(texture: finalTexture!)
+            }
+        }
 
         // POSTFX
         textureMap["shape"] = prtInstance.currentShapeTexture!

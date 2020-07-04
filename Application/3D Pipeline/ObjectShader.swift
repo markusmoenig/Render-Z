@@ -155,7 +155,7 @@ class ObjectShader      : BaseShader
 
             float4 inShape = float4(1000, 1000, -1, -1);
             float4 outShape = float4(1000, 1000, -1, -1);
-            float maxDistance = uniforms.maxDistance;
+            float maxDistance = 1000;//uniforms.maxDistance;
 
             //__funcData->inShape = float4(1000, 1000, -1, -1);
             //__funcData->inHitPoint = rayOrigin + rayDirection * outShape.y;
@@ -172,6 +172,11 @@ class ObjectShader      : BaseShader
                 outShape.y += distance(outPosition, vertexIn.worldPosition.xyz);//distance(position, uniforms.cameraOrigin);
             }
             return half4(outShape);
+        }
+        
+        fragment half4 bboxFragment(VertexOut vertexIn [[stage_in]])
+        {
+            return (1,0,0,0.5);
         }
         
         \(BaseShader.getQuadVertexSource(name: "quadVertex"))
@@ -416,6 +421,7 @@ class ObjectShader      : BaseShader
                         
         compile(code: vertexShader + fragmentShader, shaders: [
             Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
+            Shader(id: "BBOX", fragmentName: "bboxFragment", textureOffset: 0, pixelFormat: .rgba16Float, blending: true),
             Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 10, blending: true),
             Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 7, pixelFormat: .rg16Float, blending: false),
             Shader(id: "REFLECTION", vertexName: "quadVertex", fragmentName: "reflectionFragment", textureOffset: 7, blending: false),
@@ -510,6 +516,84 @@ class ObjectShader      : BaseShader
             
             // --- Merge the result
             prtInstance.utilityShader.mergeShapes()
+        }
+    }
+    
+    func bbox(texture: MTLTexture)
+    {
+        if let mainShader = shaders["BBOX"] {
+
+            if bbTriangles.count == 0 { return }
+            let dataSize = bbTriangles.count * MemoryLayout<Float>.size
+            let vertexBuffer = device.makeBuffer(bytes: bbTriangles, length: dataSize, options: [])
+
+            var mTranslation = matrix_identity_float4x4
+            var mRotation = matrix_identity_float4x4
+            var mScale = matrix_identity_float4x4
+            
+            var maxDistance : Float = 100
+
+            if let transform = self.object.components[self.object.defaultName] {
+                let scale = transform.values["_scale"]!
+                
+                mTranslation = float4x4(translation: [transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!])
+                mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
+                
+                let bbX : Float
+                let bbY : Float
+                let bbZ : Float
+
+                if transform.values["_bb_x"] == nil {
+                    bbX = 1
+                    bbY = 1
+                    bbZ = 1
+                } else {
+                    bbX = transform.values["_bb_x"]!
+                    bbY = transform.values["_bb_y"]!
+                    bbZ = transform.values["_bb_z"]!
+                }
+                
+                maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
+                mScale = float4x4(scaling: [(bbX * scale), (bbY * scale), (bbZ * scale)])
+            }
+            
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = texture
+            renderPassDescriptor.colorAttachments[0].loadAction = .load
+
+            let commandBuffer = mainShader.commandQueue.makeCommandBuffer()!
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(mainShader.pipelineState)
+            //renderEncoder.setDepthStencilState(buildDepthStencilState())
+            
+            // Vertex Uniforms
+            
+            var vertexUniforms = ObjectVertexUniforms()
+            vertexUniforms.projectionMatrix = prtInstance.projectionMatrix
+            vertexUniforms.modelMatrix = mTranslation * mRotation * mScale
+            vertexUniforms.viewMatrix = prtInstance.viewMatrix
+            
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            renderEncoder.setVertexBytes(&vertexUniforms, length: MemoryLayout<ObjectVertexUniforms>.stride, index: 1)
+            
+            // Fragment Uniforms
+            
+            var fragmentUniforms = ObjectFragmentUniforms()
+            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+            fragmentUniforms.screenSize = prtInstance.screenSize
+            fragmentUniforms.maxDistance = maxDistance
+            
+            renderEncoder.setCullMode(.back)
+            renderEncoder.setFrontFacing(.counterClockwise)
+            renderEncoder.setDepthClipMode(.clamp)
+            
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: bbTriangles.count / 4)
+            renderEncoder.endEncoding()
+            
+            commandBuffer.commit()
         }
     }
     
