@@ -446,7 +446,11 @@ class ObjectShader      : BaseShader
             if let transform = self.object.components[self.object.defaultName] {
                 let scale = transform.values["_scale"]!
                 
-                mTranslation = float4x4(translation: [transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!])
+                let tx = transform.values["_posX"]!
+                let ty = transform.values["_posY"]!
+                let tz = transform.values["_posZ"]!
+
+                mTranslation = float4x4(translation: [tx - (1 - scale) * tx, ty - (1 - scale) * ty, tz  - (1 - scale) * tz])
                 mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
                 
                 let bbX : Float
@@ -454,17 +458,17 @@ class ObjectShader      : BaseShader
                 let bbZ : Float
 
                 if transform.values["_bb_x"] == nil {
-                    bbX = 1
-                    bbY = 1
-                    bbZ = 1
+                    bbX = 1 * scale
+                    bbY = 1 * scale
+                    bbZ = 1 * scale
                 } else {
-                    bbX = transform.values["_bb_x"]!
-                    bbY = transform.values["_bb_y"]!
-                    bbZ = transform.values["_bb_z"]!
+                    bbX = transform.values["_bb_x"]! * scale
+                    bbY = transform.values["_bb_y"]! * scale
+                    bbZ = transform.values["_bb_z"]! * scale
                 }
                 
                 maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
-                mScale = float4x4(scaling: [(bbX * scale), (bbY * scale), (bbZ * scale)])
+                mScale = float4x4(scaling: [(bbX), (bbY), (bbZ)])
             }
             
             let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -533,7 +537,11 @@ class ObjectShader      : BaseShader
             if let transform = self.object.components[self.object.defaultName] {
                 let scale = transform.values["_scale"]!
                 
-                mTranslation = float4x4(translation: [transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!])
+                let tx = transform.values["_posX"]!
+                let ty = transform.values["_posY"]!
+                let tz = transform.values["_posZ"]!
+
+                mTranslation = float4x4(translation: [tx - (1 - scale) * tx, ty - (1 - scale) * ty, tz  - (1 - scale) * tz])
                 mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
                 
                 let bbX : Float
@@ -541,17 +549,17 @@ class ObjectShader      : BaseShader
                 let bbZ : Float
 
                 if transform.values["_bb_x"] == nil {
-                    bbX = 1
-                    bbY = 1
-                    bbZ = 1
+                    bbX = 1 * scale
+                    bbY = 1 * scale
+                    bbZ = 1 * scale
                 } else {
-                    bbX = transform.values["_bb_x"]!
-                    bbY = transform.values["_bb_y"]!
-                    bbZ = transform.values["_bb_z"]!
+                    bbX = transform.values["_bb_x"]! * scale
+                    bbY = transform.values["_bb_y"]! * scale
+                    bbZ = transform.values["_bb_z"]! * scale
                 }
                 
                 maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
-                mScale = float4x4(scaling: [(bbX * scale), (bbY * scale), (bbZ * scale)])
+                mScale = float4x4(scaling: [(bbX), (bbY), (bbZ)])
             }
             
             let renderPassDescriptor = MTLRenderPassDescriptor()

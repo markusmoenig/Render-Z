@@ -197,16 +197,16 @@ class Pipeline3DRT          : Pipeline
         
         let camHelper = CamHelper3D()
         camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
-        camHelper.updateProjection()
+        //camHelper.updateProjection()
         
         prtInstance.cameraOrigin = camHelper.eye
         prtInstance.cameraLookAt = camHelper.center
 
         prtInstance.screenSize = float2(width, height)
 
-        prtInstance.projectionMatrix = camHelper.projMatrix//float4x4(projectionFov: camHelper.fov, near: 1, far: 100, aspect: width / height, lhs: true)// camHelper.projMatrix
-        prtInstance.projectionMatrix = float4x4(projectionFov: camHelper.fov, near: 1, far: 1000, aspect: width / height, lhs: false)// camHelper.projMatrix
-        prtInstance.viewMatrix = camHelper.getTransform().inverse//float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)//
+        //prtInstance.projectionMatrix = camHelper.projMatrix
+        prtInstance.projectionMatrix = float4x4(projectionFov: camHelper.fov, near: 1, far: 100, aspect: width / height, lhs: false)// camHelper.projMatrix
+        prtInstance.viewMatrix = float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)//camHelper.getTransform().inverse//float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)
 
         prtInstance.camOriginTexture = checkTextureSize(width, height, prtInstance.camOriginTexture, .rgba16Float)
         prtInstance.camDirTexture = checkTextureSize(width, height, prtInstance.camDirTexture, .rgba16Float)

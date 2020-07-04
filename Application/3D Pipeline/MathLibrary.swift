@@ -149,7 +149,7 @@ extension float4x4 {
   
   // left-handed LookAt
   init(eye: float3, center: float3, up: float3) {
-    let z = normalize(center-eye)
+    let z = normalize(eye - center)
     let x = normalize(cross(up, z))
     let y = cross(z, x)
     
