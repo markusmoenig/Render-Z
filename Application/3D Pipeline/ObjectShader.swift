@@ -150,12 +150,9 @@ class ObjectShader      : BaseShader
             float2 uv = float2((position.x / size.x), 1.0 - (position.y / size.y));
             ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
 
-            float3 rayOrigin = float3(0);//position;
-            float3 rayDirection = float3(0);//normalize(position - uniforms.cameraOrigin);
-
             float4 inShape = float4(1000, 1000, -1, -1);
             float4 outShape = float4(1000, 1000, -1, -1);
-            float maxDistance = 1000;//uniforms.maxDistance;
+            float maxDistance = uniforms.maxDistance;
 
             //__funcData->inShape = float4(1000, 1000, -1, -1);
             //__funcData->inHitPoint = rayOrigin + rayDirection * outShape.y;
@@ -163,13 +160,13 @@ class ObjectShader      : BaseShader
             float3 outPosition = float3(camOriginTexture.read(textureUV).xyz);
             float3 outDirection = float3(camDirectionTexture.read(textureUV).xyz);
                             
-            rayOrigin = outPosition + distance(outPosition, vertexIn.worldPosition.xyz) * outDirection;
-            rayDirection = outDirection;
+            float3 rayOrigin = vertexIn.worldPosition.xyz;;//outPosition;// + distance(outPosition, vertexIn.worldPosition.xyz) * outDirection;
+            float3 rayDirection = outDirection;
 
             \(rayMarch.code!)
         
             if (isNotEqual(outShape.w, inShape.w)) {
-                outShape.y += distance(outPosition, vertexIn.worldPosition.xyz);//distance(position, uniforms.cameraOrigin);
+                outShape.y += distance(rayOrigin, outPosition);//uniforms.cameraOrigin);
             }
             return half4(outShape);
         }

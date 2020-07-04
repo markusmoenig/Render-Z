@@ -204,8 +204,9 @@ class Pipeline3DRT          : Pipeline
 
         prtInstance.screenSize = float2(width, height)
 
-        prtInstance.projectionMatrix = camHelper.projMatrix
-        prtInstance.viewMatrix = camHelper.getTransform().inverse
+        prtInstance.projectionMatrix = camHelper.projMatrix//float4x4(projectionFov: camHelper.fov, near: 1, far: 100, aspect: width / height, lhs: true)// camHelper.projMatrix
+        prtInstance.projectionMatrix = float4x4(projectionFov: camHelper.fov, near: 1, far: 1000, aspect: width / height, lhs: false)// camHelper.projMatrix
+        prtInstance.viewMatrix = camHelper.getTransform().inverse//float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)//
 
         prtInstance.camOriginTexture = checkTextureSize(width, height, prtInstance.camOriginTexture, .rgba16Float)
         prtInstance.camDirTexture = checkTextureSize(width, height, prtInstance.camDirTexture, .rgba16Float)
@@ -365,11 +366,12 @@ class Pipeline3DRT          : Pipeline
         }
         
         // BBOX DEBUG
+        /*
         for shader in shaders {
             if let object = shader as? ObjectShader {
                 object.bbox(texture: finalTexture!)
             }
-        }
+        }*/
 
         // POSTFX
         textureMap["shape"] = prtInstance.currentShapeTexture!
