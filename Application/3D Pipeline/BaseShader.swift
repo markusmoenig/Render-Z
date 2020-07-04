@@ -790,25 +790,6 @@ class BaseShader
             uint2 rz = uint2(n, n*48271U);
             return float2(rz.xy & uint2(0x7fffffffU))/float(0x7fffffff);
         }
-
-        float normalizedToFloat(float3 color) {
-            const float c_precision = 256.0;
-            const float c_precisionp1 = c_precision + 1.0;
-            color = clamp(color, 0.0, 1.0);
-            return floor(color.r * c_precision + 0.5)
-                + floor(color.b * c_precision + 0.5) * c_precisionp1
-                + floor(color.g * c_precision + 0.5) * c_precisionp1 * c_precisionp1;
-        }
-
-        float3 floatToNormalized(float value) {
-            const float c_precision = 256.0;
-            const float c_precisionp1 = c_precision + 1.0;
-            float3 color;
-            color.r = fmod(value, c_precisionp1) / c_precision;
-            color.b = fmod(floor(value / c_precisionp1), c_precisionp1) / c_precision;
-            color.g = floor(value / (c_precisionp1 * c_precisionp1)) / c_precision;
-            return color;
-        }
         
         float axis(int index, float3 domain)
         {
@@ -890,20 +871,6 @@ class BaseShader
             if( h<0.0 ) return float2(-1); // no intersection
             h = sqrt( h );
             return float2( -b-h, -b+h );
-        }
-        
-        // axis aligned box centered at the origin, with size boxSize
-        float2 boxIntersection( float3 ro, float3 rd, float3 boxSize )
-        {
-            float3 m = 1.0/rd; // can precompute if traversing a set of aligned boxes
-            float3 n = m*ro;   // can precompute if traversing a set of aligned boxes
-            float3 k = abs(m)*boxSize;
-            float3 t1 = -n - k;
-            float3 t2 = -n + k;
-            float tN = max( max( t1.x, t1.y ), t1.z );
-            float tF = min( min( t2.x, t2.y ), t2.z );
-            if( tN>tF || tF < 0.0) return float2(-1.0); // no intersection
-            return float2( tN, tF );
         }
         
         float2 hitBBox( float3 rO, float3 rD, float3 min, float3 max )

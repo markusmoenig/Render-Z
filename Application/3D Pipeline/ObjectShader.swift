@@ -160,14 +160,47 @@ class ObjectShader      : BaseShader
             float3 outPosition = float3(camOriginTexture.read(textureUV).xyz);
             float3 outDirection = float3(camDirectionTexture.read(textureUV).xyz);
                             
-            float3 rayOrigin = vertexIn.worldPosition.xyz;;//outPosition;// + distance(outPosition, vertexIn.worldPosition.xyz) * outDirection;
+            float3 rayOrigin = vertexIn.worldPosition.xyz;//outPosition;// + distance(outPosition, vertexIn.worldPosition.xyz) * outDirection;
             float3 rayDirection = outDirection;
 
             \(rayMarch.code!)
         
             if (isNotEqual(outShape.w, inShape.w)) {
-                outShape.y += distance(rayOrigin, outPosition);//uniforms.cameraOrigin);
+                outShape.y += distance(rayOrigin, uniforms.cameraOrigin);
             }
+            return half4(outShape);
+        }
+        
+        \(BaseShader.getQuadVertexSource(name: "quadVertex"))
+
+        fragment half4 fullFragment(RasterizerData vertexIn [[stage_in]],
+                                    __MAINFULL_TEXTURE_HEADER_CODE__
+                                    constant float4 *__data [[ buffer(0) ]],
+                                    constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                    texture2d<half, access::read> camOriginTexture [[texture(2)]],
+                                    texture2d<half, access::read> camDirectionTexture [[texture(3)]])
+        {
+            __MAINFULL_INITIALIZE_FUNC_DATA__
+        
+            float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
+            float2 size = uniforms.screenSize;
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
+
+            float4 inShape = float4(1000, 1000, -1, -1);
+            float4 outShape = float4(1000, 1000, -1, -1);
+            float maxDistance = 10;//uniforms.maxDistance;
+
+            //__funcData->inShape = float4(1000, 1000, -1, -1);
+            //__funcData->inHitPoint = rayOrigin + rayDirection * outShape.y;
+        
+            float3 outPosition = float3(camOriginTexture.read(textureUV).xyz);
+            float3 outDirection = float3(camDirectionTexture.read(textureUV).xyz);
+                            
+            float3 rayOrigin = outPosition;
+            float3 rayDirection = outDirection;
+
+            \(rayMarch.code!)
+        
             return half4(outShape);
         }
         
@@ -175,9 +208,6 @@ class ObjectShader      : BaseShader
         {
             return (1,0,0,0.5);
         }
-        
-        \(BaseShader.getQuadVertexSource(name: "quadVertex"))
-        
         
         \(softShadowCode)
         
@@ -418,6 +448,7 @@ class ObjectShader      : BaseShader
                         
         compile(code: vertexShader + fragmentShader, shaders: [
             Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
+            Shader(id: "MAINFULL", vertexName: "quadVertex", fragmentName: "fullFragment", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
             Shader(id: "BBOX", fragmentName: "bboxFragment", textureOffset: 0, pixelFormat: .rgba16Float, blending: true),
             Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 10, blending: true),
             Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 7, pixelFormat: .rg16Float, blending: false),
@@ -431,6 +462,7 @@ class ObjectShader      : BaseShader
     {
         updateData()
     
+        /*
         if let mainShader = shaders["MAIN"] {
 
             if bbTriangles.count == 0 { return }
@@ -516,6 +548,56 @@ class ObjectShader      : BaseShader
             commandBuffer.commit()
             
             // --- Merge the result
+            prtInstance.utilityShader.mergeShapes()
+        }*/
+        
+        if let shader = shaders["MAINFULL"] {
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = prtInstance.localTexture!
+            renderPassDescriptor.colorAttachments[0].loadAction = .clear
+            renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0, blue: 0, alpha: 0.0)
+            
+            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(shader.pipelineState)
+            
+            // --- Vertex
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 ) )
+            
+            let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, Float(prtInstance.screenSize.x), Float(prtInstance.screenSize.y) ) )
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            
+            var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
+            renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            
+            // --- Fragment
+            
+            var fragmentUniforms = ObjectFragmentUniforms()
+            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+            fragmentUniforms.screenSize = prtInstance.screenSize
+
+            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+            
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentBytes(&lightUniforms, length: MemoryLayout<LightUniforms>.stride, index: 2)
+
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 2)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 3)
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            renderEncoder.endEncoding()
+            
+            commandBuffer.addCompletedHandler { cb in
+                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
+            }
+            
+            commandBuffer.commit()
+            
             prtInstance.utilityShader.mergeShapes()
         }
     }
