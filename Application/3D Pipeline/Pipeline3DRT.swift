@@ -359,12 +359,17 @@ class Pipeline3DRT          : Pipeline
             shader.reflectionMaterialPass(texture: finalTexture!)
         }
         
-        // DONE
+        // SKY REFLECTIONS
+        if let background = backgroundShader {
+            background.reflectionMaterialPass(texture: finalTexture!)
+        }
 
+        // POSTFX
         textureMap["shape"] = prtInstance.currentShapeTexture!
-        ids = prtInstance.ids
-        
         postFX()
+        
+        // DONE
+        ids = prtInstance.ids
         
         #if DEBUG
         //print("Execution Time: ", globalApp!.executionTime * 1000)
