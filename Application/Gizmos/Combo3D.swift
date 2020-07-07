@@ -152,7 +152,7 @@ class GizmoCombo3D          : GizmoBase
                     rotateRandom = SIMD3<Float>(comp.values["_rotateRandomX"] == nil ? 0 : comp.values["_rotateRandomX"]!, comp.values["_rotateRandomY"] == nil ? 0 : comp.values["_rotateRandomY"]!, comp.values["_rotateRandomZ"] == nil ? 0 : comp.values["_rotateRandomZ"]!)
                 }
                 
-                let rotateVar = NodeUINumber3(tNode, variable: "_rotate", title: "Rotate", value: SIMD3<Float>(comp.values["_rotateX"]!, comp.values["_rotateY"]!, comp.values["_rotateZ"]!), precision: 3, valueRandom: rotateRandom)
+                let rotateVar = NodeUINumber3(tNode, variable: "_rotate", title: "Rotate", range: SIMD2<Float>(0,360), value: SIMD3<Float>(comp.values["_rotateX"]!, comp.values["_rotateY"]!, comp.values["_rotateZ"]!), precision: 3, valueRandom: rotateRandom)
                 
                 rotateVar.titleShadows = true
                 tNode.uiItems.append(rotateVar)

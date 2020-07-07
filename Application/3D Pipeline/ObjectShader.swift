@@ -140,8 +140,7 @@ class ObjectShader      : BaseShader
                                     __MAIN_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
-                                    texture2d<half, access::read> camOriginTexture [[texture(2)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(3)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(2)]])
         {
             __MAIN_INITIALIZE_FUNC_DATA__
         
@@ -157,7 +156,7 @@ class ObjectShader      : BaseShader
             //__funcData->inShape = float4(1000, 1000, -1, -1);
             //__funcData->inHitPoint = rayOrigin + rayDirection * outShape.y;
         
-            float3 outPosition = float3(camOriginTexture.read(textureUV).xyz);
+            float3 outPosition = uniforms.cameraOrigin;
             float3 outDirection = float3(camDirectionTexture.read(textureUV).xyz);
                             
             float3 rayOrigin = vertexIn.worldPosition.xyz;//outPosition;// + distance(outPosition, vertexIn.worldPosition.xyz) * outDirection;
@@ -173,12 +172,38 @@ class ObjectShader      : BaseShader
         
         \(BaseShader.getQuadVertexSource(name: "quadVertex"))
 
+        float bbox(float3 C, float3 D, float3 P, float3 X0, float3 X1, float3 X2)
+        {
+        
+            float3 L = float3(length(X0), length(X1), length(X2) ), I;
+            float3x3  F = float3x3( X0/dot(X0,X0), X1/dot(X1,X1), X2/dot(X2,X2) );
+            float d = 1e5, l;
+            
+            C = (C-P) * F;    D *= F;                         // to normalized coordinates in box frame
+            I = abs(C-.5); bool inside = max(I.x, max(I.y,I.z)) <= .5;
+            if ( inside ) return 0.; // if inside the Bbox. Comment for box intersection
+                
+            #define test(i)                                                           \
+            l =  D[i] > 0. ?  C[i] < 0. ? -C[i]   : C[i] < 1. ? 1.-C[i] : -1.     \
+                           :  C[i] > 1. ? 1.-C[i] : C[i] > 0. ? -C[i]   :  1.;    \
+            l /= D[i];                                                            \
+            I = C+l*D;                                                            \
+            if ( l > 0. && l < d                                                  \
+                 && I[(i+1)%3] >= 0. && I[(i+1)%3] <= 1.                          \
+                 && I[(i+2)%3] >= 0. && I[(i+2)%3] <= 1.                          \
+               )  d = l
+        
+            test(0);
+            test(1);
+            test(2);
+            return d==1e5 ? -1. : d;
+        }
+        
         fragment half4 fullFragment(RasterizerData vertexIn [[stage_in]],
                                     __MAINFULL_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
-                                    texture2d<half, access::read> camOriginTexture [[texture(2)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(3)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(2)]])
         {
             __MAINFULL_INITIALIZE_FUNC_DATA__
         
@@ -193,9 +218,44 @@ class ObjectShader      : BaseShader
             //__funcData->inShape = float4(1000, 1000, -1, -1);
             //__funcData->inHitPoint = rayOrigin + rayDirection * outShape.y;
         
-            float3 outPosition = float3(camOriginTexture.read(textureUV).xyz);
+            float3 outPosition = uniforms.cameraOrigin;
             float3 outDirection = float3(camDirectionTexture.read(textureUV).xyz);
-                            
+            /*
+            float3  P = uniforms.bboxPos;
+            float3 X0 = float3(uniforms.bboxSize.x,0,0), X1 = float3(0,uniforms.bboxSize.y,0) , X2 = float3(0,0,uniforms.bboxSize.z);
+            
+            float a0 = uniforms.bboxRotation.x, a1 = uniforms.bboxRotation.y, a2 = uniforms.bboxRotation.z;
+
+            float3 C = P + (X0+X1+X2)/2.;
+        
+            X0.yz = rotate( X0.yz, a0);
+            X1.yz = rotate( X1.yz, a0);
+            X2.yz = rotate( X2.yz, a0);
+
+            X0.xz = rotate( X0.xz, a1 );
+            X1.xz = rotate( X1.xz, a1 );
+            X2.xz = rotate( X2.xz, a1 );
+
+            X0.xy = rotate( X0.xy, a2 );
+            X1.xy = rotate( X1.xy, a2 );
+            X2.xy = rotate( X2.xy, a2 );
+
+            P = C - (X0+X1+X2)/2.;
+            
+            float d = bbox( outPosition, outDirection, P, X0, X1, X2 );
+            if (d > -0.5)
+            {
+                float3 rayOrigin = outPosition + d * outDirection;
+                float3 rayDirection = outDirection;
+
+                \(rayMarch.code!)
+        
+                if (isNotEqual(outShape.w, inShape.w)) {
+                    outShape.y += d;
+                }
+            }*/
+            
+        
             float3 rayOrigin = outPosition;
             float3 rayDirection = outDirection;
 
@@ -207,6 +267,49 @@ class ObjectShader      : BaseShader
         fragment half4 bboxFragment(VertexOut vertexIn [[stage_in]])
         {
             return (1,0,0,0.5);
+        }
+        
+        fragment half4 bboxFullFragment(RasterizerData vertexIn [[stage_in]],
+                                        constant FragmentUniforms &uniforms [[ buffer(0) ]],
+                                        texture2d<half, access::read> camDirectionTexture [[texture(1)]])
+        {
+            float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
+            float2 size = uniforms.screenSize;
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
+        
+            float3 outPosition = uniforms.cameraOrigin;
+            float3 outDirection = float3(camDirectionTexture.read(textureUV).xyz);
+        
+            float3  P = uniforms.bboxPos;
+            float3 X0 = float3(uniforms.bboxSize.x,0,0), X1 = float3(0,uniforms.bboxSize.y,0) , X2 = float3(0,0,uniforms.bboxSize.z);
+            
+            float a0 = uniforms.bboxRotation.x, a1 = uniforms.bboxRotation.y, a2 = uniforms.bboxRotation.z;
+
+            float3 C = P + (X0+X1+X2)/2.;
+
+            X0.yz = rotate( X0.yz, a0);
+            X1.yz = rotate( X1.yz, a0);
+            X2.yz = rotate( X2.yz, a0);
+
+            X0.xz = rotate( X0.xz, a1 );
+            X1.xz = rotate( X1.xz, a1 );
+            X2.xz = rotate( X2.xz, a1 );
+
+            X0.xy = rotate( X0.xy, a2 );
+            X1.xy = rotate( X1.xy, a2 );
+            X2.xy = rotate( X2.xy, a2 );
+
+            P = C - (X0+X1+X2)/2.;
+        
+            float d = bbox( outPosition, outDirection, P, X0, X1, X2 );
+            if (d > -0.5)
+            {
+                return half4(1,0,0,0.5);
+            } else {
+                return half4(0);
+            }
+        
+            return half4(0);
         }
         
         \(softShadowCode)
@@ -224,8 +327,7 @@ class ObjectShader      : BaseShader
                                     constant LightUniforms &lights [[ buffer(2) ]],
                                     texture2d<half, access::read> shadowTexture [[texture(3)]],
                                     texture2d<half, access::read> shapeTexture [[texture(4)]],
-                                    texture2d<half, access::read> camOriginTexture [[texture(5)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(6)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(5)]])
         {
             __SHADOW_INITIALIZE_FUNC_DATA__
         
@@ -238,7 +340,7 @@ class ObjectShader      : BaseShader
             
             if (shape.w > -0.5)
             {
-                float3 rayOrigin = float3(camOriginTexture.read(textureUV).xyz);
+                float3 rayOrigin = uniforms.cameraOrigin;
                 float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
                 
                 float3 position = rayOrigin + shape.y * rayDirection;
@@ -284,8 +386,7 @@ class ObjectShader      : BaseShader
                                     texture2d<half, access::write> reflectionTextureOut [[texture(5)]],
                                     texture2d<half, access::read> reflectionDirTextureIn [[texture(6)]],
                                     texture2d<half, access::write> reflectionDirTextureOut [[texture(7)]],
-                                    texture2d<half, access::read> camOriginTexture [[texture(8)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(9)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(8)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
         
@@ -301,7 +402,7 @@ class ObjectShader      : BaseShader
             {
                 float2 shadows = float2(shadowTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)).xy);
         
-                float3 rayOrigin = float3(camOriginTexture.read(textureUV).xyz);
+                float3 rayOrigin = uniforms.cameraOrigin;
                 float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
         
                 float3 position = rayOrigin + shape.y * rayDirection;
@@ -349,8 +450,7 @@ class ObjectShader      : BaseShader
                                     texture2d<half, access::read> depthTexture [[texture(2)]],
                                     texture2d<half, access::read> reflectionTexture [[texture(3)]],
                                     texture2d<half, access::read> reflectionDirTexture [[texture(4)]],
-                                    texture2d<half, access::read> camOriginTexture [[texture(5)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(6)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(5)]])
         {
             __REFLECTION_INITIALIZE_FUNC_DATA__
         
@@ -368,7 +468,7 @@ class ObjectShader      : BaseShader
             {
                 float maxDistance = 10.0;
             
-                float3 camOrigin = float3(camOriginTexture.read(textureUV).xyz);
+                float3 camOrigin = uniforms.cameraOrigin;
                 float3 camDirection = float3(camDirectionTexture.read(textureUV).xyz);
             
                 float3 rayOrigin = camOrigin + shape.y * camDirection;
@@ -388,8 +488,7 @@ class ObjectShader      : BaseShader
                                     texture2d<half, access::read> depthTexture [[texture(3)]],
                                     texture2d<half, access::read> reflectionTexture [[texture(4)]],
                                     texture2d<half, access::read> reflectionDirTexture [[texture(5)]],
-                                    texture2d<half, access::read> camOriginTexture [[texture(6)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(7)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(6)]])
         {
             __REFLMATERIAL_INITIALIZE_FUNC_DATA__
         
@@ -405,7 +504,7 @@ class ObjectShader      : BaseShader
             {
                 float2 shadows = float2(1,1);
 
-                float3 rayOrigin = float3(camOriginTexture.read(textureUV).xyz);
+                float3 rayOrigin = uniforms.cameraOrigin;
                 float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
 
                 float4 reflectionDir = float4(reflectionDirTexture.read(textureUV));
@@ -448,12 +547,13 @@ class ObjectShader      : BaseShader
                         
         compile(code: vertexShader + fragmentShader, shaders: [
             Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "MAINFULL", vertexName: "quadVertex", fragmentName: "fullFragment", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
+            Shader(id: "MAINFULL", vertexName: "quadVertex", fragmentName: "fullFragment", textureOffset: 3, pixelFormat: .rgba16Float, blending: false),
             Shader(id: "BBOX", fragmentName: "bboxFragment", textureOffset: 0, pixelFormat: .rgba16Float, blending: true),
-            Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 10, blending: true),
-            Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 7, pixelFormat: .rg16Float, blending: false),
-            Shader(id: "REFLECTION", vertexName: "quadVertex", fragmentName: "reflectionFragment", textureOffset: 7, blending: false),
-            Shader(id: "REFLMATERIAL", vertexName: "quadVertex", fragmentName: "reflMaterialFragment", textureOffset: 8, addition: true)
+            Shader(id: "BBOXFULL", vertexName: "quadVertex", fragmentName: "bboxFullFragment", textureOffset: 2, pixelFormat: .rgba16Float, blending: true),
+            Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 9, blending: true),
+            Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 6, pixelFormat: .rg16Float, blending: false),
+            Shader(id: "REFLECTION", vertexName: "quadVertex", fragmentName: "reflectionFragment", textureOffset: 6, blending: false),
+            Shader(id: "REFLMATERIAL", vertexName: "quadVertex", fragmentName: "reflMaterialFragment", textureOffset: 7, addition: true)
         ])
         buildTriangles()
     }
@@ -462,7 +562,7 @@ class ObjectShader      : BaseShader
     {
         updateData()
     
-        /*
+        #if false
         if let mainShader = shaders["MAIN"] {
 
             if bbTriangles.count == 0 { return }
@@ -533,8 +633,8 @@ class ObjectShader      : BaseShader
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
-            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 2)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 3)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 2)
+            applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             
             renderEncoder.setCullMode(.back)
             renderEncoder.setFrontFacing(.counterClockwise)
@@ -549,7 +649,9 @@ class ObjectShader      : BaseShader
             
             // --- Merge the result
             prtInstance.utilityShader.mergeShapes()
-        }*/
+        }
+        
+        #else
         
         if let shader = shaders["MAINFULL"] {
             let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -571,12 +673,7 @@ class ObjectShader      : BaseShader
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
             // --- Fragment
-            
-            var fragmentUniforms = ObjectFragmentUniforms()
-            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
-            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
-            fragmentUniforms.screenSize = prtInstance.screenSize
-
+            var fragmentUniforms = createFragmentUniform()
             var lightUniforms = prtInstance.utilityShader.createLightStruct()
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
@@ -585,8 +682,8 @@ class ObjectShader      : BaseShader
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
-            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 2)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 3)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 2)
+            applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -600,10 +697,13 @@ class ObjectShader      : BaseShader
             
             prtInstance.utilityShader.mergeShapes()
         }
+        
+        #endif
     }
     
     func bbox(texture: MTLTexture)
     {
+        #if false
         if let mainShader = shaders["BBOX"] {
 
             if bbTriangles.count == 0 { return }
@@ -682,6 +782,121 @@ class ObjectShader      : BaseShader
             
             commandBuffer.commit()
         }
+        
+        #else
+
+        if let shader = shaders["BBOXFULL"] {
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = texture
+            renderPassDescriptor.colorAttachments[0].loadAction = .load
+            
+            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
+            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(shader.pipelineState)
+            
+            // --- Vertex
+            renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 ) )
+            
+            let vertexBuffer = getQuadVertexBuffer(MMRect(0, 0, Float(prtInstance.screenSize.x), Float(prtInstance.screenSize.y) ) )
+            renderEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+            
+            var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
+            renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            
+            // --- Fragment
+            
+            var fragmentUniforms = createFragmentUniform()
+            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+            
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentBytes(&lightUniforms, length: MemoryLayout<LightUniforms>.stride, index: 2)
+
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 0)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 1)
+            applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            renderEncoder.endEncoding()
+            
+            commandBuffer.addCompletedHandler { cb in
+                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
+            }
+            
+            commandBuffer.commit()
+        }
+        
+        #endif
+    }
+    
+    func createFragmentUniform() -> ObjectFragmentUniforms
+    {
+        var fragmentUniforms = ObjectFragmentUniforms()
+
+        fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+        fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+        fragmentUniforms.screenSize = prtInstance.screenSize
+
+        if let transform = self.object.components[self.object.defaultName] {
+                            
+            let bboxPos = SIMD3<Float>(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!)
+            
+            fragmentUniforms.bboxPos = bboxPos;
+            
+            let scale = transform.values["_scale"]!
+
+            let bbX : Float
+            let bbY : Float
+            let bbZ : Float
+
+            if transform.values["_bb_x"] == nil {
+                bbX = 1 * scale
+                bbY = 1 * scale
+                bbZ = 1 * scale
+            } else {
+                bbX = transform.values["_bb_x"]! * scale
+                bbY = transform.values["_bb_y"]! * scale
+                bbZ = transform.values["_bb_z"]! * scale
+            }
+            
+            let bboxSize = SIMD3<Float>(bbX, bbY, bbZ)
+
+            fragmentUniforms.bboxSize = bboxSize * 2;
+            fragmentUniforms.bboxPos -= fragmentUniforms.bboxSize / 2 + (1 - scale) * bboxPos;
+            fragmentUniforms.bboxRotation = SIMD3<Float>((360-transform.values["_rotateX"]!).degreesToRadians, (360-transform.values["_rotateY"]!).degreesToRadians, (360-transform.values["_rotateZ"]!).degreesToRadians)
+            
+            fragmentUniforms.maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
+
+            /*
+            let scale = transform.values["_scale"]!
+            
+            let tx = transform.values["_posX"]!
+            let ty = transform.values["_posY"]!
+            let tz = transform.values["_posZ"]!
+
+            mTranslation = float4x4(translation: [tx - (1 - scale) * tx, ty - (1 - scale) * ty, tz  - (1 - scale) * tz])
+            mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
+            
+            let bbX : Float
+            let bbY : Float
+            let bbZ : Float
+
+            if transform.values["_bb_x"] == nil {
+                bbX = 1 * scale
+                bbY = 1 * scale
+                bbZ = 1 * scale
+            } else {
+                bbX = transform.values["_bb_x"]! * scale
+                bbY = transform.values["_bb_y"]! * scale
+                bbZ = transform.values["_bb_z"]! * scale
+            }
+            
+            maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
+            mScale = float4x4(scaling: [(bbX), (bbY), (bbZ)])*/
+        }
+        
+        return fragmentUniforms
     }
     
     override func shadowPass(texture: MTLTexture)
@@ -719,8 +934,8 @@ class ObjectShader      : BaseShader
 
             renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 3)
             renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 4)
-            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 5)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 6)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 5)
+            applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -771,8 +986,8 @@ class ObjectShader      : BaseShader
             renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 5)
             renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 6)
             renderEncoder.setFragmentTexture(prtInstance.otherReflDirTexture, index: 7)
-            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 8)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 9)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 8)
+            applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -818,8 +1033,8 @@ class ObjectShader      : BaseShader
             renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 2)
             renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 3)
             renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 4)
-            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 5)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 6)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 5)
+            applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -868,8 +1083,8 @@ class ObjectShader      : BaseShader
             renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
             renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 4)
             renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 5)
-            renderEncoder.setFragmentTexture(prtInstance.camOriginTexture!, index: 6)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 7)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 6)
+            applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -945,7 +1160,7 @@ class ObjectShader      : BaseShader
                     float3 __offsetFromCenter = __objectPosition - __originalPosition;
 
                     position.yz = rotatePivot( position.yz, radians(__data[\(rotateX)].x\(getInstantiationModifier("_rotateRandomX", component.values))), __offsetFromCenter.yz );
-                    position.xz = rotatePivot( position.xz, radians(-__data[\(rotateY)].x\(getInstantiationModifier("_rotateRandomY", component.values))), __offsetFromCenter.xz );
+                    position.xz = rotatePivot( position.xz, radians(__data[\(rotateY)].x\(getInstantiationModifier("_rotateRandomY", component.values))), __offsetFromCenter.xz );
                     position.xy = rotatePivot( position.xy, radians(__data[\(rotateZ)].x\(getInstantiationModifier("_rotateRandomZ", component.values))), __offsetFromCenter.xy );
 
             """

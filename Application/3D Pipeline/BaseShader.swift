@@ -220,6 +220,20 @@ class BaseShader
     {
     }
     
+    func applyUserFragmentTextures(shader: Shader, encoder: MTLRenderCommandEncoder)
+    {
+        var offset : Int = shader.textureOffset
+        for t in textures {
+            for texture in globalApp!.images {
+                if texture.0 == t.0 {
+                    encoder.setFragmentTexture(texture.1, index: offset)
+                    offset += 1
+                    break
+                }
+            }
+        }
+    }
+    
     func createLightCode(scene: Scene) -> String
     {
         let lightStage = scene.getStage(.LightStage)

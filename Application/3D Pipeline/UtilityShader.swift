@@ -60,8 +60,7 @@ class UtilityShader         : BaseShader
         
         fragment half4 cameraFragment(RasterizerData in [[stage_in]],
                                      __CAMERA_TEXTURE_HEADER_CODE__
-                                     constant float4 *__data [[ buffer(0) ]],
-                                     texture2d<half, access::write> directionTexture [[texture(1)]])
+                                     constant float4 *__data [[ buffer(0) ]])
         {
             __CAMERA_INITIALIZE_FUNC_DATA__
         
@@ -76,8 +75,7 @@ class UtilityShader         : BaseShader
 
             \(camera.code!)
 
-            directionTexture.write(half4(half3(outDirection), 1.), ushort2(uv.x * size.x, (1.0 - uv.y) * size.y) );
-            return half4(half3(outPosition), 1.);
+            return half4(half3(outDirection), 1.);
         }
 
         """
@@ -175,7 +173,7 @@ class UtilityShader         : BaseShader
             updateData()
 
             let renderPassDescriptor = MTLRenderPassDescriptor()
-            renderPassDescriptor.colorAttachments[0].texture = prtInstance.camOriginTexture!
+            renderPassDescriptor.colorAttachments[0].texture = prtInstance.camDirTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
             let commandBuffer = mainShader.commandQueue.makeCommandBuffer()!

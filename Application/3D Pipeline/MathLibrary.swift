@@ -135,7 +135,7 @@ extension float4x4 {
   }
   
   // MARK: - Left handed projection matrix
-  init(projectionFov fov: Float, near: Float, far: Float, aspect: Float, lhs: Bool = true) {
+  init(projectionFov fov: Float, near: Float, far: Float, aspect: Float, lhs: Bool = false) {
     let y = 1 / tan(fov * 0.5)
     let x = y / aspect
     let z = lhs ? far / (far - near) : far / (near - far)

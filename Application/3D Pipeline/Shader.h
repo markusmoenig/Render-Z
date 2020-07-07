@@ -23,6 +23,10 @@ typedef struct {
     simd_float3         cameraLookAt;
     
     simd_float2         screenSize;
+
+    simd_float3         bboxPos;
+    simd_float3         bboxSize;
+    simd_float3         bboxRotation;
     
     float               maxDistance;
 } ObjectFragmentUniforms;

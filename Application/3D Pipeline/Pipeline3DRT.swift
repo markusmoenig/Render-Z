@@ -17,6 +17,11 @@ class PRTInstance {
         simd_float3         cameraLookAt;
         
         simd_float2         screenSize;
+
+        simd_float3         bboxPos;
+        simd_float3         bboxSize;
+        simd_float3         bboxRotation;
+
         float               maxDistance;
     } FragmentUniforms;
 
@@ -46,7 +51,6 @@ class PRTInstance {
     var projectionMatrix    : matrix_float4x4 = matrix_identity_float4x4
     var viewMatrix          : matrix_float4x4 = matrix_identity_float4x4
 
-    var camOriginTexture    : MTLTexture? = nil
     var camDirTexture       : MTLTexture? = nil
     
     var reflDirTexture1     : MTLTexture? = nil
@@ -195,6 +199,8 @@ class Pipeline3DRT          : Pipeline
             }
         }
         
+        let startTime = Double(Date().timeIntervalSince1970)
+        
         let camHelper = CamHelper3D()
         camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
         //camHelper.updateProjection()
@@ -209,7 +215,6 @@ class Pipeline3DRT          : Pipeline
         prtInstance.viewMatrix = float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)//camHelper.getTransform().inverse//float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)
         //prtInstance.viewMatrix = camHelper.getTransform().inverse
 
-        prtInstance.camOriginTexture = checkTextureSize(width, height, prtInstance.camOriginTexture, .rgba16Float)
         prtInstance.camDirTexture = checkTextureSize(width, height, prtInstance.camDirTexture, .rgba16Float)
 
         prtInstance.depthTexture = checkTextureSize(width, height, prtInstance.depthTexture, .rgba16Float)
@@ -240,7 +245,7 @@ class Pipeline3DRT          : Pipeline
             }
         }
         
-        print("Last Execution Time: ", globalApp!.executionTime * 1000)
+        //print("Last Execution Time: ", globalApp!.executionTime * 1000)
         
         globalApp!.executionTime = 0
         
@@ -368,11 +373,13 @@ class Pipeline3DRT          : Pipeline
         
         // BBOX DEBUG
         
-        //for shader in shaders {
-        //    if let object = shader as? ObjectShader {
-        //        object.bbox(texture: finalTexture!)
-        //    }
-        //}
+        #if false
+        for shader in shaders {
+            if let object = shader as? ObjectShader {
+                object.bbox(texture: finalTexture!)
+            }
+        }
+        #endif
 
         // POSTFX
         textureMap["shape"] = prtInstance.currentShapeTexture!
@@ -382,7 +389,7 @@ class Pipeline3DRT          : Pipeline
         ids = prtInstance.ids
         
         #if DEBUG
-        //print("Execution Time: ", globalApp!.executionTime * 1000)
+        print("Rendering Time: ", (Double(Date().timeIntervalSince1970) - startTime) * 1000)
         #endif
         //var points : [Float] = []
         //pointCloudBuilder.render(points: points, texture: finalTexture!, camera: cameraComponent)
