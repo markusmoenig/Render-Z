@@ -113,6 +113,7 @@ class ThumbnailShader       : BaseShader
 
                 L = float3(0.5, -0.3, 0.7);
                 outColor.xyz += dot(L, outNormal);
+                outColor.xyz = pow( outColor.xyz, float3(0.4545) );
                 outColor.w = 1.0;
             }
         
