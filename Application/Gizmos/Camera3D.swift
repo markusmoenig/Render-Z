@@ -383,15 +383,8 @@ class GizmoCamera3D         : GizmoBase
                 }
                 
                 camera3D.zoomRelative(dx: 0, dy: scale, start: zoomBuffer)
-                globalApp!.currentPipeline?.setMinimalPreview(true)
-                        
-                if !dispatched {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        self.dispatched = false
-                        globalApp!.currentPipeline?.setMinimalPreview(false)
-                    }
-                    dispatched = true
-                }
+                globalApp!.currentEditor.render()
+                mmView.update()
             }
         }
     }
