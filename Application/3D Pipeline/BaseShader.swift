@@ -86,6 +86,8 @@ class BaseShader
     
     var shaders             : [String:Shader] = [:]
     
+    var rootItem            : StageItem? = nil
+    
     init(instance: PRTInstance)
     {
         self.prtInstance = instance
@@ -220,6 +222,7 @@ class BaseShader
     {
     }
     
+    /// Apply the textures used in CodeComponents to the MTLRenderEncoder
     func applyUserFragmentTextures(shader: Shader, encoder: MTLRenderCommandEncoder)
     {
         var offset : Int = shader.textureOffset

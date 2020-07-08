@@ -1,5 +1,5 @@
 //
-//  GroundShader.swift
+//  TerrainShader.swift
 //  Shape-Z
 //
 //  Created by Markus Moenig on 12/6/20.
@@ -8,11 +8,13 @@
 
 import MetalKit
 
-class GroundShader      : BaseShader
+class TerrainShader     : BaseShader
 {
     var scene           : Scene
     var object          : StageItem
     var camera          : CodeComponent
+    
+    var terrainObjects      : [StageItem] = []
     
     init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
@@ -21,29 +23,303 @@ class GroundShader      : BaseShader
         self.camera = camera
                     
         super.init(instance: instance)
-        
-        self.rootItem = object
-        if let ground = object.components[object.defaultName] {
-            createFragmentSource(groundComponent: ground, camera: camera)
-        }
     }
     
     func createFragmentSource(groundComponent: CodeComponent, camera: CodeComponent)
     {
-        dryRunComponent(groundComponent, data.count)
-        collectProperties(groundComponent)
+        let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+        let terrain = shapeStage.terrain!
 
-        let material = generateMaterialCode(stageItem: self.object)
-        
         let lightSamplingCode = prtInstance.utilityShader.createLightSamplingMaterialCode(materialCode: "material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);")
 
+        var headerCode = ""
+        var terrainMapCode =
+        """
+        
+        float __hash12(float2 p)
+        {
+            float3 p3  = fract(float3(p.xyx) * .1031);
+            p3 += dot(p3, p3.yzx + 33.33);
+            return fract((p3.x + p3.y) * p3.z);
+        }
+
+        float4 terrainMapCode(float3 position, thread struct FuncData *__funcData)
+        {
+            constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
+
+            constant float4 *__data = __funcData->__data;
+            float GlobalTime = __funcData->GlobalTime;
+            float GlobalSeed = __funcData->GlobalSeed;
+            float materialId = 0.0;
+
+            float outDistance = 1000000.0;
+            float localHeight = 0.;
+            float bump = 0;
+            float localDistance;
+            float4 instObject = float4(1000, 1000, -1, -1);
+        
+            bool layerMaterial = false;
+        
+            float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + \(terrain.terrainSize) / \(terrain.terrainScale) / 2.0) / \(terrain.terrainSize) * \(terrain.terrainScale)) * \(terrain.terrainHeightScale);
+        
+        """
+        
+         // Insert the noise layers
+         
+         let materialId = terrain.materials.count
+         for (index, layer) in terrain.layers.reversed().enumerated() {
+             
+             let layerMaterialId : Int = materialId + index
+
+             if layer.shapes.isEmpty == false {
+                                                 
+                 var posX : Int = 0
+                 var posY : Int = 0
+                 var rotate : Int = 0
+
+                 terrainMapCode +=
+                 """
+                 
+                     localHeight = 0.;
+
+                     {
+                         outDistance = 1000000.0;
+                         float oldDistance = outDistance;
+                         float3 position3 = position;
+                         float2 position;
+
+
+                 """
+                 
+                 // Add the shapes
+                 for shapeComponent in layer.shapes {
+                     dryRunComponent(shapeComponent, data.count)
+                     collectProperties(shapeComponent)
+                     
+                     if let globalCode = shapeComponent.globalCode {
+                         headerCode += globalCode
+                     }
+                     
+                     posX = getTransformPropertyIndex(shapeComponent, "_posX")
+                     posY = getTransformPropertyIndex(shapeComponent, "_posY")
+                     rotate = getTransformPropertyIndex(shapeComponent, "_rotate")
+                     
+                     terrainMapCode +=
+                     """
+                             
+                             position = __translate(position3.xz, float2(__data[\(posX)].x, -__data[\(posY)].x));
+                             position = rotate( position, radians(360 - __data[\(rotate)].x) );
+
+                     """
+                     
+                     terrainMapCode += shapeComponent.code!
+                     terrainMapCode +=
+                     """
+
+                         localDistance = outDistance;
+                         outDistance = min( outDistance, oldDistance );
+                         oldDistance = outDistance;
+                     
+                     """
+                 }
+
+                 terrainMapCode +=
+                 """
+                 
+                     }
+                     
+                     if (localDistance <= 0.0)
+                     {
+                         if (\(layer.shapeFactor) < 0.0)
+                             localHeight += max(\(layer.shapesBlendType == .FactorTimesShape ? "abs(outDistance) * " : "") \(layer.shapeFactor), \(layer.shapeFactor));
+                         else
+                             localHeight += min(\(layer.shapesBlendType == .FactorTimesShape ? "abs(outDistance) * " : "") \(layer.shapeFactor), \(layer.shapeFactor));
+                 
+                 """
+                 
+                 if layer.material != nil && layer.blendType != .Max {
+                     terrainMapCode +=
+                     """
+                     
+                     materialId = \(layerMaterialId);
+                     __BUMP_CODE_\(layerMaterialId)__
+                     layerMaterial = true;
+                     
+                     """
+                     
+                 } else {
+                     terrainMapCode +=
+                     """
+                     
+                     //materialId = 0.0;
+                     
+                     """
+                 }
+                 
+                 // Instantiate object in this area
+                 if let object = layer.object {
+                     terrainObjects.append(object)
+                                                                 
+                     terrainMapCode +=
+                     """
+                                
+                     float3 pos = position - float3(__data[\(posX)].x - 50., height, -__data[\(posY)].x - 50.);
+                     __funcData->hash = __hash12(floor(pos.xz / \(layer.objectSpacing)));
+                     if (__funcData->hash <= \(layer.objectVisible)) {
+                         pos.xz = fmod(pos.xz, \(layer.objectSpacing)) - \(layer.objectSpacing) / 2.0;
+                         pos.xz += \(layer.objectRandom) * random(__funcData) / 5.0;
+                         instObject = sceneMap\(terrainObjects.count)(pos, __funcData);
+                     }
+                         
+                     """
+                 }
+             }
+             
+             let component = CodeComponent(.Dummy)
+             let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
+             ctx.reset(globalApp!.developerEditor.codeEditor.rect.width, data.count, patternList: [])
+             ctx.cComponent = component
+             component.globalCode = ""
+             
+             if layer.noiseType != .None {
+                 if layer.blendType == .Add || layer.blendType == .Max {
+                     terrainMapCode +=
+                     """
+                     
+                     localHeight +=
+                     """
+                 } else
+                 if layer.blendType == .Subtract {
+                     terrainMapCode +=
+                     """
+                     
+                     localHeight +=
+                     """
+                 }
+             }
+             
+             if layer.noiseType == .TwoD {
+
+                 let layerName = generateNoise2DFunction(ctx, layer.noise2DFragment)
+                 terrainMapCode +=
+                 """
+                  \(layerName)(position.xz, __funcData);
+                 """
+             } else
+             if layer.noiseType == .ThreeD {
+
+                 let layerName = generateNoise3DFunction(ctx, layer.noise3DFragment)
+                 terrainMapCode +=
+                 """
+                  \(layerName)(position + float3(0,localHeight, 0), __funcData);
+                 """
+             } else
+             if layer.noiseType == .Image {
+
+                 let layerName = generateImageFunction(ctx, layer.imageFragment)
+                 terrainMapCode +=
+                 """
+                  \(layerName)(position.xz, __funcData).x;
+                 """
+             }
+             
+             if layer.noiseType != .None && layer.shapes.isEmpty == false {
+                 terrainMapCode +=
+                 """
+                 
+                 localHeight = localHeight * smoothstep(0.0, -0.20, outDistance);
+
+                 """
+             }
+             
+             if layer.blendType == .Max {
+                 terrainMapCode +=
+                 """
+                 
+                 //height = max(height, localHeight - 0.5);
+                 if (height + localHeight - 0.5 > height)
+                 {
+                     height = height + localHeight - 0.5;
+                     \(layer.material != nil ? " materialId = \(layerMaterialId);" : "")
+                 }
+                 
+                 """
+                 
+             } else {
+                 
+                 if layer.blendType == .Subtract {
+                     terrainMapCode +=
+                     """
+                     
+                     height -= localHeight;
+                     
+                     """
+                 } else {
+                     terrainMapCode +=
+                     """
+                     
+                     height += localHeight;
+                     
+                     """
+                 }
+             }
+             
+             headerCode += component.globalCode!
+             collectProperties(component)
+             
+             if layer.shapes.isEmpty == false {
+                 terrainMapCode +=
+                 """
+                 
+                     }
+
+                 """
+             }
+         }
+         
+         terrainMapCode +=
+         """
+         
+         if (layerMaterial == false)
+         {
+             float localHeight = 0;
+             __BUMP_CODE_0__
+             height += localHeight;
+         }
+         
+         float4 rc = float4(position.y - height, 0, materialId, 0);
+         if (instObject.x < rc.x)
+             rc = instObject;
+         
+         """
+                                                     
+         terrainMapCode +=
+         """
+         
+             return rc;
+         }
+          
+         """
+
+        var raymarchCode = ""
+        if let rayMarch = terrain.rayMarcher {
+            dryRunComponent(rayMarch, data.count)
+            collectProperties(rayMarch)
+            if let globalCode = rayMarch.globalCode {
+                headerCode += globalCode
+            }
+            if let code = rayMarch.code {
+                raymarchCode = code.replacingOccurrences(of: "sceneMap", with: "terrainMapCode")
+            }
+        }
+        
         let fragmentCode =
         """
+        
+        \(headerCode)
+        \(terrainMapCode)
 
         \(prtInstance.fragmentUniforms)
-        
-        \(groundComponent.globalCode!)
-        \(material)
         \(createLightCode(scene: scene))
 
         fragment float4 procFragment(RasterizerData in [[stage_in]],
@@ -66,8 +342,7 @@ class GroundShader      : BaseShader
             float4 outShape = float4(1000, 1000, -1, -1);
             float3 outNormal = float3(0);
         
-            \(groundComponent.code!)
-                    
+            \(raymarchCode)
             return outShape;
         }
                 

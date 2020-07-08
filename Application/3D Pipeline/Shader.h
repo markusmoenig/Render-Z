@@ -24,9 +24,10 @@ typedef struct {
     
     simd_float2         screenSize;
 
-    simd_float3         bboxPos;
-    simd_float3         bboxSize;
-    simd_float3         bboxRotation;
+    // bbox
+    simd_float3         P;
+    simd_float3         L;
+    matrix_float3x3     F;
     
     float               maxDistance;
 } ObjectFragmentUniforms;

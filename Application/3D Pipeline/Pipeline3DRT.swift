@@ -18,9 +18,10 @@ class PRTInstance {
         
         simd_float2         screenSize;
 
-        simd_float3         bboxPos;
-        simd_float3         bboxSize;
-        simd_float3         bboxRotation;
+        // bbox
+        simd_float3         P;
+        simd_float3         L;
+        matrix_float3x3     F;
 
         float               maxDistance;
     } FragmentUniforms;
@@ -149,12 +150,18 @@ class Pipeline3DRT          : Pipeline
 
                     //item.builderInstance = instance
                     //instance.rootObject = item
-                } else
-                if let ground = item.components[item.defaultName], ground.componentType == .Ground3D {
-                    // Ground Object
+                } else {
+                    let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+                    if shapeStage.terrain != nil {
+                        let shader = TerrainShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
+                        shaders.append(shader)
+                    } else
+                    if let ground = item.components[item.defaultName], ground.componentType == .Ground3D {
+                        // Ground Object
 
-                    let shader = GroundShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
-                    shaders.append(shader)
+                        let shader = GroundShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
+                        shaders.append(shader)
+                    }
                 }
             } else {
                 /*
@@ -210,7 +217,7 @@ class Pipeline3DRT          : Pipeline
 
         prtInstance.screenSize = float2(width, height)
 
-        prtInstance.projectionMatrix = camHelper.projMatrix
+        //prtInstance.projectionMatrix = camHelper.projMatrix
         prtInstance.projectionMatrix = float4x4(projectionFov: camHelper.fov, near: 1, far: 100, aspect: width / height, lhs: false)// camHelper.projMatrix
         prtInstance.viewMatrix = float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)//camHelper.getTransform().inverse//float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)
         //prtInstance.viewMatrix = camHelper.getTransform().inverse
@@ -245,6 +252,17 @@ class Pipeline3DRT          : Pipeline
             }
         }
         
+        func isDisabled(shader: BaseShader) -> Bool
+        {
+            var disabled = false
+            if let root = shader.rootItem {
+                if root.values["disabled"] == 1 {
+                    disabled = true
+                }
+            }
+            return disabled
+        }
+        
         //print("Last Execution Time: ", globalApp!.executionTime * 1000)
         
         globalApp!.executionTime = 0
@@ -255,8 +273,10 @@ class Pipeline3DRT          : Pipeline
         
         // Get the depth
         for shader in shaders {
-            shader.render(texture: finalTexture!)
-            swapShapeTextures()
+            if isDisabled(shader: shader) == false {
+                shader.render(texture: finalTexture!)
+                swapShapeTextures()
+            }
         }
 
         // Free the other shape texture
@@ -292,8 +312,10 @@ class Pipeline3DRT          : Pipeline
         // Calculate the shadows
         for shader in shaders {
             if let object = shader as? ObjectShader {
-                object.shadowPass(texture: finalTexture!)
-                swapShadowTextures()
+                if isDisabled(shader: shader) == false {
+                    object.shadowPass(texture: finalTexture!)
+                    swapShadowTextures()
+                }
             }
         }
         
@@ -335,8 +357,10 @@ class Pipeline3DRT          : Pipeline
                 
         // Calculate the materials
         for shader in shaders {
-            shader.materialPass(texture: finalTexture!)
-            swapReflectionDirTextures()
+            if isDisabled(shader: shader) == false {
+                shader.materialPass(texture: finalTexture!)
+                swapReflectionDirTextures()
+            }
         }
         
         // Free the other reflection dir texture
@@ -355,15 +379,17 @@ class Pipeline3DRT          : Pipeline
         
         // Calculate the reflection hits
         for shader in shaders {
-            //if let ground = shader as? GroundShader {
+            if isDisabled(shader: shader) == false {
                 shader.reflectionPass(texture: finalTexture!)
                 swapReflectionTextures()
-            //}
+            }
         }
         
         // Calculate the reflection material colors and blend them in
         for shader in shaders {
-            shader.reflectionMaterialPass(texture: finalTexture!)
+            if isDisabled(shader: shader) == false {
+                shader.reflectionMaterialPass(texture: finalTexture!)
+            }
         }
         
         // SKY REFLECTIONS

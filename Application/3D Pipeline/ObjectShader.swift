@@ -14,6 +14,11 @@ class ObjectShader      : BaseShader
     var scene           : Scene
     var object          : StageItem
     var camera          : CodeComponent
+    
+    // bbox buffer
+    var P               = SIMD3<Float>(0,0,0)
+    var L               = SIMD3<Float>(0,0,0)
+    var F               : matrix_float3x3 = matrix_identity_float3x3
 
     var materialCode    = ""
 
@@ -26,7 +31,8 @@ class ObjectShader      : BaseShader
         self.camera = camera
         
         super.init(instance: instance)
-        
+        self.rootItem = object
+
         buildShader()
     }
     
@@ -171,16 +177,13 @@ class ObjectShader      : BaseShader
         }
         
         \(BaseShader.getQuadVertexSource(name: "quadVertex"))
-
-        float bbox(float3 C, float3 D, float3 P, float3 X0, float3 X1, float3 X2)
-        {
         
-            float3 L = float3(length(X0), length(X1), length(X2) ), I;
-            float3x3  F = float3x3( X0/dot(X0,X0), X1/dot(X1,X1), X2/dot(X2,X2) );
+        float bbox(float3 C, float3 D, float3 P, float3 L, float3x3 F)
+        {
             float d = 1e5, l;
             
             C = (C-P) * F;    D *= F;                         // to normalized coordinates in box frame
-            I = abs(C-.5); bool inside = max(I.x, max(I.y,I.z)) <= .5;
+            float3 I = abs(C-.5); bool inside = max(I.x, max(I.y,I.z)) <= .5;
             if ( inside ) return 0.; // if inside the Bbox. Comment for box intersection
                 
             #define test(i)                                                           \
@@ -220,29 +223,8 @@ class ObjectShader      : BaseShader
         
             float3 outPosition = uniforms.cameraOrigin;
             float3 outDirection = float3(camDirectionTexture.read(textureUV).xyz);
-            /*
-            float3  P = uniforms.bboxPos;
-            float3 X0 = float3(uniforms.bboxSize.x,0,0), X1 = float3(0,uniforms.bboxSize.y,0) , X2 = float3(0,0,uniforms.bboxSize.z);
             
-            float a0 = uniforms.bboxRotation.x, a1 = uniforms.bboxRotation.y, a2 = uniforms.bboxRotation.z;
-
-            float3 C = P + (X0+X1+X2)/2.;
-        
-            X0.yz = rotate( X0.yz, a0);
-            X1.yz = rotate( X1.yz, a0);
-            X2.yz = rotate( X2.yz, a0);
-
-            X0.xz = rotate( X0.xz, a1 );
-            X1.xz = rotate( X1.xz, a1 );
-            X2.xz = rotate( X2.xz, a1 );
-
-            X0.xy = rotate( X0.xy, a2 );
-            X1.xy = rotate( X1.xy, a2 );
-            X2.xy = rotate( X2.xy, a2 );
-
-            P = C - (X0+X1+X2)/2.;
-            
-            float d = bbox( outPosition, outDirection, P, X0, X1, X2 );
+            float d = bbox( outPosition, outDirection, uniforms.P, uniforms.L, uniforms.F );
             if (d > -0.5)
             {
                 float3 rayOrigin = outPosition + d * outDirection;
@@ -253,13 +235,7 @@ class ObjectShader      : BaseShader
                 if (isNotEqual(outShape.w, inShape.w)) {
                     outShape.y += d;
                 }
-            }*/
-            
-        
-            float3 rayOrigin = outPosition;
-            float3 rayDirection = outDirection;
-
-            \(rayMarch.code!)
+            }
         
             return half4(outShape);
         }
@@ -280,28 +256,7 @@ class ObjectShader      : BaseShader
             float3 outPosition = uniforms.cameraOrigin;
             float3 outDirection = float3(camDirectionTexture.read(textureUV).xyz);
         
-            float3  P = uniforms.bboxPos;
-            float3 X0 = float3(uniforms.bboxSize.x,0,0), X1 = float3(0,uniforms.bboxSize.y,0) , X2 = float3(0,0,uniforms.bboxSize.z);
-            
-            float a0 = uniforms.bboxRotation.x, a1 = uniforms.bboxRotation.y, a2 = uniforms.bboxRotation.z;
-
-            float3 C = P + (X0+X1+X2)/2.;
-
-            X0.yz = rotate( X0.yz, a0);
-            X1.yz = rotate( X1.yz, a0);
-            X2.yz = rotate( X2.yz, a0);
-
-            X0.xz = rotate( X0.xz, a1 );
-            X1.xz = rotate( X1.xz, a1 );
-            X2.xz = rotate( X2.xz, a1 );
-
-            X0.xy = rotate( X0.xy, a2 );
-            X1.xy = rotate( X1.xy, a2 );
-            X2.xy = rotate( X2.xy, a2 );
-
-            P = C - (X0+X1+X2)/2.;
-        
-            float d = bbox( outPosition, outDirection, P, X0, X1, X2 );
+            float d = bbox( outPosition, outDirection, uniforms.P, uniforms.L, uniforms.F );
             if (d > -0.5)
             {
                 return half4(1,0,0,0.5);
@@ -473,8 +428,18 @@ class ObjectShader      : BaseShader
             
                 float3 rayOrigin = camOrigin + shape.y * camDirection;
                 float3 rayDirection = float3(reflectionDirTexture.read(textureUV).xyz);
+        
+                float d = bbox( rayOrigin, rayDirection, uniforms.P, uniforms.L, uniforms.F );
+                if (d > -0.5)
+                {
+                    rayOrigin += d * rayDirection;
 
-                \(rayMarch.code!)
+                    \(rayMarch.code!)
+        
+                    if (isNotEqual(outShape.w, inShape.w)) {
+                        outShape.y += d;
+                    }
+                }
             }
 
             return outShape;
@@ -634,7 +599,7 @@ class ObjectShader      : BaseShader
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
             renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 2)
-            applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
+            applyUserFragmentTextures(shader: mainShader, encoder: renderEncoder)
             
             renderEncoder.setCullMode(.back)
             renderEncoder.setFrontFacing(.counterClockwise)
@@ -840,10 +805,7 @@ class ObjectShader      : BaseShader
 
         if let transform = self.object.components[self.object.defaultName] {
                             
-            let bboxPos = SIMD3<Float>(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!)
-            
-            fragmentUniforms.bboxPos = bboxPos;
-            
+            var bboxPos = SIMD3<Float>(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!)
             let scale = transform.values["_scale"]!
 
             let bbX : Float
@@ -860,40 +822,41 @@ class ObjectShader      : BaseShader
                 bbZ = transform.values["_bb_z"]! * scale
             }
             
-            let bboxSize = SIMD3<Float>(bbX, bbY, bbZ)
+            let bboxSize = SIMD3<Float>(bbX * 2, bbY * 2, bbZ * 2)
 
-            fragmentUniforms.bboxSize = bboxSize * 2;
-            fragmentUniforms.bboxPos -= fragmentUniforms.bboxSize / 2 + (1 - scale) * bboxPos;
-            fragmentUniforms.bboxRotation = SIMD3<Float>((360-transform.values["_rotateX"]!).degreesToRadians, (360-transform.values["_rotateY"]!).degreesToRadians, (360-transform.values["_rotateZ"]!).degreesToRadians)
+            bboxPos -= bboxSize / 2 + (1 - scale) * bboxPos;
             
             fragmentUniforms.maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
-
-            /*
-            let scale = transform.values["_scale"]!
             
-            let tx = transform.values["_posX"]!
-            let ty = transform.values["_posY"]!
-            let tz = transform.values["_posZ"]!
-
-            mTranslation = float4x4(translation: [tx - (1 - scale) * tx, ty - (1 - scale) * ty, tz  - (1 - scale) * tz])
-            mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
+            let rotationMatrix = float4x4(rotationZYX: [(-transform.values["_rotateX"]!).degreesToRadians, (transform.values["_rotateY"]!).degreesToRadians, (-transform.values["_rotateZ"]!).degreesToRadians])
             
-            let bbX : Float
-            let bbY : Float
-            let bbZ : Float
-
-            if transform.values["_bb_x"] == nil {
-                bbX = 1 * scale
-                bbY = 1 * scale
-                bbZ = 1 * scale
-            } else {
-                bbX = transform.values["_bb_x"]! * scale
-                bbY = transform.values["_bb_y"]! * scale
-                bbZ = transform.values["_bb_z"]! * scale
-            }
+            var X0 = SIMD4<Float>(bboxSize.x, 0, 0, 1)
+            var X1 = SIMD4<Float>(0, bboxSize.y, 0, 1)
+            var X2 = SIMD4<Float>(0, 0, bboxSize.z, 1)
             
-            maxDistance = sqrt( bbX * bbX + bbY * bbY + bbZ * bbZ)
-            mScale = float4x4(scaling: [(bbX), (bbY), (bbZ)])*/
+            var C = SIMD3<Float>(0,0,0)
+            C.x = bboxPos.x + (X0.x + X1.x + X2.x) / 2.0
+            C.y = bboxPos.y + (X0.y + X1.y + X2.y) / 2.0
+            C.z = bboxPos.z + (X0.z + X1.z + X2.z) / 2.0
+                        
+            X0 = X0 * rotationMatrix
+            X1 = X1 * rotationMatrix
+            X2 = X2 * rotationMatrix
+            
+            fragmentUniforms.P.x = C.x - (X0.x + X1.x + X2.x) / 2.0
+            fragmentUniforms.P.y = C.y - (X0.y + X1.y + X2.y) / 2.0
+            fragmentUniforms.P.z = C.z - (X0.z + X1.z + X2.z) / 2.0
+                
+            let X03 = SIMD3<Float>(X0.x, X0.y, X0.z)
+            let X13 = SIMD3<Float>(X1.x, X1.y, X1.z)
+            let X23 = SIMD3<Float>(X2.x, X2.y, X2.z)
+            
+            fragmentUniforms.L = SIMD3<Float>(length(X03), length(X13), length(X23))
+            fragmentUniforms.F = float3x3( X03 / dot(X03, X03), X13 / dot(X13, X13), X23 / dot(X23, X23) )
+            
+            P = fragmentUniforms.P
+            L = fragmentUniforms.L
+            F = fragmentUniforms.F
         }
         
         return fragmentUniforms
@@ -1026,7 +989,10 @@ class ObjectShader      : BaseShader
             fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
             fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
             fragmentUniforms.screenSize = prtInstance.screenSize
-            
+            fragmentUniforms.P = P
+            fragmentUniforms.L = L
+            fragmentUniforms.F = F
+
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
 

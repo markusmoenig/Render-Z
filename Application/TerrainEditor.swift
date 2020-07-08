@@ -951,7 +951,7 @@ class TerrainEditor         : PropertiesWidget
         let y : Float = event.y - rect.y
          
         // Selection
-        if let texture = globalApp!.currentPipeline!.getTextureOfId("id") {
+        if let texture = globalApp!.currentPipeline!.getTextureOfId("shape") {
              
             if let convertTo = globalApp!.currentPipeline!.codeBuilder.compute.allocateTexture(width: Float(texture.width), height: Float(texture.height), output: true, pixelFormat: .rgba32Float) {
              
@@ -1012,12 +1012,13 @@ class TerrainEditor         : PropertiesWidget
     /// Returns the origin and lookAt values of the camera
     func computeCameraTextures()
     {
-        if let pipeline = globalApp!.currentPipeline as? Pipeline3D {
+        if let pipeline = globalApp!.currentPipeline as? Pipeline3DRT {
     
             originTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
             directionTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
             shapeIdTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .r16Float)
 
+            /*
             if let inst = pipeline.instanceMap["camera3D"] {
                 
                 pipeline.codeBuilder.render(inst, originTexture!, outTextures: [directionTexture!])
@@ -1025,7 +1026,7 @@ class TerrainEditor         : PropertiesWidget
 
                 originTexture = convertTexture(originTexture!)
                 directionTexture = convertTexture(directionTexture!)
-            }
+            }*/
         }
     }
     

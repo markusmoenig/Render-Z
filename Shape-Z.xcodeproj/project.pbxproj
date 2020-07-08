@@ -306,6 +306,8 @@
 		2B8BBA8922A4AA4600E541B9 /* OpenSans.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */; };
 		2B8BBA8A22A4AA4600E541B9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
 		2B8BBA8B22A4AA4600E541B9 /* OpenSans.json in Resources */ = {isa = PBXBuildFile; fileRef = 2B8BBA8722A4AA4600E541B9 /* OpenSans.json */; };
+		2B8C51A824B432A70070E8D8 /* TerrainShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C51A724B432A50070E8D8 /* TerrainShader.swift */; };
+		2B8C51A924B432A70070E8D8 /* TerrainShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8C51A724B432A50070E8D8 /* TerrainShader.swift */; };
 		2B8CC6CB23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */; };
 		2B8CC6CC23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */; };
 		2B8CC6CE23C55DAD00CFCB93 /* CodeAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */; };
@@ -846,6 +848,7 @@
 		2B8864EC21FABAAB00F24E8A /* MMAnimate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMAnimate.swift; sourceTree = "<group>"; };
 		2B8BBA8622A4AA4600E541B9 /* OpenSans.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = OpenSans.tiff; sourceTree = "<group>"; };
 		2B8BBA8722A4AA4600E541B9 /* OpenSans.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = OpenSans.json; sourceTree = "<group>"; };
+		2B8C51A724B432A50070E8D8 /* TerrainShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerrainShader.swift; sourceTree = "<group>"; };
 		2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperEditor.swift; sourceTree = "<group>"; };
 		2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeAccess.swift; sourceTree = "<group>"; };
 		2B8DB37A2489CEB700D57DC4 /* Soil.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Soil.tiff; sourceTree = "<group>"; };
@@ -1175,6 +1178,7 @@
 				2BCD67562493486600E066C0 /* BaseShader.swift */,
 				2BCD675A2494514600E066C0 /* BackShader.swift */,
 				2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */,
+				2B8C51A724B432A50070E8D8 /* TerrainShader.swift */,
 				2BF1ABE52499E3E000466979 /* UtilityShader.swift */,
 				2BCD67592494510E00E066C0 /* ObjectShader.swift */,
 				2B716BED24A039CF002DA1FD /* ThumbnailShader.swift */,
@@ -2089,6 +2093,7 @@
 				2B7A3C3923B46838002EC5FC /* LeftRegion.swift in Sources */,
 				2B52E5AC2495C1FE009CFE1F /* GroundShader.swift in Sources */,
 				2B7A3C0A23B46546002EC5FC /* MMRenderer.swift in Sources */,
+				2B8C51A824B432A70070E8D8 /* TerrainShader.swift in Sources */,
 				2B7A3C0923B4653F002EC5FC /* MMBaseView_mac.swift in Sources */,
 				2BB4CC4D249C6AC100123017 /* ObjectShader.swift in Sources */,
 				2B8E2FEB23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
@@ -2315,6 +2320,7 @@
 				2B8CC6CC23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */,
 				2B9B29C923BB453400C2F387 /* MMSliderWidget.swift in Sources */,
 				2B9B29CF23BB453400C2F387 /* MMFragment.swift in Sources */,
+				2B8C51A924B432A70070E8D8 /* TerrainShader.swift in Sources */,
 				2B9B29C623BB453400C2F387 /* MMFont.swift in Sources */,
 				2B8E2FE023C6D7B4005619E4 /* DesignEditor.swift in Sources */,
 				2B9B29D723BB453400C2F387 /* MMFile.swift in Sources */,

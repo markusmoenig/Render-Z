@@ -120,6 +120,13 @@ extension float4x4 {
     let rotationZ = float4x4(rotationZ: angle.z)
     self = rotationY * rotationX * rotationZ
   }
+    
+    init(rotationZYX angle: float3) {
+      let rotationX = float4x4(rotationX: angle.x)
+      let rotationY = float4x4(rotationY: angle.y)
+      let rotationZ = float4x4(rotationZ: angle.z)
+      self = rotationZ * rotationY * rotationX
+    }
   
   // MARK:- Identity
   static func identity() -> float4x4 {
