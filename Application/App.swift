@@ -89,7 +89,7 @@ class App
         mmView.registerIcon("move")
         mmView.registerIcon("rotate")
         mmView.registerIcon("scale")
-        mmView.registerIcon("render")
+        //mmView.registerIcon("render")
         mmView.registerIcon("material")
         mmView.registerIcon("ground")
         mmView.registerIcon("fileicon")

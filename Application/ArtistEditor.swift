@@ -36,7 +36,7 @@ class ArtistEditor          : Editor
 
     var materialButton      : MMButtonWidget
     var cameraButton        : MMButtonWidget
-    var renderButton        : MMButtonWidget
+    //var renderButton        : MMButtonWidget
     
     var currentSamples      : Int = 0
     var samplesLabel        : MMShadowTextLabel
@@ -76,10 +76,11 @@ class ArtistEditor          : Editor
         cameraButton.rect.width += 16
         cameraButton.rect.height -= 9
         
+        /*
         renderButton = MMButtonWidget( mmView, iconName: "render" )
         renderButton.iconZoom = 2
         renderButton.rect.width += 16
-        renderButton.rect.height -= 14
+        renderButton.rect.height -= 14*/
         
         samplesLabel = MMShadowTextLabel(view, font: view.openSans, text: "0", scale: 0.3)
         
@@ -147,11 +148,12 @@ class ArtistEditor          : Editor
             }
         }
         
+        /*
         renderButton.clicked = { (event) -> Void in
             if let component = getComponent(name: "Renderer") {
                 globalApp!.project.selected!.getStageItem(component, selectIt: true)
             }
-        }
+        }*/
         
         timelineButton.clicked = { (event) -> Void in
             self.switchTimelineMode()
@@ -167,7 +169,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, renderButton, materialButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, materialButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -178,7 +180,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, renderButton, materialButton)
+        mmView.deregisterWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, materialButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -235,11 +237,11 @@ class ArtistEditor          : Editor
             cameraButton.removeState(.Checked)
         }
         
-        if component.componentType == .Render3D {
+        /*if component.componentType == .Render3D {
             renderButton.addState(.Checked)
         } else {
             renderButton.removeState(.Checked)
-        }
+        }*/
         
         if component.componentType == .Ground3D && getTerrain() != nil {
             groundButton.addState(.Checked)
@@ -286,7 +288,7 @@ class ArtistEditor          : Editor
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
             
-            materialButton.rect.x = (globalApp!.topRegion!.rect.width - (-groundButton.rect.width - 20 + materialButton.rect.width + cameraButton.rect.width + renderButton.rect.width + 2 * 6)) / 2
+            materialButton.rect.x = (globalApp!.topRegion!.rect.width - (-groundButton.rect.width - 20 + materialButton.rect.width + cameraButton.rect.width + 2 * 6)) / 2
             materialButton.rect.y = 4 + 44
             materialButton.draw()
             
@@ -294,9 +296,9 @@ class ArtistEditor          : Editor
             cameraButton.rect.y = 4 + 44
             cameraButton.draw()
             
-            renderButton.rect.x = cameraButton.rect.right() + 6
-            renderButton.rect.y = 4 + 44
-            renderButton.draw()
+            //renderButton.rect.x = cameraButton.rect.right() + 6
+            //renderButton.rect.y = 4 + 44
+            //renderButton.draw()
             
             groundButton.rect.x = materialButton.rect.x - groundButton.rect.width - 20
             groundButton.rect.y = 4 + 44
