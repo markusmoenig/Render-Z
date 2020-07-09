@@ -34,7 +34,7 @@ struct MMSkinDialog
 struct MMSkinItem
 {
     var color           : SIMD4<Float> = SIMD4<Float>(0.282, 0.286, 0.290, 1.000)
-    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)
+    var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.278, 0.545, 0.714, 1.000)
     //var selectionColor  : SIMD4<Float> = SIMD4<Float>(0.88, 0.39, 0.18, 1.000)
     var textColor       : SIMD4<Float> = SIMD4<Float>(0.773, 0.776, 0.780, 1.000)
     var borderColor     : SIMD4<Float> = SIMD4<Float>(0.286, 0.286, 0.286, 1.000)

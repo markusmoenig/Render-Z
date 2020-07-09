@@ -14,7 +14,10 @@ class TerrainShader     : BaseShader
     var object          : StageItem
     var camera          : CodeComponent
     
-    var terrainObjects      : [StageItem] = []
+    var terrainObjects  : [StageItem] = []
+    var terrainMapCode  = ""
+    
+    var materialCode    = ""
     
     init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
@@ -23,9 +26,10 @@ class TerrainShader     : BaseShader
         self.camera = camera
                     
         super.init(instance: instance)
+        createFragmentSource(camera: camera)
     }
     
-    func createFragmentSource(groundComponent: CodeComponent, camera: CodeComponent)
+    func createFragmentSource(camera: CodeComponent)
     {
         let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
         let terrain = shapeStage.terrain!
@@ -33,7 +37,7 @@ class TerrainShader     : BaseShader
         let lightSamplingCode = prtInstance.utilityShader.createLightSamplingMaterialCode(materialCode: "material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);")
 
         var headerCode = ""
-        var terrainMapCode =
+        terrainMapCode =
         """
         
         float __hash12(float2 p)
@@ -300,7 +304,9 @@ class TerrainShader     : BaseShader
          }
           
          """
-
+        
+        let mainMaterialCode = generateMaterialCode(terrain: terrain)
+        
         var raymarchCode = ""
         if let rayMarch = terrain.rayMarcher {
             dryRunComponent(rayMarch, data.count)
@@ -313,8 +319,24 @@ class TerrainShader     : BaseShader
             }
         }
         
+        var normalCode = ""
+        if let normal = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Normal3D) {
+            dryRunComponent(normal, data.count)
+            collectProperties(normal)
+            if let globalCode = normal.globalCode {
+                headerCode += globalCode
+            }
+            if let code = normal.code {
+                normalCode = code.replacingOccurrences(of: "sceneMap", with: "terrainMapCode")
+            }
+        }
+        
+        print(normalCode)
+                
         let fragmentCode =
         """
+        
+        \(mainMaterialCode)
         
         \(headerCode)
         \(terrainMapCode)
@@ -326,13 +348,15 @@ class TerrainShader     : BaseShader
                                      __MAIN_TEXTURE_HEADER_CODE__
                                      constant float4 *__data [[ buffer(0) ]],
                                      constant FragmentUniforms &uniforms [[ buffer(1) ]],
-                                     texture2d<half, access::read> camDirectionTexture [[texture(2)]])
+                                     texture2d<half, access::read> camDirectionTexture [[texture(2)]],
+                                     texture2d<int, access::sample> __terrainTexture [[texture(3)]])
         {
             float2 size = in.viewportSize;
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
 
             __MAIN_INITIALIZE_FUNC_DATA__
+            __funcData->terrainTexture = &__terrainTexture;
 
             float3 position = float3(uv.x, uv.y, 0);
                     
@@ -341,6 +365,7 @@ class TerrainShader     : BaseShader
         
             float4 outShape = float4(1000, 1000, -1, -1);
             float3 outNormal = float3(0);
+            float maxDistance = 100.0;
         
             \(raymarchCode)
             return outShape;
@@ -357,10 +382,12 @@ class TerrainShader     : BaseShader
                                     texture2d<half, access::write> reflectionTextureOut [[texture(6)]],
                                     texture2d<half, access::read> reflectionDirTextureIn [[texture(7)]],
                                     texture2d<half, access::write> reflectionDirTextureOut [[texture(8)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(9)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(9)]],
+                                    texture2d<int, access::sample> __terrainTexture [[texture(10)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
-        
+            __funcData->terrainTexture = &__terrainTexture;
+
             float2 size = in.viewportSize;
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
@@ -378,10 +405,9 @@ class TerrainShader     : BaseShader
                 float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
         
                 float3 outNormal = float3(0);
-            
-                \(groundComponent.code!)
-            
                 float3 position = rayOrigin + rayDirection * outShape.y;
+        
+                \(normalCode)
         
                 // Sun
                 {
@@ -397,7 +423,7 @@ class TerrainShader     : BaseShader
                     float occlusion = shadows.x;
                     float3 mask = float3(1);
                                                 
-                    material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &materialOut, __funcData);
+                    \(materialCode)
                     outColor += materialOut.color;
         
                     reflectionShape = float4(1000, 1000, -1, -1);
@@ -421,10 +447,12 @@ class TerrainShader     : BaseShader
                                     texture2d<half, access::read> depthTexture [[texture(2)]],
                                     texture2d<half, access::read> reflectionTexture [[texture(3)]],
                                     texture2d<half, access::read> reflectionDirTexture [[texture(4)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(5)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(5)]],
+                                    texture2d<int, access::sample> __terrainTexture [[texture(6)]])
         {
             __REFLECTION_INITIALIZE_FUNC_DATA__
-        
+            __funcData->terrainTexture = &__terrainTexture;
+
             float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
             float2 size = uniforms.screenSize;
             ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
@@ -434,7 +462,7 @@ class TerrainShader     : BaseShader
             float4 inShape = float4(1000, 1000, -1, -1);
             float4 outShape = inShape;
         
-            // Check if anything ELSE reflects on the ground
+            // Check if anything ELSE reflects on the terrain
             if (shape.w > -0.4 && (shape.w < \(idStart - 0.1) || shape.w > \(idEnd + 0.1)))
             {
                 float maxDistance = 10.0;
@@ -445,9 +473,7 @@ class TerrainShader     : BaseShader
                 float3 rayOrigin = camOrigin + shape.y * camDirection;
                 float3 rayDirection = float3(reflectionDirTexture.read(textureUV).xyz);
 
-                float3 outNormal = float3(0);
-        
-                \(groundComponent.code!)
+                \(raymarchCode)
             }
 
             return outShape;
@@ -461,10 +487,12 @@ class TerrainShader     : BaseShader
                                      texture2d<half, access::read> depthTexture [[texture(3)]],
                                      texture2d<half, access::read> reflectionTexture [[texture(4)]],
                                      texture2d<half, access::read> reflectionDirTexture [[texture(5)]],
-                                     texture2d<half, access::read> camDirectionTexture [[texture(6)]])
+                                     texture2d<half, access::read> camDirectionTexture [[texture(6)]],
+                                     texture2d<int, access::sample> __terrainTexture [[texture(7)]])
          {
              __REFLMATERIAL_INITIALIZE_FUNC_DATA__
-         
+            __funcData->terrainTexture = &__terrainTexture;
+
              float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
              float2 size = uniforms.screenSize;
              ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
@@ -486,8 +514,8 @@ class TerrainShader     : BaseShader
                  float3 outNormal = float3(0);
                  float4 outShape = shape;
          
-                 \(groundComponent.code!)
-         
+                \(normalCode)
+
                  // Sun
                  {
                      struct MaterialOut __materialOut;
@@ -518,10 +546,10 @@ class TerrainShader     : BaseShader
         """
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
-            Shader(id: "MAIN", textureOffset: 3, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 10, blending: true),
-            Shader(id: "REFLECTION", fragmentName: "reflectionFragment", textureOffset: 6, blending: false),
-            Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 7, addition: true)
+            Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
+            Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 11, blending: true),
+            Shader(id: "REFLECTION", fragmentName: "reflectionFragment", textureOffset: 7, blending: false),
+            Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 8, addition: true)
         ])
         
         prtInstance.idCounter += 1
@@ -532,6 +560,7 @@ class TerrainShader     : BaseShader
         updateData()
         
         if let mainShader = shaders["MAIN"] {
+            
             let renderPassDescriptor = MTLRenderPassDescriptor()
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShapeTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
@@ -558,6 +587,9 @@ class TerrainShader     : BaseShader
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
             renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 2)
+            if let terrain = globalApp!.artistEditor.getTerrain() {
+                renderEncoder.setFragmentTexture(terrain.getTexture(), index: 3)
+            }
             applyUserFragmentTextures(shader: mainShader, encoder: renderEncoder)
             // ---
             
@@ -612,6 +644,9 @@ class TerrainShader     : BaseShader
             renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 7)
             renderEncoder.setFragmentTexture(prtInstance.otherReflDirTexture, index: 8)
             renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 9)
+            if let terrain = globalApp!.artistEditor.getTerrain() {
+                renderEncoder.setFragmentTexture(terrain.getTexture(), index: 10)
+            }
             applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
@@ -659,6 +694,9 @@ class TerrainShader     : BaseShader
             renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 3)
             renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 4)
             renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 5)
+            if let terrain = globalApp!.artistEditor.getTerrain() {
+                renderEncoder.setFragmentTexture(terrain.getTexture(), index: 6)
+            }
             applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
@@ -709,6 +747,9 @@ class TerrainShader     : BaseShader
             renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 4)
             renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 5)
             renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 6)
+            if let terrain = globalApp!.artistEditor.getTerrain() {
+                renderEncoder.setFragmentTexture(terrain.getTexture(), index: 7)
+            }
             applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
@@ -721,5 +762,173 @@ class TerrainShader     : BaseShader
             
             commandBuffer.commit()
         }
+    }
+    
+    func generateMaterialCode(terrain: Terrain) -> String
+    {
+        var headerCode = ""
+        var materialFuncCode = ""
+        
+        var materialIdCounter : Int = 0
+
+        func processMaterial(materialStageItem: StageItem, processBumps: Bool = false)
+        {
+            materialFuncCode +=
+            """
+            
+            void material\(materialIdCounter)(float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+            float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
+            {
+                float2 uv = float2(hitPosition.xz);
+                constant float4 *__data = __funcData->__data;
+                float GlobalTime = __funcData->GlobalTime;
+                float GlobalSeed = __funcData->GlobalSeed;
+                __CREATE_TEXTURE_DEFINITIONS__
+
+
+                float4 outColor = __materialOut->color;
+                float3 outMask = __materialOut->mask;
+                float3 outReflectionDir = float3(0);
+                float outReflectionBlur = 0.;
+                float outReflectionDist = 0.;
+                
+                float3 localPosition = hitPosition;
+                
+            """
+           
+            // Get the patterns of the material if any
+            var patterns : [CodeComponent] = []
+            if materialStageItem.componentLists["patterns"] != nil {
+                patterns = materialStageItem.componentLists["patterns"]!
+            }
+           
+            let material = materialStageItem.components[materialStageItem.defaultName]!
+            
+            dryRunComponent(material, data.count, patternList: patterns)
+            collectProperties(material)
+            if let globalCode = material.globalCode {
+                headerCode += globalCode
+            }
+            if let code = material.code {
+               materialFuncCode += code
+            }
+            
+            if processBumps {
+                var bumpCode = ""
+
+                // Check if material has a bump
+                for (_, conn) in material.propertyConnections {
+                    let fragment = conn.2
+                    if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
+                        
+                        bumpCode =
+                        """
+                        
+                        {
+                            float3 normal = float3(0);
+                            float2 outUV = float2(position.xz);
+                            
+                        """
+                                              
+                        // Than call the pattern and assign it to the output of the bump terminal
+                        bumpCode +=
+                        """
+                        
+                        struct PatternOut data;
+                        \(conn.3)(outUV, position, normal, float3(0), &data, __funcData );
+                        localHeight += data.\(conn.1) * 0.02;
+                        }
+                        
+                        """
+                    
+                        
+                    }
+                }
+                
+                terrainMapCode = terrainMapCode.replacingOccurrences(of: "__BUMP_CODE_\(materialIdCounter)__", with: bumpCode)
+            }
+
+            materialFuncCode +=
+            """
+                
+                __materialOut->color = outColor;
+                __materialOut->mask = outMask;
+                __materialOut->reflectionDir = outReflectionDir;
+                __materialOut->reflectionDist = outReflectionDist;
+            }
+            
+            """
+
+            materialCode +=
+            """
+            
+            if (outShape.z > \(Float(materialIdCounter) - 0.5) && outShape.z < \(Float(materialIdCounter) + 0.5))
+            {
+            """
+            
+            materialCode +=
+                
+            """
+               
+                material\(materialIdCounter)(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &materialOut, __funcData);
+            }
+
+            """
+                            
+            // Push it on the stack
+            //instance.materialIds[materialIdCounter] = stageItem
+            //currentMaterialId = materialIdCounter
+            materialIdCounter += 1
+        }
+        
+        for (index, stageItem) in terrain.materials.enumerated() {
+            processMaterial(materialStageItem: stageItem, processBumps: index == 0 ? true : false)
+        }
+        
+        for layer in terrain.layers.reversed() {
+            if let material = layer.material {
+                processMaterial(materialStageItem: material, processBumps: true)
+            } else {
+                //currentMaterialId = materialIdCounter
+                materialIdCounter += 1
+            }
+        }
+        
+        let codeBuilder = CodeBuilder(globalApp!.mmView)
+        
+        /// Recursively iterate the object hierarchy
+        func processChildren(_ stageItem: StageItem)
+        {
+            for child in stageItem.children {
+                if let shapes = child.getComponentList("shapes") {
+                    codeBuilder.sdfStream.pushStageItem(child)
+                    for shape in shapes {
+                        codeBuilder.sdfStream.pushComponent(shape)
+                    }
+                    processChildren(child)
+                    codeBuilder.sdfStream.pullStageItem()
+                }
+            }
+        }
+        
+        // Build the objects
+        for (index, object) in terrainObjects.enumerated() {
+            if let shapes = object.getComponentList("shapes") {
+
+                let gComponent = codeBuilder.sdfStream.isGroundComponent
+                codeBuilder.sdfStream.isGroundComponent = nil
+                
+                codeBuilder.sdfStream.pushStageItem(object)
+                for shape in shapes {
+                    codeBuilder.sdfStream.pushComponent(shape)
+                }
+                processChildren(object)
+                codeBuilder.sdfStream.pullStageItem()
+                                    
+                codeBuilder.sdfStream.mapCode = codeBuilder.sdfStream.mapCode.replacingOccurrences(of: "float4 sceneMap(", with: "float4 sceneMap\(index+1)(")
+                codeBuilder.sdfStream.isGroundComponent = gComponent
+            }
+        }
+        return headerCode + materialFuncCode
     }
 }
