@@ -274,6 +274,7 @@ class DesignEditor          : MMWidget
             }
             if blockRendering == false {
                 globalApp!.currentPipeline!.render(rect.width, rect.height)
+                mmView.update()
             }
         }
         needsUpdate = false

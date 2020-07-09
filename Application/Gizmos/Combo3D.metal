@@ -527,6 +527,10 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
             finalColor =  hoverState == ROTATE_Z ? hoverColor : rotateColor;
         }
         
+        finalColor.r /= finalColor.a;
+        finalColor.g /= finalColor.a;
+        finalColor.b /= finalColor.a;
+        
 //        float3 hitPoint = origin + hit.x * dir;
 //        float3 normal = calcNormal(hitPoint, data);
         
@@ -536,9 +540,6 @@ fragment float4 drawGizmoCombo3D(RasterizerData        in [[stage_in]],
 //        finalColor.xyz = mix( float3(0), finalColor.xyz, dot(normalize(float3(0,-1,0)), normal));
     }
     
-    finalColor.r /= finalColor.a;
-    finalColor.g /= finalColor.a;
-    finalColor.b /= finalColor.a;
     return finalColor;
 }
 

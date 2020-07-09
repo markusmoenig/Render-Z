@@ -308,6 +308,8 @@
 		2B8C51B824B6A47E0070E8D8 /* timeline.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B624B6A47D0070E8D8 /* timeline.tiff */; };
 		2B8C51BA24B6A55D0070E8D8 /* render.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B924B6A55C0070E8D8 /* render.tiff */; };
 		2B8C51BB24B6A55D0070E8D8 /* render.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51B924B6A55C0070E8D8 /* render.tiff */; };
+		2B8C51BD24B730CE0070E8D8 /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51BC24B730CE0070E8D8 /* fileicon.tiff */; };
+		2B8C51BE24B730CE0070E8D8 /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2B8C51BC24B730CE0070E8D8 /* fileicon.tiff */; };
 		2B8CC6CB23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */; };
 		2B8CC6CC23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */; };
 		2B8CC6CE23C55DAD00CFCB93 /* CodeAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */; };
@@ -704,8 +706,6 @@
 		2BE67109221291D300B95241 /* Node.metal in Sources */ = {isa = PBXBuildFile; fileRef = 2BE67107221291D200B95241 /* Node.metal */; };
 		2BE6710B2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
 		2BE6710C2213ACDD00B95241 /* ObjectMaxDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */; };
-		2BE847B72453C58200409AAE /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BE847B62453C58200409AAE /* fileicon.tiff */; };
-		2BE847B82453C58200409AAE /* fileicon.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BE847B62453C58200409AAE /* fileicon.tiff */; };
 		2BE847B92453C75C00409AAE /* NewDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE847B52453C49700409AAE /* NewDialog.swift */; };
 		2BE847BA2453C75D00409AAE /* NewDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE847B52453C49700409AAE /* NewDialog.swift */; };
 		2BE9488723D0675600DB0BCD /* DefaultItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BE9488623D0675600DB0BCD /* DefaultItems.swift */; };
@@ -849,6 +849,7 @@
 		2B8C51B324B6A4330070E8D8 /* scenegraph.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = scenegraph.tiff; sourceTree = "<group>"; };
 		2B8C51B624B6A47D0070E8D8 /* timeline.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = timeline.tiff; sourceTree = "<group>"; };
 		2B8C51B924B6A55C0070E8D8 /* render.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = render.tiff; sourceTree = "<group>"; };
+		2B8C51BC24B730CE0070E8D8 /* fileicon.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = fileicon.tiff; sourceTree = "<group>"; };
 		2B8CC6CA23C1EB0B00CFCB93 /* DeveloperEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperEditor.swift; sourceTree = "<group>"; };
 		2B8CC6CD23C55DAC00CFCB93 /* CodeAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeAccess.swift; sourceTree = "<group>"; };
 		2B8DB37A2489CEB700D57DC4 /* Soil.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = Soil.tiff; sourceTree = "<group>"; };
@@ -970,7 +971,6 @@
 		2BE67107221291D200B95241 /* Node.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Node.metal; sourceTree = "<group>"; };
 		2BE6710A2213ACDD00B95241 /* ObjectMaxDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectMaxDelegate.swift; sourceTree = "<group>"; };
 		2BE847B52453C49700409AAE /* NewDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewDialog.swift; sourceTree = "<group>"; };
-		2BE847B62453C58200409AAE /* fileicon.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = fileicon.tiff; sourceTree = "<group>"; };
 		2BE9488623D0675600DB0BCD /* DefaultItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultItems.swift; sourceTree = "<group>"; };
 		2BEA8C3622573CD30010C204 /* MMFloatWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMFloatWidget.swift; sourceTree = "<group>"; };
 		2BED879C228B9D9C005CE147 /* MMScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMScreen.swift; sourceTree = "<group>"; };
@@ -1165,7 +1165,7 @@
 				2B7A3C4323B46AD8002EC5FC /* sz_toolbar.tiff */,
 				2B7A3C4623B46AD8002EC5FC /* sz_ui_grey.tiff */,
 				2B7A3C4C23B46AD8002EC5FC /* sz_ui_blue.tiff */,
-				2BE847B62453C58200409AAE /* fileicon.tiff */,
+				2B8C51BC24B730CE0070E8D8 /* fileicon.tiff */,
 				2BD0E1D5245A5F6000A61586 /* maximize.tiff */,
 				2BD0E1D6245A5F6100A61586 /* minimize.tiff */,
 			);
@@ -1762,6 +1762,7 @@
 				2B8C51B424B6A4330070E8D8 /* scenegraph.tiff in Resources */,
 				2B7A3C0623B4652E002EC5FC /* OpenSans.json in Resources */,
 				2B8C51AE24B6A3010070E8D8 /* ground.tiff in Resources */,
+				2B8C51BD24B730CE0070E8D8 /* fileicon.tiff in Resources */,
 				2B9CB6F62485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2B42251B2471579F002FD442 /* Minimal.render-z in Resources */,
 				2B2B5FEC242442AD00B9CCF1 /* dev_off.tiff in Resources */,
@@ -1769,7 +1770,6 @@
 				2B666FB72464D5CF00BE3E4F /* scale.tiff in Resources */,
 				2B8E2FE323C71F36005619E4 /* SourceCodePro.json in Resources */,
 				2B7A3C5123B46B53002EC5FC /* sz_ui_blue.tiff in Resources */,
-				2BE847B72453C58200409AAE /* fileicon.tiff in Resources */,
 				2B8DB37B2489CEB700D57DC4 /* Soil.tiff in Resources */,
 				2B42251F247157A9002FD442 /* DensityTest.render-z in Resources */,
 				2B9CB6F92485CD1000CFFA51 /* X_blue.tiff in Resources */,
@@ -1833,6 +1833,7 @@
 				2B8C51BB24B6A55D0070E8D8 /* render.tiff in Resources */,
 				2BD0E1DA245A5F6100A61586 /* minimize.tiff in Resources */,
 				2B9B29DD23BB453B00C2F387 /* GameCuben.tiff in Resources */,
+				2B8C51BE24B730CE0070E8D8 /* fileicon.tiff in Resources */,
 				2B2B5FE1242306A400B9CCF1 /* gizmo_off.tiff in Resources */,
 				2B666FB22464D4F500BE3E4F /* move.tiff in Resources */,
 				2B9B29B323BB44C000C2F387 /* LaunchScreen.storyboard in Resources */,
@@ -1856,7 +1857,6 @@
 				2B8DB391248E5FAC00D57DC4 /* Bridge.render-z in Resources */,
 				2B666FAC2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
 				2B9CB6F72485CCE900CFFA51 /* Y_red.tiff in Resources */,
-				2BE847B82453C58200409AAE /* fileicon.tiff in Resources */,
 				2B8DB37C2489CEB700D57DC4 /* Soil.tiff in Resources */,
 				2B8C51B524B6A4330070E8D8 /* scenegraph.tiff in Resources */,
 				2B9CB6F42485CC9900CFFA51 /* Z_green.tiff in Resources */,

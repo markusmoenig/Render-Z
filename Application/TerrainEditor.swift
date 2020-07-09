@@ -1018,15 +1018,18 @@ class TerrainEditor         : PropertiesWidget
             directionTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .rgba16Float)
             shapeIdTexture = pipeline.checkTextureSize(rect.width, rect.height, nil, .r16Float)
 
-            /*
-            if let inst = pipeline.instanceMap["camera3D"] {
-                
-                pipeline.codeBuilder.render(inst, originTexture!, outTextures: [directionTexture!])
-                pipeline.codeBuilder.waitUntilCompleted()
+            let scene = globalApp!.project.selected!
+            let preStage = scene.getStage(.PreStage)
+            let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
+            let cameraComponent = result.1!
+            
+            let instance = globalApp!.pipeline3D.codeBuilder.build(cameraComponent, camera: cameraComponent)
+            
+            pipeline.codeBuilder.render(instance, originTexture!, outTextures: [directionTexture!])
+            pipeline.codeBuilder.waitUntilCompleted()
 
-                originTexture = convertTexture(originTexture!)
-                directionTexture = convertTexture(directionTexture!)
-            }*/
+            originTexture = convertTexture(originTexture!)
+            directionTexture = convertTexture(directionTexture!)
         }
     }
     
@@ -1251,7 +1254,7 @@ class TerrainEditor         : PropertiesWidget
         globalApp!.libraryDialog.showMaterials(cb: { (jsonComponent, jsonStageItem) in
             if jsonComponent.count > 0 {
                 if let comp = decodeComponentAndProcess(jsonComponent) {
-
+ 
                     let stageItem = StageItem(.ShapeStage, comp.libraryName)
 
                     stageItem.components[stageItem.defaultName] = comp

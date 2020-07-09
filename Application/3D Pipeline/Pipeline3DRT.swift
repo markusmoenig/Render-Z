@@ -278,7 +278,7 @@ class Pipeline3DRT          : Pipeline
                 swapShapeTextures()
             }
         }
-
+        
         // Free the other shape texture
         if prtInstance.currentShapeTexture === prtInstance.shapeTexture1 {
             prtInstance.shapeTexture2 = nil
@@ -408,12 +408,12 @@ class Pipeline3DRT          : Pipeline
         #endif
 
         // POSTFX
-        textureMap["shape"] = prtInstance.currentShapeTexture!
-        postFX()
-        
+        postFX(depthTexture: prtInstance.currentShapeTexture!)
+
         // DONE
         ids = prtInstance.ids
-        
+        textureMap["shape"] = prtInstance.currentShapeTexture!
+
         #if DEBUG
         print("Rendering Time: ", (Double(Date().timeIntervalSince1970) - startTime) * 1000)
         #endif
@@ -422,7 +422,7 @@ class Pipeline3DRT          : Pipeline
     }
 
     // Post FX
-    func postFX()
+    func postFX(depthTexture: MTLTexture)
     {
         let postStage = scene.getStage(.PostStage)
         if let item = postStage.children2D.first {
@@ -433,7 +433,7 @@ class Pipeline3DRT          : Pipeline
                 
                 for c in list {
                     if let instance = c.builderInstance {
-                        codeBuilder.render(instance, dest, inTextures: [source, source, getTextureOfId("shape"), getTextureOfId("shape")])
+                        codeBuilder.render(instance, dest, inTextures: [source, source, depthTexture, depthTexture])
                         
                         // Copy the result back into final
                         codeBuilder.renderCopy(source, dest)

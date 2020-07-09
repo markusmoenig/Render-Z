@@ -331,8 +331,43 @@ class TerrainShader     : BaseShader
             }
         }
         
-        print(normalCode)
+        var calculateMaterialIdCode = ""
+        if terrain.materials.count > 1 {
+            calculateMaterialIdCode +=
+            """
+            
+            {
+                float3 position = rayOrigin + outShape.y * rayDirection;
+                float3 normal = outNormal;
+            
+                if (outShape.w == 0.0)
+                {
+            
+            """
+            
+            for (index, material) in terrain.materials.enumerated() {
+                if index == 0 {
+                    continue
+                }
                 
+                calculateMaterialIdCode +=
+                """
+                
+                if ( normal.y >= 1.0 - \(material.values["maxSlope"]!) && normal.y <= 1.0 - \(material.values["minSlope"]!))
+                    outShape.z = \(index);
+                
+                """
+            }
+            
+            calculateMaterialIdCode +=
+            """
+            
+                }
+            }
+            
+            """
+        }
+                        
         let fragmentCode =
         """
         
@@ -368,6 +403,7 @@ class TerrainShader     : BaseShader
             float maxDistance = 100.0;
         
             \(raymarchCode)
+            \(calculateMaterialIdCode)
             return outShape;
         }
                 
@@ -518,9 +554,9 @@ class TerrainShader     : BaseShader
 
                  // Sun
                  {
-                     struct MaterialOut __materialOut;
-                     __materialOut.color = float4(0,0,0,1);
-                     __materialOut.mask = float3(0);
+                     struct MaterialOut materialOut;
+                     materialOut.color = float4(0,0,0,1);
+                     materialOut.mask = float3(0);
                      
                      float3 incomingDirection = rayDirection;
                      float3 hitPosition = position;
@@ -531,9 +567,9 @@ class TerrainShader     : BaseShader
                      float shadow = shadows.y;
                      float occlusion = shadows.x;
 
-                     material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
-        
-                     outColor.xyz += __materialOut.color.xyz * reflectionDir.w;
+                     \(materialCode)
+
+                     outColor.xyz += materialOut.color.xyz * reflectionDir.w;
                      outColor.w = 1.0;
                  }
          
@@ -895,6 +931,7 @@ class TerrainShader     : BaseShader
         }
         
         let codeBuilder = CodeBuilder(globalApp!.mmView)
+        codeBuilder.sdfStream.instance = CodeBuilderInstance()
         
         /// Recursively iterate the object hierarchy
         func processChildren(_ stageItem: StageItem)

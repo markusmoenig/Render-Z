@@ -29,9 +29,7 @@ class ArtistEditor          : Editor
     var timeline            : MMTimeline
 
     var bottomHeight        : Float = 0
-    
-    var dispatched          : Bool = false
-        
+
     var groundButton        : MMButtonWidget
 
     var materialButton      : MMButtonWidget
@@ -271,14 +269,6 @@ class ArtistEditor          : Editor
         if designEditor.rect.width > 0 {
             designEditor.update()
         }
-        
-        if !dispatched {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                self.mmView.update()
-                self.dispatched = false
-            }
-            dispatched = true
-        }
     }
     
     override func drawRegion(_ region: MMRegion)
@@ -375,7 +365,6 @@ class ArtistEditor          : Editor
                     }
                 }
                 
-                
                 if let gizmo = designEditor.currentGizmo, designEditor.designComponent != nil {
                     gizmo.rect.copy(designEditor.rect)
                     gizmo.draw()
@@ -383,7 +372,7 @@ class ArtistEditor          : Editor
                 
                 designProperties.rect.copy(region.rect)
                 designProperties.draw()
-            
+                /*
                 var drawSamples : Bool = true
                 if designEditor.designComponent != nil && designEditor.designComponent!.componentType == .Ground3D && designEditor.designComponent!.libraryName == "Plane" {
                     drawSamples = false
@@ -391,7 +380,7 @@ class ArtistEditor          : Editor
                 
                 if drawSamples {
                     doDrawSamples()
-                }
+                }*/
             }
         } else
         if region.type == .Bottom {

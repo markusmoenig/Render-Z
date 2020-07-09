@@ -23,6 +23,7 @@ class GroundShader      : BaseShader
         super.init(instance: instance)
         
         self.rootItem = object
+
         if let ground = object.components[object.defaultName] {
             createFragmentSource(groundComponent: ground, camera: camera)
         }
