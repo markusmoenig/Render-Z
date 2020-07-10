@@ -332,6 +332,8 @@ class ArtistEditor          : Editor
             designEditor.rect.copy(region.rect)
             designEditor.draw()
             
+            globalApp!.pipeline3DRT.codeBuilder.waitUntilCompleted()
+            
             if globalApp!.currentEditor.textureAlpha >= 1 {
                 
                 // Draw selected component
@@ -366,7 +368,6 @@ class ArtistEditor          : Editor
                 }
                 
                 if let gizmo = designEditor.currentGizmo, designEditor.designComponent != nil {
-                    globalApp!.pipeline3DRT.codeBuilder.waitUntilCompleted()
                     gizmo.rect.copy(designEditor.rect)
                     gizmo.draw()
                 }

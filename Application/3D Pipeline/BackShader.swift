@@ -35,7 +35,8 @@ class BackgroundShader      : BaseShader
 
         let fragmentCode =
         """
-
+        
+        \(prtInstance.fragmentUniforms)
         \(backComponent.globalCode!)
 
         fragment float4 procFragment(RasterizerData in [[stage_in]],
@@ -62,9 +63,10 @@ class BackgroundShader      : BaseShader
         fragment float4 reflMaterialFragment(RasterizerData in [[stage_in]],
                                      __REFLMATERIAL_TEXTURE_HEADER_CODE__
                                      constant float4 *__data [[ buffer(0) ]],
-                                     texture2d<half, access::read> depthTexture [[texture(1)]],
-                                     texture2d<half, access::read> reflectionTexture [[texture(2)]],
-                                     texture2d<half, access::read> reflectionDirTexture [[texture(3)]])
+                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                     texture2d<half, access::read> depthTexture [[texture(2)]],
+                                     texture2d<half, access::read> reflectionTexture [[texture(3)]],
+                                     texture2d<half, access::read> reflectionDirTexture [[texture(4)]])
         {
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             float2 size = in.viewportSize;
@@ -86,6 +88,7 @@ class BackgroundShader      : BaseShader
                 \(backComponent.code!)
         
                 outColor *= direction.w;
+                outColor.xyz += uniforms.ambientColor.xyz;
             }
 
             return outColor;
@@ -95,7 +98,7 @@ class BackgroundShader      : BaseShader
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
                 Shader(id: "MAIN", textureOffset: 2, blending: false),
-                Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 4, addition: true)
+                Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 5, addition: true)
         ])
     }
     
@@ -139,14 +142,14 @@ class BackgroundShader      : BaseShader
     
     override func reflectionMaterialPass(texture: MTLTexture)
     {
-        if let mainShader = shaders["REFLMATERIAL"] {
+        if let shader = shaders["REFLMATERIAL"] {
             let renderPassDescriptor = MTLRenderPassDescriptor()
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = mainShader.commandQueue.makeCommandBuffer()!
+            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
             let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
-            renderEncoder.setRenderPipelineState(mainShader.pipelineState)
+            renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // ---
             renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(texture.width), height: Double(texture.height), znear: -1.0, zfar: 1.0 ) )
@@ -157,10 +160,14 @@ class BackgroundShader      : BaseShader
             var viewportSize : vector_uint2 = vector_uint2( UInt32( texture.width ), UInt32( texture.height ) )
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
+            var fragmentUniforms = createFragmentUniform()
+
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
-            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture, index: 1)
-            renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 2)
-            renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 3)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture, index: 2)
+            renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 3)
+            renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 4)
+            applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

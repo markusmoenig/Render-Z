@@ -18,6 +18,8 @@ class PRTInstance {
         
         simd_float2         screenSize;
 
+        simd_float4         ambientColor;
+
         // bbox
         simd_float3         P;
         simd_float3         L;

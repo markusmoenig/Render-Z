@@ -390,6 +390,8 @@ class ObjectShader      : BaseShader
                 }
         
                 \(lightSamplingCode)
+        
+                outColor.xyz += uniforms.ambientColor.xyz;
             }
         
             reflectionTextureOut.write(half4(1000, 1000, -1, -1), textureUV);
@@ -495,7 +497,8 @@ class ObjectShader      : BaseShader
                     float occlusion = shadows.x;
 
                     \(materialCode)
-        
+                
+                    outColor.xyz += uniforms.ambientColor.xyz;
                     outColor.xyz += __materialOut.color.xyz * reflectionDir.w;
                     outColor.w = 1.0;
                 }
@@ -795,13 +798,16 @@ class ObjectShader      : BaseShader
         #endif
     }
     
-    func createFragmentUniform() -> ObjectFragmentUniforms
+    override func createFragmentUniform() -> ObjectFragmentUniforms
     {
         var fragmentUniforms = ObjectFragmentUniforms()
 
         fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
         fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
         fragmentUniforms.screenSize = prtInstance.screenSize
+        if let ambient = getGlobalVariableValue(withName: "World.worldAmbient") {
+            fragmentUniforms.ambientColor = ambient
+        }
 
         if let transform = self.object.components[self.object.defaultName] {
                             

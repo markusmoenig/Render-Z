@@ -23,6 +23,8 @@ typedef struct {
     simd_float3         cameraLookAt;
     
     simd_float2         screenSize;
+    
+    simd_float4         ambientColor;
 
     // bbox
     simd_float3         P;

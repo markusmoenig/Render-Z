@@ -222,6 +222,20 @@ class BaseShader
     {
     }
     
+    func createFragmentUniform() -> ObjectFragmentUniforms
+    {
+        var fragmentUniforms = ObjectFragmentUniforms()
+
+        fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+        fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+        fragmentUniforms.screenSize = prtInstance.screenSize
+        if let ambient = getGlobalVariableValue(withName: "World.worldAmbient") {
+            fragmentUniforms.ambientColor = ambient
+        }
+        
+        return fragmentUniforms
+    }
+    
     /// Apply the textures used in CodeComponents to the MTLRenderEncoder
     func applyUserFragmentTextures(shader: Shader, encoder: MTLRenderCommandEncoder)
     {

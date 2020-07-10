@@ -468,6 +468,8 @@ class TerrainShader     : BaseShader
                 }
         
                 \(lightSamplingCode)
+        
+                outColor.xyz += uniforms.ambientColor.xyz;
             }
         
             reflectionTextureOut.write(half4(reflectionShape), textureUV);
@@ -571,6 +573,7 @@ class TerrainShader     : BaseShader
 
                      outColor.xyz += materialOut.color.xyz * reflectionDir.w;
                      outColor.w = 1.0;
+                     outColor.xyz += uniforms.ambientColor.xyz;
                  }
          
                  \(lightSamplingCode)
@@ -615,10 +618,7 @@ class TerrainShader     : BaseShader
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
             // --- Fragment
-            var fragmentUniforms = ObjectFragmentUniforms()
-            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
-            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
-            fragmentUniforms.screenSize = prtInstance.screenSize
+            var fragmentUniforms = createFragmentUniform()
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
@@ -662,11 +662,7 @@ class TerrainShader     : BaseShader
             
             // --- Fragment
             
-            var fragmentUniforms = ObjectFragmentUniforms()
-            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
-            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
-            fragmentUniforms.screenSize = prtInstance.screenSize
-
+            var fragmentUniforms = createFragmentUniform()
             var lightUniforms = prtInstance.utilityShader.createLightStruct()
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
@@ -930,9 +926,10 @@ class TerrainShader     : BaseShader
             }
         }
         
+        /*
         let codeBuilder = CodeBuilder(globalApp!.mmView)
-        codeBuilder.sdfStream.instance = CodeBuilderInstance()
-        
+        codeBuilder.sdfStream.openStream(.SDF3D, CodeBuilderInstance(), codeBuilder)
+
         /// Recursively iterate the object hierarchy
         func processChildren(_ stageItem: StageItem)
         {
@@ -951,10 +948,8 @@ class TerrainShader     : BaseShader
         // Build the objects
         for (index, object) in terrainObjects.enumerated() {
             if let shapes = object.getComponentList("shapes") {
-
-                let gComponent = codeBuilder.sdfStream.isGroundComponent
-                codeBuilder.sdfStream.isGroundComponent = nil
                 
+
                 codeBuilder.sdfStream.pushStageItem(object)
                 for shape in shapes {
                     codeBuilder.sdfStream.pushComponent(shape)
@@ -963,9 +958,13 @@ class TerrainShader     : BaseShader
                 codeBuilder.sdfStream.pullStageItem()
                                     
                 codeBuilder.sdfStream.mapCode = codeBuilder.sdfStream.mapCode.replacingOccurrences(of: "float4 sceneMap(", with: "float4 sceneMap\(index+1)(")
-                codeBuilder.sdfStream.isGroundComponent = gComponent
             }
         }
+        
+        codeBuilder.sdfStream.closeStream()
+        headerCode += codeBuilder.sdfStream.mapCode
+        */
+
         return headerCode + materialFuncCode
     }
 }

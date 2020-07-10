@@ -132,11 +132,13 @@ class GroundShader      : BaseShader
                 }
         
                 \(lightSamplingCode)
+        
+                outColor.xyz += uniforms.ambientColor.xyz;
             }
         
             reflectionTextureOut.write(half4(reflectionShape), textureUV);
             reflectionDirTextureOut.write(half4(reflectionDir), textureUV);
-        
+                
             return outColor;
         }
         
@@ -231,6 +233,7 @@ class GroundShader      : BaseShader
 
                      material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
         
+                     outColor.xyz += uniforms.ambientColor.xyz;
                      outColor.xyz += __materialOut.color.xyz * reflectionDir.w;
                      outColor.w = 1.0;
                  }
@@ -276,10 +279,7 @@ class GroundShader      : BaseShader
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
             // --- Fragment
-            var fragmentUniforms = ObjectFragmentUniforms()
-            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
-            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
-            fragmentUniforms.screenSize = prtInstance.screenSize
+            var fragmentUniforms = createFragmentUniform()
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
@@ -320,11 +320,7 @@ class GroundShader      : BaseShader
             
             // --- Fragment
             
-            var fragmentUniforms = ObjectFragmentUniforms()
-            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
-            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
-            fragmentUniforms.screenSize = prtInstance.screenSize
-
+            var fragmentUniforms = createFragmentUniform()
             var lightUniforms = prtInstance.utilityShader.createLightStruct()
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
@@ -373,10 +369,7 @@ class GroundShader      : BaseShader
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
             // --- Fragment
-            var fragmentUniforms = ObjectFragmentUniforms()
-            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
-            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
-            fragmentUniforms.screenSize = prtInstance.screenSize
+            var fragmentUniforms = createFragmentUniform()
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
@@ -420,11 +413,7 @@ class GroundShader      : BaseShader
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
             // --- Fragment
-            var fragmentUniforms = ObjectFragmentUniforms()
-            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
-            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
-            fragmentUniforms.screenSize = prtInstance.screenSize
-
+            var fragmentUniforms = createFragmentUniform()
             var lightUniforms = prtInstance.utilityShader.createLightStruct()
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
