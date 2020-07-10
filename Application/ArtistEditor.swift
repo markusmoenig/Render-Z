@@ -366,6 +366,7 @@ class ArtistEditor          : Editor
                 }
                 
                 if let gizmo = designEditor.currentGizmo, designEditor.designComponent != nil {
+                    globalApp!.pipeline3DRT.codeBuilder.waitUntilCompleted()
                     gizmo.rect.copy(designEditor.rect)
                     gizmo.draw()
                 }
