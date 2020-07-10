@@ -84,6 +84,9 @@ class PRTInstance {
     
     var commandQueue        : MTLCommandQueue!
     var commandBuffer       : MTLCommandBuffer!
+    
+    var quadVertexBuffer    : MTLBuffer!
+    var quadViewport        : MTLViewport!
 }
 
 class Pipeline3DRT          : Pipeline
@@ -217,6 +220,8 @@ class Pipeline3DRT          : Pipeline
         
         prtInstance.commandQueue = mmView.device!.makeCommandQueue()
         prtInstance.commandBuffer = prtInstance.commandQueue.makeCommandBuffer()!
+        prtInstance.quadVertexBuffer = getQuadVertexBuffer(MMRect(0, 0, width, height ) )
+        prtInstance.quadViewport = MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 )
         
         let startTime = Double(Date().timeIntervalSince1970)
         
@@ -471,5 +476,27 @@ class Pipeline3DRT          : Pipeline
         if needsResize || clear {
             //codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 0, 1))
         }
+    }
+    
+    /// Creates a vertex buffer for a quad shader
+    func getQuadVertexBuffer(_ rect: MMRect ) -> MTLBuffer?
+    {
+        let left = -rect.width / 2 + rect.x
+        let right = left + rect.width//self.width / 2 - x
+        
+        let top = rect.height / 2 - rect.y
+        let bottom = top - rect.height
+        
+        let quadVertices: [Float] = [
+            right, bottom, 1.0, 0.0,
+            left, bottom, 0.0, 0.0,
+            left, top, 0.0, 1.0,
+            
+            right, bottom, 1.0, 0.0,
+            left, top, 0.0, 1.0,
+            right, top, 1.0, 1.0,
+            ]
+        
+        return mmView.device!.makeBuffer(bytes: quadVertices, length: quadVertices.count * MemoryLayout<Float>.stride, options: [])!
     }
 }
