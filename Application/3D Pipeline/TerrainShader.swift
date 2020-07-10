@@ -604,8 +604,7 @@ class TerrainShader     : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShapeTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let commandBuffer = mainShader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(mainShader.pipelineState)
             
             // --- Vertex
@@ -631,12 +630,6 @@ class TerrainShader     : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -647,8 +640,7 @@ class TerrainShader     : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -684,12 +676,6 @@ class TerrainShader     : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -700,8 +686,7 @@ class TerrainShader     : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherReflTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -734,12 +719,6 @@ class TerrainShader     : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -750,8 +729,7 @@ class TerrainShader     : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -787,12 +765,6 @@ class TerrainShader     : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     

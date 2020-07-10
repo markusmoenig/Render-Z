@@ -92,7 +92,7 @@ class GroundShader      : BaseShader
             ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
 
             float4 outColor = float4(0,0,0,0);
-
+            
             float4 reflectionShape = float4(reflectionTextureIn.read(textureUV));
             float4 reflectionDir = float4(reflectionDirTextureIn.read(textureUV));
         
@@ -138,7 +138,7 @@ class GroundShader      : BaseShader
         
             reflectionTextureOut.write(half4(reflectionShape), textureUV);
             reflectionDirTextureOut.write(half4(reflectionDir), textureUV);
-                
+            
             return outColor;
         }
         
@@ -265,8 +265,7 @@ class GroundShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShapeTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let commandBuffer = mainShader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(mainShader.pipelineState)
             
             // --- Vertex
@@ -289,12 +288,6 @@ class GroundShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -305,8 +298,9 @@ class GroundShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            
+            //renderEncoder.waitForFence(prtInstance.fence, before: .fragment)
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -339,12 +333,6 @@ class GroundShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -355,8 +343,9 @@ class GroundShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherReflTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            
+            //renderEncoder.waitForFence(prtInstance.fence, before: .fragment)
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -383,12 +372,6 @@ class GroundShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -399,8 +382,9 @@ class GroundShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            
+            //renderEncoder.waitForFence(prtInstance.fence, before: .fragment)
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -429,12 +413,6 @@ class GroundShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
 }

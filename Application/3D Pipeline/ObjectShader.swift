@@ -627,8 +627,7 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
             renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0, blue: 0, alpha: 0.0)
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -656,12 +655,6 @@ class ObjectShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
             
             prtInstance.utilityShader.mergeShapes()
         }
@@ -758,8 +751,7 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -787,12 +779,6 @@ class ObjectShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
         
         #endif
@@ -875,8 +861,7 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShadowTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -909,12 +894,6 @@ class ObjectShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -925,8 +904,7 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -961,12 +939,6 @@ class ObjectShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -977,8 +949,7 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherReflTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -1011,12 +982,6 @@ class ObjectShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -1027,8 +992,7 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -1061,12 +1025,6 @@ class ObjectShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     

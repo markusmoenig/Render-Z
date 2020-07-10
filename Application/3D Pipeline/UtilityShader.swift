@@ -95,8 +95,7 @@ class UtilityShader         : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShapeTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let commandBuffer = mainShader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(mainShader.pipelineState)
             
             // --- Vertex
@@ -121,13 +120,6 @@ class UtilityShader         : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-                //print("Merge Shader: ", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -140,10 +132,9 @@ class UtilityShader         : BaseShader
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
             renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 1.0, green: 1.0, blue: 1, alpha: 1.0)
 
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
-            
+
             // --- Vertex
             renderEncoder.setViewport( MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 ) )
             
@@ -156,13 +147,6 @@ class UtilityShader         : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-                //print("Shadow Shader: ", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -176,8 +160,7 @@ class UtilityShader         : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.camDirTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let commandBuffer = mainShader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(mainShader.pipelineState)
             
             // --- Vertex
@@ -201,12 +184,6 @@ class UtilityShader         : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            //commandBuffer.addCompletedHandler { cb in
-            //    print("Camera Shader: ", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
-            //}
-            
-            commandBuffer.commit()
         }
     }
     

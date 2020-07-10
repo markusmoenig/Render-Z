@@ -97,7 +97,7 @@ class BackgroundShader      : BaseShader
         """
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
-                Shader(id: "MAIN", textureOffset: 2, blending: false),
+                Shader(id: "MAIN", textureOffset: 2, blending: true),
                 Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 5, addition: true)
         ])
     }
@@ -112,8 +112,7 @@ class BackgroundShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
             renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0, blue: 0, alpha: 1.0)
             
-            let commandBuffer = mainShader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(mainShader.pipelineState)
             
             // ---
@@ -130,13 +129,8 @@ class BackgroundShader      : BaseShader
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
     
@@ -147,8 +141,7 @@ class BackgroundShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let commandBuffer = shader.commandQueue.makeCommandBuffer()!
-            let renderEncoder = commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // ---
@@ -172,12 +165,6 @@ class BackgroundShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            commandBuffer.addCompletedHandler { cb in
-                globalApp!.executionTime += cb.gpuEndTime - cb.gpuStartTime
-            }
-            
-            commandBuffer.commit()
         }
     }
 }

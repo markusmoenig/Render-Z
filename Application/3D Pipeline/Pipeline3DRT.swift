@@ -81,6 +81,9 @@ class PRTInstance {
     var otherReflTexture    : MTLTexture? = nil
 
     var utilityShader       : UtilityShader!
+    
+    var commandQueue        : MTLCommandQueue!
+    var commandBuffer       : MTLCommandBuffer!
 }
 
 class Pipeline3DRT          : Pipeline
@@ -105,6 +108,8 @@ class Pipeline3DRT          : Pipeline
     var shaders             : [BaseShader] = []
     
     var prtInstance         : PRTInstance!
+    
+    var inside : Int = 0
 
     override init(_ mmView: MMView)
     {
@@ -135,6 +140,7 @@ class Pipeline3DRT          : Pipeline
         shaders = []
         
         prtInstance = PRTInstance()
+
         prtInstance.utilityShader = UtilityShader(instance: prtInstance, scene: scene, camera: cameraComponent)
         
         backgroundShader = BackgroundShader(instance: prtInstance, scene: scene, camera: cameraComponent)
@@ -195,6 +201,7 @@ class Pipeline3DRT          : Pipeline
     {
         width = round(widthIn); height = round(heightIn)
         
+        /*
         var shadersToTest = shaders
         if let background = backgroundShader {
             shadersToTest.append(background)
@@ -206,7 +213,10 @@ class Pipeline3DRT          : Pipeline
                     return
                 }
             }
-        }
+        }*/
+        
+        prtInstance.commandQueue = mmView.device!.makeCommandQueue()
+        prtInstance.commandBuffer = prtInstance.commandQueue.makeCommandBuffer()!
         
         let startTime = Double(Date().timeIntervalSince1970)
         
@@ -280,7 +290,7 @@ class Pipeline3DRT          : Pipeline
                 swapShapeTextures()
             }
         }
-        
+        /*
         // Free the other shape texture
         if prtInstance.currentShapeTexture === prtInstance.shapeTexture1 {
             prtInstance.shapeTexture2 = nil
@@ -288,7 +298,7 @@ class Pipeline3DRT          : Pipeline
         } else {
             prtInstance.shapeTexture1 = nil
             prtInstance.otherShapeTexture = nil
-        }
+        }*/
         
         // The ao / shadow textures which get ping ponged
         prtInstance.shadowTexture1 = checkTextureSize(width, height, prtInstance.shadowTexture1, .rg16Float)
@@ -356,7 +366,7 @@ class Pipeline3DRT          : Pipeline
                 prtInstance.otherReflDirTexture = prtInstance.reflDirTexture2
             }
         }
-                
+        
         // Calculate the materials
         for shader in shaders {
             if isDisabled(shader: shader) == false {
@@ -365,6 +375,7 @@ class Pipeline3DRT          : Pipeline
             }
         }
         
+        /*
         // Free the other reflection dir texture
         if prtInstance.currentReflDirTexture === prtInstance.reflDirTexture1 {
             prtInstance.reflDirTexture2 = nil
@@ -378,6 +389,7 @@ class Pipeline3DRT          : Pipeline
         prtInstance.shadowTexture2 = nil
         prtInstance.currentShadowTexture = nil
         prtInstance.otherShadowTexture = nil
+        */
         
         // Calculate the reflection hits
         for shader in shaders {
@@ -410,8 +422,15 @@ class Pipeline3DRT          : Pipeline
         #endif
 
         // POSTFX
-        postFX(depthTexture: prtInstance.currentShapeTexture!)
+        //postFX(depthTexture: prtInstance.currentShapeTexture!)
 
+        // RUN IT
+        
+        prtInstance.commandBuffer.addCompletedHandler { cb in
+            print("Execution Time:", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
+        }
+        prtInstance.commandBuffer.commit()
+        
         // DONE
         ids = prtInstance.ids
         textureMap["shape"] = prtInstance.currentShapeTexture!
@@ -450,7 +469,7 @@ class Pipeline3DRT          : Pipeline
         let needsResize = width != Float(finalTexture!.width) || height != Float(finalTexture!.height)
         finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
         if needsResize || clear {
-            codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 0, 1))
+            //codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 0, 1))
         }
     }
 }
