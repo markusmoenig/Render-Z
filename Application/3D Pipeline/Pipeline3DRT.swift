@@ -108,6 +108,7 @@ class Pipeline3DRT          : Pipeline
     var cameraComponent     : CodeComponent!
     
     var backgroundShader    : BackgroundShader? = nil
+    var postShader          : PostShader? = nil
     var shaders             : [BaseShader] = []
     
     var prtInstance         : PRTInstance!
@@ -147,7 +148,8 @@ class Pipeline3DRT          : Pipeline
         prtInstance.utilityShader = UtilityShader(instance: prtInstance, scene: scene, camera: cameraComponent)
         
         backgroundShader = BackgroundShader(instance: prtInstance, scene: scene, camera: cameraComponent)
-        
+        postShader = PostShader(instance: prtInstance, scene: scene)
+
         let shapeStage = scene.getStage(.ShapeStage)
         for item in shapeStage.getChildren() {
             
@@ -185,18 +187,6 @@ class Pipeline3DRT          : Pipeline
                 #endif*/
             }
         }
-        
-        // PostFX
-        let postStage = scene.getStage(.PostStage)
-        if let item = postStage.children2D.first {
-            if let list = item.componentLists["PostFX"] {
-                for c in list {
-                    if c.builderInstance == nil {
-                        c.builderInstance = codeBuilder.build(c)
-                    }
-                }
-            }
-        }
     }
         
     // Render the pipeline
@@ -221,7 +211,7 @@ class Pipeline3DRT          : Pipeline
         prtInstance.commandQueue = mmView.device!.makeCommandQueue()
         prtInstance.commandBuffer = prtInstance.commandQueue.makeCommandBuffer()!
         prtInstance.quadVertexBuffer = getQuadVertexBuffer(MMRect(0, 0, width, height ) )
-        prtInstance.quadViewport = MTLViewport( originX: 0.0, originY: 0.0, width: Double(prtInstance.screenSize.x), height: Double(prtInstance.screenSize.y), znear: -1.0, zfar: 1.0 )
+        prtInstance.quadViewport = MTLViewport( originX: 0.0, originY: 0.0, width: Double(width), height: Double(height), znear: -1.0, zfar: 1.0 )
         
         let startTime = Double(Date().timeIntervalSince1970)
         
@@ -254,7 +244,8 @@ class Pipeline3DRT          : Pipeline
         prtInstance.currentShapeTexture = prtInstance.shapeTexture1
         prtInstance.otherShapeTexture = prtInstance.shapeTexture2
 
-        checkFinalTexture(true)
+        finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
+        //prtInstance.utilityShader.clear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 1, 1))
         
         prtInstance.utilityShader.cameraTextures()
         
@@ -426,8 +417,10 @@ class Pipeline3DRT          : Pipeline
         }
         #endif
 
-        // POSTFX
-        //postFX(depthTexture: prtInstance.currentShapeTexture!)
+        
+        if let post = postShader {
+            post.render(texture: finalTexture!)
+        }
 
         // RUN IT
         
@@ -466,15 +459,6 @@ class Pipeline3DRT          : Pipeline
                     }
                 }
             }
-        }
-    }
-    
-    func checkFinalTexture(_ clear: Bool = false)
-    {
-        let needsResize = width != Float(finalTexture!.width) || height != Float(finalTexture!.height)
-        finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
-        if needsResize || clear {
-            //codeBuilder.renderClear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 0, 1))
         }
     }
     

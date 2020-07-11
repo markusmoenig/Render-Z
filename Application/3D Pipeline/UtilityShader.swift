@@ -77,13 +77,20 @@ class UtilityShader         : BaseShader
 
             return half4(half3(outDirection), 1.);
         }
+        
+        fragment float4 clear(RasterizerData in [[stage_in]],
+                                     constant float4 &data [[ buffer(0) ]])
+        {
+            return float4(1, 0, 0, 1);
+        }
 
         """
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
             Shader(id: "MERGE", textureOffset: 0, pixelFormat: .rgba16Float, blending: false),
             Shader(id: "CLEARSHADOW", fragmentName: "clearShadowFragment", textureOffset: 0, pixelFormat: .rg16Float, blending: false),
-            Shader(id: "CAMERA", fragmentName: "cameraFragment", textureOffset: 2, pixelFormat: .rgba16Float, blending: false)
+            Shader(id: "CAMERA", fragmentName: "cameraFragment", textureOffset: 2, pixelFormat: .rgba16Float, blending: false),
+            Shader(id: "CLEAR", fragmentName: "clear", textureOffset: 1, pixelFormat: .rgba16Float, blending: false)
         ])
     }
     
@@ -139,6 +146,34 @@ class UtilityShader         : BaseShader
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32( prtInstance.screenSize.x ), UInt32( prtInstance.screenSize.y ) )
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            renderEncoder.endEncoding()
+        }
+    }
+    
+    func clear(texture: MTLTexture, data: SIMD4<Float>)
+    {
+        if let shader = shaders["CLEAR"], shader.shaderState == .Compiled {
+
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = texture
+            renderPassDescriptor.colorAttachments[0].loadAction = .clear
+            renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 1.0, green: 1.0, blue: 1, alpha: 1.0)
+
+            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(shader.pipelineState)
+
+            // --- Vertex
+            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
+            
+            var viewportSize : vector_uint2 = vector_uint2( UInt32( prtInstance.screenSize.x ), UInt32( prtInstance.screenSize.y ) )
+            renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            
+            var d = data
+            renderEncoder.setFragmentBytes(&d, length: MemoryLayout<SIMD4<Float>>.stride, index: 0)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

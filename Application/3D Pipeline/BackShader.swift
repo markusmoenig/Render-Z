@@ -97,7 +97,7 @@ class BackgroundShader      : BaseShader
         """
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
-                Shader(id: "MAIN", textureOffset: 2, blending: true),
+                Shader(id: "MAIN", textureOffset: 2, blending: false),
                 Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 5, addition: true)
         ])
     }
