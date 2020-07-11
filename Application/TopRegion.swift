@@ -48,17 +48,17 @@ class TopRegion: MMRegion
             self.app.currentEditor.deactivate()
             if self.switchButton.state == .Left {
                 self.app.currentEditor = self.app.artistEditor
-                if let component = globalApp!.artistEditor.designEditor.designComponent, component.componentType != .Dummy  {
-                    globalApp!.project.selected!.getStageItem(component, selectIt: true)
-                } else
+                //if let component = globalApp!.artistEditor.designEditor.designComponent, component.componentType != .Dummy  {
+                //    globalApp!.project.selected!.getStageItem(component, selectIt: true)
+                //} else
                 if let component = globalApp!.developerEditor.codeEditor.codeComponent {
                     globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 }
             } else {
                 self.app.currentEditor = self.app.developerEditor
-                if let component = globalApp!.developerEditor.codeEditor.codeComponent, component.componentType != .Dummy {
-                    globalApp!.project.selected!.getStageItem(component, selectIt: true)
-                } else
+                //if let component = globalApp!.developerEditor.codeEditor.codeComponent, component.componentType != .Dummy {
+                //    globalApp!.project.selected!.getStageItem(component, selectIt: true)
+                //} else
                 if let component = globalApp!.artistEditor.designEditor.designComponent {
                     globalApp!.project.selected!.getStageItem(component, selectIt: true)
                 }
