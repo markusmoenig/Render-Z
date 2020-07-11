@@ -36,7 +36,7 @@ class GroundShader      : BaseShader
 
         let material = generateMaterialCode(stageItem: self.object)
         
-        let lightSamplingCode = prtInstance.utilityShader.createLightSamplingMaterialCode(materialCode: "material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);")
+        let lightSamplingCode = prtInstance.utilityShader.createLightSamplingMaterialCode(materialCode: "material0(rayOrigin, rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);")
 
         let fragmentCode =
         """
@@ -123,7 +123,7 @@ class GroundShader      : BaseShader
                     float occlusion = shadows.x;
                     float3 mask = float3(1);
                                                 
-                    material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &materialOut, __funcData);
+                    material0(rayOrigin, rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &materialOut, __funcData);
                     outColor += materialOut.color;
         
                     reflectionShape = float4(1000, 1000, -1, -1);
@@ -176,6 +176,9 @@ class GroundShader      : BaseShader
                 float3 outNormal = float3(0);
         
                 \(groundComponent.code!)
+        
+                if (outShape.y > inShape.y)
+                    outShape = inShape;
             }
 
             return outShape;
@@ -231,7 +234,7 @@ class GroundShader      : BaseShader
                      float shadow = shadows.y;
                      float occlusion = shadows.x;
 
-                     material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+                     material0(rayOrigin, rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
         
                      outColor.xyz += uniforms.ambientColor.xyz;
                      outColor.xyz += __materialOut.color.xyz * reflectionDir.w;

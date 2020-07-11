@@ -1524,10 +1524,10 @@ class CodeFunction          : Codable, Equatable
                                 }
                                 
                                 if ctx.cComponent!.componentType == .Material3D  {
-                                    ctx.addCode(pattern.functions.last!.codeName! + "(uv, localPosition, hitNormal, incomingDirection, &\(token), __funcData );\n")
+                                    ctx.addCode(pattern.functions.last!.codeName! + "(uv, localPosition, hitNormal, rayOrigin, incomingDirection, &\(token), __funcData );\n")
                                 } else
                                 if ctx.cComponent!.componentType == .Pattern  {
-                                    ctx.addCode(pattern.functions.last!.codeName! + "(uv, position, normal, rayDirection, &\(token), __funcData );\n")
+                                    ctx.addCode(pattern.functions.last!.codeName! + "(uv, position, normal, rayOrigin, rayDirection, &\(token), __funcData );\n")
                                 }
                                 
                                 ctx.cComponent!.propertyConnections[uuid] = (token, conn.outName!, b.fragment, pattern.functions.last!.codeName!)
@@ -1694,6 +1694,11 @@ class CodeComponent         : Codable, Equatable
                 if f.header.statement.fragments[1].name != "distance2D" {
                     let arg = CodeFragment(.VariableDefinition, "float", "distance2D", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
                     f.header.statement.fragments.insert(arg, at: 1)
+                }
+                
+                if f.header.statement.fragments[0].name != "rayOrigin" {
+                    let arg = CodeFragment(.VariableDefinition, "float3", "rayOrigin", [.Selectable, .Dragable, .NotCodeable], ["float3"], "floa3")
+                    f.header.statement.fragments.insert(arg, at: 0)
                 }
             }
         }
@@ -2245,20 +2250,23 @@ class CodeComponent         : Codable, Equatable
             let f = CodeFunction(type, "pattern")
             f.comment = "Returns a color and mask for the given input"
             
-            let arg1 = CodeFragment(.VariableDefinition, "float3", "rayDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg1 = CodeFragment(.VariableDefinition, "float3", "rayOrigin", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg1)
             
-            let arg2 = CodeFragment(.VariableDefinition, "float", "distance2D", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+            let arg2 = CodeFragment(.VariableDefinition, "float3", "rayDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg2)
             
-            let arg3 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg3 = CodeFragment(.VariableDefinition, "float", "distance2D", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
             f.header.statement.fragments.append(arg3)
             
-            let arg4 = CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg4 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg4)
             
-            let arg5 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            let arg5 = CodeFragment(.VariableDefinition, "float3", "normal", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
             f.header.statement.fragments.append(arg5)
+            
+            let arg6 = CodeFragment(.VariableDefinition, "float2", "uv", [.Selectable, .Dragable, .NotCodeable], ["float2"], "float2")
+            f.header.statement.fragments.append(arg6)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
@@ -2637,7 +2645,7 @@ class CodeComponent         : Codable, Equatable
                 var pCode : String = "void " + f.codeName!
                 pCode +=
                 """
-                (float2 uv, float3 position, float3 normal, float3 rayDirection, thread PatternOut *__patternData, thread FuncData *__funcData) {
+                (float2 uv, float3 position, float3 normal, float3 rayOrigin, float3 rayDirection, thread PatternOut *__patternData, thread FuncData *__funcData) {
                     float4 outColor = float4(0); float outMask = 0.; float outId = 0.;
 
                     constant float4 *__data = __funcData->__data;
@@ -2657,7 +2665,7 @@ class CodeComponent         : Codable, Equatable
                 }
                 """
                 
-                prototypes += "void \(f.codeName!)(float2 uv, float3 position, float3 normal, float3 rayDirection, thread PatternOut *__patternData, thread FuncData *__funcData);\n"
+                prototypes += "void \(f.codeName!)(float2 uv, float3 position, float3 normal, float3 rayOrigin, float3 rayDirection, thread PatternOut *__patternData, thread FuncData *__funcData);\n"
                 
                 globalCode! += pCode
             }

@@ -94,12 +94,6 @@ class PostShader      : BaseShader
         
         sh.append(Shader(id: "POST\(postCounter)", fragmentName: "post\(postCounter)", textureOffset: 5, blending: false))
         postCounter += 1
-        
-        /*
-        compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
-                Shader(id: "MAIN", textureOffset: 5, blending: false),
-                Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 5, addition: true)
-        ])*/
     }
     
     func render(texture: MTLTexture, otherTexture: MTLTexture)

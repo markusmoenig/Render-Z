@@ -679,7 +679,7 @@ class BaseShader
             globalCode +=
             """
             
-            void material\(materialIndex)(float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+            void material\(materialIndex)(float3 rayOrigin, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
             float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
             {
                 float2 uv = float2(0);

@@ -1246,7 +1246,7 @@ class ObjectShader      : BaseShader
                 materialFuncCode +=
                 """
                 
-                void material\(materialIdCounter)(float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+                void material\(materialIdCounter)(float3 rayOrigin, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
                 float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
                 {
                     float2 uv = float2(0);
@@ -1431,7 +1431,7 @@ class ObjectShader      : BaseShader
                     
                 """
                 
-                    material\(materialIdCounter)(incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
+                    material\(materialIdCounter)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
                 
                     //if (lightType.z == lightType.w) {
                     //    rayDirection = __materialOut.reflectionDir;

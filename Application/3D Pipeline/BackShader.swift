@@ -42,8 +42,9 @@ class BackgroundShader      : BaseShader
         fragment float4 procFragment(RasterizerData in [[stage_in]],
                                      __MAIN_TEXTURE_HEADER_CODE__
                                      constant float4 *__data [[ buffer(0) ]],
-                                     texture2d<half, access::read> camDirectionTexture [[texture(1)]],
-                                     texture2d<half, access::write> shapeTexture [[texture(2)]])
+                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                     texture2d<half, access::read> camDirectionTexture [[texture(2)]],
+                                     texture2d<half, access::write> shapeTexture [[texture(3)]])
         {
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             float2 size = in.viewportSize;
@@ -56,6 +57,7 @@ class BackgroundShader      : BaseShader
             shapeTexture.write(half4(1000, 1000, -1, -1), textureUV);
 
             float4 outColor = float4(0,0,0,1);
+            float3 rayOrigin = uniforms.cameraOrigin;
             float3 rayDirection = outDirection;
         
             \(backComponent.code!)
@@ -86,8 +88,9 @@ class BackgroundShader      : BaseShader
                 float4 direction = float4(reflectionDirTexture.read(textureUV));
                 float3 outDirection = direction.xyz;
 
+                float3 rayOrigin = uniforms.cameraOrigin;
                 float3 rayDirection = outDirection;
-            
+        
                 \(backComponent.code!)
         
                 outColor *= direction.w;
@@ -100,7 +103,7 @@ class BackgroundShader      : BaseShader
         """
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
-                Shader(id: "MAIN", textureOffset: 3, blending: false),
+                Shader(id: "MAIN", textureOffset: 4, blending: false),
                 Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 5, addition: true)
         ])
     }
@@ -125,9 +128,12 @@ class BackgroundShader      : BaseShader
             var viewportSize : vector_uint2 = vector_uint2( UInt32( texture.width ), UInt32( texture.height ) )
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
+            var fragmentUniforms = createFragmentUniform()
+
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
-            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 1)
-            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 2)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 2)
+            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
