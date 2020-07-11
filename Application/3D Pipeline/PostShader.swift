@@ -102,14 +102,14 @@ class PostShader      : BaseShader
         ])*/
     }
     
-    override func render(texture: MTLTexture)
+    func render(texture: MTLTexture, otherTexture: MTLTexture)
     {
         updateData()
         
         for i in 0..<postCounter {
             if let mainShader = shaders["POST\(i)"] {
                 let renderPassDescriptor = MTLRenderPassDescriptor()
-                renderPassDescriptor.colorAttachments[0].texture = prtInstance.localTexture!
+                renderPassDescriptor.colorAttachments[0].texture = otherTexture
                 renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
                 
                 let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
@@ -133,12 +133,12 @@ class PostShader      : BaseShader
                 
                 renderEncoder.endEncoding()
                 
-                copy(texture: texture)
+                copy(texture: texture, otherTexture: otherTexture)
             }
         }
     }
     
-    func copy(texture: MTLTexture)
+    func copy(texture: MTLTexture, otherTexture: MTLTexture)
     {
         if let shader = shaders["COPY"] {
             let renderPassDescriptor = MTLRenderPassDescriptor()
@@ -155,7 +155,7 @@ class PostShader      : BaseShader
             var viewportSize : vector_uint2 = vector_uint2( UInt32( texture.width ), UInt32( texture.height ) )
             renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
             
-            renderEncoder.setFragmentTexture(prtInstance.localTexture!, index: 0)
+            renderEncoder.setFragmentTexture(otherTexture, index: 0)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)

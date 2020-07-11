@@ -182,11 +182,11 @@ class ObjectShader      : BaseShader
         {
             float d = 1e5, l;
             
-            C = (C-P) * F;    D *= F;                         // to normalized coordinates in box frame
+            C = (C-P) * F;    D *= F;
             float3 I = abs(C-.5); bool inside = max(I.x, max(I.y,I.z)) <= .5;
-            if ( inside ) return 0.; // if inside the Bbox. Comment for box intersection
+            if ( inside ) return 0.;
                 
-            #define test(i)                                                           \
+            #define test(i)                                                       \
             l =  D[i] > 0. ?  C[i] < 0. ? -C[i]   : C[i] < 1. ? 1.-C[i] : -1.     \
                            :  C[i] > 1. ? 1.-C[i] : C[i] > 0. ? -C[i]   :  1.;    \
             l /= D[i];                                                            \
@@ -206,7 +206,8 @@ class ObjectShader      : BaseShader
                                     __MAINFULL_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(2)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(2)]],
+                                    texture2d<half, access::read> inShapeTexture [[texture(3)]])
         {
             __MAINFULL_INITIALIZE_FUNC_DATA__
         
@@ -214,8 +215,8 @@ class ObjectShader      : BaseShader
             float2 size = uniforms.screenSize;
             ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
 
-            float4 inShape = float4(1000, 1000, -1, -1);
-            float4 outShape = float4(1000, 1000, -1, -1);
+            float4 inShape = float4(inShapeTexture.read(textureUV));float4(1000, 1000, -1, -1);
+            float4 outShape = inShape;//float4(1000, 1000, -1, -1);
             float maxDistance = 10;//uniforms.maxDistance;
 
             //__funcData->inShape = float4(1000, 1000, -1, -1);
@@ -234,6 +235,9 @@ class ObjectShader      : BaseShader
         
                 if (isNotEqual(outShape.w, inShape.w)) {
                     outShape.y += d;
+        
+                    if (outShape.y > inShape.y)
+                        outShape = inShape;
                 }
             }
         
@@ -440,6 +444,9 @@ class ObjectShader      : BaseShader
         
                     if (isNotEqual(outShape.w, inShape.w)) {
                         outShape.y += d;
+        
+                        if (outShape.y > inShape.y)
+                            outShape = inShape;
                     }
                 }
             }
@@ -514,9 +521,9 @@ class ObjectShader      : BaseShader
         //print(fragmentShader)
                         
         compile(code: vertexShader + fragmentShader, shaders: [
-            Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "MAINFULL", vertexName: "quadVertex", fragmentName: "fullFragment", textureOffset: 3, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "BBOX", fragmentName: "bboxFragment", textureOffset: 0, pixelFormat: .rgba16Float, blending: true),
+            Shader(id: "MAIN", textureOffset: 3, pixelFormat: .rgba16Float, blending: false),
+            Shader(id: "MAINFULL", vertexName: "quadVertex", fragmentName: "fullFragment", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
+            Shader(id: "BBOX", fragmentName: "bboxFragment", textureOffset: 4, pixelFormat: .rgba16Float, blending: true),
             Shader(id: "BBOXFULL", vertexName: "quadVertex", fragmentName: "bboxFullFragment", textureOffset: 2, pixelFormat: .rgba16Float, blending: true),
             Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 9, blending: true),
             Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 6, pixelFormat: .rg16Float, blending: false),
@@ -623,7 +630,7 @@ class ObjectShader      : BaseShader
         
         if let shader = shaders["MAINFULL"] {
             let renderPassDescriptor = MTLRenderPassDescriptor()
-            renderPassDescriptor.colorAttachments[0].texture = prtInstance.localTexture!
+            renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShapeTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
             renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0, blue: 0, alpha: 0.0)
             
@@ -648,13 +655,12 @@ class ObjectShader      : BaseShader
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
             renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 2)
+            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 3)
             applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
-            
-            prtInstance.utilityShader.mergeShapes()
         }
         
         #endif

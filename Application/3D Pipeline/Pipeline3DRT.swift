@@ -234,7 +234,7 @@ class Pipeline3DRT          : Pipeline
         prtInstance.depthTexture = checkTextureSize(width, height, prtInstance.depthTexture, .rgba16Float)
         
         // The texture objects use for their local distance estimations
-        prtInstance.localTexture = checkTextureSize(width, height, prtInstance.localTexture, .rgba16Float)
+        //prtInstance.localTexture = checkTextureSize(width, height, prtInstance.localTexture, .rgba16Float)
         
         // The depth / shape textures which get ping ponged
         prtInstance.shapeTexture1 = checkTextureSize(width, height, prtInstance.shapeTexture1, .rgba16Float)
@@ -419,7 +419,7 @@ class Pipeline3DRT          : Pipeline
 
         
         if let post = postShader {
-            post.render(texture: finalTexture!)
+            post.render(texture: finalTexture!, otherTexture: prtInstance.currentReflDirTexture!)
         }
 
         // RUN IT
@@ -438,28 +438,6 @@ class Pipeline3DRT          : Pipeline
         #endif
         //var points : [Float] = []
         //pointCloudBuilder.render(points: points, texture: finalTexture!, camera: cameraComponent)
-    }
-
-    // Post FX
-    func postFX(depthTexture: MTLTexture)
-    {
-        let postStage = scene.getStage(.PostStage)
-        if let item = postStage.children2D.first {
-            if let list = item.componentLists["PostFX"] {
-                                
-                let source = finalTexture!
-                let dest = prtInstance.reflectionTexture1!
-                
-                for c in list {
-                    if let instance = c.builderInstance {
-                        codeBuilder.render(instance, dest, inTextures: [source, source, depthTexture, depthTexture])
-                        
-                        // Copy the result back into final
-                        codeBuilder.renderCopy(source, dest)
-                    }
-                }
-            }
-        }
     }
     
     /// Creates a vertex buffer for a quad shader
