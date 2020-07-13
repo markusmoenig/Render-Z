@@ -48,7 +48,7 @@
 			<key>NSUbiquitousContainerIsDocumentScopePublic</key>
 			<true/>
 			<key>NSUbiquitousContainerName</key>
-			<string>Render-Z</string>
+			<string>Shape-Z</string>
 			<key>NSUbiquitousContainerSupportedFolderLevels</key>
 			<string>Any</string>
 		</dict>
@@ -97,7 +97,7 @@
 	<array>
 		<dict>
 			<key>UTTypeDescription</key>
-			<string>Render-Z Document</string>
+			<string>Shape-Z Document</string>
 			<key>UTTypeIconFiles</key>
 			<array/>
 			<key>UTTypeIdentifier</key>
