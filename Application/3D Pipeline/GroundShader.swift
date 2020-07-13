@@ -14,6 +14,8 @@ class GroundShader      : BaseShader
     var object          : StageItem
     var camera          : CodeComponent
     
+    var materialBumpCode = ""
+    
     init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
         self.scene = scene
@@ -106,9 +108,10 @@ class GroundShader      : BaseShader
                 float3 outNormal = float3(0);
             
                 \(groundComponent.code!)
-            
+
                 float3 position = rayOrigin + rayDirection * outShape.y;
-        
+                \(materialBumpCode)
+
                 // Sun
                 {
                     struct MaterialOut materialOut;
@@ -218,6 +221,7 @@ class GroundShader      : BaseShader
                  float4 outShape = shape;
          
                  \(groundComponent.code!)
+                 \(materialBumpCode)
          
                  // Sun
                  {
@@ -409,5 +413,150 @@ class GroundShader      : BaseShader
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
         }
+    }
+    
+    func generateMaterialCode(stageItem: StageItem, materialIndex: Int = 0) -> String
+    {
+        var globalCode = ""
+        
+        if let material = getFirstComponentOfType(stageItem.children, .Material3D) {
+
+            globalCode +=
+            """
+            
+            void material\(materialIndex)(float3 rayOrigin, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+            float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
+            {
+                float2 uv = float2(0);
+                constant float4 *__data = __funcData->__data;
+                float GlobalTime = __funcData->GlobalTime;
+                float GlobalSeed = __funcData->GlobalSeed;
+                __CREATE_TEXTURE_DEFINITIONS__
+
+
+                float4 outColor = __materialOut->color;
+                float3 outMask = __materialOut->mask;
+                float3 outReflectionDir = float3(0);
+                float outReflectionBlur = 0.;
+                float outReflectionDist = 0.;
+            
+                float3 localPosition = hitPosition;
+            
+                float2 outUV = float2(0);
+                float3 position = hitPosition;
+            
+            """
+            
+            // UV Mapping
+            
+            var uvMappingCode = ""
+            if let uvMap = getFirstComponentOfType(stageItem.children, .UVMAP3D) {
+                dryRunComponent(uvMap, data.count)
+                collectProperties(uvMap)
+                
+                globalCode = uvMap.globalCode! + globalCode
+                globalCode += uvMap.code!
+                
+                uvMappingCode = uvMap.code!
+            }
+            
+            globalCode +=
+            """
+            
+            uv = outUV;
+            
+            """
+            
+            // ---
+            
+            // Get the patterns of the material if any
+            var patterns : [CodeComponent] = []
+            if let materialStageItem = getFirstStageItemOfComponentOfType(stageItem.children, .Material3D) {
+                if materialStageItem.componentLists["patterns"] != nil {
+                    patterns = materialStageItem.componentLists["patterns"]!
+                }
+            }
+            
+            dryRunComponent(material, data.count, patternList: patterns)
+            collectProperties(material)
+            if let gCode = material.globalCode {
+                globalCode = gCode + globalCode
+            }
+            if let code = material.code {
+                globalCode += code
+            }
+            
+            // Check if material has a bump
+            for (_, conn) in material.propertyConnections {
+                let fragment = conn.2
+                if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
+                    
+                    // Needs shape, outNormal, position
+                    materialBumpCode +=
+                    """
+                    
+                    {
+                        float3 realPosition = position;
+                        float3 position = realPosition; float3 normal = outNormal;
+                        float2 outUV = float2(0);
+                        float bumpFactor = 0.2;
+                    
+                        // bref
+                        {
+                            \(uvMappingCode)
+                        }
+                    
+                        struct PatternOut data;
+                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                        float bRef = data.\(conn.1);
+                    
+                        const float2 e = float2(.001, 0);
+                    
+                        // b1
+                        position = realPosition - e.xyy;
+                        {
+                            \(uvMappingCode)
+                        }
+                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                        float b1 = data.\(conn.1);
+                    
+                        // b2
+                        position = realPosition - e.yxy;
+                        {
+                            \(uvMappingCode)
+                        }
+                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                        float b2 = data.\(conn.1);
+                    
+                        // b3
+                        position = realPosition - e.yyx;
+                        \(uvMappingCode)
+                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                        float b3 = data.\(conn.1);
+                    
+                        float3 grad = (float3(b1, b2, b3) - bRef) / e.x;
+                    
+                        grad -= normal * dot(normal, grad);
+                        outNormal = normalize(normal + grad * bumpFactor);
+                    }
+
+                    """
+                    
+                }
+            }
+            
+            globalCode +=
+            """
+                
+                __materialOut->color = outColor;
+                __materialOut->mask = outMask;
+                __materialOut->reflectionDir = outReflectionDir;
+                __materialOut->reflectionDist = outReflectionDist;
+            }
+            
+            """
+        }
+        
+        return globalCode
     }
 }

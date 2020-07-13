@@ -1393,13 +1393,15 @@ class SceneGraph                : MMWidget
                         buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])
                     } else
                     if comp.componentType == .Material3D {
-                        buildChangeMaterial(item, name: "Material")
-                        items.append(MMMenuItem())
-                        let uploadItem = MMMenuItem(text: "Upload...", cb: { () in
-                            let dialog = UploadMaterialsDialog(self.mmView, material: item.stageItem!)
-                            dialog.show()
-                        } )
-                        items.append(uploadItem)
+                        if item.stage.terrain == nil {
+                            buildChangeMaterial(item, name: "Material")
+                            items.append(MMMenuItem())
+                            let uploadItem = MMMenuItem(text: "Upload...", cb: { () in
+                                let dialog = UploadMaterialsDialog(self.mmView, material: item.stageItem!)
+                                dialog.show()
+                            } )
+                            items.append(uploadItem)
+                        }
                     } else
                     if comp.componentType == .Render2D || comp.componentType == .Render3D {
                         let menuItem = MMMenuItem(text: "Change Renderer", cb: { () in

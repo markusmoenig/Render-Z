@@ -21,6 +21,7 @@ class ObjectShader      : BaseShader
     var F               : matrix_float3x3 = matrix_identity_float3x3
 
     var materialCode    = ""
+    var materialBumpCode = ""
 
     var bbTriangles : [Float] = []
     
@@ -368,6 +369,7 @@ class ObjectShader      : BaseShader
                 float3 outNormal = float3(0);
         
                 \(normal.code!)
+                \(materialBumpCode)
         
                 // Sun
                 {
@@ -487,6 +489,7 @@ class ObjectShader      : BaseShader
                 float3 outNormal = float3(0);
         
                 \(normal.code!)
+                \(materialBumpCode)
         
                 // Sun
                 {
@@ -1043,7 +1046,7 @@ class ObjectShader      : BaseShader
             float3 __originBackupForScaling = __origin;
             float3 __objectPosition = float3(0);
             float outDistance = 10;
-            float bump = 0;
+            //float bump = 0;
             float scale = 1;
 
             //float4 outShape = __funcData->inShape;
@@ -1213,7 +1216,7 @@ class ObjectShader      : BaseShader
             """
              
                 float4 shapeA = outShape;
-                float4 shapeB = float4((outDistance - bump) * scale, -1, \(currentMaterialId), \(prtInstance.idCounter));
+                float4 shapeB = float4((outDistance /*- bump*/) * scale, -1, \(currentMaterialId), \(prtInstance.idCounter));
              
             """
              
@@ -1367,11 +1370,65 @@ class ObjectShader      : BaseShader
                 }
         
                 // Check if material has a bump
-                var hasBump = false
+                //var hasBump = false
                 for (_, conn) in material.propertyConnections {
                     let fragment = conn.2
                     if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
                         
+                        // Needs shape, outNormal, position
+                        materialBumpCode +=
+                        """
+                        
+                        if (shape.z > \(Float(materialIdCounter) - 0.5) && shape.z < \(Float(materialIdCounter) + 0.5))
+                        {
+                            float3 realPosition = position;
+                            float3 position = realPosition; float3 normal = outNormal;
+                            float2 outUV = float2(0);
+                            float bumpFactor = 0.2;
+                        
+                            // bref
+                            {
+                                \(uvMappingCode)
+                            }
+                        
+                            struct PatternOut data;
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float bRef = data.\(conn.1);
+                        
+                            const float2 e = float2(.001, 0);
+                        
+                            // b1
+                            position = realPosition - e.xyy;
+                            {
+                                \(uvMappingCode)
+                            }
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float b1 = data.\(conn.1);
+                        
+                            // b2
+                            position = realPosition - e.yxy;
+                            {
+                                \(uvMappingCode)
+                            }
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float b2 = data.\(conn.1);
+                        
+                            // b3
+                            position = realPosition - e.yyx;
+                            \(uvMappingCode)
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float b3 = data.\(conn.1);
+                        
+                            float3 grad = (float3(b1, b2, b3) - bRef) / e.x;
+                        
+                            grad -= normal * dot(normal, grad);
+                            outNormal = normalize(normal + grad * bumpFactor);
+                        }
+
+                        """
+                        
+                        
+                        /*
                         // First, insert the uvmapping code
                         mapCode +=
                         """
@@ -1389,16 +1446,18 @@ class ObjectShader      : BaseShader
                         """
                         
                         struct PatternOut data;
-                        \(conn.3)(outUV, position, normal, float3(0), &data, __funcData );
+                        \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
                         bump = data.\(conn.1) * 0.02;
                         }
                         
                         """
                         
                         hasBump = true
+                        */
                     }
                 }
                 
+                /*
                 // If material has no bump, reset it
                 if hasBump == false {
                     mapCode +=
@@ -1407,7 +1466,7 @@ class ObjectShader      : BaseShader
                     bump = 0;
                     
                     """
-                }
+                }*/
 
                 materialFuncCode +=
                 """
@@ -1425,23 +1484,7 @@ class ObjectShader      : BaseShader
                 
                 if (shape.z > \(Float(materialIdCounter) - 0.5) && shape.z < \(Float(materialIdCounter) + 0.5))
                 {
-                """
-                
-                materialCode +=
-                    
-                """
-                
                     material\(materialIdCounter)(rayOrigin, incomingDirection, hitPosition, hitNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);
-                
-                    //if (lightType.z == lightType.w) {
-                    //    rayDirection = __materialOut.reflectionDir;
-                    //    rayOrigin = hitPosition + 0.001 * rayDirection * shape.y + __materialOut.reflectionDist * rayDirection;
-                    //}
-                    //color.xyz = color.xyz + __materialOut.color.xyz * mask;
-                    //color = clamp(color, 0.0, 1.0);
-                    //if (lightType.z == lightType.w) {
-                    //    mask *= __materialOut.mask;
-                    //}
                 }
 
                 """

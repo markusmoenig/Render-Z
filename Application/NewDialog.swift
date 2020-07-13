@@ -106,16 +106,16 @@ class NewDialog: MMDialog {
         // Template Items
         let templates3D = Template(view, "3D Templates")
         templates3D.items.append(TemplateItem(view, "Minimal", "Minimal"))
-        templates3D.items.append(TemplateItem(view, "Density Test", "DensityTest"))
+        //templates3D.items.append(TemplateItem(view, "Density Test", "DensityTest"))
         templates.append(templates3D)
         
         let materials3D = Template(view, "Material Examples")
-        materials3D.items.append(TemplateItem(view, "Bricks", "Material_Bricks"))
+        //materials3D.items.append(TemplateItem(view, "Bricks", "Material_Bricks"))
         templates.append(materials3D)
         
         let modeling = Template(view, "Modeling and Terrain (Work in Progress)")
-        modeling.items.append(TemplateItem(view, "Bridge", "Bridge"))
-        modeling.items.append(TemplateItem(view, "Willys WiP", "Willys"))
+        //modeling.items.append(TemplateItem(view, "Bridge", "Bridge"))
+        //modeling.items.append(TemplateItem(view, "Willys WiP", "Willys"))
         templates.append(modeling)
         
         selectedTempItem = templates3D.items[0]

@@ -18,7 +18,8 @@ class TerrainShader     : BaseShader
     var terrainMapCode  = ""
     
     var materialCode    = ""
-    
+    var materialBumpCode = ""
+
     init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
         self.scene = scene
@@ -58,7 +59,7 @@ class TerrainShader     : BaseShader
 
             float outDistance = 1000000.0;
             float localHeight = 0.;
-            float bump = 0;
+            //float bump = 0;
             float localDistance;
             float4 instObject = float4(1000, 1000, -1, -1);
         
@@ -146,7 +147,7 @@ class TerrainShader     : BaseShader
                      """
                      
                      materialId = \(layerMaterialId);
-                     __BUMP_CODE_\(layerMaterialId)__
+                     //__BUMP_CODE_\(layerMaterialId)__
                      layerMaterial = true;
                      
                      """
@@ -284,12 +285,13 @@ class TerrainShader     : BaseShader
          terrainMapCode +=
          """
          
+         /*
          if (layerMaterial == false)
          {
              float localHeight = 0;
              __BUMP_CODE_0__
              height += localHeight;
-         }
+         }*/
          
          float4 rc = float4(position.y - height, 0, materialId, 0);
          if (instObject.x < rc.x)
@@ -306,7 +308,7 @@ class TerrainShader     : BaseShader
          """
         
         let mainMaterialCode = generateMaterialCode(terrain: terrain)
-        
+                
         var raymarchCode = ""
         if let rayMarch = terrain.rayMarcher {
             dryRunComponent(rayMarch, data.count)
@@ -443,7 +445,10 @@ class TerrainShader     : BaseShader
                 float3 outNormal = float3(0);
                 float3 position = rayOrigin + rayDirection * outShape.y;
         
+                float4 shape = outShape;
+
                 \(normalCode)
+                \(materialBumpCode)
         
                 // Sun
                 {
@@ -553,6 +558,7 @@ class TerrainShader     : BaseShader
                  float4 outShape = shape;
          
                 \(normalCode)
+                \(materialBumpCode)
 
                  // Sun
                  {
@@ -772,7 +778,7 @@ class TerrainShader     : BaseShader
             materialFuncCode +=
             """
             
-            void material\(materialIdCounter)(float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
+            void material\(materialIdCounter)(float3 rayOrigin, float3 incomingDirection, float3 hitPosition, float3 hitNormal, float3 directionToLight, float4 lightType,
             float4 lightColor, float shadow, float occlusion, thread struct MaterialOut *__materialOut, thread struct FuncData *__funcData)
             {
                 float2 uv = float2(hitPosition.xz);
@@ -810,38 +816,54 @@ class TerrainShader     : BaseShader
             }
             
             if processBumps {
-                var bumpCode = ""
-
                 // Check if material has a bump
                 for (_, conn) in material.propertyConnections {
                     let fragment = conn.2
                     if fragment.name == "bump" && material.properties.contains(fragment.uuid) {
-                        
-                        bumpCode =
+                        // Needs shape, outNormal, position
+                        materialBumpCode +=
                         """
                         
+                        if (shape.z > \(Float(materialIdCounter) - 0.5) && shape.z < \(Float(materialIdCounter) + 0.5))
                         {
-                            float3 normal = float3(0);
+                            float3 realPosition = position;
+                            float3 position = realPosition; float3 normal = outNormal;
                             float2 outUV = float2(position.xz);
-                            
-                        """
-                                              
-                        // Than call the pattern and assign it to the output of the bump terminal
-                        bumpCode +=
-                        """
+                            float bumpFactor = 0.2;
                         
-                        struct PatternOut data;
-                        \(conn.3)(outUV, position, normal, float3(0), &data, __funcData );
-                        localHeight += data.\(conn.1) * 0.02;
+                            // bref
+                            struct PatternOut data;
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float bRef = data.\(conn.1);
+                        
+                            const float2 e = float2(.001, 0);
+                        
+                            // b1
+                            position = realPosition - e.xyy;
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float b1 = data.\(conn.1);
+                        
+                            // b2
+                            position = realPosition - e.yxy;
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float b2 = data.\(conn.1);
+                        
+                            // b3
+                            position = realPosition - e.yyx;
+                            \(conn.3)(outUV, position, position, normal, float3(0), &data, __funcData );
+                            float b3 = data.\(conn.1);
+                        
+                            float3 grad = (float3(b1, b2, b3) - bRef) / e.x;
+                        
+                            grad -= normal * dot(normal, grad);
+                            outNormal = normalize(normal + grad * bumpFactor);
                         }
-                        
+
                         """
-                    
-                        
                     }
                 }
                 
-                terrainMapCode = terrainMapCode.replacingOccurrences(of: "__BUMP_CODE_\(materialIdCounter)__", with: bumpCode)
+                //terrainMapCode = terrainMapCode.replacingOccurrences(of: "__BUMP_CODE_\(materialIdCounter)__", with: bumpCode)
             }
 
             materialFuncCode +=
@@ -866,7 +888,7 @@ class TerrainShader     : BaseShader
                 
             """
                
-                material\(materialIdCounter)(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &materialOut, __funcData);
+                material\(materialIdCounter)(rayOrigin, rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &materialOut, __funcData);
             }
 
             """
