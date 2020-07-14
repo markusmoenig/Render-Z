@@ -179,8 +179,10 @@ class GroundShader      : BaseShader
                 float3 camDirection = float3(camDirectionTexture.read(textureUV).xyz);
             
                 float3 rayOrigin = camOrigin + shape.y * camDirection;
-                float3 rayDirection = float3(reflectionDirTexture.read(textureUV).xyz);
-
+                float4 direction = float4(reflectionDirTexture.read(textureUV));
+                float3 rayDirection = direction.xyz;
+                rayOrigin += direction.w * rayDirection;
+        
                 float3 outNormal = float3(0);
         
                 \(groundComponent.code!)
@@ -223,7 +225,7 @@ class GroundShader      : BaseShader
 
                  float4 reflectionDir = float4(reflectionDirTexture.read(textureUV));
 
-                 float3 position = (rayOrigin + shape.y * rayDirection) + reflectionDir.xyz * reflectionShape.y;
+                 float3 position = (rayOrigin + shape.y * rayDirection) + reflectionDir.xyz * (reflectionShape.y + reflectionDir.w);
                  float3 outNormal = float3(0);
                  float4 outShape = shape;
          

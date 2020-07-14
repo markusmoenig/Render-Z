@@ -402,7 +402,7 @@ class TerrainShader     : BaseShader
         
             float4 outShape = float4(1000, 1000, -1, -1);
             float3 outNormal = float3(0);
-            float maxDistance = 100.0;
+            float maxDistance = 200.0;
         
             \(raymarchCode)
             \(calculateMaterialIdCode)
@@ -421,7 +421,9 @@ class TerrainShader     : BaseShader
                                     texture2d<half, access::read> reflectionDirTextureIn [[texture(7)]],
                                     texture2d<half, access::write> reflectionDirTextureOut [[texture(8)]],
                                     texture2d<half, access::read> camDirectionTexture [[texture(9)]],
-                                    texture2d<int, access::sample> __terrainTexture [[texture(10)]])
+                                    texture2d<int, access::sample> __terrainTexture [[texture(10)]],
+                                    texture2d<half, access::read> maskTextureIn [[texture(11)]],
+                                    texture2d<half, access::write> maskTextureOut [[texture(12)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
             __funcData->terrainTexture = &__terrainTexture;
@@ -434,6 +436,7 @@ class TerrainShader     : BaseShader
 
             float4 reflectionShape = float4(reflectionTextureIn.read(textureUV));
             float4 reflectionDir = float4(reflectionDirTextureIn.read(textureUV));
+            float4 maskOut = float4(maskTextureIn.read(textureUV));
         
             float4 outShape = float4(shapeTexture.read(textureUV));
             if (isEqual(outShape.w, 0.0)) {
@@ -469,7 +472,8 @@ class TerrainShader     : BaseShader
         
                     reflectionShape = float4(1000, 1000, -1, -1);
                     reflectionDir.xyz = materialOut.reflectionDir;
-                    reflectionDir.w = materialOut.mask.x * shadows.y;
+                    reflectionDir.w = materialOut.reflectionDist;
+                    maskOut.xyz = materialOut.mask * shadows.y;
                 }
         
                 \(lightSamplingCode)
@@ -477,6 +481,7 @@ class TerrainShader     : BaseShader
                 outColor.xyz += uniforms.ambientColor.xyz;
             }
         
+            maskTextureOut.write(half4(maskOut), textureUV);
             reflectionTextureOut.write(half4(reflectionShape), textureUV);
             reflectionDirTextureOut.write(half4(reflectionDir), textureUV);
         
@@ -514,8 +519,10 @@ class TerrainShader     : BaseShader
                 float3 camDirection = float3(camDirectionTexture.read(textureUV).xyz);
             
                 float3 rayOrigin = camOrigin + shape.y * camDirection;
-                float3 rayDirection = float3(reflectionDirTexture.read(textureUV).xyz);
-
+                float4 direction = float4(reflectionDirTexture.read(textureUV));
+                float3 rayDirection = direction.xyz;
+                rayOrigin += direction.w * rayDirection;
+        
                 \(raymarchCode)
             }
 
@@ -531,7 +538,8 @@ class TerrainShader     : BaseShader
                                      texture2d<half, access::read> reflectionTexture [[texture(4)]],
                                      texture2d<half, access::read> reflectionDirTexture [[texture(5)]],
                                      texture2d<half, access::read> camDirectionTexture [[texture(6)]],
-                                     texture2d<int, access::sample> __terrainTexture [[texture(7)]])
+                                     texture2d<int, access::sample> __terrainTexture [[texture(7)]],
+                                     texture2d<half, access::read> maskTexture [[texture(8)]])
          {
              __REFLMATERIAL_INITIALIZE_FUNC_DATA__
             __funcData->terrainTexture = &__terrainTexture;
@@ -543,6 +551,7 @@ class TerrainShader     : BaseShader
              float4 outColor = float4(0);
              float4 shape = float4(depthTexture.read(textureUV));
              float4 reflectionShape = float4(reflectionTexture.read(textureUV));
+            float4 mask = float4(maskTexture.read(textureUV));
 
              if (reflectionShape.w >= \(idStart - 0.1) && reflectionShape.w <= \(idEnd + 0.1))
              {
@@ -553,7 +562,7 @@ class TerrainShader     : BaseShader
 
                  float4 reflectionDir = float4(reflectionDirTexture.read(textureUV));
 
-                 float3 position = (rayOrigin + shape.y * rayDirection) + reflectionDir.xyz * reflectionShape.y;
+                 float3 position = (rayOrigin + shape.y * rayDirection) + reflectionDir.xyz * (reflectionShape.y + reflectionDir.w);
                  float3 outNormal = float3(0);
                  float4 outShape = shape;
          
@@ -577,9 +586,9 @@ class TerrainShader     : BaseShader
 
                      \(materialCode)
 
-                     outColor.xyz += materialOut.color.xyz * reflectionDir.w;
-                     outColor.w = 1.0;
                      outColor.xyz += uniforms.ambientColor.xyz;
+                     outColor.xyz += materialOut.color.xyz * mask.xyz;
+                     outColor.w = 1.0;
                  }
          
                  \(lightSamplingCode)
@@ -592,9 +601,9 @@ class TerrainShader     : BaseShader
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
             Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
-            Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 11, blending: true),
+            Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 13, blending: true),
             Shader(id: "REFLECTION", fragmentName: "reflectionFragment", textureOffset: 7, blending: false),
-            Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 8, addition: true)
+            Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 9, addition: true)
         ])
         
         prtInstance.idCounter += 1
@@ -673,6 +682,8 @@ class TerrainShader     : BaseShader
             if let terrain = globalApp!.artistEditor.getTerrain() {
                 renderEncoder.setFragmentTexture(terrain.getTexture(), index: 10)
             }
+            renderEncoder.setFragmentTexture(prtInstance.currentMaskTexture!, index: 11)
+            renderEncoder.setFragmentTexture(prtInstance.otherMaskTexture!, index: 12)
             applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
@@ -758,6 +769,7 @@ class TerrainShader     : BaseShader
             if let terrain = globalApp!.artistEditor.getTerrain() {
                 renderEncoder.setFragmentTexture(terrain.getTexture(), index: 7)
             }
+            renderEncoder.setFragmentTexture(prtInstance.currentMaskTexture!, index: 8)
             applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             

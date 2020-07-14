@@ -139,9 +139,9 @@ class ObjectShader      : BaseShader
         let fragmentShader =
         """
         
+        \(headerCode)
         \(mapCode)
         \(createLightCode(scene: scene))
-        \(headerCode)
 
         fragment half4 procFragment(VertexOut vertexIn [[stage_in]],
                                     __MAIN_TEXTURE_HEADER_CODE__
@@ -440,7 +440,10 @@ class ObjectShader      : BaseShader
                 float3 camDirection = float3(camDirectionTexture.read(textureUV).xyz);
             
                 float3 rayOrigin = camOrigin + shape.y * camDirection;
-                float3 rayDirection = float3(reflectionDirTexture.read(textureUV).xyz);
+        
+                float4 direction = float4(reflectionDirTexture.read(textureUV));
+                float3 rayDirection = direction.xyz;
+                rayOrigin += direction.w * rayDirection;
         
                 float d = bbox( rayOrigin, rayDirection, uniforms.P, uniforms.L, uniforms.F );
                 if (d > -0.5)
@@ -492,7 +495,7 @@ class ObjectShader      : BaseShader
 
                 float4 reflectionDir = float4(reflectionDirTexture.read(textureUV));
 
-                float3 position = (rayOrigin + shape.y * rayDirection) + reflectionDir.xyz * reflectionShape.y;
+                float3 position = (rayOrigin + shape.y * rayDirection) + reflectionDir.xyz * (reflectionShape.y + reflectionDir.w);
                 float3 outNormal = float3(0);
         
                 \(normal.code!)
@@ -1271,7 +1274,6 @@ class ObjectShader      : BaseShader
                     float4 outColor = __materialOut->color;
                     float3 outMask = __materialOut->mask;
                     float3 outReflectionDir = float3(0);
-                    float outReflectionBlur = 0.;
                     float outReflectionDist = 0.;
                 
                     float3 localPosition = hitPosition;
@@ -1589,7 +1591,7 @@ class ObjectShader      : BaseShader
         
         """
         
-        return headerCode + materialFuncCode + mapCode
+        return headerCode + mapCode + materialFuncCode
     }
     
     func buildTriangles()
