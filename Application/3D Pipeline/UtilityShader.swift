@@ -81,7 +81,7 @@ class UtilityShader         : BaseShader
         fragment float4 clear(RasterizerData in [[stage_in]],
                                      constant float4 &data [[ buffer(0) ]])
         {
-            return float4(1, 0, 0, 1);
+            return data;
         }
 
         """
@@ -102,11 +102,11 @@ class UtilityShader         : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShapeTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(mainShader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32( prtInstance.screenSize.x ), UInt32( prtInstance.screenSize.y ) )
@@ -137,11 +137,11 @@ class UtilityShader         : BaseShader
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
             renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 1.0, green: 1.0, blue: 1, alpha: 1.0)
 
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
 
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32( prtInstance.screenSize.x ), UInt32( prtInstance.screenSize.y ) )
@@ -162,11 +162,11 @@ class UtilityShader         : BaseShader
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
             renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 1.0, green: 1.0, blue: 1, alpha: 1.0)
 
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
 
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32( prtInstance.screenSize.x ), UInt32( prtInstance.screenSize.y ) )
@@ -191,11 +191,11 @@ class UtilityShader         : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.camDirTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(mainShader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32( prtInstance.screenSize.x ), UInt32( prtInstance.screenSize.y ) )

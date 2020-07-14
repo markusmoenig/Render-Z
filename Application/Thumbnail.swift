@@ -69,7 +69,7 @@ class Thumbnail
             
             let instance = PRTInstance()
             instance.commandQueue = mmView.device!.makeCommandQueue()
-            instance.commandBuffer = instance.commandQueue.makeCommandBuffer()!
+            instance.commandBuffer = instance.commandQueue!.makeCommandBuffer()!
             
             instance.cameraOrigin = SIMD3<Float>(8,8,8)
             instance.cameraLookAt = SIMD3<Float>(0,0,0)

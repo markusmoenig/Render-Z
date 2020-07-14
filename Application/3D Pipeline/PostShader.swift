@@ -106,11 +106,11 @@ class PostShader      : BaseShader
                 renderPassDescriptor.colorAttachments[0].texture = otherTexture
                 renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
                 
-                let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+                let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
                 renderEncoder.setRenderPipelineState(mainShader.pipelineState)
                 
                 // ---
-                renderEncoder.setViewport( prtInstance.quadViewport )
+                renderEncoder.setViewport( prtInstance.quadViewport! )
                 renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
                 
                 var viewportSize : vector_uint2 = vector_uint2( UInt32( texture.width ), UInt32( texture.height ) )
@@ -139,11 +139,11 @@ class PostShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // ---
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32( texture.width ), UInt32( texture.height ) )

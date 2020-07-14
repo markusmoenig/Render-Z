@@ -79,14 +79,19 @@ class PRTInstance {
     var reflectionTexture2  : MTLTexture? = nil
     var currentReflTexture  : MTLTexture? = nil
     var otherReflTexture    : MTLTexture? = nil
-
-    var utilityShader       : UtilityShader!
     
-    var commandQueue        : MTLCommandQueue!
-    var commandBuffer       : MTLCommandBuffer!
+    var maskTexture1        : MTLTexture? = nil
+    var maskTexture2        : MTLTexture? = nil
+    var currentMaskTexture  : MTLTexture? = nil
+    var otherMaskTexture    : MTLTexture? = nil
     
-    var quadVertexBuffer    : MTLBuffer!
-    var quadViewport        : MTLViewport!
+    var utilityShader       : UtilityShader? = nil
+    
+    var commandQueue        : MTLCommandQueue? = nil
+    var commandBuffer       : MTLCommandBuffer? = nil
+    
+    var quadVertexBuffer    : MTLBuffer? = nil
+    var quadViewport        : MTLViewport? = nil
 }
 
 class Pipeline3DRT          : Pipeline
@@ -111,9 +116,7 @@ class Pipeline3DRT          : Pipeline
     var postShader          : PostShader? = nil
     var shaders             : [BaseShader] = []
     
-    var prtInstance         : PRTInstance!
-    
-    var inside : Int = 0
+    var prtInstance         : PRTInstance! = nil
 
     override init(_ mmView: MMView)
     {
@@ -142,10 +145,15 @@ class Pipeline3DRT          : Pipeline
         cameraComponent = result.1!
         
         shaders = []
-        
+                
+        if prtInstance != nil {
+            prtInstance.utilityShader = nil
+        }
         prtInstance = PRTInstance()
-
         prtInstance.utilityShader = UtilityShader(instance: prtInstance, scene: scene, camera: cameraComponent)
+        
+        backgroundShader = nil
+        postShader = nil
         
         backgroundShader = BackgroundShader(instance: prtInstance, scene: scene, camera: cameraComponent)
         postShader = PostShader(instance: prtInstance, scene: scene)
@@ -208,29 +216,35 @@ class Pipeline3DRT          : Pipeline
             }
         }*/
         
+        prtInstance.commandQueue = nil
+        prtInstance.commandBuffer = nil
+        prtInstance.quadVertexBuffer = nil
+        prtInstance.quadViewport = nil
+        
         prtInstance.commandQueue = mmView.device!.makeCommandQueue()
-        prtInstance.commandBuffer = prtInstance.commandQueue.makeCommandBuffer()!
+        prtInstance.commandBuffer = prtInstance.commandQueue!.makeCommandBuffer()
         prtInstance.quadVertexBuffer = getQuadVertexBuffer(MMRect(0, 0, width, height ) )
         prtInstance.quadViewport = MTLViewport( originX: 0.0, originY: 0.0, width: Double(width), height: Double(height), znear: -1.0, zfar: 1.0 )
         
         let startTime = Double(Date().timeIntervalSince1970)
         
-        let camHelper = CamHelper3D()
-        camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
+        //let camHelper = CamHelper3D()
+        //camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
         //camHelper.updateProjection()
+                
+        let origin = getTransformedComponentProperty(cameraComponent, "origin")
+        let lookAt = getTransformedComponentProperty(cameraComponent, "lookAt")
         
-        prtInstance.cameraOrigin = camHelper.eye
-        prtInstance.cameraLookAt = camHelper.center
-
+        prtInstance.cameraOrigin = SIMD3<Float>(origin.x, origin.y, origin.z)
+        prtInstance.cameraLookAt = SIMD3<Float>(lookAt.x, lookAt.y, lookAt.z)
         prtInstance.screenSize = float2(width, height)
 
         //prtInstance.projectionMatrix = camHelper.projMatrix
-        prtInstance.projectionMatrix = float4x4(projectionFov: camHelper.fov, near: 1, far: 100, aspect: width / height, lhs: false)// camHelper.projMatrix
-        prtInstance.viewMatrix = float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)//camHelper.getTransform().inverse//float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)
+        //prtInstance.projectionMatrix = float4x4(projectionFov: camHelper.fov, near: 1, far: 100, aspect: width / height, lhs: false)// camHelper.projMatrix
+        //prtInstance.viewMatrix = float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)//camHelper.getTransform().inverse//float4x4(eye: camHelper.eye, center: camHelper.center, up: camHelper.up)
         //prtInstance.viewMatrix = camHelper.getTransform().inverse
 
         prtInstance.camDirTexture = checkTextureSize(width, height, prtInstance.camDirTexture, .rgba16Float)
-
         prtInstance.depthTexture = checkTextureSize(width, height, prtInstance.depthTexture, .rgba16Float)
         
         // The texture objects use for their local distance estimations
@@ -247,7 +261,7 @@ class Pipeline3DRT          : Pipeline
         finalTexture = checkTextureSize(width, height, finalTexture, .rgba16Float)
         //prtInstance.utilityShader.clear(texture: finalTexture!, data: SIMD4<Float>(0, 0, 1, 1))
         
-        prtInstance.utilityShader.cameraTextures()
+        prtInstance.utilityShader!.cameraTextures()
         
         func swapShapeTextures()
         {
@@ -286,6 +300,7 @@ class Pipeline3DRT          : Pipeline
                 swapShapeTextures()
             }
         }
+        
         /*
         // Free the other shape texture
         if prtInstance.currentShapeTexture === prtInstance.shapeTexture1 {
@@ -315,7 +330,7 @@ class Pipeline3DRT          : Pipeline
             }
         }
         
-        prtInstance.utilityShader.clearShadow(shadowTexture: prtInstance.shadowTexture1!)
+        prtInstance.utilityShader!.clearShadow(shadowTexture: prtInstance.shadowTexture1!)
         
         // Calculate the shadows
         for shader in shaders {
@@ -363,11 +378,32 @@ class Pipeline3DRT          : Pipeline
             }
         }
         
+        // Setup the mask textures
+        
+        prtInstance.maskTexture1 = prtInstance.otherShapeTexture
+        prtInstance.maskTexture2 = checkTextureSize(width, height, prtInstance.maskTexture2, .rgba16Float)//prtInstance.otherShadowTexture
+        prtInstance.currentMaskTexture = prtInstance.maskTexture1
+        prtInstance.otherMaskTexture = prtInstance.maskTexture2
+        
+        func swapMaskTextures()
+        {
+            if prtInstance.currentMaskTexture === prtInstance.maskTexture1 {
+                prtInstance.currentMaskTexture = prtInstance.maskTexture2
+                prtInstance.otherMaskTexture = prtInstance.maskTexture1
+            } else {
+                prtInstance.currentMaskTexture = prtInstance.maskTexture1
+                prtInstance.otherMaskTexture = prtInstance.maskTexture2
+            }
+        }
+        
+        //prtInstance.utilityShader!.clear(texture: prtInstance.maskTexture1!, data: SIMD4<Float>(1,1,1,1))
+
         // Calculate the materials
         for shader in shaders {
             if isDisabled(shader: shader) == false {
                 shader.materialPass(texture: finalTexture!)
                 swapReflectionDirTextures()
+                swapMaskTextures()
             }
         }
         
@@ -424,10 +460,10 @@ class Pipeline3DRT          : Pipeline
 
         // RUN IT
         
-        prtInstance.commandBuffer.addCompletedHandler { cb in
+        prtInstance.commandBuffer!.addCompletedHandler { cb in
             print("Execution Time:", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
         }
-        prtInstance.commandBuffer.commit()
+        prtInstance.commandBuffer!.commit()
         
         // DONE
         ids = prtInstance.ids

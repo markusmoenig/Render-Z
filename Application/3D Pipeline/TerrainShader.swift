@@ -35,7 +35,7 @@ class TerrainShader     : BaseShader
         let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
         let terrain = shapeStage.terrain!
 
-        let lightSamplingCode = prtInstance.utilityShader.createLightSamplingMaterialCode(materialCode: "material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);")
+        let lightSamplingCode = prtInstance.utilityShader!.createLightSamplingMaterialCode(materialCode: "material0(rayDirection, hitPosition, outNormal, directionToLight, lightType, lightColor, shadow, occlusion, &__materialOut, __funcData);")
 
         var headerCode = ""
         terrainMapCode =
@@ -610,11 +610,11 @@ class TerrainShader     : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShapeTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(mainShader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
@@ -644,11 +644,11 @@ class TerrainShader     : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
@@ -657,7 +657,7 @@ class TerrainShader     : BaseShader
             // --- Fragment
             
             var fragmentUniforms = createFragmentUniform()
-            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+            var lightUniforms = prtInstance.utilityShader!.createLightStruct()
 
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
@@ -688,11 +688,11 @@ class TerrainShader     : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherReflTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
@@ -729,11 +729,11 @@ class TerrainShader     : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
@@ -745,7 +745,7 @@ class TerrainShader     : BaseShader
             fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
             fragmentUniforms.screenSize = prtInstance.screenSize
 
-            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+            var lightUniforms = prtInstance.utilityShader!.createLightStruct()
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)

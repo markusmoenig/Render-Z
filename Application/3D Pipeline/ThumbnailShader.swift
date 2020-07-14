@@ -137,7 +137,7 @@ class ThumbnailShader       : BaseShader
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
             renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0.0, blue: 0, alpha: 0.0)
 
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
@@ -162,7 +162,7 @@ class ThumbnailShader       : BaseShader
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
             
-            prtInstance.commandBuffer.commit()
+            prtInstance.commandBuffer!.commit()
         }
     }
 }

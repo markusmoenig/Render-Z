@@ -134,7 +134,7 @@ class ObjectShader      : BaseShader
         }
         
         // Light Sampling Code
-        let lightSamplingCode = prtInstance.utilityShader.createLightSamplingMaterialCode(materialCode: materialCode)
+        let lightSamplingCode = prtInstance.utilityShader!.createLightSamplingMaterialCode(materialCode: materialCode)
         
         let fragmentShader =
         """
@@ -346,7 +346,9 @@ class ObjectShader      : BaseShader
                                     texture2d<half, access::write> reflectionTextureOut [[texture(5)]],
                                     texture2d<half, access::read> reflectionDirTextureIn [[texture(6)]],
                                     texture2d<half, access::write> reflectionDirTextureOut [[texture(7)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(8)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(8)]],
+                                    texture2d<half, access::read> maskTextureIn [[texture(9)]],
+                                    texture2d<half, access::write> maskTextureOut [[texture(10)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
         
@@ -357,6 +359,7 @@ class ObjectShader      : BaseShader
             float4 outColor = float4(0);
             float4 shape = float4(depthTexture.read(textureUV));
             float4 reflectionDir = float4(reflectionDirTextureIn.read(textureUV));
+            float4 maskOut = float4(maskTextureIn.read(textureUV));
 
             if (shape.w >= \(idStart - 0.1) && shape.w <= \(idEnd + 0.1))
             {
@@ -390,8 +393,9 @@ class ObjectShader      : BaseShader
                     \(materialCode)
         
                     reflectionDir.xyz = __materialOut.reflectionDir;
-                    reflectionDir.w = __materialOut.mask.x * shadows.y;
-                
+                    reflectionDir.w = __materialOut.reflectionDist;
+                    maskOut.xyz = __materialOut.mask * shadows.y;
+
                     outColor += __materialOut.color;
                 }
         
@@ -400,6 +404,7 @@ class ObjectShader      : BaseShader
                 outColor.xyz += uniforms.ambientColor.xyz;
             }
         
+            maskTextureOut.write(half4(maskOut), textureUV);
             reflectionTextureOut.write(half4(1000, 1000, -1, -1), textureUV);
             reflectionDirTextureOut.write(half4(reflectionDir), textureUV);
 
@@ -464,7 +469,8 @@ class ObjectShader      : BaseShader
                                     texture2d<half, access::read> depthTexture [[texture(3)]],
                                     texture2d<half, access::read> reflectionTexture [[texture(4)]],
                                     texture2d<half, access::read> reflectionDirTexture [[texture(5)]],
-                                    texture2d<half, access::read> camDirectionTexture [[texture(6)]])
+                                    texture2d<half, access::read> camDirectionTexture [[texture(6)]],
+                                    texture2d<half, access::read> maskTexture [[texture(7)]])
         {
             __REFLMATERIAL_INITIALIZE_FUNC_DATA__
         
@@ -475,6 +481,7 @@ class ObjectShader      : BaseShader
             float4 outColor = float4(0);
             float4 shape = float4(depthTexture.read(textureUV));
             float4 reflectionShape = float4(reflectionTexture.read(textureUV));
+            float4 mask = float4(maskTexture.read(textureUV));
 
             if (reflectionShape.w >= \(idStart - 0.1) && reflectionShape.w <= \(idEnd + 0.1))
             {
@@ -509,7 +516,7 @@ class ObjectShader      : BaseShader
                     \(materialCode)
                 
                     outColor.xyz += uniforms.ambientColor.xyz;
-                    outColor.xyz += __materialOut.color.xyz * reflectionDir.w;
+                    outColor.xyz += __materialOut.color.xyz * mask.xyz;
                     outColor.w = 1.0;
                 }
         
@@ -528,10 +535,10 @@ class ObjectShader      : BaseShader
             Shader(id: "MAINFULL", vertexName: "quadVertex", fragmentName: "fullFragment", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
             Shader(id: "BBOX", fragmentName: "bboxFragment", textureOffset: 4, pixelFormat: .rgba16Float, blending: true),
             Shader(id: "BBOXFULL", vertexName: "quadVertex", fragmentName: "bboxFullFragment", textureOffset: 2, pixelFormat: .rgba16Float, blending: true),
-            Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 9, blending: true),
+            Shader(id: "MATERIAL", vertexName: "quadVertex", fragmentName: "materialFragment", textureOffset: 11, blending: true),
             Shader(id: "SHADOW", vertexName: "quadVertex", fragmentName: "shadowFragment", textureOffset: 6, pixelFormat: .rg16Float, blending: false),
             Shader(id: "REFLECTION", vertexName: "quadVertex", fragmentName: "reflectionFragment", textureOffset: 6, blending: false),
-            Shader(id: "REFLMATERIAL", vertexName: "quadVertex", fragmentName: "reflMaterialFragment", textureOffset: 7, addition: true)
+            Shader(id: "REFLMATERIAL", vertexName: "quadVertex", fragmentName: "reflMaterialFragment", textureOffset: 8, addition: true)
         ])
         buildTriangles()
     }
@@ -637,11 +644,11 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].loadAction = .clear
             renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColor(red: 0.0, green: 0, blue: 0, alpha: 0.0)
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
@@ -649,7 +656,7 @@ class ObjectShader      : BaseShader
             
             // --- Fragment
             var fragmentUniforms = createFragmentUniform()
-            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+            var lightUniforms = prtInstance.utilityShader!.createLightStruct()
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
@@ -758,11 +765,11 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
@@ -771,7 +778,7 @@ class ObjectShader      : BaseShader
             // --- Fragment
             
             var fragmentUniforms = createFragmentUniform()
-            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+            var lightUniforms = prtInstance.utilityShader!.createLightStruct()
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
@@ -866,11 +873,11 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShadowTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
@@ -883,7 +890,7 @@ class ObjectShader      : BaseShader
             fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
             fragmentUniforms.screenSize = prtInstance.screenSize
 
-            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+            var lightUniforms = prtInstance.utilityShader!.createLightStruct()
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
@@ -907,11 +914,11 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
@@ -923,7 +930,7 @@ class ObjectShader      : BaseShader
             fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
             fragmentUniforms.screenSize = prtInstance.screenSize
 
-            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+            var lightUniforms = prtInstance.utilityShader!.createLightStruct()
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
@@ -935,6 +942,8 @@ class ObjectShader      : BaseShader
             renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 6)
             renderEncoder.setFragmentTexture(prtInstance.otherReflDirTexture, index: 7)
             renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 8)
+            renderEncoder.setFragmentTexture(prtInstance.currentMaskTexture!, index: 9)
+            renderEncoder.setFragmentTexture(prtInstance.otherMaskTexture!, index: 10)
             applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
@@ -950,11 +959,11 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherReflTexture!
             renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
@@ -991,11 +1000,11 @@ class ObjectShader      : BaseShader
             renderPassDescriptor.colorAttachments[0].texture = texture
             renderPassDescriptor.colorAttachments[0].loadAction = .load
             
-            let renderEncoder = prtInstance.commandBuffer.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
             renderEncoder.setRenderPipelineState(shader.pipelineState)
             
             // --- Vertex
-            renderEncoder.setViewport( prtInstance.quadViewport )
+            renderEncoder.setViewport( prtInstance.quadViewport! )
             renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
             
             var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
@@ -1007,7 +1016,7 @@ class ObjectShader      : BaseShader
             fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
             fragmentUniforms.screenSize = prtInstance.screenSize
 
-            var lightUniforms = prtInstance.utilityShader.createLightStruct()
+            var lightUniforms = prtInstance.utilityShader!.createLightStruct()
             
             renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
             renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
@@ -1017,6 +1026,7 @@ class ObjectShader      : BaseShader
             renderEncoder.setFragmentTexture(prtInstance.currentReflTexture, index: 4)
             renderEncoder.setFragmentTexture(prtInstance.currentReflDirTexture, index: 5)
             renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 6)
+            renderEncoder.setFragmentTexture(prtInstance.currentMaskTexture!, index: 7)
             applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
