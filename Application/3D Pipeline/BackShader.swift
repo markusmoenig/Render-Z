@@ -12,6 +12,9 @@ class BackgroundShader      : BaseShader
 {
     var scene           : Scene
     var camera          : CodeComponent
+    
+    var cloudHeaderCode = ""
+    var cloudCode       = ""
             
     init(instance: PRTInstance, scene: Scene, camera: CodeComponent)
     {
@@ -33,11 +36,14 @@ class BackgroundShader      : BaseShader
         dryRunComponent(backComponent, data.count)
         collectProperties(backComponent)
 
+        createCloudCode()
+        
         let fragmentCode =
         """
         
         \(prtInstance.fragmentUniforms)
         \(backComponent.globalCode!)
+        \(cloudHeaderCode)
 
         fragment float4 procFragment(RasterizerData in [[stage_in]],
                                      __MAIN_TEXTURE_HEADER_CODE__
@@ -61,6 +67,10 @@ class BackgroundShader      : BaseShader
             float3 rayDirection = outDirection;
         
             \(backComponent.code!)
+        
+            float4 inColor = outColor;
+
+            \(cloudCode)
 
             return float4(outColor.xyz, 1.0);
         }
@@ -95,6 +105,10 @@ class BackgroundShader      : BaseShader
                 float3 rayDirection = outDirection;
         
                 \(backComponent.code!)
+        
+                float4 inColor = outColor;
+
+                \(cloudCode)
         
                 outColor.xyz *= mask.xyz;
             }
@@ -173,6 +187,32 @@ class BackgroundShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
+        }
+    }
+    
+    func createCloudCode()
+    {
+        // Insert fog / cloud if they dont exist
+        let preStage = scene.getStage(.PreStage)
+        for c in preStage.children3D {
+            if let list = c.componentLists["clouds"] {
+                for cloudComp in list {
+                    dryRunComponent(cloudComp, data.count)
+                    collectProperties(cloudComp)
+                    
+                    if let headerCode = cloudComp.globalCode {
+                        cloudHeaderCode += headerCode
+                    }
+                    
+                    cloudCode +=
+                    """
+
+                    inColor = outColor;
+                    
+                    """
+                    cloudCode += cloudComp.code!
+                }
+            }
         }
     }
 }

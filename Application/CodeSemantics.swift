@@ -1691,17 +1691,27 @@ class CodeComponent         : Codable, Equatable
         if componentType == .Pattern {
             if let f = functions.last {
                 
-                if f.header.statement.fragments[1].name != "distance2D" {
-                    let arg = CodeFragment(.VariableDefinition, "float", "distance2D", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
-                    f.header.statement.fragments.insert(arg, at: 1)
-                }
-                
                 if f.header.statement.fragments[0].name != "rayOrigin" {
                     let arg = CodeFragment(.VariableDefinition, "float3", "rayOrigin", [.Selectable, .Dragable, .NotCodeable], ["float3"], "floa3")
                     f.header.statement.fragments.insert(arg, at: 0)
                 }
+                
+                if f.header.statement.fragments[2].name != "distance2D" {
+                    let arg = CodeFragment(.VariableDefinition, "float", "distance2D", [.Selectable, .Dragable, .NotCodeable], ["float"], "float")
+                    f.header.statement.fragments.insert(arg, at: 1)
+                }
             }
         }
+        
+        if componentType == .SkyDome {
+            if let f = functions.last {
+                if f.header.statement.fragments[2].name != "rayOrigin" {
+                    let arg = CodeFragment(.VariableDefinition, "float3", "rayOrigin", [.Selectable, .Dragable, .NotCodeable], ["float3"], "floa3")
+                    f.header.statement.fragments.insert(arg, at: 2)
+                }
+            }
+        }
+        
         /*
         if componentType == .PostFX {
             functions.remove(at: 0)
@@ -2347,16 +2357,20 @@ class CodeComponent         : Codable, Equatable
             functions.append(f)
         } else
         if type == .Clouds3D {
-            let f = CodeFunction(type, "cloudDensity")
-            f.comment = "cloud density for the given position"
+            let f = CodeFunction(type, "cloudColor")
+            f.comment = "calculate the cloud color for the given ray"
             
-            let arg1 = CodeFragment(.VariableDefinition, "float3", "position", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            let arg1 = CodeFragment(.VariableDefinition, "float4", "inColor", [.Selectable, .Dragable, .NotCodeable], ["float4"], "float4")
             f.header.statement.fragments.append(arg1)
+            let arg2 = CodeFragment(.VariableDefinition, "float3", "rayOrigin", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg2)
+            let arg3 = CodeFragment(.VariableDefinition, "float3", "rayDirection", [.Selectable, .Dragable, .NotCodeable], ["float3"], "float3")
+            f.header.statement.fragments.append(arg3)
             
             let b = CodeBlock(.Empty)
             b.fragment.addProperty(.Selectable)
             f.body.append(b)
-            f.body.append(f.createOutVariableBlock("float", "outDensity"))
+            f.body.append(f.createOutVariableBlock("float4", "outColor"))
             functions.append(f)
         }
     }

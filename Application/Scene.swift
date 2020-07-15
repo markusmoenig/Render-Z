@@ -512,6 +512,11 @@ class Stage                 : Codable, Equatable
             
             item = StageItem(.PreStage, "Clouds")
             item.componentLists["clouds"] = []
+            
+            //codeComponent = CodeComponent(.Clouds3D, "Default Clouds")
+            //codeComponent.createDefaultFunction(.Clouds3D)
+            //item.componentLists["clouds"] = [codeComponent]
+            
             children3D.append(item)
             placeChild(modeId: "3D", parent: self, child: item, stepSize: 50, radius: 120)
             

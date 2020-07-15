@@ -180,6 +180,7 @@ class App
                     
                     //project.selected!.stages[5] = Stage(.VariablePool, "Variables")
                     
+                    /*
                     // Insert fog / cloud if they dont exist
                     let preStage = project.selected!.getStage(.PreStage)
                     var hasFog = false
@@ -188,14 +189,13 @@ class App
                             hasFog = true
                         }
                         
-                        /*
                         if c.componentLists["clouds"] != nil {
                             
-                            let codeComponent = CodeComponent(.Clouds3D, "Dummy")
+                            let codeComponent = CodeComponent(.Clouds3D, "Default Clouds")
                             codeComponent.createDefaultFunction(.Clouds3D)
                             
                             c.componentLists["clouds"]!.append(codeComponent)
-                        }*/
+                        }
                     }
                     
                     if hasFog == false {
@@ -212,8 +212,9 @@ class App
                         item.componentLists["clouds"] = []
                         preStage.children3D.append(item)
                         placeChild(modeId: "3D", parent: preStage, child: item, stepSize: 50, radius: 120)
-                    }
+                    }*/
                     
+                    /*
                     // Insert Max Fog Distance Variable if it does not exist
                     let variableStage = project.selected!.getStage(.VariablePool)
                     for c in variableStage.children3D {
@@ -233,7 +234,26 @@ class App
                                 }
                             }
                         }
-                    }
+                    }*/
+                    
+                    /*
+                    let variableStage = project.selected!.getStage(.VariablePool)
+                    for c in variableStage.children3D {
+                        if c.name == "World" {
+                            
+                            var newList : [CodeComponent] = []
+                            
+                            if let list = c.componentLists["variables"] {
+                                for v in list {
+                                    if v.libraryName.starts(with: "Fog") == false {
+                                        newList.append(v)
+                                    }
+                                }
+                            }
+                            
+                            c.componentLists["variables"] = newList
+                        }
+                    }*/
                         
                     if project.selected!.stages[4].children2D.count == 0 {
                         project.selected!.stages[4] = Stage(.PostStage, "Post FX")
