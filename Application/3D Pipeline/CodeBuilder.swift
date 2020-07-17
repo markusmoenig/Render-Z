@@ -202,14 +202,14 @@ class CodeBuilder
     var aoState             : MTLComputePipelineState? = nil
     var shadowState         : MTLComputePipelineState? = nil
 
-    var sdfStream           : CodeSDFStream
+    //var sdfStream           : CodeSDFStream
 
     init(_ view: MMView)
     {
         mmView = view
         
         compute = MMCompute()
-        sdfStream = CodeSDFStream()
+        //sdfStream = CodeSDFStream()
         
         buildClearState()
         buildCopyState()
@@ -264,9 +264,57 @@ class CodeBuilder
         return inst
     }
     
+    func insertTextureCode(_ instance: CodeBuilderInstance, startOffset: Int, id: String)
+    {
+        // Replace
+        var code = ""
+        
+        for (index, t) in instance.textures.enumerated() {
+            code += "texture2d<half, access::sample>     \(t.1) [[texture(\(index + startOffset))]], \n"
+            //print(t.0, index + startOffset)
+        }
+
+        var changed = instance.code.replacingOccurrences(of: "__\(id)_TEXTURE_HEADER_CODE__", with: code)
+
+        changed = changed.replacingOccurrences(of: "__\(id)_AFTER_TEXTURE_OFFSET__", with: String(startOffset + instance.textures.count))
+        //print("__AFTER_TEXTURE_OFFSET__", startOffset + instance.textures.count)
+
+        code = ""
+        if instance.textures.count > 0 {
+            code = "constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
+        }
+        for t in instance.textures{
+            code += "__funcData->\(t.1) = \(t.1);\n"
+        }
+        
+        changed = changed.replacingOccurrences(of: "__\(id)_TEXTURE_ASSIGNMENT_CODE__", with: code)
+        instance.code = changed
+    }
+    
+    func replaceTexturReferences(_ instance: CodeBuilderInstance)
+    {
+        for tR in instance.textureRep {
+            insertTextureCode(instance, startOffset: tR.1, id: tR.0)
+        }
+        var code = instance.code
+        
+        // __FuncData structure and texture definitions
+        var funcData = ""
+        var textureDefs = ""//constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);\n"
+
+        for t in instance.textures {
+            funcData += "texture2d<half, access::sample> " + t.1 + ";"
+            textureDefs += "texture2d<half, access::sample> " + t.1 + " = __funcData->\(t.1);\n"
+        }
+
+        code = code.replacingOccurrences(of: "__FUNCDATA_TEXTURE_LIST__", with: funcData)
+        code = code.replacingOccurrences(of: "__CREATE_TEXTURE_DEFINITIONS__", with: textureDefs)
+        instance.code = code
+    }
+    
     func buildInstance(_ inst: CodeBuilderInstance, name: String = "componentBuilder", additionalNames: [String] = [])
     {
-        sdfStream.replaceTexturReferences(inst)
+        replaceTexturReferences(inst)
         
         inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
@@ -287,7 +335,7 @@ class CodeBuilder
     
     func buildInstanceAsync(_ inst: CodeBuilderInstance, name: String = "componentBuilder", additionalNames: [String] = [])
     {
-        sdfStream.replaceTexturReferences(inst)
+        //sdfStream.replaceTexturReferences(inst)
         
         inst.buffer = compute.device.makeBuffer(bytes: inst.data, length: inst.data.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
         inst.computeOutBuffer = compute.device.makeBuffer(length: MemoryLayout<SIMD4<Float>>.stride, options: [])!
@@ -434,9 +482,9 @@ class CodeBuilder
     /// Build the source code for the component
     func buildSDF2D(_ inst: CodeBuilderInstance,_ component: CodeComponent, camera: CodeComponent? = nil)
     {
-        sdfStream.openStream(.SDF2D, inst, self, camera: camera)
-        sdfStream.pushComponent(component)
-        sdfStream.closeStream()
+        //sdfStream.openStream(.SDF2D, inst, self, camera: camera)
+        //sdfStream.pushComponent(component)
+        //sdfStream.closeStream()
         
         // Position
         inst.data.append(SIMD4<Float>(0,0,0,0))
@@ -445,9 +493,9 @@ class CodeBuilder
     /// Build the source code for the component
     func buildSDF3D(_ inst: CodeBuilderInstance,_ component: CodeComponent, camera: CodeComponent? = nil)
     {
-        sdfStream.openStream(.SDF3D, inst, self, camera: camera)
-        sdfStream.pushComponent(component)
-        sdfStream.closeStream()
+        //sdfStream.openStream(.SDF3D, inst, self, camera: camera)
+        //sdfStream.pushComponent(component)
+        //sdfStream.closeStream()
         
         // Position
         inst.data.append(SIMD4<Float>(0,0,0,0))

@@ -281,7 +281,7 @@ class ObjectShader      : BaseShader
         }
         
         fragment float2 shadowFragment(RasterizerData vertexIn [[stage_in]],
-                                    __MATERIAL_TEXTURE_HEADER_CODE__
+                                    __SHADOW_TEXTURE_HEADER_CODE__
                                     constant float4 *__data [[ buffer(0) ]],
                                     constant FragmentUniforms &uniforms [[ buffer(1) ]],
                                     constant LightUniforms &lights [[ buffer(2) ]],

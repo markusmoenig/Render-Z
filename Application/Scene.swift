@@ -7,7 +7,7 @@
 //
 
 import MetalKit
-
+/*
 class TerrainLayer          : Codable, Equatable
 {
     enum LayerNoiseType     : Int, Codable {
@@ -116,12 +116,20 @@ class TerrainLayer          : Codable, Equatable
         noise3DFragment = CodeFragment(.Primitive)
         imageFragment = CodeFragment(.Primitive)
     }
-}
+}*/
 
 class Terrain               : Codable
 {
-    var layers              : [TerrainLayer] = []
+    enum TerrainNoiseType     : Int, Codable {
+        case None, TwoD, ThreeD, Image
+    }
+    
+    var noiseType           : TerrainNoiseType = .None
     var materials           : [StageItem] = []
+    
+    var noise2DFragment     : CodeFragment
+    var noise3DFragment     : CodeFragment
+    var imageFragment       : CodeFragment
     
     var texture             : MTLTexture? = nil
     var terrainData         : Data!
@@ -132,11 +140,15 @@ class Terrain               : Codable
     var rayMarcher          : CodeComponent? = nil
 
     private enum CodingKeys: String, CodingKey {
+        case noiseType
         case layers
         case materials
         case terrainData
         case terrainSize
         case terrainScale
+        case noise2DFragment
+        case noise3DFragment
+        case imageFragment
         case terrainHeightScale
         case rayMarcher
     }
@@ -144,7 +156,6 @@ class Terrain               : Codable
     required init(from decoder: Decoder) throws
     {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        layers = try container.decode([TerrainLayer].self, forKey: .layers)
         materials = try container.decode([StageItem].self, forKey: .materials)
         terrainData = try container.decode(Data.self, forKey: .terrainData)
         terrainSize = try container.decode(Float.self, forKey: .terrainSize)
@@ -152,8 +163,13 @@ class Terrain               : Codable
         terrainHeightScale = try container.decode(Float.self, forKey: .terrainHeightScale)
         rayMarcher = try container.decode(CodeComponent?.self, forKey: .rayMarcher)
 
+        noiseType = try container.decode(TerrainNoiseType.self, forKey: .noiseType)
+        noise2DFragment = try container.decode(CodeFragment.self, forKey: .noise2DFragment)
+        noise3DFragment = try container.decode(CodeFragment.self, forKey: .noise3DFragment)
+        imageFragment = try container.decode(CodeFragment.self, forKey: .imageFragment)
+        
         texture = globalApp!.currentPipeline?.checkTextureSize(terrainSize, terrainSize, texture, .r8Sint)
-
+        
         let region = MTLRegionMake2D(0, 0, Int(terrainSize) - 1, Int(terrainSize)-1)
         terrainData.withUnsafeMutableBytes { texArrayPtr in
             if let ptr = texArrayPtr.baseAddress {
@@ -167,8 +183,8 @@ class Terrain               : Codable
     func encode(to encoder: Encoder) throws
     {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(layers, forKey: .layers)
         try container.encode(materials, forKey: .materials)
+        try container.encode(noiseType, forKey: .noiseType)
 
         let region = MTLRegionMake2D(0, 0, Int(terrainSize) - 1, Int(terrainSize)-1)
         var texArray = Array<Int8>(repeating: Int8(0), count: Int(terrainSize*terrainSize))
@@ -181,6 +197,10 @@ class Terrain               : Codable
         }
         let data = Data(bytes: texArray, count: Int(terrainSize*terrainSize))
         try container.encode(data, forKey: .terrainData)
+        
+        try container.encode(noise2DFragment, forKey: .noise2DFragment)
+        try container.encode(noise3DFragment, forKey: .noise3DFragment)
+        try container.encode(imageFragment, forKey: .imageFragment)
         
         try container.encode(terrainSize, forKey: .terrainSize)
         try container.encode(terrainScale, forKey: .terrainScale)
@@ -201,6 +221,10 @@ class Terrain               : Codable
             material.values["maxSlope"] = 1
             material.values["minSlope"] = 0
         }
+        
+        noise2DFragment = CodeFragment(.Primitive)
+        noise3DFragment = CodeFragment(.Primitive)
+        imageFragment = CodeFragment(.Primitive)
         
         rayMarcher = globalApp!.libraryDialog.getItem(ofId: "RayMarch3D", withName: "RayMarch")
         if let raymarch = rayMarcher {
@@ -874,9 +898,9 @@ class Scene                 : Codable, Equatable
         if sceneMode != globalApp!.currentSceneMode {
             globalApp!.currentSceneMode = sceneMode
             if sceneMode == .TwoD {
-                globalApp!.currentPipeline = globalApp!.pipeline2D
+                //globalApp!.currentPipeline = globalApp!.pipeline2D
             } else {
-                globalApp!.currentPipeline = globalApp!.pipeline3D
+                globalApp!.currentPipeline = globalApp!.pipeline3DRT
             }
         }
         
@@ -1117,13 +1141,6 @@ class Scene                 : Codable, Equatable
             if let terrain = globalApp!.artistEditor.getTerrain() {
                 for m in terrain.materials {
                     findInItem(m)
-                }
-                if result.stageItem == nil {
-                    for l in terrain.layers {
-                        if let m = l.material {
-                            findInItem(m)
-                        }
-                    }
                 }
                 if result.stageItem != nil && selectIt == false {
                     // If this component was inside the terrain, return the ground item to ensure proper rendering update

@@ -79,7 +79,7 @@ class UtilityShader         : BaseShader
         }
         
         fragment float4 clear(RasterizerData in [[stage_in]],
-                                     constant float4 &data [[ buffer(0) ]])
+                              constant float4 &data [[ buffer(0) ]])
         {
             return data;
         }

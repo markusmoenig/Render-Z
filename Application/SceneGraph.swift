@@ -1393,7 +1393,7 @@ class SceneGraph                : MMWidget
                         buildChangeComponent(item, name: "UV Mapping", ids: ["UVMAP3D"])
                     } else
                     if comp.componentType == .Material3D {
-                        if item.stage.terrain == nil {
+                        //if item.stage.terrain == nil {
                             buildChangeMaterial(item, name: "Material")
                             items.append(MMMenuItem())
                             let uploadItem = MMMenuItem(text: "Upload...", cb: { () in
@@ -1401,7 +1401,7 @@ class SceneGraph                : MMWidget
                                 dialog.show()
                             } )
                             items.append(uploadItem)
-                        }
+                        //}
                     } else
                     if comp.componentType == .Render2D || comp.componentType == .Render3D {
                         let menuItem = MMMenuItem(text: "Change Renderer", cb: { () in
@@ -2589,11 +2589,6 @@ class SceneGraph                : MMWidget
                     let materials = terrain.materials
                     for c in materials {
                         drawObject(stage: stage, o: c, parent: item, skin: skin)
-                    }
-                    for l in terrain.layers {
-                        if let material = l.material {
-                            drawObject(stage: stage, o: material, parent: item, skin: skin)
-                        }
                     }
                 } else {
                     drawShapesBox(parent: item, skin: skin)

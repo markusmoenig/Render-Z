@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2B9B29A323BB44BF00C2F387"
-               BuildableName = "Render-Z.app"
+               BuildableName = "Shape-Z.app"
                BlueprintName = "Shape-Z iOS"
                ReferencedContainer = "container:Shape-Z.xcodeproj">
             </BuildableReference>
@@ -45,7 +45,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2B9B29A323BB44BF00C2F387"
-            BuildableName = "Render-Z.app"
+            BuildableName = "Shape-Z.app"
             BlueprintName = "Shape-Z iOS"
             ReferencedContainer = "container:Shape-Z.xcodeproj">
          </BuildableReference>
@@ -62,7 +62,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2B9B29A323BB44BF00C2F387"
-            BuildableName = "Render-Z.app"
+            BuildableName = "Shape-Z.app"
             BlueprintName = "Shape-Z iOS"
             ReferencedContainer = "container:Shape-Z.xcodeproj">
          </BuildableReference>

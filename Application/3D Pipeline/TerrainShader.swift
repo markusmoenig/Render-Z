@@ -48,29 +48,68 @@ class TerrainShader     : BaseShader
             return fract((p3.x + p3.y) * p3.z);
         }
 
-        float4 terrainMapCode(float3 position, thread struct FuncData *__funcData)
+        float4 sceneMap(float3 position, thread struct FuncData *__funcData)
         {
             constexpr sampler __textureSampler(mag_filter::linear, min_filter::linear);
-
+        
             constant float4 *__data = __funcData->__data;
             float GlobalTime = __funcData->GlobalTime;
             float GlobalSeed = __funcData->GlobalSeed;
             float materialId = 0.0;
 
-            float outDistance = 1000000.0;
-            float localHeight = 0.;
-            //float bump = 0;
-            float localDistance;
+            float outDistance = 1000.0;
+            float localHeight = 0.0;
             float4 instObject = float4(1000, 1000, -1, -1);
-        
-            bool layerMaterial = false;
         
             float height = __interpolateHeightTexture(*__funcData->terrainTexture, (position.xz + \(terrain.terrainSize) / \(terrain.terrainScale) / 2.0) / \(terrain.terrainSize) * \(terrain.terrainScale)) * \(terrain.terrainHeightScale);
         
         """
         
+        if terrain.noiseType != .None {
+            let component = CodeComponent(.Dummy)
+            let ctx = CodeContext(globalApp!.mmView, nil, globalApp!.mmView.openSans, globalApp!.developerEditor.codeEditor.codeContext.fontScale)
+            ctx.reset(globalApp!.developerEditor.codeEditor.rect.width, data.count, patternList: [])
+            ctx.cComponent = component
+            component.globalCode = ""
+            
+            if terrain.noiseType == .TwoD {
+
+                let layerName = generateNoise2DFunction(ctx, terrain.noise2DFragment)
+                terrainMapCode +=
+                """
+                localHeight = \(layerName)(position.xz, __funcData);
+                """
+            } else
+            if terrain.noiseType == .ThreeD {
+
+                let layerName = generateNoise3DFunction(ctx, terrain.noise3DFragment)
+                terrainMapCode +=
+                """
+                localHeight = \(layerName)(position + float3(0,localHeight, 0), __funcData);
+                """
+            } else
+            if terrain.noiseType == .Image {
+
+                let layerName = generateImageFunction(ctx, terrain.imageFragment)
+                terrainMapCode +=
+                """
+                localHeight = \(layerName)(position.xz, __funcData).x;
+                """
+            }
+            
+            headerCode += component.globalCode!
+            collectProperties(component)
+        }
+        
+        terrainMapCode +=
+        """
+        
+        height += localHeight;
+        
+        """
+        
          // Insert the noise layers
-         
+         /*
          let materialId = terrain.materials.count
          for (index, layer) in terrain.layers.reversed().enumerated() {
              
@@ -280,22 +319,12 @@ class TerrainShader     : BaseShader
 
                  """
              }
-         }
+         }*/
          
          terrainMapCode +=
          """
          
-         /*
-         if (layerMaterial == false)
-         {
-             float localHeight = 0;
-             __BUMP_CODE_0__
-             height += localHeight;
-         }*/
-         
          float4 rc = float4(position.y - height, 0, materialId, 0);
-         if (instObject.x < rc.x)
-             rc = instObject;
          
          """
                                                      
@@ -317,7 +346,8 @@ class TerrainShader     : BaseShader
                 headerCode += globalCode
             }
             if let code = rayMarch.code {
-                raymarchCode = code.replacingOccurrences(of: "sceneMap", with: "terrainMapCode")
+            //    raymarchCode = code.replacingOccurrences(of: "sceneMap", with: "terrainMapCode")
+                raymarchCode = code
             }
         }
         
@@ -329,11 +359,13 @@ class TerrainShader     : BaseShader
                 headerCode += globalCode
             }
             if let code = normal.code {
-                normalCode = code.replacingOccurrences(of: "sceneMap", with: "terrainMapCode")
+                //normalCode = code.replacingOccurrences(of: "sceneMap", with: "terrainMapCode")
+                normalCode = code
             }
         }
         
-        var calculateMaterialIdCode = ""
+        let calculateMaterialIdCode = ""
+        /*
         if terrain.materials.count > 1 {
             calculateMaterialIdCode +=
             """
@@ -369,6 +401,48 @@ class TerrainShader     : BaseShader
             
             """
         }
+        */
+        
+        // --- Create Soft Shadow Function Code
+        var softShadowCode =
+        """
+        float calcSoftShadow( float3 ro, float3 rd, thread struct FuncData *__funcData)
+        {
+            float outShadow = 1.;
+            float3 position = ro;
+            float3 direction = rd;
+
+        """
+        if let shadows = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .Shadows3D) {
+            dryRunComponent(shadows, data.count)
+            collectProperties(shadows)
+            if let globalCode = shadows.globalCode {
+                headerCode += globalCode
+            }
+            if let code = shadows.code {
+                softShadowCode += code
+            }
+        }
+        softShadowCode +=
+        """
+
+            return outShadow;
+        }
+
+        """
+        
+        // --- Create AO Code
+        var aoCode = ""
+        if let ao = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .AO3D) {
+            dryRunComponent(ao, data.count)
+            collectProperties(ao)
+            if let globalCode = ao.globalCode {
+                headerCode += globalCode
+            }
+            if let code = ao.code {
+                aoCode = code
+            }
+        }
                         
         let fragmentCode =
         """
@@ -386,14 +460,14 @@ class TerrainShader     : BaseShader
                                      constant float4 *__data [[ buffer(0) ]],
                                      constant FragmentUniforms &uniforms [[ buffer(1) ]],
                                      texture2d<half, access::read> camDirectionTexture [[texture(2)]],
-                                     texture2d<int, access::sample> __terrainTexture [[texture(3)]])
+                                     texture2d<int, access::sample> terrainTexture [[texture(3)]])
         {
             float2 size = in.viewportSize;
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
             ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
 
             __MAIN_INITIALIZE_FUNC_DATA__
-            __funcData->terrainTexture = &__terrainTexture;
+            __funcData->terrainTexture = &terrainTexture;
 
             float3 position = float3(uv.x, uv.y, 0);
                     
@@ -404,9 +478,72 @@ class TerrainShader     : BaseShader
             float3 outNormal = float3(0);
             float maxDistance = 200.0;
         
+            rayOrigin += rayDirection * (random(__funcData) * 0.1);
+        
             \(raymarchCode)
             \(calculateMaterialIdCode)
             return outShape;
+        }
+        
+        \(softShadowCode)
+        
+        fragment float2 shadowFragment(RasterizerData vertexIn [[stage_in]],
+                                    __SHADOW_TEXTURE_HEADER_CODE__
+                                    constant float4 *__data [[ buffer(0) ]],
+                                    constant FragmentUniforms &uniforms [[ buffer(1) ]],
+                                    constant LightUniforms &lights [[ buffer(2) ]],
+                                    texture2d<half, access::read> shadowTexture [[texture(3)]],
+                                    texture2d<half, access::read> shapeTexture [[texture(4)]],
+                                    texture2d<half, access::read> camDirectionTexture [[texture(5)]],
+                                    texture2d<int, access::sample> terrainTexture [[texture(6)]])
+        {
+            __SHADOW_INITIALIZE_FUNC_DATA__
+            __funcData->terrainTexture = &terrainTexture;
+
+            float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
+            float2 size = uniforms.screenSize;
+            ushort2 textureUV = ushort2(uv.x * size.x, (1.0 - uv.y) * size.y);
+
+            float4 shape = float4(shapeTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)));
+            float2 shadows = float2(shadowTexture.read(ushort2(uv.x * size.x, (1.0 - uv.y) * size.y)).xy);
+            
+            if (shape.w > -0.5)
+            {
+                float3 rayOrigin = uniforms.cameraOrigin;
+                float3 rayDirection = float3(camDirectionTexture.read(textureUV).xyz);
+                
+                float3 position = rayOrigin + shape.y * rayDirection;
+                position += random(__funcData) * 0.1;
+
+                float3 outNormal = float3(0,0,0);
+                \(normalCode)
+
+                float3 normal = outNormal;
+                float outAO = 1.;
+        
+                \(aoCode)
+                    
+                shadows.x = min(shadows.x, outAO);
+                
+                if (isNotEqual(shape.w, 0.0))
+                {
+                    // Calculate shadows (No self shadowing)
+                    float shadow = calcSoftShadow(position, normalize(lights.lights[0].directionToLight.xyz), __funcData);
+
+                    float3 lightDir = float3(0);
+                    for (int i = 1; i < lights.numberOfLights; ++i)
+                    {
+                        Light light = lights.lights[i];
+                        if (light.lightType == 0) lightDir = normalize(light.directionToLight.xyz);
+                        else lightDir = normalize(light.directionToLight.xyz - position);
+            
+                        shadow = max(calcSoftShadow(position, lightDir, __funcData), shadow);
+                    }
+            
+                    shadows.y = min(shadows.y, shadow);
+                }
+            }
+            return shadows;
         }
                 
         fragment float4 materialFragment(RasterizerData in [[stage_in]],
@@ -421,12 +558,12 @@ class TerrainShader     : BaseShader
                                     texture2d<half, access::read> reflectionDirTextureIn [[texture(7)]],
                                     texture2d<half, access::write> reflectionDirTextureOut [[texture(8)]],
                                     texture2d<half, access::read> camDirectionTexture [[texture(9)]],
-                                    texture2d<int, access::sample> __terrainTexture [[texture(10)]],
+                                    texture2d<int, access::sample> terrainTexture [[texture(10)]],
                                     texture2d<half, access::read> maskTextureIn [[texture(11)]],
                                     texture2d<half, access::write> maskTextureOut [[texture(12)]])
         {
             __MATERIAL_INITIALIZE_FUNC_DATA__
-            __funcData->terrainTexture = &__terrainTexture;
+            __funcData->terrainTexture = &terrainTexture;
 
             float2 size = in.viewportSize;
             float2 uv = float2(in.textureCoordinate.x, in.textureCoordinate.y);
@@ -447,7 +584,7 @@ class TerrainShader     : BaseShader
         
                 float3 outNormal = float3(0);
                 float3 position = rayOrigin + rayDirection * outShape.y;
-        
+
                 float4 shape = outShape;
 
                 \(normalCode)
@@ -496,10 +633,10 @@ class TerrainShader     : BaseShader
                                     texture2d<half, access::read> reflectionTexture [[texture(3)]],
                                     texture2d<half, access::read> reflectionDirTexture [[texture(4)]],
                                     texture2d<half, access::read> camDirectionTexture [[texture(5)]],
-                                    texture2d<int, access::sample> __terrainTexture [[texture(6)]])
+                                    texture2d<int, access::sample> terrainTexture [[texture(6)]])
         {
             __REFLECTION_INITIALIZE_FUNC_DATA__
-            __funcData->terrainTexture = &__terrainTexture;
+            __funcData->terrainTexture = &terrainTexture;
 
             float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
             float2 size = uniforms.screenSize;
@@ -538,11 +675,11 @@ class TerrainShader     : BaseShader
                                      texture2d<half, access::read> reflectionTexture [[texture(4)]],
                                      texture2d<half, access::read> reflectionDirTexture [[texture(5)]],
                                      texture2d<half, access::read> camDirectionTexture [[texture(6)]],
-                                     texture2d<int, access::sample> __terrainTexture [[texture(7)]],
+                                     texture2d<int, access::sample> terrainTexture [[texture(7)]],
                                      texture2d<half, access::read> maskTexture [[texture(8)]])
          {
              __REFLMATERIAL_INITIALIZE_FUNC_DATA__
-            __funcData->terrainTexture = &__terrainTexture;
+             __funcData->terrainTexture = &terrainTexture;
 
              float2 uv = float2(vertexIn.textureCoordinate.x, vertexIn.textureCoordinate.y);
              float2 size = uniforms.screenSize;
@@ -551,7 +688,7 @@ class TerrainShader     : BaseShader
              float4 outColor = float4(0);
              float4 shape = float4(depthTexture.read(textureUV));
              float4 reflectionShape = float4(reflectionTexture.read(textureUV));
-            float4 mask = float4(maskTexture.read(textureUV));
+             float4 mask = float4(maskTexture.read(textureUV));
 
              if (reflectionShape.w >= \(idStart - 0.1) && reflectionShape.w <= \(idEnd + 0.1))
              {
@@ -602,6 +739,7 @@ class TerrainShader     : BaseShader
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: [
             Shader(id: "MAIN", textureOffset: 4, pixelFormat: .rgba16Float, blending: false),
             Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 13, blending: true),
+            Shader(id: "SHADOW", fragmentName: "shadowFragment", textureOffset: 7, pixelFormat: .rg16Float, blending: false),
             Shader(id: "REFLECTION", fragmentName: "reflectionFragment", textureOffset: 7, blending: false),
             Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 9, addition: true)
         ])
@@ -639,6 +777,50 @@ class TerrainShader     : BaseShader
                 renderEncoder.setFragmentTexture(terrain.getTexture(), index: 3)
             }
             applyUserFragmentTextures(shader: mainShader, encoder: renderEncoder)
+            // ---
+            
+            renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
+            renderEncoder.endEncoding()
+        }
+    }
+    
+    override func shadowPass(texture: MTLTexture)
+    {
+        if let shader = shaders["SHADOW"] {
+            let renderPassDescriptor = MTLRenderPassDescriptor()
+            renderPassDescriptor.colorAttachments[0].texture = prtInstance.otherShadowTexture!
+            renderPassDescriptor.colorAttachments[0].loadAction = .dontCare
+            
+            let renderEncoder = prtInstance.commandBuffer!.makeRenderCommandEncoder(descriptor: renderPassDescriptor)!
+            renderEncoder.setRenderPipelineState(shader.pipelineState)
+            
+            // --- Vertex
+            renderEncoder.setViewport( prtInstance.quadViewport! )
+            renderEncoder.setVertexBuffer(prtInstance.quadVertexBuffer, offset: 0, index: 0)
+            
+            var viewportSize : vector_uint2 = vector_uint2( UInt32(prtInstance.screenSize.x), UInt32(prtInstance.screenSize.y) )
+            renderEncoder.setVertexBytes(&viewportSize, length: MemoryLayout<vector_uint2>.stride, index: 1)
+            
+            // --- Fragment
+            
+            var fragmentUniforms = ObjectFragmentUniforms()
+            fragmentUniforms.cameraOrigin = prtInstance.cameraOrigin
+            fragmentUniforms.cameraLookAt = prtInstance.cameraLookAt
+            fragmentUniforms.screenSize = prtInstance.screenSize
+
+            var lightUniforms = prtInstance.utilityShader!.createLightStruct()
+            
+            renderEncoder.setFragmentBuffer(buffer, offset: 0, index: 0)
+            renderEncoder.setFragmentBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 1)
+            renderEncoder.setFragmentBytes(&lightUniforms, length: MemoryLayout<LightUniforms>.stride, index: 2)
+
+            renderEncoder.setFragmentTexture(prtInstance.currentShadowTexture!, index: 3)
+            renderEncoder.setFragmentTexture(prtInstance.currentShapeTexture!, index: 4)
+            renderEncoder.setFragmentTexture(prtInstance.camDirTexture!, index: 5)
+            if let terrain = globalApp!.artistEditor.getTerrain() {
+                renderEncoder.setFragmentTexture(terrain.getTexture(), index: 6)
+            }
+            applyUserFragmentTextures(shader: shader, encoder: renderEncoder)
             // ---
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
@@ -803,7 +985,6 @@ class TerrainShader     : BaseShader
                 float4 outColor = __materialOut->color;
                 float3 outMask = __materialOut->mask;
                 float3 outReflectionDir = float3(0);
-                float outReflectionBlur = 0.;
                 float outReflectionDist = 0.;
                 
                 float3 localPosition = hitPosition;
@@ -913,15 +1094,6 @@ class TerrainShader     : BaseShader
         
         for (index, stageItem) in terrain.materials.enumerated() {
             processMaterial(materialStageItem: stageItem, processBumps: index == 0 ? true : false)
-        }
-        
-        for layer in terrain.layers.reversed() {
-            if let material = layer.material {
-                processMaterial(materialStageItem: material, processBumps: true)
-            } else {
-                //currentMaterialId = materialIdCounter
-                materialIdCounter += 1
-            }
         }
         
         /*

@@ -48,6 +48,7 @@ class Thumbnail
     {
         let result = checkTextureSize(width, height, nil, .bgra8Unorm)
         if comp.componentType == .SDF2D {
+            /*
             depthTexture = checkTextureSize(width, height, depthTexture, .rgba16Float)
             backTexture = checkTextureSize(width, height, backTexture)
             codeBuilder.renderClear(texture: backTexture!, data: SIMD4<Float>(0,0,0,0))
@@ -61,6 +62,7 @@ class Thumbnail
             
             let renderInstance = codeBuilder.build(componentMap["render2D"]!)
             codeBuilder.render(renderInstance, result, inTextures: [depthTexture!, backTexture!])
+            */
         } else
         if comp.componentType == .SDF3D {
             //if componentMap["camera3D"] == nil {
