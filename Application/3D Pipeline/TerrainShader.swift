@@ -359,13 +359,12 @@ class TerrainShader     : BaseShader
                 headerCode += globalCode
             }
             if let code = normal.code {
-                //normalCode = code.replacingOccurrences(of: "sceneMap", with: "terrainMapCode")
                 normalCode = code
             }
         }
         
-        let calculateMaterialIdCode = ""
-        /*
+        var calculateMaterialIdCode = ""
+        
         if terrain.materials.count > 1 {
             calculateMaterialIdCode +=
             """
@@ -401,7 +400,7 @@ class TerrainShader     : BaseShader
             
             """
         }
-        */
+        
         
         // --- Create Soft Shadow Function Code
         var softShadowCode =
@@ -525,7 +524,7 @@ class TerrainShader     : BaseShader
                     
                 shadows.x = min(shadows.x, outAO);
                 
-                if (isNotEqual(shape.w, 0.0))
+                //if (isNotEqual(shape.w, 0.0))
                 {
                     // Calculate shadows (No self shadowing)
                     float shadow = calcSoftShadow(position, normalize(lights.lights[0].directionToLight.xyz), __funcData);
@@ -742,9 +741,7 @@ class TerrainShader     : BaseShader
             Shader(id: "SHADOW", fragmentName: "shadowFragment", textureOffset: 7, pixelFormat: .rg16Float, blending: false),
             Shader(id: "REFLECTION", fragmentName: "reflectionFragment", textureOffset: 7, blending: false),
             Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 9, addition: true)
-        ])
-        
-        prtInstance.idCounter += 1
+        ])        
     }
     
     override func render(texture: MTLTexture)

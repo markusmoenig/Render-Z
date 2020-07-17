@@ -267,9 +267,7 @@ class GroundShader      : BaseShader
             Shader(id: "MATERIAL", fragmentName: "materialFragment", textureOffset: 12, blending: true),
             Shader(id: "REFLECTION", fragmentName: "reflectionFragment", textureOffset: 6, blending: false),
             Shader(id: "REFLMATERIAL", fragmentName: "reflMaterialFragment", textureOffset: 8, addition: true)
-        ])
-        
-        prtInstance.idCounter += 1
+        ])        
     }
     
     override func render(texture: MTLTexture)

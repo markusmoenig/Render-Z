@@ -23,7 +23,9 @@ class ObjectShader      : BaseShader
     var materialCode    = ""
     var materialBumpCode = ""
 
-    var bbTriangles : [Float] = []
+    var bbTriangles     : [Float] = []
+    
+    var claimedIds      : [Int] = []
     
     init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
@@ -35,6 +37,10 @@ class ObjectShader      : BaseShader
         self.rootItem = object
 
         buildShader()
+    }
+    
+    deinit {
+        prtInstance.returnIds(claimedIds)
     }
     
     func buildShader()
@@ -72,9 +78,10 @@ class ObjectShader      : BaseShader
         
         var headerCode = ""
         
-        idStart = Float(prtInstance.idCounter)
         let mapCode = createMapCode()
-        idEnd = Float(prtInstance.idCounter)
+
+        idStart = Float(claimedIds.first!)
+        idEnd = Float(claimedIds.last!)
                 
         // Raymarch
         let rayMarch = findDefaultComponentForStageChildren(stageType: .RenderStage, componentType: .RayMarch3D)!
@@ -674,6 +681,8 @@ class ObjectShader      : BaseShader
             
             renderEncoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 6)
             renderEncoder.endEncoding()
+        } else {
+            print("NO")
         }
         
         #endif
@@ -1224,12 +1233,13 @@ class ObjectShader      : BaseShader
                 }
             }
 
+            let id = prtInstance.claimId()
 
             code +=
             """
              
                 float4 shapeA = outShape;
-                float4 shapeB = float4((outDistance /*- bump*/) * scale, -1, \(currentMaterialId), \(prtInstance.idCounter));
+            float4 shapeB = float4((outDistance /*- bump*/) * scale, -1, \(currentMaterialId), \(id));
              
             """
              
@@ -1243,10 +1253,10 @@ class ObjectShader      : BaseShader
             mapCode += code
              
             // If we have a stageItem, store the id
-            if hierarchy.count > 0 {
-                prtInstance.ids[prtInstance.idCounter] = (hierarchy, component)
-            }
-            prtInstance.idCounter += 1
+            //if hierarchy.count > 0 {
+                claimedIds.append(id)
+                ids[id] = (hierarchy, component)
+            //}
             componentCounter += 1
         }
         

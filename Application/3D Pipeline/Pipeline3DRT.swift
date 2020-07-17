@@ -43,7 +43,6 @@ class PRTInstance {
     
     // Component Ids
     var ids                 : [Int:([StageItem], CodeComponent?)] = [:]
-    var idCounter           : Int = 0
 
     // Camera
     var cameraOrigin        : float3 = float3(0,0,0)
@@ -92,6 +91,32 @@ class PRTInstance {
     
     var quadVertexBuffer    : MTLBuffer? = nil
     var quadViewport        : MTLViewport? = nil
+    
+    var idSet               : [Int] = []
+    
+    init()
+    {
+        for i in 1...500 {
+            idSet.append(i)
+        }
+    }
+    
+    func claimId() -> Int
+    {
+        return idSet.removeFirst()
+    }
+    
+    func returnIds(_ arr: [Int])
+    {
+        for n in arr {
+            idSet.insert(n, at: 0)
+        }
+    }
+    
+    func clean()
+    {
+        ids = [:]
+    }
 }
 
 class Pipeline3DRT          : Pipeline
@@ -107,22 +132,23 @@ class Pipeline3DRT          : Pipeline
     var height              : Float = 0
     
     var scene               : Scene!
-    
-    var dummyTerrainTexture : MTLTexture? = nil
-    
+        
     var cameraComponent     : CodeComponent!
     
     var backgroundShader    : BackgroundShader? = nil
     var postShader          : PostShader? = nil
-    var shaders             : [BaseShader] = []
     
+    var shaders             : [BaseShader] = []
+    var validShaders        : [BaseShader] = []
+
     var prtInstance         : PRTInstance! = nil
 
     override init(_ mmView: MMView)
     {
         super.init(mmView)
         finalTexture = checkTextureSize(10, 10, nil, .rgba16Float)
-        dummyTerrainTexture = checkTextureSize(10, 10, nil, .rg8Sint)
+        
+        prtInstance = PRTInstance()
     }
     
     override func setMinimalPreview(_ mode: Bool = false)
@@ -145,46 +171,66 @@ class Pipeline3DRT          : Pipeline
         cameraComponent = result.1!
         
         shaders = []
-                
-        if prtInstance != nil {
+        validShaders = []
+        
+        prtInstance.clean()
+        
+        if backgroundShader == nil || BackgroundShader.needsToCompile(scene: scene) == true {
+            backgroundShader = nil
+            backgroundShader = BackgroundShader(instance: prtInstance, scene: scene, camera: cameraComponent)
+            
             prtInstance.utilityShader = nil
+            prtInstance.utilityShader = UtilityShader(instance: prtInstance, scene: scene, camera: cameraComponent)
+        } else {
+            #if DEBUG
+            print("reusing background")
+            #endif
         }
-        prtInstance = PRTInstance()
-        prtInstance.utilityShader = UtilityShader(instance: prtInstance, scene: scene, camera: cameraComponent)
         
-        backgroundShader = nil
-        postShader = nil
+        if postShader == nil || PostShader.needsToCompile(scene: scene) == true {
+            postShader = nil
+            postShader = PostShader(instance: prtInstance, scene: scene)
+        } else {
+            #if DEBUG
+            print("reusing postfx")
+            #endif
+        }
         
-        backgroundShader = BackgroundShader(instance: prtInstance, scene: scene, camera: cameraComponent)
-        postShader = PostShader(instance: prtInstance, scene: scene)
+        validShaders.append(prtInstance.utilityShader!)
+        validShaders.append(backgroundShader!)
+        validShaders.append(postShader!)
 
         let shapeStage = scene.getStage(.ShapeStage)
         for item in shapeStage.getChildren() {
             
-            if 1 > 0 { //item.builderInstance == nil {
-                // Object
+            if item.shader == nil {
                 if item.getComponentList("shapes") != nil {
-
-                    
+                    // Object
                     let shader = ObjectShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
                     shaders.append(shader)
-
-                    //item.builderInstance = instance
-                    //instance.rootObject = item
+                    item.shader = shader
                 } else {
                     let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
                     if shapeStage.terrain != nil {
                         let shader = TerrainShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
                         shaders.append(shader)
+                        item.shader = shader
                     } else
                     if let ground = item.components[item.defaultName], ground.componentType == .Ground3D {
                         // Ground Object
 
                         let shader = GroundShader(instance: prtInstance, scene: scene, object: item, camera: cameraComponent)
                         shaders.append(shader)
+                        item.shader = shader
                     }
                 }
             } else {
+                shaders.append(item.shader!)
+                
+                #if DEBUG
+                print("reusing", item.name)
+                #endif
+
                 /*
                 instanceMap["shape_\(index)"] = item.builderInstance
                 
@@ -194,7 +240,12 @@ class Pipeline3DRT          : Pipeline
                 print("reusing", "shape_\(index)")
                 #endif*/
             }
+            
+            item.shader!.ids.forEach { (key, value) in prtInstance!.ids[key] = value }
         }
+        
+        ids = prtInstance.ids
+        validShaders += shaders
     }
         
     // Render the pipeline
@@ -202,20 +253,16 @@ class Pipeline3DRT          : Pipeline
     {
         width = round(widthIn); height = round(heightIn)
         
-        /*
-        var shadersToTest = shaders
-        if let background = backgroundShader {
-            shadersToTest.append(background)
-        }
+        //let startTime = Double(Date().timeIntervalSince1970)
         
-        for shader in shadersToTest {
-            for sh in shader.shaders {
-                if sh.value.shaderState != .Compiled {
+        for shader in validShaders {
+            for all in shader.allShaders {
+                if shader.shaders[all.id] == nil {
                     return
                 }
             }
-        }*/
-        
+        }
+                        
         prtInstance.commandQueue = nil
         prtInstance.commandBuffer = nil
         prtInstance.quadVertexBuffer = nil
@@ -225,9 +272,7 @@ class Pipeline3DRT          : Pipeline
         prtInstance.commandBuffer = prtInstance.commandQueue!.makeCommandBuffer()
         prtInstance.quadVertexBuffer = getQuadVertexBuffer(MMRect(0, 0, width, height ) )
         prtInstance.quadViewport = MTLViewport( originX: 0.0, originY: 0.0, width: Double(width), height: Double(height), znear: -1.0, zfar: 1.0 )
-        
-        let startTime = Double(Date().timeIntervalSince1970)
-        
+                
         //let camHelper = CamHelper3D()
         //camHelper.initFromComponent(aspect: width / height, component: cameraComponent)
         //camHelper.updateProjection()
@@ -461,19 +506,16 @@ class Pipeline3DRT          : Pipeline
         // RUN IT
         
         prtInstance.commandBuffer!.addCompletedHandler { cb in
-            print("Execution Time:", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
+            //print("Rendering Time:", (cb.gpuEndTime - cb.gpuStartTime) * 1000)
         }
         prtInstance.commandBuffer!.commit()
         
         // DONE
-        ids = prtInstance.ids
         textureMap["shape"] = prtInstance.currentShapeTexture!
 
         #if DEBUG
-        print("Rendering Time: ", (Double(Date().timeIntervalSince1970) - startTime) * 1000)
+        //print("Setup Time: ", (Double(Date().timeIntervalSince1970) - startTime) * 1000)
         #endif
-        //var points : [Float] = []
-        //pointCloudBuilder.render(points: points, texture: finalTexture!, camera: cameraComponent)
     }
     
     /// Creates a vertex buffer for a quad shader

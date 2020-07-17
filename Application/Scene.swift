@@ -263,7 +263,6 @@ class StageItem             : Codable, Equatable
     var label               : MMTextLabel? = nil
     var componentLabels     : [String:MMTextLabel] = [:]
     
-    var builderInstance     : CodeBuilderInstance? = nil
     var shader              : BaseShader? = nil
 
     private enum CodingKeys: String, CodingKey {
@@ -1166,13 +1165,13 @@ class Scene                 : Codable, Equatable
                     c.builderInstance = nil
                 }
             }
-            stageItem.builderInstance = nil
+            stageItem.shader = nil
             findInChildren(stageItem.children)
         }
         
         func findInItem(_ stageItem: StageItem)
         {
-            stageItem.builderInstance = nil
+            stageItem.shader = nil
             findInChildren(stageItem.children)
         }
         

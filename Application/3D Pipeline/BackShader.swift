@@ -27,8 +27,25 @@ class BackgroundShader      : BaseShader
         for item in preStage.getChildren() {
             if let comp = item.components[item.defaultName], comp.componentType == .SkyDome || comp.componentType == .Pattern {
                 createFragmentSource(backComponent: comp, camera: camera)
+                item.shader = self
             }
         }
+    }
+    
+    static func needsToCompile(scene: Scene) -> Bool
+    {
+        var compile = true
+        
+        let preStage = scene.getStage(.PreStage)
+        for item in preStage.getChildren() {
+            if let comp = item.components[item.defaultName], comp.componentType == .SkyDome || comp.componentType == .Pattern {
+                if item.shader != nil {
+                    compile = false
+                }
+            }
+        }
+
+        return compile
     }
     
     func createFragmentSource(backComponent: CodeComponent, camera: CodeComponent)

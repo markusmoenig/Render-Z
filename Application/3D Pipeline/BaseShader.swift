@@ -82,11 +82,12 @@ class BaseShader
     var idStart             : Float = 0
     var idEnd               : Float = 0
             
-    var prtInstance         : PRTInstance
+    weak var prtInstance    : PRTInstance!
     
     var shaders             : [String:Shader] = [:]
-    
-    var rootItem            : StageItem? = nil
+    var allShaders          : [Shader] = []
+
+    weak var rootItem       : StageItem? = nil
     
     init(instance: PRTInstance)
     {
@@ -95,9 +96,16 @@ class BaseShader
         data.append(SIMD4<Float>(0, 0 ,0, 0))
     }
     
-    func compile(code: String, shaders: [Shader], sync: Bool = true)
+    deinit
+    {
+        shaders = [:]
+        allShaders = []
+    }
+    
+    func compile(code: String, shaders: [Shader], sync: Bool = false)
     {
         self.shaders = [:]
+        allShaders = shaders
         var source = BaseShader.getHeaderCode() + code
         
         for shader in shaders {

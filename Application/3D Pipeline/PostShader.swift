@@ -28,10 +28,25 @@ class PostShader      : BaseShader
                 for c in list {
                     createFragmentSource(component: c)
                 }
+                item.shader = self
             }
         }
         
         compile(code: BaseShader.getQuadVertexSource() + fragmentCode, shaders: sh)
+    }
+    
+    static func needsToCompile(scene: Scene) -> Bool
+    {
+        var compile = true
+        
+        let postStage = scene.getStage(.PostStage)
+        if let item = postStage.children2D.first {
+            if item.shader != nil {
+                compile = false
+            }
+        }
+
+        return compile
     }
     
     func createFragmentSource(component: CodeComponent)

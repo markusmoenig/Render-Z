@@ -598,7 +598,7 @@ class CodeEditor        : MMWidget
     /// Invalidate the BuilderInstance of the StageItem
     func markStageItemInvalid(_ stageItem: StageItem)
     {
-        stageItem.builderInstance = nil
+        stageItem.shader = nil
         
         //print("markStageItemOfComponentInvalid", stageItem.stageItemType, component.componentType)
         if stageItem.stageItemType == .RenderStage || stageItem.stageItemType == .PreStage || stageItem.stageItemType == .LightStage || stageItem.stageItemType == .PostStage {
@@ -611,7 +611,7 @@ class CodeEditor        : MMWidget
             
             var parent : StageItem? = stageItem
             while parent != nil {
-                parent?.builderInstance = nil
+                parent?.shader = nil
                 parent = shapeStage.getParentOfStageItem(parent!).1
             }
         }
