@@ -670,6 +670,8 @@
 		2BCEC68F22A9FC48008DE5F4 /* SceneNodes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */; };
 		2BCF5FA3227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
 		2BCF5FA4227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
+		2BCFF4DA24C67B510003E102 /* PrimitivesShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */; };
+		2BCFF4DB24C67B510003E102 /* PrimitivesShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */; };
 		2BD0E1D7245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
 		2BD0E1D8245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
 		2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D6245A5F6100A61586 /* minimize.tiff */; };
@@ -947,6 +949,7 @@
 		2BCD675A2494514600E066C0 /* BackShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackShader.swift; sourceTree = "<group>"; };
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
+		2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimitivesShader.swift; sourceTree = "<group>"; };
 		2BD0E1D5245A5F6000A61586 /* maximize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = maximize.tiff; sourceTree = "<group>"; };
 		2BD0E1D6245A5F6100A61586 /* minimize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = minimize.tiff; sourceTree = "<group>"; };
 		2BD291B623D435B6006F66BC /* Combo2D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo2D.metal; sourceTree = "<group>"; };
@@ -1173,6 +1176,7 @@
 				2B52E5AB2495BEB3009CFE1F /* GroundShader.swift */,
 				2B8C51A724B432A50070E8D8 /* TerrainShader.swift */,
 				2BF1ABE52499E3E000466979 /* UtilityShader.swift */,
+				2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */,
 				2BCD67592494510E00E066C0 /* ObjectShader.swift */,
 				2B716BED24A039CF002DA1FD /* ThumbnailShader.swift */,
 				2B9B298923B9D4F500C2F387 /* CodeBuilder.swift */,
@@ -2034,6 +2038,7 @@
 				2B7A3C5523B479F4002EC5FC /* CodeFragList.swift in Sources */,
 				2B65083C23E50133003DE093 /* SceneGraph.swift in Sources */,
 				2B9F42F123B9CB2900885B40 /* CodeProperties.swift in Sources */,
+				2BCFF4DA24C67B510003E102 /* PrimitivesShader.swift in Sources */,
 				2BD291BA23D43AB0006F66BC /* Base.swift in Sources */,
 				2B52E5B124972847009CFE1F /* MathLibrary.swift in Sources */,
 				2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */,
@@ -2336,6 +2341,7 @@
 				2B9B29D523BB453400C2F387 /* MMAnimate.swift in Sources */,
 				2BD291BB23D43AB2006F66BC /* Base.swift in Sources */,
 				2B9B29E523BB45C000C2F387 /* BottomRegion.swift in Sources */,
+				2BCFF4DB24C67B510003E102 /* PrimitivesShader.swift in Sources */,
 				2B65083723D6F182003DE093 /* Thumbnail.swift in Sources */,
 				2BD291B823D435B6006F66BC /* Combo2D.metal in Sources */,
 				2B9B29B823BB452800C2F387 /* NodeUI.swift in Sources */,

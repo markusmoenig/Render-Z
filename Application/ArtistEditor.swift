@@ -348,6 +348,7 @@ class ArtistEditor          : Editor
                 designEditor.rect.copy(region.rect)
                 render()
                 drawPreview(mmView: mmView, region.rect)
+                physics.drawDebug(texture: globalApp!.currentPipeline!.finalTexture!)
                 return
             }
             

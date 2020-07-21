@@ -7,8 +7,8 @@
 //
 
 import Foundation
-
 import JavaScriptCore
+import MetalKit
 
 class Physics3D
 {
@@ -20,6 +20,10 @@ class Physics3D
     var valueCopies     : [[String:Float]] = []
     
     var lastTime        : Double? = nil
+    
+    var primShader      : PrimitivesShader? = nil
+    
+    var debug           : Bool = true
     
     init(scene: Scene)
     {
@@ -84,6 +88,14 @@ class Physics3D
                 """)
             }
         }
+        
+        if debug {
+            let preStage = scene.getStage(.PreStage)
+            let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
+            let cameraComponent = result.1!
+            
+            primShader = PrimitivesShader(instance: PRTInstance(), camera: cameraComponent)
+        }
     }
     
     func end()
@@ -108,7 +120,6 @@ class Physics3D
             """)
             
             for object in objects {
-                
                 let pos = context.evaluateScript("""
                     
                 \(object.physicsName).quaternion.toEuler( rotation );
@@ -129,5 +140,30 @@ class Physics3D
             }
         }
         lastTime = time
+    }
+    
+    func drawDebug(texture: MTLTexture)
+    {
+        if let prim = primShader {
+            
+            var sphereData  : [SIMD4<Float>] = []
+            sphereData.append(SIMD4<Float>(1,0,0,0.5))
+
+            for object in objects {
+                let pos = context.evaluateScript("""
+                    
+                \(object.physicsName).quaternion.toEuler( rotation );
+                [\(object.physicsName).position.x, \(object.physicsName).position.y, \(object.physicsName).position.z,
+                (-rotation.x) * 180/Math.PI, (-rotation.z) * 180/Math.PI, (-rotation.y) * 180/Math.PI]
+                
+                """).toArray()!
+
+                sphereData.append(SIMD4<Float>((pos[0] as! NSNumber).floatValue, (pos[2] as! NSNumber).floatValue, (pos[1] as! NSNumber).floatValue, 1))
+            }
+            
+            sphereData.append(SIMD4<Float>(-1,-1,-1,-1))
+
+            prim.drawSpheres(texture: texture, sphereData: sphereData)
+        }
     }
 }
