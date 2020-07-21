@@ -30,8 +30,9 @@ class ArtistEditor          : Editor
 
     var bottomHeight        : Float = 0
 
-    var groundButton        : MMButtonWidget
+    var playButton          : MMButtonWidget
 
+    var groundButton        : MMButtonWidget
     var materialButton      : MMButtonWidget
     var cameraButton        : MMButtonWidget
     //var renderButton        : MMButtonWidget
@@ -43,6 +44,8 @@ class ArtistEditor          : Editor
     
     var terrainEditor       : TerrainEditor
     var terrainIsActive     : Bool = false
+    
+    var physics3D           : Physics3D? = nil
     
     required init(_ view: MMView)
     {
@@ -58,6 +61,13 @@ class ArtistEditor          : Editor
         timelineButton.iconZoom = 2
         timelineButton.rect.height -= 11
         timeline = MMTimeline(view)
+        
+        var liveSkin = MMSkinButton()
+        liveSkin.borderColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.hoverColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+        liveSkin.activeColor = SIMD4<Float>(0.278, 0.553, 0.722, 1.000)//SIMD4<Float>(0.824, 0.396, 0.204, 1.000)
+
+        playButton = MMButtonWidget( mmView, skinToUse: liveSkin, text: "PLAY" )
         
         groundButton = MMButtonWidget( mmView, iconName: "ground" )
         groundButton.iconZoom = 2
@@ -85,6 +95,18 @@ class ArtistEditor          : Editor
         terrainEditor = TerrainEditor(view)
         
         super.init()
+        
+        playButton.clicked = { (event) -> Void in
+            if self.physics3D == nil {
+                self.physics3D = Physics3D(scene: globalApp!.project.selected!)
+                self.mmView.lockFramerate(true)
+            } else {
+                self.playButton.removeState(.Checked)
+                self.physics3D!.end()
+                self.physics3D = nil
+                self.mmView.lockFramerate(false)
+            }
+        }
         
         materialButton.clicked = { (event) -> Void in
             if let component = self.designEditor.designComponent {
@@ -167,7 +189,7 @@ class ArtistEditor          : Editor
     
     override func activate()
     {
-        mmView.registerWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, materialButton)
+        mmView.registerWidgets(widgets: designEditor, timelineButton, playButton, groundButton, cameraButton, materialButton)
         if bottomRegionMode == .Open {
             timeline.activate()
             mmView.registerWidget(timeline)
@@ -178,7 +200,7 @@ class ArtistEditor          : Editor
     
     override func deactivate()
     {
-        mmView.deregisterWidgets(widgets: designEditor, timelineButton, groundButton, cameraButton, materialButton)
+        mmView.deregisterWidgets(widgets: designEditor, playButton, timelineButton, groundButton, cameraButton, materialButton)
         if bottomRegionMode == .Open {
             mmView.deregisterWidget(timeline)
             timeline.deactivate()
@@ -278,7 +300,11 @@ class ArtistEditor          : Editor
             timelineButton.draw()
             globalApp!.topRegion!.graphButton.draw()
             
-            materialButton.rect.x = (globalApp!.topRegion!.rect.width - (-groundButton.rect.width - 20 + materialButton.rect.width + cameraButton.rect.width + 2 * 6)) / 2
+            groundButton.rect.x = (globalApp!.topRegion!.rect.width - (groundButton.rect.width + materialButton.rect.width - playButton.rect.width - 40 + cameraButton.rect.width)) / 2
+            groundButton.rect.y = 4 + 44
+            groundButton.draw()
+            
+            materialButton.rect.x = groundButton.rect.right() + 6
             materialButton.rect.y = 4 + 44
             materialButton.draw()
             
@@ -286,13 +312,9 @@ class ArtistEditor          : Editor
             cameraButton.rect.y = 4 + 44
             cameraButton.draw()
             
-            //renderButton.rect.x = cameraButton.rect.right() + 6
-            //renderButton.rect.y = 4 + 44
-            //renderButton.draw()
-            
-            groundButton.rect.x = materialButton.rect.x - groundButton.rect.width - 20
-            groundButton.rect.y = 4 + 44
-            groundButton.draw()
+            playButton.rect.x = groundButton.rect.x - playButton.rect.width - 40
+            playButton.rect.y = 4 + 44
+            playButton.draw()
         } else
         if region.type == .Left {
             region.rect.width = 0
@@ -319,6 +341,14 @@ class ArtistEditor          : Editor
                     samplesLabel.rect.y = region.rect.bottom() - 17
                     samplesLabel.draw()
                 }
+            }
+            
+            if let physics = physics3D {
+                physics.step()
+                designEditor.rect.copy(region.rect)
+                render()
+                drawPreview(mmView: mmView, region.rect)
+                return
             }
             
             if terrainIsActive {

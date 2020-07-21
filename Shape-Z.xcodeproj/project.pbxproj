@@ -715,6 +715,10 @@
 		2BF632F12361579E00750990 /* MMTabButtonWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF632EC2361570600750990 /* MMTabButtonWidget.swift */; };
 		2BFBC58722D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 		2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
+		2BFC2A1924C2EBD80036C047 /* Physics3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC2A1824C2EBD80036C047 /* Physics3D.swift */; };
+		2BFC2A1A24C2EBD80036C047 /* Physics3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC2A1824C2EBD80036C047 /* Physics3D.swift */; };
+		2BFC2A2524C302F00036C047 /* cannon.js in Resources */ = {isa = PBXBuildFile; fileRef = 2BFC2A2424C302F00036C047 /* cannon.js */; };
+		2BFC2A2624C302F00036C047 /* cannon.js in Resources */ = {isa = PBXBuildFile; fileRef = 2BFC2A2424C302F00036C047 /* cannon.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -965,6 +969,8 @@
 		2BF5D3642220D50D00EAAA76 /* Behavior.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Behavior.swift; sourceTree = "<group>"; };
 		2BF632EC2361570600750990 /* MMTabButtonWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabButtonWidget.swift; sourceTree = "<group>"; };
 		2BFBC58622D2C51300A27FAD /* ReferenceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceList.swift; sourceTree = "<group>"; };
+		2BFC2A1824C2EBD80036C047 /* Physics3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics3D.swift; sourceTree = "<group>"; };
+		2BFC2A2424C302F00036C047 /* cannon.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = cannon.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1074,6 +1080,7 @@
 		2B7A3C0123B46422002EC5FC /* Application */ = {
 			isa = PBXGroup;
 			children = (
+				2BFC2A1724C2EBBD0036C047 /* 3D Physics */,
 				2B8444DE24945CCC0082EE1D /* 3D Pipeline */,
 				2B7A3C2323B46560002EC5FC /* App.swift */,
 				2B8E2FED23C96919005619E4 /* Pipeline.swift */,
@@ -1469,6 +1476,15 @@
 			path = Templates;
 			sourceTree = "<group>";
 		};
+		2BFC2A1724C2EBBD0036C047 /* 3D Physics */ = {
+			isa = PBXGroup;
+			children = (
+				2BFC2A1824C2EBD80036C047 /* Physics3D.swift */,
+				2BFC2A2424C302F00036C047 /* cannon.js */,
+			);
+			path = "3D Physics";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -1732,6 +1748,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BFC2A2524C302F00036C047 /* cannon.js in Resources */,
 				2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B8C51AB24B6A2A80070E8D8 /* camera.tiff in Resources */,
 				2B666FA82464D3EF00BE3E4F /* X_blue_ring.tiff in Resources */,
@@ -1821,6 +1838,7 @@
 				2B9B29DC23BB453B00C2F387 /* GameCuben.json in Resources */,
 				2B9B29B023BB44C000C2F387 /* Assets.xcassets in Resources */,
 				2B8E2FE623C71F36005619E4 /* SourceCodePro.tiff in Resources */,
+				2BFC2A2624C302F00036C047 /* cannon.js in Resources */,
 				2B8DB3852489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
 				2B8C51B224B6A35F0070E8D8 /* material.tiff in Resources */,
 				2B8C51B824B6A47E0070E8D8 /* timeline.tiff in Resources */,
@@ -2029,6 +2047,7 @@
 				2B7A3C2023B46546002EC5FC /* MMFile.swift in Sources */,
 				2B7A3C3723B46838002EC5FC /* EditorRegion.swift in Sources */,
 				2B7A3C1F23B46546002EC5FC /* MMTimeline.swift in Sources */,
+				2BFC2A1924C2EBD80036C047 /* Physics3D.swift in Sources */,
 				2B8E2FDF23C6D7B4005619E4 /* DesignEditor.swift in Sources */,
 				2B7A3C1E23B46546002EC5FC /* MMAnimate.swift in Sources */,
 				2B7A3C1823B46546002EC5FC /* MMFragment.swift in Sources */,
@@ -2298,6 +2317,7 @@
 				2B8E2FE023C6D7B4005619E4 /* DesignEditor.swift in Sources */,
 				2B9B29D723BB453400C2F387 /* MMFile.swift in Sources */,
 				2B9B29D623BB453400C2F387 /* MMTimeline.swift in Sources */,
+				2BFC2A1A24C2EBD80036C047 /* Physics3D.swift in Sources */,
 				2B9B29D123BB453400C2F387 /* MMScrollButton.swift in Sources */,
 				2B9B29EB23BB45CA00C2F387 /* CodeProperties.swift in Sources */,
 				2B9B29C423BB453400C2F387 /* MMDrawable.swift in Sources */,

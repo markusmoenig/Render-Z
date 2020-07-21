@@ -96,7 +96,7 @@ class PRTInstance {
     
     init()
     {
-        for i in 1...500 {
+        for i in 1...200 {
             idSet.append(i)
         }
     }
