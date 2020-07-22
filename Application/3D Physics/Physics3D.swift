@@ -70,22 +70,37 @@ class Physics3D
             let transform = object.components[object.defaultName]!
             if transform.componentType == .Transform3D {
                 
-                object.physicsName = "object\(index)"
-                
-                objects.append(object)
-                valueCopies.append(transform.values)
-                                
-                context.evaluateScript("""
+                if let shader = object.shader as? ObjectShader {
+                    let spheres = shader.buildSpheres()
+                    
+                    object.physicsName = "object\(index)"
+                    
+                    objects.append(object)
+                    valueCopies.append(transform.values)
+                                    
+                    context.evaluateScript("""
 
-                var radius = 1; // m
-                var \(object.physicsName) = new CANNON.Body({
-                    mass: 20, // kg
-                    position: new CANNON.Vec3(\(transform.values["_posX"]!), \(transform.values["_posZ"]!), \(transform.values["_posY"]!)),
-                    rotation: new CANNON.Vec3(\(transform.values["_rotateX"]!), \(transform.values["_rotateZ"]!), \(transform.values["_rotateY"]!)),
-                    shape: new CANNON.Sphere(radius)
-                });
-                world.addBody(\(object.physicsName));
-                """)
+                    var quaternion = new CANNON.Quaternion();
+                        quaternion.setFromEuler( -\(transform.values["_rotateX"]!.degreesToRadians), -\(transform.values["_rotateY"]!.degreesToRadians), -\(transform.values["_rotateZ"]!.degreesToRadians), 'YZX');
+                    var \(object.physicsName) = new CANNON.Body({
+                        mass: 20, // kg
+                        position: new CANNON.Vec3(\(transform.values["_posX"]!), \(transform.values["_posZ"]!), \(transform.values["_posY"]!)),
+                        quaternion: quaternion
+                    });
+                    world.addBody(\(object.physicsName));
+                        
+                    """)
+                    
+                    for sphere in spheres {
+                        
+                        print("\(object.physicsName).addShape(new CANNON.Sphere(\(sphere.w)), new CANNON.Vec3(\(sphere.x), \(sphere.y), \(sphere.z)))")
+                        context.evaluateScript("""
+
+                        \(object.physicsName).addShape(new CANNON.Sphere(\(sphere.w)), new CANNON.Vec3(\(sphere.x), \(sphere.z), \(sphere.y)));
+                            
+                        """)
+                    }
+                }
             }
         }
         
@@ -124,7 +139,7 @@ class Physics3D
                     
                 \(object.physicsName).quaternion.toEuler( rotation );
                 [\(object.physicsName).position.x, \(object.physicsName).position.y, \(object.physicsName).position.z,
-                (-rotation.x) * 180/Math.PI, (-rotation.z) * 180/Math.PI, (-rotation.y) * 180/Math.PI]
+                -rotation.x, -rotation.y, -rotation.z]
                 
                 """).toArray()!
 
@@ -134,9 +149,9 @@ class Physics3D
                 transform.values["_posY"] = (pos[2] as! NSNumber).floatValue
                 transform.values["_posZ"] = (pos[1] as! NSNumber).floatValue
                 
-                transform.values["_rotateX"] = (pos[3] as! NSNumber).floatValue
-                transform.values["_rotateY"] = (pos[5] as! NSNumber).floatValue
-                transform.values["_rotateZ"] = (pos[4] as! NSNumber).floatValue
+                transform.values["_rotateX"] = (pos[3] as! NSNumber).floatValue.radiansToDegrees
+                transform.values["_rotateY"] = (pos[4] as! NSNumber).floatValue.radiansToDegrees
+                transform.values["_rotateZ"] = (pos[5] as! NSNumber).floatValue.radiansToDegrees
             }
         }
         lastTime = time
@@ -150,6 +165,7 @@ class Physics3D
             sphereData.append(SIMD4<Float>(1,0,0,0.5))
 
             for object in objects {
+                /*
                 let pos = context.evaluateScript("""
                     
                 \(object.physicsName).quaternion.toEuler( rotation );
@@ -159,6 +175,22 @@ class Physics3D
                 """).toArray()!
 
                 sphereData.append(SIMD4<Float>((pos[0] as! NSNumber).floatValue, (pos[2] as! NSNumber).floatValue, (pos[1] as! NSNumber).floatValue, 1))
+                */
+                
+                if let spheres = (object.shader as? ObjectShader)?.spheres {
+                    if let transform = object.components[object.defaultName] {
+                        
+                        let x = transform.values["_posX"]!
+                        let y = transform.values["_posY"]!
+                        let z = transform.values["_posZ"]!
+
+                        for (_,sphere) in spheres.enumerated() {
+                            let mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
+                            let rotated = mRotation * SIMD4<Float>(sphere.x, sphere.y, sphere.z, 1)
+                            sphereData.append(SIMD4<Float>(x + rotated.x, y + rotated.y, z + rotated.z, sphere.w))
+                        }
+                    }
+                }
             }
             
             sphereData.append(SIMD4<Float>(-1,-1,-1,-1))

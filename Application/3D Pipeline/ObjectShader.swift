@@ -22,11 +22,14 @@ class ObjectShader      : BaseShader
 
     var materialCode    = ""
     var materialBumpCode = ""
-
-    var bbTriangles     : [Float] = []
     
+    var bbTriangles     : [Float] = []
     var claimedIds      : [Int] = []
     
+    var sphereBuilderState : MTLComputePipelineState? = nil
+    
+    var spheres         : [SIMD4<Float>] = []
+
     init(instance: PRTInstance, scene: Scene, object: StageItem, camera: CodeComponent)
     {
         self.scene = scene
@@ -536,6 +539,174 @@ class ObjectShader      : BaseShader
             return outColor;
         }
         
+        
+        kernel void sphereBuilder(constant float4 *__data [[ buffer(0) ]],
+                                        device float4  *out [[ buffer(1) ]],
+                constant FragmentUniforms &uniforms [[ buffer(2) ]],
+                                                  uint  gid [[thread_position_in_grid]])
+        {
+            float GlobalTime = __data[0].x;
+            float GlobalSeed = __data[0].z;
+            
+            struct FuncData __funcData_;
+            thread struct FuncData *__funcData = &__funcData_;
+            __funcData_.GlobalTime = GlobalTime;
+            __funcData_.GlobalSeed = GlobalSeed;
+            __funcData_.inShape = float4(1000, 1000, -1, -1);
+            __funcData_.hash = 1.0;
+
+            __funcData_.__data = __data;
+        
+            int index = 0;
+            float3 position = float3(0,0,0);
+        
+            float4 rc = sceneMap(position, __funcData);
+            if (rc.x < 0.0) {
+                out[gid + index++] = float4(position, -rc.x);
+            }
+        
+            float3 bbox = uniforms.cameraOrigin;
+        
+            // Edge 1
+            float3 rayOrigin = float3(-bbox.x, -bbox.y, -bbox.z);
+            float stepSize = distance(position, rayOrigin) / 3.0;
+            float3 rayDirection = normalize(float3(bbox.x, bbox.y, bbox.z) - rayOrigin);
+        
+            float t = stepSize;
+            for(int i = 0; i < 3; i++)
+            {
+                position = rayOrigin + rayDirection * t;
+        
+                float4 rc = sceneMap(position, __funcData);
+                if (rc.x < 0.0) {
+                    out[gid + index++] = float4(position, -rc.x);
+                    break;
+                }
+                t += stepSize;
+            }
+        
+            // Edge 2
+            rayOrigin = float3(bbox.x, bbox.y, bbox.z);
+            rayDirection = normalize(float3(-bbox.x, -bbox.y, -bbox.z) - rayOrigin);
+        
+            t = stepSize;
+            for(int i = 0; i < 3; i++)
+            {
+                position = rayOrigin + rayDirection * t;
+        
+                float4 rc = sceneMap(position, __funcData);
+                if (rc.x < 0.0) {
+                    out[gid + index++] = float4(position, -rc.x);
+                    break;
+                }
+                t += stepSize;
+            }
+        
+            // Edge 3
+            rayOrigin = float3(-bbox.x, -bbox.y, bbox.z);
+            rayDirection = normalize(float3(bbox.x, bbox.y, -bbox.z) - rayOrigin);
+        
+            t = stepSize;
+            for(int i = 0; i < 3; i++)
+            {
+                position = rayOrigin + rayDirection * t;
+        
+                float4 rc = sceneMap(position, __funcData);
+                if (rc.x < 0.0) {
+                    out[gid + index++] = float4(position, -rc.x);
+                    break;
+                }
+                t += stepSize;
+            }
+        
+            // Edge 4
+            rayOrigin = float3(bbox.x, bbox.y, -bbox.z);
+            rayDirection = normalize(float3(-bbox.x, -bbox.y, bbox.z) - rayOrigin);
+        
+            t = stepSize;
+            for(int i = 0; i < 3; i++)
+            {
+                position = rayOrigin + rayDirection * t;
+        
+                float4 rc = sceneMap(position, __funcData);
+                if (rc.x < 0.0) {
+                    out[gid + index++] = float4(position, -rc.x);
+                    break;
+                }
+                t += stepSize;
+            }
+        
+            // Edge 5
+            rayOrigin = float3(bbox.x, -bbox.y, -bbox.z);
+            rayDirection = normalize(float3(-bbox.x, bbox.y, bbox.z) - rayOrigin);
+        
+            t = stepSize;
+            for(int i = 0; i < 3; i++)
+            {
+                position = rayOrigin + rayDirection * t;
+        
+                float4 rc = sceneMap(position, __funcData);
+                if (rc.x < 0.0) {
+                    out[gid + index++] = float4(position, -rc.x);
+                    break;
+                }
+                t += stepSize;
+            }
+        
+            // Edge 6
+            rayOrigin = float3(-bbox.x, bbox.y, bbox.z);
+            rayDirection = normalize(float3(bbox.x, -bbox.y, -bbox.z) - rayOrigin);
+        
+            t = stepSize;
+            for(int i = 0; i < 3; i++)
+            {
+                position = rayOrigin + rayDirection * t;
+        
+                float4 rc = sceneMap(position, __funcData);
+                if (rc.x < 0.0) {
+                    out[gid + index++] = float4(position, -rc.x);
+                    break;
+                }
+                t += stepSize;
+            }
+        
+            // Edge 7
+            rayOrigin = float3(-bbox.x, bbox.y, -bbox.z);
+            rayDirection = normalize(float3(bbox.x, -bbox.y, bbox.z) - rayOrigin);
+        
+            t = stepSize;
+            for(int i = 0; i < 3; i++)
+            {
+                position = rayOrigin + rayDirection * t;
+        
+                float4 rc = sceneMap(position, __funcData);
+                if (rc.x < 0.0) {
+                    out[gid + index++] = float4(position, -rc.x);
+                    break;
+                }
+                t += stepSize;
+            }
+        
+            // Edge 8
+            rayOrigin = float3(bbox.x, -bbox.y, bbox.z);
+            rayDirection = normalize(float3(-bbox.x, bbox.y, -bbox.z) - rayOrigin);
+        
+            t = stepSize;
+            for(int i = 0; i < 3; i++)
+            {
+                position = rayOrigin + rayDirection * t;
+        
+                float4 rc = sceneMap(position, __funcData);
+                if (rc.x < 0.0) {
+                    out[gid + index++] = float4(position, -rc.x);
+                    break;
+                }
+                t += stepSize;
+            }
+        
+            out[gid + index] = float4(-1);
+        }
+        
         """
         
         //print(fragmentShader)
@@ -551,6 +722,82 @@ class ObjectShader      : BaseShader
             Shader(id: "REFLMATERIAL", vertexName: "quadVertex", fragmentName: "reflMaterialFragment", textureOffset: 8, addition: true)
         ])
         buildTriangles()
+    }
+    
+    func buildSpheres() -> [SIMD4<Float>]
+    {
+        var spheres : [SIMD4<Float>] = []
+        
+        if sphereBuilderState == nil {
+            sphereBuilderState = createComputeState(name: "sphereBuilder")
+        }
+        
+        if let state = sphereBuilderState {
+                        
+            let values = rootItem!.components[rootItem!.defaultName]!.values
+            rootItem!.components[rootItem!.defaultName]!.values["_posX"] = 0
+            rootItem!.components[rootItem!.defaultName]!.values["_posY"] = 0
+            rootItem!.components[rootItem!.defaultName]!.values["_posZ"] = 0
+            rootItem!.components[rootItem!.defaultName]!.values["_rotateX"] = 0
+            rootItem!.components[rootItem!.defaultName]!.values["_rotateY"] = 0
+            rootItem!.components[rootItem!.defaultName]!.values["_rotateZ"] = 0
+            updateData()
+            rootItem!.components[rootItem!.defaultName]!.values = values
+            
+            let commandQueue = device.makeCommandQueue()
+            let commandBuffer = commandQueue!.makeCommandBuffer()!
+            let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
+            
+            computeEncoder.setComputePipelineState( state )
+            computeEncoder.setBuffer(buffer, offset: 0, index: 0)
+            
+            let outBuffer = device.makeBuffer(length: 10 * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+            computeEncoder.setBuffer(outBuffer, offset: 0, index: 1)
+            
+            var fragmentUniforms = ObjectFragmentUniforms()
+            let scale = values["_scale"]!
+            
+            let bbX : Float
+            let bbY : Float
+            let bbZ : Float
+
+            if values["_bb_x"] == nil {
+                bbX = 1 * scale
+                bbY = 1 * scale
+                bbZ = 1 * scale
+            } else {
+                bbX = values["_bb_x"]! * scale
+                bbY = values["_bb_y"]! * scale
+                bbZ = values["_bb_z"]! * scale
+            }
+            
+            fragmentUniforms.cameraOrigin = SIMD3<Float>(bbX, bbY, bbZ)
+            computeEncoder.setBytes(&fragmentUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 2)
+
+            //calculateThreadGroups(state, computeEncoder, Int(prtInstance.screenSize.x), Int(prtInstance.screenSize.y), limitThreads: true)
+            let numThreadgroups = MTLSize(width: 1, height: 1, depth: 1)
+            let threadsPerThreadgroup = MTLSize(width: 1, height: 1, depth: 1)
+            computeEncoder.dispatchThreadgroups(numThreadgroups, threadsPerThreadgroup: threadsPerThreadgroup)
+            
+            computeEncoder.endEncoding()
+            commandBuffer.commit()
+            
+            commandBuffer.waitUntilCompleted()
+            
+            let result = outBuffer.contents().bindMemory(to: SIMD4<Float>.self, capacity: 1)
+            
+            var index : Int = 0
+            var rc = result[index]
+            while rc.w > 0 {
+                spheres.append(rc)
+                
+                index += 1
+                rc = result[index]
+            }
+        }
+        
+        self.spheres = spheres
+        return spheres
     }
 
     override func render(texture: MTLTexture)

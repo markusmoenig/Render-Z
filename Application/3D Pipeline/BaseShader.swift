@@ -144,6 +144,7 @@ class BaseShader
             } else
             if let library = library {
                 
+                self.library = library
                 for shader in shaders {
                 
                     shader.shaderState = .Compiling
@@ -182,7 +183,7 @@ class BaseShader
                         return
                     }
                     
-                    shader.commandQueue = self.device.makeCommandQueue()
+                    //shader.commandQueue = self.device.makeCommandQueue()
                     shader.shaderState = .Compiled
                     
                     self.shaders[shader.id] = shader
@@ -208,6 +209,46 @@ class BaseShader
                 print(error)
             }
         }
+    }
+    
+    func createComputeState(name: String) -> MTLComputePipelineState?
+    {
+        if let library = library {
+            let function = library.makeFunction(name: name)
+            do {
+                let computePipelineState = try device.makeComputePipelineState( function: function! )
+                return computePipelineState
+            } catch {
+                print( "computePipelineState failed" )
+                return nil
+            }
+        }
+        return nil
+    }
+    
+    func calculateThreadGroups(_ state: MTLComputePipelineState, _ encoder: MTLComputeCommandEncoder,_ width: Int,_ height: Int, store: Bool = false, limitThreads: Bool = false)
+    {
+        let w = limitThreads ? 1 : state.threadExecutionWidth
+        let h = limitThreads ? 1 : state.maxTotalThreadsPerThreadgroup / w
+        let threadsPerThreadgroup = MTLSizeMake(w, h, 1)
+        
+        //let threadsPerGrid = MTLSize(width: width, height: height, depth: 1)
+        //encoder.dispatchThreads(threadsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+
+        let threadgroupsPerGrid = MTLSize(width: (width + w - 1) / w, height: (height + h - 1) / h, depth: 1)
+                
+        print(width, height, threadgroupsPerGrid, threadsPerThreadgroup)
+        encoder.dispatchThreadgroups(threadgroupsPerGrid, threadsPerThreadgroup: threadsPerThreadgroup)
+        
+        /*
+        if store {
+            self.threadsPerThreadgroup = threadsPerThreadgroup
+            self.threadsPerGrid = threadsPerGrid
+            self.threadgroupsPerGrid = threadgroupsPerGrid
+            
+            tWidth = Float(texture.width)
+            tHeight = Float(texture.height)
+        }*/
     }
     
     func render(texture: MTLTexture)
