@@ -81,7 +81,7 @@ class Physics3D
                     context.evaluateScript("""
 
                     var quaternion = new CANNON.Quaternion();
-                        quaternion.setFromEuler( -\(transform.values["_rotateX"]!.degreesToRadians), -\(transform.values["_rotateY"]!.degreesToRadians), -\(transform.values["_rotateZ"]!.degreesToRadians), 'YZX');
+                        quaternion.setFromEuler( \(transform.values["_rotateX"]!.degreesToRadians), \(transform.values["_rotateY"]!.degreesToRadians), \(transform.values["_rotateZ"]!.degreesToRadians), 'ZYX');
                     var \(object.physicsName) = new CANNON.Body({
                         mass: 20, // kg
                         position: new CANNON.Vec3(\(transform.values["_posX"]!), \(transform.values["_posZ"]!), \(transform.values["_posY"]!)),
@@ -139,7 +139,7 @@ class Physics3D
                     
                 \(object.physicsName).quaternion.toEuler( rotation );
                 [\(object.physicsName).position.x, \(object.physicsName).position.y, \(object.physicsName).position.z,
-                -rotation.x, -rotation.y, -rotation.z]
+                rotation.x, rotation.y, rotation.z]
                 
                 """).toArray()!
 
@@ -186,13 +186,17 @@ class Physics3D
 
                         for (_,sphere) in spheres.enumerated() {
                             let mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
-                            let rotated = mRotation * SIMD4<Float>(sphere.x, sphere.y, sphere.z, 1)
-                            sphereData.append(SIMD4<Float>(x + rotated.x, y + rotated.y, z + rotated.z, sphere.w))
+                            
+                            //let r = simd_quatf(mRotation)
+                            //r.axis
+
+                            
+                            let rotated = /*float4x4(translation: [-x, -y, -z]) **/ float4x4(translation: [x, y, z]) * mRotation * SIMD4<Float>(sphere.x, sphere.y, sphere.z, 1)
+                            sphereData.append(SIMD4<Float>(rotated.x, rotated.y, rotated.z, sphere.w))
                         }
                     }
                 }
             }
-            
             sphereData.append(SIMD4<Float>(-1,-1,-1,-1))
 
             prim.drawSpheres(texture: texture, sphereData: sphereData)

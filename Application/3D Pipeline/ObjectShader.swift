@@ -569,7 +569,7 @@ class ObjectShader      : BaseShader
         
             // Edge 1
             float3 rayOrigin = float3(-bbox.x, -bbox.y, -bbox.z);
-            float stepSize = distance(position, rayOrigin) / 3.0;
+            float stepSize = distance(position, rayOrigin) / 6.0;
             float3 rayDirection = normalize(float3(bbox.x, bbox.y, bbox.z) - rayOrigin);
         
             float t = stepSize;
