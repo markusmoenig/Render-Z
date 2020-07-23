@@ -672,6 +672,8 @@
 		2BCF5FA4227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
 		2BCFF4DA24C67B510003E102 /* PrimitivesShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */; };
 		2BCFF4DB24C67B510003E102 /* PrimitivesShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */; };
+		2BCFF4E324C990980003E102 /* oimo.js in Resources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E224C990980003E102 /* oimo.js */; };
+		2BCFF4E424C990980003E102 /* oimo.js in Resources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E224C990980003E102 /* oimo.js */; };
 		2BD0E1D7245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
 		2BD0E1D8245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
 		2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D6245A5F6100A61586 /* minimize.tiff */; };
@@ -950,6 +952,7 @@
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
 		2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimitivesShader.swift; sourceTree = "<group>"; };
+		2BCFF4E224C990980003E102 /* oimo.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = oimo.js; sourceTree = "<group>"; };
 		2BD0E1D5245A5F6000A61586 /* maximize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = maximize.tiff; sourceTree = "<group>"; };
 		2BD0E1D6245A5F6100A61586 /* minimize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = minimize.tiff; sourceTree = "<group>"; };
 		2BD291B623D435B6006F66BC /* Combo2D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo2D.metal; sourceTree = "<group>"; };
@@ -1484,6 +1487,7 @@
 			isa = PBXGroup;
 			children = (
 				2BFC2A1824C2EBD80036C047 /* Physics3D.swift */,
+				2BCFF4E224C990980003E102 /* oimo.js */,
 				2BFC2A2424C302F00036C047 /* cannon.js */,
 			);
 			path = "3D Physics";
@@ -1752,6 +1756,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2BCFF4E324C990980003E102 /* oimo.js in Resources */,
 				2BFC2A2524C302F00036C047 /* cannon.js in Resources */,
 				2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B8C51AB24B6A2A80070E8D8 /* camera.tiff in Resources */,
@@ -1855,6 +1860,7 @@
 				2B666FAC2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
 				2B9CB6F72485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2B8DB37C2489CEB700D57DC4 /* Soil.tiff in Resources */,
+				2BCFF4E424C990980003E102 /* oimo.js in Resources */,
 				2B8C51B524B6A4330070E8D8 /* scenegraph.tiff in Resources */,
 				2B9CB6F42485CC9900CFFA51 /* Z_green.tiff in Resources */,
 				2B2B5FEB242442AD00B9CCF1 /* dev_on.tiff in Resources */,

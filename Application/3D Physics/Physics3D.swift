@@ -36,6 +36,233 @@ class Physics3D
             print(exception!.toString()!)
         }
         
+        let path = Bundle.main.path(forResource: "oimo", ofType: "js")!
+        let data = NSData(contentsOfFile: path)! as Data
+        
+        context.evaluateScript(String(data: data,  encoding: String.Encoding.utf8))
+        setup()
+    }
+    
+    func setup()
+    {
+        context.evaluateScript("""
+
+        world = new OIMO.World({
+            timestep: 1/60,
+            iterations: 8,
+            broadphase: 2, // 1 brute force, 2 sweep and prune, 3 volume tree
+            worldscale: 1, // scale full world
+            random: true,  // randomize sample
+            info: false,   // calculate statistic or not
+            gravity: [0,-9.8,0]
+        });
+
+        var plane = world.add({
+            type:'plane',
+        });
+
+        function qte(quat) {
+
+          const q0 = quat[0];
+          const q1 = quat[1];
+          const q2 = quat[2];
+          const q3 = quat[3];
+
+          const Rx = Math.atan2(2 * (q0 * q1 + q2 * q3), 1 - (2 * (q1 * q1 + q2 * q2)));
+          const Ry = Math.asin(2 * (q0 * q2 - q3 * q1));
+          const Rz = Math.atan2(2 * (q0 * q3 + q1 * q2), 1 - (2  * (q2 * q2 + q3 * q3)));
+
+          const euler = [Rx, Ry, Rz];
+
+          return(euler);
+        };
+
+        """)?.toArray()
+        
+        let node = SCNNode()
+        
+        let shapeStage = scene.getStage(.ShapeStage)
+        for (index, object) in shapeStage.getChildren().enumerated() {
+            
+            let transform = object.components[object.defaultName]!
+            if transform.componentType == .Transform3D {
+                
+                if let shader = object.shader as? ObjectShader {
+                    let spheres = shader.buildSpheres()
+                    
+                    object.physicsName = "object\(index)"
+                    
+                    objects.append(object)
+                    valueCopies.append(transform.values)
+                    
+                    node.simdEulerAngles = SIMD3<Float>(transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians)
+                    let quat = node.simdOrientation
+                    
+                    /*
+                    context.evaluateScript("""
+                        
+                        var \(object.physicsName) = new OIMO.RigidBody( new OIMO.Vec3(\(transform.values["_posX"]!), \(transform.values["_posY"]!), \(transform.values["_posZ"]!)), new OIMO.Quat().setFromEuler( -\(transform.values["_rotateZ"]!.degreesToRadians), -\(transform.values["_rotateY"]!.degreesToRadians), \(transform.values["_rotateX"]!.degreesToRadians) ) );
+                        
+                    """)*/
+                    
+                    context.evaluateScript("""
+                        
+                        var \(object.physicsName) = new OIMO.RigidBody( new OIMO.Vec3(\(transform.values["_posX"]!), \(transform.values["_posY"]!), \(transform.values["_posZ"]!)), new OIMO.Quat(\(quat.imag.x), \(quat.imag.y), \(quat.imag.z), \(quat.real)) );
+                        
+                    """)
+                    
+                    for sphere in spheres {
+                        
+                        context.evaluateScript("""
+
+                        var sc = new OIMO.ShapeConfig();
+                        sc.relativePosition.set( \(sphere.x), \(sphere.y), \(sphere.z) );
+                        \(object.physicsName).addShape(new OIMO.Sphere( sc, \(sphere.w)));
+                            
+                        """)
+                    }
+                    
+                    context.evaluateScript("""
+
+                    \(object.physicsName).setupMass( OIMO.BODY_DYNAMIC, true );
+                    world.addRigidBody( \(object.physicsName) );
+                        
+                    """)
+                }
+            }
+        }
+        
+        if debug {
+            let preStage = scene.getStage(.PreStage)
+            let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
+            let cameraComponent = result.1!
+            
+            primShader = PrimitivesShader(instance: PRTInstance(), camera: cameraComponent)
+        }
+    }
+    
+    func end()
+    {
+        for (index, object) in objects.enumerated() {
+            let transform = object.components[object.defaultName]!
+            transform.values = valueCopies[index]
+        }
+        globalApp!.currentEditor.render()
+    }
+    
+    func step()
+    {
+        let time = Double(Date().timeIntervalSince1970)
+
+        if let lTime = lastTime {
+            
+            context.evaluateScript("""
+
+            world.step();
+
+            """)
+            
+            let node = SCNNode()
+
+            for object in objects {
+                /*
+                let pos = context.evaluateScript("""
+                    
+                \(object.physicsName).quaternion.toEuler( rotation );
+                [\(object.physicsName).position.x, \(object.physicsName).position.y, \(object.physicsName).position.z,
+                rotation.x, rotation.y, rotation.z,
+                \(object.physicsName).quaternion.x, \(object.physicsName).quaternion.y, \(object.physicsName).quaternion.z, \(object.physicsName).quaternion.w]
+                
+                """).toArray()!*/
+                
+                let pos = context.evaluateScript("""
+                
+                //var euler = qte([\(object.physicsName).quaternion.x, \(object.physicsName).quaternion.y, \(object.physicsName).quaternion.z, \(object.physicsName).quaternion.w]);
+                    
+                [\(object.physicsName).pos.x, \(object.physicsName).pos.y, \(object.physicsName).pos.z,
+                //euler[0], euler[1], euler[2],
+                \(object.physicsName).quaternion.x, \(object.physicsName).quaternion.y, \(object.physicsName).quaternion.z, \(object.physicsName).quaternion.w]
+
+                """).toArray()!
+
+                let transform = object.components[object.defaultName]!
+
+                transform.values["_posX"] = (pos[0] as! NSNumber).floatValue
+                transform.values["_posY"] = (pos[1] as! NSNumber).floatValue
+                transform.values["_posZ"] = (pos[2] as! NSNumber).floatValue
+                
+                //transform.values["_rotateX"] = (pos[3] as! NSNumber).floatValue.radiansToDegrees
+                //transform.values["_rotateY"] = (pos[4] as! NSNumber).floatValue.radiansToDegrees
+                //transform.values["_rotateZ"] = (pos[5] as! NSNumber).floatValue.radiansToDegrees
+                
+                node.simdOrientation = simd_quatf(ix: (pos[3] as! NSNumber).floatValue, iy: (pos[4] as! NSNumber).floatValue, iz: (pos[5] as! NSNumber).floatValue, r: (pos[6] as! NSNumber).floatValue)
+                
+                let euler = node.simdEulerAngles
+                
+                transform.values["_rotateX"] = euler.x.radiansToDegrees
+                transform.values["_rotateY"] = euler.y.radiansToDegrees
+                transform.values["_rotateZ"] = euler.z.radiansToDegrees
+            }
+        }
+        lastTime = time
+    }
+    
+    func drawDebug(texture: MTLTexture)
+    {
+        if let prim = primShader {
+            
+            var sphereData  : [SIMD4<Float>] = []
+            sphereData.append(SIMD4<Float>(1,0,0,0.5))
+
+            for object in objects {
+                /*
+                let pos = context.evaluateScript("""
+                    
+                \(object.physicsName).quaternion.toEuler( rotation );
+                [\(object.physicsName).position.x, \(object.physicsName).position.y, \(object.physicsName).position.z,
+                (-rotation.x) * 180/Math.PI, (-rotation.z) * 180/Math.PI, (-rotation.y) * 180/Math.PI]
+                
+                """).toArray()!
+
+                sphereData.append(SIMD4<Float>((pos[0] as! NSNumber).floatValue, (pos[2] as! NSNumber).floatValue, (pos[1] as! NSNumber).floatValue, 1))
+                */
+                
+                if let spheres = (object.shader as? ObjectShader)?.spheres {
+                    if let transform = object.components[object.defaultName] {
+                        
+                        let x = transform.values["_posX"]!
+                        let y = transform.values["_posY"]!
+                        let z = transform.values["_posZ"]!
+
+                        for (_,sphere) in spheres.enumerated() {
+                            let mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
+                            
+                            //let r = simd_quatf(mRotation)
+                            //r.axis
+
+                            
+                            let rotated = /*float4x4(translation: [-x, -y, -z]) **/ float4x4(translation: [x, y, z]) * mRotation * SIMD4<Float>(sphere.x, sphere.y, sphere.z, 1)
+                            sphereData.append(SIMD4<Float>(rotated.x, rotated.y, rotated.z, sphere.w))
+                        }
+                    }
+                }
+            }
+            sphereData.append(SIMD4<Float>(-1,-1,-1,-1))
+
+            prim.drawSpheres(texture: texture, sphereData: sphereData)
+        }
+    }
+    /*
+    
+    init(scene: Scene)
+    {
+        self.scene = scene
+        context = JSContext()!
+        
+        context.exceptionHandler = { context, exception in
+            print(exception!.toString()!)
+        }
+        
         let path = Bundle.main.path(forResource: "cannon", ofType: "js")!
         let data = NSData(contentsOfFile: path)! as Data
         
@@ -219,5 +446,5 @@ class Physics3D
 
             prim.drawSpheres(texture: texture, sphereData: sphereData)
         }
-    }
+    }*/
 }
