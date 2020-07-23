@@ -10,6 +10,8 @@ import Foundation
 import JavaScriptCore
 import MetalKit
 
+import SceneKit
+
 class Physics3D
 {
     
@@ -64,6 +66,8 @@ class Physics3D
 
         """)?.toArray()
         
+        let node = SCNNode()
+
         let shapeStage = scene.getStage(.ShapeStage)
         for (index, object) in shapeStage.getChildren().enumerated() {
             
@@ -78,14 +82,17 @@ class Physics3D
                     objects.append(object)
                     valueCopies.append(transform.values)
                                     
+                    node.simdEulerAngles = SIMD3<Float>(transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians)
+                    let quat = node.simdOrientation
+                        
                     context.evaluateScript("""
 
-                    var quaternion = new CANNON.Quaternion();
-                        quaternion.setFromEuler( \(transform.values["_rotateX"]!.degreesToRadians), \(transform.values["_rotateY"]!.degreesToRadians), \(transform.values["_rotateZ"]!.degreesToRadians), 'ZYX');
+                    //var quaternion = new CANNON.Quaternion();
+                    //    quaternion.setFromEuler( \(transform.values["_rotateX"]!.degreesToRadians), \(transform.values["_rotateY"]!.degreesToRadians), \(transform.values["_rotateZ"]!.degreesToRadians), 'ZYX');
                     var \(object.physicsName) = new CANNON.Body({
                         mass: 20, // kg
                         position: new CANNON.Vec3(\(transform.values["_posX"]!), \(transform.values["_posZ"]!), \(transform.values["_posY"]!)),
-                        quaternion: quaternion
+                        quaternion: new CANNON.Quaternion(\(quat.imag.x), \(quat.imag.y), \(quat.imag.z), \(quat.real))
                     });
                     world.addBody(\(object.physicsName));
                         
@@ -134,12 +141,15 @@ class Physics3D
 
             """)
             
+            let node = SCNNode()
+
             for object in objects {
                 let pos = context.evaluateScript("""
                     
                 \(object.physicsName).quaternion.toEuler( rotation );
                 [\(object.physicsName).position.x, \(object.physicsName).position.y, \(object.physicsName).position.z,
-                rotation.x, rotation.y, rotation.z]
+                rotation.x, rotation.y, rotation.z,
+                \(object.physicsName).quaternion.x, \(object.physicsName).quaternion.y, \(object.physicsName).quaternion.z, \(object.physicsName).quaternion.w]
                 
                 """).toArray()!
 
@@ -152,6 +162,14 @@ class Physics3D
                 transform.values["_rotateX"] = (pos[3] as! NSNumber).floatValue.radiansToDegrees
                 transform.values["_rotateY"] = (pos[4] as! NSNumber).floatValue.radiansToDegrees
                 transform.values["_rotateZ"] = (pos[5] as! NSNumber).floatValue.radiansToDegrees
+                
+                node.simdOrientation = simd_quatf(ix: (pos[6] as! NSNumber).floatValue, iy: (pos[7] as! NSNumber).floatValue, iz: (pos[8] as! NSNumber).floatValue, r: (pos[9] as! NSNumber).floatValue)
+                
+                let euler = node.simdEulerAngles
+                
+                transform.values["_rotateX"] = euler.x.radiansToDegrees
+                transform.values["_rotateY"] = euler.y.radiansToDegrees
+                transform.values["_rotateZ"] = euler.z.radiansToDegrees
             }
         }
         lastTime = time
