@@ -674,6 +674,8 @@
 		2BCFF4DB24C67B510003E102 /* PrimitivesShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */; };
 		2BCFF4E324C990980003E102 /* oimo.js in Resources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E224C990980003E102 /* oimo.js */; };
 		2BCFF4E424C990980003E102 /* oimo.js in Resources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E224C990980003E102 /* oimo.js */; };
+		2BCFF4E624CBD0F90003E102 /* Particle3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E524CBD0F80003E102 /* Particle3D.swift */; };
+		2BCFF4E724CBD0F90003E102 /* Particle3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E524CBD0F80003E102 /* Particle3D.swift */; };
 		2BD0E1D7245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
 		2BD0E1D8245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
 		2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D6245A5F6100A61586 /* minimize.tiff */; };
@@ -953,6 +955,7 @@
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
 		2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimitivesShader.swift; sourceTree = "<group>"; };
 		2BCFF4E224C990980003E102 /* oimo.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = oimo.js; sourceTree = "<group>"; };
+		2BCFF4E524CBD0F80003E102 /* Particle3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Particle3D.swift; sourceTree = "<group>"; };
 		2BD0E1D5245A5F6000A61586 /* maximize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = maximize.tiff; sourceTree = "<group>"; };
 		2BD0E1D6245A5F6100A61586 /* minimize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = minimize.tiff; sourceTree = "<group>"; };
 		2BD291B623D435B6006F66BC /* Combo2D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo2D.metal; sourceTree = "<group>"; };
@@ -1486,6 +1489,7 @@
 		2BFC2A1724C2EBBD0036C047 /* 3D Physics */ = {
 			isa = PBXGroup;
 			children = (
+				2BCFF4E524CBD0F80003E102 /* Particle3D.swift */,
 				2BFC2A1824C2EBD80036C047 /* Physics3D.swift */,
 				2BCFF4E224C990980003E102 /* oimo.js */,
 				2BFC2A2424C302F00036C047 /* cannon.js */,
@@ -2088,6 +2092,7 @@
 				2B7A3C5723B583ED002EC5FC /* CodeEditor.swift in Sources */,
 				2B4600ED2442EAC6004DAF5E /* AppShaders.metal in Sources */,
 				2B65083623D6F182003DE093 /* Thumbnail.swift in Sources */,
+				2BCFF4E624CBD0F90003E102 /* Particle3D.swift in Sources */,
 				2B9B299C23BAD15700C2F387 /* Node.swift in Sources */,
 				2B7A3C5323B4768D002EC5FC /* ArtistEditor.swift in Sources */,
 				2B8E2FEE23C9691A005619E4 /* Pipeline.swift in Sources */,
@@ -2285,6 +2290,7 @@
 				2B9B29E323BB45C000C2F387 /* TopRegion.swift in Sources */,
 				2B9B29AB23BB44BF00C2F387 /* ViewController.swift in Sources */,
 				2B2B60082426028000B9CCF1 /* ExportDialog.swift in Sources */,
+				2BCFF4E724CBD0F90003E102 /* Particle3D.swift in Sources */,
 				2B8DB3942491A9C300D57DC4 /* Pipeline3DRT.swift in Sources */,
 				2B9B29C823BB453400C2F387 /* MMFloatWidget.swift in Sources */,
 				2B9B29D223BB453400C2F387 /* MMListWidget.swift in Sources */,

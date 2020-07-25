@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import JavaScriptCore
+//import JavaScriptCore
 import MetalKit
 
 import SceneKit
@@ -15,7 +15,7 @@ import SceneKit
 class Physics3D
 {
     
-    var context         : JSContext
+    //var context         : JSContext
     var scene           : Scene
     
     var objects         : [StageItem] = []
@@ -27,6 +27,105 @@ class Physics3D
     
     var debug           : Bool = true
     
+    var particle        : Particle3D!
+    
+    init(scene: Scene)
+    {
+        self.scene = scene
+        setup()
+    }
+    
+    func setup()
+    {
+        particle = Particle3D()
+        
+        func isDisabled(shader: BaseShader) -> Bool
+        {
+            var disabled = false
+            if let root = shader.rootItem {
+                if root.values["disabled"] == 1 {
+                    disabled = true
+                }
+            }
+            return disabled
+        }
+        
+        let shapeStage = scene.getStage(.ShapeStage)
+        for (index, object) in shapeStage.getChildren().enumerated() {
+            
+            if let ground = object.shader as? GroundShader {
+                
+                if isDisabled(shader: ground) == false {
+                }
+                
+                continue
+            }
+            
+            if let shader = object.shader as? TerrainShader {
+                
+                if isDisabled(shader: shader) == false {
+                }
+                
+                continue
+            }
+            
+            let transform = object.components[object.defaultName]!
+            if transform.componentType == .Transform3D {
+                
+                if let shader = object.shader as? ObjectShader, isDisabled(shader: shader) == false {
+                    //let spheres = shader.buildSpheres()
+                    
+                    object.physicsName = "object\(index)"
+                    
+                    objects.append(object)
+                    valueCopies.append(transform.values)
+                    
+                    particle.setPosition(position: float3(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!))
+                 }
+            }
+        }
+        
+        if debug {
+            let preStage = scene.getStage(.PreStage)
+            let result = getFirstItemOfType(preStage.getChildren(), .Camera3D)
+            let cameraComponent = result.1!
+            
+            primShader = PrimitivesShader(instance: PRTInstance(), camera: cameraComponent)
+        }
+    }
+    
+    func end()
+    {
+        for (index, object) in objects.enumerated() {
+            let transform = object.components[object.defaultName]!
+            transform.values = valueCopies[index]
+        }
+        globalApp!.currentEditor.render()
+    }
+    
+    func step()
+    {
+        let time = Double(Date().timeIntervalSince1970)
+
+        if let lTime = lastTime {
+            let duration = Float(time - lTime)
+            
+            for object in objects {
+                let transform = object.components[object.defaultName]!
+
+                particle.integrate(duration: duration)
+
+                transform.values["_posX"] = particle.position.x
+                transform.values["_posY"] = particle.position.y
+                transform.values["_posZ"] = particle.position.z
+                
+            }
+        }
+        lastTime = time
+    }
+    
+    #if false
+
     init(scene: Scene)
     {
         self.scene = scene
@@ -42,7 +141,7 @@ class Physics3D
         context.evaluateScript(String(data: data,  encoding: String.Encoding.utf8))
         setup()
     }
-    
+        
     func setup()
     {
         context.evaluateScript("""
@@ -55,10 +154,6 @@ class Physics3D
             random: true,  // randomize sample
             info: false,   // calculate statistic or not
             gravity: [0,-9.8,0]
-        });
-
-        var plane = world.add({
-            type:'plane',
         });
 
         function qte(quat) {
@@ -81,13 +176,110 @@ class Physics3D
         
         let node = SCNNode()
         
+        func isDisabled(shader: BaseShader) -> Bool
+        {
+            var disabled = false
+            if let root = shader.rootItem {
+                if root.values["disabled"] == 1 {
+                    disabled = true
+                }
+            }
+            return disabled
+        }
+        
         let shapeStage = scene.getStage(.ShapeStage)
         for (index, object) in shapeStage.getChildren().enumerated() {
+            
+            if let ground = object.shader as? GroundShader {
+                
+                if isDisabled(shader: ground) == false {
+                    context.evaluateScript("""
+
+                    var plane = world.add({
+                        type:'plane',
+                    });
+                        
+                    """)
+                }
+                
+                continue
+            }
+            
+            if let shader = object.shader as? TerrainShader {
+                
+                if isDisabled(shader: shader) == false {
+
+                    let shapeStage = globalApp!.project.selected!.getStage(.ShapeStage)
+                    let terrain = shapeStage.terrain!
+                    
+                    func getValue(_ location: SIMD2<Float>) -> Int8
+                    {
+                        var loc = location
+                        var value : Int8 = 0;
+                        
+                        loc.x += terrain.terrainSize / terrain.terrainScale / 2.0 * terrain.terrainScale
+                        loc.y += terrain.terrainSize / terrain.terrainScale / 2.0 * terrain.terrainScale
+                        
+                        let x : Int = Int(loc.x)
+                        let y : Int = Int(loc.y)
+                                
+                        if x >= 0 && x < Int(terrain.terrainSize) && y >= 0 && y < Int(terrain.terrainSize) {
+                            let region = MTLRegionMake2D(min(Int(x), Int(terrain.terrainSize)-1), min(Int(y), Int(terrain.terrainSize)-1), 1, 1)
+                            var texArray = Array<Int8>(repeating: Int8(0), count: 1)
+                            texArray.withUnsafeMutableBytes { texArrayPtr in
+                                if let ptr = texArrayPtr.baseAddress {
+                                    if let texture = terrain.getTexture() {
+                                        texture.getBytes(ptr, bytesPerRow: (MemoryLayout<Int8>.size * texture.width), from: region, mipmapLevel: 0)
+                                    }
+                                }
+                            }
+                            value = texArray[0]
+                        }
+                        
+                        return value
+                    }
+                    
+                    let width = terrain.getTexture()!.width
+                    let height = terrain.getTexture()!.height
+
+                    print(width, height, width * height)
+                    
+                    context.evaluateScript("""
+
+                    var plane = world.add({
+                        type:'plane',
+                    });
+                        
+                    """)
+                    
+                    for w in 0..<width {
+                        
+                        for h in 0..<height {
+                            
+                            let value = Float(getValue(SIMD2<Float>(Float(w),Float(h)))) * terrain.terrainHeightScale
+                            
+                            if value != 0.0 {
+                                
+                                print("adding at", w, h, value)
+                                
+                                context.evaluateScript("""
+
+                                world.add({type:'sphere', size:[60], pos:[\(w), \(value - 60), \(h)] })
+
+                                """)
+                            }
+                        }
+                    }
+                }
+                
+                continue
+            }
+            
             
             let transform = object.components[object.defaultName]!
             if transform.componentType == .Transform3D {
                 
-                if let shader = object.shader as? ObjectShader {
+                if let shader = object.shader as? ObjectShader, isDisabled(shader: shader) == false {
                     let spheres = shader.buildSpheres()
                     
                     object.physicsName = "object\(index)"
@@ -206,54 +398,7 @@ class Physics3D
         }
         lastTime = time
     }
-    
-    func drawDebug(texture: MTLTexture)
-    {
-        if let prim = primShader {
-            
-            var sphereData  : [SIMD4<Float>] = []
-            sphereData.append(SIMD4<Float>(1,0,0,0.5))
-
-            for object in objects {
-                /*
-                let pos = context.evaluateScript("""
-                    
-                \(object.physicsName).quaternion.toEuler( rotation );
-                [\(object.physicsName).position.x, \(object.physicsName).position.y, \(object.physicsName).position.z,
-                (-rotation.x) * 180/Math.PI, (-rotation.z) * 180/Math.PI, (-rotation.y) * 180/Math.PI]
-                
-                """).toArray()!
-
-                sphereData.append(SIMD4<Float>((pos[0] as! NSNumber).floatValue, (pos[2] as! NSNumber).floatValue, (pos[1] as! NSNumber).floatValue, 1))
-                */
-                
-                if let spheres = (object.shader as? ObjectShader)?.spheres {
-                    if let transform = object.components[object.defaultName] {
-                        
-                        let x = transform.values["_posX"]!
-                        let y = transform.values["_posY"]!
-                        let z = transform.values["_posZ"]!
-
-                        for (_,sphere) in spheres.enumerated() {
-                            let mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
-                            
-                            //let r = simd_quatf(mRotation)
-                            //r.axis
-
-                            
-                            let rotated = /*float4x4(translation: [-x, -y, -z]) **/ float4x4(translation: [x, y, z]) * mRotation * SIMD4<Float>(sphere.x, sphere.y, sphere.z, 1)
-                            sphereData.append(SIMD4<Float>(rotated.x, rotated.y, rotated.z, sphere.w))
-                        }
-                    }
-                }
-            }
-            sphereData.append(SIMD4<Float>(-1,-1,-1,-1))
-
-            prim.drawSpheres(texture: texture, sphereData: sphereData)
-        }
-    }
-    /*
-    
+        
     init(scene: Scene)
     {
         self.scene = scene
@@ -402,6 +547,8 @@ class Physics3D
         lastTime = time
     }
     
+    #endif
+    
     func drawDebug(texture: MTLTexture)
     {
         if let prim = primShader {
@@ -432,10 +579,6 @@ class Physics3D
                         for (_,sphere) in spheres.enumerated() {
                             let mRotation = float4x4(rotation: [transform.values["_rotateX"]!.degreesToRadians, transform.values["_rotateY"]!.degreesToRadians, transform.values["_rotateZ"]!.degreesToRadians])
                             
-                            //let r = simd_quatf(mRotation)
-                            //r.axis
-
-                            
                             let rotated = /*float4x4(translation: [-x, -y, -z]) **/ float4x4(translation: [x, y, z]) * mRotation * SIMD4<Float>(sphere.x, sphere.y, sphere.z, 1)
                             sphereData.append(SIMD4<Float>(rotated.x, rotated.y, rotated.z, sphere.w))
                         }
@@ -446,5 +589,5 @@ class Physics3D
 
             prim.drawSpheres(texture: texture, sphereData: sphereData)
         }
-    }*/
+    }
 }
