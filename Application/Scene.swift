@@ -255,8 +255,7 @@ class StageItem             : Codable, Equatable
     var componentLists      : [String:[CodeComponent]] = [:]
 
     var children            : [StageItem] = []
-    var physicsName         : String = ""
-    
+        
     var defaultName         : String = "main"
     
     var values              : [String:Float] = [:]

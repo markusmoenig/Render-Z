@@ -27,18 +27,17 @@ class Physics3D
     
     var debug           : Bool = true
     
-    var particle        : Particle3D!
+    var particleWorld   : Particle3DWorld
     
     init(scene: Scene)
     {
         self.scene = scene
+        particleWorld = Particle3DWorld()
         setup()
     }
     
     func setup()
     {
-        particle = Particle3D()
-        
         func isDisabled(shader: BaseShader) -> Bool
         {
             var disabled = false
@@ -51,7 +50,7 @@ class Physics3D
         }
         
         let shapeStage = scene.getStage(.ShapeStage)
-        for (index, object) in shapeStage.getChildren().enumerated() {
+        for (_, object) in shapeStage.getChildren().enumerated() {
             
             if let ground = object.shader as? GroundShader {
                 
@@ -74,14 +73,14 @@ class Physics3D
                 
                 if let shader = object.shader as? ObjectShader, isDisabled(shader: shader) == false {
                     //let spheres = shader.buildSpheres()
-                    
-                    object.physicsName = "object\(index)"
-                    
+                                        
                     objects.append(object)
                     valueCopies.append(transform.values)
                     
+                    let particle = Particle3D(object)
                     particle.setPosition(position: float3(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!))
-                 }
+                    particleWorld.addParticle(particle: particle)
+                }
             }
         }
         
@@ -109,16 +108,15 @@ class Physics3D
 
         if let lTime = lastTime {
             let duration = Float(time - lTime)
-            
-            for object in objects {
-                let transform = object.components[object.defaultName]!
 
-                particle.integrate(duration: duration)
+            particleWorld.runPhysics(duration: duration)
+
+            for particle in particleWorld.particles {
+                let transform = particle.object.components[particle.object.defaultName]!
 
                 transform.values["_posX"] = particle.position.x
                 transform.values["_posY"] = particle.position.y
                 transform.values["_posZ"] = particle.position.z
-                
             }
         }
         lastTime = time
