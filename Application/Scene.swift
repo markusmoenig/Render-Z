@@ -229,7 +229,7 @@ class Terrain               : Codable
         rayMarcher = globalApp!.libraryDialog.getItem(ofId: "RayMarch3D", withName: "RayMarch")
         if let raymarch = rayMarcher {
             setPropertyValue1(component: raymarch, name: "steps", value: 300)
-            setPropertyValue1(component: raymarch, name: "stepSize", value: 0.5)
+            setPropertyValue1(component: raymarch, name: "stepSize", value: 1.0)
         }
     }
     

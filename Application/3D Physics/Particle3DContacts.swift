@@ -86,7 +86,7 @@ class Particle3DContact
     
     var particle                : (Particle3D, Particle3D?)
     
-    var restitution             : Float = 0.4
+    var restitution             : Float = 0.8
     
     var contactNormal           : float3
     var penetration             : Float

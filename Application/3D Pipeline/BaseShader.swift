@@ -189,7 +189,7 @@ class BaseShader
                     self.shaders[shader.id] = shader
                 }
                 
-                if self as? ObjectShader != nil || self as? GroundShader != nil || self as? BackgroundShader != nil {
+                if self as? ObjectShader != nil || self as? GroundShader != nil || self as? TerrainShader != nil || self as? BackgroundShader != nil {
                     DispatchQueue.main.async {
                         globalApp!.currentEditor.render()
                         globalApp!.mmView.update()
