@@ -23,10 +23,12 @@ class Particle3D
     var inverseMass         : Float = 1.0
 
     var object              : StageItem
+    var objectSpheres       : ObjectSpheres3D
 
-    init(_ object: StageItem)
+    init(_ object: StageItem, _ objectSpheres: ObjectSpheres3D)
     {
         self.object = object
+        self.objectSpheres = objectSpheres
     }
     
     func integrate(duration: Float)

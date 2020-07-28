@@ -14,6 +14,8 @@ class TerrainShader     : BaseShader
     var object          : StageItem
     var camera          : CodeComponent
     
+    var sphereContactsState     : MTLComputePipelineState? = nil
+    
     var terrainObjects  : [StageItem] = []
     var terrainMapCode  = ""
     
@@ -732,6 +734,45 @@ class TerrainShader     : BaseShader
          
              return outColor;
          }
+        
+        kernel void sphereContacts( constant float4 *__data [[ buffer(0) ]],
+                                    constant float4 *sphereIn [[ buffer(1) ]],
+                                     device float4  *sphereOut [[ buffer(2) ]],
+                            constant SphereUniforms &uniforms [[ buffer(3) ]],
+                     texture2d<int, access::sample> terrainTexture [[texture(4)]],
+                                              uint  gid [[thread_position_in_grid]])
+        {
+            float GlobalTime = __data[0].x;
+            float GlobalSeed = __data[0].z;
+            
+            struct FuncData __funcData_;
+            thread struct FuncData *__funcData = &__funcData_;
+            __funcData_.GlobalTime = GlobalTime;
+            __funcData_.GlobalSeed = GlobalSeed;
+            __funcData_.inShape = float4(1000, 1000, -1, -1);
+            __funcData_.hash = 1.0;
+
+            __funcData_.__data = __data;
+            __funcData->terrainTexture = &terrainTexture;
+
+            float4 out = float4(0,0,0,0);
+        
+            for( int i = 0; i < uniforms.numberOfSpheres; ++i)
+            {
+                float3 position = sphereIn[i].xyz;
+
+                float4 rc = sceneMap(position, __funcData);
+                out.w = rc.x;
+        
+                if (out.w < 0) {
+                    float3 outNormal = float3(0,0,0);
+                    \(normalCode)
+                    out.xyz = outNormal;
+                }
+        
+                sphereOut[gid + i] = out;
+            }
+        }
 
         """
         
@@ -1133,5 +1174,71 @@ class TerrainShader     : BaseShader
         */
 
         return headerCode + materialFuncCode
+    }
+    
+    func sphereContacts(objectSpheres: [ObjectSpheres3D])
+    {
+        if sphereContactsState == nil {
+            sphereContactsState = createComputeState(name: "sphereContacts")
+        }
+         
+        if let state = sphereContactsState {
+                         
+            updateData()
+             
+            let commandQueue = device.makeCommandQueue()
+            let commandBuffer = commandQueue!.makeCommandBuffer()!
+            let computeEncoder = commandBuffer.makeComputeCommandEncoder()!
+             
+            computeEncoder.setComputePipelineState( state )
+            computeEncoder.setBuffer(buffer, offset: 0, index: 0)
+             
+            var sphereUniforms = SphereUniforms()
+            
+            var sphereData : [float4] = []
+            
+            for oS in objectSpheres {
+                for s in oS.spheres {
+                    sphereData.append(s + oS.position)
+                }
+            }
+            
+            sphereUniforms.numberOfSpheres = Int32(sphereData.count)
+            
+            let inBuffer = device.makeBuffer(bytes: sphereData, length: sphereData.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+            computeEncoder.setBuffer(inBuffer, offset: 0, index: 1)
+
+            let outBuffer = device.makeBuffer(length: sphereData.count * MemoryLayout<SIMD4<Float>>.stride, options: [])!
+            computeEncoder.setBuffer(outBuffer, offset: 0, index: 2)
+            computeEncoder.setBytes(&sphereUniforms, length: MemoryLayout<ObjectFragmentUniforms>.stride, index: 3)
+
+            if let terrain = globalApp!.artistEditor.getTerrain() {
+                computeEncoder.setTexture(terrain.getTexture(), index: 4)
+            }
+            
+            let numThreadgroups = MTLSize(width: 1, height: 1, depth: 1)
+            let threadsPerThreadgroup = MTLSize(width: 1, height: 1, depth: 1)
+            computeEncoder.dispatchThreadgroups(numThreadgroups, threadsPerThreadgroup: threadsPerThreadgroup)
+             
+            computeEncoder.endEncoding()
+            commandBuffer.commit()
+             
+            commandBuffer.waitUntilCompleted()
+             
+            let result = outBuffer.contents().bindMemory(to: SIMD4<Float>.self, capacity: 1)
+            
+            var index : Int = 0
+            for oS in objectSpheres {
+                for _ in oS.spheres {
+                    
+                    if result[index].w < oS.penetrationDepth {
+                        oS.penetrationDepth = result[index].w
+                        oS.hitNormal = float3(result[index].x, result[index].y, result[index].z)
+                    }
+                    
+                    index += 1
+                }
+            }
+        }
     }
 }

@@ -672,8 +672,6 @@
 		2BCF5FA4227D6EC3002FCB37 /* Variables.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF5FA2227D6EC3002FCB37 /* Variables.swift */; };
 		2BCFF4DA24C67B510003E102 /* PrimitivesShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */; };
 		2BCFF4DB24C67B510003E102 /* PrimitivesShader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */; };
-		2BCFF4E324C990980003E102 /* oimo.js in Resources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E224C990980003E102 /* oimo.js */; };
-		2BCFF4E424C990980003E102 /* oimo.js in Resources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E224C990980003E102 /* oimo.js */; };
 		2BCFF4E624CBD0F90003E102 /* Particle3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E524CBD0F80003E102 /* Particle3D.swift */; };
 		2BCFF4E724CBD0F90003E102 /* Particle3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E524CBD0F80003E102 /* Particle3D.swift */; };
 		2BCFF4E924CE58440003E102 /* Particle3DContacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4E824CE58420003E102 /* Particle3DContacts.swift */; };
@@ -727,8 +725,6 @@
 		2BFBC58822D2C51300A27FAD /* ReferenceList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFBC58622D2C51300A27FAD /* ReferenceList.swift */; };
 		2BFC2A1924C2EBD80036C047 /* Physics3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC2A1824C2EBD80036C047 /* Physics3D.swift */; };
 		2BFC2A1A24C2EBD80036C047 /* Physics3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BFC2A1824C2EBD80036C047 /* Physics3D.swift */; };
-		2BFC2A2524C302F00036C047 /* cannon.js in Resources */ = {isa = PBXBuildFile; fileRef = 2BFC2A2424C302F00036C047 /* cannon.js */; };
-		2BFC2A2624C302F00036C047 /* cannon.js in Resources */ = {isa = PBXBuildFile; fileRef = 2BFC2A2424C302F00036C047 /* cannon.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -958,7 +954,6 @@
 		2BCEC68D22A9FC48008DE5F4 /* SceneNodes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneNodes.swift; sourceTree = "<group>"; };
 		2BCF5FA2227D6EC3002FCB37 /* Variables.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Variables.swift; sourceTree = "<group>"; };
 		2BCFF4D924C6751B0003E102 /* PrimitivesShader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimitivesShader.swift; sourceTree = "<group>"; };
-		2BCFF4E224C990980003E102 /* oimo.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = oimo.js; sourceTree = "<group>"; };
 		2BCFF4E524CBD0F80003E102 /* Particle3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Particle3D.swift; sourceTree = "<group>"; };
 		2BCFF4E824CE58420003E102 /* Particle3DContacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Particle3DContacts.swift; sourceTree = "<group>"; };
 		2BCFF4EB24CE691E0003E102 /* Particle3DWorld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Particle3DWorld.swift; sourceTree = "<group>"; };
@@ -985,7 +980,6 @@
 		2BF632EC2361570600750990 /* MMTabButtonWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMTabButtonWidget.swift; sourceTree = "<group>"; };
 		2BFBC58622D2C51300A27FAD /* ReferenceList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferenceList.swift; sourceTree = "<group>"; };
 		2BFC2A1824C2EBD80036C047 /* Physics3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Physics3D.swift; sourceTree = "<group>"; };
-		2BFC2A2424C302F00036C047 /* cannon.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = cannon.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1499,8 +1493,6 @@
 				2BCFF4E824CE58420003E102 /* Particle3DContacts.swift */,
 				2BCFF4EB24CE691E0003E102 /* Particle3DWorld.swift */,
 				2BFC2A1824C2EBD80036C047 /* Physics3D.swift */,
-				2BCFF4E224C990980003E102 /* oimo.js */,
-				2BFC2A2424C302F00036C047 /* cannon.js */,
 			);
 			path = "3D Physics";
 			sourceTree = "<group>";
@@ -1768,8 +1760,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2BCFF4E324C990980003E102 /* oimo.js in Resources */,
-				2BFC2A2524C302F00036C047 /* cannon.js in Resources */,
 				2B2B5FDE242306A400B9CCF1 /* gizmo_on.tiff in Resources */,
 				2B8C51AB24B6A2A80070E8D8 /* camera.tiff in Resources */,
 				2B666FA82464D3EF00BE3E4F /* X_blue_ring.tiff in Resources */,
@@ -1859,7 +1849,6 @@
 				2B9B29DC23BB453B00C2F387 /* GameCuben.json in Resources */,
 				2B9B29B023BB44C000C2F387 /* Assets.xcassets in Resources */,
 				2B8E2FE623C71F36005619E4 /* SourceCodePro.tiff in Resources */,
-				2BFC2A2624C302F00036C047 /* cannon.js in Resources */,
 				2B8DB3852489D0FF00D57DC4 /* GreyStone.tiff in Resources */,
 				2B8C51B224B6A35F0070E8D8 /* material.tiff in Resources */,
 				2B8C51B824B6A47E0070E8D8 /* timeline.tiff in Resources */,
@@ -1872,7 +1861,6 @@
 				2B666FAC2464D48300BE3E4F /* Y_red_ring.tiff in Resources */,
 				2B9CB6F72485CCE900CFFA51 /* Y_red.tiff in Resources */,
 				2B8DB37C2489CEB700D57DC4 /* Soil.tiff in Resources */,
-				2BCFF4E424C990980003E102 /* oimo.js in Resources */,
 				2B8C51B524B6A4330070E8D8 /* scenegraph.tiff in Resources */,
 				2B9CB6F42485CC9900CFFA51 /* Z_green.tiff in Resources */,
 				2B2B5FEB242442AD00B9CCF1 /* dev_on.tiff in Resources */,

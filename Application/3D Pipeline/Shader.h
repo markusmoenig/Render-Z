@@ -45,4 +45,10 @@ typedef struct {
     Light               lights[10];
 } LightUniforms;
 
+typedef struct {
+    int                 numberOfSpheres;
+    simd_float3         position;
+    simd_float3         rotation;
+} SphereUniforms;
+
 #endif /* Shader_h */
