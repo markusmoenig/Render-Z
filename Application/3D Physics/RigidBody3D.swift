@@ -14,8 +14,8 @@ class RigidBody3D
     var inverseMass                 : Float = 1
     var inverseInertiaTensor        = _Matrix3()
 
-    var linearDamping               : Float = 0
-    var angularDamping              : Float = 0
+    var linearDamping               : Float = 0.99
+    var angularDamping              : Float = 0.99
     
     var position                    = float3(0,0,0)
     var orientation                 = _Quaternion()
@@ -24,17 +24,17 @@ class RigidBody3D
 
     var inverseInertiaTensorWorld   = _Matrix3()
 
-    var motion : Float              = 1
+    var motion                      : Float = 1
     
     var isAwake                     = true
 
-    var canSleep                    = false
+    var canSleep                    = true
 
     var transformMatrix             = _Matrix4()
 
     var forceAccum                  = float3(0,0,0)
     var torqueAccum                 = float3(0,0,0)
-    var acceleration                = float3(0,0,0)
+    var acceleration                = float3(0,-9.8,0)
 
     var lastFrameAcceleration       = float3(0,0,0)
     
@@ -57,16 +57,13 @@ class RigidBody3D
         _calculateTransformMatrix(transformMatrix, position, orientation)
 
         // Calculate the inertiaTensor in world space.
-        _transformInertiaTensor(inverseInertiaTensorWorld,
-            orientation,
-            inverseInertiaTensor,
-            transformMatrix)
+        _transformInertiaTensor(inverseInertiaTensorWorld, orientation, inverseInertiaTensor, transformMatrix)
     }
     
     func integrate(duration: Float)
     {
         if !isAwake { return }
-
+        
         // Calculate linear acceleration from force inputs.
         lastFrameAcceleration = acceleration
         lastFrameAcceleration += forceAccum * inverseMass
@@ -111,7 +108,6 @@ class RigidBody3D
             else if motion > 10 * RigidBody3D.sleepEpsilon { motion = 10 * RigidBody3D.sleepEpsilon }
         }
     }
-    
     
     func getMass() -> Float
     {

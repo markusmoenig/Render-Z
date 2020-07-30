@@ -9,6 +9,7 @@
 import Foundation
 //import JavaScriptCore
 import MetalKit
+import SceneKit
 
 class ObjectSpheres3D
 {
@@ -172,8 +173,11 @@ class Physics3D
                 for oS in objectSpheres {
                     if oS.penetrationDepth < 0 {
                         print( oS.penetrationDepth )
-                        //let contact = Particle3DContact(particle: (oS.particle3D!, nil), normal: oS.hitNormal, penetration: oS.penetrationDepth)
-                        //particleWorld.contacts.append(contact)
+                        let penetration = -oS.penetrationDepth
+                        var contactPoint : float3 = float3(oS.position.x, oS.position.y, oS.position.z)
+                        contactPoint += -oS.hitNormal * (oS.position.w - penetration)
+                        let contact = RigidBody3DContact(body: (oS.body3D!, nil), contactPoint: contactPoint, normal: oS.hitNormal, penetration: penetration)
+                        rigidBodyWorld.contacts.append(contact)
                     }
                 }
             }
@@ -185,6 +189,12 @@ class Physics3D
                         print( oS.penetrationDepth )
                         //let contact = Particle3DContact(particle: (oS.particle3D!, nil), normal: oS.hitNormal, penetration: oS.penetrationDepth)
                         //particleWorld.contacts.append(contact)
+                        let penetration = -oS.penetrationDepth
+
+                        var contactPoint : float3 = float3(oS.position.x, oS.position.y, oS.position.z)
+                        contactPoint += -oS.hitNormal * (oS.position.w - penetration)
+                        let contact = RigidBody3DContact(body: (oS.body3D!, nil), contactPoint: contactPoint, normal: oS.hitNormal, penetration: penetration)
+                        rigidBodyWorld.contacts.append(contact)
                     }
                 }
             }
@@ -192,12 +202,20 @@ class Physics3D
             // Step
             rigidBodyWorld.runPhysics(duration: duration)
 
-            for particle in particleWorld.particles {
-                let transform = particle.object.components[particle.object.defaultName]!
+            for body in rigidBodyWorld.bodies {
+                let transform = body.object.components[body.object.defaultName]!
 
-                transform.values["_posX"] = particle.position.x
-                transform.values["_posY"] = particle.position.y
-                transform.values["_posZ"] = particle.position.z
+                transform.values["_posX"] = body.position.x
+                transform.values["_posY"] = body.position.y
+                transform.values["_posZ"] = body.position.z
+                
+                let node = SCNNode()
+                node.simdOrientation.real = body.orientation.r
+                node.simdOrientation.imag = float3(body.orientation.i, body.orientation.j, body.orientation.k)
+
+                transform.values["_rotateX"] = node.simdRotation.x// body.rotation.x
+                transform.values["_rotateY"] = node.simdRotation.y// body.rotation.y
+                transform.values["_rotateZ"] = node.simdRotation.z//body.rotation.z
             }
         }
         lastTime = time
