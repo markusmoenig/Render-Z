@@ -27,7 +27,8 @@ class ObjectSpheres3D
     var penetrationDepth: Float = Float.greatestFiniteMagnitude
 
     var particle3D      : Particle3D? = nil
-    
+    var body3D          : RigidBody3D? = nil
+
     var hitObject       : StageItem? = nil
     
     init(spheres: [float4], object: StageItem, transform: CodeComponent)
@@ -65,7 +66,8 @@ class Physics3D
     var debug           : Bool = true
     
     var particleWorld   : Particle3DWorld
-    
+    var rigidBodyWorld  : RigidBody3DWorld
+
     var objectSpheres   : [ObjectSpheres3D] = []
     
     var groundShader    : GroundShader? = nil
@@ -75,6 +77,7 @@ class Physics3D
     {
         self.scene = scene
         particleWorld = Particle3DWorld()
+        rigidBodyWorld = RigidBody3DWorld()
         setup()
     }
     
@@ -122,11 +125,13 @@ class Physics3D
                     valueCopies.append(transform.values)
                     
                     let objectSpheres = ObjectSpheres3D(spheres: spheres, object: object, transform: transform)
-                    let particle = Particle3D(object, objectSpheres)
-                    objectSpheres.particle3D = particle
+                    //let particle = Particle3D(object, objectSpheres)
+                    let body = RigidBody3D(object, objectSpheres)
+                    //objectSpheres.particle3D = particle
+                    objectSpheres.body3D = body
                     self.objectSpheres.append(objectSpheres)
-                    particle.setPosition(position: float3(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!))
-                    particleWorld.addParticle(particle: particle)
+                    body.setPosition(float3(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!))
+                    rigidBodyWorld.addBody(body)
                 }
             }
         }
@@ -167,8 +172,8 @@ class Physics3D
                 for oS in objectSpheres {
                     if oS.penetrationDepth < 0 {
                         print( oS.penetrationDepth )
-                        let contact = Particle3DContact(particle: (oS.particle3D!, nil), normal: oS.hitNormal, penetration: oS.penetrationDepth)
-                        particleWorld.contacts.append(contact)
+                        //let contact = Particle3DContact(particle: (oS.particle3D!, nil), normal: oS.hitNormal, penetration: oS.penetrationDepth)
+                        //particleWorld.contacts.append(contact)
                     }
                 }
             }
@@ -178,14 +183,14 @@ class Physics3D
                 for oS in objectSpheres {
                     if oS.penetrationDepth < 0 {
                         print( oS.penetrationDepth )
-                        let contact = Particle3DContact(particle: (oS.particle3D!, nil), normal: oS.hitNormal, penetration: oS.penetrationDepth)
-                        particleWorld.contacts.append(contact)
+                        //let contact = Particle3DContact(particle: (oS.particle3D!, nil), normal: oS.hitNormal, penetration: oS.penetrationDepth)
+                        //particleWorld.contacts.append(contact)
                     }
                 }
             }
             
             // Step
-            particleWorld.runPhysics(duration: duration)
+            rigidBodyWorld.runPhysics(duration: duration)
 
             for particle in particleWorld.particles {
                 let transform = particle.object.components[particle.object.defaultName]!

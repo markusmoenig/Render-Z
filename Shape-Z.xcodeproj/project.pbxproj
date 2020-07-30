@@ -682,6 +682,10 @@
 		2BCFF4F024D0F9BD0003E102 /* PhysicsMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4EE24D0F9BC0003E102 /* PhysicsMath.swift */; };
 		2BCFF4F224D111590003E102 /* RigidBody3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F124D111580003E102 /* RigidBody3D.swift */; };
 		2BCFF4F324D111590003E102 /* RigidBody3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F124D111580003E102 /* RigidBody3D.swift */; };
+		2BCFF4F524D14D490003E102 /* RigidBody3DContacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F424D14D480003E102 /* RigidBody3DContacts.swift */; };
+		2BCFF4F624D14D490003E102 /* RigidBody3DContacts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F424D14D480003E102 /* RigidBody3DContacts.swift */; };
+		2BCFF4F824D2A1D70003E102 /* RigidBody3DWorld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F724D2A1280003E102 /* RigidBody3DWorld.swift */; };
+		2BCFF4F924D2A1D70003E102 /* RigidBody3DWorld.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCFF4F724D2A1280003E102 /* RigidBody3DWorld.swift */; };
 		2BD0E1D7245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
 		2BD0E1D8245A5F6100A61586 /* maximize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D5245A5F6000A61586 /* maximize.tiff */; };
 		2BD0E1D9245A5F6100A61586 /* minimize.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 2BD0E1D6245A5F6100A61586 /* minimize.tiff */; };
@@ -963,6 +967,8 @@
 		2BCFF4EB24CE691E0003E102 /* Particle3DWorld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Particle3DWorld.swift; sourceTree = "<group>"; };
 		2BCFF4EE24D0F9BC0003E102 /* PhysicsMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhysicsMath.swift; sourceTree = "<group>"; };
 		2BCFF4F124D111580003E102 /* RigidBody3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidBody3D.swift; sourceTree = "<group>"; };
+		2BCFF4F424D14D480003E102 /* RigidBody3DContacts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidBody3DContacts.swift; sourceTree = "<group>"; };
+		2BCFF4F724D2A1280003E102 /* RigidBody3DWorld.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RigidBody3DWorld.swift; sourceTree = "<group>"; };
 		2BD0E1D5245A5F6000A61586 /* maximize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = maximize.tiff; sourceTree = "<group>"; };
 		2BD0E1D6245A5F6100A61586 /* minimize.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = minimize.tiff; sourceTree = "<group>"; };
 		2BD291B623D435B6006F66BC /* Combo2D.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Combo2D.metal; sourceTree = "<group>"; };
@@ -1501,6 +1507,8 @@
 				2BFC2A1824C2EBD80036C047 /* Physics3D.swift */,
 				2BCFF4EE24D0F9BC0003E102 /* PhysicsMath.swift */,
 				2BCFF4F124D111580003E102 /* RigidBody3D.swift */,
+				2BCFF4F424D14D480003E102 /* RigidBody3DContacts.swift */,
+				2BCFF4F724D2A1280003E102 /* RigidBody3DWorld.swift */,
 			);
 			path = "3D Physics";
 			sourceTree = "<group>";
@@ -2059,6 +2067,7 @@
 				2B7A3C5923B59818002EC5FC /* CodeSemantics.swift in Sources */,
 				2B59875823D15BD0007E335F /* Combo2D.swift in Sources */,
 				2B7A3C1323B46546002EC5FC /* MMFloatPopUp.swift in Sources */,
+				2BCFF4F524D14D490003E102 /* RigidBody3DContacts.swift in Sources */,
 				2B7A3C0C23B46546002EC5FC /* MMRegion.swift in Sources */,
 				2B8CC6CB23C1EBB400CFCB93 /* DeveloperEditor.swift in Sources */,
 				2B7A3C1C23B46546002EC5FC /* MMTreeWidget.swift in Sources */,
@@ -2075,6 +2084,7 @@
 				2B8444DC24945B890082EE1D /* BackShader.swift in Sources */,
 				2B716BEE24A039D0002DA1FD /* ThumbnailShader.swift in Sources */,
 				2B9B29F623BF1DDB00C2F387 /* Dialogs.swift in Sources */,
+				2BCFF4F824D2A1D70003E102 /* RigidBody3DWorld.swift in Sources */,
 				2BF1ABE62499E3E000466979 /* UtilityShader.swift in Sources */,
 				2B7A3C0E23B46546002EC5FC /* MMUtils.swift in Sources */,
 				2B7A3C1A23B46546002EC5FC /* MMScrollButton.swift in Sources */,
@@ -2296,6 +2306,7 @@
 			files = (
 				2B9B29C323BB453400C2F387 /* MMRegion.swift in Sources */,
 				2B9B29E323BB45C000C2F387 /* TopRegion.swift in Sources */,
+				2BCFF4F624D14D490003E102 /* RigidBody3DContacts.swift in Sources */,
 				2B9B29AB23BB44BF00C2F387 /* ViewController.swift in Sources */,
 				2B2B60082426028000B9CCF1 /* ExportDialog.swift in Sources */,
 				2BCFF4E724CBD0F90003E102 /* Particle3D.swift in Sources */,
@@ -2318,6 +2329,7 @@
 				2B40D80B23FE0D8300D46B2F /* Combo3D.metal in Sources */,
 				2B716BEF24A039D0002DA1FD /* ThumbnailShader.swift in Sources */,
 				2B8E2FEC23C81CD9005619E4 /* CodeUtilities.swift in Sources */,
+				2BCFF4F924D2A1D70003E102 /* RigidBody3DWorld.swift in Sources */,
 				2B9B29A723BB44BF00C2F387 /* AppDelegate.swift in Sources */,
 				2BCFF4F324D111590003E102 /* RigidBody3D.swift in Sources */,
 				2B8444DD24945B8A0082EE1D /* BackShader.swift in Sources */,

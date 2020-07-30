@@ -40,6 +40,15 @@ class RigidBody3D
     
     static var sleepEpsilon         : Float = 0.1
     
+    var object                      : StageItem
+    var objectSpheres               : ObjectSpheres3D
+
+    init(_ object: StageItem, _ objectSpheres: ObjectSpheres3D)
+    {
+        self.object = object
+        self.objectSpheres = objectSpheres
+    }
+    
     func calculateDerivedData()
     {
         orientation.normalise()
@@ -253,7 +262,7 @@ class RigidBody3D
         orientation.normalise()
     }
 
-    func getOrientation(orientation: _Quaternion)
+    func getOrientation(_ orientation: _Quaternion)
     {
         orientation.r = self.orientation.r
         orientation.i = self.orientation.i
@@ -266,10 +275,11 @@ class RigidBody3D
         return orientation
     }
 
+    /*
     func getOrientation(_ matrix: _Matrix3)
     {
         getOrientation(matrix)
-    }
+    }*/
 
     /*
     func getOrientation(matrix: [Float])
@@ -287,7 +297,7 @@ class RigidBody3D
         matrix[8] = transformMatrix.data[10]
     }*/
 
-    func getTransform(transform: _Matrix4)
+    func getTransform(_ transform: _Matrix4)
     {
         //memcpy(transform, &transformMatrix.data, sizeof(Matrix4));
         transform.data = transformMatrix.data
@@ -304,5 +314,187 @@ class RigidBody3D
         
         return data
     }
+    
+    func getGLTransform() -> [Float]
+    {
+        var matrix = transformMatrix.data
 
+        matrix[0] = transformMatrix.data[0]
+        matrix[1] = transformMatrix.data[4]
+        matrix[2] = transformMatrix.data[8]
+        matrix[3] = 0
+
+        matrix[4] = transformMatrix.data[1]
+        matrix[5] = transformMatrix.data[5]
+        matrix[6] = transformMatrix.data[9]
+        matrix[7] = 0
+
+        matrix[8] = transformMatrix.data[2]
+        matrix[9] = transformMatrix.data[6]
+        matrix[10] = transformMatrix.data[10]
+        matrix[11] = 0
+
+        matrix[12] = transformMatrix.data[3]
+        matrix[13] = transformMatrix.data[7]
+        matrix[14] = transformMatrix.data[11]
+        matrix[15] = 1
+        
+        return matrix
+    }
+
+    func getTransform() -> _Matrix4
+    {
+        return transformMatrix
+    }
+
+    func getPointInLocalSpace(_ point: float3) -> float3
+    {
+        return transformMatrix.transformInverse(point)
+    }
+
+    func getPointInWorldSpace(_ point: float3) -> float3
+    {
+        return transformMatrix.transform(point)
+    }
+    
+    func getDirectionInLocalSpace(_ direction: float3) -> float3
+    {
+        return transformMatrix.transformInverseDirection(direction)
+    }
+
+    func getDirectionInWorldSpace(_ direction: float3) -> float3
+    {
+        return transformMatrix.transformDirection(direction)
+    }
+
+    func setVelocity(_ velocity: float3)
+    {
+        self.velocity = velocity
+    }
+
+    func setVelocity(_ x: Float,_ y: Float,_ z: Float)
+    {
+        velocity.x = x
+        velocity.y = y
+        velocity.z = z
+    }
+
+    func getVelocity() -> float3
+    {
+        return velocity
+    }
+    
+    func addVelocity(_ deltaVelocity: float3)
+    {
+        velocity += deltaVelocity
+    }
+
+    func setRotation(rotation: float3)
+    {
+        self.rotation = rotation
+    }
+
+    func setRotation(_ x: Float,_ y: Float,_ z: Float)
+    {
+        rotation.x = x
+        rotation.y = y
+        rotation.z = z
+    }
+    
+    func getRotation() -> float3
+    {
+        return rotation
+    }
+
+    func addRotation(_ deltaRotation: float3)
+    {
+        rotation += deltaRotation
+    }
+    
+    func getAwake() -> Bool
+    {
+        return isAwake;
+    }
+
+    func setAwake(_ awake: Bool = true)
+    {
+        if (awake) {
+            isAwake = true
+
+            // Add a bit of motion to avoid it falling asleep immediately.
+            motion = RigidBody3D.sleepEpsilon * 2.0
+        } else {
+            isAwake = false
+            velocity = float3(0,0,0)
+            rotation = float3(0,0,0)
+        }
+    }
+
+    func setCanSleep(canSleep: Bool)
+    {
+        self.canSleep = canSleep
+
+        if !canSleep && !isAwake {
+            setAwake()
+        }
+    }
+
+    func getLastFrameAcceleration() -> float3
+    {
+        return lastFrameAcceleration
+    }
+
+    func clearAccumulators()
+    {
+        forceAccum = float3(0,0,0)
+        torqueAccum = float3(0,0,0)
+    }
+
+    func addForce(_ force: float3)
+    {
+        forceAccum += force
+        isAwake = true
+    }
+
+    func addForceAtBodyPoint(_ force: float3,_ point: float3)
+    {
+        // Convert to coordinates relative to center of mass.
+        let pt = getPointInWorldSpace(point)
+        addForceAtPoint(force, pt)
+    }
+
+    func addForceAtPoint(_ force: float3,_ point: float3)
+    {
+        // Convert to coordinates relative to center of mass.
+        var pt = point
+        pt -= position
+
+        forceAccum += force
+        torqueAccum += cross(pt, force)
+
+        isAwake = true
+    }
+
+    func addTorque(_ torque: float3)
+    {
+        torqueAccum += torque
+        isAwake = true
+    }
+
+    func setAcceleration(_ acceleration: float3)
+    {
+        self.acceleration = acceleration
+    }
+
+    func setAcceleration(_ x: Float,_ y: Float,_ z: Float)
+    {
+        acceleration.x = x
+        acceleration.y = y
+        acceleration.z = z
+    }
+
+    func getAcceleration() -> float3
+    {
+        return acceleration
+    }
 }

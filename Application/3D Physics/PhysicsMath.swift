@@ -688,6 +688,7 @@ class _Matrix3
      * Returns a matrix which is this matrix multiplied by the given
      * other matrix.
      */
+    /*
     func multiply(_ o: _Matrix3) -> _Matrix3
     {
         return _Matrix3(
@@ -703,7 +704,7 @@ class _Matrix3
             data[6]*o.data[1] + data[7]*o.data[4] + data[8]*o.data[7],
             data[6]*o.data[2] + data[7]*o.data[5] + data[8]*o.data[8]
         )
-    }
+    }*/
     
     /**
      * Multiplies this matrix in place by the given other matrix.
