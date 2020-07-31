@@ -132,6 +132,7 @@ class Physics3D
                     objectSpheres.body3D = body
                     self.objectSpheres.append(objectSpheres)
                     body.setPosition(float3(transform.values["_posX"]!, transform.values["_posY"]!, transform.values["_posZ"]!))
+                    body.setMass(mass: 5)
                     rigidBodyWorld.addBody(body)
                 }
             }
@@ -172,11 +173,11 @@ class Physics3D
                 ground.sphereContacts(objectSpheres: objectSpheres)
                 for oS in objectSpheres {
                     if oS.penetrationDepth < 0 {
-                        print( oS.penetrationDepth )
+                        //print( oS.penetrationDepth )
                         let penetration = -oS.penetrationDepth
                         var contactPoint : float3 = float3(oS.position.x, oS.position.y, oS.position.z)
                         contactPoint += -oS.hitNormal * (oS.position.w - penetration)
-                        let contact = RigidBody3DContact(body: (oS.body3D!, nil), contactPoint: contactPoint, normal: oS.hitNormal, penetration: penetration)
+                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: contactPoint, normal: oS.hitNormal, penetration: penetration)
                         rigidBodyWorld.contacts.append(contact)
                     }
                 }
@@ -193,7 +194,7 @@ class Physics3D
 
                         var contactPoint : float3 = float3(oS.position.x, oS.position.y, oS.position.z)
                         contactPoint += -oS.hitNormal * (oS.position.w - penetration)
-                        let contact = RigidBody3DContact(body: (oS.body3D!, nil), contactPoint: contactPoint, normal: oS.hitNormal, penetration: penetration)
+                        let contact = RigidBody3DContact(body: [oS.body3D, nil], contactPoint: contactPoint, normal: oS.hitNormal, penetration: penetration)
                         rigidBodyWorld.contacts.append(contact)
                     }
                 }
@@ -213,10 +214,16 @@ class Physics3D
                 node.simdOrientation.real = body.orientation.r
                 node.simdOrientation.imag = float3(body.orientation.i, body.orientation.j, body.orientation.k)
 
+                //print(body.orientation.r,body.orientation.i, body.orientation.j, body.orientation.k)
+                
+                //print(body.getTransform().data)
+                
                 transform.values["_rotateX"] = node.simdRotation.x// body.rotation.x
                 transform.values["_rotateY"] = node.simdRotation.y// body.rotation.y
                 transform.values["_rotateZ"] = node.simdRotation.z//body.rotation.z
             }
+        } else {
+            rigidBodyWorld.startFrame()
         }
         lastTime = time
     }

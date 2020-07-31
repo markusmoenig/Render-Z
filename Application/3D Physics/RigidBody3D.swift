@@ -15,7 +15,7 @@ class RigidBody3D
     var inverseInertiaTensor        = _Matrix3()
 
     var linearDamping               : Float = 0.99
-    var angularDamping              : Float = 0.99
+    var angularDamping              : Float = 0
     
     var position                    = float3(0,0,0)
     var orientation                 = _Quaternion()
@@ -189,7 +189,7 @@ class RigidBody3D
         return inverseInertiaTensor
     }
 
-    func getInverseInertiaTensorWorld(_ inverseInertiaTensor: _Matrix3)
+    func getInverseInertiaTensorWorld(_ inverseInertiaTensor: inout _Matrix3)
     {
         inverseInertiaTensor.data = inverseInertiaTensorWorld.data
     }

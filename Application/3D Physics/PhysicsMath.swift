@@ -429,6 +429,31 @@ class _Matrix4
         array[14] = data[11]
         array[15] = 1
     }
+    
+    func row(_ row: Int) -> float4
+    {
+        return float4(
+            data[row*4],
+            data[row*4+1],
+            data[row*4+2],
+            data[row*4+3]
+        )
+    }
+    
+    func extractEulerAngleXYZ() -> float3
+    {
+        var rotXangle : Float = 0
+        var rotYangle : Float = 0
+        var rotZangle : Float = 0
+
+        rotXangle = atan2(-row(1).z, row(2).z)
+        let cosYangle = sqrt(pow(row(0).x, 2) + pow(row(0).y, 2))
+        rotYangle = atan2(row(0).z, cosYangle)
+        let sinXangle = sin(rotXangle)
+        let cosXangle = cos(rotXangle)
+        rotZangle = atan2(cosXangle * row(1).x + sinXangle * row(2).x, cosXangle * row(1).y + sinXangle * row(2).y)
+        return float3(rotXangle, rotYangle, rotZangle)
+    }
 }
 
 /**
